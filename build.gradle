@@ -22,8 +22,46 @@ repositories {
 }
 
 dependencies {
+    // ------------------| Src dependencies |------------------
+
+    // kotlin related
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+
+    // rx
+    compile "io.reactivex.rxjava2:rxjava:2.0.0"
+    compile "io.reactivex.rxjava2:rxkotlin:2.0.0"
+
+    // Iroha bindings
+    // TODO @muratovv: add lib
+
+    // Eth library
+    // TODO @muratovv: add lib
+
+    // Waves library
+    // TODO @muratovv: add lib
+
+    // DB layer
+    // TODO @muratovv: add lib
+
+    // logging
+    // TODO @muratovv: add lib
+
+    // CLI arguments
+    // TODO @muratovv: add lib
+
+    // Kyber
+    // TODO @muratovv: add lib
+
+
+    // ------------------| Test dependencies |------------------
+
+    // unit tests
     testCompile group: 'junit', name: 'junit', version: '4.12'
+
+    // mocks
+    // TODO @muratovv: add lib
+
+
 }
 
 compileKotlin {
