@@ -1,7 +1,6 @@
 # Created by .ignore support plugin (hsz.mobi)
 ### Kotlin template
 # Compiled class file
-*.class
 
 # Log file
 *.log
@@ -68,6 +67,7 @@ cmake-build-release/
 
 # IntelliJ
 out/
+*.iml
 
 # mpeltonen/sbt-idea plugin
 .idea_modules/
