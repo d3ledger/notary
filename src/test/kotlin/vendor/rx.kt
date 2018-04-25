@@ -20,5 +20,4 @@ class KotlinJunitTest {
                         onNext = { Assert.assertTrue(it == 1) }
                 )
     }
-
 }
