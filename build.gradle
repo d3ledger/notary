@@ -41,7 +41,8 @@ dependencies {
     compile 'com.wavesplatform:wavesj:0.4'
 
     // DB layer
-    // TODO @muratovv: add lib
+    compile 'org.jooq:jooq:3.10.6'
+    compile 'org.xerial:sqlite-jdbc:3.7.2'
 
     // logging
     compile 'org.slf4j:slf4j-simple:1.7.25'
@@ -59,7 +60,6 @@ dependencies {
 
     // mocks
     // TODO @muratovv: add lib
-
 
 }
 
