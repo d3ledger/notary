@@ -38,7 +38,7 @@ dependencies {
     // TODO @muratovv: add lib
 
     // Waves library
-    // TODO @muratovv: add lib
+    compile group: 'com.wavesplatform', name: 'wavesj', version: '0.4'
 
     // DB layer
     // TODO @muratovv: add lib
