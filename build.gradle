@@ -35,23 +35,22 @@ dependencies {
     // TODO @muratovv: add lib
 
     // Eth library
-    // TODO @muratovv: add lib
+    compile 'org.web3j:core:3.3.1'
 
     // Waves library
-    compile group: 'com.wavesplatform', name: 'wavesj', version: '0.4'
+    compile 'com.wavesplatform:wavesj:0.4'
 
     // DB layer
     // TODO @muratovv: add lib
 
     // logging
-    // TODO @muratovv: add lib
+    compile 'org.slf4j:slf4j-simple:1.7.25'
 
     // CLI arguments
     // TODO @muratovv: add lib
 
     // Kyber
     // TODO @muratovv: add lib
-
 
     // ------------------| Test dependencies |------------------
 
