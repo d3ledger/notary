@@ -22,5 +22,5 @@ interface Notary {
     /**
      * Observable with output for sending to Iroha
      */
-    fun IrohaOutput() : io.reactivex.Observable<IrohaOrderedBatch>
+    fun irohaOutput() : io.reactivex.Observable<IrohaOrderedBatch>
 }
