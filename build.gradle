@@ -57,9 +57,7 @@ dependencies {
 
     // unit tests
     testCompile group: 'junit', name: 'junit', version: '4.12'
-
-    // mocks
-    // TODO @muratovv: add lib
+    testCompile "com.nhaarman:mockito-kotlin:1.5.0"
 
 }
 
