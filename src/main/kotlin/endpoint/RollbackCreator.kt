@@ -6,7 +6,7 @@ package endpoint
  * @param Request type of custodian's request
  * @param NotaryResponse type of notary response
  */
-abstract class Rollback<Request, NotaryResponse> {
+abstract class RollbackCreator<Request, NotaryResponse> {
 
     /**
      * Perform rollback for side chain
