@@ -9,5 +9,5 @@ interface ChainListener<Block> {
     /**
      * @return blocks that committed in the network
      */
-    fun onNewBlock(): io.reactivex.Observable<Block>
+    fun onNewBlockObservable(): io.reactivex.Observable<Block>
 }
