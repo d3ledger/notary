@@ -46,6 +46,7 @@ dependencies {
 
     // logging
     compile 'org.slf4j:slf4j-simple:1.7.25'
+    compile 'io.github.microutils:kotlin-logging:1.4.9'
 
     // CLI arguments
     compile group: 'com.xenomachina', name: 'kotlin-argparser', version: '2.0.6'
@@ -57,7 +58,8 @@ dependencies {
 
     // unit tests
     testCompile group: 'junit', name: 'junit', version: '4.12'
-    testCompile "com.nhaarman:mockito-kotlin:1.5.0"
+    // TODO @muratovv: rework wtih testCompile when mocks go out from production code
+    compile "com.nhaarman:mockito-kotlin:1.5.0"
 
 }
 
