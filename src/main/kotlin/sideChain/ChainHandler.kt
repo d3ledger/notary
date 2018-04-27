@@ -3,10 +3,10 @@ package sideChain
 /**
  * Class emit events received from side chain
  */
-abstract class ChainHandler<ChainEvent> {
+interface ChainHandler<ChainEvent> {
 
     /**
      * @return observable with emitted chain events
      */
-    abstract fun onNewEvent(): io.reactivex.Observable<ChainEvent>
+    fun onNewEvent(): io.reactivex.Observable<ChainEvent>
 }

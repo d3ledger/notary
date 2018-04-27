@@ -6,10 +6,10 @@ package endpoint
  * @param Request type of custodian's request
  * @param NotaryResponse type of notary response
  */
-abstract class RollbackCreator<Request, NotaryResponse> {
+interface RollbackCreator<Request, NotaryResponse> {
 
     /**
      * Perform rollback for side chain
      */
-    abstract fun rollbackEndPoint(request: Request) : NotaryResponse
+    fun rollbackEndPoint(request: Request) : NotaryResponse
 }
