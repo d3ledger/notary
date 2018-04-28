@@ -1,5 +1,4 @@
-package sideChain
-
+package sideChain.eth
 
 /**
  * Common class for all interested Ethereum events

@@ -12,7 +12,6 @@ import java.util.concurrent.TimeUnit
  * Dummy implementation of [ChainListener] with effective dependencies
  */
 class EthChainListenerStub : ChainListener<EthStubBlock> {
-    companion object : KLogging()
 
     /**
      * // TODO 20:17, @muratovv: rework with effective impelementation
@@ -27,4 +26,9 @@ class EthChainListenerStub : ChainListener<EthStubBlock> {
             }
         }.observeOn(scheduler).subscribeOn(scheduler)
     }
+
+    /**
+     * Logger
+     */
+    companion object : KLogging()
 }

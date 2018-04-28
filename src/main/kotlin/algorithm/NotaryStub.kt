@@ -4,13 +4,13 @@ import com.nhaarman.mockito_kotlin.mock
 import io.reactivex.Observable
 import mu.KLogging
 import sideChain.*
+import sideChain.eth.EthChainEvent
+import sideChain.eth.OnEthSidechainTransfer
 
+/**
+ * Dummy implementation of [Notary] with effective dependencies
+ */
 class NotaryStub(private val ethHandler: ChainHandler<EthChainEvent>) : Notary {
-
-    /**
-     * Logger
-     */
-    companion object : KLogging()
 
     override fun onEthEvent(ethEvent: EthChainEvent) {
         logger.info { "Notary performs ETH event" }
@@ -30,4 +30,9 @@ class NotaryStub(private val ethHandler: ChainHandler<EthChainEvent>) : Notary {
             mock<IrohaOrderedBatch>()
         }
     }
+
+    /**
+     * Logger
+     */
+    companion object : KLogging()
 }

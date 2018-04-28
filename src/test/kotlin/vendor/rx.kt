@@ -16,8 +16,8 @@ class KotlinJunitTest {
         val list = listOf(1, 1, 1, 1)
 
         list.toObservable()
-                .subscribeBy(  // named arguments for lambda Subscribers
-                        onNext = { Assert.assertTrue(it == 1) }
-                )
+            .subscribeBy(  // named arguments for lambda Subscribers
+                onNext = { Assert.assertTrue(it == 1) }
+            )
     }
 }

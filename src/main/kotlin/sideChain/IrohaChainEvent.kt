@@ -13,4 +13,4 @@ abstract class OnIrohaAddPeer : IrohaChainEvent()
 /**
  * Event which is raised when custodian transfer assets to notary account
  */
-abstract class onIrohaSideChainTransfer : IrohaChainEvent()
+abstract class OnIrohaSideChainTransfer : IrohaChainEvent()

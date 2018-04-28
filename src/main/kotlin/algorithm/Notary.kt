@@ -1,11 +1,11 @@
 package algorithm
 
-import sideChain.EthChainEvent
+import sideChain.eth.EthChainEvent
 import sideChain.IrohaChainEvent
 import sideChain.IrohaOrderedBatch
 
 /**
- * Class conducts work of notary for performing 2WP in Iroha and side chains
+ * Interface for performing 2WP in Iroha and side chains
  */
 interface Notary {
 
@@ -22,5 +22,5 @@ interface Notary {
     /**
      * Observable with output for sending to Iroha
      */
-    fun irohaOutput() : io.reactivex.Observable<IrohaOrderedBatch>
+    fun irohaOutput(): io.reactivex.Observable<IrohaOrderedBatch>
 }

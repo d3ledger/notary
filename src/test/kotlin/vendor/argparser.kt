@@ -13,12 +13,12 @@ class ArgParserUsageTest {
         val c by parser.storing("c option")
     }
 
-    val args = arrayOf("-c3", "-v", "-N", "\"Lev Tolstoy\"", "-c", "3")
+    private val args = arrayOf("-c3", "-v", "-N", "\"Lev Tolstoy\"", "-c", "3")
 
     @Test
     fun argParserUsage() {
         ArgParser(args).parseInto(ArgParserUsageTest::TestArgs).run {
-            Assert.assertTrue(v == true)
+            Assert.assertTrue(v)
             Assert.assertEquals("\"Lev Tolstoy\"", name)
             Assert.assertEquals("3", c)
         }

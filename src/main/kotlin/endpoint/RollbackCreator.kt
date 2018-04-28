@@ -11,5 +11,5 @@ interface RollbackCreator<Request, NotaryResponse> {
     /**
      * Perform rollback for side chain
      */
-    fun rollbackEndPoint(request: Request) : NotaryResponse
+    fun rollbackEndPoint(request: Request): NotaryResponse
 }

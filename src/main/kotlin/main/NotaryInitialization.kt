@@ -8,19 +8,12 @@ import mu.KLogging
 import sideChain.eth.EthChainHandlerStub
 import sideChain.eth.EthChainListenerStub
 
-
 /**
  * Class for notary instantiation
  */
 class NotaryInitialization {
-    /**
-     * Logger
-     */
-    companion object : KLogging()
-
 
     // ------------------------------------------| ETH |------------------------------------------
-
 
     private lateinit var ethChainHandler: EthChainListenerStub
 
@@ -29,8 +22,9 @@ class NotaryInitialization {
 
     // ------------------------------------------| Notary |------------------------------------------
 
-
     private lateinit var notary: Notary
+
+    // ------------------------------------------| Iroha |------------------------------------------
 
     private lateinit var iroha: IrohaConsumer
 
@@ -45,23 +39,40 @@ class NotaryInitialization {
         initIrohaConsumer()
     }
 
+    /**
+     * Init Ethereum chain
+     */
     fun initEthChain() {
-        logger.info { "Eth chain" }
+        logger.info { "Init Eth chain" }
         ethChainHandler = EthChainListenerStub()
     }
 
+    /**
+     * Init Iroha chain
+     */
     fun initIrohaChain() {
-        logger.info { "Iroha chain" }
+        logger.info { "Init Iroha chain" }
         ethHandler = EthChainHandlerStub(ethChainHandler)
     }
 
+    /**
+     * Init Notary
+     */
     fun initNotary() {
-        logger.info { "Notary algorithm" }
+        logger.info { "Init Notary algorithm" }
         notary = NotaryStub(ethHandler)
     }
 
+    /**
+     * Init Iroha consumer
+     */
     fun initIrohaConsumer() {
-        logger.info { "Iroha consumer" }
+        logger.info { "Init Iroha consumer" }
         iroha = IrohaConsumerStub(notary)
     }
+
+    /**
+     * Logger
+     */
+    companion object : KLogging()
 }

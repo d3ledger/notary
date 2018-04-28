@@ -6,16 +6,16 @@ import com.nhaarman.mockito_kotlin.mock
 import org.junit.Assert
 import org.junit.Test
 
-interface Dependency{
-    fun foo(a:Int): String
+interface Dependency {
+    fun foo(a: Int): String
 }
 
 class MockitoUsage {
     @Test
     fun mockitoUsage() {
-        val mock = mock<Dependency>{
-            on {foo(any())} doReturn "2"
-            on {foo(1)} doReturn "1"
+        val mock = mock<Dependency> {
+            on { foo(any()) } doReturn "2"
+            on { foo(1) } doReturn "1"
         }
 
         Assert.assertEquals("1", mock.foo(1))
