@@ -26,7 +26,7 @@ class NotaryStub(private val ethHandler: ChainHandler<EthChainEvent>) : Notary {
     override fun irohaOutput(): Observable<IrohaOrderedBatch> {
         return ethHandler.onNewEvent().map {
             onEthEvent(mock<OnEthSidechainTransfer>())
-            logger.info { "Notary make some work" }
+            logger.info { "Notary does some work" }
             mock<IrohaOrderedBatch>()
         }
     }

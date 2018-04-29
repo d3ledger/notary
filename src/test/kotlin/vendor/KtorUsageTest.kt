@@ -9,9 +9,12 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 
-class KtorUsage {
+/**
+ * Starts a server for 15s.
+ */
+class KtorUsageTest {
     @Test
-    fun ktorUsage() {
+    fun ktorUsageTest() {
         val server = embeddedServer(Netty, port = 8080) {
             routing {
                 get("/") {
@@ -23,6 +26,6 @@ class KtorUsage {
             }
         }
         server.start(wait = false)
-        Thread.sleep(10_000)
+//        Thread.sleep(15_000)
     }
 }
