@@ -86,5 +86,18 @@ compileTestKotlin {
 
 sourceSets {
     main.java.srcDirs += 'src/main'
+    // iroha bindings
+    main.java.srcDirs += 'build/shared_model/bindings'
+
     test.java.srcDirs += 'src/test'
+    //iroha bindings
+    test.java.srcDirs += 'build/shared_model/bindings'
+}
+
+task compileIrohaBindings(type: Exec) {
+    commandLine './vendor/iroha/example/java/prepare.sh'
+}
+
+test {
+    systemProperty 'java.library.path', 'build/shared_model/bindings'
 }
