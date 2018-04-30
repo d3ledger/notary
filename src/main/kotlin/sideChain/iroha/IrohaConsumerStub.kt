@@ -1,7 +1,7 @@
-package algorithm
+package sideChain.iroha
 
 import mu.KLogging
-import sideChain.iroha.IrohaOrderedBatch
+import notary.Notary
 
 /**
  * Dummy implementation of [IrohaConsumer] with effective dependency
