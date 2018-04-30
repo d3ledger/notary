@@ -1,4 +1,4 @@
-package algorithm
+package notary
 
 /**
  * All event [Notary] is waiting for.

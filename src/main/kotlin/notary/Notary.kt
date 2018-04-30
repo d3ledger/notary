@@ -1,4 +1,4 @@
-package algorithm
+package notary
 
 import sideChain.iroha.IrohaOrderedBatch
 

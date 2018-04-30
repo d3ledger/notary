@@ -1,12 +1,14 @@
 package sideChain
 
+import notary.NotaryEvent
+
 /**
- * Class emit events received from side chain
+ * Class emit [NotaryEvent] received from side chain
  */
-interface ChainHandler<ChainEvent> {
+interface ChainHandler {
 
     /**
      * @return observable with emitted chain events
      */
-    fun onNewEvent(): io.reactivex.Observable<ChainEvent>
+    fun onNewEvent(): io.reactivex.Observable<NotaryEvent>
 }

@@ -1,15 +1,13 @@
-package main
+package notary
 
-import algorithm.IrohaConsumer
-import algorithm.IrohaConsumerStub
-import algorithm.Notary
-import algorithm.NotaryStub
+import sideChain.iroha.IrohaConsumer
 import endpoint.RefundEndpoint
 import mu.KLogging
 import sideChain.eth.EthChainHandlerStub
 import sideChain.eth.EthChainListenerStub
 import sideChain.iroha.IrohaChainHandlerStub
 import sideChain.iroha.IrohaChainListenerStub
+import sideChain.iroha.IrohaConsumerStub
 
 /**
  * Class for notary instantiation
@@ -19,21 +17,16 @@ class NotaryInitialization {
     private lateinit var refundEndpoint: RefundEndpoint
 
     // ------------------------------------------| ETH |------------------------------------------
-
-    private lateinit var ethChainHandler: EthChainListenerStub
-
+    private lateinit var ethChainListener: EthChainListenerStub
     private lateinit var ethHandler: EthChainHandlerStub
 
-
-    // ------------------------------------------| Notary |------------------------------------------
-
-    private lateinit var notary: Notary
-
     // ------------------------------------------| Iroha |------------------------------------------
-
-    private lateinit var iroha: IrohaConsumer
+    private lateinit var irohaConsumer: IrohaConsumer
     private lateinit var irohaChainListener: IrohaChainListenerStub
     private lateinit var irohaHandler: IrohaChainHandlerStub
+
+    // ------------------------------------------| Notary |------------------------------------------
+    private lateinit var notary: Notary
 
     /**
      * Init notary
@@ -52,8 +45,8 @@ class NotaryInitialization {
      */
     fun initEthChain() {
         logger.info { "Init Eth chain" }
-        ethChainHandler = EthChainListenerStub()
-        ethHandler = EthChainHandlerStub(ethChainHandler)
+        ethChainListener = EthChainListenerStub()
+        ethHandler = EthChainHandlerStub(ethChainListener)
     }
 
     /**
@@ -69,7 +62,7 @@ class NotaryInitialization {
      * Init Notary
      */
     fun initNotary() {
-        logger.info { "Init Notary algorithm" }
+        logger.info { "Init Notary notary" }
         notary = NotaryStub(ethHandler, irohaHandler)
     }
 
@@ -78,7 +71,7 @@ class NotaryInitialization {
      */
     fun initIrohaConsumer() {
         logger.info { "Init Iroha consumer" }
-        iroha = IrohaConsumerStub(notary)
+        irohaConsumer = IrohaConsumerStub(notary)
     }
 
     /**

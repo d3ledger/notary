@@ -1,6 +1,6 @@
 package sideChain.iroha
 
-import algorithm.NotaryEvent
+import notary.NotaryEvent
 import com.nhaarman.mockito_kotlin.mock
 import io.reactivex.Observable
 import mu.KLogging
@@ -11,7 +11,7 @@ import sideChain.ChainListener
  * Dummy implementation of [ChainHandler] with effective dependencies
  */
 class IrohaChainHandlerStub constructor(private val listenerStub: ChainListener<IrohaBlockStub>) :
-    ChainHandler<NotaryEvent> {
+    ChainHandler {
 
     override fun onNewEvent(): Observable<NotaryEvent> {
         return listenerStub.onNewBlockObservable().map {

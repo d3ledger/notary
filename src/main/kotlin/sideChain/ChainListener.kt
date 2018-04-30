@@ -1,8 +1,7 @@
 package sideChain
 
 /**
- * Class listens for new blocks in block chain
- * @param Block type of blocks in block chain
+ * Class listens for new [Block] in side block chain
  */
 interface ChainListener<Block> {
 

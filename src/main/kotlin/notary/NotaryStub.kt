@@ -1,4 +1,4 @@
-package algorithm
+package notary
 
 import com.nhaarman.mockito_kotlin.mock
 import io.reactivex.Observable
@@ -10,8 +10,8 @@ import sideChain.iroha.IrohaOrderedBatch
  * Dummy implementation of [Notary] with effective dependencies
  */
 class NotaryStub(
-    private val ethHandler: ChainHandler<NotaryEvent>,
-    private val irohaHandler: ChainHandler<NotaryEvent>
+    private val ethHandler: ChainHandler,
+    private val irohaHandler: ChainHandler
 ) : Notary {
 
     override fun onEthEvent(ethEvent: NotaryEvent.EthChainEvent) {
@@ -35,6 +35,8 @@ class NotaryStub(
                 is NotaryEvent.IrohaChainEvent -> onIrohaEvent(mock<NotaryEvent.IrohaChainEvent.OnIrohaAddPeer>())
             }
             logger.info { "Notary does some work" }
+
+            // emit event to Iroha
             mock<IrohaOrderedBatch>()
         }
     }
