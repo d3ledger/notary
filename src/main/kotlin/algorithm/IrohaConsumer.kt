@@ -1,6 +1,6 @@
 package algorithm
 
-import sideChain.IrohaOrderedBatch
+import sideChain.iroha.IrohaOrderedBatch
 
 /**
  * Interface for consuming Iroha events provided by [Notary]

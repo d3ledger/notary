@@ -1,4 +1,4 @@
-package sideChain
+package sideChain.iroha
 
 /**
  * Class represents notary intention to Iroha

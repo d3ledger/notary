@@ -1,7 +1,7 @@
 package algorithm
 
 import mu.KLogging
-import sideChain.IrohaOrderedBatch
+import sideChain.iroha.IrohaOrderedBatch
 
 /**
  * Dummy implementation of [IrohaConsumer] with effective dependency

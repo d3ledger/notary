@@ -1,4 +1,4 @@
-package sideChain.eth
+package sideChain.iroha
 
 import algorithm.NotaryEvent
 import com.nhaarman.mockito_kotlin.mock
@@ -10,13 +10,13 @@ import sideChain.ChainListener
 /**
  * Dummy implementation of [ChainHandler] with effective dependencies
  */
-class EthChainHandlerStub constructor(private val listenerStub: ChainListener<EthBlockStub>) :
+class IrohaChainHandlerStub constructor(private val listenerStub: ChainListener<IrohaBlockStub>) :
     ChainHandler<NotaryEvent> {
 
     override fun onNewEvent(): Observable<NotaryEvent> {
         return listenerStub.onNewBlockObservable().map {
-            logger.info { "Eth chain handler" }
-            mock<NotaryEvent.EthChainEvent.OnEthSidechainTransfer>()
+            logger.info { "Iroha chain handler" }
+            mock<NotaryEvent.IrohaChainEvent.OnIrohaAddPeer>()
         }
     }
 

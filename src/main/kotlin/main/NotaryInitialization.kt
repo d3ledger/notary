@@ -8,6 +8,8 @@ import endpoint.RefundEndpoint
 import mu.KLogging
 import sideChain.eth.EthChainHandlerStub
 import sideChain.eth.EthChainListenerStub
+import sideChain.iroha.IrohaChainHandlerStub
+import sideChain.iroha.IrohaChainListenerStub
 
 /**
  * Class for notary instantiation
@@ -30,6 +32,8 @@ class NotaryInitialization {
     // ------------------------------------------| Iroha |------------------------------------------
 
     private lateinit var iroha: IrohaConsumer
+    private lateinit var irohaChainListener: IrohaChainListenerStub
+    private lateinit var irohaHandler: IrohaChainHandlerStub
 
     /**
      * Init notary
@@ -57,6 +61,8 @@ class NotaryInitialization {
      */
     fun initIrohaChain() {
         logger.info { "Init Iroha chain" }
+        irohaChainListener = IrohaChainListenerStub()
+        irohaHandler = IrohaChainHandlerStub(irohaChainListener)
     }
 
     /**
@@ -64,7 +70,7 @@ class NotaryInitialization {
      */
     fun initNotary() {
         logger.info { "Init Notary algorithm" }
-        notary = NotaryStub(ethHandler)
+        notary = NotaryStub(ethHandler, irohaHandler)
     }
 
     /**

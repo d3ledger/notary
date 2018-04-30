@@ -1,8 +1,6 @@
 package algorithm
 
-import sideChain.eth.EthChainEvent
-import sideChain.IrohaChainEvent
-import sideChain.IrohaOrderedBatch
+import sideChain.iroha.IrohaOrderedBatch
 
 /**
  * Interface for performing 2WP in Iroha and side chains
@@ -12,12 +10,12 @@ interface Notary {
     /**
      * Calls when Ethereum event is occurred
      */
-    fun onEthEvent(ethEvent: EthChainEvent)
+    fun onEthEvent(ethEvent: NotaryEvent.EthChainEvent)
 
     /**
      * Calls when Iroha event is occurred
      */
-    fun onIrohaEvent(irohaEvent: IrohaChainEvent)
+    fun onIrohaEvent(irohaEvent: NotaryEvent.IrohaChainEvent)
 
     /**
      * Observable with output for sending to Iroha
