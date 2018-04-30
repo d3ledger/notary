@@ -97,6 +97,7 @@ sourceSets {
 task compileIrohaBindings(type: Exec) {
     commandLine './vendor/iroha/example/java/prepare.sh'
 }
+tasks.compileTestKotlin.dependsOn(compileIrohaBindings)
 
 test {
     systemProperty 'java.library.path', 'build/shared_model/bindings'
