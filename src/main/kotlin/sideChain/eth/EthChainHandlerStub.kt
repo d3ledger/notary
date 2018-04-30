@@ -9,7 +9,7 @@ import sideChain.ChainListener
 /**
  * Dummy implementation of [ChainHandler] with effective dependencies
  */
-class EthChainHandlerStub constructor(private val listenerStub: ChainListener<EthStubBlock>) :
+class EthChainHandlerStub constructor(private val listenerStub: ChainListener<EthBlockStub>) :
     ChainHandler<EthChainEvent> {
 
     override fun onNewEvent(): Observable<EthChainEvent> {
