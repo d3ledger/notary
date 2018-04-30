@@ -1,0 +1,27 @@
+add_library(ametsuchi
+    impl/flat_file/flat_file.cpp
+    impl/storage_impl.cpp
+    impl/temporary_wsv_impl.cpp
+    impl/mutable_storage_impl.cpp
+    impl/postgres_wsv_query.cpp
+    impl/postgres_wsv_command.cpp
+    impl/peer_query_wsv.cpp
+    impl/postgres_block_query.cpp
+    impl/postgres_block_index.cpp
+    impl/postgres_ordering_service_persistent_state.cpp
+    impl/wsv_restorer_impl.cpp
+    )
+
+target_link_libraries(ametsuchi
+    json_model_converters
+    logger
+    rxcpp
+    pqxx
+    libs_common
+    command_execution
+    boost
+    model_interfaces
+    shared_model_proto_backend
+    shared_model_proto_builders
+    shared_model_stateless_validation
+    )

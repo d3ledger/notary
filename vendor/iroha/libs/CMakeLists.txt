@@ -1,0 +1,6 @@
+add_subdirectory(amount)
+add_subdirectory(common)
+add_subdirectory(crypto)
+add_subdirectory(logger)
+add_subdirectory(generator)
+add_subdirectory(parser)
