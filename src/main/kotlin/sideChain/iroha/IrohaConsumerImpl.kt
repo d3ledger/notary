@@ -43,7 +43,7 @@ class IrohaConsumerImpl(notary: Notary) : IrohaConsumer {
     /**
      * Read key from file specified by [path]
      */
-    fun readKeyFromFile(path: String): String {
+    private fun readKeyFromFile(path: String): String {
         try {
             return String(java.nio.file.Files.readAllBytes(Paths.get(path)))
         } catch (e: java.io.IOException) {
@@ -54,13 +54,57 @@ class IrohaConsumerImpl(notary: Notary) : IrohaConsumer {
     }
 
     /** Convert [ByteVector] to [ByteArray] */
-    fun toByteArray(blob: ByteVector): ByteArray {
+    private fun toByteArray(blob: ByteVector): ByteArray {
         val size = blob.size().toInt()
         val bs = ByteArray(size)
         for (i in 0 until size) {
             bs[i] = blob.get(i).toByte()
         }
         return bs
+    }
+
+    /** Add [commands] to transaction builder */
+    private fun addCommandToBuilder(
+        builder: ModelTransactionBuilder,
+        commands: Array<IrohaCommand>
+    ): ModelTransactionBuilder {
+        var txBuilder = builder
+        for (cmd in commands) {
+            when (cmd) {
+                is IrohaCommand.commandAddAssetQuantity ->
+                    txBuilder = txBuilder.addAssetQuantity(
+                        cmd.accountId,
+                        cmd.assetId,
+                        cmd.amount
+                    )
+                is IrohaCommand.commandAddSignatory ->
+                    txBuilder = txBuilder.addSignatory(
+                        cmd.accountId,
+                        PublicKey(cmd.publicKey)
+                    )
+                is IrohaCommand.commandCreateAsset ->
+                    txBuilder = txBuilder.createAsset(
+                        cmd.assetName,
+                        cmd.domainId,
+                        cmd.precision
+                    )
+                is IrohaCommand.commandSetAccountDetail ->
+                    txBuilder = txBuilder.setAccountDetail(
+                        cmd.accountId,
+                        cmd.key,
+                        cmd.value
+                    )
+                is IrohaCommand.commandTransferAsset ->
+                    txBuilder = txBuilder.transferAsset(
+                        cmd.srcAccountId,
+                        cmd.destAccountId,
+                        cmd.assetId,
+                        cmd.description,
+                        cmd.amount
+                    )
+            }
+        }
+        return txBuilder
     }
 
     /**
@@ -74,43 +118,8 @@ class IrohaConsumerImpl(notary: Notary) : IrohaConsumer {
             var txBuilder = ModelTransactionBuilder()
                 .creatorAccountId(Configs.irohaCreator)
                 .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
-                .txCounter(BigInteger.valueOf(System.currentTimeMillis()))
 
-            for (cmd in tx) {
-                when (cmd) {
-                    is IrohaCommand.commandAddAssetQuantity ->
-                        txBuilder = txBuilder.addAssetQuantity(
-                            cmd.accountId,
-                            cmd.assetId,
-                            cmd.amount
-                        )
-                    is IrohaCommand.commandAddSignatory ->
-                        txBuilder = txBuilder.addSignatory(
-                            cmd.accountId,
-                            PublicKey(cmd.publicKey)
-                        )
-                    is IrohaCommand.commandCreateAsset ->
-                        txBuilder = txBuilder.createAsset(
-                            cmd.assetName,
-                            cmd.domainId,
-                            cmd.precision
-                        )
-                    is IrohaCommand.commandSetAccountDetail ->
-                        txBuilder = txBuilder.setAccountDetail(
-                            cmd.accountId,
-                            cmd.key,
-                            cmd.value
-                        )
-                    is IrohaCommand.commandTransferAsset ->
-                        txBuilder = txBuilder.transferAsset(
-                            cmd.srcAccountId,
-                            cmd.destAccountId,
-                            cmd.assetId,
-                            cmd.description,
-                            cmd.amount
-                        )
-                }
-            }
+            txBuilder = addCommandToBuilder(txBuilder, tx)
             val utx = txBuilder.build()
 
             // sign transaction and get its binary representation (Blob)
