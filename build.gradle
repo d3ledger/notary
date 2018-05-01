@@ -7,14 +7,16 @@ buildscript {
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.3'
     }
 }
 
 group 'd3'
 version '1.0-SNAPSHOT'
 
-apply plugin: 'java'
 apply plugin: 'kotlin'
+apply plugin: 'java'
+apply plugin: 'com.google.protobuf'
 
 sourceCompatibility = 1.8
 
@@ -26,6 +28,17 @@ repositories {
 }
 
 dependencies {
+    // protobuf
+    compile 'com.google.protobuf:protobuf-java:3.5.0'
+    compile 'io.grpc:grpc-netty:1.8.0'
+    compile 'io.grpc:grpc-protobuf:1.8.0'
+    compile 'io.grpc:grpc-stub:1.8.0'
+    if (JavaVersion.current().isJava9Compatible()) {
+        // Workaround for @javax.annotation.Generated
+        // see: https://github.com/grpc/grpc-java/issues/3633
+        compile 'javax.annotation:javax.annotation-api:1.3.1'
+    }
+
     // ------------------| Src dependencies |------------------
 
     // kotlin related
@@ -88,16 +101,35 @@ sourceSets {
     main.java.srcDirs += 'src/main'
     // iroha bindings
     main.java.srcDirs += 'build/shared_model/bindings'
+    main.java.srcDirs += 'build/generated/source/proto/main/java'
+    main.java.srcDirs += 'build/generated/source/proto/main/grpc'
 
-    test.java.srcDirs += 'src/test'
-    //iroha bindings
-    test.java.srcDirs += 'build/shared_model/bindings'
+    // iroha schema
+    main.proto.srcDirs += "vendor/iroha/schema"
 }
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.5.0"
+    }
+    plugins {
+        grpc {
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.8.0'
+        }
+    }
+    generateProtoTasks {
+        all()*.plugins {
+            grpc {}
+        }
+    }
+}
+compileKotlin.dependsOn ':generateProto'
 
 task compileIrohaBindings(type: Exec) {
     commandLine './vendor/iroha/example/java/prepare.sh'
 }
-tasks.compileTestKotlin.dependsOn(compileIrohaBindings)
+tasks.compileKotlin.dependsOn(compileIrohaBindings)
+
 
 test {
     systemProperty 'java.library.path', 'build/shared_model/bindings'

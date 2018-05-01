@@ -7,7 +7,7 @@ import sideChain.eth.EthChainHandlerStub
 import sideChain.eth.EthChainListenerStub
 import sideChain.iroha.IrohaChainHandlerStub
 import sideChain.iroha.IrohaChainListenerStub
-import sideChain.iroha.IrohaConsumerStub
+import sideChain.iroha.IrohaConsumerImpl
 
 /**
  * Class for notary instantiation
@@ -71,7 +71,7 @@ class NotaryInitialization {
      */
     fun initIrohaConsumer() {
         logger.info { "Init Iroha consumer" }
-        irohaConsumer = IrohaConsumerStub(notary)
+        irohaConsumer = IrohaConsumerImpl(notary)
     }
 
     /**
