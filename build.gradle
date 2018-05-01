@@ -37,7 +37,6 @@ dependencies {
 
     // Iroha bindings
     compile fileTree(dir: 'iroha_bindings', include: '*.jar')
-    runtime fileTree(dir: 'iroha_bindings', include: '*.jnilib')
 
     // Eth library
     compile 'org.web3j:core:3.3.1'
@@ -97,4 +96,8 @@ task compileIrohaBindings(type: Exec) {
 
 test {
     systemProperty 'java.library.path', 'build/shared_model/bindings'
+}
+
+tasks.withType(Test) {
+    systemProperty "java.library.path", "iroha_bindings"
 }
