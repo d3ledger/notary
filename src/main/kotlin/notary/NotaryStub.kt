@@ -2,9 +2,9 @@ package notary
 
 import com.nhaarman.mockito_kotlin.mock
 import io.reactivex.Observable
+import main.Configs
 import mu.KLogging
 import sideChain.*
-import sideChain.iroha.IrohaOrderedBatch
 
 /**
  * Dummy implementation of [Notary] with effective dependencies
@@ -37,7 +37,43 @@ class NotaryStub(
             logger.info { "Notary does some work" }
 
             // emit event to Iroha
-            mock<IrohaOrderedBatch>()
+            val batch = IrohaOrderedBatch()
+
+            val command1 = arrayOf(
+                IrohaCommand.commandAddAssetQuantity(
+                    Configs.irohaCreator,
+                    "coin#test",
+                    "1.00"
+                ),
+                IrohaCommand.commandAddSignatory(
+                    Configs.irohaCreator,
+                    "pubkey12345678901234567890123456"
+                ),
+                IrohaCommand.commandCreateAsset(
+                    "coin2",
+                    "test",
+                    2
+                )
+            )
+            val command2 = arrayOf(
+                IrohaCommand.commandSetAccountDetail(
+                    Configs.irohaCreator,
+                    "key",
+                    "val"
+                ),
+                IrohaCommand.commandTransferAsset(
+                    Configs.irohaCreator,
+                    "user@test",
+                    "coin#test",
+                    "descr",
+                    "1.00"
+                )
+            )
+
+            batch.addTransaction(command1)
+            batch.addTransaction(command2)
+
+            batch
         }
     }
 

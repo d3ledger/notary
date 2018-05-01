@@ -1,7 +1,5 @@
 package notary
 
-import sideChain.iroha.IrohaOrderedBatch
-
 /**
  * Interface for performing 2WP in Iroha and side chains
  */
