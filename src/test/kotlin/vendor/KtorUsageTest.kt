@@ -1,20 +1,21 @@
 package vendor
 
+import io.ktor.application.call
+import io.ktor.http.ContentType
+import io.ktor.response.respondText
+import io.ktor.routing.get
+import io.ktor.routing.routing
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
 import org.junit.Test
-
-import io.ktor.application.*
-import io.ktor.http.*
-import io.ktor.response.*
-import io.ktor.routing.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
 
 /**
  * Starts a server for 15s.
  */
 class KtorUsageTest {
+
     @Test
-    fun ktorUsageTest() {
+    fun ktorCompilationTest() {
         val server = embeddedServer(Netty, port = 8080) {
             routing {
                 get("/") {
