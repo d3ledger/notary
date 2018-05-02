@@ -1,7 +1,6 @@
 package vendor
 
 import ModelCrypto
-
 import org.junit.Test
 
 class IrohaUsageTest {
@@ -11,9 +10,10 @@ class IrohaUsageTest {
      */
     fun loadLibrary() {
         try {
+            println("Iroha path=${System.getProperty("java.library.path")}")
             System.loadLibrary("irohajava")
         } catch (e: UnsatisfiedLinkError) {
-            System.err.println("Native code library failed to load. \n" + e)
+            System.err.println("Native code library failed to load. \n$e")
             System.exit(1)
         }
     }
@@ -26,5 +26,6 @@ class IrohaUsageTest {
         loadLibrary()
 
         val crypto = ModelCrypto()
+        println(crypto.generateKeypair())
     }
 }

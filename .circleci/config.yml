@@ -38,5 +38,7 @@ jobs:
             - ~/.gradle
           key: v1-dependencies-{{ checksum "build.gradle" }}
 
+      - run: sh .circleci/copy_bindings.sh
+
       # run tests!
-      - run: gradle test
+      - run: gradle test --info
