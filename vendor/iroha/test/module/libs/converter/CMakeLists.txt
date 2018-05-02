@@ -1,0 +1,1 @@
+addtest(string_converter_test string_converter_test.cpp)
