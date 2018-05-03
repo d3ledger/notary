@@ -18,3 +18,9 @@ sh ${bindings_dir}/build_library.sh
 
 # move generate files to repository
 cp -R ${bindings_dir}/dist/* ${build}
+
+# move protoc library to bindings
+unamestr=`uname`
+if [[ "$unamestr" == 'Linux' ]]; then
+    cp vendor/iroha/external/src/google_protobuf-build/libprotobuf.so dist/
+fi
