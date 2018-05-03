@@ -40,28 +40,28 @@ class NotaryStub(
             val batch = IrohaOrderedBatch()
 
             val command1 = arrayOf(
-                IrohaCommand.commandAddAssetQuantity(
+                IrohaCommand.CommandAddAssetQuantity(
                     Configs.irohaCreator,
                     "coin#test",
                     "1.00"
                 ),
-                IrohaCommand.commandAddSignatory(
+                IrohaCommand.CommandAddSignatory(
                     Configs.irohaCreator,
                     "pubkey12345678901234567890123456"
                 ),
-                IrohaCommand.commandCreateAsset(
+                IrohaCommand.CommandCreateAsset(
                     "coin2",
                     "test",
                     2
                 )
             )
             val command2 = arrayOf(
-                IrohaCommand.commandSetAccountDetail(
+                IrohaCommand.CommandSetAccountDetail(
                     Configs.irohaCreator,
                     "key",
                     "val"
                 ),
-                IrohaCommand.commandTransferAsset(
+                IrohaCommand.CommandTransferAsset(
                     Configs.irohaCreator,
                     "user@test",
                     "coin#test",

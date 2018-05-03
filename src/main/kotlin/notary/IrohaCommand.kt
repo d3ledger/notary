@@ -11,7 +11,7 @@ sealed class IrohaCommand {
      * @param assetId is asset id
      * @param amount is a string representation of amount
      */
-    class commandAddAssetQuantity(
+    data class CommandAddAssetQuantity(
         val accountId: String,
         val assetId: String,
         val amount: String
@@ -23,7 +23,7 @@ sealed class IrohaCommand {
      * @param key is a key
      * @param value is a value
      */
-    class commandSetAccountDetail(
+    data class CommandSetAccountDetail(
         val accountId: String,
         val key: String,
         val value: String
@@ -35,7 +35,7 @@ sealed class IrohaCommand {
      * @param domainId is a domain id
      * @param precision is a precision
      */
-    class commandCreateAsset(
+    data class CommandCreateAsset(
         val assetName: String,
         val domainId: String,
         val precision: Short
@@ -49,7 +49,7 @@ sealed class IrohaCommand {
      * @param description is a desciption
      * @param amount is a string representation of amount
      */
-    class commandTransferAsset(
+    data class CommandTransferAsset(
         val srcAccountId: String,
         val destAccountId: String,
         val assetId: String,
@@ -62,7 +62,7 @@ sealed class IrohaCommand {
      * @param accountId is an account id
      * @param publicKey is a public key associated to the account
      */
-    class commandAddSignatory(
+    data class CommandAddSignatory(
         val accountId: String,
         val publicKey: String
     ) : IrohaCommand()

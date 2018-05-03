@@ -71,30 +71,30 @@ class IrohaConsumerImpl(notary: Notary) : IrohaConsumer {
         var txBuilder = builder
         for (cmd in commands) {
             when (cmd) {
-                is IrohaCommand.commandAddAssetQuantity ->
+                is IrohaCommand.CommandAddAssetQuantity ->
                     txBuilder = txBuilder.addAssetQuantity(
                         cmd.accountId,
                         cmd.assetId,
                         cmd.amount
                     )
-                is IrohaCommand.commandAddSignatory ->
+                is IrohaCommand.CommandAddSignatory ->
                     txBuilder = txBuilder.addSignatory(
                         cmd.accountId,
                         PublicKey(cmd.publicKey)
                     )
-                is IrohaCommand.commandCreateAsset ->
+                is IrohaCommand.CommandCreateAsset ->
                     txBuilder = txBuilder.createAsset(
                         cmd.assetName,
                         cmd.domainId,
                         cmd.precision
                     )
-                is IrohaCommand.commandSetAccountDetail ->
+                is IrohaCommand.CommandSetAccountDetail ->
                     txBuilder = txBuilder.setAccountDetail(
                         cmd.accountId,
                         cmd.key,
                         cmd.value
                     )
-                is IrohaCommand.commandTransferAsset ->
+                is IrohaCommand.CommandTransferAsset ->
                     txBuilder = txBuilder.transferAsset(
                         cmd.srcAccountId,
                         cmd.destAccountId,
