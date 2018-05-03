@@ -81,7 +81,11 @@ dependencies {
     // unit tests
     testCompile group: 'junit', name: 'junit', version: '4.12'
     // TODO @muratovv: rework with testCompile when mocks go out from production code
-    compile "com.nhaarman:mockito-kotlin:1.5.0"
+    compile 'org.mockito:mockito-inline:2.18.3'
+    compile('com.nhaarman:mockito-kotlin:1.5.0') {
+        exclude group: 'org.jetbrains.kotlin'
+        exclude group: 'org.mockito'
+    }
 
 }
 
