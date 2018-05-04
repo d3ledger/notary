@@ -2,9 +2,8 @@ package vendor
 
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.rxkotlin.toObservable
-import org.junit.Assert
-import org.junit.Test
-
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
 class KotlinJunitTest {
 
@@ -17,7 +16,7 @@ class KotlinJunitTest {
 
         list.toObservable()
             .subscribeBy(  // named arguments for lambda Subscribers
-                onNext = { Assert.assertTrue(it == 1) }
+                onNext = { assertEquals(it, 1) }
             )
     }
 }

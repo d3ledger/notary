@@ -1,20 +1,23 @@
 package vendor
 
-
 import org.jooq.impl.DSL
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.util.*
+import org.junit.jupiter.api.Assertions.assertThrows
 
 class DbUsageTest {
 
-    @Test(expected = org.jooq.exception.DataAccessException::class)
+    @Test
     fun dbEmpty() {
         val properties = Properties()
 
-        DSL.using(
-            properties.getProperty("db.url"),
-            properties.getProperty("db.username"),
-            properties.getProperty("db.password")
-        ).use {}
+        assertThrows(org.jooq.exception.DataAccessException::class.java, {
+            DSL.using(
+                properties.getProperty("db.url"),
+                properties.getProperty("db.username"),
+                properties.getProperty("db.password")
+            ).use {}
+        })
+
     }
 }

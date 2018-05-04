@@ -1,7 +1,7 @@
 package vendor
 
 import mu.KotlinLogging
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class LoggerUsage {
     @Test
