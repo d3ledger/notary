@@ -1,15 +1,15 @@
 package notary
 
 /**
- * Class represents transactions [Notary] can send to [sideChain.iroha.IrohaConsumer]
+ * Class represents commands that [Notary] can send to [sideChain.iroha.consumer.IrohaConsumer]
  */
 sealed class IrohaCommand {
 
     /**
      * Class represents addAssetQuantity Iroha command
-     * @param accountId is account id
-     * @param assetId is asset id
-     * @param amount is a string representation of amount
+     * @param accountId account id to add asset quantity to
+     * @param assetId asset id to add value to
+     * @param amount is a string representation of amount to add
      */
     data class CommandAddAssetQuantity(
         val accountId: String,
@@ -19,9 +19,9 @@ sealed class IrohaCommand {
 
     /**
      * Class represents setAccountDetail Iroha command
-     * @param accountId is an account id
-     * @param key is a key
-     * @param value is a value
+     * @param accountId account id to add detail to
+     * @param key detail key
+     * @param value detail value
      */
     data class CommandSetAccountDetail(
         val accountId: String,
@@ -31,9 +31,9 @@ sealed class IrohaCommand {
 
     /**
      * Class represents createAsset Iroha command
-     * @param assetName is an asset name
-     * @param domainId is a domain id
-     * @param precision is a precision
+     * @param assetName - asset name to create
+     * @param domainId - domain id to create asset in
+     * @param precision - asset precision
      */
     data class CommandCreateAsset(
         val assetName: String,
@@ -43,11 +43,11 @@ sealed class IrohaCommand {
 
     /**
      * Class represents transferAsset Iroha command
-     * @param srcAccountId is a source account
-     * @param destAccountId is a destination account
-     * @param assetId is an asset id
-     * @param description is a desciption
-     * @param amount is a string representation of amount
+     * @param srcAccountId - source account id
+     * @param destAccountId - destination account id
+     * @param assetId - asset id
+     * @param description - description message which user can set
+     * @param amount - amount of asset to transfer
      */
     data class CommandTransferAsset(
         val srcAccountId: String,
@@ -59,8 +59,8 @@ sealed class IrohaCommand {
 
     /**
      * Class represents addSignatory Iroha command
-     * @param accountId is an account id
-     * @param publicKey is a public key associated to the account
+     * @param accountId id of signatory's account
+     * @param publicKey public key of signatory
      */
     data class CommandAddSignatory(
         val accountId: String,

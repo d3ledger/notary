@@ -1,4 +1,4 @@
-package sideChain.iroha
+package sideChain.iroha.consumer
 
 import notary.IrohaOrderedBatch
 
@@ -10,5 +10,5 @@ interface IrohaConsumer {
     /**
      * called on new event from [notary.Notary]
      */
-    fun onIrohaEvent(batch: IrohaOrderedBatch)
+    fun irohaOutput(batch: IrohaOrderedBatch)
 }

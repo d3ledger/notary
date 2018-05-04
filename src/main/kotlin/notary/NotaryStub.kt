@@ -2,9 +2,8 @@ package notary
 
 import com.nhaarman.mockito_kotlin.mock
 import io.reactivex.Observable
-import main.Configs
 import mu.KLogging
-import sideChain.*
+import sideChain.ChainHandler
 
 /**
  * Dummy implementation of [Notary] with effective dependencies
@@ -14,16 +13,22 @@ class NotaryStub(
     private val irohaHandler: ChainHandler
 ) : Notary {
 
+    /**
+     * Handle Ehthereum event
+     */
     override fun onEthEvent(ethEvent: NotaryEvent.EthChainEvent) {
         logger.info { "Notary performs ETH event" }
     }
 
+    /**
+     * Handle Iroha event
+     */
     override fun onIrohaEvent(irohaEvent: NotaryEvent.IrohaChainEvent) {
         logger.info { "Notary performs IROHA event" }
     }
 
     /**
-     * Dummy implementation with relaying eth events for output
+     * Relay side chain [NotaryEvent] to Iroha output
      */
     override fun irohaOutput(): Observable<IrohaOrderedBatch> {
         return io.reactivex.Observable.merge(
@@ -36,44 +41,8 @@ class NotaryStub(
             }
             logger.info { "Notary does some work" }
 
-            // emit event to Iroha
-            val batch = IrohaOrderedBatch()
-
-            val command1 = arrayOf(
-                IrohaCommand.CommandAddAssetQuantity(
-                    Configs.irohaCreator,
-                    "coin#test",
-                    "1.00"
-                ),
-                IrohaCommand.CommandAddSignatory(
-                    Configs.irohaCreator,
-                    "pubkey12345678901234567890123456"
-                ),
-                IrohaCommand.CommandCreateAsset(
-                    "coin2",
-                    "test",
-                    2
-                )
-            )
-            val command2 = arrayOf(
-                IrohaCommand.CommandSetAccountDetail(
-                    Configs.irohaCreator,
-                    "key",
-                    "val"
-                ),
-                IrohaCommand.CommandTransferAsset(
-                    Configs.irohaCreator,
-                    "user@test",
-                    "coin#test",
-                    "descr",
-                    "1.00"
-                )
-            )
-
-            batch.addTransaction(command1)
-            batch.addTransaction(command2)
-
-            batch
+            // TODO replace output with effective implementation
+            IrohaOrderedBatch()
         }
     }
 

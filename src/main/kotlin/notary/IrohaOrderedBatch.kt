@@ -1,15 +1,14 @@
 package notary
 
 /**
- * Class represents [Notary] intention to [sideChain.iroha.IrohaConsumer]
+ * Class represents [Notary] intention to [sideChain.iroha.consumer.IrohaConsumer] to add batch transaction
  */
-class IrohaOrderedBatch {
+class IrohaOrderedBatch(vararg txs: IrohaTransaction) {
 
-    /** Batch is ordered container of transaction, each can contain several [IrohaCommand] */
-    var transactions = ArrayList<Array<IrohaCommand>>()
+    /** Batch is ordered container of transaction */
+    val transactions: Array<out IrohaTransaction>
 
-    /** Add transaction to the batch */
-    fun addTransaction(transaction: Array<IrohaCommand>) {
-        transactions.add(transaction)
+    init {
+        transactions = txs
     }
 }

@@ -1,13 +1,16 @@
 package notary
 
-import sideChain.iroha.IrohaConsumer
 import endpoint.RefundEndpoint
+import main.Configs
 import mu.KLogging
 import sideChain.eth.EthChainHandlerStub
 import sideChain.eth.EthChainListenerStub
 import sideChain.iroha.IrohaChainHandlerStub
 import sideChain.iroha.IrohaChainListenerStub
-import sideChain.iroha.IrohaConsumerImpl
+import sideChain.iroha.consumer.IrohaConsumer
+import sideChain.iroha.consumer.IrohaConsumerImpl
+import sideChain.iroha.consumer.IrohaCryptoProviderImpl
+import sideChain.iroha.consumer.IrohaNetworkImpl
 
 /**
  * Class for notary instantiation
@@ -71,7 +74,8 @@ class NotaryInitialization {
      */
     fun initIrohaConsumer() {
         logger.info { "Init Iroha consumer" }
-        irohaConsumer = IrohaConsumerImpl(notary)
+        val cryptoProvider = IrohaCryptoProviderImpl(Configs.pubkeyPath, Configs.privkeyPath)
+        irohaConsumer = IrohaConsumerImpl(notary.irohaOutput(), cryptoProvider, IrohaNetworkImpl())
     }
 
     /**

@@ -1,24 +1,14 @@
 package main
 
 import notary.NotaryInitialization
-
-/**
- * Load iroha binding library
- */
-fun loadIrohaLibrary() {
-    try {
-        System.loadLibrary("irohajava")
-    } catch (e: UnsatisfiedLinkError) {
-        System.err.println("Native code library failed to load. \n" + e)
-        System.exit(1)
-    }
-}
+import sideChain.iroha.IrohaInitializtion
 
 /**
  * Application entry point
  */
 fun main(args: Array<String>) {
-    loadIrohaLibrary()
+    val irohaInitializtion = IrohaInitializtion()
+    irohaInitializtion.loadIrohaLibrary()
     val notary = NotaryInitialization()
     notary.init()
 }
