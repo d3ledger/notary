@@ -1,6 +1,8 @@
 package sideChain.iroha.consumer
 
+import iroha.protocol.BlockOuterClass
 import notary.IrohaOrderedBatch
+import UnsignedTx
 
 /**
  * Interface for consuming Iroha events provided by [notary.Notary]
@@ -8,7 +10,8 @@ import notary.IrohaOrderedBatch
 interface IrohaConsumer {
 
     /**
-     * called on new event from [notary.Notary]
+     * Sign and convert to protobuf
+     * @param utx - unsigned transaction
      */
-    fun irohaOutput(batch: IrohaOrderedBatch)
+    fun toProto(utx: UnsignedTx): BlockOuterClass.Transaction
 }

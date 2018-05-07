@@ -7,10 +7,7 @@ import sideChain.eth.EthChainHandlerStub
 import sideChain.eth.EthChainListenerStub
 import sideChain.iroha.IrohaChainHandlerStub
 import sideChain.iroha.IrohaChainListenerStub
-import sideChain.iroha.consumer.IrohaConsumer
-import sideChain.iroha.consumer.IrohaConsumerImpl
-import sideChain.iroha.consumer.IrohaKeyLoader
-import sideChain.iroha.consumer.IrohaNetworkImpl
+import sideChain.iroha.consumer.*
 
 /**
  * Class for notary instantiation
@@ -27,6 +24,9 @@ class NotaryInitialization {
     private lateinit var irohaConsumer: IrohaConsumer
     private lateinit var irohaChainListener: IrohaChainListenerStub
     private lateinit var irohaHandler: IrohaChainHandlerStub
+
+    private val irohaConverter = IrohaConverterImpl()
+    private val irohaNetwork = IrohaNetworkImpl()
 
     // ------------------------------------------| Notary |------------------------------------------
     private lateinit var notary: Notary
@@ -77,7 +77,17 @@ class NotaryInitialization {
         val res = IrohaKeyLoader.loadKeypair(Configs.pubkeyPath, Configs.privkeyPath)
         res.fold(
             {
-                irohaConsumer = IrohaConsumerImpl(notary.irohaOutput(), it, IrohaNetworkImpl())
+                irohaConsumer = IrohaConsumerImpl(it)
+
+                // Init Iroha Consumer pipeline
+                notary.irohaOutput()
+                    // convert from Notary model to Iroha model
+                    // TODO rework Iroha batch transaction
+                    .flatMapIterable { irohaConverter.convert(it) }
+                    // convert from Iroha model to Protobuf representation
+                    .map { irohaConsumer.toProto(it) }
+                    // send to Iroha network layer
+                    .subscribe { irohaNetwork.send(it) }
             },
             {
                 logger.error { "Unable to read key files. \n ${it.message}" }
