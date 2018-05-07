@@ -5,7 +5,7 @@ import io.reactivex.rxkotlin.toObservable
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-class KotlinJunitTest {
+class RxUsageTest {
 
     /**
      * Rx usage test

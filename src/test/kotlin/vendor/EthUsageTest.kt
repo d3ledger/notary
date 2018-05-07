@@ -5,7 +5,8 @@ import org.junit.jupiter.api.Test
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
 
-class EthUsage {
+class EthUsageTest {
+
     @Test
     fun ethUsage() {
         Assertions.assertThrows(rx.exceptions.OnErrorNotImplementedException::class.java, {
