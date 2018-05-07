@@ -9,7 +9,7 @@ import sideChain.iroha.IrohaChainHandlerStub
 import sideChain.iroha.IrohaChainListenerStub
 import sideChain.iroha.consumer.IrohaConsumer
 import sideChain.iroha.consumer.IrohaConsumerImpl
-import sideChain.iroha.consumer.IrohaCryptoProviderImpl
+import sideChain.iroha.consumer.IrohaKeyLoader
 import sideChain.iroha.consumer.IrohaNetworkImpl
 
 /**
@@ -74,8 +74,15 @@ class NotaryInitialization {
      */
     fun initIrohaConsumer() {
         logger.info { "Init Iroha consumer" }
-        val cryptoProvider = IrohaCryptoProviderImpl(Configs.pubkeyPath, Configs.privkeyPath)
-        irohaConsumer = IrohaConsumerImpl(notary.irohaOutput(), cryptoProvider, IrohaNetworkImpl())
+        val res = IrohaKeyLoader.loadKeypair(Configs.pubkeyPath, Configs.privkeyPath)
+        res.fold(
+            {
+                irohaConsumer = IrohaConsumerImpl(notary.irohaOutput(), it, IrohaNetworkImpl())
+            },
+            {
+                logger.error { "Unable to read key files. \n ${it.message}" }
+                System.exit(1)
+            })
     }
 
     /**

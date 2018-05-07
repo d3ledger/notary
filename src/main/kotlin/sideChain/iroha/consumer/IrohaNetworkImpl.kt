@@ -11,6 +11,15 @@ import mu.KLogging
  */
 class IrohaNetworkImpl : IrohaNetwork {
 
+    /** Grpc stub for streaming output calls on the service */
+    val toriiStub: iroha.protocol.CommandServiceGrpc.CommandServiceBlockingStub
+
+    init {
+        val channel =
+            ManagedChannelBuilder.forAddress(Configs.irohaHostname, Configs.irohaPort).usePlaintext(true).build()
+        toriiStub = CommandServiceGrpc.newBlockingStub(channel)
+    }
+
     /**
      * Send transaction to iroha
      * @param protoTx protobuf representation of transaction
@@ -19,10 +28,7 @@ class IrohaNetworkImpl : IrohaNetwork {
         logger.info { "TX to IROHA" }
 
         // Send transaction to iroha
-        val channel =
-            ManagedChannelBuilder.forAddress(Configs.irohaHostname, Configs.irohaPort).usePlaintext(true).build()
-        val stub = CommandServiceGrpc.newBlockingStub(channel)
-        stub.torii(protoTx)
+        toriiStub.torii(protoTx)
     }
 
     /**

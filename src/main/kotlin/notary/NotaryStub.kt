@@ -31,6 +31,7 @@ class NotaryStub(
      * Relay side chain [NotaryEvent] to Iroha output
      */
     override fun irohaOutput(): Observable<IrohaOrderedBatch> {
+        // TODO move business logic away from here
         return io.reactivex.Observable.merge(
             ethHandler.onNewEvent(),
             irohaHandler.onNewEvent()
@@ -42,7 +43,7 @@ class NotaryStub(
             logger.info { "Notary does some work" }
 
             // TODO replace output with effective implementation
-            IrohaOrderedBatch()
+            IrohaOrderedBatch(arrayListOf())
         }
     }
 
