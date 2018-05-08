@@ -19,3 +19,13 @@ fun <T, R> T?.end(value: (value: T) -> R?, empty: () -> R?): R? {
         value(this)
     } else empty()
 }
+
+/**
+ * Call different lambdas with respect to the input value
+ * @return application of lambda to value if it exists, return tight type
+ */
+fun <T, R> T?.endValue(value: (value: T) -> R, empty: () -> R): R {
+    return if (this != null) {
+        value(this)
+    } else empty()
+}
