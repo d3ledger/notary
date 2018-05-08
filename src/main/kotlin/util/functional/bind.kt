@@ -4,7 +4,7 @@ package util.functional
  * Functional application of lambda to nullable type
  * @return application of lambda to value or null
  */
-fun <T, R> T?.map(map: (value: T) -> R): R? {
+fun <T, R> T?.map(map: (value: T) -> R?): R? {
     return if (this != null) {
         map(this)
     } else null
