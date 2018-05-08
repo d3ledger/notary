@@ -1,5 +1,7 @@
 package notary
 
+import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.map
 import endpoint.RefundEndpoint
 import main.Configs
 import mu.KLogging
@@ -34,13 +36,13 @@ class NotaryInitialization {
     /**
      * Init notary
      */
-    fun init() {
+    fun init(): Result<Unit, Exception> {
         logger.info { "Notary initialization" }
         initEthChain()
         initIrohaChain()
         initNotary()
-        initIrohaConsumer()
-        initRefund()
+        return initIrohaConsumer()
+            .map { initRefund() }
     }
 
     /**
@@ -72,11 +74,10 @@ class NotaryInitialization {
     /**
      * Init Iroha consumer
      */
-    fun initIrohaConsumer() {
+    fun initIrohaConsumer(): Result<Unit, Exception> {
         logger.info { "Init Iroha consumer" }
-        val res = IrohaKeyLoader.loadKeypair(Configs.pubkeyPath, Configs.privkeyPath)
-        res.fold(
-            {
+        return IrohaKeyLoader.loadKeypair(Configs.pubkeyPath, Configs.privkeyPath)
+            .map {
                 irohaConsumer = IrohaConsumerImpl(it)
 
                 // Init Iroha Consumer pipeline
@@ -88,11 +89,8 @@ class NotaryInitialization {
                     .map { irohaConsumer.toProto(it) }
                     // send to Iroha network layer
                     .subscribe { irohaNetwork.send(it) }
-            },
-            {
-                logger.error { "Unable to read key files. \n ${it.message}" }
-                System.exit(1)
-            })
+                Unit
+            }
     }
 
     /**
