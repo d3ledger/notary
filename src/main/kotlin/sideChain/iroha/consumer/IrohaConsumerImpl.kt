@@ -14,8 +14,13 @@ import kotlin.reflect.jvm.internal.impl.protobuf.InvalidProtocolBufferException
  */
 class IrohaConsumerImpl(val keypair: Keypair) : IrohaConsumer {
 
-    /** Convert transaction to Protobuf */
-    fun convertToProto(txblob: ByteArray): BlockOuterClass.Transaction {
+    /** Convert transaction to Protobuf
+     * @param utx unsigned Iroha transaction
+     */
+    override fun convertToProto(utx: UnsignedTx): BlockOuterClass.Transaction {
+        // sign transaction and get its binary representation (Blob)
+        val txblob = ModelProtoTransaction().signAndAddSignature(utx, keypair).blob().toByteArray()
+
         // create proto object
         lateinit var protoTx: BlockOuterClass.Transaction
         try {
@@ -25,13 +30,6 @@ class IrohaConsumerImpl(val keypair: Keypair) : IrohaConsumer {
             System.exit(1)
         }
         return protoTx
-    }
-
-    override fun toProto(utx: UnsignedTx): BlockOuterClass.Transaction {
-        // sign transaction and get its binary representation (Blob)
-        val txblob = ModelProtoTransaction().signAndAddSignature(utx, keypair).blob().toByteArray()
-
-        return convertToProto(txblob)
     }
 
     /**

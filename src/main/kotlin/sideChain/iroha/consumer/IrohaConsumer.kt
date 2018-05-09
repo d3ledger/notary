@@ -13,5 +13,5 @@ interface IrohaConsumer {
      * Sign and convert to protobuf
      * @param utx - unsigned transaction
      */
-    fun toProto(utx: UnsignedTx): BlockOuterClass.Transaction
+    fun convertToProto(utx: UnsignedTx): BlockOuterClass.Transaction
 }

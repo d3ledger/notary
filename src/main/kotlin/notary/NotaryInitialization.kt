@@ -86,7 +86,7 @@ class NotaryInitialization {
                     // TODO rework Iroha batch transaction
                     .flatMapIterable { irohaConverter.convert(it) }
                     // convert from Iroha model to Protobuf representation
-                    .map { irohaConsumer.toProto(it) }
+                    .map { irohaConsumer.convertToProto(it) }
                     // send to Iroha network layer
                     .subscribe { irohaNetwork.send(it) }
                 Unit
