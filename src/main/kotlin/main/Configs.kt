@@ -22,4 +22,11 @@ object Configs {
 
     /** Iroha peer hsotname */
     val irohaPort = 50051
+
+    //--------- Ethereum ---------
+    /** Confirmation period */
+    val ethConfirmationPeriod: Long = 6
+
+    /** URL of Ethereum client */
+    val ethConnectionUrl = "http://0.0.0.0:8180/#/auth?token=P8VD-nlD5-8AB5-ZIJv"
 }
