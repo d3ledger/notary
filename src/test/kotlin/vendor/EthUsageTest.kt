@@ -9,12 +9,15 @@ class EthUsageTest {
 
     @Test
     fun ethUsage() {
-        Assertions.assertThrows(rx.exceptions.OnErrorNotImplementedException::class.java, {
+        try {
             val web3 = Web3j.build(HttpService())
             web3.web3ClientVersion().observable().subscribe { x ->
                 val clientVersion = x.getWeb3ClientVersion()
                 print(clientVersion)
             }
-        })
+        } catch (e: rx.exceptions.OnErrorNotImplementedException) {
+            // if Ethereum client is not running
+            assert(true)
+        }
     }
 }
