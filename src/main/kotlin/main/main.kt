@@ -1,5 +1,8 @@
 package main
 
+import com.github.kittinunf.result.failure
+import com.github.kittinunf.result.flatMap
+import mu.KLogging
 import notary.NotaryInitialization
 import sideChain.iroha.IrohaInitializtion
 
@@ -7,8 +10,13 @@ import sideChain.iroha.IrohaInitializtion
  * Application entry point
  */
 fun main(args: Array<String>) {
-    val irohaInitializtion = IrohaInitializtion()
-    irohaInitializtion.loadIrohaLibrary()
+    val logger = KLogging()
     val notary = NotaryInitialization()
-    notary.init()
+
+    IrohaInitializtion.loadIrohaLibrary()
+        .flatMap { notary.init() }
+        .failure {
+            logger.logger.error { it }
+            System.exit(1)
+        }
 }

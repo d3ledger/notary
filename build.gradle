@@ -71,16 +71,16 @@ dependencies {
     compile "io.ktor:ktor-server-core:$ktor_version"
     compile "io.ktor:ktor-server-netty:$ktor_version"
 
-    // for Result
-    compile group: 'com.github.kittinunf.result', name: 'result', version: '1.4.0'
-
     // JSON converter
     implementation 'com.squareup.moshi:moshi-kotlin:1.5.0'
+
+    // for Result
+    compile group: 'com.github.kittinunf.result', name: 'result', version: '1.4.0'
 
     // ------------------| Test dependencies |------------------
 
     // unit tests
-    testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.2.0'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
     // TODO @muratovv: rework with testCompile when mocks go out from production code
     compile 'org.mockito:mockito-inline:2.18.3'
     compile('com.nhaarman:mockito-kotlin:1.5.0') {
