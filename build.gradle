@@ -7,6 +7,7 @@ buildscript {
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.3'
     }
 }
 
@@ -15,6 +16,7 @@ version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
 apply plugin: 'kotlin'
+apply plugin: 'com.google.protobuf'
 
 sourceCompatibility = 1.8
 
@@ -26,6 +28,12 @@ repositories {
 }
 
 dependencies {
+    // protobuf
+    compile 'com.google.protobuf:protobuf-java:3.5.0'
+    compile 'io.grpc:grpc-netty:1.8.0'
+    compile 'io.grpc:grpc-protobuf:1.8.0'
+    compile 'io.grpc:grpc-stub:1.8.0'
+
     // ------------------| Src dependencies |------------------
 
     // kotlin related
@@ -67,12 +75,22 @@ dependencies {
     compile "io.ktor:ktor-server-core:$ktor_version"
     compile "io.ktor:ktor-server-netty:$ktor_version"
 
+    // JSON converter
+    implementation 'com.squareup.moshi:moshi-kotlin:1.5.0'
+
+    // for Result
+    compile group: 'com.github.kittinunf.result', name: 'result', version: '1.4.0'
+
     // ------------------| Test dependencies |------------------
 
     // unit tests
     testCompile group: 'junit', name: 'junit', version: '4.12'
     // TODO @muratovv: rework with testCompile when mocks go out from production code
-    compile "com.nhaarman:mockito-kotlin:1.5.0"
+    compile 'org.mockito:mockito-inline:2.18.3'
+    compile('com.nhaarman:mockito-kotlin:1.5.0') {
+        exclude group: 'org.jetbrains.kotlin'
+        exclude group: 'org.mockito'
+    }
 
 }
 
@@ -91,6 +109,12 @@ compileTestKotlin {
 
 sourceSets {
     main.java.srcDirs += 'src/main'
+    // iroha bindings
+    main.java.srcDirs += 'build/generated/source/proto/main/java'
+    main.java.srcDirs += 'build/generated/source/proto/main/grpc'
+
+    // iroha schema
+    main.proto.srcDirs += "vendor/iroha/schema"
 
     test.java.srcDirs += 'src/test'
 }
@@ -99,6 +123,23 @@ test {
     systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
     println "Runtime Iroha library path:${systemProperties}"
 }
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.5.0"
+    }
+    plugins {
+        grpc {
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.8.0'
+        }
+    }
+    generateProtoTasks {
+        all()*.plugins {
+            grpc {}
+        }
+    }
+}
+compileKotlin.dependsOn ':generateProto'
 
 // -------------------------| Iroha bindings |-------------------------
 

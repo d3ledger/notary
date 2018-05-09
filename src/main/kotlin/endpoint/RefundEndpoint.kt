@@ -7,6 +7,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import main.Configs
 import mu.KLogging
 
 /**
@@ -15,7 +16,7 @@ import mu.KLogging
 class RefundEndpoint {
 
     init {
-        val server = embeddedServer(Netty, port = 8080) {
+        val server = embeddedServer(Netty, port = Configs.refundPort) {
             routing {
                 get("/rollback") {
                     NotaryStub.logger.info { "Refund" }

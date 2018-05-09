@@ -1,13 +1,15 @@
 package notary
 
-import sideChain.iroha.IrohaConsumer
+import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.map
 import endpoint.RefundEndpoint
+import main.Configs
 import mu.KLogging
 import sideChain.eth.EthChainHandlerStub
 import sideChain.eth.EthChainListener
 import sideChain.iroha.IrohaChainHandlerStub
 import sideChain.iroha.IrohaChainListenerStub
-import sideChain.iroha.IrohaConsumerStub
+import sideChain.iroha.consumer.*
 
 /**
  * Class for notary instantiation
@@ -25,19 +27,22 @@ class NotaryInitialization {
     private lateinit var irohaChainListener: IrohaChainListenerStub
     private lateinit var irohaHandler: IrohaChainHandlerStub
 
+    private val irohaConverter = IrohaConverterImpl()
+    private val irohaNetwork = IrohaNetworkImpl()
+
     // ------------------------------------------| Notary |------------------------------------------
     private lateinit var notary: Notary
 
     /**
      * Init notary
      */
-    fun init() {
+    fun init(): Result<Unit, Exception> {
         logger.info { "Notary initialization" }
         initEthChain()
         initIrohaChain()
         initNotary()
-        initIrohaConsumer()
-        initRefund()
+        return initIrohaConsumer()
+            .map { initRefund() }
     }
 
     /**
@@ -69,9 +74,23 @@ class NotaryInitialization {
     /**
      * Init Iroha consumer
      */
-    fun initIrohaConsumer() {
+    fun initIrohaConsumer(): Result<Unit, Exception> {
         logger.info { "Init Iroha consumer" }
-        irohaConsumer = IrohaConsumerStub(notary)
+        return IrohaKeyLoader.loadKeypair(Configs.pubkeyPath, Configs.privkeyPath)
+            .map {
+                irohaConsumer = IrohaConsumerImpl(it)
+
+                // Init Iroha Consumer pipeline
+                notary.irohaOutput()
+                    // convert from Notary model to Iroha model
+                    // TODO rework Iroha batch transaction
+                    .flatMapIterable { irohaConverter.convert(it) }
+                    // convert from Iroha model to Protobuf representation
+                    .map { irohaConsumer.convertToProto(it) }
+                    // send to Iroha network layer
+                    .subscribe { irohaNetwork.send(it) }
+                Unit
+            }
     }
 
     /**

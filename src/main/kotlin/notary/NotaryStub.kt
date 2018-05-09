@@ -3,8 +3,7 @@ package notary
 import com.nhaarman.mockito_kotlin.mock
 import io.reactivex.Observable
 import mu.KLogging
-import sideChain.*
-import sideChain.iroha.IrohaOrderedBatch
+import sideChain.ChainHandler
 
 /**
  * Dummy implementation of [Notary] with effective dependencies
@@ -14,18 +13,25 @@ class NotaryStub(
     private val irohaHandler: ChainHandler
 ) : Notary {
 
+    /**
+     * Handle Ehthereum event
+     */
     override fun onEthEvent(ethEvent: NotaryEvent.EthChainEvent) {
         logger.info { "Notary performs ETH event" }
     }
 
+    /**
+     * Handle Iroha event
+     */
     override fun onIrohaEvent(irohaEvent: NotaryEvent.IrohaChainEvent) {
         logger.info { "Notary performs IROHA event" }
     }
 
     /**
-     * Dummy implementation with relaying eth events for output
+     * Relay side chain [NotaryEvent] to Iroha output
      */
     override fun irohaOutput(): Observable<IrohaOrderedBatch> {
+        // TODO move business logic away from here
         return io.reactivex.Observable.merge(
             ethHandler.onNewEvent(),
             irohaHandler.onNewEvent()
@@ -36,8 +42,8 @@ class NotaryStub(
             }
             logger.info { "Notary does some work" }
 
-            // emit event to Iroha
-            mock<IrohaOrderedBatch>()
+            // TODO replace output with effective implementation
+            IrohaOrderedBatch(arrayListOf())
         }
     }
 
