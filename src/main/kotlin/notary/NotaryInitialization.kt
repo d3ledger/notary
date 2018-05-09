@@ -4,7 +4,7 @@ import sideChain.iroha.IrohaConsumer
 import endpoint.RefundEndpoint
 import mu.KLogging
 import sideChain.eth.EthChainHandlerStub
-import sideChain.eth.EthChainListenerStub
+import sideChain.eth.EthChainListener
 import sideChain.iroha.IrohaChainHandlerStub
 import sideChain.iroha.IrohaChainListenerStub
 import sideChain.iroha.IrohaConsumerStub
@@ -17,7 +17,7 @@ class NotaryInitialization {
     private lateinit var refundEndpoint: RefundEndpoint
 
     // ------------------------------------------| ETH |------------------------------------------
-    private lateinit var ethChainListener: EthChainListenerStub
+    private lateinit var ethChainListener: EthChainListener
     private lateinit var ethHandler: EthChainHandlerStub
 
     // ------------------------------------------| Iroha |------------------------------------------
@@ -45,7 +45,7 @@ class NotaryInitialization {
      */
     fun initEthChain() {
         logger.info { "Init Eth chain" }
-        ethChainListener = EthChainListenerStub()
+        ethChainListener = EthChainListener()
         ethHandler = EthChainHandlerStub(ethChainListener)
     }
 

@@ -31,9 +31,13 @@ dependencies {
     // kotlin related
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
-    // rx
+    // rx2
     compile "io.reactivex.rxjava2:rxjava:2.0.0"
     compile "io.reactivex.rxjava2:rxkotlin:2.0.0"
+
+    // converter rx1 to rx2
+    // since eth client uses rx1, we need a converter to rx2
+    compile "com.github.akarnokd:rxjava2-interop:0.12.7"
 
     // Iroha bindings
     def iroha_bindings_dir = Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
