@@ -1,0 +1,16 @@
+[parity]
+chain = "/eth/genesis.json"
+base_path = "/tmp/parity1"
+
+[rpc]
+apis = ["web3", "eth", "net", "personal", "parity", "parity_set", "traces", "rpc", "parity_accounts"]
+disable = false
+port = 8545
+interface = "0.0.0.0"
+
+[account]
+password = ["/eth/node.pwds"]
+
+[mining]
+engine_signer = "0x00Aa39d30F0D20FF03a22cCfc30B7EfbFca597C2"
+reseal_on_txs = "none"
