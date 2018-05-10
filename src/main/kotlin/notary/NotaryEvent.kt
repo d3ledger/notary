@@ -1,5 +1,7 @@
 package notary
 
+import java.math.BigInteger
+
 /**
  * All event [Notary] is waiting for.
  */
@@ -30,12 +32,19 @@ sealed class NotaryEvent {
         /**
          * Event which raised on deploying target smart contract in the Ethereum
          */
-        abstract class OnEthDeployContract : EthChainEvent()
+        abstract class OnEthDeployContract() : EthChainEvent()
 
         /**
          * Event which raised on new transfer transaction to Iroha
+         * @param hash transaction hash
+         * @param from transaction sender address
+         * @param value amount of Ethereum transfered
          */
-        abstract class OnEthSidechainTransfer : EthChainEvent()
+        data class OnEthSidechainTransfer(
+            val hash: String,
+            val from: String,
+            val value: BigInteger
+        ) : EthChainEvent()
 
         /**
          * Event which raised on new transaction with new peer in the contract

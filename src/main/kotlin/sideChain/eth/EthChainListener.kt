@@ -37,7 +37,7 @@ class EthChainListener : ChainListener<EthBlock> {
                     val block = web3.ethGetBlockByNumber(
                         DefaultBlockParameter.valueOf(
                             it.block.number - confirmationPeriod
-                        ), false
+                        ), true
                     ).send()
                     block
                 }

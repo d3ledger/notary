@@ -11,5 +11,5 @@ interface ChainHandler<Block> {
      * Parse block and find interesting transactions.
      * @return observable with emitted chain events
      */
-    fun parseBlock(block: Block): NotaryEvent
+    fun parseBlock(block: Block): List<NotaryEvent>
 }
