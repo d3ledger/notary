@@ -7,7 +7,7 @@ import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 /**
  * Starts a server for 15s.

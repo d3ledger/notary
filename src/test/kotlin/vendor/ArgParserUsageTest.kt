@@ -1,9 +1,8 @@
 package vendor
 
 import com.xenomachina.argparser.ArgParser
-
-import org.junit.Assert
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
 class ArgParserUsageTest {
 
@@ -18,9 +17,9 @@ class ArgParserUsageTest {
     @Test
     fun argParserUsage() {
         ArgParser(args).parseInto(ArgParserUsageTest::TestArgs).run {
-            Assert.assertTrue(v)
-            Assert.assertEquals("\"Lev Tolstoy\"", name)
-            Assert.assertEquals("3", c)
+            assert(v)
+            assertEquals("\"Lev Tolstoy\"", name)
+            assertEquals("3", c)
         }
     }
 }

@@ -1,7 +1,7 @@
 package functional
 
-import org.junit.Assert
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 import util.functional.end
 import util.functional.endValue
 import util.functional.map
@@ -29,7 +29,7 @@ class BindTest {
         val bound = value.map { "1" }
             .map { it + it }
 
-        Assert.assertEquals("11", bound)
+        assertEquals("11", bound)
     }
 
     /**
@@ -41,7 +41,7 @@ class BindTest {
     fun mapNullUsage() {
         val bound = nullValue.map { 1 }
 
-        Assert.assertEquals(null, bound)
+        assertEquals(null, bound)
     }
 
     /**
@@ -52,9 +52,9 @@ class BindTest {
     @Test
     fun endUsage() {
         value.end({
-            Assert.assertTrue(true)
+            assert(true)
         }, {
-            Assert.assertTrue(false)
+            assert(false)
         })
     }
 
@@ -66,9 +66,9 @@ class BindTest {
     @Test
     fun endNullUsage() {
         nullValue.end({
-            Assert.assertTrue(false)
+            assert(false)
         }, {
-            Assert.assertTrue(true)
+            assert(true)
         })
     }
 
@@ -80,14 +80,14 @@ class BindTest {
     @Test
     fun endValueUsage() {
         val usage = value.endValue({
-            Assert.assertTrue(true)
+            assert(true)
             1
         }, {
-            Assert.assertTrue(false)
+            assert(false)
             2
         })
 
-        Assert.assertEquals(1, usage)
+        assertEquals(1, usage)
     }
 
     /**
@@ -98,13 +98,13 @@ class BindTest {
     @Test
     fun endValueNullUsage() {
         val usage = nullValue.endValue({
-            Assert.assertTrue(false)
+            assert(false)
             1
         }, {
-            Assert.assertTrue(true)
+            assert(true)
             2
         })
-        Assert.assertEquals(2, usage)
+        assertEquals(2, usage)
     }
 
 }
