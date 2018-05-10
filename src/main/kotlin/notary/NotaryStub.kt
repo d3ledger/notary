@@ -3,14 +3,13 @@ package notary
 import com.nhaarman.mockito_kotlin.mock
 import io.reactivex.Observable
 import mu.KLogging
-import sideChain.ChainHandler
 
 /**
  * Dummy implementation of [Notary] with effective dependencies
  */
 class NotaryStub(
-    private val ethHandler: ChainHandler,
-    private val irohaHandler: ChainHandler
+    private val ethHandler: Observable<NotaryEvent>,
+    private val irohaHandler: Observable<NotaryEvent>
 ) : Notary {
 
     /**
@@ -33,8 +32,8 @@ class NotaryStub(
     override fun irohaOutput(): Observable<IrohaOrderedBatch> {
         // TODO move business logic away from here
         return io.reactivex.Observable.merge(
-            ethHandler.onNewEvent(),
-            irohaHandler.onNewEvent()
+            ethHandler,
+            irohaHandler
         ).map {
             when (it) {
                 is NotaryEvent.EthChainEvent -> onEthEvent(mock<NotaryEvent.EthChainEvent.OnEthSidechainTransfer>())

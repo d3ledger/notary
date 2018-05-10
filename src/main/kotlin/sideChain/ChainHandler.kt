@@ -3,12 +3,13 @@ package sideChain
 import notary.NotaryEvent
 
 /**
- * Class emit [NotaryEvent] received from side chain
+ * Class extracts [NotaryEvent] received from side chain blocks
  */
-interface ChainHandler {
+interface ChainHandler<Block> {
 
     /**
+     * Parse block and find interesting transactions.
      * @return observable with emitted chain events
      */
-    fun onNewEvent(): io.reactivex.Observable<NotaryEvent>
+    fun parseBlock(block: Block): NotaryEvent
 }

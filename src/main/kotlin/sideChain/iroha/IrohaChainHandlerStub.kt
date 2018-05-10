@@ -10,14 +10,14 @@ import sideChain.ChainListener
 /**
  * Dummy implementation of [ChainHandler] with effective dependencies
  */
-class IrohaChainHandlerStub constructor(private val listenerStub: ChainListener<IrohaBlockStub>) :
-    ChainHandler {
+class IrohaChainHandlerStub : ChainHandler<IrohaBlockStub> {
 
-    override fun onNewEvent(): Observable<NotaryEvent> {
-        return listenerStub.onNewBlockObservable().map {
-            logger.info { "Iroha chain handler" }
-            mock<NotaryEvent.IrohaChainEvent.OnIrohaAddPeer>()
-        }
+    /**
+     * TODO Replace dummy with effective implementation
+     */
+    override fun parseBlock(block: IrohaBlockStub): NotaryEvent {
+        logger.info { "Iroha chain handler" }
+        return mock<NotaryEvent.IrohaChainEvent.OnIrohaAddPeer>()
     }
 
     /**

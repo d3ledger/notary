@@ -11,15 +11,15 @@ import sideChain.ChainListener
 /**
  * Dummy implementation of [ChainHandler] with effective dependencies
  */
-class EthChainHandlerStub constructor(private val listenerStub: ChainListener<EthBlock>) :
-    ChainHandler {
+class EthChainHandlerStub : ChainHandler<EthBlock> {
 
-    override fun onNewEvent(): Observable<NotaryEvent> {
-        return listenerStub.onNewBlockObservable().map {
-            logger.info { "Eth chain handler" }
-            println("handler got block #${it.block.number}")
-            mock<NotaryEvent.EthChainEvent.OnEthSidechainTransfer>()
-        }
+    /**
+     * TODO Replace dummy with effective implementation
+     */
+    override fun parseBlock(block: EthBlock): NotaryEvent {
+        logger.info { "Eth chain handler" }
+        println("handler got block #${block.block.number}")
+        return mock<NotaryEvent.EthChainEvent.OnEthSidechainTransfer>()
     }
 
     /**

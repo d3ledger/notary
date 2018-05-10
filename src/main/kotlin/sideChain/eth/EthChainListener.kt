@@ -1,5 +1,6 @@
 package sideChain.eth
 
+import com.github.kittinunf.result.Result
 import hu.akarnokd.rxjava.interop.RxJavaInterop
 import io.reactivex.Observable
 import main.Configs
@@ -22,26 +23,25 @@ class EthChainListener : ChainListener<EthBlock> {
     /** Keep counting blocks to prevent double emitting in case of chain reorganisation */
     private var lastBlock = confirmationPeriod
 
-    /**
-     * Emit event when new block in Ethereum is committed
-     */
-    override fun onNewBlockObservable(): Observable<EthBlock> {
-        // subscribe to a client
-        val web3 = Web3j.build(HttpService(Configs.ethConnectionUrl))
+    override fun getBlockObservable(): Result<Observable<EthBlock>, Exception> {
+        return Result.of {
+            // subscribe to a client
+            val web3 = Web3j.build(HttpService(Configs.ethConnectionUrl))
 
-        // convert rx1 to rx2
-        return RxJavaInterop.toV2Observable(web3.blockObservable(false))
-            // skip up to confirmationPeriod blocks in case of chain reorganisation
-            .filter { lastBlock < it.block.number }
-            .map {
-                lastBlock = it.block.number
-                val block = web3.ethGetBlockByNumber(
-                    DefaultBlockParameter.valueOf(
-                        it.block.number - confirmationPeriod
-                    ), false
-                ).send()
-                block
-            }
+            // convert rx1 to rx2
+            RxJavaInterop.toV2Observable(web3.blockObservable(false))
+                // skip up to confirmationPeriod blocks in case of chain reorganisation
+                .filter { lastBlock < it.block.number }
+                .map {
+                    lastBlock = it.block.number
+                    val block = web3.ethGetBlockByNumber(
+                        DefaultBlockParameter.valueOf(
+                            it.block.number - confirmationPeriod
+                        ), false
+                    ).send()
+                    block
+                }
+        }
     }
 
     /**
