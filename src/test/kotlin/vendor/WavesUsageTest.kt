@@ -2,9 +2,8 @@ package vendor
 
 
 import com.wavesplatform.wavesj.Account
-import org.junit.Test
 import com.wavesplatform.wavesj.PrivateKeyAccount
-
+import org.junit.jupiter.api.Test
 
 class WavesUsageTest {
     @Test

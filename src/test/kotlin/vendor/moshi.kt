@@ -2,9 +2,8 @@ package vendor
 
 import com.squareup.moshi.Moshi
 import mu.KLogging
-import org.junit.Assert
-import org.junit.Test
-
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
 data class Engine(val temperature: Int)
 
@@ -25,7 +24,7 @@ class MoshiUsage {
 
         val jsonCar = jsonAdapter.fromJson(jsonRepr)
 
-        Assert.assertEquals(car, jsonCar)
+        assertEquals(car, jsonCar)
     }
 
     /**

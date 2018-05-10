@@ -2,8 +2,8 @@ package notary
 
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
-import org.junit.Assert
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
 /**
  * Test accessor of a data class
@@ -18,6 +18,6 @@ class IrohaCommandTest {
             on { accountId } doReturn expected
         }
 
-        Assert.assertEquals(expected, m.accountId)
+        assertEquals(expected, m.accountId)
     }
 }
