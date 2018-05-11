@@ -39,11 +39,13 @@ sealed class NotaryEvent {
          * @param hash transaction hash
          * @param from transaction sender address
          * @param value amount of Ethereum transfered
+         * @param input hex formatted transaction data
          */
         data class OnEthSidechainTransfer(
             val hash: String,
             val from: String,
-            val value: BigInteger
+            val value: BigInteger,
+            val input: String
         ) : EthChainEvent()
 
         /**

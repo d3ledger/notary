@@ -25,12 +25,12 @@ class NotaryInitialization {
     private val ethHandler = EthChainHandler()
 
     // ------------------------------------------| Iroha |------------------------------------------
-    private lateinit var irohaConsumer: IrohaConsumer
     private var irohaChainListener = IrohaChainListenerStub()
     private val irohaHandler = IrohaChainHandlerStub()
 
     private val irohaConverter = IrohaConverterImpl()
     private val irohaNetwork = IrohaNetworkImpl()
+    private lateinit var irohaConsumer: IrohaConsumer
 
     // ------------------------------------------| Notary |------------------------------------------
     private lateinit var notary: Notary

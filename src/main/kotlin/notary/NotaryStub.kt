@@ -22,6 +22,7 @@ class NotaryStub(
                 logger.info { "  hash ${ethEvent.hash}" }
                 logger.info { "  from ${ethEvent.from}" }
                 logger.info { "  value ${ethEvent.value}" }
+                logger.info { "  input ${ethEvent.input}" }
             }
         }
     }
