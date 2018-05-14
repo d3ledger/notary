@@ -81,6 +81,9 @@ dependencies {
     // for Result
     compile group: 'com.github.kittinunf.result', name: 'result', version: '1.4.0'
 
+    // Configuration
+    compile "com.natpryce:konfig:1.6.7.0"
+
     // ------------------| Test dependencies |------------------
 
     // unit tests

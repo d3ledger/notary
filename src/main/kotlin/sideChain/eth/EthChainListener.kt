@@ -3,7 +3,8 @@ package sideChain.eth
 import com.github.kittinunf.result.Result
 import hu.akarnokd.rxjava.interop.RxJavaInterop
 import io.reactivex.Observable
-import main.Configs
+import main.CONFIG
+import main.ConfigKeys
 import mu.KLogging
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.DefaultBlockParameter
@@ -18,7 +19,7 @@ import java.math.BigInteger
 class EthChainListener : ChainListener<EthBlock> {
 
     /** Confirmation period is the number of blocks that we assume that may be reorganised */
-    private val confirmationPeriod = BigInteger.valueOf(Configs.ethConfirmationPeriod)
+    private val confirmationPeriod = BigInteger.valueOf(CONFIG[ConfigKeys.ethConfirmationPeriod])
 
     /** Keep counting blocks to prevent double emitting in case of chain reorganisation */
     private var lastBlock = confirmationPeriod
@@ -26,7 +27,7 @@ class EthChainListener : ChainListener<EthBlock> {
     override fun getBlockObservable(): Result<Observable<EthBlock>, Exception> {
         return Result.of {
             // subscribe to a client
-            val web3 = Web3j.build(HttpService(Configs.ethConnectionUrl))
+            val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.ethConnectionUrl]))
 
             // convert rx1 to rx2
             RxJavaInterop.toV2Observable(web3.blockObservable(false))

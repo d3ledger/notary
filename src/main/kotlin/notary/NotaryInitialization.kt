@@ -5,7 +5,8 @@ import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.map
 import endpoint.RefundEndpoint
 import io.reactivex.Observable
-import main.Configs
+import main.CONFIG
+import main.ConfigKeys
 import mu.KLogging
 import sideChain.eth.EthChainHandler
 import sideChain.eth.EthChainListener
@@ -84,7 +85,7 @@ class NotaryInitialization {
      */
     fun initIrohaConsumer(): Result<Unit, Exception> {
         logger.info { "Init Iroha consumer" }
-        return IrohaKeyLoader.loadKeypair(Configs.pubkeyPath, Configs.privkeyPath)
+        return IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath])
             .map {
                 irohaConsumer = IrohaConsumerImpl(it)
 

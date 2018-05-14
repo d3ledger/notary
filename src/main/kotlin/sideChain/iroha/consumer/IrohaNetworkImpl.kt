@@ -3,7 +3,8 @@ package sideChain.iroha.consumer
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.CommandServiceGrpc
-import main.Configs
+import main.CONFIG
+import main.ConfigKeys
 import mu.KLogging
 
 /**
@@ -16,7 +17,7 @@ class IrohaNetworkImpl : IrohaNetwork {
 
     init {
         val channel =
-            ManagedChannelBuilder.forAddress(Configs.irohaHostname, Configs.irohaPort).usePlaintext(true).build()
+                ManagedChannelBuilder.forAddress(CONFIG[ConfigKeys.irohaHostname], CONFIG[ConfigKeys.irohaPort]).usePlaintext(true).build()
         toriiStub = CommandServiceGrpc.newBlockingStub(channel)
     }
 
