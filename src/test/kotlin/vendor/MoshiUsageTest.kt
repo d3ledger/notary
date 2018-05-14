@@ -11,7 +11,7 @@ data class Passenger(val name: String)
 
 data class Car(val engine: Engine, val passengers: List<Passenger>)
 
-class MoshiUsage {
+class MoshiUsageTest {
     @Test
     fun usageTest() {
         val moshi = Moshi.Builder().build()

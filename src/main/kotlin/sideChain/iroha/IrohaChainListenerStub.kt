@@ -1,5 +1,6 @@
 package sideChain.iroha
 
+import com.github.kittinunf.result.Result
 import com.nhaarman.mockito_kotlin.mock
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
@@ -17,14 +18,16 @@ class IrohaChainListenerStub : ChainListener<IrohaBlockStub> {
      * TODO 20:17, @muratovv: rework with effective impelementation
      * current implementation emit new mock eth block each 3 second
      */
-    override fun onNewBlockObservable(): Observable<IrohaBlockStub> {
-        logger.info { "On subscribe to Iroha chain" }
-        val scheduler = Schedulers.from(Executors.newSingleThreadExecutor())
-        return Observable.interval(3, TimeUnit.SECONDS).map {
-            logger.info { "Timestamp = $it" }
-            mock<IrohaBlockStub> {
-            }
-        }.observeOn(scheduler).subscribeOn(scheduler)
+    override fun getBlockObservable(): Result<Observable<IrohaBlockStub>, Exception> {
+        return Result.of {
+            logger.info { "On subscribe to Iroha chain" }
+            val scheduler = Schedulers.from(Executors.newSingleThreadExecutor())
+            Observable.interval(3, TimeUnit.SECONDS).map {
+                logger.info { "Timestamp = $it" }
+                mock<IrohaBlockStub> {
+                }
+            }.observeOn(scheduler).subscribeOn(scheduler)
+        }
     }
 
     /**

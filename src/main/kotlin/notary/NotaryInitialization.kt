@@ -1,12 +1,14 @@
 package notary
 
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.map
 import endpoint.RefundEndpoint
+import io.reactivex.Observable
 import main.Configs
 import mu.KLogging
 import sideChain.eth.EthChainHandlerStub
-import sideChain.eth.EthChainListenerStub
+import sideChain.eth.EthChainListener
 import sideChain.iroha.IrohaChainHandlerStub
 import sideChain.iroha.IrohaChainListenerStub
 import sideChain.iroha.consumer.*
@@ -19,13 +21,13 @@ class NotaryInitialization {
     private lateinit var refundEndpoint: RefundEndpoint
 
     // ------------------------------------------| ETH |------------------------------------------
-    private lateinit var ethChainListener: EthChainListenerStub
-    private lateinit var ethHandler: EthChainHandlerStub
+    private lateinit var ethChainListener: EthChainListener
+    private val ethHandler = EthChainHandlerStub()
 
     // ------------------------------------------| Iroha |------------------------------------------
     private lateinit var irohaConsumer: IrohaConsumer
     private lateinit var irohaChainListener: IrohaChainListenerStub
-    private lateinit var irohaHandler: IrohaChainHandlerStub
+    private val irohaHandler = IrohaChainHandlerStub()
 
     private val irohaConverter = IrohaConverterImpl()
     private val irohaNetwork = IrohaNetworkImpl()
@@ -38,37 +40,45 @@ class NotaryInitialization {
      */
     fun init(): Result<Unit, Exception> {
         logger.info { "Notary initialization" }
-        initEthChain()
-        initIrohaChain()
-        initNotary()
-        return initIrohaConsumer()
+        return initEthChain()
+            .fanout { initIrohaChain() }
+            .map { initNotary(it.first, it.second) }
+            .map { initIrohaConsumer() }
             .map { initRefund() }
     }
 
     /**
-     * Init Ethereum chain
+     * Init Ethereum chain listener
+     * @return Observable on Ethereum sidechain events
      */
-    fun initEthChain() {
+    fun initEthChain(): Result<Observable<NotaryEvent>, Exception> {
         logger.info { "Init Eth chain" }
-        ethChainListener = EthChainListenerStub()
-        ethHandler = EthChainHandlerStub(ethChainListener)
+        ethChainListener = EthChainListener()
+        return ethChainListener.getBlockObservable()
+            .map { observable ->
+                observable.map { ethHandler.parseBlock(it) }
+            }
     }
 
     /**
-     * Init Iroha chain
+     * Init Iroha chain listener
+     * @return Observable on Iroha sidechain events
      */
-    fun initIrohaChain() {
+    fun initIrohaChain(): Result<Observable<NotaryEvent>, Exception> {
         logger.info { "Init Iroha chain" }
         irohaChainListener = IrohaChainListenerStub()
-        irohaHandler = IrohaChainHandlerStub(irohaChainListener)
+        return irohaChainListener.getBlockObservable()
+            .map { observable ->
+                observable.map { irohaHandler.parseBlock(it) }
+            }
     }
 
     /**
      * Init Notary
      */
-    fun initNotary() {
+    fun initNotary(ethEvents: Observable<NotaryEvent>, irohaEvents: Observable<NotaryEvent>) {
         logger.info { "Init Notary notary" }
-        notary = NotaryStub(ethHandler, irohaHandler)
+        notary = NotaryStub(ethEvents, irohaEvents)
     }
 
     /**

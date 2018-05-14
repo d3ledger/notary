@@ -4,20 +4,22 @@ import notary.NotaryEvent
 import com.nhaarman.mockito_kotlin.mock
 import io.reactivex.Observable
 import mu.KLogging
+import org.web3j.protocol.core.methods.response.EthBlock
 import sideChain.ChainHandler
 import sideChain.ChainListener
 
 /**
  * Dummy implementation of [ChainHandler] with effective dependencies
  */
-class EthChainHandlerStub constructor(private val listenerStub: ChainListener<EthBlockStub>) :
-    ChainHandler {
+class EthChainHandlerStub : ChainHandler<EthBlock> {
 
-    override fun onNewEvent(): Observable<NotaryEvent> {
-        return listenerStub.onNewBlockObservable().map {
-            logger.info { "Eth chain handler" }
-            mock<NotaryEvent.EthChainEvent.OnEthSidechainTransfer>()
-        }
+    /**
+     * TODO Replace dummy with effective implementation
+     */
+    override fun parseBlock(block: EthBlock): NotaryEvent {
+        logger.info { "Eth chain handler" }
+        println("handler got block #${block.block.number}")
+        return mock<NotaryEvent.EthChainEvent.OnEthSidechainTransfer>()
     }
 
     /**
