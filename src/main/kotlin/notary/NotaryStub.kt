@@ -1,6 +1,8 @@
 package notary
 
 import io.reactivex.Observable
+import main.CONFIG
+import main.ConfigKeys
 import mu.KLogging
 
 /**
@@ -14,7 +16,7 @@ class NotaryStub(
     /**
      * Handle Ehthereum event
      */
-    override fun onEthEvent(ethEvent: NotaryEvent.EthChainEvent) {
+    override fun onEthEvent(ethEvent: NotaryEvent.EthChainEvent): IrohaOrderedBatch {
         logger.info { "Notary performs ETH event" }
         when (ethEvent) {
             is NotaryEvent.EthChainEvent.OnEthSidechainTransfer -> {
@@ -23,15 +25,36 @@ class NotaryStub(
                 logger.info { "  from ${ethEvent.from}" }
                 logger.info { "  value ${ethEvent.value}" }
                 logger.info { "  input ${ethEvent.input}" }
+
+                return IrohaOrderedBatch(
+                    arrayListOf(
+                        IrohaTransaction(
+                            CONFIG[ConfigKeys.irohaCreator],
+                            arrayListOf(
+                                IrohaCommand.CommandAddAssetQuantity(
+                                    ethEvent.input,
+                                    "coin#test",
+                                    ethEvent.value.toString()
+                                )
+                            )
+                        )
+                    )
+                )
             }
         }
+
+        // TODO replace output with effective implementation
+        return IrohaOrderedBatch(arrayListOf())
     }
 
     /**
      * Handle Iroha event
      */
-    override fun onIrohaEvent(irohaEvent: NotaryEvent.IrohaChainEvent) {
+    override fun onIrohaEvent(irohaEvent: NotaryEvent.IrohaChainEvent): IrohaOrderedBatch {
         logger.info { "Notary performs IROHA event" }
+
+        // TODO replace output with effective implementation
+        return IrohaOrderedBatch(arrayListOf())
     }
 
     /**
@@ -47,9 +70,6 @@ class NotaryStub(
                 is NotaryEvent.EthChainEvent -> onEthEvent(event)
                 is NotaryEvent.IrohaChainEvent -> onIrohaEvent(event)
             }
-
-            // TODO replace output with effective implementation
-            IrohaOrderedBatch(arrayListOf())
         }
     }
 
