@@ -25,7 +25,6 @@ class IrohaConverterImpl {
                 var txBuilder = ModelTransactionBuilder()
                     .creatorAccountId(transaction.creator)
                     .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
-                    .txCounter(BigInteger.valueOf(1))
 
                 for (cmd in transaction.commands) {
                     when (cmd) {
