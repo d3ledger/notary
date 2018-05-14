@@ -20,18 +20,10 @@ class EthChainHandler : ChainHandler<EthBlock> {
     override fun parseBlock(block: EthBlock): List<NotaryEvent> {
         logger.info { "Eth chain handler for block ${block.block.number}" }
 
-        val res = mutableListOf<NotaryEvent>()
-        val txs = block.block.transactions
-
-        for (txRes in txs) {
-            val tx = txRes.get() as Transaction
-
-            // we are interested in transactions to a particular address
-            if (tx.to == Configs.ethListenAddress)
-                res.add(NotaryEvent.EthChainEvent.OnEthSidechainTransfer(tx.hash, tx.from, tx.value, tx.input))
-        }
-
-        return res
+        return block.block.transactions
+            .map { it.get() as Transaction }
+            .filter { it.to == Configs.ethListenAddress }
+            .map { NotaryEvent.EthChainEvent.OnEthSidechainTransfer(it.hash, it.from, it.value, it.input) }
     }
 
     /**
