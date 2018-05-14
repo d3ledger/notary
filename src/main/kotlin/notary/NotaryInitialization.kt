@@ -7,7 +7,7 @@ import endpoint.RefundEndpoint
 import io.reactivex.Observable
 import main.Configs
 import mu.KLogging
-import sideChain.eth.EthChainHandlerStub
+import sideChain.eth.EthChainHandler
 import sideChain.eth.EthChainListener
 import sideChain.iroha.IrohaChainHandlerStub
 import sideChain.iroha.IrohaChainListenerStub
@@ -21,16 +21,16 @@ class NotaryInitialization {
     private lateinit var refundEndpoint: RefundEndpoint
 
     // ------------------------------------------| ETH |------------------------------------------
-    private lateinit var ethChainListener: EthChainListener
-    private val ethHandler = EthChainHandlerStub()
+    private val ethChainListener = EthChainListener()
+    private val ethHandler = EthChainHandler()
 
     // ------------------------------------------| Iroha |------------------------------------------
-    private lateinit var irohaConsumer: IrohaConsumer
-    private lateinit var irohaChainListener: IrohaChainListenerStub
+    private var irohaChainListener = IrohaChainListenerStub()
     private val irohaHandler = IrohaChainHandlerStub()
 
     private val irohaConverter = IrohaConverterImpl()
     private val irohaNetwork = IrohaNetworkImpl()
+    private lateinit var irohaConsumer: IrohaConsumer
 
     // ------------------------------------------| Notary |------------------------------------------
     private lateinit var notary: Notary
@@ -53,10 +53,9 @@ class NotaryInitialization {
      */
     fun initEthChain(): Result<Observable<NotaryEvent>, Exception> {
         logger.info { "Init Eth chain" }
-        ethChainListener = EthChainListener()
         return ethChainListener.getBlockObservable()
             .map { observable ->
-                observable.map { ethHandler.parseBlock(it) }
+                observable.flatMapIterable { ethHandler.parseBlock(it) }
             }
     }
 
@@ -66,10 +65,9 @@ class NotaryInitialization {
      */
     fun initIrohaChain(): Result<Observable<NotaryEvent>, Exception> {
         logger.info { "Init Iroha chain" }
-        irohaChainListener = IrohaChainListenerStub()
         return irohaChainListener.getBlockObservable()
             .map { observable ->
-                observable.map { irohaHandler.parseBlock(it) }
+                observable.flatMapIterable { irohaHandler.parseBlock(it) }
             }
     }
 

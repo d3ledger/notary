@@ -15,9 +15,9 @@ class IrohaChainHandlerStub : ChainHandler<IrohaBlockStub> {
     /**
      * TODO Replace dummy with effective implementation
      */
-    override fun parseBlock(block: IrohaBlockStub): NotaryEvent {
+    override fun parseBlock(block: IrohaBlockStub): List<NotaryEvent> {
         logger.info { "Iroha chain handler" }
-        return mock<NotaryEvent.IrohaChainEvent.OnIrohaAddPeer>()
+        return listOf(mock<NotaryEvent.IrohaChainEvent.OnIrohaAddPeer>())
     }
 
     /**

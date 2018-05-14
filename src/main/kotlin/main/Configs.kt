@@ -25,7 +25,10 @@ object Configs {
 
     //--------- Ethereum ---------
     /** Confirmation period */
-    val ethConfirmationPeriod: Long = 6
+    val ethConfirmationPeriod: Long = 1
+
+    /** Ethtereum address we are listening for transfers to */
+    val ethListenAddress = "0x00Aa39d30F0D20FF03a22cCfc30B7EfbFca597C2".toLowerCase()
 
     /** URL of Ethereum client */
     val ethConnectionUrl = "http://0.0.0.0:8180/#/auth?token=P8VD-nlD5-8AB5-ZIJv"

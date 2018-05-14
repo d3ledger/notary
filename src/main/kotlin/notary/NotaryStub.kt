@@ -1,6 +1,5 @@
 package notary
 
-import com.nhaarman.mockito_kotlin.mock
 import io.reactivex.Observable
 import mu.KLogging
 
@@ -17,6 +16,15 @@ class NotaryStub(
      */
     override fun onEthEvent(ethEvent: NotaryEvent.EthChainEvent) {
         logger.info { "Notary performs ETH event" }
+        when (ethEvent) {
+            is NotaryEvent.EthChainEvent.OnEthSidechainTransfer -> {
+                logger.info { "transfer Ethereum event:" }
+                logger.info { "  hash ${ethEvent.hash}" }
+                logger.info { "  from ${ethEvent.from}" }
+                logger.info { "  value ${ethEvent.value}" }
+                logger.info { "  input ${ethEvent.input}" }
+            }
+        }
     }
 
     /**
@@ -34,12 +42,11 @@ class NotaryStub(
         return io.reactivex.Observable.merge(
             ethHandler,
             irohaHandler
-        ).map {
-            when (it) {
-                is NotaryEvent.EthChainEvent -> onEthEvent(mock<NotaryEvent.EthChainEvent.OnEthSidechainTransfer>())
-                is NotaryEvent.IrohaChainEvent -> onIrohaEvent(mock<NotaryEvent.IrohaChainEvent.OnIrohaAddPeer>())
+        ).map { event ->
+            when (event) {
+                is NotaryEvent.EthChainEvent -> onEthEvent(event)
+                is NotaryEvent.IrohaChainEvent -> onIrohaEvent(event)
             }
-            logger.info { "Notary does some work" }
 
             // TODO replace output with effective implementation
             IrohaOrderedBatch(arrayListOf())
