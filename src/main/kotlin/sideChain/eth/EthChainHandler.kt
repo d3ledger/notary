@@ -6,6 +6,7 @@ import notary.NotaryEvent
 import org.web3j.protocol.core.methods.response.EthBlock
 import org.web3j.protocol.core.methods.response.Transaction
 import sideChain.ChainHandler
+import util.hexToAscii
 
 /**
  * Implementation of [ChainHandler] for Ethereum side chain.
@@ -23,7 +24,14 @@ class EthChainHandler : ChainHandler<EthBlock> {
         return block.block.transactions
             .map { it.get() as Transaction }
             .filter { it.to == Configs.ethListenAddress }
-            .map { NotaryEvent.EthChainEvent.OnEthSidechainTransfer(it.hash, it.from, it.value, it.input) }
+            .map {
+                NotaryEvent.EthChainEvent.OnEthSidechainTransfer(
+                    it.hash,
+                    it.from,
+                    it.value,
+                    it.input.drop(2).hexToAscii()
+                )
+            }
     }
 
     /**

@@ -1,10 +1,7 @@
-package functional
+package util.functional
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import util.functional.end
-import util.functional.endValue
-import util.functional.map
 
 class BindTest {
 
