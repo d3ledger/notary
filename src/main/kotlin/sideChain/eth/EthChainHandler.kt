@@ -1,6 +1,7 @@
 package sideChain.eth
 
-import main.Configs
+import main.CONFIG
+import main.ConfigKeys
 import mu.KLogging
 import notary.NotaryEvent
 import org.web3j.protocol.core.methods.response.EthBlock
@@ -23,7 +24,7 @@ class EthChainHandler : ChainHandler<EthBlock> {
 
         return block.block.transactions
             .map { it.get() as Transaction }
-            .filter { it.to == Configs.ethListenAddress }
+                .filter { it.to == CONFIG[ConfigKeys.ethListenAddress] }
             .map {
                 NotaryEvent.EthChainEvent.OnEthSidechainTransfer(
                     it.hash,

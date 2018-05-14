@@ -1,14 +1,16 @@
 package endpoint
 
-import notary.NotaryStub
-import io.ktor.application.*
-import io.ktor.http.*
-import io.ktor.response.*
-import io.ktor.routing.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import main.Configs
+import io.ktor.application.call
+import io.ktor.http.ContentType
+import io.ktor.response.respondText
+import io.ktor.routing.get
+import io.ktor.routing.routing
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
+import main.CONFIG
+import main.ConfigKeys
 import mu.KLogging
+import notary.NotaryStub
 
 /**
  * Class is waiting for custodian's intention for rollback
@@ -16,7 +18,7 @@ import mu.KLogging
 class RefundEndpoint {
 
     init {
-        val server = embeddedServer(Netty, port = Configs.refundPort) {
+        val server = embeddedServer(Netty, port = CONFIG[ConfigKeys.refundPort]) {
             routing {
                 get("/rollback") {
                     NotaryStub.logger.info { "Refund" }
