@@ -1,8 +1,7 @@
 package sideChain.iroha.consumer
 
-import iroha.protocol.BlockOuterClass
-import notary.IrohaOrderedBatch
 import UnsignedTx
+import iroha.protocol.BlockOuterClass
 
 /**
  * Interface for consuming Iroha events provided by [notary.Notary]
