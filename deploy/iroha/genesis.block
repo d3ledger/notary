@@ -72,54 +72,40 @@
                   },
                   {
                      "createDomain":{
-                        "domainId":"notary",
+                        "domainId":"test",
                         "defaultRole":"user"
                      }
                   },
                   {
                      "createAsset":{
-                        "assetName":"eth",
-                        "domainId":"notary",
-                        "precision":18
+                        "assetName":"coin",
+                        "domainId":"test",
+                        "precision":2
                      }
                   },
                   {
                      "createAccount":{
                         "accountName":"admin",
-                        "domainId":"notary",
-                        "mainPubkey":"iJ9riB4zG+IUh9t33PMsX409XoBm540v6sQjn+kdQW8="
-                     }
-                  },
-                  {
-                     "createAccount":{
-                        "accountName":"user1",
-                        "domainId":"notary",
-                        "mainPubkey":"iJ9riB4zG+IUh9t33PMsX409XoBm540v6sQjn+kdQW8="
-                     }
-                  },
-                  {
-                     "createAccount":{
-                        "accountName":"user2",
-                        "domainId":"notary",
+                        "domainId":"test",
                         "mainPubkey":"iJ9riB4zG+IUh9t33PMsX409XoBm540v6sQjn+kdQW8="
                      }
                   },
                   {
                      "createAccount":{
                         "accountName":"test",
-                        "domainId":"notary",
+                        "domainId":"test",
                         "mainPubkey":"3MfszkSPLhkKSBrsfKIe5S7aVG5mC0gg9JdtATIVcJc="
                      }
                   },
                   {
                      "appendRole":{
-                        "accountId":"admin@notary",
+                        "accountId":"admin@test",
                         "roleName":"admin"
                      }
                   },
                   {
                      "appendRole":{
-                        "accountId":"admin@notary",
+                        "accountId":"admin@test",
                         "roleName":"money_creator"
                      }
                   }
