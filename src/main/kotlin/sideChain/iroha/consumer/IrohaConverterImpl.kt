@@ -20,51 +20,47 @@ class IrohaConverterImpl {
         // TODO rework with batch transactions
         val txs = mutableListOf<UnsignedTx>()
 
-        try {
-            for (transaction in batch.transactions) {
-                var txBuilder = ModelTransactionBuilder()
-                    .creatorAccountId(transaction.creator)
-                    .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
+        for (transaction in batch.transactions) {
+            var txBuilder = ModelTransactionBuilder()
+                .creatorAccountId(transaction.creator)
+                .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
 
-                for (cmd in transaction.commands) {
-                    when (cmd) {
-                        is IrohaCommand.CommandAddAssetQuantity ->
-                            txBuilder = txBuilder.addAssetQuantity(
-                                cmd.accountId,
-                                cmd.assetId,
-                                cmd.amount
-                            )
-                        is IrohaCommand.CommandAddSignatory ->
-                            txBuilder = txBuilder.addSignatory(
-                                cmd.accountId,
-                                PublicKey(cmd.publicKey)
-                            )
-                        is IrohaCommand.CommandCreateAsset ->
-                            txBuilder = txBuilder.createAsset(
-                                cmd.assetName,
-                                cmd.domainId,
-                                cmd.precision
-                            )
-                        is IrohaCommand.CommandSetAccountDetail ->
-                            txBuilder = txBuilder.setAccountDetail(
-                                cmd.accountId,
-                                cmd.key,
-                                cmd.value
-                            )
-                        is IrohaCommand.CommandTransferAsset ->
-                            txBuilder = txBuilder.transferAsset(
-                                cmd.srcAccountId,
-                                cmd.destAccountId,
-                                cmd.assetId,
-                                cmd.description,
-                                cmd.amount
-                            )
-                    }
+            for (cmd in transaction.commands) {
+                when (cmd) {
+                    is IrohaCommand.CommandAddAssetQuantity ->
+                        txBuilder = txBuilder.addAssetQuantity(
+                            cmd.accountId,
+                            cmd.assetId,
+                            cmd.amount
+                        )
+                    is IrohaCommand.CommandAddSignatory ->
+                        txBuilder = txBuilder.addSignatory(
+                            cmd.accountId,
+                            PublicKey(cmd.publicKey)
+                        )
+                    is IrohaCommand.CommandCreateAsset ->
+                        txBuilder = txBuilder.createAsset(
+                            cmd.assetName,
+                            cmd.domainId,
+                            cmd.precision
+                        )
+                    is IrohaCommand.CommandSetAccountDetail ->
+                        txBuilder = txBuilder.setAccountDetail(
+                            cmd.accountId,
+                            cmd.key,
+                            cmd.value
+                        )
+                    is IrohaCommand.CommandTransferAsset ->
+                        txBuilder = txBuilder.transferAsset(
+                            cmd.srcAccountId,
+                            cmd.destAccountId,
+                            cmd.assetId,
+                            cmd.description,
+                            cmd.amount
+                        )
                 }
-                txs.add(txBuilder.build())
             }
-        } catch (e: Exception) {
-            logger.error { e }
+            txs.add(txBuilder.build())
         }
         return txs
     }
