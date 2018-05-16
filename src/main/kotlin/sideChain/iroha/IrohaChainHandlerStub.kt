@@ -1,11 +1,9 @@
 package sideChain.iroha
 
-import notary.NotaryEvent
+import notary.NotaryInputEvent
 import com.nhaarman.mockito_kotlin.mock
-import io.reactivex.Observable
 import mu.KLogging
 import sideChain.ChainHandler
-import sideChain.ChainListener
 
 /**
  * Dummy implementation of [ChainHandler] with effective dependencies
@@ -15,9 +13,9 @@ class IrohaChainHandlerStub : ChainHandler<IrohaBlockStub> {
     /**
      * TODO Replace dummy with effective implementation
      */
-    override fun parseBlock(block: IrohaBlockStub): List<NotaryEvent> {
+    override fun parseBlock(block: IrohaBlockStub): List<NotaryInputEvent> {
         logger.info { "Iroha chain handler" }
-        return listOf(mock<NotaryEvent.IrohaChainEvent.OnIrohaAddPeer>())
+        return listOf(mock<NotaryInputEvent.IrohaChainInputEvent.OnIrohaAddPeer>())
     }
 
     /**

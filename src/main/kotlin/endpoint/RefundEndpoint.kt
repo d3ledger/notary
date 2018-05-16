@@ -10,7 +10,7 @@ import io.ktor.server.netty.Netty
 import main.CONFIG
 import main.ConfigKeys
 import mu.KLogging
-import notary.NotaryStub
+import notary.NotaryImpl
 
 /**
  * Class is waiting for custodian's intention for rollback
@@ -21,7 +21,7 @@ class RefundEndpoint {
         val server = embeddedServer(Netty, port = CONFIG[ConfigKeys.refundPort]) {
             routing {
                 get("/rollback") {
-                    NotaryStub.logger.info { "Refund" }
+                    logger.info { "Refund" }
                     call.respondText("done", ContentType.Text.Plain)
                 }
             }

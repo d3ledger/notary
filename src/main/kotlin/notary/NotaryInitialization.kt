@@ -52,7 +52,7 @@ class NotaryInitialization {
      * Init Ethereum chain listener
      * @return Observable on Ethereum sidechain events
      */
-    fun initEthChain(): Result<Observable<NotaryEvent>, Exception> {
+    fun initEthChain(): Result<Observable<NotaryInputEvent>, Exception> {
         logger.info { "Init Eth chain" }
         return ethChainListener.getBlockObservable()
             .map { observable ->
@@ -64,7 +64,7 @@ class NotaryInitialization {
      * Init Iroha chain listener
      * @return Observable on Iroha sidechain events
      */
-    fun initIrohaChain(): Result<Observable<NotaryEvent>, Exception> {
+    fun initIrohaChain(): Result<Observable<NotaryInputEvent>, Exception> {
         logger.info { "Init Iroha chain" }
         return irohaChainListener.getBlockObservable()
             .map { observable ->
@@ -75,9 +75,9 @@ class NotaryInitialization {
     /**
      * Init Notary
      */
-    fun initNotary(ethEvents: Observable<NotaryEvent>, irohaEvents: Observable<NotaryEvent>) {
+    fun initNotary(ethEvents: Observable<NotaryInputEvent>, irohaEvents: Observable<NotaryInputEvent>) {
         logger.info { "Init Notary notary" }
-        notary = NotaryStub(ethEvents, irohaEvents)
+        notary = NotaryImpl(ethEvents, irohaEvents)
     }
 
     /**

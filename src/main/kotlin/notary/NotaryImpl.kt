@@ -8,23 +8,23 @@ import mu.KLogging
 /**
  * Dummy implementation of [Notary] with effective dependencies
  */
-class NotaryStub(
-    private val ethHandler: Observable<NotaryEvent>,
-    private val irohaHandler: Observable<NotaryEvent>
+class NotaryImpl(
+    private val ethHandler: Observable<NotaryInputEvent>,
+    private val irohaHandler: Observable<NotaryInputEvent>
 ) : Notary {
 
     /**
      * Handle Ehthereum event
      */
-    override fun onEthEvent(ethEvent: NotaryEvent.EthChainEvent): IrohaOrderedBatch {
+    override fun onEthEvent(ethInputEvent: NotaryInputEvent.EthChainInputEvent): IrohaOrderedBatch {
         logger.info { "Notary performs ETH event" }
-        when (ethEvent) {
-            is NotaryEvent.EthChainEvent.OnEthSidechainTransfer -> {
+        when (ethInputEvent) {
+            is NotaryInputEvent.EthChainInputEvent.OnEthSidechainDeposit -> {
                 logger.info { "transfer Ethereum event:" }
-                logger.info { "  hash ${ethEvent.hash}" }
-                logger.info { "  from ${ethEvent.from}" }
-                logger.info { "  value ${ethEvent.value}" }
-                logger.info { "  input ${ethEvent.input}" }
+                logger.info { "  hash ${ethInputEvent.hash}" }
+                logger.info { "  from ${ethInputEvent.from}" }
+                logger.info { "  value ${ethInputEvent.value}" }
+                logger.info { "  input ${ethInputEvent.input}" }
 
                 return IrohaOrderedBatch(
                     arrayListOf(
@@ -32,9 +32,9 @@ class NotaryStub(
                             CONFIG[ConfigKeys.irohaCreator],
                             arrayListOf(
                                 IrohaCommand.CommandAddAssetQuantity(
-                                    ethEvent.input,
+                                    ethInputEvent.input,
                                     CONFIG[ConfigKeys.irohaEthToken],
-                                    ethEvent.value.toString()
+                                    ethInputEvent.value.toString()
                                 )
                             )
                         )
@@ -50,7 +50,7 @@ class NotaryStub(
     /**
      * Handle Iroha event
      */
-    override fun onIrohaEvent(irohaEvent: NotaryEvent.IrohaChainEvent): IrohaOrderedBatch {
+    override fun onIrohaEvent(irohaInputEvent: NotaryInputEvent.IrohaChainInputEvent): IrohaOrderedBatch {
         logger.info { "Notary performs IROHA event" }
 
         // TODO replace output with effective implementation
@@ -58,7 +58,7 @@ class NotaryStub(
     }
 
     /**
-     * Relay side chain [NotaryEvent] to Iroha output
+     * Relay side chain [NotaryInputEvent] to Iroha output
      */
     override fun irohaOutput(): Observable<IrohaOrderedBatch> {
         // TODO move business logic away from here
@@ -67,8 +67,8 @@ class NotaryStub(
             irohaHandler
         ).map { event ->
             when (event) {
-                is NotaryEvent.EthChainEvent -> onEthEvent(event)
-                is NotaryEvent.IrohaChainEvent -> onIrohaEvent(event)
+                is NotaryInputEvent.EthChainInputEvent -> onEthEvent(event)
+                is NotaryInputEvent.IrohaChainInputEvent -> onIrohaEvent(event)
             }
         }
     }
