@@ -13,6 +13,60 @@ class NotaryImpl(
     private val irohaHandler: Observable<NotaryInputEvent>
 ) : Notary {
 
+    /** Notary account in Iroha */
+    val creator = CONFIG[ConfigKeys.irohaCreator]
+
+    /** Ethereum asset id in Iroha */
+    val ethereumAssetId = CONFIG[ConfigKeys.irohaEthToken]
+
+    /**
+     * Handle Ethereum deposite event. Notaries create the ordered bunch of
+     * transactions:{tx1: setAccountDetail, tx2: addAssetQuantity, tx3: transferAsset}.
+     * SetAccountDetail insert into notary account information about the transaction (hash) for rollback.
+     */
+    private fun onEthSidechainDeposit(ethInputEvent: NotaryInputEvent.EthChainInputEvent.OnEthSidechainDeposit): IrohaOrderedBatch {
+        val destAccountId = ethInputEvent.input
+
+        return IrohaOrderedBatch(
+            arrayListOf(
+                IrohaTransaction(
+                    creator,
+                    arrayListOf(
+                        IrohaCommand.CommandSetAccountDetail(
+                            creator,
+                            // add Ethereum tx hash as a key
+                            ethInputEvent.hash,
+                            // set Ethereum tx sender as a value
+                            ethInputEvent.from
+                        )
+                    )
+                ),
+                IrohaTransaction(
+                    creator,
+                    arrayListOf(
+                        IrohaCommand.CommandAddAssetQuantity(
+                            creator,
+                            ethereumAssetId,
+                            ethInputEvent.value.toString()
+                        )
+                    )
+                ),
+                IrohaTransaction(
+                    creator,
+                    arrayListOf(
+                        IrohaCommand.CommandTransferAsset(
+                            creator,
+                            destAccountId,
+                            ethereumAssetId,
+                            ethInputEvent.hash,
+                            ethInputEvent.value.toString()
+                        )
+                    )
+                )
+            )
+        )
+    }
+
     /**
      * Handle Ehthereum event
      */
@@ -26,20 +80,7 @@ class NotaryImpl(
                 logger.info { "  value ${ethInputEvent.value}" }
                 logger.info { "  input ${ethInputEvent.input}" }
 
-                return IrohaOrderedBatch(
-                    arrayListOf(
-                        IrohaTransaction(
-                            CONFIG[ConfigKeys.irohaCreator],
-                            arrayListOf(
-                                IrohaCommand.CommandAddAssetQuantity(
-                                    ethInputEvent.input,
-                                    CONFIG[ConfigKeys.irohaEthToken],
-                                    ethInputEvent.value.toString()
-                                )
-                            )
-                        )
-                    )
-                )
+                return onEthSidechainDeposit(ethInputEvent)
             }
         }
 
