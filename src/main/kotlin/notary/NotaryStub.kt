@@ -33,7 +33,7 @@ class NotaryStub(
                             arrayListOf(
                                 IrohaCommand.CommandAddAssetQuantity(
                                     ethEvent.input,
-                                    "coin#test",
+                                    CONFIG[ConfigKeys.irohaEthToken],
                                     ethEvent.value.toString()
                                 )
                             )
