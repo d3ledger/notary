@@ -17,7 +17,8 @@ bindings_dir=vendor/iroha/example/java
 sh ${bindings_dir}/build_library.sh
 
 # move generate files to repository
-cp -R ${bindings_dir}/dist/* ${build}
+cp -R ${bindings_dir}/dist/iroha-bindings-example.jar ${build}/iroha-bindings-example.jar
+cp -R ${bindings_dir}/dist/libirohajava.jnilib ${build}/libirohajava.jnilib
 
 # move protoc library to bindings
 unamestr=`uname`
