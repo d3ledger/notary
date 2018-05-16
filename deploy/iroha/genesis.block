@@ -80,7 +80,7 @@
                      "createAsset":{
                         "assetName":"eth",
                         "domainId":"test",
-                        "precision":2
+                        "precision":0
                      }
                   },
                   {
