@@ -78,7 +78,7 @@
                   },
                   {
                      "createAsset":{
-                        "assetName":"coin",
+                        "assetName":"eth",
                         "domainId":"test",
                         "precision":2
                      }
