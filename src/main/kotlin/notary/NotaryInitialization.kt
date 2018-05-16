@@ -96,8 +96,12 @@ class NotaryInitialization {
                     .flatMapIterable { irohaConverter.convert(it) }
                     // convert from Iroha model to Protobuf representation
                     .map { irohaConsumer.convertToProto(it) }
-                    // send to Iroha network layer
-                    .subscribe { irohaNetwork.send(it) }
+                    .subscribe(
+                        // send to Iroha network layer
+                        { irohaNetwork.send(it) },
+                        // on error
+                        { logger.error { it } }
+                    )
                 Unit
             }
     }

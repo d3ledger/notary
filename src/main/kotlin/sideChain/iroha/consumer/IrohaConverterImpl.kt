@@ -3,6 +3,7 @@ package sideChain.iroha.consumer
 import ModelTransactionBuilder
 import PublicKey
 import UnsignedTx
+import mu.KLogging
 import notary.IrohaCommand
 import notary.IrohaOrderedBatch
 import java.math.BigInteger
@@ -23,7 +24,6 @@ class IrohaConverterImpl {
             var txBuilder = ModelTransactionBuilder()
                 .creatorAccountId(transaction.creator)
                 .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
-                .txCounter(BigInteger.valueOf(1))
 
             for (cmd in transaction.commands) {
                 when (cmd) {
@@ -65,4 +65,8 @@ class IrohaConverterImpl {
         return txs
     }
 
+    /**
+     * Logger
+     */
+    companion object : KLogging()
 }

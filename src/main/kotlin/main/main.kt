@@ -7,7 +7,7 @@ import mu.KLogging
 import notary.NotaryInitialization
 import sideChain.iroha.IrohaInitializtion
 
-
+/** Configuration parameters for notary instance */
 val CONFIG = ConfigurationProperties.fromResource("defaults.properties")
 
 /**
@@ -18,9 +18,9 @@ fun main(args: Array<String>) {
     val notary = NotaryInitialization()
 
     IrohaInitializtion.loadIrohaLibrary()
-            .flatMap { notary.init() }
-            .failure {
-                logger.logger.error { it }
-                System.exit(1)
-            }
+        .flatMap { notary.init() }
+        .failure {
+            logger.logger.error { it }
+            System.exit(1)
+        }
 }
