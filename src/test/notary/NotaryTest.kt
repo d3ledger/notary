@@ -100,4 +100,14 @@ class NotaryTest {
     fun withdrawEthereumTest() {
     }
 
+    /**
+     * @given a custodian A has 50 Wei in Notary and has intention to transfer them to custodian B
+     * @when a custodian sends request
+     * @then an IrohaOrderedBatch is emmited with exactly one transaction with exactly one command TranferAsset where
+     * asset id is Ethereum and amount is 50 and receiver address is custodian B address
+     */
+    @Test
+    fun transferEthereumTest() {
+    }
+
 }
