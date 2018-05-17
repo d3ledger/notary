@@ -7,11 +7,13 @@ import endpoint.RefundEndpoint
 import io.reactivex.Observable
 import main.CONFIG
 import main.ConfigKeys
+import endpoint.RefundServerEndpoint
 import mu.KLogging
 import sideChain.eth.EthChainHandler
 import sideChain.eth.EthChainListener
 import sideChain.iroha.IrohaChainHandlerStub
 import sideChain.iroha.IrohaChainListenerStub
+import sideChain.iroha.IrohaConsumer
 import sideChain.iroha.consumer.*
 
 /**
@@ -19,7 +21,7 @@ import sideChain.iroha.consumer.*
  */
 class NotaryInitialization {
 
-    private lateinit var refundEndpoint: RefundEndpoint
+    private lateinit var refundServerEndpoint: RefundServerEndpoint
 
     // ------------------------------------------| ETH |------------------------------------------
     private val ethChainListener = EthChainListener()
