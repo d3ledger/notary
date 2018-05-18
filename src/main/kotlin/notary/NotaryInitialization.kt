@@ -2,6 +2,7 @@ package notary
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout
+import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import endpoint.RefundEndpoint
 import io.reactivex.Observable
@@ -44,7 +45,7 @@ class NotaryInitialization {
         return initEthChain()
             .fanout { initIrohaChain() }
             .map { initNotary(it.first, it.second) }
-            .map { initIrohaConsumer() }
+            .flatMap { initIrohaConsumer() }
             .map { initRefund() }
     }
 
