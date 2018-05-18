@@ -1,35 +1,63 @@
 package endpoint.eth
 
+import com.squareup.moshi.FromJson
+import com.squareup.moshi.ToJson
+
 
 /**
  * Interface represents notary response with proof of rollback from Iroha to Ethereum
  */
-sealed class EthNotaryResponse
-
-/**
- * Successful response of
- */
-interface SuccesfullResponse {
+sealed class EthNotaryResponse {
     /**
-     * getter for eth signature
+     * Successful response that contains proof
      */
-    fun ethSignature(): EthSignature
+    data class Successful(
+        val ethSignature: EthSignature,
+        val ethPublicKey: EthPublicKey
+    ) : EthNotaryResponse()
 
     /**
-     * getter for input contract
+     * Error response which contains reason of error
      */
-    fun ethContract(): EthRefundContract
+    data class Error(
+        val code: Int,
+        val reason: String
+    ) : EthNotaryResponse()
 }
 
-interface ErrorResponse {
+// Code below is boilerplate which is required for supporting sealed classes in Moshi
 
-    /**
-     * getter of code error
-     */
-    fun code(): Int
-
-    /**
-     * getter of user representation of the problem
-     */
-    fun reason(): String
+enum class EthNotaryResponseType {
+    Successful, Error
 }
+
+data class EthNotaryResponseLayer(
+    val type: EthNotaryResponseType,
+    val ethSignature: EthSignature? = null,
+    val ethPublicKey: EthPublicKey? = null,
+    val code: Int? = null,
+    val reason: String? = null
+)
+
+class EthNotaryResponseMoshiAdapter {
+    @FromJson
+    fun fromJson(layer: EthNotaryResponseLayer) = when (layer.type) {
+        EthNotaryResponseType.Successful -> EthNotaryResponse.Successful(layer.ethSignature!!, layer.ethPublicKey!!)
+        EthNotaryResponseType.Error -> EthNotaryResponse.Error(layer.code!!, layer.reason!!)
+    }
+
+    @ToJson
+    fun toJson(response: EthNotaryResponse) = when (response) {
+        is EthNotaryResponse.Successful -> EthNotaryResponseLayer(
+            type = EthNotaryResponseType.Successful,
+            ethSignature = response.ethSignature,
+            ethPublicKey = response.ethPublicKey
+        )
+        is EthNotaryResponse.Error -> EthNotaryResponseLayer(
+            type = EthNotaryResponseType.Successful,
+            code = response.code,
+            reason = response.reason
+        )
+    }
+}
+

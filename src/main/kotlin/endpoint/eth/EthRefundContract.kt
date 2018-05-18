@@ -3,23 +3,23 @@ package endpoint.eth
 /**
  * Interface represents custodian request about rollback from Iroha to Ethereum
  */
-interface EthRefundContract {
-    fun getEthAddress(): EthAddress
-    fun getEthTokenType(): EthTokenType
-    fun getEthAsset(): EthTokenAsset
-}
+data class EthRefundContract(
+    val ethAddress: EthAddress,
+    val ethTokenType: EthTokenType,
+    val ethAmountAsset: EthAmountAsset
+)
 
 /**
  * Number of asset for transfer
  */
-interface EthTokenAsset
+typealias EthAmountAsset = Float
 
 /**
  * Eth token identifier
  */
-interface EthTokenType
+typealias EthTokenType = String
 
 /**
  * Target address for the transfer in Eth network
  */
-interface EthAddress
+typealias EthAddress = String
