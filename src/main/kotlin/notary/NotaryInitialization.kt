@@ -3,17 +3,21 @@ package notary
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.map
-import endpoint.RefundEndpoint
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.mock
+import endpoint.RefundServerEndpoint
+import endpoint.ServerInitializationBundle
+import endpoint.eth.EthNotaryResponse
+import endpoint.eth.EthRefundContract
 import io.reactivex.Observable
 import main.CONFIG
 import main.ConfigKeys
-import endpoint.RefundServerEndpoint
 import mu.KLogging
 import sideChain.eth.EthChainHandler
 import sideChain.eth.EthChainListener
 import sideChain.iroha.IrohaChainHandlerStub
 import sideChain.iroha.IrohaChainListenerStub
-import sideChain.iroha.IrohaConsumer
 import sideChain.iroha.consumer.*
 
 /**
@@ -113,7 +117,20 @@ class NotaryInitialization {
      */
     fun initRefund() {
         logger.info { "Init Refund endpoint" }
-        refundEndpoint = RefundEndpoint()
+        // TODO 18/05/2018, @muratovv: rework eth strategy with effective implementation
+        refundServerEndpoint = RefundServerEndpoint(ServerInitializationBundle(80, "eth"),
+            mock {
+                val request = any<EthRefundContract>()
+                on {
+                    performRefund(request)
+                } doReturn EthNotaryResponse.Successful(
+                    "signature",
+                    "pub_key"
+                )
+                on {
+                    validate(any())
+                } doReturn true
+            })
     }
 
     /**

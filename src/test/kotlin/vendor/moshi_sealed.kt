@@ -3,8 +3,8 @@ package vendor
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.ToJson
-import org.junit.Assert
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
 /**
  * Code below provide example of JSON serialization/deserialization of sealed classed
@@ -70,7 +70,7 @@ class TestSealedClasses {
         println(aJson)
         println(bJson)
 
-        Assert.assertEquals(a, adapter.fromJson(aJson))
-        Assert.assertEquals(b, adapter.fromJson(bJson))
+        assertEquals(a, adapter.fromJson(aJson))
+        assertEquals(b, adapter.fromJson(bJson))
     }
 }

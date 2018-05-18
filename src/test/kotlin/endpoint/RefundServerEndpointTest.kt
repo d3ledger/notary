@@ -8,8 +8,9 @@ import endpoint.eth.EthNotaryResponse
 import endpoint.eth.EthNotaryResponseMoshiAdapter
 import endpoint.eth.EthRefundContract
 import endpoint.eth.EthRefundStrategy
-import org.junit.Assert
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+
 
 class RefundServerEndpointTest {
 
@@ -33,7 +34,7 @@ class RefundServerEndpointTest {
 
         println("Answer = $refundAnswer")
 
-        Assert.assertEquals(response, moshi.adapter(EthNotaryResponse::class.java).fromJson(refundAnswer))
+        assertEquals(response, moshi.adapter(EthNotaryResponse::class.java).fromJson(refundAnswer))
     }
 
     private val ethRequest = EthRefundContract("address", "doge_coin", 100500F)
