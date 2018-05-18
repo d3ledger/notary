@@ -10,7 +10,6 @@ import io.ktor.server.netty.Netty
 import main.CONFIG
 import main.ConfigKeys
 import mu.KLogging
-import notary.NotaryImpl
 
 /**
  * Class is waiting for custodian's intention for rollback

@@ -25,6 +25,12 @@ class NotaryImpl(
      * SetAccountDetail insert into notary account information about the transaction (hash) for rollback.
      */
     private fun onEthSidechainDeposit(ethInputEvent: NotaryInputEvent.EthChainInputEvent.OnEthSidechainDeposit): IrohaOrderedBatch {
+        logger.info { "transfer Ethereum event:" }
+        logger.info { "  hash ${ethInputEvent.hash}" }
+        logger.info { "  from ${ethInputEvent.from}" }
+        logger.info { "  value ${ethInputEvent.value}" }
+        logger.info { "  input ${ethInputEvent.input}" }
+
         val destAccountId = ethInputEvent.input
 
         return IrohaOrderedBatch(
@@ -73,15 +79,7 @@ class NotaryImpl(
     override fun onEthEvent(ethInputEvent: NotaryInputEvent.EthChainInputEvent): IrohaOrderedBatch {
         logger.info { "Notary performs ETH event" }
         when (ethInputEvent) {
-            is NotaryInputEvent.EthChainInputEvent.OnEthSidechainDeposit -> {
-                logger.info { "transfer Ethereum event:" }
-                logger.info { "  hash ${ethInputEvent.hash}" }
-                logger.info { "  from ${ethInputEvent.from}" }
-                logger.info { "  value ${ethInputEvent.value}" }
-                logger.info { "  input ${ethInputEvent.input}" }
-
-                return onEthSidechainDeposit(ethInputEvent)
-            }
+            is NotaryInputEvent.EthChainInputEvent.OnEthSidechainDeposit -> return onEthSidechainDeposit(ethInputEvent)
         }
 
         // TODO replace output with effective implementation
@@ -103,7 +101,7 @@ class NotaryImpl(
      */
     override fun irohaOutput(): Observable<IrohaOrderedBatch> {
         // TODO move business logic away from here
-        return io.reactivex.Observable.merge(
+        return Observable.merge(
             ethHandler,
             irohaHandler
         ).map { event ->

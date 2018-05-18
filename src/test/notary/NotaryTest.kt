@@ -46,49 +46,53 @@ class NotaryTest {
         val notary = NotaryImpl(obsEth, obsIroha)
         val res = notary.irohaOutput()
 
-        res.subscribe() {
-            when (it) {
-                is IrohaOrderedBatch -> {
-                    val txs = it.transactions
-                    assertEquals(3, txs.size)
+        res.subscribe(
+            {
+                when (it) {
+                    is IrohaOrderedBatch -> {
+                        val txs = it.transactions
+                        assertEquals(3, txs.size)
 
-                    val setAccountDetail = txs[0].commands
-                    assertEquals(1, setAccountDetail.size)
-                    var cmd = setAccountDetail.first()
-                    if (cmd is IrohaCommand.CommandSetAccountDetail) {
-                        assertEquals(creatorId, cmd.accountId)
-                        assertEquals(txHash, cmd.key)
-                        assertEquals(txFrom, cmd.value)
-                    } else {
-                        fail { "Wrong IrohaCommand type" }
-                    }
+                        val setAccountDetail = txs[0].commands
+                        assertEquals(1, setAccountDetail.size)
+                        var cmd = setAccountDetail.first()
+                        if (cmd is IrohaCommand.CommandSetAccountDetail) {
+                            assertEquals(creatorId, cmd.accountId)
+                            assertEquals(txHash, cmd.key)
+                            assertEquals(txFrom, cmd.value)
+                        } else {
+                            fail { "Wrong IrohaCommand type" }
+                        }
 
-                    val addAssetQuantity = txs[1].commands
-                    assertEquals(1, addAssetQuantity.size)
-                    cmd = addAssetQuantity.first()
-                    if (cmd is IrohaCommand.CommandAddAssetQuantity) {
-                        assertEquals(amount.toString(), cmd.amount)
-                        assertEquals(creatorId, cmd.accountId)
-                        assertEquals(assetId, cmd.assetId)
-                    } else {
-                        fail { "Wrong IrohaCommand type" }
-                    }
+                        val addAssetQuantity = txs[1].commands
+                        assertEquals(1, addAssetQuantity.size)
+                        cmd = addAssetQuantity.first()
+                        if (cmd is IrohaCommand.CommandAddAssetQuantity) {
+                            assertEquals(amount.toString(), cmd.amount)
+                            assertEquals(creatorId, cmd.accountId)
+                            assertEquals(assetId, cmd.assetId)
+                        } else {
+                            fail { "Wrong IrohaCommand type" }
+                        }
 
-                    val transferAsset = txs[2].commands
-                    assertEquals(1, transferAsset.size)
-                    cmd = transferAsset.first()
-                    if (cmd is IrohaCommand.CommandTransferAsset) {
-                        assertEquals(creatorId, cmd.srcAccountId)
-                        assertEquals(accountId, cmd.destAccountId)
-                        assertEquals(assetId, cmd.assetId)
-                        assertEquals(txHash, cmd.description)
-                        assertEquals(amount.toString(), cmd.amount)
-                    } else {
-                        fail { "Wrong IrohaCommand type" }
+                        val transferAsset = txs[2].commands
+                        assertEquals(1, transferAsset.size)
+                        cmd = transferAsset.first()
+                        if (cmd is IrohaCommand.CommandTransferAsset) {
+                            assertEquals(creatorId, cmd.srcAccountId)
+                            assertEquals(accountId, cmd.destAccountId)
+                            assertEquals(assetId, cmd.assetId)
+                            assertEquals(txHash, cmd.description)
+                            assertEquals(amount.toString(), cmd.amount)
+                        } else {
+                            fail { "Wrong IrohaCommand type" }
+                        }
                     }
                 }
-            }
-        }
+            },
+            // on error
+            { fail { "On error called" } }
+        )
     }
 
     /**
@@ -98,16 +102,6 @@ class NotaryTest {
      */
     @Test
     fun withdrawEthereumTest() {
-    }
-
-    /**
-     * @given a custodian A has 50 Wei in Notary and has intention to transfer them to custodian B
-     * @when a custodian sends request
-     * @then an IrohaOrderedBatch is emmited with exactly one transaction with exactly one command TranferAsset where
-     * asset id is Ethereum and amount is 50 and receiver address is custodian B address
-     */
-    @Test
-    fun transferEthereumTest() {
     }
 
 }

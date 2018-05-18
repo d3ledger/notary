@@ -18,9 +18,15 @@ sealed class NotaryInputEvent {
         abstract class OnIrohaAddPeer : IrohaChainInputEvent()
 
         /**
-         * Event which is raised when custodian transfer assets to notary account
+         * Event which is raised when custodian transfer assets to notary account to withdraw asset
+         *
+         * @param asset is asset id in Iroha
+         * @param amount of ethereum to withdraw
          */
-        abstract class OnIrohaSideChainTransfer : IrohaChainInputEvent()
+        abstract class OnIrohaSideChainTransfer(
+            val asset: String,
+            val amount: BigInteger
+        ) : IrohaChainInputEvent()
     }
 
 
