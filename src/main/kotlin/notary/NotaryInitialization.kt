@@ -118,7 +118,8 @@ class NotaryInitialization {
     fun initRefund() {
         logger.info { "Init Refund endpoint" }
         // TODO 18/05/2018, @muratovv: rework eth strategy with effective implementation
-        refundServerEndpoint = RefundServerEndpoint(ServerInitializationBundle(80, "eth"),
+        refundServerEndpoint = RefundServerEndpoint(
+            ServerInitializationBundle(CONFIG[ConfigKeys.refundPort], CONFIG[ConfigKeys.ethEndpoint]),
             mock {
                 val request = any<EthRefundContract>()
                 on {

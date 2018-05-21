@@ -41,6 +41,10 @@ class RefundServerEndpoint(
         server.start(wait = false)
     }
 
+    /**
+     * Method that call of raw ETH refund request
+     * @param rawRequest - raw string of request
+     */
     fun onCallEthRefund(rawRequest: String?): String {
         return rawRequest
             .map(ethRefundAdapter::fromJson)
@@ -54,6 +58,9 @@ class RefundServerEndpoint(
             })
     }
 
+    /**
+     * Method return response on stateless invalid request
+     */
     fun onErrorPipelineCall(): String {
         logger.error { "Request has been failed" }
         return ""

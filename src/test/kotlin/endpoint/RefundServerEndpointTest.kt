@@ -11,11 +11,12 @@ import endpoint.eth.EthRefundStrategy
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-
+/**
+ * Fixture for testing endpoint
+ */
 class RefundServerEndpointTest {
 
     val moshi = Moshi.Builder().add(EthNotaryResponseMoshiAdapter()).build()
-
 
     /**
      * @given initialized server class
