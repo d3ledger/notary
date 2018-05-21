@@ -29,3 +29,12 @@ fun <T, R> T?.endValue(value: (value: T) -> R, empty: () -> R): R {
         value(this)
     } else empty()
 }
+
+/**
+ * Check predicate on value and return this if true
+ */
+fun <T> T?.truePredicate(value: (value: T) -> Boolean): T? {
+    return this.map {
+        if (value(it)) this else null
+    }
+}
