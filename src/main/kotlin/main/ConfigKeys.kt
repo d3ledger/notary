@@ -36,5 +36,7 @@ class ConfigKeys {
         val ethListenAddress = Key("ethListenAddress", stringType)
         /** URL of Ethereum client */
         val ethConnectionUrl = Key("ethConnectionUrl", stringType)
+        /** URL of refund for ETH side chain */
+        val ethEndpoint = Key("ethEndpoint", stringType)
     }
 }

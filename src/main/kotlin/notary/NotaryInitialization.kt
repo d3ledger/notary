@@ -2,8 +2,15 @@ package notary
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout
+import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import endpoint.RefundEndpoint
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.mock
+import endpoint.RefundServerEndpoint
+import endpoint.ServerInitializationBundle
+import endpoint.eth.EthNotaryResponse
+import endpoint.eth.EthRefundContract
 import io.reactivex.Observable
 import main.CONFIG
 import main.ConfigKeys
@@ -19,7 +26,7 @@ import sideChain.iroha.consumer.*
  */
 class NotaryInitialization {
 
-    private lateinit var refundEndpoint: RefundEndpoint
+    private lateinit var refundServerEndpoint: RefundServerEndpoint
 
     // ------------------------------------------| ETH |------------------------------------------
     private val ethChainListener = EthChainListener()
@@ -44,7 +51,7 @@ class NotaryInitialization {
         return initEthChain()
             .fanout { initIrohaChain() }
             .map { initNotary(it.first, it.second) }
-            .map { initIrohaConsumer() }
+            .flatMap { initIrohaConsumer() }
             .map { initRefund() }
     }
 
@@ -111,7 +118,21 @@ class NotaryInitialization {
      */
     fun initRefund() {
         logger.info { "Init Refund endpoint" }
-        refundEndpoint = RefundEndpoint()
+        // TODO 18/05/2018, @muratovv: rework eth strategy with effective implementation
+        refundServerEndpoint = RefundServerEndpoint(
+            ServerInitializationBundle(CONFIG[ConfigKeys.refundPort], CONFIG[ConfigKeys.ethEndpoint]),
+            mock {
+                val request = any<EthRefundContract>()
+                on {
+                    performRefund(request)
+                } doReturn EthNotaryResponse.Successful(
+                    "signature",
+                    "pub_key"
+                )
+                on {
+                    validate(any())
+                } doReturn true
+            })
     }
 
     /**
