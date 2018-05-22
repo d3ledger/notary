@@ -78,12 +78,12 @@ class NotaryImpl(
      */
     override fun onEthEvent(ethInputEvent: NotaryInputEvent.EthChainInputEvent): IrohaOrderedBatch {
         logger.info { "Notary performs ETH event" }
-        when (ethInputEvent) {
-            is NotaryInputEvent.EthChainInputEvent.OnEthSidechainDeposit -> return onEthSidechainDeposit(ethInputEvent)
-        }
+        return when (ethInputEvent) {
+            is NotaryInputEvent.EthChainInputEvent.OnEthSidechainDeposit -> onEthSidechainDeposit(ethInputEvent)
 
         // TODO replace output with effective implementation
-        return IrohaOrderedBatch(arrayListOf())
+            else -> IrohaOrderedBatch(arrayListOf())
+        }
     }
 
     /**
