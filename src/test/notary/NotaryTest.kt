@@ -88,20 +88,12 @@ class NotaryTest {
                             fail { "Wrong IrohaCommand type" }
                         }
                     }
+
+                    else -> fail { "Wrong IrohaOrderedBatch type" }
                 }
             },
             // on error
             { fail { "On error called" } }
         )
     }
-
-    /**
-     * @given a custodian has 50 Wei in Notary and has intention to withdraw them
-     * @when a custodian sends request
-     * @then an IrohaOrderedBatch is emmited with exactly one transaction with exactly one command
-     */
-    @Test
-    fun withdrawEthereumTest() {
-    }
-
 }
