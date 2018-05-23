@@ -9,13 +9,13 @@ interface Notary {
      * Calls when Ethereum event is occurred
      * @return transaction to be commited to Iroha
      */
-    fun onEthEvent(ethEvent: NotaryEvent.EthChainEvent): IrohaOrderedBatch
+    fun onEthEvent(ethInputEvent: NotaryInputEvent.EthChainInputEvent): IrohaOrderedBatch
 
     /**
      * Calls when Iroha event is occurred
      * @return transaction to be commited to Iroha
      */
-    fun onIrohaEvent(irohaEvent: NotaryEvent.IrohaChainEvent): IrohaOrderedBatch
+    fun onIrohaEvent(irohaInputEvent: NotaryInputEvent.IrohaChainInputEvent): IrohaOrderedBatch
 
     /**
      * Observable with output for sending to Iroha

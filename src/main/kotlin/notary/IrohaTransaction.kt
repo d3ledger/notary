@@ -5,4 +5,4 @@ package notary
  * @param creator account id of transaction creator
  * @param commands commands to be sent to Iroha
  */
-class IrohaTransaction(val creator: String, val commands: List<IrohaCommand>)
+data class IrohaTransaction(val creator: String, val commands: List<IrohaCommand>)
