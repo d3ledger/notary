@@ -1,9 +1,9 @@
 package sideChain
 
-import notary.NotaryEvent
+import notary.NotaryInputEvent
 
 /**
- * Class extracts [NotaryEvent] received from side chain blocks
+ * Class extracts [NotaryInputEvent] received from side chain blocks
  */
 interface ChainHandler<Block> {
 
@@ -11,5 +11,5 @@ interface ChainHandler<Block> {
      * Parse block and find interesting transactions.
      * @return observable with emitted chain events
      */
-    fun parseBlock(block: Block): List<NotaryEvent>
+    fun parseBlock(block: Block): List<NotaryInputEvent>
 }
