@@ -7,6 +7,7 @@ apis = ["web3", "eth", "net", "personal", "parity", "parity_set", "traces", "rpc
 disable = false
 port = 8545
 interface = "0.0.0.0"
+cors = ["all"]
 
 [ui]
 port = 8180
