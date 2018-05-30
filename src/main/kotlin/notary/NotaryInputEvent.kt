@@ -44,7 +44,7 @@ sealed class NotaryInputEvent {
          * Event which raised on new transfer transaction to Ethereum wallet
          * @param hash transaction hash
          * @param from transaction sender address
-         * @param value amount of Ethereum transfered
+         * @param value amount of Ether transfered
          * @param input hex formatted transaction data
          */
         data class OnEthSidechainDeposit(
@@ -52,6 +52,18 @@ sealed class NotaryInputEvent {
             val from: String,
             val value: BigInteger,
             val input: String
+        ) : EthChainInputEvent()
+
+        /**
+         * Event which occures when custodian deposit ERC20 token
+         * @param from user relay wallet
+         * @param token token name
+         * @param amount amount of tokens
+         */
+        data class OnEthSidechainDepositToken(
+            val from: String,
+            val token: String,
+            val amount: BigInteger
         ) : EthChainInputEvent()
 
         /**

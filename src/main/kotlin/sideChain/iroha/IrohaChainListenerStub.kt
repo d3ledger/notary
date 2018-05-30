@@ -22,7 +22,7 @@ class IrohaChainListenerStub : ChainListener<IrohaBlockStub> {
         return Result.of {
             logger.info { "On subscribe to Iroha chain" }
             val scheduler = Schedulers.from(Executors.newSingleThreadExecutor())
-            Observable.interval(3, TimeUnit.SECONDS).map {
+            Observable.interval(30, TimeUnit.SECONDS).map {
                 logger.info { "Timestamp = $it" }
                 mock<IrohaBlockStub> {
                 }

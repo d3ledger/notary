@@ -15,6 +15,8 @@ import io.reactivex.Observable
 import main.CONFIG
 import main.ConfigKeys
 import mu.KLogging
+import org.web3j.protocol.Web3j
+import org.web3j.protocol.http.HttpService
 import sideChain.eth.EthChainHandler
 import sideChain.eth.EthChainListener
 import sideChain.iroha.IrohaChainHandlerStub
@@ -29,8 +31,9 @@ class NotaryInitialization {
     private lateinit var refundServerEndpoint: RefundServerEndpoint
 
     // ------------------------------------------| ETH |------------------------------------------
-    private val ethChainListener = EthChainListener()
-    private val ethHandler = EthChainHandler()
+    private val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.ethConnectionUrl]))
+    private val ethChainListener = EthChainListener(web3)
+    private val ethHandler = EthChainHandler(web3)
 
     // ------------------------------------------| Iroha |------------------------------------------
     private var irohaChainListener = IrohaChainListenerStub()
