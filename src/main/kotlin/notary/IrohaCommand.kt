@@ -95,7 +95,11 @@ sealed class IrohaCommand {
              * @param bytes the command represented as byte array
              */
             fun fromProto(bytes: ByteArray): CommandAddPeer {
-                val cmd = iroha.protocol.Commands.Command.parseFrom(bytes).addPeer
+                val generic = iroha.protocol.Commands.Command.parseFrom(bytes)
+                val cmd = if (generic.hasAddPeer()) {
+                    generic.addPeer
+                } else iroha.protocol.Commands.AddPeer.parseFrom(bytes)
+
                 return CommandAddPeer(cmd.peer.address, cmd.peer.peerKey.toByteArray())
             }
         }
