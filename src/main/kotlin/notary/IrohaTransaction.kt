@@ -5,7 +5,9 @@ package notary
  * @param creator account id of transaction creator
  * @param commands commands to be sent to Iroha
  */
-data class IrohaTransaction(val creator: String, val commands: List<IrohaCommand>) {
+data class IrohaTransaction(
+        val creator: String,
+        val commands: List<IrohaCommand>) {
     companion object {
         /**
          * This implementation takes only AddPeer commands !!
@@ -14,7 +16,12 @@ data class IrohaTransaction(val creator: String, val commands: List<IrohaCommand
          */
         fun fromProto(bytes: ByteArray): IrohaTransaction {
             val tx = iroha.protocol.BlockOuterClass.Transaction.parseFrom(bytes)
-            val cmds = tx.payload.commandsList.filter { it.hasAddPeer() }.map { IrohaCommand.CommandAddPeer.fromProto(it.toByteArray()) }
+            val cmds = tx.payload.commandsList
+                    .filter { it.hasAddPeer() }
+                    .map {
+                        IrohaCommand.CommandAddPeer.fromProto(it.toByteArray())
+                    }
+
             val creator = tx.payload.creatorAccountId
             return IrohaTransaction(creator, cmds)
         }

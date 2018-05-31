@@ -1,5 +1,7 @@
 package notary
 
+import java.util.*
+
 /**
  * Class represents commands that [Notary] can send to [sideChain.iroha.consumer.IrohaConsumer]
  */
@@ -68,10 +70,32 @@ sealed class IrohaCommand {
             val publicKey: String
     ) : IrohaCommand()
 
-    data class CommandAddPeer(val address: String, val peerKey: ByteArray) : IrohaCommand() {
+    /**
+     * Class represents addPeer Iroha command
+     * @param address peer's address, ip and port
+     * @param peerKey peer's key
+     */
+    data class CommandAddPeer(
+            val address: String,
+            val peerKey: ByteArray
+    ) : IrohaCommand() {
+
+        override fun equals(other: Any?): Boolean {
+            other as CommandAddPeer
+            return address == other.address && Arrays.equals(peerKey, other.peerKey)
+        }
+
+        override fun hashCode(): Int =
+                Arrays.hashCode(address.toByteArray() + peerKey)
+
+
         companion object {
+            /**
+             * Takes a binary proto command and creates a model command AddPeer
+             * @param bytes the command represented as byte array
+             */
             fun fromProto(bytes: ByteArray): CommandAddPeer {
-                val cmd = iroha.protocol.Commands.AddPeer.parseFrom(bytes)
+                val cmd = iroha.protocol.Commands.Command.parseFrom(bytes).addPeer
                 return CommandAddPeer(cmd.peer.address, cmd.peer.peerKey.toByteArray())
             }
         }
