@@ -15,7 +15,7 @@ sealed class NotaryInputEvent {
         /**
          * Event which raised on adding new peer in Iroha network
          */
-        abstract class OnIrohaAddPeer : IrohaChainInputEvent()
+        data class OnIrohaAddPeer(val address: String, val key: List<Byte>) : IrohaChainInputEvent()
 
         /**
          * Event which is raised when custodian transfer assets to notary account to withdraw asset
@@ -24,8 +24,8 @@ sealed class NotaryInputEvent {
          * @param amount of ethereum to withdraw
          */
         abstract class OnIrohaSideChainTransfer(
-            val asset: String,
-            val amount: BigInteger
+                val asset: String,
+                val amount: BigInteger
         ) : IrohaChainInputEvent()
     }
 
@@ -48,10 +48,10 @@ sealed class NotaryInputEvent {
          * @param input hex formatted transaction data
          */
         data class OnEthSidechainDeposit(
-            val hash: String,
-            val from: String,
-            val value: BigInteger,
-            val input: String
+                val hash: String,
+                val from: String,
+                val value: BigInteger,
+                val input: String
         ) : EthChainInputEvent()
 
         /**

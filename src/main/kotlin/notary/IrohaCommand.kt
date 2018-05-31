@@ -1,5 +1,7 @@
 package notary
 
+import java.util.Arrays
+
 /**
  * Class represents commands that [Notary] can send to [sideChain.iroha.consumer.IrohaConsumer]
  */
@@ -12,10 +14,11 @@ sealed class IrohaCommand {
      * @param amount is a string representation of amount to add
      */
     data class CommandAddAssetQuantity(
-        val accountId: String,
-        val assetId: String,
-        val amount: String
-    ) : IrohaCommand()
+            val accountId: String,
+            val assetId: String,
+            val amount: String
+    ) : IrohaCommand() {
+    }
 
     /**
      * Class represents setAccountDetail Iroha command
@@ -24,9 +27,9 @@ sealed class IrohaCommand {
      * @param value detail value
      */
     data class CommandSetAccountDetail(
-        val accountId: String,
-        val key: String,
-        val value: String
+            val accountId: String,
+            val key: String,
+            val value: String
     ) : IrohaCommand()
 
     /**
@@ -36,9 +39,9 @@ sealed class IrohaCommand {
      * @param precision - asset precision
      */
     data class CommandCreateAsset(
-        val assetName: String,
-        val domainId: String,
-        val precision: Short
+            val assetName: String,
+            val domainId: String,
+            val precision: Short
     ) : IrohaCommand()
 
     /**
@@ -50,11 +53,11 @@ sealed class IrohaCommand {
      * @param amount - amount of asset to transfer
      */
     data class CommandTransferAsset(
-        val srcAccountId: String,
-        val destAccountId: String,
-        val assetId: String,
-        val description: String,
-        val amount: String
+            val srcAccountId: String,
+            val destAccountId: String,
+            val assetId: String,
+            val description: String,
+            val amount: String
     ) : IrohaCommand()
 
     /**
@@ -63,7 +66,42 @@ sealed class IrohaCommand {
      * @param publicKey public key of signatory
      */
     data class CommandAddSignatory(
-        val accountId: String,
-        val publicKey: String
+            val accountId: String,
+            val publicKey: String
     ) : IrohaCommand()
+
+    /**
+     * Class represents addPeer Iroha command
+     * @param address peer's address, ip and port
+     * @param peerKey peer's key
+     */
+    data class CommandAddPeer(
+            val address: String,
+            val peerKey: ByteArray
+    ) : IrohaCommand() {
+
+        override fun equals(other: Any?): Boolean {
+            other as CommandAddPeer
+            return address == other.address && Arrays.equals(peerKey, other.peerKey)
+        }
+
+        override fun hashCode(): Int =
+                Arrays.hashCode(address.toByteArray() + peerKey)
+
+
+        companion object {
+            /**
+             * Takes a binary proto command and creates a model command AddPeer
+             * @param bytes the command represented as byte array
+             */
+            fun fromProto(bytes: ByteArray): CommandAddPeer {
+                val generic = iroha.protocol.Commands.Command.parseFrom(bytes)
+                val cmd = if (generic.hasAddPeer()) {
+                    generic.addPeer
+                } else iroha.protocol.Commands.AddPeer.parseFrom(bytes)
+
+                return CommandAddPeer(cmd.peer.address, cmd.peer.peerKey.toByteArray())
+            }
+        }
+    }
 }
