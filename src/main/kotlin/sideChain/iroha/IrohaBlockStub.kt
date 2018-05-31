@@ -2,7 +2,11 @@ package sideChain.iroha
 
 import notary.IrohaTransaction
 
-
+/**
+ * Class represents Signature from iroha model
+ * @param publicKey signature's public key
+ * @param signature the signature itself
+ */
 data class IrohaSignature(val publicKey: ByteArray, val signature: ByteArray) {
     companion object {
         fun fromProto(bytes: ByteArray): IrohaSignature {
@@ -25,7 +29,6 @@ data class IrohaBlockStub(val height: Long,
                           val signatures: List<IrohaSignature>) {
     companion object {
         fun fromProto(bytes: ByteArray): IrohaBlockStub {
-
             val block = iroha.protocol.BlockOuterClass.Block.parseFrom(bytes)
             val payload = block.payload
             val height = payload.height

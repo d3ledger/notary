@@ -1,6 +1,6 @@
 package notary
 
-import java.util.*
+import java.util.Arrays
 
 /**
  * Class represents commands that [Notary] can send to [sideChain.iroha.consumer.IrohaConsumer]

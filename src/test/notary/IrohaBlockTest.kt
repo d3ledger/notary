@@ -1,11 +1,9 @@
 package notary
 
 
-import com.google.protobuf.ByteString
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.io.File
-import iroha.protocol.*
 
 class IrohaBlockTest {
     @Test
