@@ -6,6 +6,7 @@ import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import mu.KLogging
 import sideChain.ChainListener
+import java.io.File
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -24,8 +25,9 @@ class IrohaChainListenerStub : ChainListener<IrohaBlockStub> {
             val scheduler = Schedulers.from(Executors.newSingleThreadExecutor())
             Observable.interval(30, TimeUnit.SECONDS).map {
                 logger.info { "Timestamp = $it" }
-                mock<IrohaBlockStub> {
-                }
+                val file = File("resources/genesis.bin")
+                val bs = file.readBytes()
+                IrohaBlockStub.fromProto(bs)
             }.observeOn(scheduler).subscribeOn(scheduler)
         }
     }

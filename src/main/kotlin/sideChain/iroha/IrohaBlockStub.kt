@@ -1,21 +1,7 @@
 package sideChain.iroha
 
 import notary.IrohaTransaction
-
-/**
- * Class represents Signature from iroha model
- * @param publicKey signature's public key
- * @param signature the signature itself
- */
-data class IrohaSignature(val publicKey: ByteArray, val signature: ByteArray) {
-    companion object {
-        fun fromProto(bytes: ByteArray): IrohaSignature {
-            val sig = iroha.protocol.Primitive.Signature.parseFrom(bytes)
-            return IrohaSignature(sig.pubkey.toByteArray(), sig.signature.toByteArray())
-        }
-    }
-}
-
+import java.util.*
 
 /**
  * This implementation takes only AddPeer commands !!
@@ -27,6 +13,18 @@ data class IrohaBlockStub(val height: Long,
                           val txNumber: Int,
                           val transactions: List<IrohaTransaction>,
                           val signatures: List<IrohaSignature>) {
+
+    override fun equals(other: Any?): Boolean {
+        other as IrohaBlockStub
+        return height == other.height &&
+                Arrays.equals(prevBlockHash, other.prevBlockHash) &&
+                txNumber == other.txNumber &&
+                transactions == other.transactions &&
+                signatures == other.signatures
+    }
+
+    //TODO x3medima17: implement hashCode
+
     companion object {
         fun fromProto(bytes: ByteArray): IrohaBlockStub {
             val block = iroha.protocol.BlockOuterClass.Block.parseFrom(bytes)

@@ -69,10 +69,10 @@ class NotaryInitialization {
     fun init(): Result<Unit, Exception> {
         logger.info { "Notary initialization" }
         return initEthChain()
-            .fanout { initIrohaChain() }
-            .map { initNotary(it.first, it.second) }
-            .flatMap { initIrohaConsumer() }
-            .map { initRefund() }
+                .fanout { initIrohaChain() }
+                .map { initNotary(it.first, it.second) }
+                .flatMap { initIrohaConsumer() }
+                .map { initRefund() }
     }
 
     /**
@@ -82,9 +82,9 @@ class NotaryInitialization {
     private fun initEthChain(): Result<Observable<NotaryInputEvent>, Exception> {
         logger.info { "Init Eth chain" }
         return ethChainListener.getBlockObservable()
-            .map { observable ->
-                observable.flatMapIterable { ethHandler.parseBlock(it) }
-            }
+                .map { observable ->
+                    observable.flatMapIterable { ethHandler.parseBlock(it) }
+                }
     }
 
     /**
@@ -94,9 +94,9 @@ class NotaryInitialization {
     private fun initIrohaChain(): Result<Observable<NotaryInputEvent>, Exception> {
         logger.info { "Init Iroha chain" }
         return irohaChainListener.getBlockObservable()
-            .map { observable ->
-                observable.flatMapIterable { irohaHandler.parseBlock(it) }
-            }
+                .map { observable ->
+                    observable.flatMapIterable { irohaHandler.parseBlock(it) }
+                }
     }
 
     /**
@@ -113,24 +113,24 @@ class NotaryInitialization {
     private fun initIrohaConsumer(): Result<Unit, Exception> {
         logger.info { "Init Iroha consumer" }
         return IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath])
-            .map {
-                irohaConsumer = IrohaConsumerImpl(it)
+                .map {
+                    irohaConsumer = IrohaConsumerImpl(it)
 
-                // Init Iroha Consumer pipeline
-                notary.irohaOutput()
-                    // convert from Notary model to Iroha model
-                    // TODO rework Iroha batch transaction
-                    .flatMapIterable { irohaConverter.convert(it) }
-                    // convert from Iroha model to Protobuf representation
-                    .map { irohaConsumer.convertToProto(it) }
-                    .subscribe(
-                        // send to Iroha network layer
-                        { irohaNetwork.send(it) },
-                        // on error
-                        { logger.error { it } }
-                    )
-                Unit
-            }
+                    // Init Iroha Consumer pipeline
+                    notary.irohaOutput()
+                            // convert from Notary model to Iroha model
+                            // TODO rework Iroha batch transaction
+                            .flatMapIterable { irohaConverter.convert(it) }
+                            // convert from Iroha model to Protobuf representation
+                            .map { irohaConsumer.convertToProto(it) }
+                            .subscribe(
+                                    // send to Iroha network layer
+                                    { irohaNetwork.send(it) },
+                                    // on error
+                                    { logger.error { it } }
+                            )
+                    Unit
+                }
     }
 
     /**
@@ -140,19 +140,19 @@ class NotaryInitialization {
         logger.info { "Init Refund endpoint" }
         // TODO 18/05/2018, @muratovv: rework eth strategy with effective implementation
         refundServerEndpoint = RefundServerEndpoint(
-            ServerInitializationBundle(CONFIG[ConfigKeys.refundPort], CONFIG[ConfigKeys.ethEndpoint]),
-            mock {
-                val request = any<EthRefundContract>()
-                on {
-                    performRefund(request)
-                } doReturn EthNotaryResponse.Successful(
-                    "signature",
-                    "pub_key"
-                )
-                on {
-                    validate(any())
-                } doReturn true
-            })
+                ServerInitializationBundle(CONFIG[ConfigKeys.refundPort], CONFIG[ConfigKeys.ethEndpoint]),
+                mock {
+                    val request = any<EthRefundContract>()
+                    on {
+                        performRefund(request)
+                    } doReturn EthNotaryResponse.Successful(
+                            "signature",
+                            "pub_key"
+                    )
+                    on {
+                        validate(any())
+                    } doReturn true
+                })
     }
 
     /**
