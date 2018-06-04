@@ -101,6 +101,7 @@ namespace iroha {
                  -> boost::optional<
                      shared_model::interface::types::HeightType> {
         if (result.size() == 0) {
+          log_->info("No block with transaction {}", hash.toString());
           return boost::none;
         }
         return result[0]
@@ -224,6 +225,10 @@ namespace iroha {
     bool PostgresBlockQuery::hasTxWithHash(
         const shared_model::crypto::Hash &hash) {
       return getBlockId(hash) != boost::none;
+    }
+
+    uint32_t PostgresBlockQuery::getTopBlockHeight() {
+      return block_store_.last_id();
     }
 
   }  // namespace ametsuchi

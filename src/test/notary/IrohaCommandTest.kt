@@ -1,5 +1,6 @@
 package notary
 
+import com.google.protobuf.ByteString
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -20,4 +21,25 @@ class IrohaCommandTest {
 
         assertEquals(expected, m.accountId)
     }
+
+    @Test
+    fun addPeerProtoTest() {
+        val cmdBuilder = iroha.protocol.Commands.AddPeer.newBuilder()
+        val address = "127.0.0.1"
+        val key = ByteString.copyFromUtf8("key")
+        val protoCmd = cmdBuilder
+                .setPeer(
+                        cmdBuilder.peerBuilder
+                                .setAddress(address)
+                                .setPeerKey(key)
+                                .build()
+                )
+                .build()
+        val cmd = IrohaCommand.CommandAddPeer.fromProto(protoCmd.toByteArray())
+
+        assertEquals(address, cmd.address)
+        assertEquals(key, ByteString.copyFrom(cmd.peerKey))
+
+    }
+
 }

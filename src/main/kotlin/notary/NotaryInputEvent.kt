@@ -15,7 +15,7 @@ sealed class NotaryInputEvent {
         /**
          * Event which raised on adding new peer in Iroha network
          */
-        abstract class OnIrohaAddPeer : IrohaChainInputEvent()
+        data class OnIrohaAddPeer(val address: String, val key: List<Byte>) : IrohaChainInputEvent()
 
         /**
          * Event which is raised when custodian transfer assets to notary account to withdraw asset

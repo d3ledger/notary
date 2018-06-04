@@ -21,7 +21,7 @@ class NotaryImpl(
     val ethereumAssetId = CONFIG[ConfigKeys.irohaEthToken]
 
     /**
-     * Handle Ethereum deposite event. Notaries create the ordered bunch of
+     * Handle Ethereum deposit event. Notaries create the ordered bunch of
      * transactions:{tx1: setAccountDetail, tx2: CreateAsset, tx3: addAssetQuantity, transferAsset}.
      * SetAccountDetail insert into notary account information about the transaction (hash) for rollback.
      */
