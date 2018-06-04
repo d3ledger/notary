@@ -4,9 +4,10 @@ import io.reactivex.Observable
 import main.CONFIG
 import main.ConfigKeys
 import mu.KLogging
+import java.math.BigInteger
 
 /**
- * Dummy implementation of [Notary] with effective dependencies
+ * Implementation of [Notary] business logic
  */
 class NotaryImpl(
     private val ethHandler: Observable<NotaryInputEvent>,
@@ -21,29 +22,43 @@ class NotaryImpl(
 
     /**
      * Handle Ethereum deposite event. Notaries create the ordered bunch of
-     * transactions:{tx1: setAccountDetail, tx2: addAssetQuantity, tx3: transferAsset}.
+     * transactions:{tx1: setAccountDetail, tx2: CreateAsset, tx3: addAssetQuantity, transferAsset}.
      * SetAccountDetail insert into notary account information about the transaction (hash) for rollback.
      */
-    private fun onEthSidechainDeposit(ethInputEvent: NotaryInputEvent.EthChainInputEvent.OnEthSidechainDeposit): IrohaOrderedBatch {
-        logger.info { "transfer Ethereum event:" }
-        logger.info { "  hash ${ethInputEvent.hash}" }
-        logger.info { "  from ${ethInputEvent.from}" }
-        logger.info { "  value ${ethInputEvent.value}" }
-        logger.info { "  input ${ethInputEvent.input}" }
+    private fun onEthSidechainDeposit(
+        hash: String,
+        account: String,
+        asset: String,
+        amount: BigInteger
+    ): IrohaOrderedBatch {
+        val domain = "ethereum"
 
-        val destAccountId = ethInputEvent.input
+        logger.info { "transfer Ethereum event:" }
+        logger.info { "  hash $hash" }
+        logger.info { "  user $account" }
+        logger.info { "  asset $asset" }
+        logger.info { "  value $amount" }
 
         return IrohaOrderedBatch(
             arrayListOf(
                 IrohaTransaction(
                     creator,
                     arrayListOf(
+                        // insert into Iroha account information for rollback
                         IrohaCommand.CommandSetAccountDetail(
                             creator,
-                            // add Ethereum tx hash as a key
-                            ethInputEvent.hash,
-                            // set Ethereum tx sender as a value
-                            ethInputEvent.from
+                            "last_tx",
+                            hash
+                        )
+                    )
+                ),
+                IrohaTransaction(
+                    creator,
+                    arrayListOf(
+                        IrohaCommand.CommandCreateAsset(
+                            asset,
+                            domain,
+                            0
                         )
                     )
                 ),
@@ -52,20 +67,15 @@ class NotaryImpl(
                     arrayListOf(
                         IrohaCommand.CommandAddAssetQuantity(
                             creator,
-                            ethereumAssetId,
-                            ethInputEvent.value.toString()
-                        )
-                    )
-                ),
-                IrohaTransaction(
-                    creator,
-                    arrayListOf(
+                            "$asset#$domain",
+                            amount.toString()
+                        ),
                         IrohaCommand.CommandTransferAsset(
                             creator,
-                            destAccountId,
-                            ethereumAssetId,
-                            ethInputEvent.hash,
-                            ethInputEvent.value.toString()
+                            account,
+                            "$asset#$domain",
+                            "",
+                            amount.toString()
                         )
                     )
                 )
@@ -79,10 +89,18 @@ class NotaryImpl(
     override fun onEthEvent(ethInputEvent: NotaryInputEvent.EthChainInputEvent): IrohaOrderedBatch {
         logger.info { "Notary performs ETH event" }
         return when (ethInputEvent) {
-            is NotaryInputEvent.EthChainInputEvent.OnEthSidechainDeposit -> onEthSidechainDeposit(ethInputEvent)
-
-        // TODO replace output with effective implementation
-            else -> IrohaOrderedBatch(arrayListOf())
+            is NotaryInputEvent.EthChainInputEvent.OnEthSidechainDeposit -> onEthSidechainDeposit(
+                ethInputEvent.hash,
+                ethInputEvent.user,
+                ethereumAssetId,
+                ethInputEvent.amount
+            )
+            is NotaryInputEvent.EthChainInputEvent.OnEthSidechainDepositToken -> onEthSidechainDeposit(
+                ethInputEvent.hash,
+                ethInputEvent.user,
+                ethInputEvent.token,
+                ethInputEvent.amount
+            )
         }
     }
 
@@ -100,7 +118,6 @@ class NotaryImpl(
      * Relay side chain [NotaryInputEvent] to Iroha output
      */
     override fun irohaOutput(): Observable<IrohaOrderedBatch> {
-        // TODO move business logic away from here
         return Observable.merge(
             ethHandler,
             irohaHandler

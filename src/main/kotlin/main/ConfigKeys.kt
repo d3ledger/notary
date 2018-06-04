@@ -27,15 +27,11 @@ class ConfigKeys {
         /** Iroha account of transactions creator */
         val irohaCreator = Key("irohaCreator", stringType)
         /** Ethereum token name in Iroha */
-        val irohaEthToken = Key("irohaEthToken", stringType)
+        val irohaEthToken = Key("irohaEtherToken", stringType)
 
         // --------- Ethereum ---------
         /** Confirmation period */
         val ethConfirmationPeriod = Key("ethConfirmationPeriod", longType)
-        /** Ethtereum address we are listening for transfers to */
-        val ethListenAddress = Key("ethListenAddress", stringType)
-        /** Ethtereum ERC20 token address we are listening for transfers to */
-        val ethListenERC20Address = Key("ethListenERC20Address", stringType)
         /** URL of Ethereum client */
         val ethConnectionUrl = Key("ethConnectionUrl", stringType)
         /** URL of refund for ETH side chain */
