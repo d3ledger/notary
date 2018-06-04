@@ -43,9 +43,9 @@ class NotaryTest {
                         val txs = it.transactions
                         assertEquals(3, txs.size)
 
-                        val setAccountDetail = txs[0].commands
-                        assertEquals(1, setAccountDetail.size)
-                        var cmd = setAccountDetail.first()
+                        var commands = txs[0].commands
+                        assertEquals(1, commands.size)
+                        var cmd = commands.first()
                         if (cmd is IrohaCommand.CommandSetAccountDetail) {
                             assertEquals(expectedCreatorId, cmd.accountId)
                             assertEquals("last_tx", cmd.key)
@@ -54,9 +54,9 @@ class NotaryTest {
                             fail { "Wrong IrohaCommand type" }
                         }
 
-                        val createAsset = txs[1].commands
-                        assertEquals(1, createAsset.size)
-                        cmd = createAsset.first()
+                        commands = txs[1].commands
+                        assertEquals(1, commands.size)
+                        cmd = commands.first()
                         if (cmd is IrohaCommand.CommandCreateAsset) {
                             assertEquals(expectedAssetId, cmd.assetName)
                             assertEquals("ethereum", cmd.domainId)
@@ -65,9 +65,9 @@ class NotaryTest {
                             fail { "Wrong IrohaCommand type" }
                         }
 
-                        val transferAsset = txs[2].commands
-                        assertEquals(2, transferAsset.size)
-                        cmd = transferAsset[0]
+                        commands = txs[2].commands
+                        assertEquals(2, commands.size)
+                        cmd = commands[0]
                         if (cmd is IrohaCommand.CommandAddAssetQuantity) {
                             assertEquals(expectedAmount.toString(), cmd.amount)
                             assertEquals(expectedCreatorId, cmd.accountId)
@@ -75,8 +75,7 @@ class NotaryTest {
                         } else {
                             fail { "Wrong IrohaCommand type" }
                         }
-
-                        cmd = transferAsset[1]
+                        cmd = commands[1]
                         if (cmd is IrohaCommand.CommandTransferAsset) {
                             assertEquals(expectedCreatorId, cmd.srcAccountId)
                             assertEquals(expectedUserId, cmd.destAccountId)

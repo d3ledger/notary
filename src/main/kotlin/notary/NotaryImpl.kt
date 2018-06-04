@@ -33,11 +33,7 @@ class NotaryImpl(
     ): IrohaOrderedBatch {
         val domain = "ethereum"
 
-        logger.info { "transfer Ethereum event:" }
-        logger.info { "  hash $hash" }
-        logger.info { "  user $account" }
-        logger.info { "  asset $asset" }
-        logger.info { "  value $amount" }
+        logger.info { "transfer Ethereum event: hash($hash) user($account) asset($asset) value ($amount)" }
 
         return IrohaOrderedBatch(
             arrayListOf(

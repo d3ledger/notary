@@ -41,21 +41,11 @@ class EthChainHandler(val web3: Web3j, val wallets: Map<String, String>, val tok
                 // amount of transfer is stored in data
                 val amount = BigInteger(it.data.drop(2), 16)
 
-                val userId = wallets[to]
-                if (userId == null) {
-                    logger.error { "transfer to unknown address $to" }
-                    return listOf()
-                }
-                val tokenId = tokens[tx.to]
-                if (tokenId == null) {
-                    logger.error { "transfer ERC20 token on unknown address $to" }
-                    return listOf()
-                }
-
                 NotaryInputEvent.EthChainInputEvent.OnEthSidechainDepositToken(
                     tx.hash,
-                    userId,
-                    tokenId,
+                    wallets[to]!!,
+                    // all non-existent keys were filtered out in parseBlock
+                    tokens[tx.to]!!,
                     amount
                 )
             }
@@ -67,15 +57,10 @@ class EthChainHandler(val web3: Web3j, val wallets: Map<String, String>, val tok
      * @return list of notary events on Ether deposit
      */
     private fun handleEther(tx: Transaction): List<NotaryInputEvent> {
-        val userId = wallets[tx.to]
-        if (userId == null) {
-            logger.error { "transfer to unknown address ${tx.to}" }
-            return listOf()
-        }
-
         return listOf(
             NotaryInputEvent.EthChainInputEvent.OnEthSidechainDeposit(
                 tx.hash,
+                // all non-existent keys were filtered out in parseBlock
                 wallets[tx.to]!!,
                 tx.value
             )
