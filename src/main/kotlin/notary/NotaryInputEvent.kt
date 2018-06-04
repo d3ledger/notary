@@ -23,9 +23,9 @@ sealed class NotaryInputEvent {
          * @param asset is asset id in Iroha
          * @param amount of ethereum to withdraw
          */
-        abstract class OnIrohaSideChainTransfer(
-                val asset: String,
-                val amount: BigInteger
+        data class OnIrohaSideChainTransfer(
+            val asset: String,
+            val amount: BigInteger
         ) : IrohaChainInputEvent()
     }
 
@@ -36,28 +36,30 @@ sealed class NotaryInputEvent {
     sealed class EthChainInputEvent : NotaryInputEvent() {
 
         /**
-         * Event which raised on deploying target smart contract in the Ethereum
-         */
-        abstract class OnEthDeployContract() : EthChainInputEvent()
-
-        /**
-         * Event which raised on new transfer transaction to Ethereum wallet
+         * Event which raised on a new transfer transaction to Ethereum wallet
          * @param hash transaction hash
-         * @param from transaction sender address
-         * @param value amount of Ethereum transfered
-         * @param input hex formatted transaction data
+         * @param user user name in Iroha
+         * @param amount amount of Ether transfered
          */
         data class OnEthSidechainDeposit(
-                val hash: String,
-                val from: String,
-                val value: BigInteger,
-                val input: String
+            val hash: String,
+            val user: String,
+            val amount: BigInteger
         ) : EthChainInputEvent()
 
         /**
-         * Event which raised on new transaction with new peer in the contract
+         * Event which occures when custodian deposits ERC20 token
+         * @param hash transaction hash
+         * @param user user name in Iroha
+         * @param token token name
+         * @param amount amount of tokens
          */
-        abstract class OnEthAddPeer : EthChainInputEvent()
+        data class OnEthSidechainDepositToken(
+            val hash: String,
+            val user: String,
+            val token: String,
+            val amount: BigInteger
+        ) : EthChainInputEvent()
     }
 
 }

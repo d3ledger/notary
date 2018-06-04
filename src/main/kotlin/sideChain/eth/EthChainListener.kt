@@ -15,8 +15,9 @@ import java.math.BigInteger
 
 /**
  * Implementation of [ChainListener] for Ethereum sidechain
+ * @param web3 - endpoint of Ethereum client
  */
-class EthChainListener : ChainListener<EthBlock> {
+class EthChainListener(val web3: Web3j) : ChainListener<EthBlock> {
 
     /** Confirmation period is the number of blocks that we assume that may be reorganised */
     private val confirmationPeriod = BigInteger.valueOf(CONFIG[ConfigKeys.ethConfirmationPeriod])
@@ -26,9 +27,6 @@ class EthChainListener : ChainListener<EthBlock> {
 
     override fun getBlockObservable(): Result<Observable<EthBlock>, Exception> {
         return Result.of {
-            // subscribe to a client
-            val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.ethConnectionUrl]))
-
             // convert rx1 to rx2
             RxJavaInterop.toV2Observable(web3.blockObservable(false))
                 // skip up to confirmationPeriod blocks in case of chain reorganisation

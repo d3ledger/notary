@@ -15,6 +15,8 @@ import io.reactivex.Observable
 import main.CONFIG
 import main.ConfigKeys
 import mu.KLogging
+import org.web3j.protocol.Web3j
+import org.web3j.protocol.http.HttpService
 import sideChain.eth.EthChainHandler
 import sideChain.eth.EthChainListener
 import sideChain.iroha.IrohaChainHandlerStub
@@ -29,8 +31,26 @@ class NotaryInitialization {
     private lateinit var refundServerEndpoint: RefundServerEndpoint
 
     // ------------------------------------------| ETH |------------------------------------------
-    private val ethChainListener = EthChainListener()
-    private val ethHandler = EthChainHandler()
+    /**
+     * List of all observable wallets
+     */
+    //TODO load from file
+    private val wallets = mapOf(
+        "0x00aa39d30f0d20ff03a22ccfc30b7efbfca597c2".toLowerCase() to "user1@notary",
+        "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e".toLowerCase() to "user2@notary"
+    )
+
+    /**
+     * List of all observable ERC20 tokens
+     */
+    //TODO load from file
+    private val tokenList = mapOf(
+        "0xeDFC9c2F4Cfa7495c1A95CfE1cB856F5980D5e18".toLowerCase() to "tkn"
+    )
+
+    private val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.ethConnectionUrl]))
+    private val ethChainListener = EthChainListener(web3)
+    private val ethHandler = EthChainHandler(web3, wallets, tokenList)
 
     // ------------------------------------------| Iroha |------------------------------------------
     private var irohaChainListener = IrohaChainListenerStub()
@@ -59,7 +79,7 @@ class NotaryInitialization {
      * Init Ethereum chain listener
      * @return Observable on Ethereum sidechain events
      */
-    fun initEthChain(): Result<Observable<NotaryInputEvent>, Exception> {
+    private fun initEthChain(): Result<Observable<NotaryInputEvent>, Exception> {
         logger.info { "Init Eth chain" }
         return ethChainListener.getBlockObservable()
             .map { observable ->
@@ -71,7 +91,7 @@ class NotaryInitialization {
      * Init Iroha chain listener
      * @return Observable on Iroha sidechain events
      */
-    fun initIrohaChain(): Result<Observable<NotaryInputEvent>, Exception> {
+    private fun initIrohaChain(): Result<Observable<NotaryInputEvent>, Exception> {
         logger.info { "Init Iroha chain" }
         return irohaChainListener.getBlockObservable()
             .map { observable ->
@@ -82,7 +102,7 @@ class NotaryInitialization {
     /**
      * Init Notary
      */
-    fun initNotary(ethEvents: Observable<NotaryInputEvent>, irohaEvents: Observable<NotaryInputEvent>) {
+    private fun initNotary(ethEvents: Observable<NotaryInputEvent>, irohaEvents: Observable<NotaryInputEvent>) {
         logger.info { "Init Notary notary" }
         notary = NotaryImpl(ethEvents, irohaEvents)
     }
@@ -90,7 +110,7 @@ class NotaryInitialization {
     /**
      * Init Iroha consumer
      */
-    fun initIrohaConsumer(): Result<Unit, Exception> {
+    private fun initIrohaConsumer(): Result<Unit, Exception> {
         logger.info { "Init Iroha consumer" }
         return IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath])
             .map {
@@ -116,7 +136,7 @@ class NotaryInitialization {
     /**
      * Init refund endpoint
      */
-    fun initRefund() {
+    private fun initRefund() {
         logger.info { "Init Refund endpoint" }
         // TODO 18/05/2018, @muratovv: rework eth strategy with effective implementation
         refundServerEndpoint = RefundServerEndpoint(
