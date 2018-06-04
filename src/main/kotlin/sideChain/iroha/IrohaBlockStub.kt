@@ -23,7 +23,14 @@ data class IrohaBlockStub(val height: Long,
                 signatures == other.signatures
     }
 
-    //TODO x3medima17: implement hashCode
+    override fun hashCode() =
+            listOf(
+                    height.hashCode(),
+                    Arrays.hashCode(prevBlockHash),
+                    txNumber,
+                    transactions.hashCode(),
+                    signatures.hashCode()
+            ).hashCode()
 
     companion object {
         fun fromProto(bytes: ByteArray): IrohaBlockStub {
