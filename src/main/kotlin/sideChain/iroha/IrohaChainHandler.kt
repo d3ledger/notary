@@ -9,7 +9,7 @@ import sideChain.ChainHandler
 /**
  * Dummy implementation of [ChainHandler] with effective dependencies
  */
-class IrohaChainHandlerStub : ChainHandler<IrohaBlockStub> {
+class IrohaChainHandler : ChainHandler<IrohaBlockStub> {
 
     /**
      * TODO Replace dummy with effective implementation
@@ -17,12 +17,12 @@ class IrohaChainHandlerStub : ChainHandler<IrohaBlockStub> {
     override fun parseBlock(block: IrohaBlockStub): List<NotaryInputEvent> {
         logger.info { "Iroha chain handler" }
         return block.transactions
-                .flatMap { it.commands }
-                .filter { it is IrohaCommand.CommandAddPeer }
-                .map {
-                    it as IrohaCommand.CommandAddPeer
-                    NotaryInputEvent.IrohaChainInputEvent.OnIrohaAddPeer(it.address, it.peerKey)
-                }
+            .flatMap { it.commands }
+            .filter { it is IrohaCommand.CommandAddPeer }
+            .map {
+                it as IrohaCommand.CommandAddPeer
+                NotaryInputEvent.IrohaChainInputEvent.OnIrohaAddPeer(it.address, it.peerKey)
+            }
     }
 
     /**

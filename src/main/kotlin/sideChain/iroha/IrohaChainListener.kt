@@ -15,18 +15,18 @@ import java.util.concurrent.Executors
 /**
  * Dummy implementation of [ChainListener] with effective dependencies
  */
-class IrohaChainListenerStub : ChainListener<IrohaBlockStub> {
+class IrohaChainListener : ChainListener<IrohaBlockStub> {
     val meta = BlockService.QueryPayloadMeta.newBuilder().build()
     val sig = iroha.protocol.Primitive.Signature.newBuilder().build()
     val query = BlockService.BlocksQuery.newBuilder().setMeta(meta).setSignature(sig).build()
 
-    val stub: QueryServiceGrpc.QueryServiceBlockingStub  by lazy {
+    val stub: QueryServiceGrpc.QueryServiceBlockingStub by lazy {
         val channel = ManagedChannelBuilder.forAddress("localhost", 8081).usePlaintext(true).build()
         QueryServiceGrpc.newBlockingStub(channel)
     }
+
     /**
-     * TODO 20:17, @muratovv: rework with effective impelementation
-     * current implementation emit new mock eth block each 3 second
+     * Returns an observable that emits a new block every time it gets it from Iroha
      */
     override fun getBlockObservable(): Result<Observable<IrohaBlockStub>, Exception> {
         return Result.of {

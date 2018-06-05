@@ -27,12 +27,17 @@ class IrohaBlockEmitterTest {
     val block = IrohaBlockStub.fromProto(bs)
 
 
-    val period: Long = 1
-    val unit = TimeUnit.SECONDS
+    val period: Long = 1000
+    val unit = TimeUnit.MILLISECONDS
     val expectedBlocks = 5
-    val timeout = ceil(period * expectedBlocks * 1.2).toLong()
+    val timeout = ceil(period * expectedBlocks + period * 0.5).toLong()
 
 
+    /**
+     * @given a block emitter
+     * @when it spawns a new block every second
+     * @then in 5500 milliseconds we will accumulate 5 blocks
+     */
     @Test
     fun emitterTest() {
 
@@ -66,6 +71,11 @@ class IrohaBlockEmitterTest {
         blocks.map { assertEquals(block, it) }
     }
 
+    /**
+     * @given a server that streams blocks
+     * @when it sends a new block every second
+     * @then in 5500 milliseconds we will accumulate 5 blocks
+     */
     @Test
     fun serverTest() {
 

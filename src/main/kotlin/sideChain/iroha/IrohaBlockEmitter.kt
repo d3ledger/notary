@@ -8,7 +8,9 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 
 /**
- *
+ *  Simulates Iroha block streaming
+ *  @param period how often it should emit new blocks
+ *  @param unit the timeunit that period is associated with
  */
 class IrohaBlockEmitter(val period: Long = 30, val unit: TimeUnit = TimeUnit.SECONDS) : QueryServiceGrpc.QueryServiceImplBase() {
 

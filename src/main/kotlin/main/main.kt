@@ -21,11 +21,10 @@ fun main(args: Array<String>) {
     val notary = NotaryInitialization()
 
     //TODO remove as soon as Iroha has block streamer
-
+    // Run block emitter
     val server = ServerBuilder.forPort(8081).addService(IrohaBlockEmitter(2, TimeUnit.SECONDS)).build()
     server.start()
 
-    // Run block emitter
     IrohaInitializtion.loadIrohaLibrary()
         .flatMap { notary.init() }
         .failure {
