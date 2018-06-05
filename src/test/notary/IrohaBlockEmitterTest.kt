@@ -4,7 +4,6 @@ package notary
 import io.grpc.ManagedChannelBuilder
 import io.grpc.ServerBuilder
 import io.grpc.stub.StreamObserver
-import io.reactivex.rxkotlin.toObservable
 import kotlinx.coroutines.experimental.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -13,10 +12,10 @@ import sideChain.iroha.IrohaBlockEmitter
 import sideChain.iroha.IrohaBlockStub
 import sideChain.iroha.schema.BlockService
 import sideChain.iroha.schema.QueryServiceGrpc
-import util.functional.map
 import java.io.File
 import java.util.concurrent.TimeUnit
 import kotlin.math.ceil
+
 
 class IrohaBlockEmitterTest {
     val meta = BlockService.QueryPayloadMeta.newBuilder().build()
@@ -28,39 +27,46 @@ class IrohaBlockEmitterTest {
     val block = IrohaBlockStub.fromProto(bs)
 
 
+    val period: Long = 500
+    val unit = TimeUnit.MILLISECONDS
+    val expectedBlocks = 5
+    val timeout = ceil(period * expectedBlocks * 1.2).toLong()
+
+
     @Test
     fun emitterTest() {
 
         val blocks = mutableListOf<IrohaBlockStub>()
         var completed = false
 
-        IrohaBlockEmitter().fetchCommits(query, object : StreamObserver<BlockService.BlocksQueryResponse> {
-            override fun onNext(value: BlockService.BlocksQueryResponse?) {
-                val bl = value!!.blockResponse.block
-                blocks.add(IrohaBlockStub.fromProto(bl.toByteArray()))
-            }
+        runBlocking {
+            withTimeoutOrNull(timeout, unit, {
+                async {
+                    IrohaBlockEmitter(period, unit).fetchCommits(query, object : StreamObserver<BlockService.BlocksQueryResponse> {
+                        override fun onNext(value: BlockService.BlocksQueryResponse?) {
+                            val bl = value!!.blockResponse.block
+                            blocks.add(IrohaBlockStub.fromProto(bl.toByteArray()))
+                        }
 
-            override fun onCompleted() {
-                completed = true
-            }
+                        override fun onCompleted() {
+                        }
 
-            override fun onError(t: Throwable?) {
-                throw t!!
-            }
-        })
-
+                        override fun onError(t: Throwable?) {
+                            throw t!!
+                        }
+                    })
+                }.await()
+            })
+            completed = true
+        }
 
         assertTrue(completed)
-        assertEquals(5, blocks.size)
+        assertEquals(expectedBlocks, blocks.size)
         blocks.map { assertEquals(block, it) }
     }
 
     @Test
     fun serverTest() {
-        val period: Long = 500
-        val unit = TimeUnit.MILLISECONDS
-        val expectedBlocks = 5
-        val timeout = ceil(period * expectedBlocks * 1.2).toLong()
 
         val server = ServerBuilder.forPort(8081).addService(IrohaBlockEmitter(period, unit)).build()
         server.start()
@@ -82,10 +88,8 @@ class IrohaBlockEmitterTest {
                 }.await()
             })
             channel.shutdownNow()
-
         }
 
-        server.shutdownNow()
         assertEquals(5, blocks.size)
         blocks.forEach {
             assertEquals(block, it)
