@@ -5,6 +5,7 @@ import ModelProtoQuery
 import ModelQueryBuilder
 import com.github.kittinunf.result.failure
 import com.google.protobuf.InvalidProtocolBufferException
+import contract.User
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.Queries.Query
 import iroha.protocol.QueryServiceGrpc
@@ -110,6 +111,24 @@ class IntegrationTest {
         println("balance " + asset.balance)
     }
 
+    @Test
+    fun deploySmartContract() {
+        val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.ethConnectionUrl]))
+
+        val privateKey = "3df8095dfbae93d8c7f1143b217a483d57a7f745e2542425dfe2fa25264cb2e8"
+        val credentials = org.web3j.crypto.Credentials.create(privateKey)
+        println(credentials.address)
+        val contract =
+            contract.User.deploy(
+                web3,
+                credentials,
+                BigInteger.valueOf(1),
+                BigInteger.valueOf(100000),
+                "0x004ec07d2329997267ec62b4166639513386f32e"
+            ).send()
+
+        println(contract.contractAddress)
+    }
 
     @Test
     fun sendEthereumTest() {
