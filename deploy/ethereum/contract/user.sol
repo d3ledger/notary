@@ -9,6 +9,7 @@ contract User {
         master_ = master;
     }
 
+    // can accept ether
     function() public payable { }
 
     function sendAllToMaster() private {

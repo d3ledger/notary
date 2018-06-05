@@ -1,6 +1,6 @@
 [parity]
 chain = "/eth/genesis.json"
-base_path = "/tmp/parity1"
+base_path = "/tmp/parity/node1"
 
 [rpc]
 apis = ["web3", "eth", "net", "personal", "parity", "parity_set", "traces", "rpc", "parity_accounts"]

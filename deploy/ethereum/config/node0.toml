@@ -1,6 +1,6 @@
 [parity]
 chain = "/eth/genesis.json"
-base_path = "/tmp/parity0"
+base_path = "/tmp/parity/node0"
 
 [rpc]
 apis = ["web3", "eth", "net", "personal", "parity", "parity_set", "traces", "rpc", "parity_accounts"]
@@ -8,10 +8,6 @@ disable = false
 port = 8545
 interface = "0.0.0.0"
 cors = ["all"]
-
-[ui]
-port = 8180
-interface = "0.0.0.0"
 
 [websockets]
 port = 8546

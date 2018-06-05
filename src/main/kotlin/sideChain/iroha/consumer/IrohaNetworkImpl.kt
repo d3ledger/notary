@@ -17,7 +17,8 @@ class IrohaNetworkImpl : IrohaNetwork {
 
     init {
         val channel =
-                ManagedChannelBuilder.forAddress(CONFIG[ConfigKeys.irohaHostname], CONFIG[ConfigKeys.irohaPort]).usePlaintext(true).build()
+            ManagedChannelBuilder.forAddress(CONFIG[ConfigKeys.irohaHostname], CONFIG[ConfigKeys.irohaPort])
+                .usePlaintext(true).build()
         toriiStub = CommandServiceGrpc.newBlockingStub(channel)
     }
 

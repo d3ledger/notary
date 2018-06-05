@@ -18,25 +18,25 @@ class BindTest {
 
     /**
      * @given value as input
-     * @when  map on input
+     * @when  bind on input
      * @then  mapped value is not a null
      */
     @Test
     fun mapUsage() {
-        val bound = value.map { "1" }
-            .map { it + it }
+        val bound = value.bind { "1" }
+            .bind { it + it }
 
         assertEquals("11", bound)
     }
 
     /**
      * @given null as input
-     * @when  map on input
+     * @when  bind on input
      * @then  mapped value is a null
      */
     @Test
     fun mapNullUsage() {
-        val bound = nullValue.map { 1 }
+        val bound = nullValue.bind { 1 }
 
         assertEquals(null, bound)
     }

@@ -27,20 +27,20 @@ import java.math.BigInteger
 
 class IntegrationTest {
 
+    val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.ethConnectionUrl]))
+    val credentials =
+        WalletUtils.loadCredentials("user", "deploy/ethereum/keys/user.key")
+
     /**
      * Send Ethereum transaction to wallet with specified data.
      */
     fun sendEthereum() {
         val myAddress = "0x004ec07d2329997267Ec62b4166639513386F32E"
-        val toAddress = CONFIG[ConfigKeys.ethListenAddress]
+        val toAddress = "0x00aa39d30f0d20ff03a22ccfc30b7efbfca597c2"
         val gasPrice = BigInteger.valueOf(1)
         val gasLimit = BigInteger.valueOf(999999)
         val value = BigInteger.valueOf(1234567890123456)
         val data = "admin@test"
-
-        val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.ethConnectionUrl]))
-        val credentials =
-            WalletUtils.loadCredentials("user", "deploy/ethereum/wallets/a1cc789f-eb21-2b04-15e2-1cdcc95c3b65.json")
 
         // get the next available nonce
         val ethGetTransactionCount = web3.ethGetTransactionCount(
@@ -111,12 +111,7 @@ class IntegrationTest {
         println("balance " + asset.balance)
     }
 
-    @Test
-    fun deploySmartContract() {
-        val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.ethConnectionUrl]))
-
-        val privateKey = "3df8095dfbae93d8c7f1143b217a483d57a7f745e2542425dfe2fa25264cb2e8"
-        val credentials = org.web3j.crypto.Credentials.create(privateKey)
+    fun deployUserSmartContract() {
         println(credentials.address)
         val contract =
             contract.User.deploy(
@@ -127,7 +122,7 @@ class IntegrationTest {
                 "0x004ec07d2329997267ec62b4166639513386f32e"
             ).send()
 
-        println(contract.contractAddress)
+        println("User contract address: ${contract.contractAddress}")
     }
 
     @Test
