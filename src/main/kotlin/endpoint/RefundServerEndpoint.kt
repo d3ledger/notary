@@ -12,8 +12,8 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import mu.KLogging
+import util.functional.bind
 import util.functional.endValue
-import util.functional.map
 import util.functional.truePredicate
 
 /**
@@ -47,10 +47,10 @@ class RefundServerEndpoint(
      */
     fun onCallEthRefund(rawRequest: String?): String {
         return rawRequest
-            .map(ethRefundAdapter::fromJson)
+            .bind(ethRefundAdapter::fromJson)
             .truePredicate(ethStrategy::validate)
-            .map(ethStrategy::performRefund)
-            .map(ethNotaryAdapter::toJson)
+            .bind(ethStrategy::performRefund)
+            .bind(ethNotaryAdapter::toJson)
             .endValue({
                 it
             }, {
