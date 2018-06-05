@@ -14,8 +14,15 @@ sealed class NotaryInputEvent {
 
         /**
          * Event which raised on adding new peer in Iroha network
+         *
+         * @param address peer's address, ip and port
+         * @param key peer's key
+         * TODO x3medima17: implement equals and hashCode
          */
-        data class OnIrohaAddPeer(val address: String, val key: List<Byte>) : IrohaChainInputEvent()
+        data class OnIrohaAddPeer(
+                val address: String,
+                val key: ByteArray
+        ) : IrohaChainInputEvent()
 
         /**
          * Event which is raised when custodian transfer assets to notary account to withdraw asset

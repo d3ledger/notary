@@ -19,8 +19,8 @@ import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
 import sideChain.eth.EthChainHandler
 import sideChain.eth.EthChainListener
-import sideChain.iroha.IrohaChainHandlerStub
-import sideChain.iroha.IrohaChainListenerStub
+import sideChain.iroha.IrohaChainHandler
+import sideChain.iroha.IrohaChainListener
 import sideChain.iroha.consumer.*
 
 /**
@@ -53,8 +53,8 @@ class NotaryInitialization {
     private val ethHandler = EthChainHandler(web3, wallets, tokenList)
 
     // ------------------------------------------| Iroha |------------------------------------------
-    private var irohaChainListener = IrohaChainListenerStub()
-    private val irohaHandler = IrohaChainHandlerStub()
+    private var irohaChainListener = IrohaChainListener()
+    private val irohaHandler = IrohaChainHandler()
 
     private val irohaConverter = IrohaConverterImpl()
     private val irohaNetwork = IrohaNetworkImpl()
