@@ -22,7 +22,7 @@
 #include "cryptography/crypto_provider/crypto_defaults.hpp"
 #include "datetime/time.hpp"
 #include "framework/integration_framework/integration_test_framework.hpp"
-#include "interfaces/utils/specified_visitor.hpp"
+#include "framework/specified_visitor.hpp"
 #include "utils/query_error_response_visitor.hpp"
 
 constexpr auto kUser = "user@test";
@@ -54,7 +54,7 @@ TEST(PipelineIntegrationTest, SendQuery) {
             shared_model::interface::StatefulFailedErrorResponse>(),
         status.get()));
   };
-  integration_framework::IntegrationTestFramework()
+  integration_framework::IntegrationTestFramework(1)
       .setInitialState(kAdminKeypair)
       .sendQuery(query, check)
       .done();
@@ -71,6 +71,7 @@ TEST(PipelineIntegrationTest, SendTx) {
                 .createdTime(iroha::time::now())
                 .creatorAccountId(kUser)
                 .addAssetQuantity(kUser, kAsset, "1.0")
+                .quorum(1)
                 .build()
                 .signAndAddSignature(
                     shared_model::crypto::DefaultCryptoAlgorithmType::
@@ -88,7 +89,7 @@ TEST(PipelineIntegrationTest, SendTx) {
   auto checkBlock = [](auto &block) {
     ASSERT_EQ(block->transactions().size(), 0);
   };
-  integration_framework::IntegrationTestFramework()
+  integration_framework::IntegrationTestFramework(1)
       .setInitialState(kAdminKeypair)
       .sendTx(tx, checkStatelessValid)
       .checkProposal(checkProposal)
