@@ -27,8 +27,8 @@ class IrohaBlockEmitterTest {
     val block = IrohaBlockStub.fromProto(bs)
 
 
-    val period: Long = 500
-    val unit = TimeUnit.MILLISECONDS
+    val period: Long = 1
+    val unit = TimeUnit.SECONDS
     val expectedBlocks = 5
     val timeout = ceil(period * expectedBlocks * 1.2).toLong()
 
@@ -56,6 +56,7 @@ class IrohaBlockEmitterTest {
                         }
                     })
                 }.await()
+
             })
             completed = true
         }
