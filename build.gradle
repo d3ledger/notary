@@ -124,6 +124,7 @@ sourceSets {
 }
 
 test {
+    useJUnitPlatform()
     systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
     println "Runtime Iroha library path:${systemProperties}"
 }

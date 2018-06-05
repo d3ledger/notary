@@ -16,7 +16,7 @@ class KtorUsageTest {
 
     @Test
     fun ktorCompilationTest() {
-        val server = embeddedServer(Netty, port = 8080) {
+        val server = embeddedServer(Netty, port = 8888) {
             routing {
                 get("/") {
                     call.respondText("Hello World!", ContentType.Text.Plain)
