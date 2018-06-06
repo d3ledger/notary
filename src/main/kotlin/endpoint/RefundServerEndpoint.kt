@@ -3,7 +3,7 @@ package endpoint
 import com.squareup.moshi.Moshi
 import endpoint.eth.EthNotaryResponse
 import endpoint.eth.EthNotaryResponseMoshiAdapter
-import endpoint.eth.EthRefundContract
+import endpoint.eth.EthRefundRequest
 import endpoint.eth.EthRefundStrategy
 import io.ktor.application.call
 import io.ktor.response.respondText
@@ -14,7 +14,6 @@ import io.ktor.server.netty.Netty
 import mu.KLogging
 import util.functional.bind
 import util.functional.endValue
-import util.functional.truePredicate
 
 /**
  * Class is waiting for custodian's intention for rollback
@@ -25,7 +24,7 @@ class RefundServerEndpoint(
 ) {
 
     private val moshi = Moshi.Builder().add(EthNotaryResponseMoshiAdapter()).build()!!
-    private val ethRefundAdapter = moshi.adapter(EthRefundContract::class.java)!!
+    private val ethRefundAdapter = moshi.adapter(EthRefundRequest::class.java)!!
     private val ethNotaryAdapter = moshi.adapter(EthNotaryResponse::class.java)!!
 
     init {
@@ -48,7 +47,6 @@ class RefundServerEndpoint(
     fun onCallEthRefund(rawRequest: String?): String {
         return rawRequest
             .bind(ethRefundAdapter::fromJson)
-            .truePredicate(ethStrategy::validate)
             .bind(ethStrategy::performRefund)
             .bind(ethNotaryAdapter::toJson)
             .endValue({
