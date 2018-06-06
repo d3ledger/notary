@@ -5,4 +5,4 @@ import endpoint.Refund
 /**
  * Strategy for ethereum refund
  */
-interface EthRefundStrategy : Refund<EthRefundContract, EthNotaryResponse>
+interface EthRefundStrategy : Refund<EthRefundRequest, EthNotaryResponse>

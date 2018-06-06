@@ -12,9 +12,4 @@ interface Refund<Request, NotaryResponse> {
      * Perform rollback for side chain
      */
     fun performRefund(request: Request): NotaryResponse
-
-    /**
-     * validation of request
-     */
-    fun validate(request: Request): Boolean
 }

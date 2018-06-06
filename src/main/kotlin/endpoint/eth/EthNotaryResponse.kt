@@ -12,16 +12,26 @@ sealed class EthNotaryResponse {
      * Successful response that contains proof
      */
     data class Successful(
+
+        /** Signature of [Successful.ethRefund] via Ethereum private key */
         val ethSignature: EthSignature,
-        val ethPublicKey: EthPublicKey
+
+        /** Refund object for Ethereum relay smart-contract */
+        val ethRefund: EthRefund
+
     ) : EthNotaryResponse()
 
     /**
      * Error response which contains reason of error
      */
     data class Error(
+
+        /** Code of error */
         val code: Int,
+
+        /** Human-readable explanation of error */
         val reason: String
+
     ) : EthNotaryResponse()
 }
 
@@ -41,7 +51,7 @@ enum class EthNotaryResponseType {
 data class EthNotaryResponseLayer(
     val type: EthNotaryResponseType,
     val ethSignature: EthSignature? = null,
-    val ethPublicKey: EthPublicKey? = null,
+    val ethRefund: EthRefund? = null,
     val code: Int? = null,
     val reason: String? = null
 )
@@ -57,7 +67,7 @@ class EthNotaryResponseMoshiAdapter {
      */
     @FromJson
     fun fromJson(layer: EthNotaryResponseLayer) = when (layer.type) {
-        EthNotaryResponseType.Successful -> EthNotaryResponse.Successful(layer.ethSignature!!, layer.ethPublicKey!!)
+        EthNotaryResponseType.Successful -> EthNotaryResponse.Successful(layer.ethSignature!!, layer.ethRefund!!)
         EthNotaryResponseType.Error -> EthNotaryResponse.Error(layer.code!!, layer.reason!!)
     }
 
@@ -70,7 +80,7 @@ class EthNotaryResponseMoshiAdapter {
         is EthNotaryResponse.Successful -> EthNotaryResponseLayer(
             type = EthNotaryResponseType.Successful,
             ethSignature = response.ethSignature,
-            ethPublicKey = response.ethPublicKey
+            ethRefund = response.ethRefund
         )
         is EthNotaryResponse.Error -> EthNotaryResponseLayer(
             type = EthNotaryResponseType.Successful,
