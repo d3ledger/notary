@@ -10,7 +10,6 @@ import iroha.protocol.Queries.Query
 import iroha.protocol.QueryServiceGrpc
 import main.CONFIG
 import main.ConfigKeys
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.web3j.crypto.RawTransaction
 import org.web3j.crypto.TransactionEncoder
@@ -36,14 +35,18 @@ class IntegrationTest {
     val credentials =
         WalletUtils.loadCredentials("user", "deploy/ethereum/keys/user.key")
 
+    /** Gas price */
+    val gasPrice = BigInteger.ONE
+
+    /** Max gas limit */
+    val gasLimit = BigInteger.valueOf(999999)
+
     /**
      * Send Ethereum transaction to wallet with specified data.
      */
     fun sendEthereum() {
         val myAddress = "0x004ec07d2329997267Ec62b4166639513386F32E"
         val toAddress = "0x00aa39d30f0d20ff03a22ccfc30b7efbfca597c2"
-        val gasPrice = BigInteger.valueOf(1)
-        val gasLimit = BigInteger.valueOf(999999)
         val value = BigInteger.valueOf(1234567890123456)
         val data = "admin@test"
 
@@ -126,8 +129,8 @@ class IntegrationTest {
             contract.BasicCoin.deploy(
                 web3,
                 credentials,
-                BigInteger.valueOf(1),
-                BigInteger.valueOf(999999)
+                gasPrice,
+                gasLimit
             ).send()
 
         return contract.contractAddress
@@ -142,8 +145,8 @@ class IntegrationTest {
             contract.Notary.deploy(
                 web3,
                 credentials,
-                BigInteger.valueOf(1),
-                BigInteger.valueOf(999999)
+                gasPrice,
+                gasLimit
             ).send()
 
         return contract.contractAddress
@@ -160,8 +163,8 @@ class IntegrationTest {
             contract.User.deploy(
                 web3,
                 credentials,
-                BigInteger.valueOf(1),
-                BigInteger.valueOf(999999),
+                gasPrice,
+                gasLimit,
                 master,
                 tokens
             ).send()
@@ -175,7 +178,6 @@ class IntegrationTest {
      * - token
      * - user
      */
-    @Test
     fun deployAll() {
         val token = deployBasicCoinSmartContract()
         val notary = deployTokenSmartContract()
