@@ -5,7 +5,6 @@ import ModelProtoQuery
 import ModelQueryBuilder
 import com.github.kittinunf.result.failure
 import com.google.protobuf.InvalidProtocolBufferException
-import contract.User
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.Queries.Query
 import iroha.protocol.QueryServiceGrpc
@@ -25,9 +24,15 @@ import sideChain.iroha.consumer.IrohaKeyLoader
 import sideChain.iroha.util.toByteArray
 import java.math.BigInteger
 
+/**
+ * Class for Ethereum sidechain infrastructrure deployment and communiation.
+ */
 class IntegrationTest {
 
+    /** web3 service instance to communicate with Ethereum network */
     val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.ethConnectionUrl]))
+
+    /** credentials of ethereum user */
     val credentials =
         WalletUtils.loadCredentials("user", "deploy/ethereum/keys/user.key")
 
@@ -111,20 +116,76 @@ class IntegrationTest {
         println("balance " + asset.balance)
     }
 
+
+    /**
+     * Deploy BasicCoin smart contract
+     * @return token smart contract address
+     */
+    private fun deployBasicCoinSmartContract(): String {
+        val contract =
+            contract.BasicCoin.deploy(
+                web3,
+                credentials,
+                BigInteger.valueOf(1),
+                BigInteger.valueOf(999999)
+            ).send()
+
+        return contract.contractAddress
+    }
+
+    /**
+     * Deploy notary smart contract
+     * @return notary smart contract address
+     */
+    private fun deployTokenSmartContract(): String {
+        val contract =
+            contract.Notary.deploy(
+                web3,
+                credentials,
+                BigInteger.valueOf(1),
+                BigInteger.valueOf(999999)
+            ).send()
+
+        return contract.contractAddress
+    }
+
     /**
      * Deploy user smart contract
+     * @param master notary master account
+     * @param tokens list of supported tokens
+     * @return user smart contract address
      */
-    fun deployUserSmartContract() {
+    private fun deployUserSmartContract(master: String, tokens: List<String>): String {
         val contract =
             contract.User.deploy(
                 web3,
                 credentials,
                 BigInteger.valueOf(1),
-                BigInteger.valueOf(100000),
-                "0x004ec07d2329997267ec62b4166639513386f32e"
+                BigInteger.valueOf(999999),
+                master,
+                tokens
             ).send()
 
-        println("User contract address: ${contract.contractAddress}")
+        return contract.contractAddress
+    }
+
+    /**
+     * Deploy all smart contracts:
+     * - notary
+     * - token
+     * - user
+     */
+    @Test
+    fun deployAll() {
+        val token = deployBasicCoinSmartContract()
+        val notary = deployTokenSmartContract()
+
+        val tokens = listOf(token)
+        val user = deployUserSmartContract(notary, tokens)
+
+        println("Token contract address: $token")
+        println("Notary contract address: $notary")
+        println("User contract address: $user")
     }
 
 }
