@@ -32,7 +32,7 @@ class EthRefundStrategyImpl(private val irohaSigner: IrohaSigner) : EthRefundStr
     private fun performQuery(request: EthRefundRequest): Result<iroha.protocol.BlockOuterClass.Transaction, NotaryException> {
         val query = ModelQueryBuilder()
         val hashes = HashVector()
-        HashVector().add(Hash(request.irohaTx))
+        hashes.add(Hash(request.irohaTx))
         val signedQuery = irohaSigner.signQuery(query.getTransactions(hashes).build())
 
         TODO("send query to iroha and return answer")

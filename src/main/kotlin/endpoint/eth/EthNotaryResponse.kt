@@ -12,16 +12,26 @@ sealed class EthNotaryResponse {
      * Successful response that contains proof
      */
     data class Successful(
+
+        /** Signature of [Successful.ethRefund] via Ethereum private key */
         val ethSignature: EthSignature,
+
+        /** Refund object for Ethereum relay smart-contract */
         val ethRefund: EthRefund
+
     ) : EthNotaryResponse()
 
     /**
      * Error response which contains reason of error
      */
     data class Error(
+
+        /** Code of error */
         val code: Int,
+
+        /** Human-readable explanation of error */
         val reason: String
+
     ) : EthNotaryResponse()
 }
 

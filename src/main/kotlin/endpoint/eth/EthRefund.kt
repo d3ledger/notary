@@ -1,5 +1,7 @@
 package endpoint.eth
 
+import java.math.BigInteger
+
 /**
  * Type of address in Ethereum
  */
@@ -13,7 +15,7 @@ typealias CoinType = String
 /**
  * Type of amount in Ethereum
  */
-typealias AmountType = Double
+typealias AmountType = BigInteger
 
 /**
  * Refund structure
