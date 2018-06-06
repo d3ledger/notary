@@ -23,6 +23,7 @@ import sideChain.eth.EthChainListener
 import sideChain.iroha.IrohaChainHandlerStub
 import sideChain.iroha.IrohaChainListenerStub
 import sideChain.iroha.consumer.*
+import java.math.BigInteger
 
 /**
  * Class for notary instantiation
@@ -148,7 +149,7 @@ class NotaryInitialization {
                     performRefund(request)
                 } doReturn EthNotaryResponse.Successful(
                     "signature",
-                    EthRefund("address", "coin", 66.6)
+                    EthRefund("address", "coin", BigInteger.TEN)
                 )
             })
     }

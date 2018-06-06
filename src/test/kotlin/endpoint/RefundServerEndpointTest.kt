@@ -7,13 +7,16 @@ import com.squareup.moshi.Moshi
 import endpoint.eth.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.math.BigInteger
 
 /**
  * Fixture for testing endpoint
  */
 class RefundServerEndpointTest {
 
-    val moshi = Moshi.Builder().add(EthNotaryResponseMoshiAdapter()).build()
+    val moshi =
+        Moshi.Builder().add(EthNotaryResponseMoshiAdapter()).add(BigInteger::class.java, BigIntegerMoshiAdapter())
+            .build()
 
     /**
      * @given initialized server class
@@ -39,7 +42,7 @@ class RefundServerEndpointTest {
 
     private val response = EthNotaryResponse.Successful(
         "signature",
-        EthRefund("address", "coin", 66.6)
+        EthRefund("address", "coin", BigInteger.TEN)
     )
 
     private val ethRefundStrategyMock = mock<EthRefundStrategy> {
