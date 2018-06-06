@@ -46,7 +46,7 @@ class IntegrationTest {
         val ethGetTransactionCount = web3.ethGetTransactionCount(
             myAddress, DefaultBlockParameterName.LATEST
         ).send()
-        val nonce = ethGetTransactionCount.getTransactionCount()
+        val nonce = ethGetTransactionCount.transactionCount
 
         // create our transaction
         val rawTransaction = RawTransaction.createTransaction(
@@ -111,8 +111,10 @@ class IntegrationTest {
         println("balance " + asset.balance)
     }
 
+    /**
+     * Deploy user smart contract
+     */
     fun deployUserSmartContract() {
-        println(credentials.address)
         val contract =
             contract.User.deploy(
                 web3,
@@ -125,13 +127,4 @@ class IntegrationTest {
         println("User contract address: ${contract.contractAddress}")
     }
 
-    @Test
-    fun sendEthereumTest() {
-//        sendEthereum()
-    }
-
-    @Test
-    fun queryIrohaTest() {
-//        queryIroha()
-    }
 }
