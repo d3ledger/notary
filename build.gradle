@@ -158,7 +158,26 @@ protobuf {
         }
     }
 }
-compileKotlin.dependsOn ':generateProto'
+
+
+
+task buildContracts(type: Exec) {
+    description 'Build Ethereum contracts'
+
+    String contract_path = projectDir.toString().concat("/deploy/ethereum/contract")
+    String bin_path = contract_path.concat("/bin")
+    file(bin_path).mkdirs()
+
+    doLast {
+        logger.info(standardOutput.toString())
+        logger.error(errorOutput.toString())
+    }
+
+    commandLine 'sh', '-c', 'solc <path>/*.sol --bin --abi --optimize -o <path>/bin --overwrite'.replace("<path>", contract_path)
+
+}
+
+compileKotlin.dependsOn(buildContracts)
 
 // -------------------------| Iroha bindings |-------------------------
 
