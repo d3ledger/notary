@@ -1,10 +1,10 @@
 package endpoint.eth
 
-import Hash
-import HashVector
-import ModelQueryBuilder
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
+import jp.co.soramitsu.iroha.Hash
+import jp.co.soramitsu.iroha.HashVector
+import jp.co.soramitsu.iroha.ModelQueryBuilder
 import sideChain.iroha.IrohaSigner
 
 
