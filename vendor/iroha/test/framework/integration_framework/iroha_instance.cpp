@@ -19,15 +19,18 @@
 #include <cstdlib>
 #include <sstream>
 #include "cryptography/keypair.hpp"
+#include "framework/config_helper.hpp"
 #include "framework/integration_framework/test_irohad.hpp"
 
 using namespace std::chrono_literals;
 
 namespace integration_framework {
 
-  IrohaInstance::IrohaInstance(bool mst_support, const std::string &block_store_path)
+  IrohaInstance::IrohaInstance(bool mst_support,
+                               const std::string &block_store_path,
+                               const boost::optional<std::string> &dbname)
       : block_store_dir_(block_store_path),
-        pg_conn_(getPostgreCredsOrDefault()),
+        pg_conn_(getPostgreCredsOrDefault(dbname)),
         torii_port_(11501),
         internal_port_(50541),
         // proposal_timeout results in non-deterministic behavior due
@@ -73,19 +76,17 @@ namespace integration_framework {
   }
 
   std::string IrohaInstance::getPostgreCredsOrDefault(
-      const std::string &default_conn) {
-    auto pg_host = std::getenv("IROHA_POSTGRES_HOST");
-    auto pg_port = std::getenv("IROHA_POSTGRES_PORT");
-    auto pg_user = std::getenv("IROHA_POSTGRES_USER");
-    auto pg_pass = std::getenv("IROHA_POSTGRES_PASSWORD");
-    if (not pg_host) {
-      return default_conn;
+      const boost::optional<std::string> &dbname) {
+    std::string db = " dbname=";
+    if (dbname) {
+      db += dbname.value();
     } else {
-      std::stringstream ss;
-      ss << "host=" << pg_host << " port=" << pg_port << " user=" << pg_user
-         << " password=" << pg_pass;
-      return ss.str();
+      db += "db"
+          + boost::uuids::to_string(boost::uuids::random_generator()())
+                .substr(0, 8);
     }
+
+    return integration_framework::getPostgresCredsOrDefault() + db;
   }
 
 }  // namespace integration_framework
