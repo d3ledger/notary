@@ -36,8 +36,8 @@ class NotaryInitialization {
      */
     //TODO load from file
     private val wallets = mapOf(
-        "0x00aa39d30f0d20ff03a22ccfc30b7efbfca597c2".toLowerCase() to "user1@notary",
-        "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e".toLowerCase() to "user2@notary"
+        "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e".toLowerCase() to "admin@notary",
+        "0x00aa39d30f0d20ff03a22ccfc30b7efbfca597c2".toLowerCase() to "user1@notary"
     )
 
     /**

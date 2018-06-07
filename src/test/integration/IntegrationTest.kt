@@ -8,8 +8,11 @@ import com.google.protobuf.InvalidProtocolBufferException
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.Queries.Query
 import iroha.protocol.QueryServiceGrpc
+import kotlinx.coroutines.experimental.async
 import main.CONFIG
 import main.ConfigKeys
+import main.main
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.web3j.crypto.RawTransaction
 import org.web3j.crypto.TransactionEncoder
@@ -29,37 +32,36 @@ import java.math.BigInteger
 class IntegrationTest {
 
     /** web3 service instance to communicate with Ethereum network */
-    val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.ethConnectionUrl]))
+    private val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.ethConnectionUrl]))
 
     /** credentials of ethereum user */
-    val credentials =
+    private val credentials =
         WalletUtils.loadCredentials("user", "deploy/ethereum/keys/user.key")
 
     /** Gas price */
-    val gasPrice = BigInteger.ONE
+    private val gasPrice = BigInteger.ONE
 
     /** Max gas limit */
-    val gasLimit = BigInteger.valueOf(999999)
+    private val gasLimit = BigInteger.valueOf(999999)
+
+    /** Ethereum address to transfer from */
+    private val fromAddress = "0x004ec07d2329997267Ec62b4166639513386F32E"
+
+    /** Ethereum address to transfer to */
+    private val toAddress = "0x00aa39d30f0d20ff03a22ccfc30b7efbfca597c2"
 
     /**
      * Send Ethereum transaction to wallet with specified data.
      */
-    fun sendEthereum() {
-        val myAddress = "0x004ec07d2329997267Ec62b4166639513386F32E"
-        val toAddress = "0x00aa39d30f0d20ff03a22ccfc30b7efbfca597c2"
-        val value = BigInteger.valueOf(1234567890123456)
-        val data = "admin@test"
-
+    private fun sendEthereum(amount: BigInteger) {
         // get the next available nonce
         val ethGetTransactionCount = web3.ethGetTransactionCount(
-            myAddress, DefaultBlockParameterName.LATEST
+            fromAddress, DefaultBlockParameterName.LATEST
         ).send()
         val nonce = ethGetTransactionCount.transactionCount
 
         // create our transaction
-        val rawTransaction = RawTransaction.createTransaction(
-            nonce, gasPrice, gasLimit, toAddress, value, Numeric.toHexString(data.toByteArray())
-        )
+        val rawTransaction = RawTransaction.createTransaction(nonce, gasPrice, gasLimit, toAddress, amount, "")
 
         // sign & send our transaction
         val signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials)
@@ -70,6 +72,7 @@ class IntegrationTest {
     /**
      * Query Iroha account balance
      */
+    @Test
     fun queryIroha() {
         IrohaInitializtion.loadIrohaLibrary()
             .failure {
@@ -83,8 +86,8 @@ class IntegrationTest {
         val queryBuilder = ModelQueryBuilder()
         val protoQueryHelper = ModelProtoQuery()
         val creator = "admin@test"
-        val accountId = "admin@test"
-        val assetId = "eth#test"
+        val accountId = "user2@notary"
+        val assetId = "ether#ethereum"
         val startQueryCounter: Long = 1
         val keypair: Keypair =
             IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath]).get()
@@ -188,6 +191,31 @@ class IntegrationTest {
         println("Token contract address: $token")
         println("Notary contract address: $notary")
         println("User contract address: $user")
+    }
+
+    /**
+     * Test US transfer Ethereum.
+     * Note: Ethereum and Iroha must be deployed to pass the test.
+     * @given Ethereum and Iroha networks running and two ethereum wallets and "fromAddress" with at least 0.001 Ether
+     * (1000000000000000 Wei) and notary running
+     * @when "fromAddress" transfers 100 Wei to "toAddress"
+     * @then
+     */
+    @Test
+    fun runMain() {
+        val amount = BigInteger.valueOf(1000000000000000)
+        async {
+            main(arrayOf())
+        }
+
+        Thread.sleep(3_000)
+        println("send")
+        sendEthereum(amount)
+        Thread.sleep(5_000)
+        println("send again")
+        sendEthereum(amount)
+        Thread.sleep(45_000)
+        println("done")
     }
 
 }
