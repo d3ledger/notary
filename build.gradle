@@ -87,6 +87,8 @@ dependencies {
     // ------------------| Test dependencies |------------------
 
     // unit tests
+    compile "org.junit.jupiter:junit-jupiter-api:5.2.0"
+
     testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
     testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
     // TODO @muratovv: rework with testCompile when mocks go out from production code
@@ -112,18 +114,30 @@ compileTestKotlin {
 }
 
 sourceSets {
-    main.java.srcDirs += 'src/main'
-    // iroha bindings
-    main.java.srcDirs += 'build/generated/source/proto/main/java'
-    main.java.srcDirs += 'build/generated/source/proto/main/grpc'
+    main {
+        java {
+            srcDirs += "src/main"
+            // iroha bindings
+            srcDirs += "build/generated/source/proto/main/java"
+            srcDirs += "build/generated/source/proto/main/grpc"
 
-    // iroha schema
-    main.proto.srcDirs += "vendor/iroha/schema"
+            srcDirs += "src/test"
+        }
+        proto {
+            // iroha schema
+            srcDirs += "vendor/iroha/schema"
+            // notary schema
+            srcDirs += "src/main/kotlin/sideChain/iroha/schema"
 
-    test.java.srcDirs += 'src/test'
+        }
+
+    }
+
+
 }
 
 test {
+    useJUnitPlatform()
     systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
     println "Runtime Iroha library path:${systemProperties}"
 }
