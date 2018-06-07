@@ -150,7 +150,7 @@ TEST_F(GetAccountTest, MyAccountValidCase) {
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW({
     const auto &cast_resp =
-        boost::apply_visitor(shared_model::interface::SpecifiedVisitor<
+        boost::apply_visitor(framework::SpecifiedVisitor<
                                  shared_model::interface::AccountResponse>(),
                              response->get());
     ASSERT_EQ(cast_resp.account().accountId(), admin_id);
@@ -180,7 +180,7 @@ TEST_F(GetAccountTest, AllAccountValidCase) {
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW({
     const auto &cast_resp =
-        boost::apply_visitor(shared_model::interface::SpecifiedVisitor<
+        boost::apply_visitor(framework::SpecifiedVisitor<
                                  shared_model::interface::AccountResponse>(),
                              response->get());
     ASSERT_EQ(cast_resp.account().accountId(), account_id);
@@ -210,7 +210,7 @@ TEST_F(GetAccountTest, DomainAccountValidCase) {
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW({
     const auto &cast_resp =
-        boost::apply_visitor(shared_model::interface::SpecifiedVisitor<
+        boost::apply_visitor(framework::SpecifiedVisitor<
                                  shared_model::interface::AccountResponse>(),
                              response->get());
     ASSERT_EQ(cast_resp.account().accountId(), account_id);
@@ -245,7 +245,7 @@ TEST_F(GetAccountTest, GrantAccountValidCase) {
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW({
     const auto &cast_resp =
-        boost::apply_visitor(shared_model::interface::SpecifiedVisitor<
+        boost::apply_visitor(framework::SpecifiedVisitor<
                                  shared_model::interface::AccountResponse>(),
                              response->get());
     ASSERT_EQ(cast_resp.account().accountId(), account_id);
@@ -357,24 +357,26 @@ class GetAccountAssetsTest : public QueryValidateExecuteTest {
 TEST_F(GetAccountAssetsTest, MyAccountValidCase) {
   auto query = TestQueryBuilder()
                    .creatorAccountId(admin_id)
-                   .getAccountAssets(admin_id, asset_id)
+                   .getAccountAssets(admin_id)
                    .build();
 
   EXPECT_CALL(*wsv_query, getAccountRoles(admin_id))
       .WillOnce(Return(admin_roles));
   EXPECT_CALL(*wsv_query, getRolePermissions(admin_role))
       .WillOnce(Return(role_permissions));
-  EXPECT_CALL(*wsv_query, getAccountAsset(admin_id, asset_id))
-      .WillOnce(Return(accountAsset));
+  EXPECT_CALL(*wsv_query, getAccountAssets(admin_id))
+      .WillOnce(Return(
+          std::vector<std::shared_ptr<shared_model::interface::AccountAsset>>(
+              {accountAsset})));
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW({
     const auto &cast_resp = boost::apply_visitor(
-        shared_model::interface::SpecifiedVisitor<
+        framework::SpecifiedVisitor<
             shared_model::interface::AccountAssetResponse>(),
         response->get());
 
-    ASSERT_EQ(cast_resp.accountAsset().accountId(), admin_id);
-    ASSERT_EQ(cast_resp.accountAsset().assetId(), asset_id);
+    ASSERT_EQ(cast_resp.accountAssets()[0].accountId(), admin_id);
+    ASSERT_EQ(cast_resp.accountAssets()[0].assetId(), asset_id);
   });
 }
 
@@ -386,7 +388,7 @@ TEST_F(GetAccountAssetsTest, MyAccountValidCase) {
 TEST_F(GetAccountAssetsTest, AllAccountValidCase) {
   auto query = TestQueryBuilder()
                    .creatorAccountId(admin_id)
-                   .getAccountAssets(account_id, asset_id)
+                   .getAccountAssets(account_id)
                    .build();
 
   shared_model::builder::AccountAssetBuilder<
@@ -408,18 +410,20 @@ TEST_F(GetAccountAssetsTest, AllAccountValidCase) {
       .WillOnce(Return(admin_roles));
   EXPECT_CALL(*wsv_query, getRolePermissions(admin_role))
       .WillOnce(Return(role_permissions));
-  EXPECT_CALL(*wsv_query, getAccountAsset(account_id, asset_id))
-      .WillOnce(Return(accountAsset));
+  EXPECT_CALL(*wsv_query, getAccountAssets(account_id))
+      .WillOnce(Return(
+          std::vector<std::shared_ptr<shared_model::interface::AccountAsset>>(
+              {accountAsset})));
 
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW({
     const auto &cast_resp = boost::apply_visitor(
-        shared_model::interface::SpecifiedVisitor<
+        framework::SpecifiedVisitor<
             shared_model::interface::AccountAssetResponse>(),
         response->get());
 
-    ASSERT_EQ(cast_resp.accountAsset().accountId(), account_id);
-    ASSERT_EQ(cast_resp.accountAsset().assetId(), asset_id);
+    ASSERT_EQ(cast_resp.accountAssets()[0].accountId(), account_id);
+    ASSERT_EQ(cast_resp.accountAssets()[0].assetId(), asset_id);
   });
 }
 
@@ -431,7 +435,7 @@ TEST_F(GetAccountAssetsTest, AllAccountValidCase) {
 TEST_F(GetAccountAssetsTest, DomainAccountValidCase) {
   auto query = TestQueryBuilder()
                    .creatorAccountId(admin_id)
-                   .getAccountAssets(account_id, asset_id)
+                   .getAccountAssets(account_id)
                    .build();
 
   shared_model::builder::AccountAssetBuilder<
@@ -453,18 +457,20 @@ TEST_F(GetAccountAssetsTest, DomainAccountValidCase) {
       .WillOnce(Return(admin_roles));
   EXPECT_CALL(*wsv_query, getRolePermissions(admin_role))
       .WillOnce(Return(role_permissions));
-  EXPECT_CALL(*wsv_query, getAccountAsset(account_id, asset_id))
-      .WillOnce(Return(accountAsset));
+  EXPECT_CALL(*wsv_query, getAccountAssets(account_id))
+      .WillOnce(Return(
+          std::vector<std::shared_ptr<shared_model::interface::AccountAsset>>(
+              {accountAsset})));
 
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW({
     auto &cast_resp = boost::apply_visitor(
-        shared_model::interface::SpecifiedVisitor<
+        framework::SpecifiedVisitor<
             shared_model::interface::AccountAssetResponse>(),
         response->get());
 
-    ASSERT_EQ(cast_resp.accountAsset().accountId(), account_id);
-    ASSERT_EQ(cast_resp.accountAsset().assetId(), asset_id);
+    ASSERT_EQ(cast_resp.accountAssets()[0].accountId(), account_id);
+    ASSERT_EQ(cast_resp.accountAssets()[0].assetId(), asset_id);
   });
 }
 
@@ -476,7 +482,7 @@ TEST_F(GetAccountAssetsTest, DomainAccountValidCase) {
 TEST_F(GetAccountAssetsTest, GrantAccountValidCase) {
   auto query = TestQueryBuilder()
                    .creatorAccountId(admin_id)
-                   .getAccountAssets(account_id, asset_id)
+                   .getAccountAssets(account_id)
                    .build();
 
   accountAsset = clone(shared_model::proto::AccountAssetBuilder()
@@ -495,18 +501,20 @@ TEST_F(GetAccountAssetsTest, GrantAccountValidCase) {
       hasAccountGrantablePermission(admin_id, account_id, can_get_my_acc_ast))
       .WillOnce(Return(true));
 
-  EXPECT_CALL(*wsv_query, getAccountAsset(account_id, asset_id))
-      .WillOnce(Return(accountAsset));
+  EXPECT_CALL(*wsv_query, getAccountAssets(account_id))
+      .WillOnce(Return(
+          std::vector<std::shared_ptr<shared_model::interface::AccountAsset>>(
+              {accountAsset})));
 
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW({
     const auto &cast_resp = boost::apply_visitor(
-        shared_model::interface::SpecifiedVisitor<
+        framework::SpecifiedVisitor<
             shared_model::interface::AccountAssetResponse>(),
         response->get());
 
-    ASSERT_EQ(cast_resp.accountAsset().accountId(), account_id);
-    ASSERT_EQ(cast_resp.accountAsset().assetId(), asset_id);
+    ASSERT_EQ(cast_resp.accountAssets()[0].accountId(), account_id);
+    ASSERT_EQ(cast_resp.accountAssets()[0].assetId(), asset_id);
   });
 }
 
@@ -518,7 +526,7 @@ TEST_F(GetAccountAssetsTest, GrantAccountValidCase) {
 TEST_F(GetAccountAssetsTest, DifferentDomainAccountInValidCase) {
   auto query = TestQueryBuilder()
                    .creatorAccountId(admin_id)
-                   .getAccountAssets("test@test2", asset_id)
+                   .getAccountAssets("test@test2")
                    .build();
 
   shared_model::builder::AccountAssetBuilder<
@@ -562,7 +570,7 @@ TEST_F(GetAccountAssetsTest, DifferentDomainAccountInValidCase) {
 TEST_F(GetAccountAssetsTest, NoAccountExist) {
   auto query = TestQueryBuilder()
                    .creatorAccountId(admin_id)
-                   .getAccountAssets("none", asset_id)
+                   .getAccountAssets("none")
                    .build();
 
   shared_model::builder::AccountAssetBuilder<
@@ -586,7 +594,7 @@ TEST_F(GetAccountAssetsTest, NoAccountExist) {
   EXPECT_CALL(*wsv_query, getRolePermissions(admin_role))
       .WillOnce(Return(role_permissions));
 
-  EXPECT_CALL(*wsv_query, getAccountAsset("none", asset_id))
+  EXPECT_CALL(*wsv_query, getAccountAssets("none"))
       .WillOnce(Return(boost::none));
 
   auto response = validateAndExecute(query);
@@ -628,7 +636,7 @@ TEST_F(GetSignatoriesTest, MyAccountValidCase) {
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW({
     const auto &cast_resp = boost::apply_visitor(
-        shared_model::interface::SpecifiedVisitor<
+        framework::SpecifiedVisitor<
             shared_model::interface::SignatoriesResponse>(),
         response->get());
 
@@ -658,7 +666,7 @@ TEST_F(GetSignatoriesTest, AllAccountValidCase) {
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW({
     const auto &cast_resp = boost::apply_visitor(
-        shared_model::interface::SpecifiedVisitor<
+        framework::SpecifiedVisitor<
             shared_model::interface::SignatoriesResponse>(),
         response->get());
 
@@ -688,7 +696,7 @@ TEST_F(GetSignatoriesTest, DomainAccountValidCase) {
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW({
     const auto &cast_resp = boost::apply_visitor(
-        shared_model::interface::SpecifiedVisitor<
+        framework::SpecifiedVisitor<
             shared_model::interface::SignatoriesResponse>(),
         response->get());
 
@@ -723,7 +731,7 @@ TEST_F(GetSignatoriesTest, GrantAccountValidCase) {
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW({
     const auto &cast_resp = boost::apply_visitor(
-        shared_model::interface::SpecifiedVisitor<
+        framework::SpecifiedVisitor<
             shared_model::interface::SignatoriesResponse>(),
         response->get());
 
@@ -826,13 +834,13 @@ TEST_F(GetAccountTransactionsTest, MyAccountValidCase) {
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW({
     const auto &cast_resp = boost::apply_visitor(
-        shared_model::interface::SpecifiedVisitor<
+        framework::SpecifiedVisitor<
             shared_model::interface::TransactionsResponse>(),
         response->get());
 
     ASSERT_EQ(cast_resp.transactions().size(), N);
     for (const auto &tx : cast_resp.transactions()) {
-      EXPECT_EQ(admin_id, tx->creatorAccountId());
+      EXPECT_EQ(admin_id, tx.creatorAccountId());
     }
   });
 }
@@ -861,13 +869,13 @@ TEST_F(GetAccountTransactionsTest, AllAccountValidCase) {
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW({
     const auto &cast_resp = boost::apply_visitor(
-        shared_model::interface::SpecifiedVisitor<
+        framework::SpecifiedVisitor<
             shared_model::interface::TransactionsResponse>(),
         response->get());
 
     ASSERT_EQ(cast_resp.transactions().size(), N);
     for (const auto &tx : cast_resp.transactions()) {
-      EXPECT_EQ(account_id, tx->creatorAccountId());
+      EXPECT_EQ(account_id, tx.creatorAccountId());
     }
   });
 }
@@ -896,13 +904,13 @@ TEST_F(GetAccountTransactionsTest, DomainAccountValidCase) {
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW({
     const auto &cast_resp = boost::apply_visitor(
-        shared_model::interface::SpecifiedVisitor<
+        framework::SpecifiedVisitor<
             shared_model::interface::TransactionsResponse>(),
         response->get());
 
     ASSERT_EQ(cast_resp.transactions().size(), N);
     for (const auto &tx : cast_resp.transactions()) {
-      EXPECT_EQ(account_id, tx->creatorAccountId());
+      EXPECT_EQ(account_id, tx.creatorAccountId());
     }
   });
 }
@@ -935,13 +943,13 @@ TEST_F(GetAccountTransactionsTest, GrantAccountValidCase) {
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW({
     const auto &cast_resp = boost::apply_visitor(
-        shared_model::interface::SpecifiedVisitor<
+        framework::SpecifiedVisitor<
             shared_model::interface::TransactionsResponse>(),
         response->get());
 
     ASSERT_EQ(cast_resp.transactions().size(), N);
     for (const auto &tx : cast_resp.transactions()) {
-      EXPECT_EQ(account_id, tx->creatorAccountId());
+      EXPECT_EQ(account_id, tx.creatorAccountId());
     }
   });
 }
@@ -999,7 +1007,7 @@ TEST_F(GetAccountTransactionsTest, NoAccountExist) {
 
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW(
-      boost::apply_visitor(shared_model::interface::SpecifiedVisitor<
+      boost::apply_visitor(framework::SpecifiedVisitor<
                                shared_model::interface::TransactionsResponse>(),
                            response->get()));
 }
@@ -1041,13 +1049,13 @@ TEST_F(GetAccountAssetsTransactionsTest, MyAccountValidCase) {
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW({
     const auto &cast_resp = boost::apply_visitor(
-        shared_model::interface::SpecifiedVisitor<
+        framework::SpecifiedVisitor<
             shared_model::interface::TransactionsResponse>(),
         response->get());
 
     ASSERT_EQ(cast_resp.transactions().size(), N);
     for (const auto &tx : cast_resp.transactions()) {
-      EXPECT_EQ(admin_id, tx->creatorAccountId());
+      EXPECT_EQ(admin_id, tx.creatorAccountId());
     }
   });
 }
@@ -1076,13 +1084,13 @@ TEST_F(GetAccountAssetsTransactionsTest, AllAccountValidCase) {
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW({
     const auto &cast_resp = boost::apply_visitor(
-        shared_model::interface::SpecifiedVisitor<
+        framework::SpecifiedVisitor<
             shared_model::interface::TransactionsResponse>(),
         response->get());
 
     ASSERT_EQ(cast_resp.transactions().size(), N);
     for (const auto &tx : cast_resp.transactions()) {
-      EXPECT_EQ(account_id, tx->creatorAccountId());
+      EXPECT_EQ(account_id, tx.creatorAccountId());
     }
   });
 }
@@ -1111,13 +1119,13 @@ TEST_F(GetAccountAssetsTransactionsTest, DomainAccountValidCase) {
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW({
     const auto &cast_resp = boost::apply_visitor(
-        shared_model::interface::SpecifiedVisitor<
+        framework::SpecifiedVisitor<
             shared_model::interface::TransactionsResponse>(),
         response->get());
 
     ASSERT_EQ(cast_resp.transactions().size(), N);
     for (const auto &tx : cast_resp.transactions()) {
-      EXPECT_EQ(account_id, tx->creatorAccountId());
+      EXPECT_EQ(account_id, tx.creatorAccountId());
     }
   });
 }
@@ -1150,13 +1158,13 @@ TEST_F(GetAccountAssetsTransactionsTest, GrantAccountValidCase) {
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW({
     const auto &cast_resp = boost::apply_visitor(
-        shared_model::interface::SpecifiedVisitor<
+        framework::SpecifiedVisitor<
             shared_model::interface::TransactionsResponse>(),
         response->get());
 
     ASSERT_EQ(cast_resp.transactions().size(), N);
     for (const auto &tx : cast_resp.transactions()) {
-      EXPECT_EQ(account_id, tx->creatorAccountId());
+      EXPECT_EQ(account_id, tx.creatorAccountId());
     }
   });
 }
@@ -1214,7 +1222,7 @@ TEST_F(GetAccountAssetsTransactionsTest, NoAccountExist) {
 
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW(
-      boost::apply_visitor(shared_model::interface::SpecifiedVisitor<
+      boost::apply_visitor(framework::SpecifiedVisitor<
                                shared_model::interface::TransactionsResponse>(),
                            response->get()));
 }
@@ -1242,7 +1250,7 @@ TEST_F(GetAccountAssetsTransactionsTest, NoAssetExist) {
 
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW(
-      boost::apply_visitor(shared_model::interface::SpecifiedVisitor<
+      boost::apply_visitor(framework::SpecifiedVisitor<
                                shared_model::interface::TransactionsResponse>(),
                            response->get()));
 }
@@ -1283,7 +1291,7 @@ TEST_F(GetAssetInfoTest, MyAccountValidCase) {
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW({
     const auto &cast_resp =
-        boost::apply_visitor(shared_model::interface::SpecifiedVisitor<
+        boost::apply_visitor(framework::SpecifiedVisitor<
                                  shared_model::interface::AssetResponse>(),
                              response->get());
 
@@ -1369,7 +1377,7 @@ TEST_F(GetRolesTest, ValidCase) {
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW({
     const auto &cast_resp =
-        boost::apply_visitor(shared_model::interface::SpecifiedVisitor<
+        boost::apply_visitor(framework::SpecifiedVisitor<
                                  shared_model::interface::RolesResponse>(),
                              response->get());
 
@@ -1455,7 +1463,7 @@ TEST_F(GetRolePermissionsTest, ValidCase) {
   auto response = validateAndExecute(query);
   ASSERT_NO_THROW({
     const auto &cast_resp = boost::apply_visitor(
-        shared_model::interface::SpecifiedVisitor<
+        framework::SpecifiedVisitor<
             shared_model::interface::RolePermissionsResponse>(),
         response->get());
 

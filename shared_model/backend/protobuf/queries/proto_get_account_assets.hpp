@@ -22,7 +22,6 @@
 
 #include "queries.pb.h"
 #include "utils/lazy_initializer.hpp"
-#include "utils/reference_holder.hpp"
 
 namespace shared_model {
   namespace proto {
@@ -45,9 +44,6 @@ namespace shared_model {
         return account_assets_.account_id();
       }
 
-      const interface::types::AssetIdType &assetId() const override {
-        return account_assets_.asset_id();
-      }
 
      private:
       // ------------------------------| fields |-------------------------------
