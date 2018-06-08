@@ -1,8 +1,8 @@
 package sideChain.iroha
 
-import Keypair
-import UnsignedQuery
-import UnsignedTx
+import jp.co.soramitsu.iroha.Keypair
+import jp.co.soramitsu.iroha.UnsignedQuery
+import jp.co.soramitsu.iroha.UnsignedTx
 
 /**
  * Class holds keypair and sign data

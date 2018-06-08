@@ -1,5 +1,5 @@
 /**
- * Copyright Soramitsu Co., Ltd. 2017 All Rights Reserved.
+ * Copyright Soramitsu Co., Ltd. 2018 All Rights Reserved.
  * http://soramitsu.co.jp
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,11 +15,15 @@
  * limitations under the License.
  */
 
-#include "interfaces/common_objects/account.hpp"
-#include "interfaces/common_objects/account_asset.hpp"
-#include "interfaces/common_objects/asset.hpp"
-#include "interfaces/iroha_internal/block.hpp"
-#include "interfaces/queries/query.hpp"
-#include "interfaces/query_responses/query_response.hpp"
-#include "interfaces/transaction.hpp"
-#include "interfaces/transaction_responses/tx_response.hpp"
+#include "builders/protobuf/common_objects/proto_account_asset_builder.hpp"
+
+#ifndef IROHA_TEST_ACCOUNT_BUILDER_HPP
+#define IROHA_TEST_ACCOUNT_BUILDER_HPP
+
+/**
+ * Builder alias, to build shared model proto block object avoiding validation
+ * and "required fields" check
+ */
+using TestAccountAssetBuilder = shared_model::proto::AccountAsset;
+
+#endif //IROHA_TEST_ACCOUNT_BUILDER_HPP

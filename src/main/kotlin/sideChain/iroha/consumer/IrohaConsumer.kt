@@ -1,6 +1,6 @@
 package sideChain.iroha.consumer
 
-import UnsignedTx
+import jp.co.soramitsu.iroha.UnsignedTx
 import iroha.protocol.BlockOuterClass
 
 /**

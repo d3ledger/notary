@@ -1,8 +1,8 @@
 package sideChain.iroha.consumer
 
-import ModelTransactionBuilder
-import PublicKey
-import UnsignedTx
+import jp.co.soramitsu.iroha.ModelTransactionBuilder
+import jp.co.soramitsu.iroha.PublicKey
+import jp.co.soramitsu.iroha.UnsignedTx
 import mu.KLogging
 import notary.IrohaCommand
 import notary.IrohaOrderedBatch

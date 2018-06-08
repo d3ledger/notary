@@ -1,9 +1,9 @@
 package sideChain.iroha.consumer
 
-import Keypair
-import ModelProtoTransaction
-import UnsignedTx
 import iroha.protocol.BlockOuterClass
+import jp.co.soramitsu.iroha.Keypair
+import jp.co.soramitsu.iroha.ModelProtoTransaction
+import jp.co.soramitsu.iroha.UnsignedTx
 import mu.KLogging
 import sideChain.iroha.util.toByteArray
 import kotlin.reflect.jvm.internal.impl.protobuf.InvalidProtocolBufferException
@@ -19,7 +19,7 @@ class IrohaConsumerImpl(val keypair: Keypair) : IrohaConsumer {
      */
     override fun convertToProto(utx: UnsignedTx): BlockOuterClass.Transaction {
         // sign transaction and get its binary representation (Blob)
-        val txblob = ModelProtoTransaction().signAndAddSignature(utx, keypair).blob().toByteArray()
+        val txblob = ModelProtoTransaction(utx).signAndAddSignature(keypair).finish().blob().toByteArray()
 
         // create proto object
         lateinit var protoTx: BlockOuterClass.Transaction

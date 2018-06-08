@@ -1,6 +1,6 @@
 package vendor
 
-import ModelCrypto
+import jp.co.soramitsu.iroha.ModelCrypto
 import org.junit.jupiter.api.Test
 
 class IrohaUsageTest {
