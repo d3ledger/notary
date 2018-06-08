@@ -1,13 +1,13 @@
 package integration
 
-import Keypair
-import ModelProtoQuery
-import ModelQueryBuilder
 import com.github.kittinunf.result.failure
 import com.google.protobuf.InvalidProtocolBufferException
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.Queries.Query
 import iroha.protocol.QueryServiceGrpc
+import jp.co.soramitsu.iroha.Keypair
+import jp.co.soramitsu.iroha.ModelProtoQuery
+import jp.co.soramitsu.iroha.ModelQueryBuilder
 import kotlinx.coroutines.experimental.async
 import main.CONFIG
 import main.ConfigKeys
@@ -84,7 +84,6 @@ class IntegrationTest {
         val irohaHost = CONFIG[ConfigKeys.irohaHostname]
 
         val queryBuilder = ModelQueryBuilder()
-        val protoQueryHelper = ModelProtoQuery()
         val creator = "admin@test"
         val accountId = "user2@notary"
         val assetId = "ether#ethereum"
@@ -97,7 +96,7 @@ class IntegrationTest {
             .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
             .getAccountAssets(accountId, assetId)
             .build()
-        val queryBlob = protoQueryHelper.signAndAddSignature(uquery, keypair).blob().toByteArray()
+        val queryBlob = ModelProtoQuery(uquery).signAndAddSignature(keypair).finish().blob().toByteArray()
 
         val protoQuery: Query?
         try {
@@ -116,10 +115,12 @@ class IntegrationTest {
             fail { "Query response error" }
         }
 
-        val asset = queryResponse.accountAssetsResponse.accountAsset
-        println("asset " + asset.assetId)
-        println("account " + asset.accountId)
-        println("balance " + asset.balance)
+        val assets = queryResponse.accountAssetsResponse.accountAssetsList
+        for (asset in assets) {
+            println("asset " + asset.assetId)
+            println("account " + asset.accountId)
+            println("balance " + asset.balance)
+        }
     }
 
 
