@@ -10,7 +10,8 @@ import com.nhaarman.mockito_kotlin.mock
 import endpoint.RefundServerEndpoint
 import endpoint.ServerInitializationBundle
 import endpoint.eth.EthNotaryResponse
-import endpoint.eth.EthRefundContract
+import endpoint.eth.EthRefund
+import endpoint.eth.EthRefundRequest
 import io.reactivex.Observable
 import main.CONFIG
 import main.ConfigKeys
@@ -22,6 +23,7 @@ import sideChain.eth.EthChainListener
 import sideChain.iroha.IrohaChainHandler
 import sideChain.iroha.IrohaChainListener
 import sideChain.iroha.consumer.*
+import java.math.BigInteger
 
 /**
  * Class for notary instantiation
@@ -142,16 +144,13 @@ class NotaryInitialization {
         refundServerEndpoint = RefundServerEndpoint(
             ServerInitializationBundle(CONFIG[ConfigKeys.refundPort], CONFIG[ConfigKeys.ethEndpoint]),
             mock {
-                val request = any<EthRefundContract>()
+                val request = any<EthRefundRequest>()
                 on {
                     performRefund(request)
                 } doReturn EthNotaryResponse.Successful(
                     "signature",
-                    "pub_key"
+                    EthRefund("address", "coin", BigInteger.TEN)
                 )
-                on {
-                    validate(any())
-                } doReturn true
             })
     }
 

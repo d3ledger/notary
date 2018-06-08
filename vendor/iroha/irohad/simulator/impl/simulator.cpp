@@ -103,14 +103,12 @@ namespace iroha {
       // TODO: Alexey Chernyshov IR-1011 2018-03-08 rework BlockBuilder logic,
       // so that this cast will not be needed
       auto proto_txs =
-          proposal.transactions()
-          | boost::adaptors::transformed([](const auto &polymorphic_tx) {
-              return static_cast<const shared_model::proto::Transaction &>(
-                  *polymorphic_tx);
-            });
+          proposal.transactions() | boost::adaptors::transformed([](auto &tx) {
+            return static_cast<const shared_model::proto::Transaction &>(tx);
+          });
       auto block = std::make_shared<shared_model::proto::Block>(
           shared_model::proto::UnsignedBlockBuilder()
-              .height(proposal.height())
+              .height(block_queries_->getTopBlockHeight() + 1)
               .prevHash(last_block.value()->hash())
               .transactions(proto_txs)
               .createdTime(proposal.createdTime())

@@ -4,19 +4,19 @@ import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.squareup.moshi.Moshi
-import endpoint.eth.EthNotaryResponse
-import endpoint.eth.EthNotaryResponseMoshiAdapter
-import endpoint.eth.EthRefundContract
-import endpoint.eth.EthRefundStrategy
+import endpoint.eth.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.math.BigInteger
 
 /**
  * Fixture for testing endpoint
  */
 class RefundServerEndpointTest {
 
-    val moshi = Moshi.Builder().add(EthNotaryResponseMoshiAdapter()).build()
+    val moshi =
+        Moshi.Builder().add(EthNotaryResponseMoshiAdapter()).add(BigInteger::class.java, BigIntegerMoshiAdapter())
+            .build()
 
     /**
      * @given initialized server class
@@ -30,7 +30,7 @@ class RefundServerEndpointTest {
             ethRefundStrategyMock
         )
 
-        val request = moshi.adapter(EthRefundContract::class.java).toJson(ethRequest)
+        val request = moshi.adapter(EthRefundRequest::class.java).toJson(ethRequest)
         val refundAnswer = server.onCallEthRefund(request)
 
         println("Answer = $refundAnswer")
@@ -38,21 +38,17 @@ class RefundServerEndpointTest {
         assertEquals(response, moshi.adapter(EthNotaryResponse::class.java).fromJson(refundAnswer))
     }
 
-    private val ethRequest = EthRefundContract("address", "doge_coin", 100500F)
+    private val ethRequest = EthRefundRequest("tx_hash_from_iroha")
 
     private val response = EthNotaryResponse.Successful(
         "signature",
-        "pub_key"
+        EthRefund("address", "coin", BigInteger.TEN)
     )
 
     private val ethRefundStrategyMock = mock<EthRefundStrategy> {
-        val request = any<EthRefundContract>()
+        val request = any<EthRefundRequest>()
         on {
             performRefund(request)
         } doReturn response
-        on {
-            validate(any())
-        } doReturn true
     }
-
 }

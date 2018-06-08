@@ -95,20 +95,22 @@ namespace shared_model {
 
       auto createdTime(interface::types::TimestampType created_time) const {
         return transform<CreatedTime>([&](auto &qry) {
-          qry.mutable_payload()->set_created_time(created_time);
+          qry.mutable_payload()->mutable_meta()->set_created_time(created_time);
         });
       }
 
       auto creatorAccountId(
           const interface::types::AccountIdType &creator_account_id) const {
         return transform<CreatorAccountId>([&](auto &qry) {
-          qry.mutable_payload()->set_creator_account_id(creator_account_id);
+          qry.mutable_payload()->mutable_meta()->set_creator_account_id(
+              creator_account_id);
         });
       }
 
       auto queryCounter(interface::types::CounterType query_counter) const {
         return transform<QueryCounter>([&](auto &qry) {
-          qry.mutable_payload()->set_query_counter(query_counter);
+          qry.mutable_payload()->mutable_meta()->set_query_counter(
+              query_counter);
         });
       }
 
@@ -146,12 +148,10 @@ namespace shared_model {
       }
 
       auto getAccountAssets(
-          const interface::types::AccountIdType &account_id,
-          const interface::types::AssetIdType &asset_id) const {
+          const interface::types::AccountIdType &account_id) const {
         return queryField([&](auto proto_query) {
           auto query = proto_query->mutable_get_account_assets();
           query->set_account_id(account_id);
-          query->set_asset_id(asset_id);
         });
       }
 

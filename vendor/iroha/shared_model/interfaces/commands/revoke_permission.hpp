@@ -20,6 +20,7 @@
 
 #include "interfaces/base/model_primitive.hpp"
 #include "interfaces/common_objects/types.hpp"
+#include "interfaces/permissions.hpp"
 
 namespace shared_model {
   namespace interface {
@@ -36,20 +37,11 @@ namespace shared_model {
       /**
        * @return Permission to revoke
        */
-      virtual const types::PermissionNameType &permissionName() const = 0;
+      virtual permissions::Grantable permissionName() const = 0;
 
-      std::string toString() const override {
-        return detail::PrettyStringBuilder()
-            .init("RevokePermission")
-            .append("account_id", accountId())
-            .append("permission", permissionName())
-            .finalize();
-      }
+      std::string toString() const override = 0;
 
-      bool operator==(const ModelType &rhs) const override {
-        return accountId() == rhs.accountId()
-            and permissionName() == rhs.permissionName();
-      }
+      bool operator==(const ModelType &rhs) const override;
     };
   }  // namespace interface
 }  // namespace shared_model
