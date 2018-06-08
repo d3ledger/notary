@@ -1,6 +1,6 @@
 package sideChain.iroha.util
 
-import ByteVector
+import jp.co.soramitsu.iroha.ByteVector
 
 /**
  * Extension function to convert [ByteVector] to [ByteArray]

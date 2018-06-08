@@ -1,8 +1,8 @@
 package sideChain.iroha.consumer
 
-import Keypair
-import ModelCrypto
 import com.github.kittinunf.result.Result
+import jp.co.soramitsu.iroha.Keypair
+import jp.co.soramitsu.iroha.ModelCrypto
 import java.io.IOException
 import java.nio.file.Paths
 

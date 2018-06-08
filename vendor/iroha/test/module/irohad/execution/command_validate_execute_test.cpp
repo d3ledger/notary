@@ -45,7 +45,7 @@ using namespace shared_model::permissions;
  */
 std::unique_ptr<shared_model::interface::Command> buildCommand(
     const TestTransactionBuilder &builder) {
-  return clone(*(builder.build().commands().front()));
+  return clone(builder.build().commands().front());
 }
 
 /**
@@ -58,7 +58,7 @@ template <class T>
 std::shared_ptr<T> getConcreteCommand(
     const std::unique_ptr<shared_model::interface::Command> &command) {
   return clone(boost::apply_visitor(
-      shared_model::interface::SpecifiedVisitor<T>(), command->get()));
+      framework::SpecifiedVisitor<T>(), command->get()));
 }
 
 class CommandValidateExecuteTest : public ::testing::Test {
@@ -1359,8 +1359,7 @@ TEST_F(TransferAssetTest, ValidWhenCreatorHasPermission) {
       .WillOnce(Return(boost::none));
 
   EXPECT_CALL(*wsv_query,
-              getAccountAsset(transfer_asset->srcAccountId(),
-                              transfer_asset->assetId()))
+              getAccountAsset(transfer_asset->srcAccountId(), _))
       .Times(2)
       .WillRepeatedly(Return(src_wallet));
   EXPECT_CALL(*wsv_query, getAsset(transfer_asset->assetId()))
@@ -1764,9 +1763,12 @@ TEST_F(CreateRoleTest, ValidCase) {
       .WillRepeatedly(Return(role_permissions));
   EXPECT_CALL(*wsv_command, insertRole(create_role->roleName()))
       .WillOnce(Return(WsvCommandResult()));
+  auto tmp = shared_model::proto::permissions::toString(
+      create_role->rolePermissions());
+  shared_model::interface::types::PermissionSetType permission_set = {
+      tmp.begin(), tmp.end()};
   EXPECT_CALL(*wsv_command,
-              insertRolePermissions(create_role->roleName(),
-                                    create_role->rolePermissions()))
+              insertRolePermissions(create_role->roleName(), permission_set))
       .WillOnce(Return(WsvCommandResult()));
   ASSERT_TRUE(val(validateAndExecute(command)));
 }
