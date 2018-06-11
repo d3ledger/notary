@@ -21,7 +21,7 @@ class IrohaBlockTest {
         hash.fill(0)
 
         val command = block.transactions.first().commands.first() as IrohaCommand.CommandAddPeer
-        assertEquals(1, txs.size)
+        assertEquals(2, txs.size)
         assertEquals(10, cmds.size)
         assertEquals(1, block.txNumber)
         assertEquals(1, block.height)
