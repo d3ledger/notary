@@ -4,7 +4,9 @@ package notary
 import io.grpc.ManagedChannelBuilder
 import io.grpc.ServerBuilder
 import io.grpc.stub.StreamObserver
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.experimental.withTimeoutOrNull
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -47,19 +49,21 @@ class IrohaBlockEmitterTest {
         runBlocking {
             withTimeoutOrNull(timeout, unit, {
                 async {
-                    IrohaBlockEmitter(period, unit).fetchCommits(query, object : StreamObserver<BlockService.BlocksQueryResponse> {
-                        override fun onNext(value: BlockService.BlocksQueryResponse?) {
-                            val bl = value!!.blockResponse.block
-                            blocks.add(IrohaBlockStub.fromProto(bl.toByteArray()))
-                        }
+                    IrohaBlockEmitter(period, unit).fetchCommits(
+                        query,
+                        object : StreamObserver<BlockService.BlocksQueryResponse> {
+                            override fun onNext(value: BlockService.BlocksQueryResponse?) {
+                                val bl = value!!.blockResponse.block
+                                blocks.add(IrohaBlockStub.fromProto(bl.toByteArray()))
+                            }
 
-                        override fun onCompleted() {
-                        }
+                            override fun onCompleted() {
+                            }
 
-                        override fun onError(t: Throwable?) {
-                            throw t!!
-                        }
-                    })
+                            override fun onError(t: Throwable?) {
+                                throw t!!
+                            }
+                        })
                 }.await()
 
             })
