@@ -23,4 +23,4 @@ docker run -d --name d3ledger-iroha \
 -v d3ledger-blockstore:/tmp/block_store \
 --network=d3ledger-iroha-network \
 --entrypoint="" \
-hyperledger/iroha:x86_64-develop bash -c "irohad --config config.docker --genesis_block genesis.block --keypair_name keys/admin\@test"
+hyperledger/iroha:x86_64-develop bash -c "irohad --config config.docker --genesis_block genesis.block --keypair_name keys/node0"

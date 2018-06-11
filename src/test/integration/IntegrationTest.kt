@@ -72,7 +72,6 @@ class IntegrationTest {
     /**
      * Query Iroha account balance
      */
-    @Test
     fun queryIroha() {
         IrohaInitializtion.loadIrohaLibrary()
             .failure {
@@ -80,13 +79,12 @@ class IntegrationTest {
                 System.exit(1)
             }
 
-        val irohaPort = CONFIG[ConfigKeys.irohaPort]
         val irohaHost = CONFIG[ConfigKeys.irohaHostname]
+        val irohaPort = CONFIG[ConfigKeys.irohaPort]
 
         val queryBuilder = ModelQueryBuilder()
-        val creator = "admin@test"
-        val accountId = "user2@notary"
-        val assetId = "ether#ethereum"
+        val creator = CONFIG[ConfigKeys.irohaCreator]
+        val accountId = "user1@notary"
         val startQueryCounter: Long = 1
         val keypair: Keypair =
             IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath]).get()
@@ -94,7 +92,7 @@ class IntegrationTest {
         val uquery = queryBuilder.creatorAccountId(creator)
             .queryCounter(BigInteger.valueOf(startQueryCounter))
             .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
-            .getAccountAssets(accountId, assetId)
+            .getAccountAssets(accountId)
             .build()
         val queryBlob = ModelProtoQuery(uquery).signAndAddSignature(keypair).finish().blob().toByteArray()
 
@@ -112,14 +110,13 @@ class IntegrationTest {
         val fieldDescriptor =
             queryResponse.descriptorForType.findFieldByName("account_assets_response")
         if (!queryResponse.hasField(fieldDescriptor)) {
-            fail { "Query response error" }
+            fail { "Query response error ${queryResponse.errorResponse}" }
         }
 
         val assets = queryResponse.accountAssetsResponse.accountAssetsList
         for (asset in assets) {
-            println("asset " + asset.assetId)
             println("account " + asset.accountId)
-            println("balance " + asset.balance)
+            println("asset ${asset.assetId} - ${asset.balance}")
         }
     }
 
@@ -198,13 +195,13 @@ class IntegrationTest {
      * Test US transfer Ethereum.
      * Note: Ethereum and Iroha must be deployed to pass the test.
      * @given Ethereum and Iroha networks running and two ethereum wallets and "fromAddress" with at least 0.001 Ether
-     * (1000000000000000 Wei) and notary running
+     * (1234000000000000 Wei) and notary running
      * @when "fromAddress" transfers 100 Wei to "toAddress"
      * @then
      */
-    @Test
+//    @Test
     fun runMain() {
-        val amount = BigInteger.valueOf(1000000000000000)
+        val amount = BigInteger.valueOf(1_234_000_000_000_000)
         async {
             main(arrayOf())
         }
@@ -215,7 +212,9 @@ class IntegrationTest {
         Thread.sleep(5_000)
         println("send again")
         sendEthereum(amount)
-        Thread.sleep(45_000)
+        Thread.sleep(20_000)
+        println("query")
+        queryIroha()
         println("done")
     }
 
