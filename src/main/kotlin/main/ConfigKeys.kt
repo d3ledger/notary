@@ -36,5 +36,13 @@ class ConfigKeys {
         val ethConnectionUrl = Key("ethConnectionUrl", stringType)
         /** URL of refund for ETH side chain */
         val ethEndpoint = Key("ethEndpoint", stringType)
+
+        // --------- Database ----------
+        /** url of notary db instance */
+        val dbUrl = Key("dbUrl", stringType)
+        /** username to connect to notary db instance */
+        val dbUsername = Key("dbUsername", stringType)
+        /** password to connect to notary db instance */
+        val dbPassword = Key("dbPassword", stringType)
     }
 }
