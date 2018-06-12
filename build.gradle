@@ -209,9 +209,9 @@ jooq {
     notary(sourceSets.main) {
         jdbc {
             driver = 'org.postgresql.Driver'
-            url = 'jdbc:postgresql://localhost:5432/'
+            url = 'jdbc:postgresql://localhost:54321/'
             user = 'postgres'
-            password = ''
+            password = 'mysecretpassword'
             schema = 'notary'
         }
         generator {
