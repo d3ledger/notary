@@ -221,7 +221,7 @@ jooq {
             }
             database {
                 name = 'org.jooq.util.postgres.PostgresDatabase'
-                includes = 'wallets'
+                includes = 'wallets|tokens'
             }
             generate {
                 daos = true
