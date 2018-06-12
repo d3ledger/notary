@@ -234,4 +234,7 @@ jooq {
     }
 }
 
+// disable genearation task for CI builds
+generateNotaryJooqSchemaSource.enabled = false
+
 // -------------------------| End jOOQ db schema generation |-------------------------
