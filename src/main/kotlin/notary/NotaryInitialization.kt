@@ -44,7 +44,6 @@ class NotaryInitialization(
     private var irohaChainListener = IrohaChainListener()
     private val irohaHandler = IrohaChainHandler()
 
-
     private val irohaConverter = IrohaConverterImpl()
     private val irohaNetwork = IrohaNetworkImpl()
     private lateinit var irohaConsumer: IrohaConsumer
