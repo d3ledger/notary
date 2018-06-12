@@ -72,40 +72,46 @@
                   },
                   {
                      "createDomain":{
-                        "domainId":"test",
+                        "domainId":"notary",
+                        "defaultRole":"user"
+                     }
+                  },
+                  {
+                     "createDomain":{
+                        "domainId":"ethereum",
                         "defaultRole":"user"
                      }
                   },
                   {
                      "createAsset":{
-                        "assetName":"eth",
-                        "domainId":"test",
+                        "assetName":"ether",
+                        "domainId":"ethereum",
                         "precision":0
                      }
                   },
                   {
                      "createAccount":{
                         "accountName":"admin",
-                        "domainId":"test",
+                        "domainId":"notary",
                         "mainPubkey":"iJ9riB4zG+IUh9t33PMsX409XoBm540v6sQjn+kdQW8="
                      }
                   },
                   {
                      "createAccount":{
-                        "accountName":"test",
-                        "domainId":"test",
+                        "accountName":"user1",
+                        "domainId":"notary",
                         "mainPubkey":"3MfszkSPLhkKSBrsfKIe5S7aVG5mC0gg9JdtATIVcJc="
                      }
                   },
                   {
                      "appendRole":{
-                        "accountId":"admin@test",
+                        "accountId":"admin@notary",
                         "roleName":"admin"
                      }
                   },
                   {
                      "appendRole":{
-                        "accountId":"admin@test",
+                        "accountId":"admin@notary",
                         "roleName":"money_creator"
                      }
                   }
