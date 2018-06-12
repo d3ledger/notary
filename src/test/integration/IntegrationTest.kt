@@ -27,7 +27,7 @@ import sideChain.iroha.util.toByteArray
 import java.math.BigInteger
 
 /**
- * Class for Ethereum sidechain infrastructrure deployment and communiation.
+ * Class for Ethereum sidechain infrastructure deployment and communication.
  */
 class IntegrationTest {
 
@@ -141,7 +141,7 @@ class IntegrationTest {
      * Deploy notary smart contract
      * @return notary smart contract address
      */
-    private fun deployTokenSmartContract(): String {
+    private fun deployNotarySmartContract(): String {
         val contract =
             contract.Notary.deploy(
                 web3,
@@ -181,7 +181,7 @@ class IntegrationTest {
      */
     fun deployAll() {
         val token = deployBasicCoinSmartContract()
-        val notary = deployTokenSmartContract()
+        val notary = deployNotarySmartContract()
 
         val tokens = listOf(token)
         val user = deployUserSmartContract(notary, tokens)
@@ -196,8 +196,8 @@ class IntegrationTest {
      * Note: Ethereum and Iroha must be deployed to pass the test.
      * @given Ethereum and Iroha networks running and two ethereum wallets and "fromAddress" with at least 0.001 Ether
      * (1234000000000000 Wei) and notary running
-     * @when "fromAddress" transfers 100 Wei to "toAddress"
-     * @then
+     * @when "fromAddress" transfers 1234000000000000 Wei to "toAddress"
+     * @then Associated Iroha account balance is increased on 1234000000000000 Wei
      */
 //    @Test
     fun runMain() {
