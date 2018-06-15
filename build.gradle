@@ -174,10 +174,9 @@ task buildContracts(type: Exec) {
     }
 
     commandLine 'sh', '-c', 'solc <path>/*.sol --bin --abi --optimize -o <path>/bin --overwrite'.replace("<path>", contract_path)
-
+    commandLine 'sh', '-c', 'web3j solidity generate <path>/*.bin <path>/*.abi -o . -p com.your.organisation.namee'
 }
 
-compileKotlin.dependsOn(buildContracts)
 
 // -------------------------| Iroha bindings |-------------------------
 
