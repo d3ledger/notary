@@ -17,6 +17,8 @@ sleep 5
 
 docker volume create d3ledger-blockstore
 
+docker pull hyperledger/iroha:x86_64-develop
+
 docker run -d --name d3ledger-iroha \
 -p 50051:50051 \
 -v ${CURDIR}:/opt/iroha_data \
