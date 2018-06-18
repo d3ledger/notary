@@ -26,9 +26,6 @@ sealed class EthNotaryResponse {
      */
     data class Error(
 
-        /** Code of error */
-        val code: Int,
-
         /** Human-readable explanation of error */
         val reason: String
 
@@ -68,7 +65,7 @@ class EthNotaryResponseMoshiAdapter {
     @FromJson
     fun fromJson(layer: EthNotaryResponseLayer) = when (layer.type) {
         EthNotaryResponseType.Successful -> EthNotaryResponse.Successful(layer.ethSignature!!, layer.ethRefund!!)
-        EthNotaryResponseType.Error -> EthNotaryResponse.Error(layer.code!!, layer.reason!!)
+        EthNotaryResponseType.Error -> EthNotaryResponse.Error(layer.reason!!)
     }
 
     /**
@@ -84,7 +81,6 @@ class EthNotaryResponseMoshiAdapter {
         )
         is EthNotaryResponse.Error -> EthNotaryResponseLayer(
             type = EthNotaryResponseType.Successful,
-            code = response.code,
             reason = response.reason
         )
     }
