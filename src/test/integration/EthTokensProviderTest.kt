@@ -4,6 +4,7 @@ import main.CONFIG
 import main.ConfigKeys
 import notary.db.tables.Tokens
 import org.jooq.impl.DSL
+import org.junit.jupiter.api.Disabled
 import java.sql.DriverManager
 import org.junit.jupiter.api.Test
 
@@ -15,7 +16,8 @@ class EthTokensProviderTest {
     /**
      * List all tokens in database
      */
-    //    @Test
+    @Disabled
+    @Test
     fun listTokens() {
         val connection = DriverManager.getConnection(
             CONFIG[ConfigKeys.dbUrl],
