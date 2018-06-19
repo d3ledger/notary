@@ -174,9 +174,16 @@ task buildContracts(type: Exec) {
     }
 
     commandLine 'sh', '-c', 'solc <path>/*.sol --bin --abi --optimize -o <path>/bin --overwrite'.replace("<path>", contract_path)
-    commandLine 'sh', '-c', 'web3j solidity generate <path>/*.bin <path>/*.abi -o . -p com.your.organisation.namee'
-}
 
+    String wildcard = "<path>/*.bin".replace("<path>", bin_path)
+    String cmd = 'for f in ' + wildcard + '; ' +
+            'do ' +
+            'name=$(echo "$f" | cut -f 1 -d \'.\'); ' +
+            'web3j solidity generate ${name}.bin ${name}.abi -o <bin_path> -p jp.co.soramitsu \n'.replace("<bin_path>", bin_path) +
+            'done'
+
+    commandLine 'bash', '-c', cmd
+}
 
 // -------------------------| Iroha bindings |-------------------------
 
