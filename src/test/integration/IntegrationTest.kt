@@ -94,9 +94,11 @@ class IntegrationTest {
 
     /**
      * Sends transaction to Iroha.
+     * @return hex representation of transaction
      */
-    fun sendTxToIroha(txBuilder: ModelTransactionBuilder) {
+    fun sendTxToIroha(txBuilder: ModelTransactionBuilder): String {
         val utx = txBuilder.build()
+        val hash = utx.hash().hex()
 
         // sign transaction and get its binary representation (Blob)
         val txblob = ModelProtoTransaction(utx).signAndAddSignature(keypair).finish().blob().toByteArray()
@@ -114,6 +116,8 @@ class IntegrationTest {
         val channel = ManagedChannelBuilder.forAddress(irohaHost, irohaPort).usePlaintext(true).build()
         val stub = CommandServiceGrpc.newBlockingStub(channel)
         stub.torii(protoTx)
+
+        return hash
     }
 
     /**
@@ -147,11 +151,12 @@ class IntegrationTest {
         val destAccountId = "user1@notary"
         val assetId = "ether#ethereum"
         val amount = "420500"
+        val description = "eth_wallet"
 
         // build transaction (still unsigned)
         val txBuilder = ModelTransactionBuilder().creatorAccountId(creator)
             .createdTime(BigInteger.valueOf(currentTime))
-            .transferAsset(srcAccountId, destAccountId, assetId, "description", amount)
+            .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
         sendTxToIroha(txBuilder)
     }
 

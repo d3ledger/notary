@@ -60,7 +60,7 @@ class RefundServerEndpoint(
      */
     private fun createRequest(txHash: String?): EthRefundRequest? {
         // TODO replace destination ethereum address
-        return if (txHash != null) EthRefundRequest("mockEthRefundAddress", txHash) else null
+        return if (txHash != null) EthRefundRequest(txHash) else null
     }
 
     /**

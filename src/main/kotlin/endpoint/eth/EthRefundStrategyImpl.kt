@@ -86,24 +86,26 @@ class EthRefundStrategyImpl(private val keypair: Keypair) : EthRefundStrategy {
                 (appearedTx.payload.commandsCount == 1) &&
                         commands.hasSetAccountDetail() -> {
 
-                    // TODO replace with effective implementation
+                    // TODO a.chernyshov replace with effective implementation
                     // 1. Get eth transaction hash from setAccountDetail
                     // 2. Check eth transaction and get info from it
                     // 3. build EthRefund
 
                     val key = commands.setAccountDetail.key
                     val value = commands.setAccountDetail.value
+                    val destEthAddress = ""
                     logger.info { "Rollback case ($key, $value)" }
 
-                    EthRefund(request.destEthAddress, "mockCoinType", BigInteger.TEN, request.irohaTx)
+                    EthRefund(destEthAddress, "mockCoinType", BigInteger.TEN, request.irohaTx)
                 }
             // Iroha -> Eth case
                 (appearedTx.payload.commandsCount == 1) &&
                         commands.hasTransferAsset() -> {
                     val amount = commands.transferAsset.amount.value.toBigInteger()
                     val token = commands.transferAsset.assetId.dropLastWhile { it != '#' }.dropLast(1)
+                    val destEthAddress = commands.transferAsset.description
 
-                    EthRefund(request.destEthAddress, token, amount, request.irohaTx)
+                    EthRefund(destEthAddress, token, amount, request.irohaTx)
                 }
                 else -> {
                     logger.error { "Transaction doesn't contain expected commands." }
@@ -121,7 +123,7 @@ class EthRefundStrategyImpl(private val keypair: Keypair) : EthRefundStrategy {
     private fun makeRefund(ethRefund: EthRefund): Result<EthNotaryResponse, Exception> {
         logger.info { "Make refund. Address: ${ethRefund.address}, amount: ${ethRefund.amount} ${ethRefund.type}" }
         return Result.of {
-            // TODO replace with effective implementation
+            // TODO a.chernyshov replace with effective implementation
             EthNotaryResponse.Successful("mockSignature", ethRefund)
         }
     }
