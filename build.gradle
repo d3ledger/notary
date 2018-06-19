@@ -159,7 +159,7 @@ protobuf {
     }
 }
 
-
+compileKotlin.dependsOn ':generateProto'
 
 task buildContracts(type: Exec) {
     description 'Build Ethereum contracts'
