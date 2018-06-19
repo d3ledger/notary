@@ -28,6 +28,9 @@ class ConfigKeys {
         val irohaCreator = Key("irohaCreator", stringType)
         /** Ethereum token name in Iroha */
         val irohaEthToken = Key("irohaEtherToken", stringType)
+        /** Master account in Iroha */
+        val irohaMaster = Key("irohaMaster", stringType)
+
 
         // --------- Ethereum ---------
         /** Confirmation period */

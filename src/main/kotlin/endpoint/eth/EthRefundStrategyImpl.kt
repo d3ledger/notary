@@ -89,6 +89,9 @@ class EthRefundStrategyImpl(private val keypair: Keypair) : EthRefundStrategy {
                     // TODO a.chernyshov replace with effective implementation
                     // 1. Get eth transaction hash from setAccountDetail
                     // 2. Check eth transaction and get info from it
+                    //    There should be a batch with 3 txs
+                    //      if 3 tx in the batch - reject rollback
+                    //      if 2 tx (transfer asset is absent) - approve rollback
                     // 3. build EthRefund
 
                     val key = commands.setAccountDetail.key
@@ -101,6 +104,10 @@ class EthRefundStrategyImpl(private val keypair: Keypair) : EthRefundStrategy {
             // Iroha -> Eth case
                 (appearedTx.payload.commandsCount == 1) &&
                         commands.hasTransferAsset() -> {
+                    val destAccount = commands.transferAsset.destAccountId
+                    if (destAccount != CONFIG[ConfigKeys.irohaMaster])
+                        throw NotaryException("Refund - check transaction. Destination account is wrong '$destAccount'")
+
                     val amount = commands.transferAsset.amount.value.toBigInteger()
                     val token = commands.transferAsset.assetId.dropLastWhile { it != '#' }.dropLast(1)
                     val destEthAddress = commands.transferAsset.description
@@ -121,7 +128,7 @@ class EthRefundStrategyImpl(private val keypair: Keypair) : EthRefundStrategy {
      * @return signed refund or error
      */
     private fun makeRefund(ethRefund: EthRefund): Result<EthNotaryResponse, Exception> {
-        logger.info { "Make refund. Address: ${ethRefund.address}, amount: ${ethRefund.amount} ${ethRefund.type}" }
+        logger.info { "Make refund. Address: ${ethRefund.address}, amount: ${ethRefund.amount} ${ethRefund.assetId}" }
         return Result.of {
             // TODO a.chernyshov replace with effective implementation
             EthNotaryResponse.Successful("mockSignature", ethRefund)

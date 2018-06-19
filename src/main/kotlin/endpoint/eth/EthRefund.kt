@@ -25,7 +25,7 @@ typealias AmountType = BigInteger
  */
 data class EthRefund(
     val address: EthereumAddress,
-    val type: CoinType,
+    val assetId: CoinType,
     val amount: AmountType,
     val irohaTxHash: IrohaTransactionHashType
 )

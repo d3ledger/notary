@@ -75,6 +75,9 @@ dependencies {
     compile "io.ktor:ktor-server-core:$ktor_version"
     compile "io.ktor:ktor-server-netty:$ktor_version"
 
+    // khttp - consume http
+    compile 'khttp:khttp:0.1.0'
+
     // JSON converter
     implementation 'com.squareup.moshi:moshi-kotlin:1.5.0'
 

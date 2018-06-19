@@ -2,6 +2,10 @@ package integration
 
 import com.github.kittinunf.result.failure
 import com.google.protobuf.InvalidProtocolBufferException
+import com.squareup.moshi.Moshi
+import endpoint.eth.BigIntegerMoshiAdapter
+import endpoint.eth.EthNotaryResponse
+import endpoint.eth.EthNotaryResponseMoshiAdapter
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.CommandServiceGrpc
@@ -25,6 +29,7 @@ import org.web3j.utils.Numeric
 import sideChain.iroha.IrohaInitializtion
 import sideChain.iroha.consumer.IrohaKeyLoader
 import sideChain.iroha.util.toByteArray
+import org.junit.jupiter.api.Assertions.assertEquals
 import java.math.BigInteger
 
 
@@ -121,43 +126,37 @@ class IntegrationTest {
     }
 
     /**
-     * Helper function.
-     * Add 100420500 ethereum wei to admin@notary
+     * Add asset in iroha
+     * @return hex representation of transaction hash
      */
-    @Disabled
-    @Test
-    fun addAssetIroha() {
+    fun addAssetIroha(accountId: String, assetId: String, amount: String): String {
         val currentTime = System.currentTimeMillis()
-        val srcAccountId = "admin@notary"
-        val assetId = "ether#ethereum"
-        val amount = "100420500"
 
         // build transaction (still unsigned)
         val txBuilder = ModelTransactionBuilder().creatorAccountId(creator)
             .createdTime(BigInteger.valueOf(currentTime))
-            .addAssetQuantity(srcAccountId, assetId, amount)
-        sendTxToIroha(txBuilder)
+            .addAssetQuantity(accountId, assetId, amount)
+        return sendTxToIroha(txBuilder)
     }
 
     /**
-     * Helper function.
-     * Transfer 420500 ethereum wei from admin@notary to user1@notary
+     * Transfer asset in iroha
+     * @return hex representation of transaction hash
      */
-    @Disabled
-    @Test
-    fun transferAssetIroha() {
+    fun transferAssetIroha(
+        srcAccountId: String,
+        destAccountId: String,
+        assetId: String,
+        amount: String,
+        description: String
+    ): String {
         val currentTime = System.currentTimeMillis()
-        val srcAccountId = "admin@notary"
-        val destAccountId = "user1@notary"
-        val assetId = "ether#ethereum"
-        val amount = "420500"
-        val description = "eth_wallet"
 
         // build transaction (still unsigned)
         val txBuilder = ModelTransactionBuilder().creatorAccountId(creator)
             .createdTime(BigInteger.valueOf(currentTime))
             .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
-        sendTxToIroha(txBuilder)
+        return sendTxToIroha(txBuilder)
     }
 
     /**
@@ -295,6 +294,56 @@ class IntegrationTest {
         println("query")
         queryIroha()
         println("done")
+    }
+
+    /**
+     * Test US withdraw Ethereum.
+     * Note: Iroha must be deployed to pass the test.
+     * @given Iroha networks running and user has sent 64203 Wei to master
+     * @when withdrawal service queries notary
+     * @then notary replyes with refund information and signature
+     */
+    @Disabled
+    @Test
+    fun testRefund() {
+        async {
+            main(arrayOf())
+        }
+
+        val masterAccount = "user1@notary"
+        val user = "admin@notary"
+        val amount = "64203"
+        val assetId = "ether#ethereum"
+        val ethWallet = "eth_wallet"
+
+        // add assets to user1@notary
+        addAssetIroha(user, assetId, amount)
+
+        // transfer assets from user1@notary to admin@notary
+        val hash = transferAssetIroha(user, masterAccount, assetId, amount, ethWallet)
+
+        // query
+        Thread.sleep(4_000)
+        println("send")
+        val res =
+            khttp.get("http://127.0.0.1:8080/eth/$hash")
+
+        val moshi = Moshi
+            .Builder()
+            .add(EthNotaryResponseMoshiAdapter())
+            .add(BigInteger::class.java, BigIntegerMoshiAdapter())
+            .build()!!
+        val ethNotaryAdapter = moshi.adapter(EthNotaryResponse::class.java)!!
+        val response = ethNotaryAdapter.fromJson(res.jsonObject.toString())
+
+        assert(response is EthNotaryResponse.Successful)
+        response as EthNotaryResponse.Successful
+
+        assertEquals(BigInteger(amount), response.ethRefund.amount)
+        assertEquals(ethWallet, response.ethRefund.address)
+        assertEquals("ether", response.ethRefund.assetId)
+
+        assertEquals("mockSignature", response.ethSignature)
     }
 
 }
