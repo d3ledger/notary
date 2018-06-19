@@ -49,7 +49,6 @@ class RefundServerEndpoint(
             .bind(ethStrategy::performRefund)
             .bind(ethNotaryAdapter::toJson)
             .endValue({
-                println(it)
                 it
             }, {
                 onErrorPipelineCall()
@@ -60,7 +59,8 @@ class RefundServerEndpoint(
      * Creates a [EthRefundRequest] object from request string
      */
     private fun createRequest(txHash: String?): EthRefundRequest? {
-        return if (txHash != null) EthRefundRequest(txHash) else null
+        // TODO replace destination ethereum address
+        return if (txHash != null) EthRefundRequest("mockEthRefundAddress", txHash) else null
     }
 
     /**

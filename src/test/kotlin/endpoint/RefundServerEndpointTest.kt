@@ -38,11 +38,11 @@ class RefundServerEndpointTest {
         assertEquals(response, moshi.adapter(EthNotaryResponse::class.java).fromJson(refundAnswer))
     }
 
-    private val ethRequest = EthRefundRequest("tx_hash_from_iroha")
+    private val ethRequest = EthRefundRequest("destEthAddress", "tx_hash_from_iroha")
 
     private val response = EthNotaryResponse.Successful(
         "signature",
-        EthRefund("address", "coin", BigInteger.TEN)
+        EthRefund("address", "coin", BigInteger.TEN, "irohaTxHash")
     )
 
     private val ethRefundStrategyMock = mock<EthRefundStrategy> {

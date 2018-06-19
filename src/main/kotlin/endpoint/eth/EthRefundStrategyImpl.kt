@@ -13,6 +13,7 @@ import jp.co.soramitsu.iroha.ModelProtoQuery
 import main.CONFIG
 import main.ConfigKeys
 import mu.KLogging
+import sideChain.iroha.util.toBigInteger
 import sideChain.iroha.util.toByteArray
 import java.math.BigInteger
 
@@ -26,7 +27,7 @@ class EthRefundStrategyImpl(private val keypair: Keypair) : EthRefundStrategy {
 
     override fun performRefund(request: EthRefundRequest): EthNotaryResponse {
         return performQuery(request)
-            .flatMap { checkTransaction(it) }
+            .flatMap { checkTransaction(it, request) }
             .flatMap { makeRefund(it) }
             .fold({ it },
                 { EthNotaryResponse.Error(it.toString()) })
@@ -40,8 +41,7 @@ class EthRefundStrategyImpl(private val keypair: Keypair) : EthRefundStrategy {
     private fun performQuery(request: EthRefundRequest): Result<iroha.protocol.BlockOuterClass.Transaction, Exception> {
         return Result.of {
             val hashes = HashVector()
-            val hash = Hash(Hash.fromHexString(request.irohaTx))
-            hashes.add(hash)
+            hashes.add(Hash.fromHexString(request.irohaTx))
 
             val uquery = ModelQueryBuilder().creatorAccountId(CONFIG[ConfigKeys.irohaCreator])
                 .queryCounter(BigInteger.valueOf(1))
@@ -71,23 +71,39 @@ class EthRefundStrategyImpl(private val keypair: Keypair) : EthRefundStrategy {
     /**
      * The method checks transaction and create refund if it is correct
      * @param appearedTx - target transaction from Iroha
+     * @param request - user's request with transaction hash
      * @return Refund or error
      */
-    private fun checkTransaction(appearedTx: iroha.protocol.BlockOuterClass.Transaction): Result<EthRefund, Exception> {
+    private fun checkTransaction(
+        appearedTx: iroha.protocol.BlockOuterClass.Transaction,
+        request: EthRefundRequest
+    ): Result<EthRefund, Exception> {
         return Result.of {
             val commands = appearedTx.payload.getCommands(0)
+
             when {
             // rollback case
-                commands.hasSetAccountDetail() -> {
-                    logger.info { "Has command SetAccountDetail" }
+                (appearedTx.payload.commandsCount == 1) &&
+                        commands.hasSetAccountDetail() -> {
+
                     // TODO replace with effective implementation
-                    EthRefund("mockAddress", "mockCoinType", BigInteger.TEN)
+                    // 1. Get eth transaction hash from setAccountDetail
+                    // 2. Check eth transaction and get info from it
+                    // 3. build EthRefund
+
+                    val key = commands.setAccountDetail.key
+                    val value = commands.setAccountDetail.value
+                    logger.info { "Rollback case ($key, $value)" }
+
+                    EthRefund(request.destEthAddress, "mockCoinType", BigInteger.TEN, request.irohaTx)
                 }
             // Iroha -> Eth case
-                commands.hasTransferAsset() -> {
-                    logger.info { "Has command TransferAsset" }
-                    // TODO replace with effective implementation
-                    EthRefund("mockAddress", "mockCoinType", BigInteger.TEN)
+                (appearedTx.payload.commandsCount == 1) &&
+                        commands.hasTransferAsset() -> {
+                    val amount = commands.transferAsset.amount.value.toBigInteger()
+                    val token = commands.transferAsset.assetId.dropLastWhile { it != '#' }.dropLast(1)
+
+                    EthRefund(request.destEthAddress, token, amount, request.irohaTx)
                 }
                 else -> {
                     logger.error { "Transaction doesn't contain expected commands." }
