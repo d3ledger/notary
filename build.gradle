@@ -162,7 +162,41 @@ protobuf {
         }
     }
 }
+
 compileKotlin.dependsOn ':generateProto'
+
+task buildEthereumContracts(type: Exec) {
+    description 'Build Ethereum contracts'
+
+    String contract_path = projectDir.toString().concat("/deploy/ethereum/contract")
+    String bin_path = contract_path.concat("/bin")
+    file(bin_path).mkdirs()
+
+    doLast {
+        logger.info(standardOutput.toString())
+        logger.error(errorOutput.toString())
+    }
+
+    commandLine 'sh', '-c', 'solc <path>/*.sol --bin --abi --optimize -o <path>/bin --overwrite'.replace("<path>", contract_path)
+
+
+}
+
+task buildEthereumContractsBindings(type: Exec) {
+
+    String contract_path = projectDir.toString().concat("/deploy/ethereum/contract")
+    String bin_path = contract_path.concat("/bin")
+    String wildcard = "<path>/*.bin".replace("<path>", bin_path)
+    String cmd = 'for f in ' + wildcard + '; ' +
+            'do ' +
+            'name=$(echo "$f" | cut -f 1 -d \'.\'); ' +
+            'web3j solidity generate ${name}.bin ${name}.abi -o <bin_path> -p jp.co.soramitsu \n'.replace("<bin_path>", bin_path) +
+            'done'
+
+    commandLine 'bash', '-c', cmd
+}
+
+buildEthereumContractsBindings.dependsOn ':buildEthereumContracts'
 
 // -------------------------| Iroha bindings |-------------------------
 
