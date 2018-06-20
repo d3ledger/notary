@@ -3,7 +3,7 @@ package sideChain.iroha.consumer
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.CommandServiceGrpc
-import main.CONFIG
+import notary.CONFIG
 import main.ConfigKeys
 import mu.KLogging
 

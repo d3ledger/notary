@@ -9,10 +9,9 @@ import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelProtoQuery
 import jp.co.soramitsu.iroha.ModelQueryBuilder
 import kotlinx.coroutines.experimental.async
-import main.CONFIG
+import notary.CONFIG
 import main.ConfigKeys
-import main.main
-import org.junit.jupiter.api.Test
+import notary.main
 import org.junit.jupiter.api.fail
 import org.web3j.crypto.RawTransaction
 import org.web3j.crypto.TransactionEncoder

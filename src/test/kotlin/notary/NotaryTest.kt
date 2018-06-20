@@ -3,7 +3,6 @@ package notary
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import io.reactivex.Observable
-import main.CONFIG
 import main.ConfigKeys
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail

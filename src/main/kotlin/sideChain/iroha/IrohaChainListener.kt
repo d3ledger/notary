@@ -38,7 +38,7 @@ class IrohaChainListener : ChainListener<IrohaBlockStub> {
                 val file = File("resources/genesis.bin")
                 val bs = file.readBytes()
                 IrohaBlockStub.fromProto(bs)
-            }.observeOn(scheduler).subscribeOn(scheduler)
+            }.observeOn(scheduler)
         }
     }
 

@@ -3,13 +3,12 @@ package sideChain.eth
 import com.github.kittinunf.result.Result
 import hu.akarnokd.rxjava.interop.RxJavaInterop
 import io.reactivex.Observable
-import main.CONFIG
+import notary.CONFIG
 import main.ConfigKeys
 import mu.KLogging
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.DefaultBlockParameter
 import org.web3j.protocol.core.methods.response.EthBlock
-import org.web3j.protocol.http.HttpService
 import sideChain.ChainListener
 import java.math.BigInteger
 

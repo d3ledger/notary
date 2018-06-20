@@ -13,7 +13,6 @@ import endpoint.eth.EthNotaryResponse
 import endpoint.eth.EthRefund
 import endpoint.eth.EthRefundRequest
 import io.reactivex.Observable
-import main.CONFIG
 import main.ConfigKeys
 import mu.KLogging
 import org.web3j.protocol.Web3j
@@ -23,6 +22,7 @@ import sideChain.eth.EthChainListener
 import sideChain.iroha.IrohaChainHandler
 import sideChain.iroha.IrohaChainListener
 import sideChain.iroha.consumer.*
+import withdrawalservice.WithdrawalServiceInitialization
 import java.math.BigInteger
 
 /**
