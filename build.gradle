@@ -175,6 +175,13 @@ task buildContracts(type: Exec) {
 
     commandLine 'sh', '-c', 'solc <path>/*.sol --bin --abi --optimize -o <path>/bin --overwrite'.replace("<path>", contract_path)
 
+
+}
+
+task buildBindings(type: Exec) {
+
+    String contract_path = projectDir.toString().concat("/deploy/ethereum/contract")
+    String bin_path = contract_path.concat("/bin")
     String wildcard = "<path>/*.bin".replace("<path>", bin_path)
     String cmd = 'for f in ' + wildcard + '; ' +
             'do ' +
@@ -184,6 +191,8 @@ task buildContracts(type: Exec) {
 
     commandLine 'bash', '-c', cmd
 }
+
+buildBindings.dependsOn ':buildContracts'
 
 // -------------------------| Iroha bindings |-------------------------
 
