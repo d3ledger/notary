@@ -10,12 +10,6 @@ import sideChain.iroha.IrohaChainListener
 
 class WithdrawalServiceInitialization {
 
-    private var irohaChainListener = IrohaChainListener()
-
-    private lateinit var withdrawalService: WithdrawalService
-    private lateinit var ethConsumer: EthConsumer
-
-
     /**
      * Init Iroha chain listener
      * @return Observable on Iroha sidechain events
@@ -23,7 +17,7 @@ class WithdrawalServiceInitialization {
     private fun initIrohaChain(): Result<Observable<WithdrawalServiceInputEvent>, Exception> {
         logger.info { "Init Iroha chain" }
 
-        return irohaChainListener.getBlockObservable()
+        return IrohaChainListener().getBlockObservable()
             .map { observable ->
                 // TODO a.chernyshov: rework with effective realization
                 observable.map {
@@ -37,17 +31,17 @@ class WithdrawalServiceInitialization {
     /**
      * Init Withdrawal Service
      */
-    private fun initWithdrawalService(inputEvents: Observable<WithdrawalServiceInputEvent>) {
+    private fun initWithdrawalService(inputEvents: Observable<WithdrawalServiceInputEvent>): WithdrawalService {
         logger.info { "Init Withdrawal Service" }
 
-        withdrawalService = WithdrawalServiceImpl(inputEvents)
+        return WithdrawalServiceImpl(inputEvents)
     }
 
-    private fun initEthConsumer(): Result<Unit, Exception> {
+    private fun initEthConsumer(withdrawalService: WithdrawalService): Result<Unit, Exception> {
         logger.info { "Init Ether consumer" }
 
         return Result.of {
-            ethConsumer = EthConsumer()
+            val ethConsumer = EthConsumer()
             withdrawalService.output()
                 .subscribe({
                     ethConsumer.consume(it)
@@ -63,7 +57,7 @@ class WithdrawalServiceInitialization {
 
         return initIrohaChain()
             .map { initWithdrawalService(it) }
-            .flatMap { initEthConsumer() }
+            .flatMap { initEthConsumer(it) }
     }
 
     /**

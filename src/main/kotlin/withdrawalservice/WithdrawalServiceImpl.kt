@@ -14,6 +14,9 @@ class WithdrawalServiceImpl(
      * Handle IrohaEvent
      */
     override fun onIrohaEvent(ethInputEvent: WithdrawalServiceInputEvent.IrohaInputEvent): WithdrawalServiceOutputEvent {
+        // TODO add effective implementation
+        // 1. ask rollback approval from notary
+        // 2. form an output event with all data needed for smart contract rollback call
         return WithdrawalServiceOutputEvent.EthRefund()
     }
 

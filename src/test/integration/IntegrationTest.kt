@@ -12,6 +12,7 @@ import kotlinx.coroutines.experimental.async
 import notary.CONFIG
 import main.ConfigKeys
 import notary.main
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.web3j.crypto.RawTransaction
 import org.web3j.crypto.TransactionEncoder
