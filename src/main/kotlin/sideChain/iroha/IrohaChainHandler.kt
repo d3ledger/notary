@@ -1,9 +1,8 @@
 package sideChain.iroha
 
-import notary.NotaryInputEvent
-import com.nhaarman.mockito_kotlin.mock
 import mu.KLogging
 import notary.IrohaCommand
+import notary.NotaryInputEvent
 import sideChain.ChainHandler
 
 /**
