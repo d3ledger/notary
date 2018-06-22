@@ -5,8 +5,10 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import io.reactivex.Observable
 import mu.KLogging
-import sideChain.eth.consumer.EthConsumer
-import sideChain.iroha.IrohaChainListener
+import sidechain.SideChainEvent
+import sidechain.eth.consumer.EthConsumer
+import sidechain.iroha.IrohaChainListener
+import java.math.BigInteger
 
 class WithdrawalServiceInitialization {
 
@@ -14,7 +16,7 @@ class WithdrawalServiceInitialization {
      * Init Iroha chain listener
      * @return Observable on Iroha sidechain events
      */
-    private fun initIrohaChain(): Result<Observable<WithdrawalServiceInputEvent>, Exception> {
+    private fun initIrohaChain(): Result<Observable<SideChainEvent.IrohaEvent>, Exception> {
         logger.info { "Init Iroha chain" }
 
         return IrohaChainListener().getBlockObservable()
@@ -23,7 +25,10 @@ class WithdrawalServiceInitialization {
                 observable.map {
                     logger.info { "Convert iroha block to withdrawal input event" }
 
-                    WithdrawalServiceInputEvent.IrohaInputEvent.Withdrawal() as WithdrawalServiceInputEvent
+                    SideChainEvent.IrohaEvent.OnIrohaSideChainTransfer(
+                        "str",
+                        BigInteger.TEN
+                    ) as SideChainEvent.IrohaEvent
                 }
             }
     }
@@ -31,7 +36,7 @@ class WithdrawalServiceInitialization {
     /**
      * Init Withdrawal Service
      */
-    private fun initWithdrawalService(inputEvents: Observable<WithdrawalServiceInputEvent>): WithdrawalService {
+    private fun initWithdrawalService(inputEvents: Observable<SideChainEvent.IrohaEvent>): WithdrawalService {
         logger.info { "Init Withdrawal Service" }
 
         return WithdrawalServiceImpl(inputEvents)

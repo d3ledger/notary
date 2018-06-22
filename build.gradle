@@ -13,8 +13,8 @@ buildscript {
     }
 }
 
-group 'd3'
-version '1.0-SNAPSHOT'
+group = 'd3'
+version = '1.0-SNAPSHOT'
 
 apply plugin: 'java'
 apply plugin: 'kotlin'
@@ -131,7 +131,7 @@ sourceSets {
             // iroha schema
             srcDirs += "vendor/iroha/schema"
             // notary schema
-            srcDirs += "src/main/kotlin/sideChain/iroha/schema"
+            srcDirs += "src/main/kotlin/sidechain/iroha/schema"
 
         }
 
@@ -166,7 +166,7 @@ protobuf {
 compileKotlin.dependsOn ':generateProto'
 
 task buildEthereumContracts(type: Exec) {
-    description 'Build Ethereum contracts'
+    description = 'Build Ethereum contracts'
 
     String contract_path = projectDir.toString().concat("/deploy/ethereum/contract")
     String bin_path = contract_path.concat("/bin")
@@ -216,7 +216,7 @@ static def getCurrentOs() {
 }
 
 task compileIrohaBindings(type: Exec) {
-    description 'Generate Iroha binding for specific platform'
+    description = 'Generate Iroha binding for specific platform'
 
     def bindings_invocation = ['sh', 'iroha_bindings.sh', getCurrentOs()]
 
@@ -224,7 +224,7 @@ task compileIrohaBindings(type: Exec) {
 }
 
 task osInfo {
-    description 'Show information about the operating system'
+    description = 'Show information about the operating system'
     doLast {
         println "System:       ${OperatingSystem.current()}"
         println "Family:       ${OS_NAME}"

@@ -17,14 +17,15 @@ import main.ConfigKeys
 import mu.KLogging
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
-import sideChain.eth.EthChainHandler
-import sideChain.eth.EthChainListener
-import sideChain.iroha.IrohaChainHandler
-import sideChain.iroha.IrohaChainListener
-import sideChain.iroha.consumer.IrohaConsumerImpl
-import sideChain.iroha.consumer.IrohaConverterImpl
-import sideChain.iroha.consumer.IrohaKeyLoader
-import sideChain.iroha.consumer.IrohaNetworkImpl
+import sidechain.SideChainEvent
+import sidechain.eth.EthChainHandler
+import sidechain.eth.EthChainListener
+import sidechain.iroha.IrohaChainHandler
+import sidechain.iroha.IrohaChainListener
+import sidechain.iroha.consumer.IrohaConsumerImpl
+import sidechain.iroha.consumer.IrohaConverterImpl
+import sidechain.iroha.consumer.IrohaKeyLoader
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import java.math.BigInteger
 
 /**
@@ -55,7 +56,7 @@ class NotaryInitialization(
      * Init Ethereum chain listener
      * @return Observable on Ethereum sidechain events
      */
-    private fun initEthChain(): Result<Observable<NotaryInputEvent>, Exception> {
+    private fun initEthChain(): Result<Observable<SideChainEvent>, Exception> {
         logger.info { "Init Eth chain" }
 
         val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.ethConnectionUrl]))
@@ -77,7 +78,7 @@ class NotaryInitialization(
      * Init Iroha chain listener
      * @return Observable on Iroha sidechain events
      */
-    private fun initIrohaChain(): Result<Observable<NotaryInputEvent>, Exception> {
+    private fun initIrohaChain(): Result<Observable<SideChainEvent>, Exception> {
         logger.info { "Init Iroha chain" }
         return IrohaChainListener().getBlockObservable()
             .map { observable ->
@@ -88,7 +89,7 @@ class NotaryInitialization(
     /**
      * Init Notary
      */
-    private fun initNotary(ethEvents: Observable<NotaryInputEvent>, irohaEvents: Observable<NotaryInputEvent>): Notary {
+    private fun initNotary(ethEvents: Observable<SideChainEvent>, irohaEvents: Observable<SideChainEvent>): Notary {
         logger.info { "Init Notary notary" }
         return NotaryImpl(ethEvents, irohaEvents)
     }

@@ -1,5 +1,7 @@
 package withdrawalservice
 
+import sidechain.SideChainEvent
+
 /**
  * Withdrawal service is responsible for the withdrawal and rollback proof forming and interconnection with Ethereum.
  * It observers Iroha for following events:
@@ -11,7 +13,7 @@ interface WithdrawalService {
     /**
      * Handle Iroha events.
      */
-    fun onIrohaEvent(ethInputEvent: WithdrawalServiceInputEvent.IrohaInputEvent): WithdrawalServiceOutputEvent
+    fun onIrohaEvent(ethInputEvent: SideChainEvent.IrohaEvent): WithdrawalServiceOutputEvent
 
     /**
      * Events emitted by [WithdrawalService]

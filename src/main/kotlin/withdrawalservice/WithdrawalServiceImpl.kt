@@ -1,19 +1,20 @@
 package withdrawalservice
 
 import io.reactivex.Observable
+import sidechain.SideChainEvent
 
 
 /**
  * Implementation of Withdrawal Service
  */
 class WithdrawalServiceImpl(
-    private val irohaHandler: Observable<WithdrawalServiceInputEvent>
+    private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
 ) : WithdrawalService {
 
     /**
      * Handle IrohaEvent
      */
-    override fun onIrohaEvent(ethInputEvent: WithdrawalServiceInputEvent.IrohaInputEvent): WithdrawalServiceOutputEvent {
+    override fun onIrohaEvent(ethInputEvent: SideChainEvent.IrohaEvent): WithdrawalServiceOutputEvent {
         // TODO add effective implementation
         // 1. ask rollback approval from notary
         // 2. form an output event with all data needed for smart contract rollback call
@@ -25,11 +26,7 @@ class WithdrawalServiceImpl(
      */
     override fun output(): Observable<WithdrawalServiceOutputEvent> {
         return irohaHandler
-            .map {
-                when (it) {
-                    is WithdrawalServiceInputEvent.IrohaInputEvent -> onIrohaEvent(it)
-                }
-            }
+            .map { onIrohaEvent(it) }
     }
 
 }

@@ -5,8 +5,8 @@ import com.github.kittinunf.result.flatMap
 import com.natpryce.konfig.ConfigurationProperties
 import io.grpc.ServerBuilder
 import mu.KLogging
-import sideChain.iroha.IrohaBlockEmitter
-import sideChain.iroha.IrohaInitializtion
+import sidechain.iroha.IrohaBlockEmitter
+import sidechain.iroha.IrohaInitializtion
 import java.util.concurrent.TimeUnit
 
 /** Configuration parameters for notary instance */
