@@ -21,32 +21,21 @@ import sideChain.eth.EthChainHandler
 import sideChain.eth.EthChainListener
 import sideChain.iroha.IrohaChainHandler
 import sideChain.iroha.IrohaChainListener
-import sideChain.iroha.consumer.*
-import withdrawalservice.WithdrawalServiceInitialization
+import sideChain.iroha.consumer.IrohaConsumerImpl
+import sideChain.iroha.consumer.IrohaConverterImpl
+import sideChain.iroha.consumer.IrohaKeyLoader
+import sideChain.iroha.consumer.IrohaNetworkImpl
 import java.math.BigInteger
 
 /**
  * Class for notary instantiation
+ * @param ethWalletsProvider - provides with white list of ethereum wallets
+ * @param ethTokensProvider - provides with white list of ethereum ERC20 tokens
  */
-class NotaryInitialization {
-
-    // ------------------------------------------| ETH |------------------------------------------
-    /**
-     * List of all observable wallets
-     */
-    //TODO load from file
-    private val wallets = mapOf(
-        "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e".toLowerCase() to "admin@notary",
-        "0x00aa39d30f0d20ff03a22ccfc30b7efbfca597c2".toLowerCase() to "user1@notary"
-    )
-
-    /**
-     * List of all observable ERC20 tokens
-     */
-    //TODO load from file
-    private val tokenList = mapOf(
-        "0xeDFC9c2F4Cfa7495c1A95CfE1cB856F5980D5e18".toLowerCase() to "tkn"
-    )
+class NotaryInitialization(
+    val ethWalletsProvider: EthWalletsProvider = EthWalletsProviderImpl(),
+    val ethTokensProvider: EthTokensProvider = EthTokensProviderImpl()
+) {
 
     /**
      * Init notary
@@ -55,7 +44,9 @@ class NotaryInitialization {
         logger.info { "Notary initialization" }
         return initEthChain()
             .fanout { initIrohaChain() }
-            .map { initNotary(it.first, it.second) }
+            .map { (ethEvent, irohaEvents) ->
+                initNotary(ethEvent, irohaEvents)
+            }
             .flatMap { initIrohaConsumer(it) }
             .map { initRefund() }
     }
@@ -68,9 +59,17 @@ class NotaryInitialization {
         logger.info { "Init Eth chain" }
 
         val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.ethConnectionUrl]))
-        return EthChainListener(web3).getBlockObservable()
-            .map { observable ->
-                observable.flatMapIterable { EthChainHandler(web3, wallets, tokenList).parseBlock(it) }
+        /** List of all observable wallets */
+        return ethWalletsProvider.getWallets()
+            .fanout {
+                /** List of all observable ERC20 tokens */
+                ethTokensProvider.getTokens()
+            }.flatMap { (wallets, tokens) ->
+                val ethHandler = EthChainHandler(web3, wallets, tokens)
+                EthChainListener(web3).getBlockObservable()
+                    .map { observable ->
+                        observable.flatMapIterable { ethHandler.parseBlock(it) }
+                    }
             }
     }
 

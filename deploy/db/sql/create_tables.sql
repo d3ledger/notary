@@ -4,7 +4,7 @@ CREATE SCHEMA if NOT EXISTS notary;
 -- Whitelist of users' relay ethereum wallets
 CREATE TABLE notary.wallets (
   wallet VARCHAR(42) NOT NULL,
-  iroha_user_name VARCHAR(256) NOT NULL
+  irohausername VARCHAR(256) NOT NULL
 );
 
 -- Relation ethereum wallet -> token name
