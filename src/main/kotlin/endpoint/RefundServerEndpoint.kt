@@ -59,8 +59,7 @@ class RefundServerEndpoint(
      * Creates a [EthRefundRequest] object from request string
      */
     private fun createRequest(txHash: String?): EthRefundRequest? {
-        // TODO replace destination ethereum address
-        return if (txHash != null) EthRefundRequest(txHash) else null
+        return txHash?.let { EthRefundRequest(it) }
     }
 
     /**
