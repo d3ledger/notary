@@ -7,17 +7,80 @@
 
 using namespace shared_model::interface;
 
+namespace shared_model {
+  namespace interface {
+    namespace permissions {
+
+      Role permissionFor(Grantable g) {
+        switch (g) {
+          case Grantable::kAddMySignatory:
+            return Role::kAddMySignatory;
+          case Grantable::kRemoveMySignatory:
+            return Role::kRemoveMySignatory;
+          case Grantable::kSetMyQuorum:
+            return Role::kSetMyQuorum;
+          case Grantable::kSetMyAccountDetail:
+            return Role::kSetMyAccountDetail;
+          case Grantable::kTransferMyAssets:
+            return Role::kTransferMyAssets;
+          default:;
+        }
+        return Role::COUNT;
+      }
+
+      Grantable permissionOf(Role g) {
+        switch (g) {
+          case Role::kAddMySignatory:
+            return Grantable::kAddMySignatory;
+          case Role::kRemoveMySignatory:
+            return Grantable::kRemoveMySignatory;
+          case Role::kSetMyQuorum:
+            return Grantable::kSetMyQuorum;
+          case Role::kSetMyAccountDetail:
+            return Grantable::kSetMyAccountDetail;
+          case Role::kTransferMyAssets:
+            return Grantable::kTransferMyAssets;
+          default:;
+        }
+        return Grantable::COUNT;
+      }
+
+      bool isValid(Role perm) noexcept {
+        auto p = static_cast<size_t>(perm);
+        return p < static_cast<size_t>(Role::COUNT);
+      }
+
+      bool isValid(Grantable perm) noexcept {
+        auto p = static_cast<size_t>(perm);
+        return p < static_cast<size_t>(Grantable::COUNT);
+      }
+    }  // namespace permissions
+  }    // namespace interface
+}  // namespace shared_model
+
 template <typename Perm>
-PermissionSet<Perm>::PermissionSet(std::initializer_list<Perm> list) {
-  append(list);
+constexpr auto bit(Perm p) {
+  return static_cast<size_t>(p);
 }
 
 template <typename Perm>
-PermissionSet<Perm> &PermissionSet<Perm>::append(
-    std::initializer_list<Perm> list) {
+PermissionSet<Perm>::PermissionSet() : Parent() {}
+
+template <typename Perm>
+PermissionSet<Perm>::PermissionSet(std::initializer_list<Perm> list) {
   for (auto l : list) {
     set(l);
   }
+}
+
+template <typename Perm>
+size_t PermissionSet<Perm>::size() const {
+  return Parent::size();
+}
+
+template <typename Perm>
+PermissionSet<Perm> &PermissionSet<Perm>::reset() {
+  Parent::reset();
   return *this;
 }
 
@@ -34,13 +97,13 @@ PermissionSet<Perm> &PermissionSet<Perm>::unset(Perm p) {
 }
 
 template <typename Perm>
-bool PermissionSet<Perm>::operator[](Perm p) const {
-  return Parent::operator[](bit(p));
+bool PermissionSet<Perm>::test(Perm p) const {
+  return PermissionSet<Perm>::Parent::test(bit(p));
 }
 
 template <typename Perm>
-bool PermissionSet<Perm>::test(Perm p) const {
-  return PermissionSet<Perm>::Parent::test(bit(p));
+bool PermissionSet<Perm>::none() const {
+  return Parent::none();
 }
 
 template <typename Perm>
@@ -64,17 +127,29 @@ PermissionSet<Perm> &PermissionSet<Perm>::operator&=(
   Parent::operator&=(r);
   return *this;
 }
+
 template <typename Perm>
 PermissionSet<Perm> &PermissionSet<Perm>::operator|=(
     const PermissionSet<Perm> &r) {
   Parent::operator|=(r);
   return *this;
 }
+
 template <typename Perm>
 PermissionSet<Perm> &PermissionSet<Perm>::operator^=(
     const PermissionSet<Perm> &r) {
   Parent::operator^=(r);
   return *this;
+}
+
+template <typename Perm>
+void PermissionSet<Perm>::iterate(std::function<void(Perm)> f) const {
+  for (size_t i = 0; i < size(); ++i) {
+    auto perm = static_cast<Perm>(i);
+    if (test(perm)) {
+      f(perm);
+    }
+  }
 }
 
 template class shared_model::interface::PermissionSet<permissions::Role>;

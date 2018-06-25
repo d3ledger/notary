@@ -8,56 +8,30 @@ import endpoint.RefundServerEndpoint
 import endpoint.ServerInitializationBundle
 import endpoint.eth.EthRefundStrategyImpl
 import io.reactivex.Observable
-import main.CONFIG
 import main.ConfigKeys
 import mu.KLogging
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
-import sideChain.eth.EthChainHandler
-import sideChain.eth.EthChainListener
-import sideChain.iroha.IrohaChainHandler
-import sideChain.iroha.IrohaChainListener
-import sideChain.iroha.consumer.*
+import sidechain.SideChainEvent
+import sidechain.eth.EthChainHandler
+import sidechain.eth.EthChainListener
+import sidechain.iroha.IrohaChainHandler
+import sidechain.iroha.IrohaChainListener
+import sidechain.iroha.consumer.IrohaConsumerImpl
+import sidechain.iroha.consumer.IrohaConverterImpl
+import sidechain.iroha.consumer.IrohaKeyLoader
+import sidechain.iroha.consumer.IrohaNetworkImpl
+import java.math.BigInteger
 
 /**
  * Class for notary instantiation
+ * @param ethWalletsProvider - provides with white list of ethereum wallets
+ * @param ethTokensProvider - provides with white list of ethereum ERC20 tokens
  */
-class NotaryInitialization {
-
-    private lateinit var refundServerEndpoint: RefundServerEndpoint
-
-    // ------------------------------------------| ETH |------------------------------------------
-    /**
-     * List of all observable wallets
-     */
-    //TODO load from file
-    private val wallets = mapOf(
-        "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e".toLowerCase() to "admin@notary",
-        "0x00aa39d30f0d20ff03a22ccfc30b7efbfca597c2".toLowerCase() to "user1@notary"
-    )
-
-    /**
-     * List of all observable ERC20 tokens
-     */
-    //TODO load from file
-    private val tokenList = mapOf(
-        "0xeDFC9c2F4Cfa7495c1A95CfE1cB856F5980D5e18".toLowerCase() to "tkn"
-    )
-
-    private val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.ethConnectionUrl]))
-    private val ethChainListener = EthChainListener(web3)
-    private val ethHandler = EthChainHandler(web3, wallets, tokenList)
-
-    // ------------------------------------------| Iroha |------------------------------------------
-    private var irohaChainListener = IrohaChainListener()
-    private val irohaHandler = IrohaChainHandler()
-
-    private val irohaConverter = IrohaConverterImpl()
-    private val irohaNetwork = IrohaNetworkImpl()
-    private lateinit var irohaConsumer: IrohaConsumer
-
-    // ------------------------------------------| Notary |------------------------------------------
-    private lateinit var notary: Notary
+class NotaryInitialization(
+    val ethWalletsProvider: EthWalletsProvider = EthWalletsProviderImpl(),
+    val ethTokensProvider: EthTokensProvider = EthTokensProviderImpl()
+) {
 
     /**
      * Init notary
@@ -66,8 +40,10 @@ class NotaryInitialization {
         logger.info { "Notary initialization" }
         return initEthChain()
             .fanout { initIrohaChain() }
-            .map { initNotary(it.first, it.second) }
-            .flatMap { initIrohaConsumer() }
+            .map { (ethEvent, irohaEvents) ->
+                initNotary(ethEvent, irohaEvents)
+            }
+            .flatMap { initIrohaConsumer(it) }
             .map { initRefund() }
     }
 
@@ -75,11 +51,21 @@ class NotaryInitialization {
      * Init Ethereum chain listener
      * @return Observable on Ethereum sidechain events
      */
-    private fun initEthChain(): Result<Observable<NotaryInputEvent>, Exception> {
+    private fun initEthChain(): Result<Observable<SideChainEvent>, Exception> {
         logger.info { "Init Eth chain" }
-        return ethChainListener.getBlockObservable()
-            .map { observable ->
-                observable.flatMapIterable { ethHandler.parseBlock(it) }
+
+        val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.ethConnectionUrl]))
+        /** List of all observable wallets */
+        return ethWalletsProvider.getWallets()
+            .fanout {
+                /** List of all observable ERC20 tokens */
+                ethTokensProvider.getTokens()
+            }.flatMap { (wallets, tokens) ->
+                val ethHandler = EthChainHandler(web3, wallets, tokens)
+                EthChainListener(web3).getBlockObservable()
+                    .map { observable ->
+                        observable.flatMapIterable { ethHandler.parseBlock(it) }
+                    }
             }
     }
 
@@ -87,41 +73,41 @@ class NotaryInitialization {
      * Init Iroha chain listener
      * @return Observable on Iroha sidechain events
      */
-    private fun initIrohaChain(): Result<Observable<NotaryInputEvent>, Exception> {
+    private fun initIrohaChain(): Result<Observable<SideChainEvent>, Exception> {
         logger.info { "Init Iroha chain" }
-        return irohaChainListener.getBlockObservable()
+        return IrohaChainListener().getBlockObservable()
             .map { observable ->
-                observable.flatMapIterable { irohaHandler.parseBlock(it) }
+                observable.flatMapIterable { IrohaChainHandler().parseBlock(it) }
             }
     }
 
     /**
      * Init Notary
      */
-    private fun initNotary(ethEvents: Observable<NotaryInputEvent>, irohaEvents: Observable<NotaryInputEvent>) {
+    private fun initNotary(ethEvents: Observable<SideChainEvent>, irohaEvents: Observable<SideChainEvent>): Notary {
         logger.info { "Init Notary notary" }
-        notary = NotaryImpl(ethEvents, irohaEvents)
+        return NotaryImpl(ethEvents, irohaEvents)
     }
 
     /**
      * Init Iroha consumer
      */
-    private fun initIrohaConsumer(): Result<Unit, Exception> {
+    private fun initIrohaConsumer(notary: Notary): Result<Unit, Exception> {
         logger.info { "Init Iroha consumer" }
         return IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath])
             .map {
-                irohaConsumer = IrohaConsumerImpl(it)
+                val irohaConsumer = IrohaConsumerImpl(it)
 
                 // Init Iroha Consumer pipeline
                 notary.irohaOutput()
                     // convert from Notary model to Iroha model
                     // TODO rework Iroha batch transaction
-                    .flatMapIterable { irohaConverter.convert(it) }
+                    .flatMapIterable { IrohaConverterImpl().convert(it) }
                     // convert from Iroha model to Protobuf representation
                     .map { irohaConsumer.convertToProto(it) }
                     .subscribe(
                         // send to Iroha network layer
-                        { irohaNetwork.send(it) },
+                        { IrohaNetworkImpl().send(it) },
                         // on error
                         { logger.error { it } }
                     )
@@ -135,7 +121,7 @@ class NotaryInitialization {
     private fun initRefund() {
         logger.info { "Init Refund endpoint" }
         val keys = IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath])
-        refundServerEndpoint = RefundServerEndpoint(
+        RefundServerEndpoint(
             ServerInitializationBundle(CONFIG[ConfigKeys.refundPort], CONFIG[ConfigKeys.ethEndpoint]),
             EthRefundStrategyImpl(keys.get())
         )

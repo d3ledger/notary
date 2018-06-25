@@ -20,12 +20,9 @@
 #include <boost/algorithm/string_regex.hpp>
 #include <boost/format.hpp>
 #include <limits>
-
-#include "interfaces/queries/query_payload_meta.hpp"
-
+#include "cryptography/crypto_provider/crypto_defaults.hpp"
 #include "cryptography/crypto_provider/crypto_verifier.hpp"
 #include "interfaces/queries/query_payload_meta.hpp"
-#include "permissions.hpp"
 #include "validators/field_validator.hpp"
 
 // TODO: 15.02.18 nickaleks Change structure to compositional IR-978
@@ -53,22 +50,28 @@ namespace shared_model {
         R"([A-Za-z0-9_]{1,64})";
     const std::string FieldValidator::role_id_pattern_ = R"#([a-z_0-9]{1,32})#";
 
-    const size_t FieldValidator::public_key_size = 32;
+    const size_t FieldValidator::public_key_size =
+        crypto::DefaultCryptoAlgorithmType::kPublicKeyLength;
+    const size_t FieldValidator::signature_size =
+        crypto::DefaultCryptoAlgorithmType::kSignatureLength;
+    const size_t FieldValidator::hash_size =
+        crypto::DefaultCryptoAlgorithmType::kHashLength;
     /// limit for the set account detail size in bytes
     const size_t FieldValidator::value_size = 4 * 1024 * 1024;
     const size_t FieldValidator::description_size = 64;
 
+    const std::regex FieldValidator::account_name_regex_(account_name_pattern_);
+    const std::regex FieldValidator::asset_name_regex_(asset_name_pattern_);
+    const std::regex FieldValidator::domain_regex_(domain_pattern_);
+    const std::regex FieldValidator::ip_v4_regex_(ip_v4_pattern_);
+    const std::regex FieldValidator::peer_address_regex_(peer_address_pattern_);
+    const std::regex FieldValidator::account_id_regex_(account_id_pattern_);
+    const std::regex FieldValidator::asset_id_regex_(asset_id_pattern_);
+    const std::regex FieldValidator::detail_key_regex_(detail_key_pattern_);
+    const std::regex FieldValidator::role_id_regex_(role_id_pattern_);
+
     FieldValidator::FieldValidator(time_t future_gap)
-        : account_name_regex_(account_name_pattern_),
-          asset_name_regex_(asset_name_pattern_),
-          domain_regex_(domain_pattern_),
-          ip_v4_regex_(ip_v4_pattern_),
-          peer_address_regex_(peer_address_pattern_),
-          account_id_regex_(account_id_pattern_),
-          asset_id_regex_(asset_id_pattern_),
-          detail_key_regex_(detail_key_pattern_),
-          role_id_regex_(role_id_pattern_),
-          future_gap_(future_gap) {}
+        : future_gap_(future_gap) {}
 
     void FieldValidator::validateAccountId(
         ReasonsGroupType &reason,
@@ -231,28 +234,37 @@ namespace shared_model {
       }
     }
 
-    void FieldValidator::validatePermission(
+    void FieldValidator::validateRolePermission(
         ReasonsGroupType &reason,
-        const interface::types::PermissionNameType &permission_name) const {
-      if (shared_model::permissions::all_perm_group.find(permission_name)
-          == shared_model::permissions::all_perm_group.end()) {
-        reason.second.push_back("Provided permission does not exist");
+        const interface::permissions::Role &permission) const {
+      if (not isValid(permission)) {
+        reason.second.push_back("Provided role permission does not exist");
       }
     }
 
-    void FieldValidator::validatePermissions(
+    void FieldValidator::validateGrantablePermission(
         ReasonsGroupType &reason,
-        const interface::types::PermissionSetType &permissions) const {
-      if (permissions.empty()) {
+        const interface::permissions::Grantable &permission) const {
+      if (not isValid(permission)) {
+        reason.second.push_back("Provided grantable permission does not exist");
+      }
+    }
+
+    void FieldValidator::validateRolePermissions(
+        ReasonsGroupType &reason,
+        const interface::RolePermissionSet &permissions) const {
+      if (permissions.none()) {
         reason.second.push_back(
             "Permission set should contain at least one permission");
       }
-      if (not std::includes(shared_model::permissions::role_perm_group.begin(),
-                            shared_model::permissions::role_perm_group.end(),
-                            permissions.begin(),
-                            permissions.end())) {
+    }
+
+    void FieldValidator::validateGrantablePermissions(
+        ReasonsGroupType &reason,
+        const interface::GrantablePermissionSet &permissions) const {
+      if (permissions.none()) {
         reason.second.push_back(
-            "Provided permissions are not subset of the allowed permissions");
+            "Permission set should contain at least one permission");
       }
     }
 
@@ -319,15 +331,13 @@ namespace shared_model {
         const auto &pkey = signature.publicKey();
         bool is_valid = true;
 
-        if (sign.blob().size() != 64) {
-          // TODO (@l4l) 03/02/18: IR-977 replace signature size with a const
+        if (sign.blob().size() != signature_size) {
           reason.second.push_back(
               (boost::format("Invalid signature: %s") % sign.hex()).str());
           is_valid = false;
         }
 
-        if (pkey.blob().size() != 32) {
-          // TODO (@l4l) 03/02/18: IR-977 replace public key size with a const
+        if (pkey.blob().size() != public_key_size) {
           reason.second.push_back(
               (boost::format("Invalid pubkey: %s") % pkey.hex()).str());
           is_valid = false;
@@ -367,6 +377,14 @@ namespace shared_model {
             (boost::format("Height should be > 0, passed value: %d") % height)
                 .str();
         reason.second.push_back(message);
+      }
+    }
+
+    void FieldValidator::validateHash(ReasonsGroupType &reason,
+                                      const crypto::Hash &hash) const {
+      if (hash.size() != hash_size) {
+        reason.second.push_back(
+            (boost::format("Hash has invalid size: %d") % hash.size()).str());
       }
     }
   }  // namespace validation

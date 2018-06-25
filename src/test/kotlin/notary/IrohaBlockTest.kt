@@ -4,7 +4,7 @@ package notary
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import sideChain.iroha.IrohaBlockStub
+import sidechain.iroha.IrohaBlockStub
 import java.io.File
 
 class IrohaBlockTest {

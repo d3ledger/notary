@@ -3,7 +3,7 @@ package notary
 import java.util.Arrays
 
 /**
- * Class represents commands that [Notary] can send to [sideChain.iroha.consumer.IrohaConsumer]
+ * Class represents commands that [Notary] can send to [sidechain.iroha.consumer.IrohaConsumer]
  */
 sealed class IrohaCommand {
 

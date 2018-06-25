@@ -3,11 +3,11 @@ package notary
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import io.reactivex.Observable
-import main.CONFIG
 import main.ConfigKeys
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
+import sidechain.SideChainEvent
 import java.math.BigInteger
 
 /**
@@ -18,7 +18,7 @@ class NotaryTest {
     /**
      * Iroha output observable
      */
-    private val obsIroha = Observable.empty<NotaryInputEvent>()
+    private val obsIroha = Observable.empty<SideChainEvent>()
 
     /**
      * Check transactions in ordered batch emitted on deposit event.
@@ -111,14 +111,14 @@ class NotaryTest {
         val expectedHash = "hash"
         val expectedUserId = "from"
 
-        val custodianIntention = mock<NotaryInputEvent.EthChainInputEvent.OnEthSidechainDeposit>() {
+        val custodianIntention = mock<SideChainEvent.EthereumEvent.OnEthSidechainDeposit>() {
             on { hash } doReturn expectedHash
             on { user } doReturn expectedUserId
             on { amount } doReturn expectedAmount
         }
 
         // source of events from side chains
-        val obsEth = Observable.just<NotaryInputEvent>(custodianIntention)
+        val obsEth = Observable.just<SideChainEvent>(custodianIntention)
 
         val notary = NotaryImpl(obsEth, obsIroha)
         val res = notary.irohaOutput()
@@ -148,7 +148,7 @@ class NotaryTest {
         val expectedHash = "hash"
         val expectedUserId = "from"
 
-        val custodianIntention = mock<NotaryInputEvent.EthChainInputEvent.OnEthSidechainDepositToken>() {
+        val custodianIntention = mock<SideChainEvent.EthereumEvent.OnEthSidechainDepositToken>() {
             on { hash } doReturn expectedHash
             on { user } doReturn expectedUserId
             on { token } doReturn expectedAssetId
@@ -156,7 +156,7 @@ class NotaryTest {
         }
 
         // source of events from side chains
-        val obsEth = Observable.just<NotaryInputEvent>(custodianIntention)
+        val obsEth = Observable.just<SideChainEvent>(custodianIntention)
 
         val notary = NotaryImpl(obsEth, obsIroha)
         val res = notary.irohaOutput()

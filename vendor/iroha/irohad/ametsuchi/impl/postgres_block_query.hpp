@@ -38,10 +38,10 @@ namespace iroha {
     class PostgresBlockQuery : public BlockQuery {
      public:
       PostgresBlockQuery(pqxx::nontransaction &transaction_,
-                         FlatFile &file_store);
+                         KeyValueStorage &file_store);
       PostgresBlockQuery(std::unique_ptr<pqxx::lazyconnection> connection,
                          std::unique_ptr<pqxx::nontransaction> transaction,
-                         FlatFile &file_store);
+                         KeyValueStorage &file_store);
 
       rxcpp::observable<wTransaction> getAccountTransactions(
           const shared_model::interface::types::AccountIdType &account_id)
@@ -69,6 +69,8 @@ namespace iroha {
       uint32_t getTopBlockHeight() override;
 
       bool hasTxWithHash(const shared_model::crypto::Hash &hash) override;
+
+      expected::Result<wBlock, std::string> getTopBlock() override;
 
      private:
       /**
@@ -100,7 +102,7 @@ namespace iroha {
       std::unique_ptr<pqxx::lazyconnection> connection_ptr_;
       std::unique_ptr<pqxx::nontransaction> transaction_ptr_;
 
-      FlatFile &block_store_;
+      KeyValueStorage &block_store_;
       pqxx::nontransaction &transaction_;
       logger::Logger log_;
       using ExecuteType = decltype(makeExecuteOptional(transaction_, log_));

@@ -10,11 +10,11 @@ import jp.co.soramitsu.iroha.HashVector
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelQueryBuilder
 import jp.co.soramitsu.iroha.ModelProtoQuery
-import main.CONFIG
 import main.ConfigKeys
 import mu.KLogging
-import sideChain.iroha.util.toBigInteger
-import sideChain.iroha.util.toByteArray
+import notary.CONFIG
+import sidechain.iroha.util.toBigInteger
+import sidechain.iroha.util.toByteArray
 import java.math.BigInteger
 
 

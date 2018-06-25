@@ -26,7 +26,7 @@ namespace iroha {
   namespace ametsuchi {
 
     PostgresBlockQuery::PostgresBlockQuery(pqxx::nontransaction &transaction,
-                                           FlatFile &file_store)
+                                           KeyValueStorage &file_store)
         : block_store_(file_store),
           transaction_(transaction),
           log_(logger::log("PostgresBlockIndex")),
@@ -35,7 +35,7 @@ namespace iroha {
     PostgresBlockQuery::PostgresBlockQuery(
         std::unique_ptr<pqxx::lazyconnection> connection,
         std::unique_ptr<pqxx::nontransaction> transaction,
-        FlatFile &file_store)
+        KeyValueStorage &file_store)
         : connection_ptr_(std::move(connection)),
           transaction_ptr_(std::move(transaction)),
           block_store_(file_store),
@@ -240,6 +240,21 @@ namespace iroha {
 
     uint32_t PostgresBlockQuery::getTopBlockHeight() {
       return block_store_.last_id();
+    }
+
+    expected::Result<BlockQuery::wBlock, std::string>
+    PostgresBlockQuery::getTopBlock() {
+      // TODO 18/06/18 Akvinikym: add dependency injection IR-937 IR-1040
+      auto block =
+          block_store_.get(block_store_.last_id()) | [](const auto &bytes) {
+            return shared_model::converters::protobuf::jsonToModel<
+                shared_model::proto::Block>(bytesToString(bytes));
+          };
+      if (not block) {
+        return expected::makeError("error while fetching the last block");
+      }
+      return expected::makeValue(std::make_shared<shared_model::proto::Block>(
+          std::move(block.value())));
     }
 
   }  // namespace ametsuchi

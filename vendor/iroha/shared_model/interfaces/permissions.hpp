@@ -7,7 +7,9 @@
 #define IROHA_SHARED_MODEL_PERMISSIONS_HPP
 
 #include <bitset>
+#include <functional>
 #include <initializer_list>
+#include <vector>
 
 namespace shared_model {
   namespace interface {
@@ -69,6 +71,22 @@ namespace shared_model {
 
         COUNT
       };
+
+      Role permissionFor(Grantable);
+      // TODO(@l4l) 19/06/18: Remove with IR-1452
+      Grantable permissionOf(Role);
+
+      /**
+       * @param perm protocol object for checking
+       * @return true if valid, false otherwise
+       */
+      bool isValid(interface::permissions::Role perm) noexcept;
+
+      /**
+       * @param perm protocol object for checking
+       * @return true if valid, false otherwise
+       */
+      bool isValid(interface::permissions::Grantable perm) noexcept;
     }  // namespace permissions
 
     template <typename Perm>
@@ -78,18 +96,16 @@ namespace shared_model {
       using Parent = std::bitset<static_cast<size_t>(Perm::COUNT)>;
 
      public:
-      using Parent::Parent;
-      using Parent::reset;
-      using Parent::size;
-      explicit PermissionSet(std::initializer_list<Perm> list);
+      PermissionSet();
+      PermissionSet(std::initializer_list<Perm> list);
 
-      PermissionSet &append(std::initializer_list<Perm> list);
-
+      size_t size() const;
+      PermissionSet &reset();
       PermissionSet &set(Perm p);
       PermissionSet &unset(Perm p);
 
-      bool operator[](Perm p) const;
       bool test(Perm p) const;
+      bool none() const;
 
       bool isSubsetOf(const PermissionSet<Perm> &r) const;
 
@@ -99,14 +115,8 @@ namespace shared_model {
       PermissionSet<Perm> &operator|=(const PermissionSet<Perm> &r);
       PermissionSet<Perm> &operator^=(const PermissionSet<Perm> &r);
 
-     private:
-      constexpr auto bit(Perm p) const {
-        return static_cast<size_t>(p);
-      }
+      void iterate(std::function<void(Perm)> f) const;
     };
-
-    extern template class PermissionSet<permissions::Role>;
-    extern template class PermissionSet<permissions::Grantable>;
 
     using RolePermissionSet = PermissionSet<permissions::Role>;
     using GrantablePermissionSet = PermissionSet<permissions::Grantable>;
