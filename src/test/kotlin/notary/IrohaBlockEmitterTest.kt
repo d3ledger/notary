@@ -14,6 +14,7 @@ import sidechain.iroha.IrohaBlockEmitter
 import sidechain.iroha.IrohaBlockStub
 import sidechain.iroha.schema.BlockService
 import sidechain.iroha.schema.QueryServiceGrpc
+import sideChain.iroha.util.*
 import java.io.File
 import java.util.concurrent.TimeUnit
 import kotlin.math.ceil
@@ -109,6 +110,25 @@ class IrohaBlockEmitterTest {
         blocks.forEach {
             assertEquals(block, it)
         }
+
+    }
+
+    @Test
+    fun irohaStreamingTest() {
+        val admin = "admin@notary"
+        val utx = getModelTransactionBuilder()
+            .creatorAccountId(admin)
+            .createdTime(getCurrentTime())
+            .setAccountDetail(admin, "key", "value")
+            .build()
+
+        val tx = prepareTransaction(utx, getKeys("deploy/iroha/keys", admin))
+        val cmdStub = getCommandStub()
+        cmdStub.torii(tx)
+
+        val uquery = getModelQueryBuilder()
+            .creatorAccountId(admin)
+            .createdTime(getCurrentTime())
 
     }
 }
