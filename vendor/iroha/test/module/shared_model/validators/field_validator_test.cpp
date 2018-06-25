@@ -127,10 +127,11 @@ class FieldValidatorTest : public ValidatorsTest {
                                           &FieldValidatorTest::quorum,
                                           quorum_test_cases));
 
-    field_validators.insert(makeValidator("permission",
-                                          &FieldValidator::validatePermission,
-                                          &FieldValidatorTest::permission,
-                                          permission_test_cases));
+    field_validators.insert(
+        makeValidator("permission",
+                      &FieldValidator::validateGrantablePermission,
+                      &FieldValidatorTest::model_grantable_permission,
+                      grantable_permission_test_cases));
 
     field_validators.insert(makeValidator("precision",
                                           &FieldValidator::validatePrecision,
@@ -138,8 +139,13 @@ class FieldValidatorTest : public ValidatorsTest {
                                           precision_test_cases));
 
     // TODO: add validation to all fields
-    for (const auto &field :
-         {"value", "signature", "commands", "quorum", "tx_hashes"}) {
+    for (const auto &field : {"value",
+                              "signature",
+                              "commands",
+                              "quorum",
+                              "tx_hashes",
+                              // permissions are always valid
+                              "permissions"}) {
       field_validators.insert(makeNullValidator(field));
     }
   }
@@ -351,44 +357,44 @@ class FieldValidatorTest : public ValidatorsTest {
   std::vector<FieldTestCase> peer_test_cases{
       // clang-format off
       // ip addresses
-      makeValidPeerAddressTestCase("zeros_ip","0.0.0.0:0", std::string(32, '0')),
-      makeValidPeerAddressTestCase("max_ip", "255.255.255.255:65535", std::string(32, '0')),
-      makeValidPeerAddressTestCase("common_ip","192.168.0.1:8080", std::string(32, '0')),
+      makeValidPeerAddressTestCase("zeros_ip","0.0.0.0:0", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
+      makeValidPeerAddressTestCase("max_ip", "255.255.255.255:65535", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
+      makeValidPeerAddressTestCase("common_ip","192.168.0.1:8080", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
 
-      makeInvalidPeerAddressTestCase("invalid_peer_address", "182.13.35.1:3040xx", std::string(32, '0')),
-      makeInvalidPeerAddressTestCase("invalid symbol in ip", "-0.0.0.0:0", std::string(32, '0')),
-      makeInvalidPeerAddressTestCase("too big number in ip", "256.256.256.255:65535", std::string(32, '0')),
-      makeInvalidPeerAddressTestCase("too big port", "192.168.0.1:65536", std::string(32, '0')),
+      makeInvalidPeerAddressTestCase("invalid_peer_address", "182.13.35.1:3040xx", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
+      makeInvalidPeerAddressTestCase("invalid symbol in ip", "-0.0.0.0:0", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
+      makeInvalidPeerAddressTestCase("too big number in ip", "256.256.256.255:65535", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
+      makeInvalidPeerAddressTestCase("too big port", "192.168.0.1:65536", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
 
       // hostname
-      makeValidPeerAddressTestCase("valid hostname with port", "abc.efg:0", std::string(32, '0')),
-      makeValidPeerAddressTestCase("valid hostname with max port", "abc.efg.hij:65535", std::string(32, '0')),
-      makeValidPeerAddressTestCase("hostname with hyphen", "a-hyphen.ru-i:8080", std::string(32, '0')),
-      makeValidPeerAddressTestCase("common hostname with port", "altplus.com.jp:80", std::string(32, '0')),
-      makeValidPeerAddressTestCase("max label length in hostname with port", "maxLabelLengthIs63paddingPaddingPaddingPaddingPaddingPaddingPad:8080", std::string(32, '0')),
+      makeValidPeerAddressTestCase("valid hostname with port", "abc.efg:0", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
+      makeValidPeerAddressTestCase("valid hostname with max port", "abc.efg.hij:65535", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
+      makeValidPeerAddressTestCase("hostname with hyphen", "a-hyphen.ru-i:8080", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
+      makeValidPeerAddressTestCase("common hostname with port", "altplus.com.jp:80", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
+      makeValidPeerAddressTestCase("max label length in hostname with port", "maxLabelLengthIs63paddingPaddingPaddingPaddingPaddingPaddingPad:8080", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
       makeValidPeerAddressTestCase("max domain name length in hostname with port",
                                    "maxLabelLengthIs63paddingPaddingPaddingPaddingPaddingPaddingPad."
                                    "maxLabelLengthIs63paddingPaddingPaddingPaddingPaddingPaddingPad."
                                    "maxLabelLengthIs63paddingPaddingPaddingPaddingPaddingPaddingPad."
-                                   "maxLabelLengthIs63paddingPaddingPaddingPaddingPaddingPaddingPad:256", std::string(32, '0')),
+                                   "maxLabelLengthIs63paddingPaddingPaddingPaddingPaddingPaddingPad:256", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
 
 
-      makeInvalidPeerAddressTestCase("hostname starting with nonletter", "9.start.with.non.letter:0", std::string(32, '0')),
-      makeInvalidPeerAddressTestCase("hostname starting with dash", "-startWithDash:65535", std::string(32, '0')),
-      makeInvalidPeerAddressTestCase("hostname starting with at", "@.is.not.allowed:8080", std::string(32, '0')),
-      makeInvalidPeerAddressTestCase("hostname with space", "no space is allowed:80", std::string(32, '0')),
-      makeInvalidPeerAddressTestCase("hostname with too big port", "too.big.port:65536", std::string(32, '0')),
-      makeInvalidPeerAddressTestCase("hostname with not allowed character", "some\u2063host:123", std::string(32, '0')),
-      makeInvalidPeerAddressTestCase("hostname ending with hyphen", "endWith-:909", std::string(32, '0')),
-      makeInvalidPeerAddressTestCase("hostname with too large label", "aLabelMustNotExceeds63charactersALabelMustNotExceeds63characters:9090", std::string(32, '0')),
+      makeInvalidPeerAddressTestCase("hostname starting with nonletter", "9.start.with.non.letter:0", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
+      makeInvalidPeerAddressTestCase("hostname starting with dash", "-startWithDash:65535", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
+      makeInvalidPeerAddressTestCase("hostname starting with at", "@.is.not.allowed:8080", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
+      makeInvalidPeerAddressTestCase("hostname with space", "no space is allowed:80", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
+      makeInvalidPeerAddressTestCase("hostname with too big port", "too.big.port:65536", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
+      makeInvalidPeerAddressTestCase("hostname with not allowed character", "some\u2063host:123", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
+      makeInvalidPeerAddressTestCase("hostname ending with hyphen", "endWith-:909", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
+      makeInvalidPeerAddressTestCase("hostname with too large label", "aLabelMustNotExceeds63charactersALabelMustNotExceeds63characters:9090", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
       makeInvalidPeerAddressTestCase("hostname with more than 256 character domain",
       "maxLabelLengthIs63paddingPaddingPaddingPaddingPaddingPaddingPad."
       "maxLabelLengthIs63paddingPaddingPaddingPaddingPaddingPaddingPad."
       "maxLabelLengthIs63paddingPaddingPaddingPaddingPaddingPaddingPad."
-      "maxLabelLengthIs63paddingPaddingPaddingPaddingPaddingPaddingPadP:256", std::string(32, '0')),
-      makeInvalidPeerAddressTestCase("empty address", "", std::string(32, '0')),
-      makeInvalidPeerAddressTestCase("empty domain", ":6565", std::string(32, '0')),
-      makeInvalidPeerAddressTestCase("empty domain two : symbols", "::6565:", std::string(32, '0')),
+      "maxLabelLengthIs63paddingPaddingPaddingPaddingPaddingPaddingPadP:256", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
+      makeInvalidPeerAddressTestCase("empty address", "", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
+      makeInvalidPeerAddressTestCase("empty domain", ":6565", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
+      makeInvalidPeerAddressTestCase("empty domain two : symbols", "::6565:", std::string(crypto::DefaultCryptoAlgorithmType::kPublicKeyLength, '0')),
 
       // invalid pubkey
       makeInvalidPeerPubkeyTestCase("invalid_peer_pubkey_length",
@@ -520,29 +526,30 @@ class FieldValidatorTest : public ValidatorsTest {
       makeTestCase(
           "too big quorum size", &FieldValidatorTest::quorum, 129, false, "")};
 
-  std::vector<FieldTestCase> permissionTestCases() {
-    auto valid_cases =
-        shared_model::permissions::role_perm_group
-        | boost::adaptors::transformed([&](const auto &permission) {
-            return this->makeTestCase(permission,
-                                      &FieldValidatorTest::permission,
-                                      permission,
-                                      true,
-                                      "");
-          });
-    std::vector<FieldTestCase> invalid_cases = {
-        makeInvalidCase("non existing permission",
-                        "permission",
-                        &FieldValidatorTest::permission,
-                        "non_existing_permission")};
-    // merge valid and invalid cases
-    std::vector<FieldTestCase> all_cases;
-    all_cases.insert(all_cases.begin(), valid_cases.begin(), valid_cases.end());
-    all_cases.insert(
-        all_cases.begin(), invalid_cases.begin(), invalid_cases.end());
-    return all_cases;
+  template <typename PermType, typename F>
+  std::vector<FieldTestCase> permissionTestCases(F ValidatorsTest::*field) {
+    std::vector<FieldTestCase> cases;
+
+    // using PermType = shared_model::interface::permissions::Role;
+    for (size_t i = 0; i < static_cast<size_t>(PermType::COUNT); ++i) {
+      cases.push_back(makeValidCase(field, static_cast<PermType>(i)));
+    }
+
+    cases.push_back(makeTestCase("non-existing permission",
+                                 field,
+                                 static_cast<PermType>(PermType::COUNT),
+                                 false,
+                                 ""));
+
+    return cases;
   }
-  std::vector<FieldTestCase> permission_test_cases = permissionTestCases();
+
+  std::vector<FieldTestCase> role_permission_test_cases =
+      permissionTestCases<shared_model::interface::permissions::Role>(
+          &FieldValidatorTest::model_role_permission);
+  std::vector<FieldTestCase> grantable_permission_test_cases =
+      permissionTestCases<shared_model::interface::permissions::Grantable>(
+          &FieldValidatorTest::model_grantable_permission);
 
   std::vector<FieldTestCase> meta_test_cases = [&]() {
     iroha::protocol::QueryPayloadMeta meta;
@@ -647,14 +654,6 @@ class FieldValidatorTest : public ValidatorsTest {
                     &FieldValidator::validateAssetName,
                     &FieldValidatorTest::asset_name,
                     asset_name_test_cases),
-      makeTransformValidator("permissions",
-                             &FieldValidator::validatePermissions,
-                             &FieldValidatorTest::role_permission,
-                             [](auto &&x) {
-                               return interface::types::PermissionSetType{
-                                   iroha::protocol::RolePermission_Name(x)};
-                             },
-                             permissions_test_cases),
       makeValidator("created_time",
                     &FieldValidator::validateCreatedTime,
                     &FieldValidatorTest::created_time,
