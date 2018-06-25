@@ -68,7 +68,7 @@ class RefundServerEndpoint(
      */
     private fun onErrorPipelineCall(): String {
         logger.error { "Request has been failed" }
-        return ""
+        return "Request has been failed. Error in URL"
     }
 
     /**

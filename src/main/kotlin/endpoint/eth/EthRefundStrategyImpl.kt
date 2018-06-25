@@ -83,7 +83,7 @@ class EthRefundStrategyImpl(private val keypair: Keypair) : EthRefundStrategy {
 
             when {
             // rollback case
-                (appearedTx.payload.commandsCount == 1) &&
+                appearedTx.payload.commandsCount == 1 &&
                         commands.hasSetAccountDetail() -> {
 
                     // TODO a.chernyshov replace with effective implementation
@@ -101,7 +101,7 @@ class EthRefundStrategyImpl(private val keypair: Keypair) : EthRefundStrategy {
 
                     EthRefund(destEthAddress, "mockCoinType", BigInteger.TEN, request.irohaTx)
                 }
-            // Iroha -> Eth case
+            // withdrawal case
                 (appearedTx.payload.commandsCount == 1) &&
                         commands.hasTransferAsset() -> {
                     val destAccount = commands.transferAsset.destAccountId
