@@ -6,7 +6,6 @@
 #include "framework/integration_framework/integration_test_framework.hpp"
 #include "framework/specified_visitor.hpp"
 #include "integration/acceptance/acceptance_fixture.hpp"
-#include "validators/permissions.hpp"
 
 using namespace integration_framework;
 using namespace shared_model;
@@ -18,10 +17,10 @@ class QueryAcceptanceTest : public AcceptanceFixture {
    * @param perms are the permissions of the user
    * @return built tx and a hash of its payload
    */
-  auto makeUserWithPerms(const std::vector<std::string> &perms = {
-                             shared_model::permissions::can_get_my_txs}) {
+  auto makeUserWithPerms(const interface::RolePermissionSet &perms = {
+                             interface::permissions::Role::kGetMyTxs}) {
     auto new_perms = perms;
-    new_perms.push_back(shared_model::permissions::can_set_quorum);
+    new_perms.set(interface::permissions::Role::kSetQuorum);
     return AcceptanceFixture::makeUserWithPerms(kNewRole, new_perms);
   }
 
@@ -54,7 +53,7 @@ class QueryAcceptanceTest : public AcceptanceFixture {
  */
 TEST_F(QueryAcceptanceTest, ParallelBlockQuery) {
   auto dummy_tx = dummyTx();
-  auto check = [&dummy_tx](auto &status) {
+  auto check = [dummy_tx = dummy_tx](auto &status) {
     ASSERT_NO_THROW({
       const auto &resp = boost::apply_visitor(
           framework::SpecifiedVisitor<interface::TransactionsResponse>(),
@@ -64,18 +63,21 @@ TEST_F(QueryAcceptanceTest, ParallelBlockQuery) {
     });
   };
 
-  IntegrationTestFramework itf(2);
+  IntegrationTestFramework itf(1);
   itf.setInitialState(kAdminKeypair)
       .sendTx(makeUserWithPerms())
+      .checkBlock(
+          [](auto &block) { ASSERT_EQ(block->transactions().size(), 1); })
       .sendTx(dummy_tx)
       .checkBlock(
-          [](auto &block) { ASSERT_EQ(block->transactions().size(), 2); });
+          [](auto &block) { ASSERT_EQ(block->transactions().size(), 1); });
 
   const auto num_queries = 5;
+  const auto hash = dummy_tx.hash();
 
   auto send_query = [&] {
     for (int i = 0; i < num_queries; ++i) {
-      itf.sendQuery(makeQuery(dummy_tx.hash()), check);
+      itf.sendQuery(makeQuery(hash), check);
     }
   };
 
