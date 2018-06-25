@@ -4,14 +4,9 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
 import endpoint.RefundServerEndpoint
 import endpoint.ServerInitializationBundle
-import endpoint.eth.EthNotaryResponse
-import endpoint.eth.EthRefund
-import endpoint.eth.EthRefundRequest
+import endpoint.eth.EthRefundStrategyImpl
 import io.reactivex.Observable
 import main.ConfigKeys
 import mu.KLogging
@@ -125,19 +120,11 @@ class NotaryInitialization(
      */
     private fun initRefund() {
         logger.info { "Init Refund endpoint" }
-
-        // TODO 18/05/2018, @muratovv: rework eth strategy with effective implementation
+        val keys = IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath])
         RefundServerEndpoint(
             ServerInitializationBundle(CONFIG[ConfigKeys.refundPort], CONFIG[ConfigKeys.ethEndpoint]),
-            mock {
-                val request = any<EthRefundRequest>()
-                on {
-                    performRefund(request)
-                } doReturn EthNotaryResponse.Successful(
-                    "signature",
-                    EthRefund("address", "coin", BigInteger.TEN)
-                )
-            })
+            EthRefundStrategyImpl(keys.get())
+        )
     }
 
     /**

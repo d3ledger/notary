@@ -26,16 +26,14 @@ class RefundServerEndpoint(
         .add(EthNotaryResponseMoshiAdapter())
         .add(BigInteger::class.java, BigIntegerMoshiAdapter())
         .build()!!
-    private val ethRefundAdapter = moshi.adapter(EthRefundRequest::class.java)!!
     private val ethNotaryAdapter = moshi.adapter(EthNotaryResponse::class.java)!!
 
     init {
         val server = embeddedServer(Netty, port = serverBundle.port) {
             routing {
-                get(serverBundle.ethRefund) {
-                    logger.info { "EthRefund invoked" }
-                    logger.info { "parameters:${call.parameters}" }
-                    call.respondText { onCallEthRefund(call.parameters["contract"]) }
+                get(serverBundle.ethRefund + "/{tx_hash}") {
+                    logger.info { "EthRefund invoked with parameters:${call.parameters}" }
+                    call.respondText { onCallEthRefund(call.parameters["tx_hash"]) }
                 }
             }
         }
@@ -47,8 +45,7 @@ class RefundServerEndpoint(
      * @param rawRequest - raw string of request
      */
     fun onCallEthRefund(rawRequest: String?): String {
-        return rawRequest
-            .bind(ethRefundAdapter::fromJson)
+        return createRequest(rawRequest)
             .bind(ethStrategy::performRefund)
             .bind(ethNotaryAdapter::toJson)
             .endValue({
@@ -59,11 +56,18 @@ class RefundServerEndpoint(
     }
 
     /**
+     * Creates a [EthRefundRequest] object from request string
+     */
+    private fun createRequest(txHash: String?): EthRefundRequest? {
+        return txHash?.let { EthRefundRequest(it) }
+    }
+
+    /**
      * Method return response on stateless invalid request
      */
-    fun onErrorPipelineCall(): String {
+    private fun onErrorPipelineCall(): String {
         logger.error { "Request has been failed" }
-        return ""
+        return "Request has been failed. Error in URL"
     }
 
     /**

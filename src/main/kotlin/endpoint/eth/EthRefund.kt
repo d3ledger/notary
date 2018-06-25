@@ -8,7 +8,7 @@ import java.math.BigInteger
 /**
  * Type of address in Ethereum
  */
-typealias Address = String
+typealias EthereumAddress = String
 
 /**
  * Type of coin in Ethereum. Possibly it will be an address
@@ -23,7 +23,12 @@ typealias AmountType = BigInteger
 /**
  * Refund structure
  */
-data class EthRefund(val address: Address, val type: CoinType, val amount: AmountType)
+data class EthRefund(
+    val address: EthereumAddress,
+    val assetId: CoinType,
+    val amount: AmountType,
+    val irohaTxHash: IrohaTransactionHashType
+)
 
 /**
  * Adapter of [BigInteger] class for moshi

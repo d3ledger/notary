@@ -2,15 +2,21 @@ package integration
 
 import com.github.kittinunf.result.failure
 import com.google.protobuf.InvalidProtocolBufferException
+import com.squareup.moshi.Moshi
+import endpoint.eth.BigIntegerMoshiAdapter
+import endpoint.eth.EthNotaryResponse
+import endpoint.eth.EthNotaryResponseMoshiAdapter
 import io.grpc.ManagedChannelBuilder
+import iroha.protocol.BlockOuterClass
+import iroha.protocol.CommandServiceGrpc
 import iroha.protocol.Queries.Query
 import iroha.protocol.QueryServiceGrpc
-import jp.co.soramitsu.iroha.Keypair
-import jp.co.soramitsu.iroha.ModelProtoQuery
-import jp.co.soramitsu.iroha.ModelQueryBuilder
+import jp.co.soramitsu.iroha.*
 import kotlinx.coroutines.experimental.async
 import notary.CONFIG
 import main.ConfigKeys
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Test
 import notary.main
 import org.junit.jupiter.api.fail
 import org.web3j.crypto.RawTransaction
@@ -23,12 +29,35 @@ import org.web3j.utils.Numeric
 import sidechain.iroha.IrohaInitializtion
 import sidechain.iroha.consumer.IrohaKeyLoader
 import sidechain.iroha.util.toByteArray
+import org.junit.jupiter.api.Assertions.assertEquals
 import java.math.BigInteger
+
 
 /**
  * Class for Ethereum sidechain infrastructure deployment and communication.
  */
 class IntegrationTest {
+
+    init {
+        IrohaInitializtion.loadIrohaLibrary()
+            .failure {
+                println(it)
+                System.exit(1)
+            }
+    }
+
+    /** Iroha keypair */
+    val keypair: Keypair =
+        IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath]).get()
+
+    /** Iroha host */
+    val irohaHost = CONFIG[ConfigKeys.irohaHostname]
+
+    /** Iroha port */
+    val irohaPort = CONFIG[ConfigKeys.irohaPort]
+
+    /** Iroha transaction creator */
+    val creator = CONFIG[ConfigKeys.irohaCreator]
 
     /** web3 service instance to communicate with Ethereum network */
     private val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.ethConnectionUrl]))
@@ -69,26 +98,75 @@ class IntegrationTest {
     }
 
     /**
+     * Sends transaction to Iroha.
+     * @return hex representation of transaction
+     */
+    fun sendTxToIroha(txBuilder: ModelTransactionBuilder): String {
+        val utx = txBuilder.build()
+        val hash = utx.hash().hex()
+
+        // sign transaction and get its binary representation (Blob)
+        val txblob = ModelProtoTransaction(utx).signAndAddSignature(keypair).finish().blob().toByteArray()
+
+        // create proto object
+        var protoTx: BlockOuterClass.Transaction? = null
+        try {
+            protoTx = BlockOuterClass.Transaction.parseFrom(txblob)
+        } catch (e: InvalidProtocolBufferException) {
+            System.err.println("Exception while converting byte array to protobuf:" + e.message)
+            System.exit(1)
+        }
+
+        // Send transaction to iroha
+        val channel = ManagedChannelBuilder.forAddress(irohaHost, irohaPort).usePlaintext(true).build()
+        val stub = CommandServiceGrpc.newBlockingStub(channel)
+        stub.torii(protoTx)
+
+        return hash
+    }
+
+    /**
+     * Add asset in iroha
+     * @return hex representation of transaction hash
+     */
+    fun addAssetIroha(accountId: String, assetId: String, amount: String): String {
+        val currentTime = System.currentTimeMillis()
+
+        // build transaction (still unsigned)
+        val txBuilder = ModelTransactionBuilder().creatorAccountId(creator)
+            .createdTime(BigInteger.valueOf(currentTime))
+            .addAssetQuantity(accountId, assetId, amount)
+        return sendTxToIroha(txBuilder)
+    }
+
+    /**
+     * Transfer asset in iroha
+     * @return hex representation of transaction hash
+     */
+    fun transferAssetIroha(
+        srcAccountId: String,
+        destAccountId: String,
+        assetId: String,
+        amount: String,
+        description: String
+    ): String {
+        val currentTime = System.currentTimeMillis()
+
+        // build transaction (still unsigned)
+        val txBuilder = ModelTransactionBuilder().creatorAccountId(creator)
+            .createdTime(BigInteger.valueOf(currentTime))
+            .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
+        return sendTxToIroha(txBuilder)
+    }
+
+    /**
      * Query Iroha account balance
      */
     fun queryIroha() {
-        IrohaInitializtion.loadIrohaLibrary()
-            .failure {
-                println(it)
-                System.exit(1)
-            }
-
-        val irohaHost = CONFIG[ConfigKeys.irohaHostname]
-        val irohaPort = CONFIG[ConfigKeys.irohaPort]
-
-        val queryBuilder = ModelQueryBuilder()
-        val creator = CONFIG[ConfigKeys.irohaCreator]
         val accountId = "user1@notary"
         val startQueryCounter: Long = 1
-        val keypair: Keypair =
-            IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath]).get()
 
-        val uquery = queryBuilder.creatorAccountId(creator)
+        val uquery = ModelQueryBuilder().creatorAccountId(creator)
             .queryCounter(BigInteger.valueOf(startQueryCounter))
             .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
             .getAccountAssets(accountId)
@@ -198,7 +276,8 @@ class IntegrationTest {
      * @when "fromAddress" transfers 1234000000000000 Wei to "toAddress"
      * @then Associated Iroha account balance is increased on 1234000000000000 Wei
      */
-//    @Test
+    @Disabled
+    @Test
     fun runMain() {
         val amount = BigInteger.valueOf(1_234_000_000_000_000)
         async {
@@ -215,6 +294,56 @@ class IntegrationTest {
         println("query")
         queryIroha()
         println("done")
+    }
+
+    /**
+     * Test US withdraw Ethereum.
+     * Note: Iroha must be deployed to pass the test.
+     * @given Iroha networks running and user has sent 64203 Wei to master
+     * @when withdrawal service queries notary
+     * @then notary replyes with refund information and signature
+     */
+    @Disabled
+    @Test
+    fun testRefund() {
+        async {
+            main(arrayOf())
+        }
+
+        val masterAccount = "user1@notary"
+        val user = "admin@notary"
+        val amount = "64203"
+        val assetId = "ether#ethereum"
+        val ethWallet = "eth_wallet"
+
+        // add assets to user1@notary
+        addAssetIroha(user, assetId, amount)
+
+        // transfer assets from user1@notary to admin@notary
+        val hash = transferAssetIroha(user, masterAccount, assetId, amount, ethWallet)
+
+        // query
+        Thread.sleep(4_000)
+        println("send")
+        val res =
+            khttp.get("http://127.0.0.1:8080/eth/$hash")
+
+        val moshi = Moshi
+            .Builder()
+            .add(EthNotaryResponseMoshiAdapter())
+            .add(BigInteger::class.java, BigIntegerMoshiAdapter())
+            .build()!!
+        val ethNotaryAdapter = moshi.adapter(EthNotaryResponse::class.java)!!
+        val response = ethNotaryAdapter.fromJson(res.jsonObject.toString())
+
+        assert(response is EthNotaryResponse.Successful)
+        response as EthNotaryResponse.Successful
+
+        assertEquals(BigInteger(amount), response.ethRefund.amount)
+        assertEquals(ethWallet, response.ethRefund.address)
+        assertEquals("ether", response.ethRefund.assetId)
+
+        assertEquals("mockSignature", response.ethSignature)
     }
 
 }
