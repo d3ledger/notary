@@ -13,7 +13,7 @@ interface WithdrawalService {
     /**
      * Handle Iroha events.
      */
-    fun onIrohaEvent(ethInputEvent: SideChainEvent.IrohaEvent): WithdrawalServiceOutputEvent
+    fun onIrohaEvent(irohaEvent: SideChainEvent.IrohaEvent): WithdrawalServiceOutputEvent
 
     /**
      * Events emitted by [WithdrawalService]

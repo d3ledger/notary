@@ -48,7 +48,8 @@ sealed class SideChainEvent {
          */
         data class OnIrohaSideChainTransfer(
             val asset: String,
-            val amount: BigInteger
+            val amount: BigInteger,
+            val description: String
         ) : IrohaEvent()
     }
 

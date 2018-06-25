@@ -27,7 +27,8 @@ class WithdrawalServiceInitialization {
 
                     SideChainEvent.IrohaEvent.OnIrohaSideChainTransfer(
                         "str",
-                        BigInteger.TEN
+                        BigInteger.TEN,
+                        "descr"
                     ) as SideChainEvent.IrohaEvent
                 }
             }
