@@ -63,7 +63,7 @@ class TransactionExample {
     }
 
     public static void main(String[] args) {
-        Keypair keys = crypto.convertFromExisting(readKeyFromFile("../admin@test.pub"),
+        Keypair keys = crypto.convertFromExisting(readKeyFromFile("../admin@notary.pub"),
             readKeyFromFile("../admin@test.priv"));
 
         long currentTime = System.currentTimeMillis();

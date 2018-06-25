@@ -1,4 +1,5 @@
-package sideChain.iroha.util
+package sidechain.iroha.util
+
 
 import com.google.protobuf.InvalidProtocolBufferException
 import io.grpc.ManagedChannel
@@ -14,6 +15,7 @@ import iroha.protocol.Responses.QueryResponse
 import iroha.protocol.BlockOuterClass.Transaction
 import iroha.protocol.CommandServiceGrpc
 import iroha.protocol.QueryServiceGrpc
+import iroha.protocol.Queries.BlocksQuery
 import java.math.BigInteger
 
 val logger = KLogging().logger
@@ -53,17 +55,42 @@ fun getKeys(path: String, user: String) = getModelCrypto().convertFromExisting(
     readKeyFromFile("$path/$user.priv")
 )
 
-fun prepareQuery(uquery: UnsignedQuery, keys: Keypair): Query? {
-    val queryBlob = ModelProtoQuery(uquery)
+fun blobQuery(uquery: UnsignedQuery, keys: Keypair): Blob {
+    return ModelProtoQuery(uquery)
         .signAndAddSignature(keys)
         .finish()
-        .blob()
+}
 
+fun blobBlocksQuery(uquery: UnsignedBlockQuery, keys: Keypair): Blob {
+    return ModelProtoBlocksQuery(uquery)
+        .signAndAddSignature(keys)
+        .finish()
+}
+
+
+fun prepareQuery(uquery: UnsignedQuery, keys: Keypair): Query? {
+
+    val queryBlob = blobQuery(uquery, keys).blob()
     val bquery = queryBlob.toByteArray()
 
     var protoQuery: Query? = null
     try {
         protoQuery = Query.parseFrom(bquery)
+    } catch (e: InvalidProtocolBufferException) {
+        logger.error { "Exception while converting byte array to protobuf:" + e.message }
+    }
+    return protoQuery
+}
+
+
+fun prepareBlocksQuery(uquery: UnsignedBlockQuery, keys: Keypair): BlocksQuery? {
+
+    val queryBlob = blobBlocksQuery(uquery, keys).blob()
+    val bquery = queryBlob.toByteArray()
+
+    var protoQuery: BlocksQuery? = null
+    try {
+        protoQuery = BlocksQuery.parseFrom(bquery)
     } catch (e: InvalidProtocolBufferException) {
         logger.error { "Exception while converting byte array to protobuf:" + e.message }
     }

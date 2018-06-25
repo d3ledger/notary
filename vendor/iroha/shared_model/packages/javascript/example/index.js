@@ -23,7 +23,7 @@ var protoTxHelper = new iroha.ModelProtoTransaction()
 var protoQueryHelper = new iroha.ModelProtoQuery()
 var fs = require('fs')
 var adminPriv = fs.readFileSync('admin@test.priv').toString()
-var adminPub = fs.readFileSync('admin@test.pub').toString()
+var adminPub = fs.readFileSync('admin@notary.pub').toString()
 
 var keys = crypto.convertFromExisting(adminPub, adminPriv)
 
