@@ -80,7 +80,7 @@ class NotaryImpl(
     }
 
     /**
-     * Handle Ehthereum event
+     * Handle Ethereum event
      */
     override fun onEthEvent(ethInputEvent: SideChainEvent.EthereumEvent): IrohaOrderedBatch {
         logger.info { "Notary performs ETH event" }

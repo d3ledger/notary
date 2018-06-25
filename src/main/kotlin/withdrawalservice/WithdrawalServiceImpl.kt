@@ -3,6 +3,11 @@ package withdrawalservice
 import io.reactivex.Observable
 import sidechain.SideChainEvent
 
+/**
+ * Approval to be passed to the Ethereum for refund
+ */
+// TODO
+class RollbackApproval()
 
 /**
  * Implementation of Withdrawal Service
@@ -15,11 +20,15 @@ class WithdrawalServiceImpl(
     /**
      * Query all notaries for approval of refund
      */
-    private fun requestNotary(event: SideChainEvent.IrohaEvent.OnIrohaSideChainTransfer) {
+    private fun requestNotary(event: SideChainEvent.IrohaEvent.OnIrohaSideChainTransfer): RollbackApproval {
         // TODO query each notary service and if majority is achieved, send tx to Ethereum SC
 
-        for (peer in notaryPeerListProvider.getPeerList())
-        ; // TODO query notary
+        notaryPeerListProvider.getPeerList().forEach { peer ->
+            // TODO query notary
+        }
+
+        // TODO concatenate signatures
+        return RollbackApproval()
     }
 
 
