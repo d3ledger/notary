@@ -1,7 +1,7 @@
 package notary
 
 /**
- * Class represents [Notary] intention to [sideChain.iroha.consumer.IrohaConsumer] to add transaction
+ * Class represents [Notary] intention to [sidechain.iroha.consumer.IrohaConsumer] to add transaction
  * @param creator account id of transaction creator
  * @param commands commands to be sent to Iroha
  */

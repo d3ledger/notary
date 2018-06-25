@@ -1,7 +1,7 @@
 package integration
 
-import main.CONFIG
 import main.ConfigKeys
+import notary.CONFIG
 import notary.db.tables.Tokens
 import org.jooq.impl.DSL
 import org.junit.jupiter.api.Disabled

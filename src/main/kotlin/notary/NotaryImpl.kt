@@ -1,17 +1,17 @@
 package notary
 
 import io.reactivex.Observable
-import main.CONFIG
 import main.ConfigKeys
 import mu.KLogging
+import sidechain.SideChainEvent
 import java.math.BigInteger
 
 /**
  * Implementation of [Notary] business logic
  */
 class NotaryImpl(
-    private val ethHandler: Observable<NotaryInputEvent>,
-    private val irohaHandler: Observable<NotaryInputEvent>
+    private val ethHandler: Observable<SideChainEvent>,
+    private val irohaHandler: Observable<SideChainEvent>
 ) : Notary {
 
     /** Notary account in Iroha */
@@ -80,18 +80,18 @@ class NotaryImpl(
     }
 
     /**
-     * Handle Ehthereum event
+     * Handle Ethereum event
      */
-    override fun onEthEvent(ethInputEvent: NotaryInputEvent.EthChainInputEvent): IrohaOrderedBatch {
+    override fun onEthEvent(ethInputEvent: SideChainEvent.EthereumEvent): IrohaOrderedBatch {
         logger.info { "Notary performs ETH event" }
         return when (ethInputEvent) {
-            is NotaryInputEvent.EthChainInputEvent.OnEthSidechainDeposit -> onEthSidechainDeposit(
+            is SideChainEvent.EthereumEvent.OnEthSidechainDeposit -> onEthSidechainDeposit(
                 ethInputEvent.hash,
                 ethInputEvent.user,
                 ethereumAssetId,
                 ethInputEvent.amount
             )
-            is NotaryInputEvent.EthChainInputEvent.OnEthSidechainDepositToken -> onEthSidechainDeposit(
+            is SideChainEvent.EthereumEvent.OnEthSidechainDepositToken -> onEthSidechainDeposit(
                 ethInputEvent.hash,
                 ethInputEvent.user,
                 ethInputEvent.token,
@@ -103,7 +103,7 @@ class NotaryImpl(
     /**
      * Handle Iroha event
      */
-    override fun onIrohaEvent(irohaInputEvent: NotaryInputEvent.IrohaChainInputEvent): IrohaOrderedBatch {
+    override fun onIrohaEvent(irohaInputEvent: SideChainEvent.IrohaEvent): IrohaOrderedBatch {
         logger.info { "Notary performs IROHA event" }
 
         // TODO replace output with effective implementation
@@ -111,7 +111,7 @@ class NotaryImpl(
     }
 
     /**
-     * Relay side chain [NotaryInputEvent] to Iroha output
+     * Relay side chain [SideChainEvent] to Iroha output
      */
     override fun irohaOutput(): Observable<IrohaOrderedBatch> {
         return Observable.merge(
@@ -119,8 +119,8 @@ class NotaryImpl(
             irohaHandler
         ).map { event ->
             when (event) {
-                is NotaryInputEvent.EthChainInputEvent -> onEthEvent(event)
-                is NotaryInputEvent.IrohaChainInputEvent -> onIrohaEvent(event)
+                is SideChainEvent.EthereumEvent -> onEthEvent(event)
+                is SideChainEvent.IrohaEvent -> onIrohaEvent(event)
             }
         }
     }

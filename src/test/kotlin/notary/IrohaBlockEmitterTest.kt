@@ -10,10 +10,10 @@ import kotlinx.coroutines.experimental.withTimeoutOrNull
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import sideChain.iroha.IrohaBlockEmitter
-import sideChain.iroha.IrohaBlockStub
-import sideChain.iroha.schema.BlockService
-import sideChain.iroha.schema.QueryServiceGrpc
+import sidechain.iroha.IrohaBlockEmitter
+import sidechain.iroha.IrohaBlockStub
+import sidechain.iroha.schema.BlockService
+import sidechain.iroha.schema.QueryServiceGrpc
 import java.io.File
 import java.util.concurrent.TimeUnit
 import kotlin.math.ceil

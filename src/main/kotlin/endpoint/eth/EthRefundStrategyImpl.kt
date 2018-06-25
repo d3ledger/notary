@@ -5,7 +5,7 @@ import com.github.kittinunf.result.flatMap
 import jp.co.soramitsu.iroha.Hash
 import jp.co.soramitsu.iroha.HashVector
 import jp.co.soramitsu.iroha.ModelQueryBuilder
-import sideChain.iroha.IrohaSigner
+import sidechain.iroha.IrohaSigner
 
 
 class NotaryException(val code: Int, val reason: String) : Exception()

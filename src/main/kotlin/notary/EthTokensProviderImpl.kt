@@ -1,7 +1,6 @@
 package notary
 
 import com.github.kittinunf.result.Result
-import main.CONFIG
 import main.ConfigKeys
 import notary.db.tables.Tokens
 import org.jooq.impl.DSL

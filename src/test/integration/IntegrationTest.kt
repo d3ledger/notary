@@ -9,10 +9,9 @@ import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelProtoQuery
 import jp.co.soramitsu.iroha.ModelQueryBuilder
 import kotlinx.coroutines.experimental.async
-import main.CONFIG
+import notary.CONFIG
 import main.ConfigKeys
-import main.main
-import org.junit.jupiter.api.Test
+import notary.main
 import org.junit.jupiter.api.fail
 import org.web3j.crypto.RawTransaction
 import org.web3j.crypto.TransactionEncoder
@@ -21,9 +20,9 @@ import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.http.HttpService
 import org.web3j.utils.Numeric
-import sideChain.iroha.IrohaInitializtion
-import sideChain.iroha.consumer.IrohaKeyLoader
-import sideChain.iroha.util.toByteArray
+import sidechain.iroha.IrohaInitializtion
+import sidechain.iroha.consumer.IrohaKeyLoader
+import sidechain.iroha.util.toByteArray
 import java.math.BigInteger
 
 /**
