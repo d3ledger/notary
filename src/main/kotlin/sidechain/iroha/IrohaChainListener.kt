@@ -40,7 +40,8 @@ class IrohaChainListener : ChainListener<IrohaBlockStub> {
             val scheduler = Schedulers.from(Executors.newSingleThreadExecutor())
 
             stub.fetchCommits(query).toObservable().map {
-                IrohaBlockStub.fromProto(it.blockResponse.toByteArray())
+                //TODO x3medima17 27.06.2018, implement all commands fromProto
+                IrohaBlockStub.fromProto(it.blockResponse.block.toByteArray())
             }.observeOn(scheduler)
         }
     }
