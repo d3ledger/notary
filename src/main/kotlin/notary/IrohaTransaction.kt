@@ -20,8 +20,11 @@ data class IrohaTransaction(
             val cmds = tx.payload.commandsList
                 .filter { it.hasAddPeer() }
                 .map {
-                    IrohaCommand.CommandAddPeer.fromProto(it.toByteArray())
-                }
+                    if (it.hasAddPeer())
+                        IrohaCommand.CommandAddPeer.fromProto(it.toByteArray())
+                    if (it.hasSetAccountDetail())
+                        IrohaCommand.CommandSetAccountDetail.fromProto(it.toByteArray())
+                } as List<IrohaCommand>
 
             val creator = tx.payload.creatorAccountId
             return IrohaTransaction(creator, cmds)

@@ -33,6 +33,25 @@ class NotaryInitialization(
     val ethTokensProvider: EthTokensProvider = EthTokensProviderImpl()
 ) {
 
+    private lateinit var refundServerEndpoint: RefundServerEndpoint
+
+    private val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.ethConnectionUrl]))
+    private val ethChainListener = EthChainListener(web3)
+
+    // ------------------------------------------| Iroha |------------------------------------------
+    private val irohaChainListener by lazy {
+        IrohaChainListener()
+    }
+
+    private val irohaHandler = IrohaChainHandler()
+
+    private val irohaConverter = IrohaConverterImpl()
+    private val irohaNetwork = IrohaNetworkImpl()
+    private lateinit var irohaConsumer: IrohaConsumer
+
+    // ------------------------------------------| Notary |------------------------------------------
+    private lateinit var notary: Notary
+
     /**
      * Init notary
      */
