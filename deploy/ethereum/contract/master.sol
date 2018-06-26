@@ -6,7 +6,7 @@ contract BasicCoin {
     function balanceOf(address who) public constant returns (uint256);
 }
     
-contract Notary {
+contract Master {
     BasicCoin private bc_;
     address private owner_;
     mapping(address => bool) private peers_;
@@ -38,6 +38,8 @@ contract Notary {
         if (msg.sender == owner_) {
             peers_[new_address] = true;
             ++peers_count_;
+            emit number_event(peers_count_);
+            emit address_event(new_address);
         }
     }
 
@@ -53,8 +55,8 @@ contract Notary {
     }
 
     function withdraw(address coin_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s) public {
-        // TODO: token whitelist check? (similar to user contract)
-        // TODO: improve require checks (copy-paste) (use modifiers)
+        // TODO luckychess 26.06.2018 D3-103 fix whitelist checks inconsistency
+        // TODO luckychess 26.06.2018 D3-101 improve require checks (copy-paste) (use modifiers)
         require(used_[tx_hash] == false);
         require(peers_count_ >= 1);
         // sigs - at least 2f+1 from 3f+1

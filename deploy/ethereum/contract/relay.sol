@@ -5,14 +5,14 @@ contract ICoin {
     function balanceOf(address who) public constant returns (uint256);
 }
 
-contract INotary {
+contract IMaster {
     function withdraw(address coin_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s) public;
 }
 
-contract User {
+contract Relay {
     address private master_;
     address[] private tokens_;
-    INotary private in_;
+    IMaster private in_;
 
     event address_event(address input);
     event string_event(string input);
@@ -24,7 +24,7 @@ contract User {
         for (uint i = 0; i < tokens.length; ++i) {
             tokens_.push(tokens[i]);
         }
-        in_ = INotary(master_);
+        in_ = IMaster(master_);
     }
 
     // can accept ether
