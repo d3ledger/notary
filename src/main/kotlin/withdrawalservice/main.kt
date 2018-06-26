@@ -5,7 +5,7 @@ import com.github.kittinunf.result.flatMap
 import io.grpc.ServerBuilder
 import mu.KLogging
 import sidechain.iroha.IrohaBlockEmitter
-import sidechain.iroha.IrohaInitializtion
+import sidechain.iroha.IrohaInitialization
 import java.util.concurrent.TimeUnit
 
 
@@ -20,7 +20,7 @@ fun main(args: Array<String>) {
     val server = ServerBuilder.forPort(8081).addService(IrohaBlockEmitter(2, TimeUnit.SECONDS)).build()
     server.start()
 
-    IrohaInitializtion.loadIrohaLibrary()
+    IrohaInitialization.loadIrohaLibrary()
         .flatMap { WithdrawalServiceInitialization().init() }
         .failure {
             logger.logger.error { it }

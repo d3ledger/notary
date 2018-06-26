@@ -26,7 +26,7 @@ import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.http.HttpService
 import org.web3j.utils.Numeric
-import sidechain.iroha.IrohaInitializtion
+import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaKeyLoader
 import sidechain.iroha.util.toByteArray
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -39,7 +39,7 @@ import java.math.BigInteger
 class IntegrationTest {
 
     init {
-        IrohaInitializtion.loadIrohaLibrary()
+        IrohaInitialization.loadIrohaLibrary()
             .failure {
                 println(it)
                 System.exit(1)
