@@ -21,7 +21,7 @@ import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.consumer.IrohaKeyLoader
 import sidechain.iroha.consumer.IrohaNetworkImpl
-import java.math.BigInteger
+
 
 /**
  * Class for notary instantiation
