@@ -14,7 +14,7 @@ import mu.KLogging
  */
 class RegistrationServiceEndpoint(
     port: Int,
-    private val registrationStrategy: RegistrationStrategy = RegistrationStrategyImpl()
+    private val registrationStrategy: RegistrationStrategy
 ) {
 
     init {

@@ -31,7 +31,8 @@
                            "can_read_assets",
                            "can_remove_signatory",
                            "can_set_quorum",
-                           "can_get_blocks"
+                           "can_get_blocks",
+                           "can_set_detail"
                         ]
                      }
                   },

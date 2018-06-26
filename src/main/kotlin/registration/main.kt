@@ -13,7 +13,7 @@ fun main(args: Array<String>) {
     val logger = KLogging()
 
     IrohaInitialization.loadIrohaLibrary()
-        .flatMap { RegistrationServiceInit().init() }
+        .flatMap { RegistrationServiceInitialization().init() }
         .failure {
             logger.logger.error { it }
             System.exit(1)
