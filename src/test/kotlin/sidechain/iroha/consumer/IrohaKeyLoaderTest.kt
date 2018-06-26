@@ -2,7 +2,7 @@ package sidechain.iroha.consumer
 
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
-import sidechain.iroha.IrohaInitializtion
+import sidechain.iroha.IrohaInitialization
 
 
 internal class IrohaKeyLoaderTest {
@@ -14,7 +14,7 @@ internal class IrohaKeyLoaderTest {
      */
     @Test
     fun keyLoadFailedTest() {
-        IrohaInitializtion.loadIrohaLibrary()
+        IrohaInitialization.loadIrohaLibrary()
         val keypair = IrohaKeyLoader.loadKeypair("", "")
 
         assertNotNull(keypair.component2())

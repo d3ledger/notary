@@ -5,7 +5,7 @@ import com.github.kittinunf.result.Result
 /**
  * Initialize Iroha library
  */
-object IrohaInitializtion {
+object IrohaInitialization {
 
     /**
      * Load iroha binding library

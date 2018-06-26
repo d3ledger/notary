@@ -6,7 +6,7 @@ import com.natpryce.konfig.ConfigurationProperties
 import io.grpc.ServerBuilder
 import mu.KLogging
 import sidechain.iroha.IrohaBlockEmitter
-import sidechain.iroha.IrohaInitializtion
+import sidechain.iroha.IrohaInitialization
 import java.util.concurrent.TimeUnit
 
 /** Configuration parameters for notary instance */
@@ -23,7 +23,7 @@ fun main(args: Array<String>) {
     val server = ServerBuilder.forPort(8081).addService(IrohaBlockEmitter(2, TimeUnit.SECONDS)).build()
     server.start()
 
-    IrohaInitializtion.loadIrohaLibrary()
+    IrohaInitialization.loadIrohaLibrary()
         .flatMap { NotaryInitialization().init() }
         .failure {
             logger.logger.error { it }
