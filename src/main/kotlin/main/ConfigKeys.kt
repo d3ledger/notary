@@ -47,5 +47,8 @@ class ConfigKeys {
         val dbUsername = Key("dbUsername", stringType)
         /** password to connect to notary db instance */
         val dbPassword = Key("dbPassword", stringType)
+
+        // --------- Registration Service ---------
+        val registrationPort = Key("registrationPort", intType)
     }
 }

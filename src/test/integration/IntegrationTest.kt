@@ -325,8 +325,7 @@ class IntegrationTest {
         // query
         Thread.sleep(4_000)
         println("send")
-        val res =
-            khttp.get("http://127.0.0.1:8080/eth/$hash")
+        val res = khttp.get("http://127.0.0.1:8080/eth/$hash")
 
         val moshi = Moshi
             .Builder()
