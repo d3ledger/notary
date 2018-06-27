@@ -7,6 +7,7 @@ import jp.co.soramitsu.iroha.ModelBlocksQueryBuilder
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import sidechain.iroha.util.*
 import java.math.BigInteger
@@ -15,6 +16,7 @@ import java.util.concurrent.TimeUnit
 
 
 class IrohaBlockEmitterTest {
+    @Disabled
     @Test
     fun irohaStreamingTest() {
         System.loadLibrary("irohajava")
