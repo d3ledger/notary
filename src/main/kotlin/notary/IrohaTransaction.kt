@@ -22,9 +22,15 @@ data class IrohaTransaction(
                 .map {
                     if (it.hasAddPeer())
                         IrohaCommand.CommandAddPeer.fromProto(it.toByteArray())
-                    if (it.hasSetAccountDetail())
+                    else if (it.hasSetAccountDetail())
                         IrohaCommand.CommandSetAccountDetail.fromProto(it.toByteArray())
-                } as List<IrohaCommand>
+                    else {
+                        throw NotImplementedError("Unknown command")
+                        IrohaCommand.CommandSetAccountDetail.fromProto(it.toByteArray())
+                    }
+
+                }
+
 
             val creator = tx.payload.creatorAccountId
             return IrohaTransaction(creator, cmds)
