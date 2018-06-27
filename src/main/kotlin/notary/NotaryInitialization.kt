@@ -17,10 +17,7 @@ import sidechain.eth.EthChainHandler
 import sidechain.eth.EthChainListener
 import sidechain.iroha.IrohaChainHandler
 import sidechain.iroha.IrohaChainListener
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaConverterImpl
-import sidechain.iroha.consumer.IrohaKeyLoader
-import sidechain.iroha.consumer.IrohaNetworkImpl
+import sidechain.iroha.consumer.*
 
 
 /**
