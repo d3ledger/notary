@@ -15,6 +15,12 @@ open class RegistrationTest {
     /** Port of testing service  */
     private val port = 8083
 
+    /** Correct user name */
+    private val correctName = "green"
+
+    /** Correct user public key */
+    private val correctPubkey = "12345678901234567890123456789012"
+
     /** Registration strategy that always returns true */
     private val strategy: RegistrationStrategy = mock {
         on {
@@ -38,7 +44,7 @@ open class RegistrationTest {
      * Send POST request to lokal server
      */
     fun post(params: Map<String, String>): String {
-        val res = khttp.post("http://127.0.0.1:$port/register", data = params)
+        val res = khttp.post("http://127.0.0.1:$port/users", data = params)
 
         return res.text
     }
@@ -50,7 +56,7 @@ open class RegistrationTest {
      */
     @Test
     fun postWrongName() {
-        val actual = post(mapOf("wrong_name" to "MrGreen", "pubkey" to "MyLittleSecret"))
+        val actual = post(mapOf("wrong_name" to correctName, "pubkey" to correctPubkey))
         assertEquals("Response has been failed. Parameter \"name\" is not specified.", actual)
     }
 
@@ -61,7 +67,7 @@ open class RegistrationTest {
      */
     @Test
     fun postWrongPubkey() {
-        val actual = post(mapOf("name" to "MrGreen", "wrong_pubkey" to "MyLittleSecret"))
+        val actual = post(mapOf("name" to correctName, "wrong_pubkey" to correctPubkey))
         assertEquals("Response has been failed. Parameter \"pubkey\" is not specified.", actual)
     }
 
@@ -72,7 +78,7 @@ open class RegistrationTest {
      */
     @Test
     fun postCorrect() {
-        val actual = post(mapOf("name" to "MrGreen", "pubkey" to "MyLittleSecret"))
+        val actual = post(mapOf("name" to correctName, "pubkey" to correctPubkey))
         assertEquals("OK", actual)
     }
 }

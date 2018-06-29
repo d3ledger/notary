@@ -5,7 +5,7 @@ package registration
  */
 class EthFreeWalletsProvider {
 
-    // TODO add effective implementation
+    // TODO - a.chernyshov - D3-106 -  add effective implementation
     // Possible solutions:
     // 1) set listener and update Postgres DB
     // 2) query Iroha each time

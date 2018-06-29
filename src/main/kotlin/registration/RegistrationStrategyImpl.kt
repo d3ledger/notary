@@ -1,6 +1,7 @@
 package registration
 
 import com.github.kittinunf.result.Result
+import jp.co.soramitsu.iroha.Hash
 import main.ConfigKeys
 import notary.CONFIG
 import notary.IrohaCommand
@@ -59,9 +60,13 @@ class RegistrationStrategyImpl(
                 )
             )
 
+            lateinit var hash: Hash
             IrohaConverterImpl().convert(irohaOutput)
-                .map { irohaConsumer.convertToProto(it) }
-                .map { IrohaNetworkImpl().send(it) }
+                .map {
+                    hash = it.hash()
+                    irohaConsumer.convertToProto(it)
+                }
+                .map { IrohaNetworkImpl().sendAndCheck(it, hash) }
 
             Unit
         }

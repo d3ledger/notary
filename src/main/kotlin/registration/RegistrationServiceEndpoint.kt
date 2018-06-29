@@ -20,7 +20,7 @@ class RegistrationServiceEndpoint(
     init {
         val server = embeddedServer(Netty, port = port) {
             routing {
-                post("/register") {
+                post("/users") {
                     val parameters = call.receiveParameters()
                     val name = parameters["name"]
                     val pubkey = parameters["pubkey"]
