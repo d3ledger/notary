@@ -1,6 +1,6 @@
 package notary
 
-import java.util.Arrays
+import java.util.*
 
 /**
  * Class represents commands that [Notary] can send to [sidechain.iroha.consumer.IrohaConsumer]
@@ -14,11 +14,22 @@ sealed class IrohaCommand {
      * @param amount is a string representation of amount to add
      */
     data class CommandAddAssetQuantity(
-            val accountId: String,
-            val assetId: String,
-            val amount: String
-    ) : IrohaCommand() {
-    }
+        val accountId: String,
+        val assetId: String,
+        val amount: String
+    ) : IrohaCommand()
+
+    /**
+     * Class represents createAccount Iroha command
+     * @param accountName - name for account
+     * @param domainId - target domain id
+     * @param mainPubkey - ed25519 public key to add to the account
+     */
+    data class CommandCreateAccount(
+        val accountName: String,
+        val domainId: String,
+        val mainPubkey: String
+    ) : IrohaCommand()
 
     /**
      * Class represents setAccountDetail Iroha command
@@ -27,9 +38,9 @@ sealed class IrohaCommand {
      * @param value detail value
      */
     data class CommandSetAccountDetail(
-            val accountId: String,
-            val key: String,
-            val value: String
+        val accountId: String,
+        val key: String,
+        val value: String
     ) : IrohaCommand()
 
     /**
@@ -39,9 +50,9 @@ sealed class IrohaCommand {
      * @param precision - asset precision
      */
     data class CommandCreateAsset(
-            val assetName: String,
-            val domainId: String,
-            val precision: Short
+        val assetName: String,
+        val domainId: String,
+        val precision: Short
     ) : IrohaCommand()
 
     /**
@@ -53,11 +64,11 @@ sealed class IrohaCommand {
      * @param amount - amount of asset to transfer
      */
     data class CommandTransferAsset(
-            val srcAccountId: String,
-            val destAccountId: String,
-            val assetId: String,
-            val description: String,
-            val amount: String
+        val srcAccountId: String,
+        val destAccountId: String,
+        val assetId: String,
+        val description: String,
+        val amount: String
     ) : IrohaCommand()
 
     /**
@@ -66,8 +77,8 @@ sealed class IrohaCommand {
      * @param publicKey public key of signatory
      */
     data class CommandAddSignatory(
-            val accountId: String,
-            val publicKey: String
+        val accountId: String,
+        val publicKey: String
     ) : IrohaCommand()
 
     /**
@@ -76,8 +87,8 @@ sealed class IrohaCommand {
      * @param peerKey peer's key
      */
     data class CommandAddPeer(
-            val address: String,
-            val peerKey: ByteArray
+        val address: String,
+        val peerKey: ByteArray
     ) : IrohaCommand() {
 
         override fun equals(other: Any?): Boolean {
@@ -86,7 +97,7 @@ sealed class IrohaCommand {
         }
 
         override fun hashCode(): Int =
-                Arrays.hashCode(address.toByteArray() + peerKey)
+            Arrays.hashCode(address.toByteArray() + peerKey)
 
 
         companion object {

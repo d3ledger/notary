@@ -27,6 +27,12 @@ class IrohaConverterImpl {
 
             for (cmd in transaction.commands) {
                 when (cmd) {
+                    is IrohaCommand.CommandCreateAccount ->
+                        txBuilder = txBuilder.createAccount(
+                            cmd.accountName,
+                            cmd.domainId,
+                            PublicKey(cmd.mainPubkey)
+                        )
                     is IrohaCommand.CommandAddAssetQuantity ->
                         txBuilder = txBuilder.addAssetQuantity(
                             cmd.accountId,
