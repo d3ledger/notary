@@ -39,6 +39,15 @@ class ConfigKeys {
         val ethConnectionUrl = Key("ethConnectionUrl", stringType)
         /** URL of refund for ETH side chain */
         val ethEndpoint = Key("ethEndpoint", stringType)
+        /** Path to Ethereum credentials */
+        val ethCredentialPath = Key("ethCredentialPath", stringType)
+        /** Password for Ethereum credentials */
+        val ethCredentialPassword = Key("ethCredentialPassword", stringType)
+        /** Gas price for relay smart contract deployment */
+        val ethGasPrice = Key("ethGasPrice", longType)
+        /** Gas limit for relay smart contract deployment */
+        val ethGasLimit = Key("ethGasLimit", longType)
+
 
         // --------- Database ----------
         /** url of notary db instance */
