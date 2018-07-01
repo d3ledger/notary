@@ -15,7 +15,7 @@ query_builder = iroha.ModelQueryBuilder()
 crypto = iroha.ModelCrypto()
 
 admin_priv = open("../admin@test.priv", "r").read()
-admin_pub = open("../admin@notary.pub", "r").read()
+admin_pub = open("../admin@test.pub", "r").read()
 key_pair = crypto.convertFromExisting(admin_pub, admin_priv)
 
 user1_kp = crypto.generateKeypair()

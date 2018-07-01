@@ -21,7 +21,7 @@ var queryBuilder = new iroha.ModelQueryBuilder()
 var crypto = new iroha.ModelCrypto()
 var fs = require('fs')
 var adminPriv = fs.readFileSync('../admin@test.priv').toString()
-var adminPub = fs.readFileSync('../admin@notary.pub').toString()
+var adminPub = fs.readFileSync('../admin@test.pub').toString()
 
 var keys = crypto.convertFromExisting(adminPub, adminPriv)
 
