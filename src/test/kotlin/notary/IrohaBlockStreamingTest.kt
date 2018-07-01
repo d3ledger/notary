@@ -14,8 +14,7 @@ import java.math.BigInteger
 import java.util.concurrent.TimeUnit
 
 
-
-class IrohaBlockEmitterTest {
+class IrohaBlockStreamingTest {
     @Disabled
     @Test
     fun irohaStreamingTest() {

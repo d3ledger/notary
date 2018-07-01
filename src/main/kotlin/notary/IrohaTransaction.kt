@@ -11,29 +11,26 @@ data class IrohaTransaction(
 ) {
     companion object {
         /**
-         * This implementation takes only AddPeer commands !!
+         * This implementation takes only few commands !!
          * TODO x3medima17, implement all commands
-         *
          */
         fun fromProto(bytes: ByteArray): IrohaTransaction {
             val tx = iroha.protocol.BlockOuterClass.Transaction.parseFrom(bytes)
             val cmds = tx.payload.commandsList
-                .filter { it.hasAddPeer() }
                 .map {
-                    if (it.hasAddPeer())
-                        IrohaCommand.CommandAddPeer.fromProto(it.toByteArray())
-                    else if (it.hasSetAccountDetail())
-                        IrohaCommand.CommandSetAccountDetail.fromProto(it.toByteArray())
-                    else {
-                        throw NotImplementedError("Unknown command")
-                        IrohaCommand.CommandSetAccountDetail.fromProto(it.toByteArray())
+                    when {
+                        it.hasAddPeer() ->
+                            IrohaCommand.CommandAddPeer.fromProto(it.toByteArray())
+                        it.hasSetAccountDetail() ->
+                            IrohaCommand.CommandSetAccountDetail.fromProto(it.toByteArray())
+                        else -> null
                     }
-
                 }
-
+                .filterNotNull()
 
             val creator = tx.payload.creatorAccountId
             return IrohaTransaction(creator, cmds)
         }
     }
 }
+
