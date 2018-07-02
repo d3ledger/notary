@@ -3,7 +3,7 @@ package integration
 import contract.BasicCoin
 import contract.Master
 import contract.Relay
-import main.CONFIG
+import notary.CONFIG
 import main.ConfigKeys
 import org.web3j.crypto.WalletUtils
 import org.web3j.protocol.Web3j

@@ -57,19 +57,6 @@ class IntegrationTest {
     /** Iroha transaction creator */
     val creator = CONFIG[ConfigKeys.irohaCreator]
 
-    /** web3 service instance to communicate with Ethereum network */
-    private val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.ethConnectionUrl]))
-
-    /** credentials of ethereum user */
-    private val credentials =
-        WalletUtils.loadCredentials("user", "deploy/ethereum/keys/user.key")
-
-    /** Gas price */
-    private val gasPrice = BigInteger.ONE
-
-    /** Max gas limit */
-    private val gasLimit = BigInteger.valueOf(999999)
-
     /** Ethereum address to transfer from */
     private val fromAddress = "0x004ec07d2329997267Ec62b4166639513386F32E"
 
