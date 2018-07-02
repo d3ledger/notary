@@ -7,7 +7,7 @@ import mu.KLogging
 import notary.CONFIG
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaKeyLoader
+import sidechain.iroha.util.ModelUtil
 
 /**
  * Initialisation of Registration Service
@@ -32,7 +32,7 @@ class RegistrationServiceInitialization {
      */
     private fun initIrohaConsumer(): Result<IrohaConsumer, Exception> {
         logger.info { "Init Iroha consumer" }
-        return IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath])
+        return ModelUtil.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath])
             .map {
                 IrohaConsumerImpl(it)
             }

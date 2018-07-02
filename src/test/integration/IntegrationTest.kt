@@ -13,11 +13,12 @@ import iroha.protocol.Queries.Query
 import iroha.protocol.QueryServiceGrpc
 import jp.co.soramitsu.iroha.*
 import kotlinx.coroutines.experimental.async
-import notary.CONFIG
 import main.ConfigKeys
+import notary.CONFIG
+import notary.main
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import notary.main
 import org.junit.jupiter.api.fail
 import org.web3j.crypto.RawTransaction
 import org.web3j.crypto.TransactionEncoder
@@ -27,9 +28,8 @@ import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.http.HttpService
 import org.web3j.utils.Numeric
 import sidechain.iroha.IrohaInitialization
-import sidechain.iroha.consumer.IrohaKeyLoader
+import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.toByteArray
-import org.junit.jupiter.api.Assertions.assertEquals
 import java.math.BigInteger
 
 
@@ -48,7 +48,7 @@ class IntegrationTest {
 
     /** Iroha keypair */
     val keypair: Keypair =
-        IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath]).get()
+        ModelUtil.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath]).get()
 
     /** Iroha host */
     val irohaHost = CONFIG[ConfigKeys.irohaHostname]

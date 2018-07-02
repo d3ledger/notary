@@ -18,12 +18,10 @@ import sidechain.eth.EthChainHandler
 import sidechain.eth.EthChainListener
 import sidechain.iroha.IrohaChainHandler
 import sidechain.iroha.IrohaChainListener
-import sidechain.iroha.consumer.IrohaConsumer
-import sidechain.iroha.consumer.IrohaConverterImpl
-import sidechain.iroha.consumer.IrohaKeyLoader
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.consumer.IrohaConsumerImpl
-
+import sidechain.iroha.consumer.IrohaConverterImpl
+import sidechain.iroha.consumer.IrohaNetworkImpl
+import sidechain.iroha.util.ModelUtil
 
 
 /**
@@ -97,7 +95,7 @@ class NotaryInitialization(
      */
     private fun initIrohaConsumer(notary: Notary): Result<Unit, Exception> {
         logger.info { "Init Iroha consumer" }
-        return IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath])
+        return ModelUtil.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath])
             .map {
                 val irohaConsumer = IrohaConsumerImpl(it)
 
@@ -127,7 +125,7 @@ class NotaryInitialization(
      */
     private fun initRefund() {
         logger.info { "Init Refund endpoint" }
-        val keys = IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath])
+        val keys = ModelUtil.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath])
         RefundServerEndpoint(
             ServerInitializationBundle(CONFIG[ConfigKeys.refundPort], CONFIG[ConfigKeys.ethEndpoint]),
             EthRefundStrategyImpl(keys.get())
