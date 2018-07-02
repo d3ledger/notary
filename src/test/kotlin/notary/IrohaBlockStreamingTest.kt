@@ -9,7 +9,13 @@ import kotlinx.coroutines.experimental.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import sidechain.iroha.util.*
+import sidechain.iroha.util.ModelUtil.getCommandStub
+import sidechain.iroha.util.ModelUtil.getCurrentTime
+import sidechain.iroha.util.ModelUtil.getKeys
+import sidechain.iroha.util.ModelUtil.getModelTransactionBuilder
+import sidechain.iroha.util.ModelUtil.getQueryStub
+import sidechain.iroha.util.ModelUtil.prepareBlocksQuery
+import sidechain.iroha.util.ModelUtil.prepareTransaction
 import java.math.BigInteger
 import java.util.concurrent.TimeUnit
 
