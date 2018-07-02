@@ -8,6 +8,7 @@ import endpoint.RefundServerEndpoint
 import endpoint.ServerInitializationBundle
 import endpoint.eth.EthRefundStrategyImpl
 import io.reactivex.Observable
+import jp.co.soramitsu.iroha.Hash
 import main.ConfigKeys
 import mu.KLogging
 import org.web3j.protocol.Web3j
@@ -100,16 +101,20 @@ class NotaryInitialization(
             .map {
                 val irohaConsumer = IrohaConsumerImpl(it)
 
+                lateinit var hash: Hash
                 // Init Iroha Consumer pipeline
                 notary.irohaOutput()
                     // convert from Notary model to Iroha model
                     // TODO rework Iroha batch transaction
                     .flatMapIterable { IrohaConverterImpl().convert(it) }
                     // convert from Iroha model to Protobuf representation
-                    .map { irohaConsumer.convertToProto(it) }
+                    .map {
+                        hash = it.hash()
+                        irohaConsumer.convertToProto(it)
+                    }
                     .subscribe(
                         // send to Iroha network layer
-                        { IrohaNetworkImpl().send(it) },
+                        { IrohaNetworkImpl().sendAndCheck(it, hash) },
                         // on error
                         { logger.error { it } }
                     )
