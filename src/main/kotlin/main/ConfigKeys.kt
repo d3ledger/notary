@@ -13,6 +13,22 @@ class ConfigKeys {
         /** Port for refund REST API */
         val refundPort = Key("refundPort", intType)
 
+        // --------- Notary ---------
+        /** Notary account in Iroha */
+        val notaryIrohaAccount = Key("notaryIrohaAccount", stringType)
+        /** Path to public key of Iroha transactions creator */
+        val notaryPubkeyPath = Key("notaryPubkeyPath", stringType)
+        /** Path to private key of Iroha transactions creator */
+        val notaryPrivkeyPath = Key("notaryPrivkeyPath", stringType)
+
+        // --------- Test ---------
+        /** Notary account in Iroha */
+        val testIrohaAccount = Key("testIrohaAccount", stringType)
+        /** Path to public key of Iroha transactions creator */
+        val testPubkeyPath = Key("testPubkeyPath", stringType)
+        /** Path to private key of Iroha transactions creator */
+        val testPrivkeyPath = Key("testPrivkeyPath", stringType)
+
         // --------- Iroha ---------
         /** Path to public key of Iroha transactions creator */
         val pubkeyPath = Key("pubkeyPath", stringType)

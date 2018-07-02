@@ -46,10 +46,6 @@ class IntegrationTest {
             }
     }
 
-    /** Iroha keypair */
-    val keypair: Keypair =
-        IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath]).get()
-
     /** Iroha host */
     val irohaHost = CONFIG[ConfigKeys.irohaHostname]
 
@@ -57,7 +53,11 @@ class IntegrationTest {
     val irohaPort = CONFIG[ConfigKeys.irohaPort]
 
     /** Iroha transaction creator */
-    val creator = CONFIG[ConfigKeys.irohaCreator]
+    val creator = CONFIG[ConfigKeys.testIrohaAccount]
+
+    /** Iroha keypair */
+    val keypair: Keypair =
+        IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.testPubkeyPath], CONFIG[ConfigKeys.testPrivkeyPath]).get()
 
     /** web3 service instance to communicate with Ethereum network */
     private val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.ethConnectionUrl]))
@@ -310,17 +310,16 @@ class IntegrationTest {
             main(arrayOf())
         }
 
-        val masterAccount = "user1@notary"
-        val user = "admin@notary"
+        val masterAccount = CONFIG[ConfigKeys.notaryIrohaAccount]
         val amount = "64203"
         val assetId = "ether#ethereum"
         val ethWallet = "eth_wallet"
 
-        // add assets to user1@notary
-        addAssetIroha(user, assetId, amount)
+        // add assets to user
+        addAssetIroha(creator, assetId, amount)
 
-        // transfer assets from user1@notary to admin@notary
-        val hash = transferAssetIroha(user, masterAccount, assetId, amount, ethWallet)
+        // transfer assets from user to notary master account
+        val hash = transferAssetIroha(creator, masterAccount, assetId, amount, ethWallet)
 
         // query
         Thread.sleep(4_000)

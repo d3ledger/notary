@@ -43,7 +43,7 @@ class EthRefundStrategyImpl(private val keypair: Keypair) : EthRefundStrategy {
             val hashes = HashVector()
             hashes.add(Hash.fromHexString(request.irohaTx))
 
-            val uquery = ModelQueryBuilder().creatorAccountId(CONFIG[ConfigKeys.irohaCreator])
+            val uquery = ModelQueryBuilder().creatorAccountId(CONFIG[ConfigKeys.notaryIrohaAccount])
                 .queryCounter(BigInteger.valueOf(1))
                 .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
                 .getTransactions(hashes)
@@ -62,6 +62,9 @@ class EthRefundStrategyImpl(private val keypair: Keypair) : EthRefundStrategy {
             if (!queryResponse.hasField(fieldDescriptor)) {
                 throw NotaryException("Query response error ${queryResponse.errorResponse}")
             }
+
+            if (queryResponse.transactionsResponse.transactionsCount == 0)
+                throw Exception("Withdrawal service. Transaction ${request.irohaTx} not found.")
 
             // return transaction
             queryResponse.transactionsResponse.transactionsList[0]
@@ -105,7 +108,7 @@ class EthRefundStrategyImpl(private val keypair: Keypair) : EthRefundStrategy {
                 (appearedTx.payload.commandsCount == 1) &&
                         commands.hasTransferAsset() -> {
                     val destAccount = commands.transferAsset.destAccountId
-                    if (destAccount != CONFIG[ConfigKeys.irohaMaster])
+                    if (destAccount != CONFIG[ConfigKeys.notaryIrohaAccount])
                         throw NotaryException("Refund - check transaction. Destination account is wrong '$destAccount'")
 
                     val amount = commands.transferAsset.amount.value.toBigInteger()

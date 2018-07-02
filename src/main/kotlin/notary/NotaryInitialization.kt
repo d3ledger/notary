@@ -95,7 +95,7 @@ class NotaryInitialization(
      */
     private fun initIrohaConsumer(notary: Notary): Result<Unit, Exception> {
         logger.info { "Init Iroha consumer" }
-        return IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath])
+        return IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.notaryPubkeyPath], CONFIG[ConfigKeys.notaryPrivkeyPath])
             .map {
                 val irohaConsumer = IrohaConsumerImpl(it)
 
@@ -125,7 +125,7 @@ class NotaryInitialization(
      */
     private fun initRefund() {
         logger.info { "Init Refund endpoint" }
-        val keys = IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath])
+        val keys = IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.notaryPubkeyPath], CONFIG[ConfigKeys.notaryPrivkeyPath])
         RefundServerEndpoint(
             ServerInitializationBundle(CONFIG[ConfigKeys.refundPort], CONFIG[ConfigKeys.ethEndpoint]),
             EthRefundStrategyImpl(keys.get())
