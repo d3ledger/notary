@@ -49,7 +49,7 @@ contract Relay {
     /**
      * Sends ether and all tokens from this contract to master
      */
-    function sendAllToMaster() private {
+    function sendAllToMaster() public {
         master_.transfer(address(this).balance);
         // loop through all token addresses and transfer all tokens to master address
         for (uint i = 0; i < tokens_.length; ++i) {

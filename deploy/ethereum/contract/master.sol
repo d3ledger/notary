@@ -37,14 +37,14 @@ contract Master {
     function() public payable { }
 
     /**
-     * Performs verification of a single signature
+     * Recovers address from a given single signature
      * @param hash unsigned data
      * @param v v-component of signature from hash
      * @param r r-component of signature from hash
      * @param s s-component of signature from hash
      * @return address recovered from signature
      */
-    function verify(bytes32 hash, uint8 v, bytes32 r, bytes32 s) private returns(address) {
+    function recoverAddress(bytes32 hash, uint8 v, bytes32 r, bytes32 s) private returns(address) {
         emit bytes_event(hash);
         bytes32 simple_hash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
         emit bytes_event(simple_hash);
@@ -60,6 +60,7 @@ contract Master {
      */
     function addPeer(address new_address) public {
         if (msg.sender == owner_) {
+            require(peers_[new_address] == false);
             peers_[new_address] = true;
             ++peers_count_;
             emit number_event(peers_count_);
@@ -112,11 +113,7 @@ contract Master {
 
         address[] memory recovered_addresses = new address[](s.length);
         for (uint i = 0; i < s.length; ++i) {
-            if (coin_address == 0) {
-                recovered_addresses[i] = verify(keccak256(abi.encodePacked(amount, to, tx_hash)), v[i], r[i], s[i]);
-            } else {
-                recovered_addresses[i] = verify(keccak256(abi.encodePacked(coin_address, amount, to, tx_hash)), v[i], r[i], s[i]);
-            }
+            recovered_addresses[i] = recoverAddress(keccak256(abi.encodePacked(coin_address, amount, to, tx_hash)), v[i], r[i], s[i]);
             // recovered address should be in peers_
             assert(peers_[recovered_addresses[i]] == true);
         }
