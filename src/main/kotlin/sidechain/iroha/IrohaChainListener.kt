@@ -1,19 +1,13 @@
 package sidechain.iroha
 
 import com.github.kittinunf.result.Result
-import io.grpc.ManagedChannelBuilder
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.toObservable
 import io.reactivex.schedulers.Schedulers
-import iroha.protocol.Responses
 import jp.co.soramitsu.iroha.ModelBlocksQueryBuilder
 import mu.KLogging
 import sidechain.ChainListener
-import sidechain.iroha.util.getCurrentTime
-import sidechain.iroha.util.getKeys
-import sidechain.iroha.util.getQueryStub
-import sidechain.iroha.util.prepareBlocksQuery
-import java.io.File
+import sidechain.iroha.util.ModelUtil
 import java.math.BigInteger
 import java.util.concurrent.Executors
 
@@ -22,15 +16,15 @@ import java.util.concurrent.Executors
  */
 class IrohaChainListener : ChainListener<iroha.protocol.BlockOuterClass.Block> {
     val admin = "admin@notary"
-    val keypair = getKeys("deploy/iroha/keys", admin)
+    val keypair = ModelUtil.getKeys("deploy/iroha/keys", admin)
     val uquery = ModelBlocksQueryBuilder()
         .creatorAccountId(admin)
-        .createdTime(getCurrentTime())
+        .createdTime(ModelUtil.getCurrentTime())
         .queryCounter(BigInteger.valueOf(1))
         .build()
 
-    val query = prepareBlocksQuery(uquery, keypair)
-    val stub = getQueryStub()
+    val query = ModelUtil.prepareBlocksQuery(uquery, keypair)
+    val stub = ModelUtil.getQueryStub()
 
     /**
      * Returns an observable that emits a new block every time it gets it from Iroha
