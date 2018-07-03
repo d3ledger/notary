@@ -30,6 +30,9 @@ class EthFreeWalletsProvider(
     /** Creator of txs in Iroha  */
     val creator = CONFIG[ConfigKeys.irohaCreator]
 
+    /** Registration service account is needed to get free relay */
+    val registrationServiceAccount = CONFIG[ConfigKeys.irohaCreator]
+
     /** Iroha query counter */
     var queryCounter: Long = 1
 
@@ -71,9 +74,9 @@ class EthFreeWalletsProvider(
         val stringBuilder = StringBuilder(account.jsonData)
         val json: JsonObject = Parser().parse(stringBuilder) as JsonObject
 
-        if (json.map[master] == null)
-            throw Exception("There is no attributes set by $master")
-        val myMap: Map<String, String> = json.map[master] as Map<String, String>
+        if (json.map[registrationServiceAccount] == null)
+            throw Exception("There is no attributes set by $registrationServiceAccount")
+        val myMap: Map<String, String> = json.map[registrationServiceAccount] as Map<String, String>
         val res = myMap.filterValues { it == "free" }.keys
 
         return res.first()
