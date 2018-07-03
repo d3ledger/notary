@@ -17,20 +17,31 @@ import java.math.BigInteger
 
 /**
  * Provides with free ethereum relay wallet
+ * @param keypair - iroha keypair
+ * @param master - Master notary account in Iroha to write down the information about free relay wallets has been added
  */
-class EthFreeWalletsProvider(val keypair: Keypair) {
+// TODO Prevent double relay accounts usage (in perfect world it is on Iroha side with custom code). In real world
+// on provider side with some synchronization.
+class EthFreeWalletsProvider(
+    val keypair: Keypair,
+    val master: String = CONFIG[ConfigKeys.irohaMaster]
+) {
+
+    /** Creator of txs in Iroha  */
+    val creator = CONFIG[ConfigKeys.irohaCreator]
+
+    /** Iroha query counter */
+    var queryCounter: Long = 1
+
+    val channel = ManagedChannelBuilder.forAddress(CONFIG[ConfigKeys.irohaHostname], CONFIG[ConfigKeys.irohaPort])
+        .usePlaintext(true).build()
 
     fun getWallet(): String {
-        val creator = CONFIG[ConfigKeys.irohaCreator]
-        val startQueryCounter: Long = 1
         val currentTime = System.currentTimeMillis()
-        val channel = ManagedChannelBuilder.forAddress(CONFIG[ConfigKeys.irohaHostname], CONFIG[ConfigKeys.irohaPort])
-            .usePlaintext(true).build()
-        val master = CONFIG[ConfigKeys.irohaMaster]
 
         // query result of transaction we've just sent
         val uquery = ModelQueryBuilder().creatorAccountId(creator)
-            .queryCounter(BigInteger.valueOf(startQueryCounter))
+            .queryCounter(BigInteger.valueOf(queryCounter))
             .createdTime(BigInteger.valueOf(currentTime))
             .getAccount(master)
             .build()
@@ -45,9 +56,9 @@ class EthFreeWalletsProvider(val keypair: Keypair) {
             throw Exception("Exception while converting byte array to protobuf: ${e.message}")
         }
 
-
         val queryStub = QueryServiceGrpc.newBlockingStub(channel)
         val queryResponse = queryStub.find(protoQuery)
+        queryCounter++
 
         val fieldDescriptor = queryResponse.descriptorForType.findFieldByName("account_response")
         if (!queryResponse.hasField(fieldDescriptor)) {
@@ -56,11 +67,12 @@ class EthFreeWalletsProvider(val keypair: Keypair) {
         }
 
         val account = queryResponse.accountResponse.account
-        println("account data ${account.jsonData}")
 
         val stringBuilder = StringBuilder(account.jsonData)
         val json: JsonObject = Parser().parse(stringBuilder) as JsonObject
 
+        if (json.map[master] == null)
+            throw Exception("There is no attributes set by $master")
         val myMap: Map<String, String> = json.map[master] as Map<String, String>
         val res = myMap.filterValues { it == "free" }.keys
 
