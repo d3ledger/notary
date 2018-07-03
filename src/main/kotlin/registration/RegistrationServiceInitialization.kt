@@ -3,9 +3,7 @@ package registration
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import main.ConfigKeys
-import mu.KLogging
 import notary.CONFIG
-import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 
@@ -19,41 +17,14 @@ class RegistrationServiceInitialization {
      */
     fun init(): Result<Unit, Exception> {
         return Result.of {
-            // init iroha listener
-            initIrohaConsumer()
-                .map { initRegistrationStrategy(it) }
-                .map { initHttpEndpoint(it) }
+            ModelUtil.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath])
+                .map { Pair(EthFreeWalletsProvider(it), IrohaConsumerImpl(it)) }
+                .map { (ethFreeWalletsProvider, irohaConsumer) ->
+                    RegistrationStrategyImpl(ethFreeWalletsProvider, irohaConsumer)
+                }
+                .map { RegistrationServiceEndpoint(CONFIG[ConfigKeys.registrationPort], it) }
             Unit
         }
     }
 
-    /**
-     * Initialize Iroha consumer to write to chain
-     */
-    private fun initIrohaConsumer(): Result<IrohaConsumer, Exception> {
-        logger.info { "Init Iroha consumer" }
-        return ModelUtil.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath])
-            .map {
-                IrohaConsumerImpl(it)
-            }
-    }
-
-    /**
-     * Initialize registration strategy in Iroha chain
-     */
-    private fun initRegistrationStrategy(irohaConsumer: IrohaConsumer): RegistrationStrategy {
-        return RegistrationStrategyImpl(EthFreeWalletsProvider(), irohaConsumer)
-    }
-
-    /**
-     * Init Registration Service endpoint
-     */
-    private fun initHttpEndpoint(strategy: RegistrationStrategy) {
-        RegistrationServiceEndpoint(CONFIG[ConfigKeys.registrationPort], strategy)
-    }
-
-    /**
-     * Logger
-     */
-    companion object : KLogging()
 }

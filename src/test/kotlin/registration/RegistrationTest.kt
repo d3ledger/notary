@@ -19,7 +19,7 @@ open class RegistrationTest {
     private val correctName = "green"
 
     /** Correct user public key */
-    private val correctPubkey = "12345678901234567890123456789012"
+    private val correctPubkey = "0f0ce16d2afbb8eca23c7d8c2724f0c257a800ee2bbd54688cec6b898e3f7e33"
 
     /** Registration strategy that always returns true */
     private val strategy: RegistrationStrategy = mock {

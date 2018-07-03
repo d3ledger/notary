@@ -17,7 +17,7 @@ sleep 5
 
 docker volume create d3ledger-blockstore
 
-docker pull hyperledger/iroha:x86_64-develop
+docker pull hyperledger/iroha:develop
 
 docker run -d --name d3ledger-iroha \
 -p 50051:50051 \
@@ -25,4 +25,4 @@ docker run -d --name d3ledger-iroha \
 -v d3ledger-blockstore:/tmp/block_store \
 --network=d3ledger-iroha-network \
 --entrypoint="" \
-hyperledger/iroha:x86_64-develop bash -c "irohad --config config.docker --genesis_block genesis.block --keypair_name keys/node0 --overwrite_ledger"
+hyperledger/iroha:develop bash -c "irohad --config config.docker --genesis_block genesis.block --keypair_name keys/node0 --overwrite_ledger"
