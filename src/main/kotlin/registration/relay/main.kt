@@ -1,3 +1,5 @@
+@file:JvmName("DeployRelay")
+
 package registration.relay
 
 import com.github.kittinunf.result.failure
