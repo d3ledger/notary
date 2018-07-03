@@ -138,13 +138,14 @@ class RelayRegistration(
      * @param num - number of wallets to deploy
      */
     fun deploy(num: Int, master: String): Result<Unit, Exception> {
-        val tokens = ethTokensProvider.getTokens()
-        return tokens.map { token ->
-            (1..num).forEach {
-                val relayWallet = deployRelaySmartContract(master, token.keys.toList())
-                sendRelayToIroha(relayWallet)
+        return ethTokensProvider
+            .getTokens()
+            .map { token ->
+                (1..num).forEach {
+                    val relayWallet = deployRelaySmartContract(master, token.keys.toList())
+                    sendRelayToIroha(relayWallet)
+                }
             }
-        }
     }
 
     /**
