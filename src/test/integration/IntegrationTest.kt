@@ -11,13 +11,17 @@ import iroha.protocol.BlockOuterClass
 import iroha.protocol.CommandServiceGrpc
 import iroha.protocol.Queries.Query
 import iroha.protocol.QueryServiceGrpc
-import jp.co.soramitsu.iroha.*
+import jp.co.soramitsu.iroha.ModelProtoQuery
+import jp.co.soramitsu.iroha.ModelProtoTransaction
+import jp.co.soramitsu.iroha.ModelQueryBuilder
+import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import kotlinx.coroutines.experimental.async
-import notary.CONFIG
 import main.ConfigKeys
+import notary.CONFIG
+import notary.main
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import notary.main
 import org.junit.jupiter.api.fail
 import org.web3j.crypto.RawTransaction
 import org.web3j.crypto.TransactionEncoder
@@ -29,7 +33,6 @@ import org.web3j.utils.Numeric
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaKeyLoader
 import sidechain.iroha.util.toByteArray
-import org.junit.jupiter.api.Assertions.assertEquals
 import java.math.BigInteger
 
 
@@ -56,7 +59,7 @@ class IntegrationTest {
     val creator = CONFIG[ConfigKeys.testIrohaAccount]
 
     /** Iroha keypair */
-    val keypair: Keypair =
+    val keypair =
         IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.testPubkeyPath], CONFIG[ConfigKeys.testPrivkeyPath]).get()
 
     /** web3 service instance to communicate with Ethereum network */
