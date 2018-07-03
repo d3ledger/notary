@@ -144,7 +144,6 @@ class RelayRegistration(
                 val relayWallet = deployRelaySmartContract(master, token.keys.toList())
                 sendRelayToIroha(relayWallet)
             }
-            Unit
         }
     }
 
