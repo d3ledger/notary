@@ -1,3 +1,5 @@
+@file:JvmName("Registration")
+
 package registration
 
 import com.github.kittinunf.result.failure

@@ -20,6 +20,7 @@ apply plugin: 'java'
 apply plugin: 'kotlin'
 apply plugin: 'com.google.protobuf'
 apply plugin: 'nu.studer.jooq'
+apply plugin: 'application'
 
 sourceCompatibility = 1.8
 
@@ -154,6 +155,10 @@ test {
     environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
 }
 
+run {
+    systemProperty "java.library.path", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
+}
+
 protobuf {
     protoc {
         artifact = "com.google.protobuf:protoc:3.5.0"
@@ -279,3 +284,11 @@ jooq {
 generateNotaryJooqSchemaSource.enabled = false
 
 // -------------------------| End jOOQ db schema generation |-------------------------
+
+task runRegistration(type: JavaExec) {
+    main ='registration.Registration'
+    classpath = sourceSets.main.runtimeClasspath
+
+    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
+    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
+}
