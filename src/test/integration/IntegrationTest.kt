@@ -15,7 +15,9 @@ import jp.co.soramitsu.iroha.*
 import kotlinx.coroutines.experimental.async
 import main.ConfigKeys
 import notary.CONFIG
+import notary.db.tables.Tokens
 import notary.main
+import org.jooq.impl.DSL
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -29,6 +31,7 @@ import sidechain.iroha.consumer.IrohaKeyLoader
 import sidechain.iroha.util.toBigInteger
 import sidechain.iroha.util.toByteArray
 import java.math.BigInteger
+import java.sql.DriverManager
 
 
 /**
@@ -189,6 +192,28 @@ class IntegrationTest {
     }
 
     /**
+     * Insert token into database
+     * @param wallet - ethereum token wallet
+     * @param token - token name
+     */
+    fun insertToken(wallet: String, token: String) {
+        val connection = DriverManager.getConnection(
+            CONFIG[ConfigKeys.dbUrl],
+            CONFIG[ConfigKeys.dbUsername],
+            CONFIG[ConfigKeys.dbPassword]
+        )
+
+        DSL.using(connection).use { ctx ->
+            val tokens = Tokens.TOKENS
+
+            // read
+            ctx.insertInto(tokens, tokens.WALLET, tokens.TOKEN)
+                .values(wallet, token)
+                .execute()
+        }
+    }
+
+    /**
      * Test US-001 Deposit of ETH
      * Note: Ethereum and Iroha must be deployed to pass the test.
      * @given Ethereum and Iroha networks running and two ethereum wallets and "fromAddress" with at least 0.001 Ether
@@ -220,12 +245,54 @@ class IntegrationTest {
         sendEthereum(amount)
         Thread.sleep(20_000)
 
-        println(queryIroha(assetId))
         assertEquals(amount, queryIroha(assetId))
     }
 
     /**
-     * Test US withdraw Ethereum.
+     * Test US-002 Deposit of ETH
+     * Note: Ethereum and Iroha must be deployed to pass the test.
+     * @given Ethereum and Iroha networks running and two ethereum wallets and "fromAddress" with at least 51 coin
+     * (51 coin) and notary running
+     * @when "fromAddress" transfers 51 coin to "toAddress"
+     * @then Associated Iroha account balance is increased on 51 coin
+     */
+    @Disabled
+    @Test
+    fun depositOfERC20() {
+        val asset = "coin"
+        val assetId = "$asset#ethereum"
+        val amount = BigInteger.valueOf(51)
+
+        // ensure that initial wallet value is 0
+        assertEquals(BigInteger.ZERO, queryIroha(assetId))
+
+        // Deploy ERC20 smart contract
+        val contract = DeployHelper().deployBasicCoinSmartContract()
+        val contractAddress = contract.contractAddress
+        insertToken(contractAddress, asset)
+
+        // run notary
+        async {
+            main(arrayOf())
+        }
+        Thread.sleep(3_000)
+
+
+        // send ETH
+        contract.transfer(toAddress, amount).send()
+        assertEquals(amount, contract.balanceOf(toAddress).send())
+        Thread.sleep(5_000)
+
+
+        // Send again any transaction to commit in Ethereum network
+        contract.transfer(toAddress, amount).send()
+        Thread.sleep(20_000)
+
+        assertEquals(amount, queryIroha(assetId))
+    }
+
+    /**
+     * Test US-003 Withdrawal of ETH token
      * Note: Iroha must be deployed to pass the test.
      * @given Iroha networks running and user has sent 64203 Wei to master
      * @when withdrawal service queries notary
@@ -272,5 +339,5 @@ class IntegrationTest {
 
         assertEquals("mockSignature", response.ethSignature)
     }
-
+    // 0f0ce16d2afbb8eca23c7d8c2724f0c257a800ee2bbd54688cec6b898e3f7e33
 }
