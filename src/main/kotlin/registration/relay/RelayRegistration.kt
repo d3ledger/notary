@@ -69,7 +69,7 @@ class RelayRegistration(
      */
     private fun deployRelaySmartContract(master: String, tokens: List<String>): String {
         val contract =
-            contract.User.deploy(
+            contract.Relay.deploy(
                 web3,
                 credentials,
                 gasPrice,
