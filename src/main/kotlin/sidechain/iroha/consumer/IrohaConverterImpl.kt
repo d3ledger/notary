@@ -31,7 +31,7 @@ class IrohaConverterImpl {
                         txBuilder = txBuilder.createAccount(
                             cmd.accountName,
                             cmd.domainId,
-                            PublicKey(cmd.mainPubkey)
+                            PublicKey(PublicKey.fromHexString(cmd.mainPubkey))
                         )
                     is IrohaCommand.CommandAddAssetQuantity ->
                         txBuilder = txBuilder.addAssetQuantity(
@@ -42,7 +42,7 @@ class IrohaConverterImpl {
                     is IrohaCommand.CommandAddSignatory ->
                         txBuilder = txBuilder.addSignatory(
                             cmd.accountId,
-                            PublicKey(cmd.publicKey)
+                            PublicKey(PublicKey.fromHexString(cmd.publicKey))
                         )
                     is IrohaCommand.CommandCreateAsset ->
                         txBuilder = txBuilder.createAsset(

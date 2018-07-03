@@ -11,6 +11,8 @@ import iroha.protocol.Endpoint
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelProtoTransaction
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
+import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.runBlocking
 import main.ConfigKeys
 import mu.KLogging
 import notary.EthTokensProvider
@@ -67,7 +69,7 @@ class RelayRegistration(
      */
     private fun deployRelaySmartContract(master: String, tokens: List<String>): String {
         val contract =
-            contract.User.deploy(
+            contract.Relay.deploy(
                 web3,
                 credentials,
                 gasPrice,
@@ -111,11 +113,7 @@ class RelayRegistration(
         stub.torii(protoTx)
 
         // wait to ensure transaction was processed
-        try {
-            Thread.sleep(5000)
-        } catch (ex: InterruptedException) {
-            Thread.currentThread().interrupt()
-        }
+        runBlocking { delay(5000) }
 
         // create status request
         logger.info { "Send Iroha transaction: $hash" }
@@ -140,14 +138,14 @@ class RelayRegistration(
      * @param num - number of wallets to deploy
      */
     fun deploy(num: Int, master: String): Result<Unit, Exception> {
-        val tokens = ethTokensProvider.getTokens()
-        return tokens.map {
-            for (i in 1..num) {
-                val relayWallet = deployRelaySmartContract(master, it.keys.toList())
-                sendRelayToIroha(relayWallet)
+        return ethTokensProvider
+            .getTokens()
+            .map { token ->
+                (1..num).forEach {
+                    val relayWallet = deployRelaySmartContract(master, token.keys.toList())
+                    sendRelayToIroha(relayWallet)
+                }
             }
-            Unit
-        }
     }
 
     /**
