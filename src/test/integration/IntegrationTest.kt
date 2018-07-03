@@ -13,11 +13,12 @@ import iroha.protocol.Queries.Query
 import iroha.protocol.QueryServiceGrpc
 import jp.co.soramitsu.iroha.*
 import kotlinx.coroutines.experimental.async
-import notary.CONFIG
 import main.ConfigKeys
+import notary.CONFIG
+import notary.main
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import notary.main
 import org.junit.jupiter.api.fail
 import org.web3j.crypto.RawTransaction
 import org.web3j.crypto.TransactionEncoder
@@ -25,8 +26,8 @@ import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.utils.Numeric
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaKeyLoader
+import sidechain.iroha.util.toBigInteger
 import sidechain.iroha.util.toByteArray
-import org.junit.jupiter.api.Assertions.assertEquals
 import java.math.BigInteger
 
 
@@ -148,12 +149,12 @@ class IntegrationTest {
     /**
      * Query Iroha account balance
      */
-    fun queryIroha() {
+    fun queryIroha(assetId: String): BigInteger {
         val accountId = "user1@notary"
-        val startQueryCounter: Long = 1
+        val queryCounter: Long = 1
 
         val uquery = ModelQueryBuilder().creatorAccountId(creator)
-            .queryCounter(BigInteger.valueOf(startQueryCounter))
+            .queryCounter(BigInteger.valueOf(queryCounter))
             .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
             .getAccountAssets(accountId)
             .build()
@@ -179,12 +180,16 @@ class IntegrationTest {
         val assets = queryResponse.accountAssetsResponse.accountAssetsList
         for (asset in assets) {
             println("account " + asset.accountId)
-            println("asset ${asset.assetId} - ${asset.balance}")
+            println("asset ${asset.assetId} - ${asset.balance.value.toBigInteger()}")
+            if (assetId == asset.assetId)
+                return asset.balance.value.toBigInteger()
         }
+
+        return BigInteger.ZERO
     }
 
     /**
-     * Test US transfer Ethereum.
+     * Test US-001 Deposit of ETH
      * Note: Ethereum and Iroha must be deployed to pass the test.
      * @given Ethereum and Iroha networks running and two ethereum wallets and "fromAddress" with at least 0.001 Ether
      * (1234000000000000 Wei) and notary running
@@ -193,22 +198,30 @@ class IntegrationTest {
      */
     @Disabled
     @Test
-    fun runMain() {
+    fun depositOfETH() {
+        val assetId = "ether#ethereum"
         val amount = BigInteger.valueOf(1_234_000_000_000_000)
+
+        // ensure that initial wallet value is 0
+        assertEquals(BigInteger.ZERO, queryIroha(assetId))
+
+        // run notary
         async {
             main(arrayOf())
         }
-
         Thread.sleep(3_000)
-        println("send")
+
+
+        // send ETH
         sendEthereum(amount)
         Thread.sleep(5_000)
-        println("send again")
+
+        // Send again any transaction to commit in Ethereum network
         sendEthereum(amount)
         Thread.sleep(20_000)
-        println("query")
-        queryIroha()
-        println("done")
+
+        println(queryIroha(assetId))
+        assertEquals(amount, queryIroha(assetId))
     }
 
     /**
