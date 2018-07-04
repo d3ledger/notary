@@ -50,10 +50,10 @@ class IntegrationTest {
     private val deploy_helper = DeployHelper()
 
     /** Iroha host */
-    val irohaHost = CONFIG[ConfigKeys.irohaHostname]
+    val irohaHost = CONFIG[ConfigKeys.testIrohaHostname]
 
     /** Iroha port */
-    val irohaPort = CONFIG[ConfigKeys.irohaPort]
+    val irohaPort = CONFIG[ConfigKeys.testIrohaPort]
 
     /** Iroha transaction creator */
     val creator = CONFIG[ConfigKeys.testIrohaAccount]

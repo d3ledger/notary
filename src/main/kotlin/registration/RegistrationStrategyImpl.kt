@@ -3,7 +3,6 @@ package registration
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import main.ConfigKeys
-import mu.KLogging
 import notary.CONFIG
 import notary.IrohaCommand
 import notary.IrohaTransaction
@@ -61,7 +60,10 @@ class RegistrationStrategyImpl(
             val tx = irohaConsumer.convertToProto(it)
             Pair(tx, hash)
         }.flatMap { (tx, hash) ->
-            IrohaNetworkImpl().sendAndCheck(tx, hash)
+            IrohaNetworkImpl(
+                CONFIG[ConfigKeys.registrationServiceIrohaHostname],
+                CONFIG[ConfigKeys.registrationServiceIrohaPort]
+            ).sendAndCheck(tx, hash)
         }
     }
 }

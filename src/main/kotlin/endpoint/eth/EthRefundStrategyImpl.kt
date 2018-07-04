@@ -51,8 +51,8 @@ class EthRefundStrategyImpl(private val keypair: Keypair) : EthRefundStrategy {
             val queryBlob = ModelProtoQuery(uquery).signAndAddSignature(keypair).finish().blob().toByteArray()
             val protoQuery = Queries.Query.parseFrom(queryBlob)
 
-            val irohaHost = CONFIG[ConfigKeys.irohaHostname]
-            val irohaPort = CONFIG[ConfigKeys.irohaPort]
+            val irohaHost = CONFIG[ConfigKeys.notaryIrohaHostname]
+            val irohaPort = CONFIG[ConfigKeys.notaryIrohaPort]
             val channel = ManagedChannelBuilder.forAddress(irohaHost, irohaPort).usePlaintext(true).build()
             val queryStub = QueryServiceGrpc.newBlockingStub(channel)
             val queryResponse = queryStub.find(protoQuery)
