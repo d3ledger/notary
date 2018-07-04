@@ -3,6 +3,8 @@ package endpoint
 import com.squareup.moshi.Moshi
 import endpoint.eth.*
 import io.ktor.application.call
+import io.ktor.application.install
+import io.ktor.features.CORS
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.routing
@@ -32,6 +34,7 @@ class RefundServerEndpoint(
         logger.info { "start refund server on port ${serverBundle.port}" }
 
         val server = embeddedServer(Netty, port = serverBundle.port) {
+            install(CORS)
             routing {
                 get(serverBundle.ethRefund + "/{tx_hash}") {
                     logger.info { "EthRefund invoked with parameters:${call.parameters}" }

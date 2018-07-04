@@ -1,6 +1,8 @@
 package registration
 
 import io.ktor.application.call
+import io.ktor.application.install
+import io.ktor.features.CORS
 import io.ktor.request.receiveParameters
 import io.ktor.response.respondText
 import io.ktor.routing.post
@@ -19,6 +21,7 @@ class RegistrationServiceEndpoint(
 
     init {
         val server = embeddedServer(Netty, port = port) {
+            install(CORS)
             routing {
                 post("/users") {
                     val parameters = call.receiveParameters()
