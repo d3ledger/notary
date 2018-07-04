@@ -20,7 +20,7 @@ import notary.EthTokensProviderImpl
 import org.web3j.crypto.WalletUtils
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
-import sidechain.iroha.consumer.IrohaKeyLoader
+import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.toByteArray
 import java.math.BigInteger
 
@@ -47,7 +47,7 @@ class RelayRegistration(
 
     /** Iroha keypair */
     val keypair: Keypair =
-        IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath]).get()
+        ModelUtil.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath]).get()
 
     /** Iroha host */
     val irohaHost = CONFIG[ConfigKeys.irohaHostname]

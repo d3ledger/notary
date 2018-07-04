@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import registration.EthFreeWalletsProvider
 import sidechain.iroha.IrohaInitialization
-import sidechain.iroha.consumer.IrohaKeyLoader
+import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.toByteArray
 import java.math.BigInteger
 
@@ -31,7 +31,7 @@ class EthFreeWalletsProviderTest {
 
     /** Iroha keypair */
     val keypair: Keypair =
-        IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath]).get()
+        ModelUtil.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath]).get()
 
     /** Iroha host */
     val irohaHost = CONFIG[ConfigKeys.irohaHostname]
