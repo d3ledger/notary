@@ -25,13 +25,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.web3j.crypto.RawTransaction
 import org.web3j.crypto.TransactionEncoder
-import org.web3j.crypto.WalletUtils
-import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.DefaultBlockParameterName
-import org.web3j.protocol.http.HttpService
 import org.web3j.utils.Numeric
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaKeyLoader
+import sidechain.iroha.util.toBigInteger
 import sidechain.iroha.util.toByteArray
 import java.math.BigInteger
 
@@ -76,13 +74,19 @@ class IntegrationTest {
     private fun sendEthereum(amount: BigInteger) {
         // get the next available nonce
         val ethGetTransactionCount = deploy_helper.web3.ethGetTransactionCount(
-                fromAddress, DefaultBlockParameterName.LATEST
+            fromAddress, DefaultBlockParameterName.LATEST
         ).send()
         val nonce = ethGetTransactionCount.transactionCount
 
         // create our transaction
         val rawTransaction = RawTransaction.createTransaction(
-                nonce, deploy_helper.gasPrice, deploy_helper.gasLimit, toAddress, amount, "")
+            nonce,
+            deploy_helper.gasPrice,
+            deploy_helper.gasLimit,
+            toAddress,
+            amount,
+            ""
+        )
 
         // sign & send our transaction
         val signedMessage = TransactionEncoder.signMessage(rawTransaction, deploy_helper.credentials)
@@ -177,8 +181,7 @@ class IntegrationTest {
         val queryStub = QueryServiceGrpc.newBlockingStub(channel)
         val queryResponse = queryStub.find(protoQuery)
 
-        val fieldDescriptor =
-                queryResponse.descriptorForType.findFieldByName("account_assets_response")
+        val fieldDescriptor = queryResponse.descriptorForType.findFieldByName("account_assets_response")
         if (!queryResponse.hasField(fieldDescriptor)) {
             fail { "Query response error ${queryResponse.errorResponse}" }
         }

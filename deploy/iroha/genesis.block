@@ -38,7 +38,8 @@
                         "roleName":"registrationService",
                         "permissions":[
                             "can_create_account",
-                            "can_set_detail"
+                            "can_set_detail",
+                            "can_get_domain_accounts"
                         ]
                     }
                   },
@@ -60,7 +61,7 @@
                   },
                   {
                     "createRole":{
-                        "roleName":"witness",
+                        "roleName":"tester",
                         "permissions":[
                             "can_get_all_acc_ast",
                             "can_add_asset_qty",
@@ -102,6 +103,25 @@
                   },
                   {
                      "createAccount":{
+                        "accountName":"registration_service_red",
+                        "domainId":"notary",
+                        "mainPubkey":"iJ9riB4zG+IUh9t33PMsX409XoBm540v6sQjn+kdQW8="
+                     }
+                  },
+                  {
+                     "appendRole":{
+                        "accountId":"registration_service_red@notary",
+                        "roleName":"registrationService"
+                     }
+                  },
+                  {
+                     "appendRole":{
+                        "accountId":"registration_service_red@notary",
+                        "roleName":"relayDeployer"
+                     }
+                  },
+                  {
+                     "createAccount":{
                         "accountName":"user1",
                         "domainId":"notary",
                         "mainPubkey":"3MfszkSPLhkKSBrsfKIe5S7aVG5mC0gg9JdtATIVcJc="
@@ -123,7 +143,7 @@
                   {
                      "appendRole":{
                         "accountId":"test@notary",
-                        "roleName":"witness"
+                        "roleName":"tester"
                      }
                   }
                ]

@@ -1,11 +1,11 @@
 package registration
 
 import com.github.kittinunf.result.Result
-import jp.co.soramitsu.iroha.Hash
+import com.github.kittinunf.result.flatMap
 import main.ConfigKeys
+import mu.KLogging
 import notary.CONFIG
 import notary.IrohaCommand
-import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.consumer.IrohaConverterImpl
@@ -30,45 +30,38 @@ class RegistrationStrategyImpl(
     override fun register(name: String, pubkey: String): Result<Unit, Exception> {
         return Result.of {
             val ethWallet = ethFreeWalletsProvider.getWallet()
-            val creator = CONFIG[ConfigKeys.irohaCreator]
+            val creator = CONFIG[ConfigKeys.registrationServiceIrohaAccount]
             val domain = "notary"
-            val masterAccount = CONFIG[ConfigKeys.irohaMaster]
+            val masterAccount = CONFIG[ConfigKeys.registrationServiceNotaryIrohaAccount]
 
-            val irohaOutput = IrohaOrderedBatch(
+            val irohaOutput = IrohaTransaction(
+                creator,
                 arrayListOf(
-                    IrohaTransaction(
-                        creator,
-                        arrayListOf(
-                            // Create account
-                            IrohaCommand.CommandCreateAccount(
-                                name, domain, pubkey
-                            ),
-                            // Set user ethereum wallet in account detail
-                            IrohaCommand.CommandSetAccountDetail(
-                                "$name@$domain",
-                                "ethereum_wallet",
-                                ethWallet
-                            ),
-                            // Set ethereum wallet as occupied by user id
-                            IrohaCommand.CommandSetAccountDetail(
-                                masterAccount,
-                                ethWallet,
-                                "$name@$domain"
-                            )
-                        )
+                    // Create account
+                    IrohaCommand.CommandCreateAccount(
+                        name, domain, pubkey
+                    ),
+                    // Set user ethereum wallet in account detail
+                    IrohaCommand.CommandSetAccountDetail(
+                        "$name@$domain",
+                        "ethereum_wallet",
+                        ethWallet
+                    ),
+                    // Set ethereum wallet as occupied by user id
+                    IrohaCommand.CommandSetAccountDetail(
+                        masterAccount,
+                        ethWallet,
+                        "$name@$domain"
                     )
                 )
             )
 
-            lateinit var hash: Hash
-            IrohaConverterImpl().convert(irohaOutput)
-                .map {
-                    hash = it.hash()
-                    irohaConsumer.convertToProto(it)
-                }
-                .map { IrohaNetworkImpl().sendAndCheck(it, hash) }
-
-            Unit
+            val it = IrohaConverterImpl().convert(irohaOutput)
+            val hash = it.hash()
+            val tx = irohaConsumer.convertToProto(it)
+            Pair(tx, hash)
+        }.flatMap { (tx, hash) ->
+            IrohaNetworkImpl().sendAndCheck(tx, hash)
         }
     }
 }

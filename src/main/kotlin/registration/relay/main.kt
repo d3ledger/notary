@@ -9,7 +9,7 @@ import mu.KLogging
 import sidechain.iroha.IrohaInitialization
 
 /** Configuration parameters for notary instance */
-val CONFIG = ConfigurationProperties.fromResource("relay_registration_defaults.properties")
+val CONFIG = ConfigurationProperties.fromResource("defaults.properties")
 
 /**
  * Entry point for deployment of relay smart contracts that will be used in client registration.
