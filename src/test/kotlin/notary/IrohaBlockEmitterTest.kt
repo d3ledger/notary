@@ -4,6 +4,9 @@ package notary
 import io.grpc.ManagedChannelBuilder
 import io.grpc.ServerBuilder
 import io.grpc.stub.StreamObserver
+import iroha.protocol.Queries
+import iroha.protocol.QueryServiceGrpc
+import iroha.protocol.Responses
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
 import kotlinx.coroutines.experimental.withTimeoutOrNull
@@ -12,17 +15,16 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import sidechain.iroha.IrohaBlockEmitter
 import sidechain.iroha.IrohaBlockStub
-import sidechain.iroha.schema.BlockService
-import sidechain.iroha.schema.QueryServiceGrpc
+
 import java.io.File
 import java.util.concurrent.TimeUnit
 import kotlin.math.ceil
 
 
 class IrohaBlockEmitterTest {
-    val meta = BlockService.QueryPayloadMeta.newBuilder().build()
+    val meta = Queries.QueryPayloadMeta.newBuilder().build()
     val sig = iroha.protocol.Primitive.Signature.newBuilder().build()
-    val query = BlockService.BlocksQuery.newBuilder().setMeta(meta).setSignature(sig).build()
+    val query = Queries.BlocksQuery.newBuilder().setMeta(meta).setSignature(sig).build()
 
     private val file = File("resources/genesis.bin")
     val bs = file.readBytes()
@@ -51,8 +53,8 @@ class IrohaBlockEmitterTest {
                 async {
                     IrohaBlockEmitter(period, unit).fetchCommits(
                         query,
-                        object : StreamObserver<BlockService.BlocksQueryResponse> {
-                            override fun onNext(value: BlockService.BlocksQueryResponse?) {
+                        object : StreamObserver<Responses.BlockQueryResponse> {
+                            override fun onNext(value: Responses.BlockQueryResponse?) {
                                 val bl = value!!.blockResponse.block
                                 blocks.add(IrohaBlockStub.fromProto(bl.toByteArray()))
                             }

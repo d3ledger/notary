@@ -35,6 +35,7 @@ class IrohaCommandTest {
                                 .build()
                 )
                 .build()
+        println(protoCmd.toString())
         val cmd = IrohaCommand.CommandAddPeer.fromProto(protoCmd.toByteArray())
 
         assertEquals(address, cmd.address)
