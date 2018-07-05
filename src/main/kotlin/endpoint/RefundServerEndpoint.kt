@@ -35,6 +35,10 @@ class RefundServerEndpoint(
 
         val server = embeddedServer(Netty, port = serverBundle.port) {
             install(CORS)
+            {
+                anyHost()
+                allowCredentials = true
+            }
             routing {
                 get(serverBundle.ethRefund + "/{tx_hash}") {
                     logger.info { "EthRefund invoked with parameters:${call.parameters}" }

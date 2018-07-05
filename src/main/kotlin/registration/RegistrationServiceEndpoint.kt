@@ -10,6 +10,8 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import mu.KLogging
+import okhttp3.internal.http.HttpHeaders
+import okhttp3.internal.http.HttpMethod
 
 /**
  * Registration HTTP service
@@ -22,6 +24,10 @@ class RegistrationServiceEndpoint(
     init {
         val server = embeddedServer(Netty, port = port) {
             install(CORS)
+            {
+                anyHost()
+                allowCredentials = true
+            }
             routing {
                 post("/users") {
                     val parameters = call.receiveParameters()
