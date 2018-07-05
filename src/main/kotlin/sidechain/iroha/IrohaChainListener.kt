@@ -35,7 +35,7 @@ class IrohaChainListener : ChainListener<iroha.protocol.BlockOuterClass.Block> {
             val scheduler = Schedulers.from(Executors.newSingleThreadExecutor())
 
             stub.fetchCommits(query).toObservable().map {
-                //TODO x3medima17 02.07.2018, return business model object
+                //TODO x3medima17 02.07.2018, return business model object instead of proto
                 it.blockResponse.block
             }.observeOn(scheduler)
         }

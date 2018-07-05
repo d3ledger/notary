@@ -1,8 +1,6 @@
 package sidechain.iroha
 
-import iroha.protocol.Commands
 import mu.KLogging
-import notary.IrohaCommand
 import sidechain.ChainHandler
 import sidechain.SideChainEvent
 
@@ -19,11 +17,19 @@ class IrohaChainHandler : ChainHandler<iroha.protocol.BlockOuterClass.Block> {
         return block.payload.transactionsList
             .flatMap { it.payload.commandsList }
             .map {
+                val bs = it.toByteArray()
                 when {
-                    it.hasAddPeer() -> {
-                        val modelCmd = IrohaCommand.CommandAddPeer.fromProto(it.toByteArray())
-                        SideChainEvent.IrohaEvent.OnIrohaAddPeer(modelCmd.address, modelCmd.peerKey)
-                    }
+                    it.hasAddPeer() ->
+                        SideChainEvent.IrohaEvent.OnIrohaAddPeer(
+                            SideChainEvent.IrohaEvent.OnIrohaAddPeer.fromProto(bs)
+                        )
+
+                    it.hasTransferAsset() ->
+                        SideChainEvent.IrohaEvent.OnIrohaSideChainTransfer(
+                            SideChainEvent.IrohaEvent.OnIrohaSideChainTransfer.fromProto(bs)
+                        )
+
+
                     else -> null
                 }
             }

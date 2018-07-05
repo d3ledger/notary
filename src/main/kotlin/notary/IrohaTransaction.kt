@@ -16,18 +16,7 @@ data class IrohaTransaction(
          */
         fun fromProto(bytes: ByteArray): IrohaTransaction {
             val tx = iroha.protocol.BlockOuterClass.Transaction.parseFrom(bytes)
-            val cmds = tx.payload.commandsList
-                .map {
-                    when {
-                        it.hasAddPeer() ->
-                            IrohaCommand.CommandAddPeer.fromProto(it.toByteArray())
-                        it.hasSetAccountDetail() ->
-                            IrohaCommand.CommandSetAccountDetail.fromProto(it.toByteArray())
-                        else -> null
-                    }
-                }
-                .filterNotNull()
-
+            val cmds = listOf<IrohaCommand>()
             val creator = tx.payload.creatorAccountId
             return IrohaTransaction(creator, cmds)
         }
