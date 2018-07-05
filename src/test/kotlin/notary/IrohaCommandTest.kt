@@ -1,10 +1,17 @@
 package notary
 
-import com.google.protobuf.ByteString
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
+import iroha.protocol.BlockOuterClass
+import jp.co.soramitsu.iroha.ByteVector
+import jp.co.soramitsu.iroha.ModelCrypto
+import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import sidechain.iroha.IrohaInitialization
+import java.math.BigInteger
+import java.util.*
 
 /**
  * Test accessor of a data class
@@ -22,24 +29,40 @@ class IrohaCommandTest {
         assertEquals(expected, m.accountId)
     }
 
+    fun ByteVector.toByteArray(): ByteArray {
+        val size = this.size().toInt()
+        val bs = kotlin.ByteArray(size)
+        for (i in 0 until size) {
+            bs[i] = this.get(i).toByte()
+        }
+        return bs
+    }
+
     @Test
     fun addPeerProtoTest() {
-        val cmdBuilder = iroha.protocol.Commands.AddPeer.newBuilder()
-        val address = "127.0.0.1"
-        val key = ByteString.copyFromUtf8("key")
-        val protoCmd = cmdBuilder
-                .setPeer(
-                        cmdBuilder.peerBuilder
-                                .setAddress(address)
-                                .setPeerKey(key)
-                                .build()
-                )
-                .build()
-        println(protoCmd.toString())
-        val cmd = IrohaCommand.CommandAddPeer.fromProto(protoCmd.toByteArray())
+        IrohaInitialization.loadIrohaLibrary()
+
+
+        val address = "127.0.0.1:8080"
+        val keys = ModelCrypto().generateKeypair()
+
+
+        val tx = ModelTransactionBuilder()
+            .creatorAccountId("a@a")
+            .createdTime(BigInteger.valueOf(1530753972862))
+            .addPeer(address, keys.publicKey())
+            .build()
+            .signAndAddSignature(keys)
+            .finish()
+            .blob()
+
+
+        val tmp = BlockOuterClass.Transaction.parseFrom(tx.blob().toByteArray())
+        val f = tmp.payload.reducedPayload.commandsList.first()
+        val cmd = IrohaCommand.CommandAddPeer.fromProto(f.toByteArray())
 
         assertEquals(address, cmd.address)
-        assertEquals(key, ByteString.copyFrom(cmd.peerKey))
+        assertTrue(Arrays.equals(keys.publicKey().blob().toByteArray(), cmd.peerKey))
 
     }
 
