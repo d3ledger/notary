@@ -18,35 +18,37 @@ import java.math.BigInteger
 /**
  * Provides with free ethereum relay wallet
  * @param keypair - iroha keypair
- * @param master - Master notary account in Iroha to write down the information about free relay wallets has been added
+ * @param notaryIrohaAccount - Master notary account in Iroha to write down the information about free relay wallets has been added
  */
 // TODO Prevent double relay accounts usage (in perfect world it is on Iroha side with custom code). In real world
 // on provider side with some synchronization.
 class EthFreeWalletsProvider(
     val keypair: Keypair,
-    val master: String = CONFIG[ConfigKeys.irohaMaster]
+    val notaryIrohaAccount: String = CONFIG[ConfigKeys.registrationServiceNotaryIrohaAccount]
 ) {
 
     /** Creator of txs in Iroha  */
-    val creator = CONFIG[ConfigKeys.irohaCreator]
+    val creator = CONFIG[ConfigKeys.registrationServiceIrohaAccount]
 
-    /** Registration service account is needed to get free relay */
-    val registrationServiceAccount = CONFIG[ConfigKeys.irohaCreator]
+    /** Relay registration service account is needed to get free relay */
+    val relayRegistrationAccount = CONFIG[ConfigKeys.registrationServiceRelayRegistrationIrohaAccount]
 
     /** Iroha query counter */
     var queryCounter: Long = 1
 
-    val channel = ManagedChannelBuilder.forAddress(CONFIG[ConfigKeys.irohaHostname], CONFIG[ConfigKeys.irohaPort])
+    val channel = ManagedChannelBuilder.forAddress(
+        CONFIG[ConfigKeys.registrationServiceIrohaHostname],
+        CONFIG[ConfigKeys.registrationServiceIrohaPort]
+    )
         .usePlaintext(true).build()
 
     fun getWallet(): String {
         val currentTime = System.currentTimeMillis()
 
-        // query result of transaction we've just sent
         val uquery = ModelQueryBuilder().creatorAccountId(creator)
             .queryCounter(BigInteger.valueOf(queryCounter))
             .createdTime(BigInteger.valueOf(currentTime))
-            .getAccount(master)
+            .getAccount(notaryIrohaAccount)
             .build()
         val queryBlob = ModelProtoQuery(uquery).signAndAddSignature(keypair).finish().blob()
         val bquery = queryBlob.toByteArray()
@@ -65,8 +67,8 @@ class EthFreeWalletsProvider(
 
         val fieldDescriptor = queryResponse.descriptorForType.findFieldByName("account_response")
         if (!queryResponse.hasField(fieldDescriptor)) {
-            logger.error { "Query response error" }
-            throw Exception("Query response error")
+            logger.error { "Query response error: ${queryResponse.errorResponse}" }
+            throw Exception("Query response error: ${queryResponse.errorResponse}")
         }
 
         val account = queryResponse.accountResponse.account
@@ -74,9 +76,9 @@ class EthFreeWalletsProvider(
         val stringBuilder = StringBuilder(account.jsonData)
         val json: JsonObject = Parser().parse(stringBuilder) as JsonObject
 
-        if (json.map[registrationServiceAccount] == null)
-            throw Exception("There is no attributes set by $registrationServiceAccount")
-        val myMap: Map<String, String> = json.map[registrationServiceAccount] as Map<String, String>
+        if (json.map[relayRegistrationAccount] == null)
+            throw Exception("There is no attributes set by $relayRegistrationAccount")
+        val myMap: Map<String, String> = json.map[relayRegistrationAccount] as Map<String, String>
         val res = myMap.filterValues { it == "free" }.keys
 
         return res.first()

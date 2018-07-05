@@ -11,7 +11,10 @@ import iroha.protocol.BlockOuterClass
 import iroha.protocol.CommandServiceGrpc
 import iroha.protocol.Queries.Query
 import iroha.protocol.QueryServiceGrpc
-import jp.co.soramitsu.iroha.*
+import jp.co.soramitsu.iroha.ModelProtoQuery
+import jp.co.soramitsu.iroha.ModelProtoTransaction
+import jp.co.soramitsu.iroha.ModelQueryBuilder
+import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import kotlinx.coroutines.experimental.async
 import main.ConfigKeys
 import notary.CONFIG
@@ -35,6 +38,7 @@ import java.math.BigInteger
  * Class for Ethereum sidechain infrastructure deployment and communication.
  */
 class IntegrationTest {
+
     init {
         IrohaInitialization.loadIrohaLibrary()
             .failure {
@@ -45,18 +49,18 @@ class IntegrationTest {
 
     private val deploy_helper = DeployHelper()
 
-    /** Iroha keypair */
-    val keypair: Keypair =
-        IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath]).get()
-
     /** Iroha host */
-    val irohaHost = CONFIG[ConfigKeys.irohaHostname]
+    val irohaHost = CONFIG[ConfigKeys.testIrohaHostname]
 
     /** Iroha port */
-    val irohaPort = CONFIG[ConfigKeys.irohaPort]
+    val irohaPort = CONFIG[ConfigKeys.testIrohaPort]
 
     /** Iroha transaction creator */
-    val creator = CONFIG[ConfigKeys.irohaCreator]
+    val creator = CONFIG[ConfigKeys.testIrohaAccount]
+
+    /** Iroha keypair */
+    val keypair =
+        IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.testPubkeyPath], CONFIG[ConfigKeys.testPrivkeyPath]).get()
 
     /** Ethereum address to transfer from */
     private val fromAddress = "0x004ec07d2329997267Ec62b4166639513386F32E"
@@ -70,13 +74,19 @@ class IntegrationTest {
     private fun sendEthereum(amount: BigInteger) {
         // get the next available nonce
         val ethGetTransactionCount = deploy_helper.web3.ethGetTransactionCount(
-                fromAddress, DefaultBlockParameterName.LATEST
+            fromAddress, DefaultBlockParameterName.LATEST
         ).send()
         val nonce = ethGetTransactionCount.transactionCount
 
         // create our transaction
         val rawTransaction = RawTransaction.createTransaction(
-                nonce, deploy_helper.gasPrice, deploy_helper.gasLimit, toAddress, amount, "")
+            nonce,
+            deploy_helper.gasPrice,
+            deploy_helper.gasLimit,
+            toAddress,
+            amount,
+            ""
+        )
 
         // sign & send our transaction
         val signedMessage = TransactionEncoder.signMessage(rawTransaction, deploy_helper.credentials)
@@ -171,8 +181,7 @@ class IntegrationTest {
         val queryStub = QueryServiceGrpc.newBlockingStub(channel)
         val queryResponse = queryStub.find(protoQuery)
 
-        val fieldDescriptor =
-                queryResponse.descriptorForType.findFieldByName("account_assets_response")
+        val fieldDescriptor = queryResponse.descriptorForType.findFieldByName("account_assets_response")
         if (!queryResponse.hasField(fieldDescriptor)) {
             fail { "Query response error ${queryResponse.errorResponse}" }
         }
@@ -238,17 +247,16 @@ class IntegrationTest {
             main(arrayOf())
         }
 
-        val masterAccount = "user1@notary"
-        val user = "admin@notary"
+        val masterAccount = CONFIG[ConfigKeys.notaryIrohaAccount]
         val amount = "64203"
         val assetId = "ether#ethereum"
         val ethWallet = "eth_wallet"
 
-        // add assets to user1@notary
-        addAssetIroha(user, assetId, amount)
+        // add assets to user
+        addAssetIroha(creator, assetId, amount)
 
-        // transfer assets from user1@notary to admin@notary
-        val hash = transferAssetIroha(user, masterAccount, assetId, amount, ethWallet)
+        // transfer assets from user to notary master account
+        val hash = transferAssetIroha(creator, masterAccount, assetId, amount, ethWallet)
 
         // query
         Thread.sleep(4_000)

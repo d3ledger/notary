@@ -40,7 +40,7 @@ class ContractsTest {
 
     private fun signUserData(to_sign: String): String {
         // TODO luckychess 26.06.2018 D3-100 find a way to produce correct signatures locally
-        val parity = Parity.build(HttpService(CONFIG[ConfigKeys.ethConnectionUrl]))
+        val parity = Parity.build(HttpService(CONFIG[ConfigKeys.testEthConnectionUrl]))
         val unlock = parity.personalUnlockAccount(deploy_helper.credentials.address, "user").send()
         assert(unlock.accountUnlocked())
         val signature = parity.ethSign(deploy_helper.credentials.address, to_sign).send().signature

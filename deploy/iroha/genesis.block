@@ -13,74 +13,72 @@
                      }
                   },
                   {
-                     "createRole":{
-                        "roleName":"admin",
+                    "createRole":{
+                        "roleName":"notary",
                         "permissions":[
-                           "can_add_peer",
-                           "can_add_signatory",
-                           "can_create_account",
-                           "can_create_domain",
-                           "can_get_all_acc_ast",
-                           "can_get_all_acc_ast_txs",
-                           "can_get_all_acc_detail",
-                           "can_get_all_acc_txs",
-                           "can_get_all_accounts",
-                           "can_get_all_signatories",
-                           "can_get_all_txs",
-                           "can_get_roles",
-                           "can_read_assets",
-                           "can_remove_signatory",
-                           "can_set_quorum",
-                           "can_get_blocks",
-                           "can_set_detail"
+                            "can_create_asset",
+                            "can_add_asset_qty",
+                            "can_transfer",
+                            "can_set_detail",
+                            "can_get_all_txs",
+                            "can_receive"
                         ]
-                     }
+                    }
                   },
                   {
-                     "createRole":{
-                        "roleName":"user",
+                    "createRole":{
+                        "roleName":"relayDeployer",
                         "permissions":[
-                           "can_add_signatory",
-                           "can_get_my_acc_ast",
-                           "can_get_my_acc_ast_txs",
-                           "can_get_my_acc_detail",
-                           "can_get_my_acc_txs",
-                           "can_get_my_account",
-                           "can_get_my_signatories",
-                           "can_get_my_txs",
-                           "can_grant_can_add_my_signatory",
-                           "can_grant_can_remove_my_signatory",
-                           "can_grant_can_set_my_account_detail",
-                           "can_grant_can_set_my_quorum",
-                           "can_grant_can_transfer_my_assets",
-                           "can_receive",
-                           "can_remove_signatory",
-                           "can_set_quorum",
-                           "can_transfer"
+                            "can_set_detail"
                         ]
-                     }
+                    }
                   },
                   {
-                     "createRole":{
-                        "roleName":"money_creator",
+                    "createRole":{
+                        "roleName":"registrationService",
                         "permissions":[
-                           "can_add_asset_qty",
-                           "can_create_asset",
-                           "can_receive",
-                           "can_transfer"
+                            "can_create_account",
+                            "can_set_detail",
+                            "can_get_domain_accounts"
                         ]
-                     }
+                    }
+                  },
+                  {
+                    "createRole":{
+                        "roleName":"client",
+                        "permissions":[
+                            "can_transfer",
+                            "can_receive"
+                        ]
+                    }
+                  },
+                  {
+                    "createRole":{
+                        "roleName":"none",
+                        "permissions":[
+                        ]
+                    }
+                  },
+                  {
+                    "createRole":{
+                        "roleName":"tester",
+                        "permissions":[
+                            "can_get_all_acc_ast",
+                            "can_add_asset_qty",
+                            "can_transfer"
+                        ]
+                    }
                   },
                   {
                      "createDomain":{
                         "domainId":"notary",
-                        "defaultRole":"user"
+                        "defaultRole":"none"
                      }
                   },
                   {
                      "createDomain":{
                         "domainId":"ethereum",
-                        "defaultRole":"user"
+                        "defaultRole":"none"
                      }
                   },
                   {
@@ -92,9 +90,34 @@
                   },
                   {
                      "createAccount":{
-                        "accountName":"admin",
+                        "accountName":"notary_red",
                         "domainId":"notary",
                         "mainPubkey":"iJ9riB4zG+IUh9t33PMsX409XoBm540v6sQjn+kdQW8="
+                     }
+                  },
+                  {
+                     "appendRole":{
+                        "accountId":"notary_red@notary",
+                        "roleName":"notary"
+                     }
+                  },
+                  {
+                     "createAccount":{
+                        "accountName":"registration_service_red",
+                        "domainId":"notary",
+                        "mainPubkey":"iJ9riB4zG+IUh9t33PMsX409XoBm540v6sQjn+kdQW8="
+                     }
+                  },
+                  {
+                     "appendRole":{
+                        "accountId":"registration_service_red@notary",
+                        "roleName":"registrationService"
+                     }
+                  },
+                  {
+                     "appendRole":{
+                        "accountId":"registration_service_red@notary",
+                        "roleName":"relayDeployer"
                      }
                   },
                   {
@@ -106,14 +129,21 @@
                   },
                   {
                      "appendRole":{
-                        "accountId":"admin@notary",
-                        "roleName":"admin"
+                        "accountId":"user1@notary",
+                        "roleName":"client"
+                     }
+                  },
+                  {
+                     "createAccount":{
+                        "accountName":"test",
+                        "domainId":"notary",
+                        "mainPubkey":"iJ9riB4zG+IUh9t33PMsX409XoBm540v6sQjn+kdQW8="
                      }
                   },
                   {
                      "appendRole":{
-                        "accountId":"admin@notary",
-                        "roleName":"money_creator"
+                        "accountId":"test@notary",
+                        "roleName":"tester"
                      }
                   }
                ]
