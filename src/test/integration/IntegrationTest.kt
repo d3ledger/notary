@@ -122,7 +122,7 @@ class IntegrationTest {
         // build transaction (still unsigned)
         val txBuilder = ModelTransactionBuilder().creatorAccountId(creator)
             .createdTime(BigInteger.valueOf(currentTime))
-            .addAssetQuantity(accountId, assetId, amount)
+            .addAssetQuantity(assetId, amount)
         return sendTxToIroha(txBuilder)
     }
 

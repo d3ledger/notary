@@ -2,10 +2,12 @@ package sidechain.iroha
 
 import io.grpc.stub.StreamObserver
 import io.reactivex.Observable
-import sidechain.iroha.schema.BlockService
-import sidechain.iroha.schema.QueryServiceGrpc
+import iroha.protocol.Queries.BlocksQuery
+import iroha.protocol.QueryServiceGrpc
+import iroha.protocol.Responses
 import java.io.File
 import java.util.concurrent.TimeUnit
+
 
 /**
  *  Simulates Iroha block streaming
@@ -16,13 +18,13 @@ class IrohaBlockEmitter(val period: Long = 30, val unit: TimeUnit = TimeUnit.SEC
     QueryServiceGrpc.QueryServiceImplBase() {
 
     override fun fetchCommits(
-        query: BlockService.BlocksQuery,
-        response: StreamObserver<BlockService.BlocksQueryResponse>
+        query: BlocksQuery,
+        response: StreamObserver<Responses.BlockQueryResponse>
     ) {
         val file = File("resources/genesis.bin")
         val bs = file.readBytes()
-        val resp = BlockService.BlockResponse.newBuilder().setBlock(iroha.protocol.BlockOuterClass.Block.parseFrom(bs))
-        val blockResponse = BlockService.BlocksQueryResponse.newBuilder().setBlockResponse(resp).build()
+        val resp = Responses.BlockResponse.newBuilder().setBlock(iroha.protocol.BlockOuterClass.Block.parseFrom(bs))
+        val blockResponse = Responses.BlockQueryResponse.newBuilder().setBlockResponse(resp).build()
 
         Observable.interval(period, unit).map {
             response.onNext(blockResponse)
