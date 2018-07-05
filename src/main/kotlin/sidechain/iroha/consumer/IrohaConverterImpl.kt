@@ -35,7 +35,6 @@ class IrohaConverterImpl {
                         )
                     is IrohaCommand.CommandAddAssetQuantity ->
                         txBuilder = txBuilder.addAssetQuantity(
-                            cmd.accountId,
                             cmd.assetId,
                             cmd.amount
                         )
