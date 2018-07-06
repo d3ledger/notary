@@ -11,7 +11,6 @@ data class IrohaTransaction(
 ) {
     companion object {
         /**
-         * This implementation takes only few commands !!
          * TODO x3medima17, implement all commands
          */
         fun fromProto(bytes: ByteArray): IrohaTransaction {
