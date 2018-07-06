@@ -47,6 +47,7 @@
                     "createRole":{
                         "roleName":"client",
                         "permissions":[
+                            "can_get_my_account",
                             "can_transfer",
                             "can_receive"
                         ]
@@ -64,9 +65,14 @@
                     "createRole":{
                         "roleName":"tester",
                         "permissions":[
+                            "can_get_all_accounts",
                             "can_get_all_acc_ast",
                             "can_add_asset_qty",
-                            "can_transfer"
+                            "can_transfer",
+                            "can_create_asset",
+                            "can_create_account",
+                            "can_receive",
+                            "can_read_assets"
                         ]
                     }
                   },
