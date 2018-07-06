@@ -21,8 +21,8 @@
                             "can_transfer",
                             "can_set_detail",
                             "can_get_all_txs",
-                          "can_receive",
-                          "can_get_blocks"
+                            "can_receive",
+                            "can_get_blocks"
                         ]
                     }
                   },
