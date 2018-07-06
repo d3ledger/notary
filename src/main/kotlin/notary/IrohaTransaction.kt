@@ -8,17 +8,5 @@ package notary
 data class IrohaTransaction(
     val creator: String,
     val commands: List<IrohaCommand>
-) {
-    companion object {
-        /**
-         * TODO x3medima17, implement all commands
-         */
-        fun fromProto(bytes: ByteArray): IrohaTransaction {
-            val tx = iroha.protocol.BlockOuterClass.Transaction.parseFrom(bytes)
-            val cmds = listOf<IrohaCommand>()
-            val creator = tx.payload.creatorAccountId
-            return IrohaTransaction(creator, cmds)
-        }
-    }
-}
+)
 
