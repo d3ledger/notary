@@ -17,7 +17,10 @@ class RegistrationServiceInitialization {
      */
     fun init(): Result<Unit, Exception> {
         return Result.of {
-            ModelUtil.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath])
+            ModelUtil.loadKeypair(
+                CONFIG[ConfigKeys.registrationServicePubkeyPath],
+                CONFIG[ConfigKeys.registrationServicePrivkeyPath]
+            )
                 .map { Pair(EthFreeWalletsProvider(it), IrohaConsumerImpl(it)) }
                 .map { (ethFreeWalletsProvider, irohaConsumer) ->
                     RegistrationStrategyImpl(ethFreeWalletsProvider, irohaConsumer)

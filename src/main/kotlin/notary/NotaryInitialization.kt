@@ -55,7 +55,7 @@ class NotaryInitialization(
     private fun initEthChain(): Result<Observable<SideChainEvent>, Exception> {
         logger.info { "Init Eth chain" }
 
-        val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.ethConnectionUrl]))
+        val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.notaryEthConnectionUrl]))
         /** List of all observable wallets */
         return ethWalletsProvider.getWallets()
             .fanout {
@@ -95,7 +95,7 @@ class NotaryInitialization(
      */
     private fun initIrohaConsumer(notary: Notary): Result<Unit, Exception> {
         logger.info { "Init Iroha consumer" }
-        return ModelUtil.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath])
+        return ModelUtil.loadKeypair(CONFIG[ConfigKeys.notaryPubkeyPath], CONFIG[ConfigKeys.notaryPrivkeyPath])
             .map {
                 val irohaConsumer = IrohaConsumerImpl(it)
 
@@ -112,7 +112,12 @@ class NotaryInitialization(
                     }
                     .subscribe(
                         // send to Iroha network layer
-                        { IrohaNetworkImpl().sendAndCheck(it, hash) },
+                        {
+                            IrohaNetworkImpl(
+                                CONFIG[ConfigKeys.notaryIrohaHostname],
+                                CONFIG[ConfigKeys.notaryIrohaPort]
+                            ).sendAndCheck(it, hash)
+                        },
                         // on error
                         { logger.error { it } }
                     )
@@ -125,9 +130,9 @@ class NotaryInitialization(
      */
     private fun initRefund() {
         logger.info { "Init Refund endpoint" }
-        val keys = ModelUtil.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath])
+        val keys = ModelUtil.loadKeypair(CONFIG[ConfigKeys.notaryPubkeyPath], CONFIG[ConfigKeys.notaryPrivkeyPath])
         RefundServerEndpoint(
-            ServerInitializationBundle(CONFIG[ConfigKeys.refundPort], CONFIG[ConfigKeys.ethEndpoint]),
+            ServerInitializationBundle(CONFIG[ConfigKeys.notaryRefundPort], CONFIG[ConfigKeys.notaryEthEndpoint]),
             EthRefundStrategyImpl(keys.get())
         )
     }

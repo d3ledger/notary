@@ -15,14 +15,14 @@ import sidechain.iroha.util.toByteArray
 /**
  * Implements netwrok layer of Iroha chain
  */
-class IrohaNetworkImpl : IrohaNetwork {
+class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
 
     /** Grpc stub for streaming output calls on the service */
     val toriiStub: iroha.protocol.CommandServiceGrpc.CommandServiceBlockingStub
 
     init {
         val channel =
-            ManagedChannelBuilder.forAddress(CONFIG[ConfigKeys.irohaHostname], CONFIG[ConfigKeys.irohaPort])
+            ManagedChannelBuilder.forAddress(host, port)
                 .usePlaintext(true).build()
         toriiStub = CommandServiceGrpc.newBlockingStub(channel)
     }

@@ -15,7 +15,7 @@ import java.math.BigInteger
  */
 class DeployHelper {
     /** web3 service instance to communicate with Ethereum network */
-    val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.ethConnectionUrl]))
+    val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.testEthConnectionUrl]))
 
     /** credentials of ethereum user */
     val credentials =

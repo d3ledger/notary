@@ -31,19 +31,22 @@ class EthFreeWalletsProviderTest {
 
     /** Iroha keypair */
     val keypair: Keypair =
-        ModelUtil.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath]).get()
+        ModelUtil.loadKeypair(
+            CONFIG[ConfigKeys.relayRegistrationPubkeyPath],
+            CONFIG[ConfigKeys.relayRegistrationPrivkeyPath]
+        ).get()
 
     /** Iroha host */
-    val irohaHost = CONFIG[ConfigKeys.irohaHostname]
+    val irohaHost = CONFIG[ConfigKeys.relayRegistrationIrohaHostname]
 
     /** Iroha port */
-    val irohaPort = CONFIG[ConfigKeys.irohaPort]
+    val irohaPort = CONFIG[ConfigKeys.relayRegistrationIrohaPort]
 
     /** Iroha transaction creator */
-    val creator = CONFIG[ConfigKeys.irohaCreator]
+    val creator = CONFIG[ConfigKeys.relayRegistrationIrohaAccount]
 
     /** Iroha master */
-    val master = CONFIG[ConfigKeys.irohaMaster]
+    val master = CONFIG[ConfigKeys.relayRegistrationNotaryIrohaAccount]
 
     /**
      * Send SetAccountDetail to Iroha
@@ -96,10 +99,10 @@ class EthFreeWalletsProviderTest {
     fun getFreeWallet() {
         val ethFreeWallet = "eth_free_wallet_stub"
 
-        setAccountDetail(creator, ethFreeWallet, "free")
+        setAccountDetail(master, ethFreeWallet, "free")
         Thread.sleep(4_000)
 
-        val freeWalletsProvider = EthFreeWalletsProvider(keypair, creator)
+        val freeWalletsProvider = EthFreeWalletsProvider(keypair)
         val result = freeWalletsProvider.getWallet()
 
         assertEquals(ethFreeWallet, result)
@@ -115,7 +118,7 @@ class EthFreeWalletsProviderTest {
         val ethFreeWallet = "eth_free_wallet_stub"
         val wrongMasterAccount = "wrong@account"
 
-        setAccountDetail(creator, ethFreeWallet, "free")
+        setAccountDetail(master, ethFreeWallet, "free")
         Thread.sleep(4_000)
 
         val freeWalletsProvider = EthFreeWalletsProvider(keypair, wrongMasterAccount)
