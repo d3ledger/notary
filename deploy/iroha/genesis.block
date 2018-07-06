@@ -21,7 +21,8 @@
                             "can_transfer",
                             "can_set_detail",
                             "can_get_all_txs",
-                            "can_receive"
+                          "can_receive",
+                          "can_get_blocks"
                         ]
                     }
                   },
@@ -66,7 +67,8 @@
                         "permissions":[
                             "can_get_all_acc_ast",
                             "can_add_asset_qty",
-                            "can_transfer"
+                          "can_transfer",
+                          "can_add_peer"
                         ]
                     }
                   },
