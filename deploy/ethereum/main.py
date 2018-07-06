@@ -2,8 +2,20 @@ import json
 from pprint import pprint
 import requests
 import time
+import os
 
-PORT = 8545
+try:
+    NODE_0 = os.environ['NODE_0']
+except KeyError:
+    NODE_0 = "node0"
+try:
+    NODE_1 = os.environ['NODE_1']
+except KeyError:
+    NODE_1 = "node1"
+try:
+    PORT = os.environ['PORT']
+except KeyError:
+    PORT = 8545
 HEADERS = {"Content-Type": "application/json"}
 
 template = dict(
@@ -51,19 +63,23 @@ def get_peers(node):
 
     return data["result"]
 
-print(get_accounts("node0"))
-print(get_enode("node0"))
-print(get_enode("node1"))
 
-enode0 = get_enode("node0")
+time.sleep(8)
+print(NODE_0, NODE_1, PORT)
+print(get_accounts(NODE_0))
+print(get_enode(NODE_0))
+print(get_enode(NODE_1))
 
-print(add_peer("node1", enode0))
+enode0 = get_enode(NODE_0)
+
+print(add_peer(NODE_0, enode0))
 
 for i in range(10):
-    conn = get_peers("node0")["connected"]
+    conn = get_peers(NODE_0)["connected"]
     pprint("Connected peers: {}".format(conn))
     if(conn > 0):
         break
     time.sleep(2)
 
 print("Two peers were connected")
+
