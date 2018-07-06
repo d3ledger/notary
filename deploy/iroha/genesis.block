@@ -135,12 +135,6 @@
                      }
                   },
                   {
-                     "appendRole":{
-                        "accountId":"user1@notary",
-                        "roleName":"client"
-                     }
-                  },
-                  {
                      "createAccount":{
                         "accountName":"test",
                         "domainId":"notary",
