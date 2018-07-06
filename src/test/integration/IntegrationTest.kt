@@ -206,7 +206,6 @@ class IntegrationTest {
         DSL.using(connection).use { ctx ->
             val tokens = Tokens.TOKENS
 
-            // read
             ctx.insertInto(tokens, tokens.WALLET, tokens.TOKEN)
                 .values(wallet, token)
                 .execute()
@@ -339,5 +338,4 @@ class IntegrationTest {
 
         assertEquals("mockSignature", response.ethSignature)
     }
-    // 0f0ce16d2afbb8eca23c7d8c2724f0c257a800ee2bbd54688cec6b898e3f7e33
 }
