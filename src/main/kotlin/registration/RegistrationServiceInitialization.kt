@@ -17,7 +17,10 @@ class RegistrationServiceInitialization {
      */
     fun init(): Result<Unit, Exception> {
         return Result.of {
-            IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath])
+            IrohaKeyLoader.loadKeypair(
+                CONFIG[ConfigKeys.registrationServicePubkeyPath],
+                CONFIG[ConfigKeys.registrationServicePrivkeyPath]
+            )
                 .map { Pair(EthFreeWalletsProvider(it), IrohaConsumerImpl(it)) }
                 .map { (ethFreeWalletsProvider, irohaConsumer) ->
                     RegistrationStrategyImpl(ethFreeWalletsProvider, irohaConsumer)

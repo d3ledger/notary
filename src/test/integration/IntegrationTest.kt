@@ -11,11 +11,16 @@ import iroha.protocol.BlockOuterClass
 import iroha.protocol.CommandServiceGrpc
 import iroha.protocol.Queries.Query
 import iroha.protocol.QueryServiceGrpc
-import jp.co.soramitsu.iroha.*
+import jp.co.soramitsu.iroha.ModelProtoQuery
+import jp.co.soramitsu.iroha.ModelProtoTransaction
+import jp.co.soramitsu.iroha.ModelQueryBuilder
+import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import kotlinx.coroutines.experimental.async
 import main.ConfigKeys
 import notary.CONFIG
+import notary.db.tables.Tokens
 import notary.main
+import org.jooq.impl.DSL
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -29,12 +34,14 @@ import sidechain.iroha.consumer.IrohaKeyLoader
 import sidechain.iroha.util.toBigInteger
 import sidechain.iroha.util.toByteArray
 import java.math.BigInteger
+import java.sql.DriverManager
 
 
 /**
  * Class for Ethereum sidechain infrastructure deployment and communication.
  */
 class IntegrationTest {
+
     init {
         IrohaInitialization.loadIrohaLibrary()
             .failure {
@@ -45,18 +52,18 @@ class IntegrationTest {
 
     private val deploy_helper = DeployHelper()
 
-    /** Iroha keypair */
-    val keypair: Keypair =
-        IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath]).get()
-
     /** Iroha host */
-    val irohaHost = CONFIG[ConfigKeys.irohaHostname]
+    val irohaHost = CONFIG[ConfigKeys.testIrohaHostname]
 
     /** Iroha port */
-    val irohaPort = CONFIG[ConfigKeys.irohaPort]
+    val irohaPort = CONFIG[ConfigKeys.testIrohaPort]
 
     /** Iroha transaction creator */
-    val creator = CONFIG[ConfigKeys.irohaCreator]
+    val creator = CONFIG[ConfigKeys.testIrohaAccount]
+
+    /** Iroha keypair */
+    val keypair =
+        IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.testPubkeyPath], CONFIG[ConfigKeys.testPrivkeyPath]).get()
 
     /** Ethereum address to transfer from */
     private val fromAddress = "0x004ec07d2329997267Ec62b4166639513386F32E"
@@ -70,13 +77,19 @@ class IntegrationTest {
     private fun sendEthereum(amount: BigInteger) {
         // get the next available nonce
         val ethGetTransactionCount = deploy_helper.web3.ethGetTransactionCount(
-                fromAddress, DefaultBlockParameterName.LATEST
+            fromAddress, DefaultBlockParameterName.LATEST
         ).send()
         val nonce = ethGetTransactionCount.transactionCount
 
         // create our transaction
         val rawTransaction = RawTransaction.createTransaction(
-                nonce, deploy_helper.gasPrice, deploy_helper.gasLimit, toAddress, amount, "")
+            nonce,
+            deploy_helper.gasPrice,
+            deploy_helper.gasLimit,
+            toAddress,
+            amount,
+            ""
+        )
 
         // sign & send our transaction
         val signedMessage = TransactionEncoder.signMessage(rawTransaction, deploy_helper.credentials)
@@ -171,8 +184,7 @@ class IntegrationTest {
         val queryStub = QueryServiceGrpc.newBlockingStub(channel)
         val queryResponse = queryStub.find(protoQuery)
 
-        val fieldDescriptor =
-                queryResponse.descriptorForType.findFieldByName("account_assets_response")
+        val fieldDescriptor = queryResponse.descriptorForType.findFieldByName("account_assets_response")
         if (!queryResponse.hasField(fieldDescriptor)) {
             fail { "Query response error ${queryResponse.errorResponse}" }
         }
@@ -186,6 +198,27 @@ class IntegrationTest {
         }
 
         return BigInteger.ZERO
+    }
+
+    /**
+     * Insert token into database
+     * @param wallet - ethereum token wallet
+     * @param token - token name
+     */
+    fun insertToken(wallet: String, token: String) {
+        val connection = DriverManager.getConnection(
+            CONFIG[ConfigKeys.dbUrl],
+            CONFIG[ConfigKeys.dbUsername],
+            CONFIG[ConfigKeys.dbPassword]
+        )
+
+        DSL.using(connection).use { ctx ->
+            val tokens = Tokens.TOKENS
+
+            ctx.insertInto(tokens, tokens.WALLET, tokens.TOKEN)
+                .values(wallet, token)
+                .execute()
+        }
     }
 
     /**
@@ -220,12 +253,54 @@ class IntegrationTest {
         sendEthereum(amount)
         Thread.sleep(20_000)
 
-        println(queryIroha(assetId))
         assertEquals(amount, queryIroha(assetId))
     }
 
     /**
-     * Test US withdraw Ethereum.
+     * Test US-002 Deposit of ETH
+     * Note: Ethereum and Iroha must be deployed to pass the test.
+     * @given Ethereum and Iroha networks running and two ethereum wallets and "fromAddress" with at least 51 coin
+     * (51 coin) and notary running
+     * @when "fromAddress" transfers 51 coin to "toAddress"
+     * @then Associated Iroha account balance is increased on 51 coin
+     */
+    @Disabled
+    @Test
+    fun depositOfERC20() {
+        val asset = "coin"
+        val assetId = "$asset#ethereum"
+        val amount = BigInteger.valueOf(51)
+
+        // ensure that initial wallet value is 0
+        assertEquals(BigInteger.ZERO, queryIroha(assetId))
+
+        // Deploy ERC20 smart contract
+        val contract = DeployHelper().deployBasicCoinSmartContract()
+        val contractAddress = contract.contractAddress
+        insertToken(contractAddress, asset)
+
+        // run notary
+        async {
+            main(arrayOf())
+        }
+        Thread.sleep(3_000)
+
+
+        // send ETH
+        contract.transfer(toAddress, amount).send()
+        assertEquals(amount, contract.balanceOf(toAddress).send())
+        Thread.sleep(5_000)
+
+
+        // Send again any transaction to commit in Ethereum network
+        contract.transfer(toAddress, amount).send()
+        Thread.sleep(20_000)
+
+        assertEquals(amount, queryIroha(assetId))
+    }
+
+    /**
+     * Test US-003 Withdrawal of ETH token
      * Note: Iroha must be deployed to pass the test.
      * @given Iroha networks running and user has sent 64203 Wei to master
      * @when withdrawal service queries notary
@@ -238,17 +313,16 @@ class IntegrationTest {
             main(arrayOf())
         }
 
-        val masterAccount = "user1@notary"
-        val user = "admin@notary"
+        val masterAccount = CONFIG[ConfigKeys.notaryIrohaAccount]
         val amount = "64203"
         val assetId = "ether#ethereum"
         val ethWallet = "eth_wallet"
 
-        // add assets to user1@notary
-        addAssetIroha(user, assetId, amount)
+        // add assets to user
+        addAssetIroha(creator, assetId, amount)
 
-        // transfer assets from user1@notary to admin@notary
-        val hash = transferAssetIroha(user, masterAccount, assetId, amount, ethWallet)
+        // transfer assets from user to notary master account
+        val hash = transferAssetIroha(creator, masterAccount, assetId, amount, ethWallet)
 
         // query
         Thread.sleep(4_000)
@@ -272,5 +346,4 @@ class IntegrationTest {
 
         assertEquals("mockSignature", response.ethSignature)
     }
-
 }

@@ -107,7 +107,7 @@ class NotaryTest {
     fun depositEthereumTest() {
         val expectedAmount = BigInteger.valueOf(100)
         val expectedAssetId = "ether"
-        val expectedCreatorId = CONFIG[ConfigKeys.irohaCreator]
+        val expectedCreatorId = CONFIG[ConfigKeys.notaryIrohaAccount]
         val expectedHash = "hash"
         val expectedUserId = "from"
 
@@ -144,7 +144,7 @@ class NotaryTest {
     fun depositEthereumTokenTest() {
         val expectedAmount = BigInteger.valueOf(100)
         val expectedAssetId = "xor"
-        val expectedCreatorId = CONFIG[ConfigKeys.irohaCreator]
+        val expectedCreatorId = CONFIG[ConfigKeys.notaryIrohaAccount]
         val expectedHash = "hash"
         val expectedUserId = "from"
 
