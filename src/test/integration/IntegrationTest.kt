@@ -30,7 +30,7 @@ import org.web3j.crypto.TransactionEncoder
 import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.utils.Numeric
 import sidechain.iroha.IrohaInitialization
-import sidechain.iroha.consumer.IrohaKeyLoader
+import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.toBigInteger
 import sidechain.iroha.util.toByteArray
 import java.math.BigInteger
@@ -63,7 +63,7 @@ class IntegrationTest {
 
     /** Iroha keypair */
     val keypair =
-        IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.testPubkeyPath], CONFIG[ConfigKeys.testPrivkeyPath]).get()
+        ModelUtil.loadKeypair(CONFIG[ConfigKeys.testPubkeyPath], CONFIG[ConfigKeys.testPrivkeyPath]).get()
 
     /** Ethereum address to transfer from */
     private val fromAddress = "0x004ec07d2329997267Ec62b4166639513386F32E"

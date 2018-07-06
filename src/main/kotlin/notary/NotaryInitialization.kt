@@ -20,8 +20,8 @@ import sidechain.iroha.IrohaChainHandler
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
-import sidechain.iroha.consumer.IrohaKeyLoader
 import sidechain.iroha.consumer.IrohaNetworkImpl
+import sidechain.iroha.util.ModelUtil
 
 
 /**
@@ -95,7 +95,7 @@ class NotaryInitialization(
      */
     private fun initIrohaConsumer(notary: Notary): Result<Unit, Exception> {
         logger.info { "Init Iroha consumer" }
-        return IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.notaryPubkeyPath], CONFIG[ConfigKeys.notaryPrivkeyPath])
+        return ModelUtil.loadKeypair(CONFIG[ConfigKeys.notaryPubkeyPath], CONFIG[ConfigKeys.notaryPrivkeyPath])
             .map {
                 val irohaConsumer = IrohaConsumerImpl(it)
 
@@ -130,7 +130,7 @@ class NotaryInitialization(
      */
     private fun initRefund() {
         logger.info { "Init Refund endpoint" }
-        val keys = IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.notaryPubkeyPath], CONFIG[ConfigKeys.notaryPrivkeyPath])
+        val keys = ModelUtil.loadKeypair(CONFIG[ConfigKeys.notaryPubkeyPath], CONFIG[ConfigKeys.notaryPrivkeyPath])
         RefundServerEndpoint(
             ServerInitializationBundle(CONFIG[ConfigKeys.notaryRefundPort], CONFIG[ConfigKeys.notaryEthEndpoint]),
             EthRefundStrategyImpl(keys.get())

@@ -1,5 +1,6 @@
 CREATE SCHEMA if NOT EXISTS notary;
-
+DROP DATABASE IF EXISTS notary;
+CREATE DATABASE notary;
 -- Relation ethereum wallet -> iroha username
 -- Whitelist of users' relay ethereum wallets
 CREATE TABLE notary.wallets (

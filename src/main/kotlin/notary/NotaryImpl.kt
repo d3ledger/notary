@@ -71,7 +71,7 @@ class NotaryImpl(
                             account,
                             "$asset#$domain",
                             "",
-                            amount.toString()
+                            amount
                         )
                     )
                 )

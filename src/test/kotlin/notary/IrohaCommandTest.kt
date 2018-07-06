@@ -28,14 +28,14 @@ class IrohaCommandTest {
         val address = "127.0.0.1"
         val key = ByteString.copyFromUtf8("key")
         val protoCmd = cmdBuilder
-                .setPeer(
-                        cmdBuilder.peerBuilder
-                                .setAddress(address)
-                                .setPeerKey(key)
-                                .build()
-                )
-                .build()
-        val cmd = IrohaCommand.CommandAddPeer.fromProto(protoCmd.toByteArray())
+            .setPeer(
+                cmdBuilder.peerBuilder
+                    .setAddress(address)
+                    .setPeerKey(key)
+                    .build()
+            )
+            .build()
+        val cmd = sidechain.SideChainEvent.IrohaEvent.OnIrohaAddPeer.fromProto(protoCmd.toByteArray())
 
         assertEquals(address, cmd.address)
         assertEquals(key, ByteString.copyFrom(cmd.peerKey))

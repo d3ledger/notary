@@ -34,18 +34,4 @@ data class IrohaBlockStub(
             signatures.hashCode()
         ).hashCode()
 
-    companion object {
-        fun fromProto(bytes: ByteArray): IrohaBlockStub {
-            val block = iroha.protocol.BlockOuterClass.Block.parseFrom(bytes)
-            val payload = block.payload
-            val height = payload.height
-            val prevBlockHash = payload.prevBlockHash.toByteArray()
-            val txNumber = payload.txNumber
-            val transactions = payload.transactionsList.map { IrohaTransaction.fromProto(it.toByteArray()) }
-            val signatures = block.signaturesList.map { IrohaSignature.fromProto(it.toByteArray()) }
-
-            return IrohaBlockStub(height, prevBlockHash, txNumber, transactions, signatures)
-
-        }
-    }
 }
