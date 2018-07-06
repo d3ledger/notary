@@ -17,13 +17,13 @@ data class IrohaTransaction(
          */
         fun fromProto(bytes: ByteArray): IrohaTransaction {
             val tx = iroha.protocol.BlockOuterClass.Transaction.parseFrom(bytes)
-            val cmds = tx.payload.commandsList
+            val cmds = tx.payload.reducedPayload.commandsList
                 .filter { it.hasAddPeer() }
                 .map {
                     IrohaCommand.CommandAddPeer.fromProto(it.toByteArray())
                 }
 
-            val creator = tx.payload.creatorAccountId
+            val creator = tx.payload.reducedPayload.creatorAccountId
             return IrohaTransaction(creator, cmds)
         }
     }

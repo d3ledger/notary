@@ -3,20 +3,16 @@ package endpoint.eth
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import io.grpc.ManagedChannelBuilder
+import iroha.protocol.BlockOuterClass.Transaction
 import iroha.protocol.Queries
 import iroha.protocol.QueryServiceGrpc
-import jp.co.soramitsu.iroha.Hash
-import jp.co.soramitsu.iroha.HashVector
-import jp.co.soramitsu.iroha.Keypair
-import jp.co.soramitsu.iroha.ModelQueryBuilder
-import jp.co.soramitsu.iroha.ModelProtoQuery
+import jp.co.soramitsu.iroha.*
 import main.ConfigKeys
 import mu.KLogging
 import notary.CONFIG
 import sidechain.iroha.util.toBigInteger
 import sidechain.iroha.util.toByteArray
 import java.math.BigInteger
-
 
 class NotaryException(val reason: String) : Exception(reason)
 
@@ -38,8 +34,9 @@ class EthRefundStrategyImpl(private val keypair: Keypair) : EthRefundStrategy {
      * @param request - user's request with transaction hash
      * @return Transaction which is appeared in Iroha or error
      */
-    private fun performQuery(request: EthRefundRequest): Result<iroha.protocol.BlockOuterClass.Transaction, Exception> {
+    private fun performQuery(request: EthRefundRequest): Result<Transaction, Exception> {
         return Result.of {
+
             val hashes = HashVector()
             hashes.add(Hash.fromHexString(request.irohaTx))
 
@@ -78,15 +75,15 @@ class EthRefundStrategyImpl(private val keypair: Keypair) : EthRefundStrategy {
      * @return Refund or error
      */
     private fun checkTransaction(
-        appearedTx: iroha.protocol.BlockOuterClass.Transaction,
+        appearedTx: Transaction,
         request: EthRefundRequest
     ): Result<EthRefund, Exception> {
         return Result.of {
-            val commands = appearedTx.payload.getCommands(0)
+            val commands = appearedTx.payload.reducedPayload.getCommands(0)
 
             when {
             // rollback case
-                appearedTx.payload.commandsCount == 1 &&
+                appearedTx.payload.reducedPayload.commandsCount == 1 &&
                         commands.hasSetAccountDetail() -> {
 
                     // TODO a.chernyshov replace with effective implementation
@@ -105,7 +102,7 @@ class EthRefundStrategyImpl(private val keypair: Keypair) : EthRefundStrategy {
                     EthRefund(destEthAddress, "mockCoinType", BigInteger.TEN, request.irohaTx)
                 }
             // withdrawal case
-                (appearedTx.payload.commandsCount == 1) &&
+                (appearedTx.payload.reducedPayload.commandsCount == 1) &&
                         commands.hasTransferAsset() -> {
                     val destAccount = commands.transferAsset.destAccountId
                     if (destAccount != CONFIG[ConfigKeys.notaryIrohaAccount])

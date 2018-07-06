@@ -19,33 +19,38 @@ class IrohaTransactionTest {
         val key = ByteString.copyFromUtf8("key")
 
         val protoCmds = listOf(
-                Commands.Command.newBuilder().createAssetBuilder
-                        .setAssetName(asset)
-                        .setDomainId(domain)
-                        .setPrecision(precision.toInt())
-                        .build(),
-                Commands.Command.newBuilder().addPeerBuilder
-                        .setPeer(
-                                iroha.protocol.Primitive.Peer.newBuilder()
-                                        .setAddress(address)
-                                        .setPeerKey(key)
-                                        .build()
-                        )
+            Commands.Command.newBuilder().createAssetBuilder
+                .setAssetName(asset)
+                .setDomainId(domain)
+                .setPrecision(precision.toInt())
+                .build(),
+            Commands.Command.newBuilder().addPeerBuilder
+                .setPeer(
+                    iroha.protocol.Primitive.Peer.newBuilder()
+                        .setAddress(address)
+                        .setPeerKey(key)
                         .build()
+                )
+                .build()
         )
 
         val payloadBuilder = iroha.protocol.BlockOuterClass.Transaction.Payload.newBuilder()
         val payload = payloadBuilder
-                .addCommands(Commands.Command.newBuilder().setCreateAsset(protoCmds[0] as Commands.CreateAsset))
-                .addCommands(Commands.Command.newBuilder().setAddPeer(protoCmds[1] as Commands.AddPeer))
-                .setCreatedTime(createdTime)
-                .setCreatorAccountId(accId)
-                .setQuorum(quorum)
-                .build()
+            .setReducedPayload(
+                iroha.protocol.BlockOuterClass.Transaction.Payload.ReducedPayload.newBuilder()
+                    .addCommands(Commands.Command.newBuilder().setCreateAsset(protoCmds[0] as Commands.CreateAsset))
+                    .addCommands(Commands.Command.newBuilder().setAddPeer(protoCmds[1] as Commands.AddPeer))
+                    .setCreatedTime(createdTime)
+                    .setCreatorAccountId(accId)
+                    .setQuorum(quorum)
+                    .build()
+            )
+            .build()
+
 
         val protoTx = iroha.protocol.BlockOuterClass.Transaction.newBuilder()
-                .setPayload(payload)
-                .build()
+            .setPayload(payload)
+            .build()
 
         val tx = IrohaTransaction.fromProto(protoTx.toByteArray())
 

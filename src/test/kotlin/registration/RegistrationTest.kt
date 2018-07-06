@@ -41,7 +41,7 @@ open class RegistrationTest {
     }
 
     /**
-     * Send POST request to lokal server
+     * Send POST request to local server
      */
     fun post(params: Map<String, String>): String {
         val res = khttp.post("http://127.0.0.1:$port/users", data = params)

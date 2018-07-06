@@ -21,6 +21,7 @@ apply plugin: 'kotlin'
 apply plugin: 'com.google.protobuf'
 apply plugin: 'nu.studer.jooq'
 apply plugin: 'application'
+mainClassName = 'notary.NotaryImpl'
 
 sourceCompatibility = 1.8
 
@@ -138,14 +139,8 @@ sourceSets {
         proto {
             // iroha schema
             srcDirs += "vendor/iroha/schema"
-            // notary schema
-            srcDirs += "src/main/kotlin/sidechain/iroha/schema"
-
         }
-
     }
-
-
 }
 
 test {
