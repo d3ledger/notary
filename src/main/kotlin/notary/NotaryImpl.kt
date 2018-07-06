@@ -15,7 +15,7 @@ class NotaryImpl(
 ) : Notary {
 
     /** Notary account in Iroha */
-    val creator = CONFIG[ConfigKeys.irohaCreator]
+    val creator = CONFIG[ConfigKeys.notaryIrohaAccount]
 
     /** Ethereum asset id in Iroha */
     val ethereumAssetId = CONFIG[ConfigKeys.irohaEthToken]

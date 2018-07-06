@@ -33,33 +33,39 @@ class RelayRegistration(
 ) {
 
     /** web3 service instance to communicate with Ethereum network */
-    private val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.ethConnectionUrl]))
+    private val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.relayRegistartionEthConnectionUrl]))
 
     /** credentials of ethereum user */
     private val credentials =
-        WalletUtils.loadCredentials(CONFIG[ConfigKeys.ethCredentialPassword], CONFIG[ConfigKeys.ethCredentialPath])
+        WalletUtils.loadCredentials(
+            CONFIG[ConfigKeys.relayRegistartionEthCredentialPassword],
+            CONFIG[ConfigKeys.relayRegistartionEthCredentialPath]
+        )
 
     /** Gas price */
-    private val gasPrice = BigInteger.valueOf(CONFIG[ConfigKeys.ethGasPrice])
+    private val gasPrice = BigInteger.valueOf(CONFIG[ConfigKeys.relayRegistartionEthGasPrice])
 
     /** Max gas limit */
-    private val gasLimit = BigInteger.valueOf(CONFIG[ConfigKeys.ethGasLimit])
+    private val gasLimit = BigInteger.valueOf(CONFIG[ConfigKeys.relayRegistartionEthGasLimit])
 
     /** Iroha keypair */
     val keypair: Keypair =
-        IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.pubkeyPath], CONFIG[ConfigKeys.privkeyPath]).get()
+        IrohaKeyLoader.loadKeypair(
+            CONFIG[ConfigKeys.relayRegistrationPubkeyPath],
+            CONFIG[ConfigKeys.relayRegistrationPrivkeyPath]
+        ).get()
 
     /** Iroha host */
-    val irohaHost = CONFIG[ConfigKeys.irohaHostname]
+    val irohaHost = CONFIG[ConfigKeys.relayRegistrationIrohaHostname]
 
     /** Iroha port */
-    val irohaPort = CONFIG[ConfigKeys.irohaPort]
+    val irohaPort = CONFIG[ConfigKeys.relayRegistrationIrohaPort]
 
     /** Iroha transaction creator */
-    val creator = CONFIG[ConfigKeys.irohaCreator]
+    val creator = CONFIG[ConfigKeys.relayRegistrationIrohaAccount]
 
     /** Notary master account */
-    val masterAccount = CONFIG[ConfigKeys.irohaMaster]
+    val notaryIrohaAccount = CONFIG[ConfigKeys.relayRegistrationNotaryIrohaAccount]
 
     /**
      * Deploy user smart contract
@@ -91,7 +97,7 @@ class RelayRegistration(
         val currentTime = System.currentTimeMillis()
         val utx = ModelTransactionBuilder().creatorAccountId(creator)
             .createdTime(BigInteger.valueOf(currentTime))
-            .setAccountDetail(masterAccount, wallet, "free")
+            .setAccountDetail(notaryIrohaAccount, wallet, "free")
             .build()
         val hash = utx.hash().hex()
 
