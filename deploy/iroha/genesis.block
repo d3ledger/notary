@@ -79,7 +79,7 @@
                   {
                      "createDomain":{
                         "domainId":"notary",
-                        "defaultRole":"none"
+                        "defaultRole":"client"
                      }
                   },
                   {
