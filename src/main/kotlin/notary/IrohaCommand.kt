@@ -42,23 +42,7 @@ sealed class IrohaCommand {
         val accountId: String,
         val key: String,
         val value: String
-    ) : IrohaCommand() {
-
-        companion object {
-            /**
-             * Takes a binary proto command and creates a model command AddPeer
-             * @param bytes the command represented as byte array
-             */
-            fun fromProto(bytes: ByteArray): CommandSetAccountDetail {
-                val generic = iroha.protocol.Commands.Command.parseFrom(bytes)
-                val cmd = if (generic.hasSetAccountDetail()) {
-                    generic.setAccountDetail
-                } else iroha.protocol.Commands.SetAccountDetail.parseFrom(bytes)
-
-                return CommandSetAccountDetail(cmd.accountId, cmd.key, cmd.value)
-            }
-        }
-    }
+    ) : IrohaCommand()
 
     /**
      * Class represents createAsset Iroha command
