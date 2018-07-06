@@ -251,7 +251,7 @@ class IntegrationTest {
 
         // Send again any transaction to commit in Ethereum network
         sendEthereum(amount)
-        Thread.sleep(20_000)
+        Thread.sleep(25_000)
 
         assertEquals(amount, queryIroha(assetId))
     }
