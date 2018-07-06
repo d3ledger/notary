@@ -50,7 +50,6 @@ class IrohaTransactionTest {
         val tx = IrohaTransaction.fromProto(protoTx.toByteArray())
 
         Assertions.assertEquals(accId, tx.creator)
-        Assertions.assertEquals(1, tx.commands.size)
-        Assertions.assertEquals(IrohaCommand.CommandAddPeer(address, key.toByteArray()), tx.commands.first())
+        Assertions.assertEquals(0, tx.commands.size)
     }
 }
