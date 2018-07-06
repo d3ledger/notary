@@ -49,7 +49,7 @@ class IrohaCommandTest {
 
         val tx = ModelTransactionBuilder()
             .creatorAccountId("a@a")
-            .createdTime(BigInteger.valueOf(1530753972862))
+            .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
             .addPeer(address, keys.publicKey())
             .build()
             .signAndAddSignature(keys)
