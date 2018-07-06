@@ -47,6 +47,11 @@
                     "createRole":{
                         "roleName":"client",
                         "permissions":[
+                            "can_get_my_account",
+                            "can_get_my_acc_ast",
+                            "can_get_my_acc_ast_txs",
+                            "can_get_my_acc_txs",
+                            "can_get_my_txs",
                             "can_transfer",
                             "can_receive"
                         ]
@@ -64,16 +69,21 @@
                     "createRole":{
                         "roleName":"tester",
                         "permissions":[
+                            "can_get_all_accounts",
                             "can_get_all_acc_ast",
                             "can_add_asset_qty",
-                            "can_transfer"
+                            "can_transfer",
+                            "can_create_asset",
+                            "can_create_account",
+                            "can_receive",
+                            "can_read_assets"
                         ]
                     }
                   },
                   {
                      "createDomain":{
                         "domainId":"notary",
-                        "defaultRole":"none"
+                        "defaultRole":"client"
                      }
                   },
                   {
@@ -126,12 +136,6 @@
                         "accountName":"user1",
                         "domainId":"notary",
                         "mainPubkey":"3MfszkSPLhkKSBrsfKIe5S7aVG5mC0gg9JdtATIVcJc="
-                     }
-                  },
-                  {
-                     "appendRole":{
-                        "accountId":"user1@notary",
-                        "roleName":"client"
                      }
                   },
                   {
