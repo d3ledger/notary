@@ -7,7 +7,7 @@ import org.jooq.impl.DSL
 import java.sql.DriverManager
 
 /** Implementation of [EthWalletsProvider] with PostgreSQL storage. */
-class EthWalletsProviderImpl : EthWalletsProvider {
+class EthWalletsProviderPostgresImpl : EthWalletsProvider {
 
     override fun getWallets(): Result<Map<String, String>, Exception> {
         return Result.of {
