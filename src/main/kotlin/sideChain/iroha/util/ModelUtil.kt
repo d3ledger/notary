@@ -212,7 +212,9 @@ object ModelUtil {
 
 
     /**
-     * Extension function to parse account detail
+     * Used to parse account detail
+     * @param str raw json
+     * @return map of string -> map of string -> string
      */
     fun jsonToKV(str: String): Map<String, Map<String, String>>? {
 
