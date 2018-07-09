@@ -39,8 +39,6 @@ class EthWalletsProviderIrohaTest {
 
         assertEquals(parsed["meta"]!!["author"], "notary")
         assertEquals(parsed["meta"]!!["timestamp"], "123")
-
-
     }
 
 
@@ -50,7 +48,6 @@ class EthWalletsProviderIrohaTest {
         IrohaInitialization.loadIrohaLibrary()
 
         val domain = "notary"
-        val accountName = "test"
 
         val entries = mapOf(
             "0x281055afc982d96fab65b3a49cac8b878184cb16" to "user1@$domain",
@@ -64,8 +61,8 @@ class EthWalletsProviderIrohaTest {
         val valid = entries.filter { it.value != "free" }
 
         val keypair = ModelUtil.loadKeypair(
-            CONFIG[ConfigKeys.registrationServicePubkeyPath],
-            CONFIG[ConfigKeys.registrationServicePrivkeyPath]
+            CONFIG[ConfigKeys.testPubkeyPath],
+            CONFIG[ConfigKeys.testPrivkeyPath]
         )
 
         val creator = CONFIG[ConfigKeys.registrationServiceIrohaAccount]
@@ -87,7 +84,7 @@ class EthWalletsProviderIrohaTest {
         val hash = it.hash()
         val tx = IrohaConsumerImpl(keypair.component1()!!).convertToProto(it)
 
-        val res = IrohaNetworkImpl(
+        IrohaNetworkImpl(
             "localhost",
             CONFIG[ConfigKeys.registrationServiceIrohaPort]
         ).sendAndCheck(tx, hash)
