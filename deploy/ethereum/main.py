@@ -7,11 +7,11 @@ import os
 try:
     NODE_0 = os.environ['NODE_0']
 except KeyError:
-    NODE_0 = "node0"
+    NODE_0 = "d3-eth-node0"
 try:
     NODE_1 = os.environ['NODE_1']
 except KeyError:
-    NODE_1 = "node1"
+    NODE_1 = "d3-eth-node1"
 try:
     PORT = os.environ['PORT']
 except KeyError:
