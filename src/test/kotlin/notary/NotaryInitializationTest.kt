@@ -1,15 +1,11 @@
 package notary
 
 import com.github.kittinunf.result.Result
-import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.doThrow
 import com.nhaarman.mockito_kotlin.mock
-import endpoint.eth.EthRefundRequest
-import endpoint.eth.EthRefundStrategy
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
-import org.junit.jupiter.api.Assertions.assertEquals
 
 class NotaryInitializationTest {
 

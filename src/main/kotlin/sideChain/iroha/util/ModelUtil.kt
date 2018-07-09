@@ -1,6 +1,5 @@
 package sidechain.iroha.util
 
-
 import com.github.kittinunf.result.Result
 import com.google.protobuf.InvalidProtocolBufferException
 import io.grpc.ManagedChannel
@@ -39,13 +38,11 @@ object ModelUtil {
      */
     fun getModelQueryBuilder() = ModelQueryBuilder()
 
-
     /**
      * Get current time
      * @return current time as bigint
      */
     fun getCurrentTime() = BigInteger.valueOf(System.currentTimeMillis())
-
 
     /**
      * Opens a chanel with iroha peer
@@ -75,7 +72,6 @@ object ModelUtil {
         channel: ManagedChannel = getChannel()
     ): QueryServiceGrpc.QueryServiceBlockingStub =
         QueryServiceGrpc.newBlockingStub(channel)
-
 
     /**
      * Reads file from path as bytes
@@ -144,7 +140,6 @@ object ModelUtil {
         return protoQuery
     }
 
-
     /**
      * Prepares query for blocks before sending it to a peer
      * @param uquery - unsigned model blocks query
@@ -167,7 +162,6 @@ object ModelUtil {
         }
         return protoQuery
     }
-
 
     /**
      * Prepares transaction before sending it to a peer
@@ -206,6 +200,5 @@ object ModelUtil {
     fun isStatelessValid(resp: QueryResponse) =
         !(resp.hasErrorResponse() &&
                 resp.errorResponse.reason.toString() == "STATELESS_INVALID")
-
 
 }

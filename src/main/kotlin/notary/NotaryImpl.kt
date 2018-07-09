@@ -1,7 +1,7 @@
 package notary
 
 import io.reactivex.Observable
-import main.ConfigKeys
+import config.ConfigKeys
 import mu.KLogging
 import sidechain.SideChainEvent
 import java.math.BigInteger

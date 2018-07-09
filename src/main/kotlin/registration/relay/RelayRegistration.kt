@@ -13,7 +13,7 @@ import jp.co.soramitsu.iroha.ModelProtoTransaction
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
-import main.ConfigKeys
+import config.ConfigKeys
 import mu.KLogging
 import notary.EthTokensProvider
 import notary.EthTokensProviderImpl

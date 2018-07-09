@@ -1,10 +1,10 @@
 package notary
 
 import com.github.kittinunf.result.success
+import config.ConfigKeys
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
-import main.ConfigKeys
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Disabled

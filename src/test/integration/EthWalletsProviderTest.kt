@@ -1,6 +1,6 @@
 package integration
 
-import main.ConfigKeys
+import config.ConfigKeys
 import notary.CONFIG
 import notary.db.tables.Wallets
 import org.jooq.impl.DSL

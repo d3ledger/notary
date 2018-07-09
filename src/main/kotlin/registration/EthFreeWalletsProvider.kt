@@ -9,7 +9,7 @@ import iroha.protocol.QueryServiceGrpc
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelProtoQuery
 import jp.co.soramitsu.iroha.ModelQueryBuilder
-import main.ConfigKeys
+import config.ConfigKeys
 import mu.KLogging
 import notary.CONFIG
 import sidechain.iroha.util.toByteArray

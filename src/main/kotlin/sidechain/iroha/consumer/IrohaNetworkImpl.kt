@@ -7,9 +7,7 @@ import iroha.protocol.BlockOuterClass
 import iroha.protocol.CommandServiceGrpc
 import iroha.protocol.Endpoint
 import jp.co.soramitsu.iroha.Hash
-import main.ConfigKeys
 import mu.KLogging
-import notary.CONFIG
 import sidechain.iroha.util.toByteArray
 
 /**
