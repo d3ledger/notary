@@ -169,7 +169,7 @@ object ModelUtil {
      * @param keys used to sign transaction
      * @return proto transaction, if succeeded
      */
-    fun prepareTransaction(utx: UnsignedTx, keys: Keypair): Transaction? {
+    fun prepareTransaction(utx: UnsignedTx, keys: Keypair): Transaction {
         // sign transaction and get its binary representation (Blob)
         val txblob = ModelProtoTransaction(utx)
             .signAndAddSignature(keys)
@@ -180,15 +180,7 @@ object ModelUtil {
         val bs = txblob.toByteArray()
 
         // create proto object
-        val protoTx: Transaction?
-        try {
-            protoTx = Transaction.parseFrom(bs)
-        } catch (e: InvalidProtocolBufferException) {
-            logger.error { "Exception while converting byte array to protobuf:" + e.message }
-            return null
-        }
-
-        return protoTx
+        return Transaction.parseFrom(bs)
     }
 
     /**

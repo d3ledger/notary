@@ -2,26 +2,17 @@ package registration.relay
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import com.google.protobuf.ByteString
-import com.google.protobuf.InvalidProtocolBufferException
-import io.grpc.ManagedChannelBuilder
-import iroha.protocol.BlockOuterClass
-import iroha.protocol.CommandServiceGrpc
-import iroha.protocol.Endpoint
-import jp.co.soramitsu.iroha.Keypair
-import jp.co.soramitsu.iroha.ModelProtoTransaction
-import jp.co.soramitsu.iroha.ModelTransactionBuilder
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.runBlocking
 import config.ConfigKeys
+import jp.co.soramitsu.iroha.Keypair
+import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import mu.KLogging
 import notary.EthTokensProvider
 import notary.EthTokensProviderImpl
 import org.web3j.crypto.WalletUtils
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
-import sidechain.iroha.util.toByteArray
 import java.math.BigInteger
 
 /**
@@ -36,11 +27,10 @@ class RelayRegistration(
     private val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.relayRegistartionEthConnectionUrl]))
 
     /** credentials of ethereum user */
-    private val credentials =
-        WalletUtils.loadCredentials(
-            CONFIG[ConfigKeys.relayRegistartionEthCredentialPassword],
-            CONFIG[ConfigKeys.relayRegistartionEthCredentialPath]
-        )
+    private val credentials = WalletUtils.loadCredentials(
+        CONFIG[ConfigKeys.relayRegistartionEthCredentialPassword],
+        CONFIG[ConfigKeys.relayRegistartionEthCredentialPath]
+    )
 
     /** Gas price */
     private val gasPrice = BigInteger.valueOf(CONFIG[ConfigKeys.relayRegistartionEthGasPrice])
@@ -49,11 +39,10 @@ class RelayRegistration(
     private val gasLimit = BigInteger.valueOf(CONFIG[ConfigKeys.relayRegistartionEthGasLimit])
 
     /** Iroha keypair */
-    val keypair: Keypair =
-        ModelUtil.loadKeypair(
-            CONFIG[ConfigKeys.relayRegistrationPubkeyPath],
-            CONFIG[ConfigKeys.relayRegistrationPrivkeyPath]
-        ).get()
+    val keypair: Keypair = ModelUtil.loadKeypair(
+        CONFIG[ConfigKeys.relayRegistrationPubkeyPath],
+        CONFIG[ConfigKeys.relayRegistrationPrivkeyPath]
+    ).get()
 
     /** Iroha host */
     val irohaHost = CONFIG[ConfigKeys.relayRegistrationIrohaHostname]
@@ -99,44 +88,12 @@ class RelayRegistration(
             .createdTime(BigInteger.valueOf(currentTime))
             .setAccountDetail(notaryIrohaAccount, wallet, "free")
             .build()
-        val hash = utx.hash().hex()
+        val hash = utx.hash()
 
-        // sign transaction and get its binary representation (Blob)
-        val txblob = ModelProtoTransaction(utx).signAndAddSignature(keypair).finish().blob().toByteArray()
+        val protoTx = ModelUtil.prepareTransaction(utx, keypair)
+        IrohaNetworkImpl(irohaHost, irohaPort).sendAndCheck(protoTx, hash)
 
-        // create proto object
-        val protoTx: BlockOuterClass.Transaction?
-        try {
-            protoTx = BlockOuterClass.Transaction.parseFrom(txblob)
-        } catch (e: InvalidProtocolBufferException) {
-            logger.error { "Exception while converting byte array to protobuf: ${e.message}" }
-            throw Exception("Exception while converting byte array to protobuf: ${e.message}")
-        }
-
-        // Send transaction to iroha
-        val channel = ManagedChannelBuilder.forAddress(irohaHost, irohaPort).usePlaintext(true).build()
-        val stub = CommandServiceGrpc.newBlockingStub(channel)
-        stub.torii(protoTx)
-
-        // wait to ensure transaction was processed
-        runBlocking { delay(5000) }
-
-        // create status request
-        logger.info { "Send Iroha transaction: $hash" }
-
-        val bshash = utx.hash().blob().toByteArray()
-        val request = Endpoint.TxStatusRequest.newBuilder().setTxHash(ByteString.copyFrom(bshash)).build()
-        val response = stub.status(request)
-        val status = response.txStatus.name
-
-        logger.info { "Status of iroha transaction $hash is: $status" }
-
-        if (status != "COMMITTED") {
-            logger.error { "$hash transaction wasn't committed" }
-            throw Exception("$hash transaction wasn't committed")
-        }
-
-        return hash
+        return hash.hex()
     }
 
     /**
