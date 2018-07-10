@@ -29,5 +29,4 @@ fun main(args: Array<String>) {
             logger.logger.error { it }
             System.exit(1)
         }
-
 }

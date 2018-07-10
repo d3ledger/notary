@@ -2,6 +2,7 @@ package sidechain.iroha.util
 
 import com.github.kittinunf.result.Result
 import com.google.protobuf.InvalidProtocolBufferException
+import com.squareup.moshi.JsonReader
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.BlockOuterClass.Transaction
@@ -12,6 +13,8 @@ import iroha.protocol.QueryServiceGrpc
 import iroha.protocol.Responses.QueryResponse
 import jp.co.soramitsu.iroha.*
 import mu.KLogging
+import okio.Okio
+import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.math.BigInteger
 import java.nio.file.Files
@@ -192,5 +195,31 @@ object ModelUtil {
     fun isStatelessValid(resp: QueryResponse) =
         !(resp.hasErrorResponse() &&
                 resp.errorResponse.reason.toString() == "STATELESS_INVALID")
+
+    /**
+     * Used to parse account detail
+     * @param str raw json
+     * @return map of string -> map of string -> string
+     */
+    fun jsonToKV(str: String): Map<String, Map<String, String>>? {
+
+        val result = mutableMapOf<String, Map<String, String>>()
+        val reader = JsonReader.of(Okio.buffer(Okio.source(ByteArrayInputStream(str.toByteArray()))))
+        reader.beginObject()
+
+        while (reader.hasNext()) {
+
+            val key = reader.nextName()
+            val curr = mutableMapOf<String, String>()
+            reader.selectName(JsonReader.Options.of(key))
+            reader.beginObject()
+            while (reader.hasNext())
+                curr[reader.nextName()] = reader.readJsonValue() as String
+
+            result[key] = curr
+            reader.endObject()
+        }
+        return result
+    }
 
 }

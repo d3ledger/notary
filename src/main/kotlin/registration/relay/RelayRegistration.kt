@@ -88,6 +88,7 @@ class RelayRegistration(
             .createdTime(BigInteger.valueOf(currentTime))
             .setAccountDetail(notaryIrohaAccount, wallet, "free")
             .build()
+
         val hash = utx.hash()
 
         val protoTx = ModelUtil.prepareTransaction(utx, keypair)

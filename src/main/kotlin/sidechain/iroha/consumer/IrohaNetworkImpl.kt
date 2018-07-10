@@ -2,12 +2,11 @@ package sidechain.iroha.consumer
 
 import com.github.kittinunf.result.Result
 import com.google.protobuf.ByteString
-import io.grpc.ManagedChannelBuilder
 import iroha.protocol.BlockOuterClass
-import iroha.protocol.CommandServiceGrpc
 import iroha.protocol.Endpoint
 import jp.co.soramitsu.iroha.Hash
 import mu.KLogging
+import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.toByteArray
 
 /**
@@ -16,14 +15,11 @@ import sidechain.iroha.util.toByteArray
 class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
 
     /** Grpc stub for streaming output calls on the service */
-    val toriiStub: iroha.protocol.CommandServiceGrpc.CommandServiceBlockingStub
-
-    init {
-        val channel =
-            ManagedChannelBuilder.forAddress(host, port)
-                .usePlaintext(true).build()
-        toriiStub = CommandServiceGrpc.newBlockingStub(channel)
+    val toriiStub by lazy {
+        val channel = ModelUtil.getChannel(host, port)
+        ModelUtil.getCommandStub(channel)
     }
+
 
     /**
      * Send transaction to iroha
