@@ -3,6 +3,7 @@ package registration
 import com.github.kittinunf.result.Result
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.experimental.async
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
@@ -43,10 +44,8 @@ open class RegistrationTest {
     /**
      * Send POST request to local server
      */
-    fun post(params: Map<String, String>): String {
-        val res = khttp.post("http://127.0.0.1:$port/users", data = params)
-
-        return res.text
+    fun post(params: Map<String, String>): khttp.responses.Response {
+        return khttp.post("http://127.0.0.1:$port/users", data = params)
     }
 
     /**
@@ -57,7 +56,9 @@ open class RegistrationTest {
     @Test
     fun postWrongName() {
         val actual = post(mapOf("wrong_name" to correctName, "pubkey" to correctPubkey))
-        assertEquals("Response has been failed. Parameter \"name\" is not specified.", actual)
+
+        assertEquals(HttpStatusCode.BadRequest.value, actual.statusCode)
+        assertEquals("Response has been failed. Parameter \"name\" is not specified.", actual.text)
     }
 
     /**
@@ -68,7 +69,9 @@ open class RegistrationTest {
     @Test
     fun postWrongPubkey() {
         val actual = post(mapOf("name" to correctName, "wrong_pubkey" to correctPubkey))
-        assertEquals("Response has been failed. Parameter \"pubkey\" is not specified.", actual)
+
+        assertEquals(HttpStatusCode.BadRequest.value, actual.statusCode)
+        assertEquals("Response has been failed. Parameter \"pubkey\" is not specified.", actual.text)
     }
 
     /**
@@ -79,6 +82,8 @@ open class RegistrationTest {
     @Test
     fun postCorrect() {
         val actual = post(mapOf("name" to correctName, "pubkey" to correctPubkey))
-        assertEquals("OK", actual)
+
+        assertEquals(HttpStatusCode.OK.value, actual.statusCode)
+        assertEquals("OK", actual.text)
     }
 }
