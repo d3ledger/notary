@@ -1,7 +1,7 @@
 package notary
 
 import com.github.kittinunf.result.Result
-import main.ConfigKeys
+import config.ConfigKeys
 import notary.db.tables.Wallets
 import org.jooq.impl.DSL
 import java.sql.DriverManager

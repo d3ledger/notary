@@ -26,7 +26,7 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
      * @param protoTx protobuf representation of transaction
      */
     override fun send(protoTx: BlockOuterClass.Transaction) {
-        logger.info { "TX to IROHA" }
+        logger.info { "send TX to IROHA" }
 
         // Send transaction to iroha
         toriiStub.torii(protoTx)

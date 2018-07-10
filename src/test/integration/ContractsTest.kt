@@ -4,11 +4,9 @@ import contract.BasicCoin
 import contract.Master
 import contract.Relay
 import notary.CONFIG
-import main.ConfigKeys
-import org.junit.jupiter.api.BeforeAll
+import config.ConfigKeys
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.web3j.abi.datatypes.generated.Uint256
 import org.web3j.crypto.Hash
 import org.web3j.protocol.http.HttpService
 import org.web3j.protocol.parity.Parity

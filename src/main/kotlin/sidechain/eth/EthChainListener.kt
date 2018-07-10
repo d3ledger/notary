@@ -4,7 +4,7 @@ import com.github.kittinunf.result.Result
 import hu.akarnokd.rxjava.interop.RxJavaInterop
 import io.reactivex.Observable
 import notary.CONFIG
-import main.ConfigKeys
+import config.ConfigKeys
 import mu.KLogging
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.DefaultBlockParameter
@@ -14,7 +14,7 @@ import java.math.BigInteger
 
 /**
  * Implementation of [ChainListener] for Ethereum sidechain
- * @param web3 - endpoint of Ethereum client
+ * @param web3 - notary.endpoint of Ethereum client
  */
 class EthChainListener(val web3: Web3j) : ChainListener<EthBlock> {
 

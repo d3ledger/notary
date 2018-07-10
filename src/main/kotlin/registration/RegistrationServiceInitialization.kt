@@ -2,7 +2,7 @@ package registration
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import main.ConfigKeys
+import config.ConfigKeys
 import notary.CONFIG
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil

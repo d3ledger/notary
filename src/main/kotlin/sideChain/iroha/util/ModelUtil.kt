@@ -1,6 +1,5 @@
 package sidechain.iroha.util
 
-
 import com.github.kittinunf.result.Result
 import com.google.protobuf.InvalidProtocolBufferException
 import com.squareup.moshi.JsonReader
@@ -42,13 +41,11 @@ object ModelUtil {
      */
     fun getModelQueryBuilder() = ModelQueryBuilder()
 
-
     /**
      * Get current time
      * @return current time as bigint
      */
     fun getCurrentTime() = BigInteger.valueOf(System.currentTimeMillis())
-
 
     /**
      * Opens a chanel with iroha peer
@@ -78,7 +75,6 @@ object ModelUtil {
         channel: ManagedChannel = getChannel()
     ): QueryServiceGrpc.QueryServiceBlockingStub =
         QueryServiceGrpc.newBlockingStub(channel)
-
 
     /**
      * Reads file from path as bytes
@@ -147,7 +143,6 @@ object ModelUtil {
         return protoQuery
     }
 
-
     /**
      * Prepares query for blocks before sending it to a peer
      * @param uquery - unsigned model blocks query
@@ -171,14 +166,13 @@ object ModelUtil {
         return protoQuery
     }
 
-
     /**
      * Prepares transaction before sending it to a peer
      * @param utx - unsigned model transaction
      * @param keys used to sign transaction
      * @return proto transaction, if succeeded
      */
-    fun prepareTransaction(utx: UnsignedTx, keys: Keypair): Transaction? {
+    fun prepareTransaction(utx: UnsignedTx, keys: Keypair): Transaction {
         // sign transaction and get its binary representation (Blob)
         val txblob = ModelProtoTransaction(utx)
             .signAndAddSignature(keys)
@@ -189,15 +183,7 @@ object ModelUtil {
         val bs = txblob.toByteArray()
 
         // create proto object
-        val protoTx: Transaction?
-        try {
-            protoTx = Transaction.parseFrom(bs)
-        } catch (e: InvalidProtocolBufferException) {
-            logger.error { "Exception while converting byte array to protobuf:" + e.message }
-            return null
-        }
-
-        return protoTx
+        return Transaction.parseFrom(bs)
     }
 
     /**
@@ -209,7 +195,6 @@ object ModelUtil {
     fun isStatelessValid(resp: QueryResponse) =
         !(resp.hasErrorResponse() &&
                 resp.errorResponse.reason.toString() == "STATELESS_INVALID")
-
 
     /**
      * Used to parse account detail
@@ -236,6 +221,5 @@ object ModelUtil {
         }
         return result
     }
-
 
 }

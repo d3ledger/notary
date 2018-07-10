@@ -3,9 +3,9 @@ package integration
 import com.github.kittinunf.result.failure
 import com.google.protobuf.InvalidProtocolBufferException
 import com.squareup.moshi.Moshi
-import endpoint.eth.BigIntegerMoshiAdapter
-import endpoint.eth.EthNotaryResponse
-import endpoint.eth.EthNotaryResponseMoshiAdapter
+import notary.endpoint.eth.BigIntegerMoshiAdapter
+import notary.endpoint.eth.EthNotaryResponse
+import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.CommandServiceGrpc
@@ -16,7 +16,7 @@ import jp.co.soramitsu.iroha.ModelProtoTransaction
 import jp.co.soramitsu.iroha.ModelQueryBuilder
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import kotlinx.coroutines.experimental.async
-import main.ConfigKeys
+import config.ConfigKeys
 import notary.CONFIG
 import notary.db.tables.Tokens
 import notary.main

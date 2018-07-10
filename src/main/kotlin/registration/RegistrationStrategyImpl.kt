@@ -2,7 +2,7 @@ package registration
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
-import main.ConfigKeys
+import config.ConfigKeys
 import notary.CONFIG
 import notary.IrohaCommand
 import notary.IrohaTransaction

@@ -4,12 +4,12 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import endpoint.RefundServerEndpoint
-import endpoint.ServerInitializationBundle
-import endpoint.eth.EthRefundStrategyImpl
+import notary.endpoint.RefundServerEndpoint
+import notary.endpoint.ServerInitializationBundle
+import notary.endpoint.eth.EthRefundStrategyImpl
 import io.reactivex.Observable
 import jp.co.soramitsu.iroha.Hash
-import main.ConfigKeys
+import config.ConfigKeys
 import mu.KLogging
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
@@ -126,10 +126,10 @@ class NotaryInitialization(
     }
 
     /**
-     * Init refund endpoint
+     * Init refund notary.endpoint
      */
     private fun initRefund() {
-        logger.info { "Init Refund endpoint" }
+        logger.info { "Init Refund notary.endpoint" }
         val keys = ModelUtil.loadKeypair(CONFIG[ConfigKeys.notaryPubkeyPath], CONFIG[ConfigKeys.notaryPrivkeyPath])
         RefundServerEndpoint(
             ServerInitializationBundle(CONFIG[ConfigKeys.notaryRefundPort], CONFIG[ConfigKeys.notaryEthEndpoint]),

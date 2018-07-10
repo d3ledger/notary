@@ -11,7 +11,7 @@ import java.math.BigInteger
 /**
  * Implementation of [ChainHandler] for Ethereum side chain.
  * Extract interesting transactions from Ethereum block.
- * @param web3 - endpoint of Ethereum client
+ * @param web3 - notary.endpoint of Ethereum client
  * @param wallets - map of observable wallets (wallet address -> user name)
  * @param tokens - map of observable tokens (token address -> token name)
  */

@@ -1,7 +1,7 @@
 package notary
 
 import com.github.kittinunf.result.Result
-import main.ConfigKeys
+import config.ConfigKeys
 import sidechain.iroha.util.ModelUtil
 import java.math.BigInteger
 

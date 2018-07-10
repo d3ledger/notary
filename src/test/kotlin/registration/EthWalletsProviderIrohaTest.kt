@@ -1,6 +1,6 @@
 package registration
 
-import main.ConfigKeys
+import config.ConfigKeys
 import notary.CONFIG
 import notary.EthWalletsProviderIrohaImpl
 import notary.IrohaCommand

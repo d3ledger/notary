@@ -8,7 +8,7 @@ import iroha.protocol.CommandServiceGrpc
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelProtoTransaction
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
-import main.ConfigKeys
+import config.ConfigKeys
 import notary.CONFIG
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

@@ -5,7 +5,7 @@ import io.reactivex.Observable
 import io.reactivex.rxkotlin.toObservable
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.iroha.ModelBlocksQueryBuilder
-import main.ConfigKeys
+import config.ConfigKeys
 import mu.KLogging
 import notary.CONFIG
 import sidechain.ChainListener
