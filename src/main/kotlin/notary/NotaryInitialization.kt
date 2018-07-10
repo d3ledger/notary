@@ -10,6 +10,7 @@ import notary.endpoint.eth.EthRefundStrategyImpl
 import io.reactivex.Observable
 import jp.co.soramitsu.iroha.Hash
 import config.ConfigKeys
+import io.reactivex.schedulers.Schedulers
 import mu.KLogging
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
@@ -110,6 +111,7 @@ class NotaryInitialization(
                         hash = it.hash()
                         irohaConsumer.convertToProto(it)
                     }
+                    .subscribeOn(Schedulers.io())
                     .subscribe(
                         // send to Iroha network layer
                         {

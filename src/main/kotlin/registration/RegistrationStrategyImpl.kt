@@ -3,6 +3,7 @@ package registration
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import config.ConfigKeys
+import com.github.kittinunf.result.map
 import notary.CONFIG
 import notary.IrohaCommand
 import notary.IrohaTransaction
@@ -26,14 +27,16 @@ class RegistrationStrategyImpl(
      * @param name - client name
      * @param pubkey - client public key
      */
-    override fun register(name: String, pubkey: String): Result<Unit, Exception> {
+    override fun register(name: String, pubkey: String): Result<String, Exception> {
+        lateinit var ethWallet: String
+
         return Result.of {
-            val ethWallet = ethFreeWalletsProvider.getWallet()
+            ethWallet = ethFreeWalletsProvider.getWallet()
             val creator = CONFIG[ConfigKeys.registrationServiceIrohaAccount]
             val domain = "notary"
             val masterAccount = CONFIG[ConfigKeys.registrationServiceNotaryIrohaAccount]
 
-            val irohaOutput = IrohaTransaction(
+            IrohaTransaction(
                 creator,
                 arrayListOf(
                     // Create account
@@ -54,16 +57,15 @@ class RegistrationStrategyImpl(
                     )
                 )
             )
-
-            val it = IrohaConverterImpl().convert(irohaOutput)
-            val hash = it.hash()
-            val tx = irohaConsumer.convertToProto(it)
-            Pair(tx, hash)
-        }.flatMap { (tx, hash) ->
+        }.flatMap {
+            val utx = IrohaConverterImpl().convert(it)
+            val tx = irohaConsumer.convertToProto(utx)
             IrohaNetworkImpl(
                 CONFIG[ConfigKeys.registrationServiceIrohaHostname],
                 CONFIG[ConfigKeys.registrationServiceIrohaPort]
-            ).sendAndCheck(tx, hash)
+            ).sendAndCheck(tx, utx.hash())
+        }.map {
+            ethWallet
         }
     }
 }
