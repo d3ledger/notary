@@ -57,8 +57,8 @@ class RegistrationServiceEndpoint(
             return responseError(HttpStatusCode.BadRequest, "Parameter \"pubkey\" is not specified.")
 
         registrationStrategy.register(name, pubkey).fold(
-            {
-                return registration.Response(HttpStatusCode.OK, "OK")
+            { ethWallet ->
+                return registration.Response(HttpStatusCode.OK, ethWallet)
             },
             {
                 // TODO - D3-121 - a.chernyshov - distinguish correct status code response (500 - server internal error)

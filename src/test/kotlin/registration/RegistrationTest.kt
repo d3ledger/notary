@@ -22,6 +22,9 @@ open class RegistrationTest {
     /** Correct user public key */
     private val correctPubkey = "0f0ce16d2afbb8eca23c7d8c2724f0c257a800ee2bbd54688cec6b898e3f7e33"
 
+    /** Expected ethereum wallet */
+    private val correctEthWallet = "newEthWallet"
+
     /** Registration strategy that always returns true */
     private val strategy: RegistrationStrategy = mock {
         on {
@@ -29,7 +32,7 @@ open class RegistrationTest {
                 com.nhaarman.mockito_kotlin.any(),
                 com.nhaarman.mockito_kotlin.any()
             )
-        } doReturn Result.of { }
+        } doReturn Result.of { correctEthWallet }
     }
 
     @BeforeAll
@@ -50,7 +53,7 @@ open class RegistrationTest {
 
     /**
      * @given Registration service is up.
-     * @when Send POST with wrong name
+     * @when Send POST with wrong namegr
      * @then Error response is returned
      */
     @Test
@@ -84,6 +87,6 @@ open class RegistrationTest {
         val actual = post(mapOf("name" to correctName, "pubkey" to correctPubkey))
 
         assertEquals(HttpStatusCode.OK.value, actual.statusCode)
-        assertEquals("OK", actual.text)
+        assertEquals(correctEthWallet, actual.text)
     }
 }
