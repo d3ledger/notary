@@ -3,6 +3,7 @@ package registration
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.features.CORS
+import io.ktor.http.HttpStatusCode
 import io.ktor.request.receiveParameters
 import io.ktor.response.respondText
 import io.ktor.routing.post
@@ -10,8 +11,8 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import mu.KLogging
-import okhttp3.internal.http.HttpHeaders
-import okhttp3.internal.http.HttpMethod
+
+data class Response(val code: HttpStatusCode, val message: String)
 
 /**
  * Registration HTTP service
@@ -36,30 +37,32 @@ class RegistrationServiceEndpoint(
 
                     logger.info { "Registration invoked with parameters (name = \"$name\", pubkey = \"$pubkey\"" }
 
-                    call.respondText { onPostRegistration(name, pubkey) }
+                    val response = onPostRegistration(name, pubkey)
+                    call.respondText(response.message, status = response.code)
                 }
             }
         }
         server.start(wait = false)
     }
 
-    private fun responseError(reason: String): String {
+    private fun responseError(code: HttpStatusCode, reason: String): registration.Response {
         logger.warn { "Response has been failed. $reason" }
-        return "Response has been failed. $reason"
+        return registration.Response(code, "Response has been failed. $reason")
     }
 
-    private fun onPostRegistration(name: String?, pubkey: String?): String {
+    private fun onPostRegistration(name: String?, pubkey: String?): registration.Response {
         if (name == null)
-            return responseError("Parameter \"name\" is not specified.")
+            return responseError(HttpStatusCode.BadRequest, "Parameter \"name\" is not specified.")
         if (pubkey == null)
-            return responseError("Parameter \"pubkey\" is not specified.")
+            return responseError(HttpStatusCode.BadRequest, "Parameter \"pubkey\" is not specified.")
 
-        return registrationStrategy.register(name, pubkey).fold(
+        registrationStrategy.register(name, pubkey).fold(
             {
-                "OK"
+                return registration.Response(HttpStatusCode.OK, "OK")
             },
             {
-                responseError(it.toString())
+                // TODO - D3-121 - a.chernyshov - distinguish correct status code response (500 - server internal error)
+                return responseError(HttpStatusCode.BadRequest, it.toString())
             })
     }
 
