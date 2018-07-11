@@ -133,6 +133,7 @@ class IntegrationTest {
      * @return hex representation of transaction hash
      */
     fun setAccountDetail(accountId: String, key: String, value: String): String {
+        val creator = CONFIG[ConfigKeys.registrationServiceIrohaAccount]
         val currentTime = System.currentTimeMillis()
 
         // build transaction (still unsigned)
@@ -241,13 +242,13 @@ class IntegrationTest {
         // ensure that initial wallet value is 0
         assertEquals(BigInteger.ZERO, queryIroha(assetId))
 
+        setAccountDetail("notary_red@notary", toAddress, "user1@notary")
+
         // run notary
         async {
             main(arrayOf())
         }
         Thread.sleep(3_000)
-
-        setAccountDetail("notary_red@notary", toAddress, "user1@notary")
 
         // send ETH
         sendEthereum(amount)

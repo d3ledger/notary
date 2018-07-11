@@ -35,7 +35,7 @@ class IrohaChainListener(val account: String, val keypair: Keypair) :
             val scheduler = Schedulers.from(Executors.newSingleThreadExecutor())
 
             stub.fetchCommits(query).toObservable().map {
-                logger.info { "New Iroha block arrived" }
+                logger.info { "New Iroha block arrived. Height ${it.blockResponse.block.payload.height}" }
                 it.blockResponse.block
             }.observeOn(scheduler)
         }
