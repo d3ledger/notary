@@ -3,28 +3,37 @@ package notary
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser
 import com.github.kittinunf.result.Result
-import config.ConfigKeys
+import jp.co.soramitsu.iroha.Keypair
 import sidechain.iroha.util.ModelUtil
 import java.math.BigInteger
 
-/** Implementation of [EthWalletsProvider] with Iroha storage. */
-class EthWalletsProviderIrohaImpl : EthWalletsProvider {
+/**
+ * Implementation of [EthWalletsProvider] with Iroha storage.
+ *
+ * @param creator - Iroha query creator
+ * @param keypair - Iroha keypair to query
+ * @param relayRegistrationAccount - account of a registration service that has set details
+ * @param registrationServiceNotaryIrohaAccount - notary account that contains details
+ */
+class EthWalletsProviderIrohaImpl(
+    val creator: String,
+    val keypair: Keypair,
+    val relayRegistrationAccount: String,
+    val registrationServiceNotaryIrohaAccount: String
+) : EthWalletsProvider {
 
-    private val relayRegistrationAccount = CONFIG[ConfigKeys.registrationServiceIrohaAccount]
-
+    /**
+     * Account of registration service that has set details.
+     *
+     * @return map<eth_wallet -> iroha_account> in success case or exception otherwise
+     */
     override fun getWallets(): Result<Map<String, String>, Exception> {
         return Result.of {
-
-            val keypair = ModelUtil.loadKeypair(
-                CONFIG[ConfigKeys.notaryPubkeyPath],
-                CONFIG[ConfigKeys.notaryPrivkeyPath]
-            ).get()
-
             val query = ModelUtil.getModelQueryBuilder()
-                .creatorAccountId(CONFIG[ConfigKeys.notaryIrohaAccount])
+                .creatorAccountId(creator)
                 .createdTime(ModelUtil.getCurrentTime())
                 .queryCounter(BigInteger.ONE)
-                .getAccount(CONFIG[ConfigKeys.registrationServiceNotaryIrohaAccount])
+                .getAccount(registrationServiceNotaryIrohaAccount)
                 .build()
 
             val proto_query = ModelUtil.prepareQuery(query, keypair)

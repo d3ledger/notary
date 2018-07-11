@@ -30,7 +30,7 @@ import sidechain.iroha.util.ModelUtil
  * @param ethTokensProvider - provides with white list of ethereum ERC20 tokens
  */
 class NotaryInitialization(
-    val ethWalletsProvider: EthWalletsProvider = EthWalletsProviderIrohaImpl(),
+    val ethWalletsProvider: EthWalletsProvider,
     val ethTokensProvider: EthTokensProvider = EthTokensProviderImpl()
 ) {
     val irohaAccount = CONFIG[ConfigKeys.notaryIrohaAccount]
