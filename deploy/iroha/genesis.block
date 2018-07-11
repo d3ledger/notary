@@ -80,7 +80,8 @@
                             "can_receive",
                             "can_read_assets",
                             "can_add_peer",
-                            "can_set_detail"
+                            "can_set_detail",
+                            "can_get_blocks"
                         ]
                     }
                   },

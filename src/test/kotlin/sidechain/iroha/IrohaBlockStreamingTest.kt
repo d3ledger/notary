@@ -46,18 +46,11 @@ class IrohaBlockStreamingTest {
         IrohaChainListener(admin, keypair).getBlockObservable()
             .map {
                 it.map { block ->
-                    println(block.payload.height)
-
                     cmds = block.payload.transactionsList
                         .flatMap {
-                            println(it.payload.reducedPayload.commandsCount)
                             it.payload.reducedPayload.commandsList
                         }
-                }.subscribeOn(Schedulers.io()).subscribe(
-                    { println("on next") },
-                    { println("on error") },
-                    { println("on complete") }
-                )
+                }.subscribeOn(Schedulers.io()).subscribe()
             }
 
         val utx = getModelTransactionBuilder()
@@ -69,7 +62,7 @@ class IrohaBlockStreamingTest {
         val tx = prepareTransaction(utx, keypair)
         IrohaNetworkImpl(irohaHost, irohaPort).sendAndCheck(tx, utx.hash())
         runBlocking {
-            delay(25000, TimeUnit.MILLISECONDS)
+            delay(5000, TimeUnit.MILLISECONDS)
         }
 
         assertEquals(1, cmds.size)
