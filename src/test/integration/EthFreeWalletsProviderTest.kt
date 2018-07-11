@@ -8,14 +8,14 @@ import iroha.protocol.CommandServiceGrpc
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelProtoTransaction
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
-import main.ConfigKeys
+import config.ConfigKeys
 import notary.CONFIG
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import registration.EthFreeWalletsProvider
 import sidechain.iroha.IrohaInitialization
-import sidechain.iroha.consumer.IrohaKeyLoader
+import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.toByteArray
 import java.math.BigInteger
 
@@ -31,7 +31,7 @@ class EthFreeWalletsProviderTest {
 
     /** Iroha keypair */
     val keypair: Keypair =
-        IrohaKeyLoader.loadKeypair(
+        ModelUtil.loadKeypair(
             CONFIG[ConfigKeys.relayRegistrationPubkeyPath],
             CONFIG[ConfigKeys.relayRegistrationPrivkeyPath]
         ).get()

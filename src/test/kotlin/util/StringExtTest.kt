@@ -2,7 +2,6 @@ package util
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import util.hexToAscii
 
 class StringExtTest {
 

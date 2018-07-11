@@ -1,46 +1,50 @@
 package sidechain.iroha
 
 import com.github.kittinunf.result.Result
-import io.grpc.ManagedChannelBuilder
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.toObservable
 import io.reactivex.schedulers.Schedulers
-import iroha.protocol.Queries.BlocksQuery
-import iroha.protocol.Queries.QueryPayloadMeta
-import iroha.protocol.QueryServiceGrpc
+import jp.co.soramitsu.iroha.ModelBlocksQueryBuilder
+import config.ConfigKeys
 import mu.KLogging
+import notary.CONFIG
 import sidechain.ChainListener
-import java.io.File
+import sidechain.iroha.util.ModelUtil
+import java.math.BigInteger
 import java.util.concurrent.Executors
-
 
 /**
  * Dummy implementation of [ChainListener] with effective dependencies
  */
-class IrohaChainListener : ChainListener<IrohaBlockStub> {
-    val meta = QueryPayloadMeta.newBuilder().build()
-    val sig = iroha.protocol.Primitive.Signature.newBuilder().build()
-    val query = BlocksQuery.newBuilder().setMeta(meta).setSignature(sig).build()
+class IrohaChainListener : ChainListener<iroha.protocol.BlockOuterClass.Block> {
+    val admin = CONFIG[ConfigKeys.notaryIrohaAccount]
+    val keypair = ModelUtil.loadKeypair(
+        CONFIG[ConfigKeys.notaryPubkeyPath],
+        CONFIG[ConfigKeys.notaryPrivkeyPath]
+    ).get()
 
-    val stub: QueryServiceGrpc.QueryServiceBlockingStub by lazy {
-        val channel = ManagedChannelBuilder.forAddress("localhost", 8081).usePlaintext(true).build()
-        QueryServiceGrpc.newBlockingStub(channel)
-    }
+    val uquery = ModelBlocksQueryBuilder()
+        .creatorAccountId(admin)
+        .createdTime(ModelUtil.getCurrentTime())
+        .queryCounter(BigInteger.valueOf(1))
+        .build()
+
+    val query = ModelUtil.prepareBlocksQuery(uquery, keypair)
+    val stub = ModelUtil.getQueryStub()
 
     /**
      * Returns an observable that emits a new block every time it gets it from Iroha
      */
-    override fun getBlockObservable(): Result<Observable<IrohaBlockStub>, Exception> {
+    override fun getBlockObservable(): Result<Observable<iroha.protocol.BlockOuterClass.Block>, Exception> {
         return Result.of {
             logger.info { "On subscribe to Iroha chain" }
             val scheduler = Schedulers.from(Executors.newSingleThreadExecutor())
 
             stub.fetchCommits(query).toObservable().map {
-                logger.info { "New block" }
-                val file = File("resources/genesis.bin")
-                val bs = file.readBytes()
-                IrohaBlockStub.fromProto(bs)
-            }.subscribeOn(scheduler)
+                logger.info { "New Iroha block arrived" }
+                //TODO x3medima17 02.07.2018, return business model object instead of proto
+                it.blockResponse.block
+            }.observeOn(scheduler)
         }
     }
 

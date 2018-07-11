@@ -2,10 +2,10 @@ package registration
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import main.ConfigKeys
+import config.ConfigKeys
 import notary.CONFIG
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaKeyLoader
+import sidechain.iroha.util.ModelUtil
 
 /**
  * Initialisation of Registration Service
@@ -17,7 +17,7 @@ class RegistrationServiceInitialization {
      */
     fun init(): Result<Unit, Exception> {
         return Result.of {
-            IrohaKeyLoader.loadKeypair(
+            ModelUtil.loadKeypair(
                 CONFIG[ConfigKeys.registrationServicePubkeyPath],
                 CONFIG[ConfigKeys.registrationServicePrivkeyPath]
             )

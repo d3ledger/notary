@@ -4,12 +4,13 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import endpoint.RefundServerEndpoint
-import endpoint.ServerInitializationBundle
-import endpoint.eth.EthRefundStrategyImpl
+import notary.endpoint.RefundServerEndpoint
+import notary.endpoint.ServerInitializationBundle
+import notary.endpoint.eth.EthRefundStrategyImpl
 import io.reactivex.Observable
 import jp.co.soramitsu.iroha.Hash
-import main.ConfigKeys
+import config.ConfigKeys
+import io.reactivex.schedulers.Schedulers
 import mu.KLogging
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
@@ -20,8 +21,8 @@ import sidechain.iroha.IrohaChainHandler
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
-import sidechain.iroha.consumer.IrohaKeyLoader
 import sidechain.iroha.consumer.IrohaNetworkImpl
+import sidechain.iroha.util.ModelUtil
 
 
 /**
@@ -30,7 +31,7 @@ import sidechain.iroha.consumer.IrohaNetworkImpl
  * @param ethTokensProvider - provides with white list of ethereum ERC20 tokens
  */
 class NotaryInitialization(
-    val ethWalletsProvider: EthWalletsProvider = EthWalletsProviderImpl(),
+    val ethWalletsProvider: EthWalletsProvider = EthWalletsProviderIrohaImpl(),
     val ethTokensProvider: EthTokensProvider = EthTokensProviderImpl()
 ) {
 
@@ -95,7 +96,7 @@ class NotaryInitialization(
      */
     private fun initIrohaConsumer(notary: Notary): Result<Unit, Exception> {
         logger.info { "Init Iroha consumer" }
-        return IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.notaryPubkeyPath], CONFIG[ConfigKeys.notaryPrivkeyPath])
+        return ModelUtil.loadKeypair(CONFIG[ConfigKeys.notaryPubkeyPath], CONFIG[ConfigKeys.notaryPrivkeyPath])
             .map {
                 val irohaConsumer = IrohaConsumerImpl(it)
 
@@ -110,6 +111,7 @@ class NotaryInitialization(
                         hash = it.hash()
                         irohaConsumer.convertToProto(it)
                     }
+                    .subscribeOn(Schedulers.io())
                     .subscribe(
                         // send to Iroha network layer
                         {
@@ -126,11 +128,11 @@ class NotaryInitialization(
     }
 
     /**
-     * Init refund endpoint
+     * Init refund notary.endpoint
      */
     private fun initRefund() {
-        logger.info { "Init Refund endpoint" }
-        val keys = IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.notaryPubkeyPath], CONFIG[ConfigKeys.notaryPrivkeyPath])
+        logger.info { "Init Refund notary.endpoint" }
+        val keys = ModelUtil.loadKeypair(CONFIG[ConfigKeys.notaryPubkeyPath], CONFIG[ConfigKeys.notaryPrivkeyPath])
         RefundServerEndpoint(
             ServerInitializationBundle(CONFIG[ConfigKeys.notaryRefundPort], CONFIG[ConfigKeys.notaryEthEndpoint]),
             EthRefundStrategyImpl(keys.get())

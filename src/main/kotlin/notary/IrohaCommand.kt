@@ -1,5 +1,6 @@
 package notary
 
+import java.math.BigInteger
 import java.util.*
 
 /**
@@ -68,7 +69,7 @@ sealed class IrohaCommand {
         val destAccountId: String,
         val assetId: String,
         val description: String,
-        val amount: String
+        val amount: BigInteger
     ) : IrohaCommand()
 
     /**
@@ -98,21 +99,5 @@ sealed class IrohaCommand {
 
         override fun hashCode(): Int =
             Arrays.hashCode(address.toByteArray() + peerKey)
-
-
-        companion object {
-            /**
-             * Takes a binary proto command and creates a model command AddPeer
-             * @param bytes the command represented as byte array
-             */
-            fun fromProto(bytes: ByteArray): CommandAddPeer {
-                val generic = iroha.protocol.Commands.Command.parseFrom(bytes)
-                val cmd = if (generic.hasAddPeer()) {
-                    generic.addPeer
-                } else iroha.protocol.Commands.AddPeer.parseFrom(bytes)
-
-                return CommandAddPeer(cmd.peer.address, cmd.peer.peerKey.toByteArray())
-            }
-        }
     }
 }

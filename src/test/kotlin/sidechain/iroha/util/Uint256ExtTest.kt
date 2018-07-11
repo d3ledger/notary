@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test
 import java.math.BigInteger
 import org.junit.jupiter.api.Assertions.assertEquals
 
-
 class Uint256ExtTest {
 
     /**

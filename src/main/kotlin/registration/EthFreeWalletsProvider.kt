@@ -9,7 +9,7 @@ import iroha.protocol.QueryServiceGrpc
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelProtoQuery
 import jp.co.soramitsu.iroha.ModelQueryBuilder
-import main.ConfigKeys
+import config.ConfigKeys
 import mu.KLogging
 import notary.CONFIG
 import sidechain.iroha.util.toByteArray
@@ -77,7 +77,7 @@ class EthFreeWalletsProvider(
         val json: JsonObject = Parser().parse(stringBuilder) as JsonObject
 
         if (json.map[relayRegistrationAccount] == null)
-            throw Exception("There is no attributes set by $relayRegistrationAccount")
+            throw Exception("No free relay wallets found. There is no attributes set by $relayRegistrationAccount")
         val myMap: Map<String, String> = json.map[relayRegistrationAccount] as Map<String, String>
         val res = myMap.filterValues { it == "free" }.keys
 

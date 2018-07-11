@@ -2,11 +2,8 @@ package withdrawalservice
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
-import io.grpc.ServerBuilder
 import mu.KLogging
-import sidechain.iroha.IrohaBlockEmitter
 import sidechain.iroha.IrohaInitialization
-import java.util.concurrent.TimeUnit
 
 
 /**
@@ -14,11 +11,6 @@ import java.util.concurrent.TimeUnit
  */
 fun main(args: Array<String>) {
     val logger = KLogging()
-
-    // TODO remove as soon as Iroha has block streamer
-    // Run block emitter
-    val server = ServerBuilder.forPort(8081).addService(IrohaBlockEmitter(2, TimeUnit.SECONDS)).build()
-    server.start()
 
     IrohaInitialization.loadIrohaLibrary()
         .flatMap { WithdrawalServiceInitialization().init() }

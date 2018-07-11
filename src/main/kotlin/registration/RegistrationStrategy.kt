@@ -10,5 +10,5 @@ interface RegistrationStrategy {
     /**
      * Register new client
      */
-    fun register(name: String, pubkey: String): Result<Unit, Exception>
+    fun register(name: String, pubkey: String): Result<String, Exception>
 }

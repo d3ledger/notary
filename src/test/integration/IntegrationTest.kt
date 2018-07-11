@@ -3,9 +3,9 @@ package integration
 import com.github.kittinunf.result.failure
 import com.google.protobuf.InvalidProtocolBufferException
 import com.squareup.moshi.Moshi
-import endpoint.eth.BigIntegerMoshiAdapter
-import endpoint.eth.EthNotaryResponse
-import endpoint.eth.EthNotaryResponseMoshiAdapter
+import notary.endpoint.eth.BigIntegerMoshiAdapter
+import notary.endpoint.eth.EthNotaryResponse
+import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.CommandServiceGrpc
@@ -16,7 +16,7 @@ import jp.co.soramitsu.iroha.ModelProtoTransaction
 import jp.co.soramitsu.iroha.ModelQueryBuilder
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import kotlinx.coroutines.experimental.async
-import main.ConfigKeys
+import config.ConfigKeys
 import notary.CONFIG
 import notary.db.tables.Tokens
 import notary.main
@@ -30,7 +30,7 @@ import org.web3j.crypto.TransactionEncoder
 import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.utils.Numeric
 import sidechain.iroha.IrohaInitialization
-import sidechain.iroha.consumer.IrohaKeyLoader
+import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.toBigInteger
 import sidechain.iroha.util.toByteArray
 import java.math.BigInteger
@@ -63,7 +63,7 @@ class IntegrationTest {
 
     /** Iroha keypair */
     val keypair =
-        IrohaKeyLoader.loadKeypair(CONFIG[ConfigKeys.testPubkeyPath], CONFIG[ConfigKeys.testPrivkeyPath]).get()
+        ModelUtil.loadKeypair(CONFIG[ConfigKeys.testPubkeyPath], CONFIG[ConfigKeys.testPrivkeyPath]).get()
 
     /** Ethereum address to transfer from */
     private val fromAddress = "0x004ec07d2329997267Ec62b4166639513386F32E"

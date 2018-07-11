@@ -8,7 +8,6 @@ import mu.KLogging
 import sidechain.SideChainEvent
 import sidechain.eth.consumer.EthConsumer
 import sidechain.iroha.IrohaChainListener
-import java.math.BigInteger
 
 class WithdrawalServiceInitialization {
 
@@ -21,16 +20,15 @@ class WithdrawalServiceInitialization {
 
         return IrohaChainListener().getBlockObservable()
             .map { observable ->
-                // TODO a.chernyshov: rework with effective realization
-                observable.map {
-                    logger.info { "Convert iroha block to withdrawal input event" }
-
-                    SideChainEvent.IrohaEvent.OnIrohaSideChainTransfer(
-                        "str",
-                        BigInteger.TEN,
-                        "descr"
-                    ) as SideChainEvent.IrohaEvent
-                }
+                observable
+                    .flatMapIterable { block ->
+                        logger.info { "Convert iroha block to withdrawal input event" }
+                        block.payload.transactionsList
+                            .flatMap { it.payload.commandsList }
+                            .filter { it.hasTransferAsset() }
+                            .map { SideChainEvent.IrohaEvent.OnIrohaSideChainTransfer.fromProto(it.toByteArray()) }
+                            .map { SideChainEvent.IrohaEvent.OnIrohaSideChainTransfer(it) as SideChainEvent.IrohaEvent }
+                    }
             }
     }
 
