@@ -5,36 +5,24 @@ import sidechain.ChainHandler
 import sidechain.SideChainEvent
 
 /**
- * Dummy implementation of [ChainHandler] with effective dependencies
+ * Implementation of [ChainHandler] to convert from Iroha protocol to [SideChainEvent.IrohaEvent]
  */
 class IrohaChainHandler : ChainHandler<iroha.protocol.BlockOuterClass.Block> {
 
     /**
-     * TODO Replace dummy with effective implementation
+     * Parse Iroha block for interesting commands
      */
-    override fun parseBlock(block: iroha.protocol.BlockOuterClass.Block): List<SideChainEvent> {
+    override fun parseBlock(block: iroha.protocol.BlockOuterClass.Block): List<SideChainEvent.IrohaEvent> {
         logger.info { "Iroha chain handler" }
         return block.payload.transactionsList
-            .flatMap { it.payload.commandsList }
-            .map {
-                val bs = it.toByteArray()
+            .flatMap { it.payload.reducedPayload.commandsList }
+            .flatMap {
                 when {
-                    it.hasAddPeer() ->
-                        SideChainEvent.IrohaEvent.OnIrohaAddPeer(
-                            SideChainEvent.IrohaEvent.OnIrohaAddPeer.fromProto(bs)
-                        )
-
-                    it.hasTransferAsset() ->
-                        SideChainEvent.IrohaEvent.OnIrohaSideChainTransfer(
-                            SideChainEvent.IrohaEvent.OnIrohaSideChainTransfer.fromProto(bs)
-                        )
-
-
-                    else -> null
+                    it.hasAddPeer() -> listOf(SideChainEvent.IrohaEvent.AddPeer.fromProto(it.addPeer))
+                    it.hasTransferAsset() -> listOf(SideChainEvent.IrohaEvent.SideChainTransfer.fromProto(it.transferAsset))
+                    else -> listOf()
                 }
             }
-            .filterNotNull()
-
     }
 
     /**

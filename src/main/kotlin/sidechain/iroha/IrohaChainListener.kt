@@ -4,10 +4,9 @@ import com.github.kittinunf.result.Result
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.toObservable
 import io.reactivex.schedulers.Schedulers
+import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelBlocksQueryBuilder
-import config.ConfigKeys
 import mu.KLogging
-import notary.CONFIG
 import sidechain.ChainListener
 import sidechain.iroha.util.ModelUtil
 import java.math.BigInteger
@@ -16,15 +15,10 @@ import java.util.concurrent.Executors
 /**
  * Dummy implementation of [ChainListener] with effective dependencies
  */
-class IrohaChainListener : ChainListener<iroha.protocol.BlockOuterClass.Block> {
-    val admin = CONFIG[ConfigKeys.notaryIrohaAccount]
-    val keypair = ModelUtil.loadKeypair(
-        CONFIG[ConfigKeys.notaryPubkeyPath],
-        CONFIG[ConfigKeys.notaryPrivkeyPath]
-    ).get()
-
+class IrohaChainListener(val account: String, val keypair: Keypair) :
+    ChainListener<iroha.protocol.BlockOuterClass.Block> {
     val uquery = ModelBlocksQueryBuilder()
-        .creatorAccountId(admin)
+        .creatorAccountId(account)
         .createdTime(ModelUtil.getCurrentTime())
         .queryCounter(BigInteger.valueOf(1))
         .build()
@@ -42,7 +36,6 @@ class IrohaChainListener : ChainListener<iroha.protocol.BlockOuterClass.Block> {
 
             stub.fetchCommits(query).toObservable().map {
                 logger.info { "New Iroha block arrived" }
-                //TODO x3medima17 02.07.2018, return business model object instead of proto
                 it.blockResponse.block
             }.observeOn(scheduler)
         }

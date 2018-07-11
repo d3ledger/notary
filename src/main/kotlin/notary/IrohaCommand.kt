@@ -10,12 +10,10 @@ sealed class IrohaCommand {
 
     /**
      * Class represents addAssetQuantity Iroha command
-     * @param accountId account id to add asset quantity to
      * @param assetId asset id to add value to
      * @param amount is a string representation of amount to add
      */
     data class CommandAddAssetQuantity(
-        val accountId: String,
         val assetId: String,
         val amount: String
     ) : IrohaCommand()

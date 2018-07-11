@@ -1,67 +1,80 @@
-package notary
+package sidechain.iroha
 
-import com.github.kittinunf.result.success
+import com.github.kittinunf.result.map
 import config.ConfigKeys
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
-import org.junit.jupiter.api.Assertions.assertArrayEquals
+import notary.CONFIG
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import sidechain.iroha.IrohaChainListener
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
-import sidechain.iroha.util.ModelUtil.getCommandStub
 import sidechain.iroha.util.ModelUtil.getCurrentTime
 import sidechain.iroha.util.ModelUtil.getModelTransactionBuilder
 import sidechain.iroha.util.ModelUtil.prepareTransaction
-import sidechain.iroha.util.toByteArray
 import java.util.concurrent.TimeUnit
 
+/**
+ * Note: Requires Iroha is runnig.
+ */
 class IrohaBlockStreamingTest {
+
+    /**
+     * @given
+     * @when
+     * @then
+     */
     @Disabled
     @Test
     fun irohaStreamingTest() {
         System.loadLibrary("irohajava")
 
-        val address = "127.0.0.1:21917"
+        val irohaHost = CONFIG[ConfigKeys.testIrohaHostname]
+        val irohaPort = CONFIG[ConfigKeys.testIrohaPort]
+
         val admin = CONFIG[ConfigKeys.testIrohaAccount]
         val keypair = ModelUtil.loadKeypair(
             CONFIG[ConfigKeys.testPubkeyPath],
             CONFIG[ConfigKeys.testPrivkeyPath]
         ).get()
 
-        val utx = getModelTransactionBuilder()
-            .creatorAccountId(admin)
-            .createdTime(getCurrentTime())
-            .addPeer(address, keypair.publicKey())
-            .build()
-
-        val tx = prepareTransaction(utx, keypair)
-        val cmdStub = getCommandStub()
 
         var cmds = listOf<iroha.protocol.Commands.Command>()
 
-        IrohaChainListener().getBlockObservable()
-            .success {
-                it.subscribeOn(Schedulers.computation()).subscribe { block ->
+        IrohaChainListener(admin, keypair).getBlockObservable()
+            .map {
+                it.map { block ->
+                    println(block.payload.height)
+
                     cmds = block.payload.transactionsList
-                        .flatMap { it.payload.reducedPayload.commandsList }
-                }
+                        .flatMap {
+                            println(it.payload.reducedPayload.commandsCount)
+                            it.payload.reducedPayload.commandsList
+                        }
+                }.subscribeOn(Schedulers.io()).subscribe(
+                    { println("on next") },
+                    { println("on error") },
+                    { println("on complete") }
+                )
             }
 
+        val utx = getModelTransactionBuilder()
+            .creatorAccountId(admin)
+            .createdTime(getCurrentTime())
+            .setAccountDetail(admin, "test", "test")
+            .build()
 
-        cmdStub.torii(tx)
+        val tx = prepareTransaction(utx, keypair)
+        IrohaNetworkImpl(irohaHost, irohaPort).sendAndCheck(tx, utx.hash())
         runBlocking {
-            delay(5000, TimeUnit.MILLISECONDS)
+            delay(25000, TimeUnit.MILLISECONDS)
         }
+
         assertEquals(1, cmds.size)
-        assertEquals(address, cmds.first().addPeer.peer.address)
-        assertArrayEquals(
-            keypair.publicKey().blob().toByteArray(),
-            cmds.first().addPeer.peer.peerKey.toByteArray()
-        )
-
-
+        assertEquals(admin, cmds.first().setAccountDetail.accountId)
+        assertEquals("test", cmds.first().setAccountDetail.key)
+        assertEquals("test", cmds.first().setAccountDetail.value)
     }
 }

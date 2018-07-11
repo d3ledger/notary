@@ -14,7 +14,16 @@ import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
+/**
+ * Requires Iroha is running
+ */
 class EthWalletsProviderIrohaTest {
+
+    /**
+     * @given
+     * @when
+     * @then
+     */
     @Test
     fun testParsing() {
         val json = """
@@ -41,7 +50,11 @@ class EthWalletsProviderIrohaTest {
         assertEquals(parsed["meta"]!!["timestamp"], "123")
     }
 
-
+    /**
+     * @given
+     * @when
+     * @then
+     */
     @Disabled
     @Test
     fun storageTest() {
@@ -91,5 +104,18 @@ class EthWalletsProviderIrohaTest {
 
         val lst = EthWalletsProviderIrohaImpl().getWallets()
         assertEquals(valid, lst.component1())
+    }
+
+    /**
+     * @given
+     * @when
+     * @then
+     */
+    @Disabled
+    @Test
+    fun testEmptyStorage() {
+        IrohaInitialization.loadIrohaLibrary()
+
+        println(EthWalletsProviderIrohaImpl().getWallets().get())
     }
 }

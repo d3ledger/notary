@@ -30,6 +30,7 @@ import org.web3j.crypto.TransactionEncoder
 import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.utils.Numeric
 import sidechain.iroha.IrohaInitialization
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.toBigInteger
 import sidechain.iroha.util.toByteArray
@@ -64,6 +65,8 @@ class IntegrationTest {
     /** Iroha keypair */
     val keypair =
         ModelUtil.loadKeypair(CONFIG[ConfigKeys.testPubkeyPath], CONFIG[ConfigKeys.testPrivkeyPath]).get()
+
+    val irohaNetwork = IrohaNetworkImpl(irohaHost, irohaPort)
 
     /** Ethereum address to transfer from */
     private val fromAddress = "0x004ec07d2329997267Ec62b4166639513386F32E"
@@ -103,39 +106,39 @@ class IntegrationTest {
      */
     fun sendTxToIroha(txBuilder: ModelTransactionBuilder): String {
         val utx = txBuilder.build()
-        val hash = utx.hash().hex()
+        val hash = utx.hash()
 
-        // sign transaction and get its binary representation (Blob)
-        val txblob = ModelProtoTransaction(utx).signAndAddSignature(keypair).finish().blob().toByteArray()
+        val tx = ModelUtil.prepareTransaction(utx, keypair)
+        irohaNetwork.sendAndCheck(tx, hash)
 
-        // create proto object
-        var protoTx: BlockOuterClass.Transaction? = null
-        try {
-            protoTx = BlockOuterClass.Transaction.parseFrom(txblob)
-        } catch (e: InvalidProtocolBufferException) {
-            System.err.println("Exception while converting byte array to protobuf:" + e.message)
-            System.exit(1)
-        }
-
-        // Send transaction to iroha
-        val channel = ManagedChannelBuilder.forAddress(irohaHost, irohaPort).usePlaintext(true).build()
-        val stub = CommandServiceGrpc.newBlockingStub(channel)
-        stub.torii(protoTx)
-
-        return hash
+        return hash.hex()
     }
 
     /**
      * Add asset in iroha
      * @return hex representation of transaction hash
      */
-    fun addAssetIroha(accountId: String, assetId: String, amount: String): String {
+    fun addAssetIroha(assetId: String, amount: String): String {
         val currentTime = System.currentTimeMillis()
 
         // build transaction (still unsigned)
         val txBuilder = ModelTransactionBuilder().creatorAccountId(creator)
             .createdTime(BigInteger.valueOf(currentTime))
             .addAssetQuantity(assetId, amount)
+        return sendTxToIroha(txBuilder)
+    }
+
+    /**
+     * Set account detail in Iroha
+     * @return hex representation of transaction hash
+     */
+    fun setAccountDetail(accountId: String, key: String, value: String): String {
+        val currentTime = System.currentTimeMillis()
+
+        // build transaction (still unsigned)
+        val txBuilder = ModelTransactionBuilder().creatorAccountId(creator)
+            .createdTime(BigInteger.valueOf(currentTime))
+            .setAccountDetail(accountId, key, value)
         return sendTxToIroha(txBuilder)
     }
 
@@ -244,6 +247,7 @@ class IntegrationTest {
         }
         Thread.sleep(3_000)
 
+        setAccountDetail("notary_red@notary", toAddress, "user1@notary")
 
         // send ETH
         sendEthereum(amount)
@@ -319,7 +323,7 @@ class IntegrationTest {
         val ethWallet = "eth_wallet"
 
         // add assets to user
-        addAssetIroha(creator, assetId, amount)
+        addAssetIroha(assetId, amount)
 
         // transfer assets from user to notary master account
         val hash = transferAssetIroha(creator, masterAccount, assetId, amount, ethWallet)

@@ -3,13 +3,21 @@ package withdrawalservice
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
+import config.ConfigKeys
 import io.reactivex.Observable
 import mu.KLogging
+import notary.CONFIG
 import sidechain.SideChainEvent
 import sidechain.eth.consumer.EthConsumer
+import sidechain.iroha.IrohaChainHandler
 import sidechain.iroha.IrohaChainListener
+import sidechain.iroha.util.ModelUtil
 
 class WithdrawalServiceInitialization {
+    val irohaAccount = CONFIG[ConfigKeys.notaryIrohaAccount]
+    val irohaKeypair =
+        ModelUtil.loadKeypair(CONFIG[ConfigKeys.notaryPubkeyPath], CONFIG[ConfigKeys.notaryPrivkeyPath]).get()
+
 
     /**
      * Init Iroha chain listener
@@ -18,17 +26,9 @@ class WithdrawalServiceInitialization {
     private fun initIrohaChain(): Result<Observable<SideChainEvent.IrohaEvent>, Exception> {
         logger.info { "Init Iroha chain" }
 
-        return IrohaChainListener().getBlockObservable()
+        return IrohaChainListener(irohaAccount, irohaKeypair).getBlockObservable()
             .map { observable ->
-                observable
-                    .flatMapIterable { block ->
-                        logger.info { "Convert iroha block to withdrawal input event" }
-                        block.payload.transactionsList
-                            .flatMap { it.payload.commandsList }
-                            .filter { it.hasTransferAsset() }
-                            .map { SideChainEvent.IrohaEvent.OnIrohaSideChainTransfer.fromProto(it.toByteArray()) }
-                            .map { SideChainEvent.IrohaEvent.OnIrohaSideChainTransfer(it) as SideChainEvent.IrohaEvent }
-                    }
+                observable.flatMapIterable { IrohaChainHandler().parseBlock(it) }
             }
     }
 

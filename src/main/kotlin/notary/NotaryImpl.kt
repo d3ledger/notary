@@ -11,7 +11,7 @@ import java.math.BigInteger
  */
 class NotaryImpl(
     private val ethHandler: Observable<SideChainEvent>,
-    private val irohaHandler: Observable<SideChainEvent>
+    private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
 ) : Notary {
 
     /** Notary account in Iroha */
@@ -62,7 +62,6 @@ class NotaryImpl(
                     creator,
                     arrayListOf(
                         IrohaCommand.CommandAddAssetQuantity(
-                            creator,
                             "$asset#$domain",
                             amount.toString()
                         ),
