@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 class IrohaCommandTest {
 
     /**
-     * @given AddPeer commnad in protobuf fromat
+     * @given AddPeer command in protobuf format
      * @when [sidechain.SideChainEvent.IrohaEvent.AddPeer] command is constructed from protobuf
      * @then [sidechain.SideChainEvent.IrohaEvent.AddPeer] is correctly constructed
      */

@@ -95,7 +95,7 @@ class EthWalletsProviderIrohaTest {
     /**
      * @given There is no account details on [detailHolder]
      * @when getWallets() is called
-     * @then emty map is returned
+     * @then empty map is returned
      */
     @Disabled
     @Test

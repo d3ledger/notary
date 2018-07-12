@@ -17,7 +17,7 @@ import sidechain.iroha.util.ModelUtil.prepareTransaction
 import java.util.concurrent.TimeUnit
 
 /**
- * Note: Requires Iroha is runnig.
+ * Note: Requires Iroha is running.
  */
 class IrohaBlockStreamingTest {
 
