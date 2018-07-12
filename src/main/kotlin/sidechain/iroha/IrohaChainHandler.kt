@@ -16,13 +16,14 @@ class IrohaChainHandler : ChainHandler<iroha.protocol.BlockOuterClass.Block> {
         logger.info { "Iroha chain handler" }
         return block.payload.transactionsList
             .flatMap { it.payload.reducedPayload.commandsList }
-            .flatMap {
+            .map {
                 when {
-                    it.hasAddPeer() -> listOf(SideChainEvent.IrohaEvent.AddPeer.fromProto(it.addPeer))
-                    it.hasTransferAsset() -> listOf(SideChainEvent.IrohaEvent.SideChainTransfer.fromProto(it.transferAsset))
-                    else -> listOf()
+                    it.hasAddPeer() -> SideChainEvent.IrohaEvent.AddPeer.fromProto(it.addPeer)
+                    it.hasTransferAsset() -> SideChainEvent.IrohaEvent.SideChainTransfer.fromProto(it.transferAsset)
+                    else -> null
                 }
             }
+            .filterNotNull()
     }
 
     /**

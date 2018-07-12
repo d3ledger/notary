@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.util.ModelUtil
 
-
 internal class IrohaKeyLoaderTest {
 
     /**
