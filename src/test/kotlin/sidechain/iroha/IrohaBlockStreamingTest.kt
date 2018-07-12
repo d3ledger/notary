@@ -22,9 +22,9 @@ import java.util.concurrent.TimeUnit
 class IrohaBlockStreamingTest {
 
     /**
-     * @given
-     * @when
-     * @then
+     * @given Iroha running
+     * @when new tx is sent to Iroha
+     * @then block arrived to IrohaListener
      */
     @Disabled
     @Test
