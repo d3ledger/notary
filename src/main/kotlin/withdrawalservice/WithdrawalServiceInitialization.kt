@@ -16,7 +16,7 @@ class WithdrawalServiceInitialization {
      * @return Observable on Iroha sidechain events
      */
     private fun initIrohaChain(): Result<Observable<SideChainEvent.IrohaEvent>, Exception> {
-        logger.info { "Init Iroha chain" }
+        logger.info { "Init Iroha chain listener" }
 
         return IrohaChainListener().getBlockObservable()
             .map { observable ->

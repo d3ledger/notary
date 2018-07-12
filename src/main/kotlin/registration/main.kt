@@ -1,4 +1,4 @@
-@file:JvmName("Registration")
+@file:JvmName("RegistrationMain")
 
 package registration
 

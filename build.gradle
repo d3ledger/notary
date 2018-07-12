@@ -286,8 +286,19 @@ generateNotaryJooqSchemaSource.enabled = false
 
 // -------------------------| End jOOQ db schema generation |-------------------------
 
+
+// -------------------------| Run services |-------------------------
+
+task runNotary(type: JavaExec) {
+    main ='notary.NotaryMain'
+    classpath = sourceSets.main.runtimeClasspath
+
+    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
+    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
+}
+
 task runRegistration(type: JavaExec) {
-    main ='registration.Registration'
+    main ='registration.RegistrationMain'
     classpath = sourceSets.main.runtimeClasspath
 
     systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
@@ -295,7 +306,15 @@ task runRegistration(type: JavaExec) {
 }
 
 task runDeployRelay(type: JavaExec) {
-    main ='registration.relay.DeployRelay'
+    main ='registration.relay.DeployRelayMain'
+    classpath = sourceSets.main.runtimeClasspath
+
+    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
+    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
+}
+
+task runWithdrawal(type: JavaExec) {
+    main ='withdrawalservice.WithdrawalServiceMain'
     classpath = sourceSets.main.runtimeClasspath
 
     systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()

@@ -1,3 +1,5 @@
+@file:JvmName("NotaryMain")
+
 package notary
 
 import com.github.kittinunf.result.failure

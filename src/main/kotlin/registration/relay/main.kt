@@ -1,4 +1,4 @@
-@file:JvmName("DeployRelay")
+@file:JvmName("DeployRelayMain")
 
 package registration.relay
 

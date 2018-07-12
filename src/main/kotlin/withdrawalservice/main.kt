@@ -1,3 +1,5 @@
+@file:JvmName("WithdrawalServiceMain")
+
 package withdrawalservice
 
 import com.github.kittinunf.result.failure
