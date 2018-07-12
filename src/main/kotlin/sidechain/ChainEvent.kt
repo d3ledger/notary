@@ -1,6 +1,7 @@
 package sidechain
 
-import notary.IrohaCommand
+import com.google.protobuf.ByteString
+import iroha.protocol.Commands
 import sidechain.iroha.util.toBigInteger
 import java.math.BigInteger
 
@@ -20,21 +21,18 @@ sealed class SideChainEvent {
          * @param address peer's address, ip and port
          * @param key peer's key
          */
-        data class OnIrohaAddPeer(
-            val cmd: IrohaCommand.CommandAddPeer
+        data class AddPeer(
+            val address: String,
+            val key: ByteString
         ) : IrohaEvent() {
-            companion object {
-                /**
-                 * Takes a binary proto command and creates a model command AddPeer
-                 * @param bytes the command represented as byte array
-                 */
-                fun fromProto(bytes: ByteArray): IrohaCommand.CommandAddPeer {
-                    val generic = iroha.protocol.Commands.Command.parseFrom(bytes)
-                    val cmd = if (generic.hasAddPeer()) {
-                        generic.addPeer
-                    } else iroha.protocol.Commands.AddPeer.parseFrom(bytes)
 
-                    return IrohaCommand.CommandAddPeer(cmd.peer.address, cmd.peer.peerKey.toByteArray())
+            companion object {
+
+                /**
+                 * Generate [AddPeer] from proto
+                 */
+                fun fromProto(cmd: Commands.AddPeer): AddPeer {
+                    return AddPeer(cmd.peer.address, cmd.peer.peerKey)
                 }
             }
 
@@ -46,30 +44,22 @@ sealed class SideChainEvent {
          * @param asset is asset id in Iroha
          * @param amount of ethereum to withdraw
          */
-        data class OnIrohaSideChainTransfer(
-            val cmd: IrohaCommand.CommandTransferAsset
+        data class SideChainTransfer(
+            val asset: String,
+            val amount: BigInteger,
+            val description: String
         ) : IrohaEvent() {
 
             companion object {
-                /**
-                 * Takes a binary proto command and creates a model command AddPeer
-                 * @param bytes the command represented as byte array
-                 */
-                fun fromProto(bytes: ByteArray): IrohaCommand.CommandTransferAsset {
-                    val generic = iroha.protocol.Commands.Command.parseFrom(bytes)
-                    val cmd = if (generic.hasTransferAsset()) {
-                        generic.transferAsset
-                    } else iroha.protocol.Commands.TransferAsset.parseFrom(bytes)
 
-                    return IrohaCommand.CommandTransferAsset(
-                        cmd.srcAccountId,
-                        cmd.destAccountId,
-                        cmd.assetId,
-                        cmd.description,
-                        cmd.amount.value.toBigInteger()
-                    )
+                /**
+                 * Generate [SideChainTransfer] from proto
+                 */
+                fun fromProto(cmd: Commands.TransferAsset): SideChainTransfer {
+                    return SideChainTransfer(cmd.assetId, cmd.amount.value.toBigInteger(), cmd.description)
                 }
             }
+
         }
     }
 

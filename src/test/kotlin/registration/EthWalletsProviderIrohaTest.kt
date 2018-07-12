@@ -1,5 +1,6 @@
 package registration
 
+import com.github.kittinunf.result.failure
 import config.ConfigKeys
 import notary.CONFIG
 import notary.EthWalletsProviderIrohaImpl
@@ -8,45 +9,49 @@ import notary.IrohaTransaction
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
+/**
+ * Requires Iroha is running
+ */
 class EthWalletsProviderIrohaTest {
-    @Test
-    fun testParsing() {
-        val json = """
-            {
-                "data": {
-                    "age": "22",
-                    "surname": "Bit",
-                    "name": "Connect"
-                },
-                "meta" : {
-                    "author" : "notary",
-                    "timestamp" : "123"
-                }
+
+    init {
+        IrohaInitialization.loadIrohaLibrary()
+            .failure {
+                println(it)
+                System.exit(1)
             }
-            """
-
-        val parsed = ModelUtil.jsonToKV(json)!!
-
-        assertEquals(parsed["data"]!!["age"], "22")
-        assertEquals(parsed["data"]!!["surname"], "Bit")
-        assertEquals(parsed["data"]!!["name"], "Connect")
-
-        assertEquals(parsed["meta"]!!["author"], "notary")
-        assertEquals(parsed["meta"]!!["timestamp"], "123")
     }
 
+    /** Creator of txs in Iroha */
+    val creator: String = CONFIG[ConfigKeys.testIrohaAccount]
 
+    /** Iroha keypair */
+    val keypair = ModelUtil.loadKeypair(
+        CONFIG[ConfigKeys.testPubkeyPath],
+        CONFIG[ConfigKeys.testPrivkeyPath]
+    ).get()
+
+    /** Iroha account that has set details */
+    val detailSetter = CONFIG[ConfigKeys.registrationServiceIrohaAccount]
+
+    /** Iroha account that holds details */
+    val detailHolder = CONFIG[ConfigKeys.registrationServiceNotaryIrohaAccount]
+
+    /**
+     * @given [detailHolder] has ethereum wallets in details
+     * @when getWallets() is called
+     * @then not free wallets are returned in a map
+     */
     @Disabled
     @Test
     fun storageTest() {
-        IrohaInitialization.loadIrohaLibrary()
-
         val domain = "notary"
 
         val entries = mapOf(
@@ -60,12 +65,6 @@ class EthWalletsProviderIrohaTest {
 
         val valid = entries.filter { it.value != "free" }
 
-        val keypair = ModelUtil.loadKeypair(
-            CONFIG[ConfigKeys.testPubkeyPath],
-            CONFIG[ConfigKeys.testPrivkeyPath]
-        )
-
-        val creator = CONFIG[ConfigKeys.registrationServiceIrohaAccount]
         val masterAccount = CONFIG[ConfigKeys.registrationServiceNotaryIrohaAccount]
 
         val irohaOutput = IrohaTransaction(
@@ -82,14 +81,32 @@ class EthWalletsProviderIrohaTest {
 
         val it = IrohaConverterImpl().convert(irohaOutput)
         val hash = it.hash()
-        val tx = IrohaConsumerImpl(keypair.component1()!!).convertToProto(it)
+        val tx = IrohaConsumerImpl(keypair).convertToProto(it)
 
         IrohaNetworkImpl(
             "localhost",
             CONFIG[ConfigKeys.registrationServiceIrohaPort]
         ).sendAndCheck(tx, hash)
 
-        val lst = EthWalletsProviderIrohaImpl().getWallets()
+        val lst = EthWalletsProviderIrohaImpl(creator, keypair, detailSetter, detailHolder).getWallets()
         assertEquals(valid, lst.component1())
+    }
+
+    /**
+     * @given There is no account details on [detailHolder]
+     * @when getWallets() is called
+     * @then empty map is returned
+     */
+    @Disabled
+    @Test
+    fun testEmptyStorage() {
+        EthWalletsProviderIrohaImpl(creator, keypair, detailSetter, detailHolder).getWallets().fold(
+            {
+                assert(it.isEmpty())
+            },
+            {
+                fail { "result has exception ${it.toString()}" }
+            }
+        )
     }
 }

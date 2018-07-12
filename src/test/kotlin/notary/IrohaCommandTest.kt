@@ -1,8 +1,6 @@
 package notary
 
 import com.google.protobuf.ByteString
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -11,17 +9,11 @@ import org.junit.jupiter.api.Test
  */
 class IrohaCommandTest {
 
-    /** Test an ability to mock a final class */
-    @Test
-    fun testCommandAddAssetQuantity() {
-        val expected = "I can mock final classes"
-        val m = mock<IrohaCommand.CommandAddAssetQuantity>() {
-            on { accountId } doReturn expected
-        }
-
-        assertEquals(expected, m.accountId)
-    }
-
+    /**
+     * @given AddPeer command in protobuf format
+     * @when [sidechain.SideChainEvent.IrohaEvent.AddPeer] command is constructed from protobuf
+     * @then [sidechain.SideChainEvent.IrohaEvent.AddPeer] is correctly constructed
+     */
     @Test
     fun addPeerProtoTest() {
         val cmdBuilder = iroha.protocol.Commands.AddPeer.newBuilder()
@@ -35,11 +27,10 @@ class IrohaCommandTest {
                     .build()
             )
             .build()
-        val cmd = sidechain.SideChainEvent.IrohaEvent.OnIrohaAddPeer.fromProto(protoCmd.toByteArray())
+        val cmd = sidechain.SideChainEvent.IrohaEvent.AddPeer.fromProto(protoCmd)
 
         assertEquals(address, cmd.address)
-        assertEquals(key, ByteString.copyFrom(cmd.peerKey))
-
+        assertEquals(key, cmd.key)
     }
 
 }

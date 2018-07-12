@@ -20,7 +20,7 @@ class WithdrawalServiceImpl(
     /**
      * Query all notaries for approval of refund
      */
-    private fun requestNotary(event: SideChainEvent.IrohaEvent.OnIrohaSideChainTransfer): RollbackApproval {
+    private fun requestNotary(event: SideChainEvent.IrohaEvent.SideChainTransfer): RollbackApproval {
         // TODO query each notary service and if majority is achieved, send tx to Ethereum SC
 
         notaryPeerListProvider.getPeerList().forEach { peer ->
@@ -40,7 +40,7 @@ class WithdrawalServiceImpl(
         // 1. ask rollback approval from notary
         // 2. form an output event with all data needed for smart contract rollback call
         when (irohaEvent) {
-            is SideChainEvent.IrohaEvent.OnIrohaSideChainTransfer -> requestNotary(irohaEvent)
+            is SideChainEvent.IrohaEvent.SideChainTransfer -> requestNotary(irohaEvent)
         }
         return WithdrawalServiceOutputEvent.EthRefund()
     }

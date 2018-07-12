@@ -4,14 +4,14 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
+import config.ConfigKeys
+import io.reactivex.Observable
+import io.reactivex.schedulers.Schedulers
+import jp.co.soramitsu.iroha.Hash
+import mu.KLogging
 import notary.endpoint.RefundServerEndpoint
 import notary.endpoint.ServerInitializationBundle
 import notary.endpoint.eth.EthRefundStrategyImpl
-import io.reactivex.Observable
-import jp.co.soramitsu.iroha.Hash
-import config.ConfigKeys
-import io.reactivex.schedulers.Schedulers
-import mu.KLogging
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
 import sidechain.SideChainEvent
@@ -24,16 +24,18 @@ import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
-
 /**
  * Class for notary instantiation
  * @param ethWalletsProvider - provides with white list of ethereum wallets
  * @param ethTokensProvider - provides with white list of ethereum ERC20 tokens
  */
 class NotaryInitialization(
-    val ethWalletsProvider: EthWalletsProvider = EthWalletsProviderIrohaImpl(),
+    val ethWalletsProvider: EthWalletsProvider,
     val ethTokensProvider: EthTokensProvider = EthTokensProviderImpl()
 ) {
+    val irohaAccount = CONFIG[ConfigKeys.notaryIrohaAccount]
+    val irohaKeypair =
+        ModelUtil.loadKeypair(CONFIG[ConfigKeys.notaryPubkeyPath], CONFIG[ConfigKeys.notaryPrivkeyPath]).get()
 
     /**
      * Init notary
@@ -47,6 +49,7 @@ class NotaryInitialization(
             }
             .flatMap { initIrohaConsumer(it) }
             .map { initRefund() }
+
     }
 
     /**
@@ -75,9 +78,9 @@ class NotaryInitialization(
      * Init Iroha chain listener
      * @return Observable on Iroha sidechain events
      */
-    private fun initIrohaChain(): Result<Observable<SideChainEvent>, Exception> {
+    private fun initIrohaChain(): Result<Observable<SideChainEvent.IrohaEvent>, Exception> {
         logger.info { "Init Iroha chain" }
-        return IrohaChainListener().getBlockObservable()
+        return IrohaChainListener(irohaAccount, irohaKeypair).getBlockObservable()
             .map { observable ->
                 observable.flatMapIterable { IrohaChainHandler().parseBlock(it) }
             }
@@ -86,7 +89,10 @@ class NotaryInitialization(
     /**
      * Init Notary
      */
-    private fun initNotary(ethEvents: Observable<SideChainEvent>, irohaEvents: Observable<SideChainEvent>): Notary {
+    private fun initNotary(
+        ethEvents: Observable<SideChainEvent>,
+        irohaEvents: Observable<SideChainEvent.IrohaEvent>
+    ): Notary {
         logger.info { "Init Notary notary" }
         return NotaryImpl(ethEvents, irohaEvents)
     }
@@ -121,7 +127,8 @@ class NotaryInitialization(
                             ).sendAndCheck(it, hash)
                         },
                         // on error
-                        { logger.error { it } }
+                        { logger.error { it } },
+                        { logger.error { "OnComplete called" } }
                     )
                 Unit
             }
@@ -132,10 +139,9 @@ class NotaryInitialization(
      */
     private fun initRefund() {
         logger.info { "Init Refund notary.endpoint" }
-        val keys = ModelUtil.loadKeypair(CONFIG[ConfigKeys.notaryPubkeyPath], CONFIG[ConfigKeys.notaryPrivkeyPath])
         RefundServerEndpoint(
             ServerInitializationBundle(CONFIG[ConfigKeys.notaryRefundPort], CONFIG[ConfigKeys.notaryEthEndpoint]),
-            EthRefundStrategyImpl(keys.get())
+            EthRefundStrategyImpl(irohaKeypair)
         )
     }
 

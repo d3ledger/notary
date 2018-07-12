@@ -3,7 +3,8 @@
       "transactions":[
          {
             "payload":{
-               "commands":[
+              "reducedPayload": {
+                "commands": [
                   {
                      "addPeer":{
                         "peer":{
@@ -78,7 +79,9 @@
                             "can_create_account",
                             "can_receive",
                             "can_read_assets",
-                            "can_add_peer"
+                            "can_add_peer",
+                            "can_set_detail",
+                            "can_get_blocks"
                         ]
                     }
                   },
@@ -153,7 +156,9 @@
                         "roleName":"tester"
                      }
                   }
-               ]
+                ],
+                "quorum": 1
+              }
             }
          }
       ],

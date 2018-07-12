@@ -18,7 +18,7 @@ class NotaryTest {
     /**
      * Iroha output observable
      */
-    private val obsIroha = Observable.empty<SideChainEvent>()
+    private val obsIroha = Observable.empty<SideChainEvent.IrohaEvent>()
 
     /**
      * Check transactions in ordered batch emitted on deposit event.
@@ -70,7 +70,6 @@ class NotaryTest {
                         cmd = commands[0]
                         if (cmd is IrohaCommand.CommandAddAssetQuantity) {
                             assertEquals(expectedAmount.toString(), cmd.amount)
-                            assertEquals(expectedCreatorId, cmd.accountId)
                             assertEquals("${expectedAssetId}#ethereum", cmd.assetId)
                         } else {
                             fail { "Wrong IrohaCommand type" }

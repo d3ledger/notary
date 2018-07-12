@@ -139,14 +139,8 @@ sourceSets {
         proto {
             // iroha schema
             srcDirs += "vendor/iroha/schema"
-            // notary schema
-            srcDirs += "src/main/kotlin/sidechain/iroha/schema"
-
         }
-
     }
-
-
 }
 
 test {
