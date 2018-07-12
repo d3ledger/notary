@@ -15,7 +15,7 @@ services:
       - /opt/iroha_data/entrypoint.sh
     volumes:
       - iroha_block_store:/tmp/block_store
-      - ./deploy/iroha:/opt/iroha_data
+      - ./iroha:/opt/iroha_data
 
   d3-iroha-postgres:
     image: postgres:9.5
@@ -34,7 +34,7 @@ services:
       dockerfile: parity.dockerfile
     container_name: d3-eth-node0
     volumes:
-      - ./deploy/ethereum:/eth
+      - ./ethereum:/eth
     environment:
       - NODE=0
     ports:
@@ -46,7 +46,7 @@ services:
       dockerfile: parity.dockerfile
     container_name: d3-eth-node1
     volumes:
-      - ./deploy/ethereum:/eth
+      - ./ethereum:/eth
     environment:
       - NODE=1
 
@@ -59,7 +59,7 @@ services:
       - d3-eth-node0
       - d3-eth-node1
     volumes:
-      - ./deploy/ethereum:/eth
+      - ./ethereum:/eth
 
   # d3
   d3-notary-postgres:
@@ -68,20 +68,10 @@ services:
     environment:
       - POSTGRES_PASSWORD=mysecretpassword
     volumes:
-      - ./deploy/db/sql/init:/docker-entrypoint-initdb.d
+      - ./db/sql/init:/docker-entrypoint-initdb.d
       - /var/lib/postgresql/data
     ports:
       - 5432:5432
-
-  d3-notary:
-    build:
-      context: .
-      dockerfile: notary.dockerfile
-    container_name: d3-notary
-    depends_on:
-      - d3-notary-postgres
-    ports:
-      - 8083:8083
 
 volumes:
   iroha_block_store:
