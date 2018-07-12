@@ -315,3 +315,11 @@ task runWithdrawal(type: JavaExec) {
     environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
 }
 
+processResources {
+    def profile = (project.hasProperty('profile') ? project.profile : 'develop').toLowerCase()
+
+    from('src/main/resources') {
+        include "**/defaults_${profile}.properties"
+        rename "defaults_${profile}.properties", 'defaults.properties'
+    }
+}

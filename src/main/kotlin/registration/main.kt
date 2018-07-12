@@ -4,9 +4,12 @@ package registration
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
+import com.natpryce.konfig.ConfigurationProperties
 import mu.KLogging
-
 import sidechain.iroha.IrohaInitialization
+
+/** Configuration parameters for notary instance */
+val CONFIG = ConfigurationProperties.fromResource("defaults.properties")
 
 /**
  * Entry point for Registration Service
