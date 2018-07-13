@@ -18,6 +18,8 @@ class WithdrawalServiceInitialization {
     val irohaKeypair =
         ModelUtil.loadKeypair(CONFIG[ConfigKeys.notaryPubkeyPath], CONFIG[ConfigKeys.notaryPrivkeyPath]).get()
 
+    val irohaHost = CONFIG[ConfigKeys.notaryIrohaHostname]
+    val irohaPort = CONFIG[ConfigKeys.notaryIrohaPort]
 
     /**
      * Init Iroha chain listener
@@ -26,7 +28,7 @@ class WithdrawalServiceInitialization {
     private fun initIrohaChain(): Result<Observable<SideChainEvent.IrohaEvent>, Exception> {
         logger.info { "Init Iroha chain listener" }
 
-        return IrohaChainListener(irohaAccount, irohaKeypair).getBlockObservable()
+        return IrohaChainListener(irohaHost, irohaPort, irohaAccount, irohaKeypair).getBlockObservable()
             .map { observable ->
                 observable.flatMapIterable { IrohaChainHandler().parseBlock(it) }
             }

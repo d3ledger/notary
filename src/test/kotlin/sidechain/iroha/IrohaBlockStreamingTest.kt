@@ -43,7 +43,11 @@ class IrohaBlockStreamingTest {
 
         var cmds = listOf<iroha.protocol.Commands.Command>()
 
-        IrohaChainListener(admin, keypair).getBlockObservable()
+        IrohaChainListener(
+            CONFIG[ConfigKeys.testIrohaHostname],
+            CONFIG[ConfigKeys.testIrohaPort],
+            admin, keypair
+        ).getBlockObservable()
             .map {
                 it.map { block ->
                     cmds = block.payload.transactionsList

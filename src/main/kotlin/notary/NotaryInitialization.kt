@@ -80,7 +80,11 @@ class NotaryInitialization(
      */
     private fun initIrohaChain(): Result<Observable<SideChainEvent.IrohaEvent>, Exception> {
         logger.info { "Init Iroha chain" }
-        return IrohaChainListener(irohaAccount, irohaKeypair).getBlockObservable()
+        return IrohaChainListener(
+            CONFIG[ConfigKeys.notaryIrohaHostname],
+            CONFIG[ConfigKeys.notaryIrohaPort],
+            irohaAccount, irohaKeypair
+        ).getBlockObservable()
             .map { observable ->
                 observable.flatMapIterable { IrohaChainHandler().parseBlock(it) }
             }
