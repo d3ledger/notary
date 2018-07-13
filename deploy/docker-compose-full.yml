@@ -75,7 +75,7 @@ services:
 
   d3-notary:
     build:
-      context: .
+      context: ..
       dockerfile: notary.dockerfile
     container_name: d3-notary
     depends_on:
