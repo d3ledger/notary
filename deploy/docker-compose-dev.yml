@@ -3,7 +3,7 @@ version: '3'
 services:
   d3-iroha:
     image: hyperledger/iroha:develop
-    container_name: d3ledger-iroha
+    container_name: d3-iroha
     ports:
       - 50051:50051
     depends_on:
@@ -31,7 +31,7 @@ services:
   d3-eth-node0:
     build:
       context: .
-      dockerfile: parity.dockerfile
+      dockerfile: ethereum/parity.dockerfile
     container_name: d3-eth-node0
     volumes:
       - ./ethereum:/eth
@@ -43,7 +43,7 @@ services:
   d3-eth-node1:
     build:
       context: .
-      dockerfile: parity.dockerfile
+      dockerfile: ethereum/parity.dockerfile
     container_name: d3-eth-node1
     volumes:
       - ./ethereum:/eth
@@ -53,7 +53,7 @@ services:
   d3-eth-manager:
     build:
       context: .
-      dockerfile: eth-manager.dockerfile
+      dockerfile: ethereum/eth-manager.dockerfile
     container_name: d3-eth-manager
     depends_on:
       - d3-eth-node0
