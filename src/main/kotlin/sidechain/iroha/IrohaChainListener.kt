@@ -15,8 +15,12 @@ import java.util.concurrent.Executors
 /**
  * Dummy implementation of [ChainListener] with effective dependencies
  */
-class IrohaChainListener(val account: String, val keypair: Keypair) :
-    ChainListener<iroha.protocol.BlockOuterClass.Block> {
+class IrohaChainListener(
+    irohaHost: String,
+    irohaPort: Int,
+    val account: String,
+    val keypair: Keypair
+) : ChainListener<iroha.protocol.BlockOuterClass.Block> {
     val uquery = ModelBlocksQueryBuilder()
         .creatorAccountId(account)
         .createdTime(ModelUtil.getCurrentTime())
@@ -24,7 +28,7 @@ class IrohaChainListener(val account: String, val keypair: Keypair) :
         .build()
 
     val query = ModelUtil.prepareBlocksQuery(uquery, keypair)
-    val stub = ModelUtil.getQueryStub()
+    val stub = ModelUtil.getQueryStub(irohaHost, irohaPort)
 
     /**
      * Returns an observable that emits a new block every time it gets it from Iroha

@@ -2,8 +2,6 @@ package sidechain.iroha.util
 
 import com.github.kittinunf.result.Result
 import com.google.protobuf.InvalidProtocolBufferException
-import com.squareup.moshi.JsonReader
-import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.BlockOuterClass.Transaction
 import iroha.protocol.CommandServiceGrpc
@@ -13,8 +11,6 @@ import iroha.protocol.QueryServiceGrpc
 import iroha.protocol.Responses.QueryResponse
 import jp.co.soramitsu.iroha.*
 import mu.KLogging
-import okio.Okio
-import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.math.BigInteger
 import java.nio.file.Files
@@ -53,28 +49,28 @@ object ModelUtil {
      * @port to connect
      * @return managed channel
      */
-    fun getChannel(host: String = "localhost", ip: Int = 50051) =
-        ManagedChannelBuilder.forAddress(host, ip).usePlaintext(true).build()
+    fun getChannel(host: String, port: Int) = ManagedChannelBuilder.forAddress(host, port).usePlaintext(true).build()
 
     /**
      * Creates a stub for commands
-     * @param channel to communicate through
+     * @param host - iroha host
+     * @param port - iroha port
      * @return torii command stub
      */
-    fun getCommandStub(
-        channel: ManagedChannel = getChannel()
-    ): CommandServiceGrpc.CommandServiceBlockingStub =
-        CommandServiceGrpc.newBlockingStub(channel)
+    fun getCommandStub(host: String, port: Int): CommandServiceGrpc.CommandServiceBlockingStub {
+        val channel = getChannel(host, port)
+        return CommandServiceGrpc.newBlockingStub(channel)
+    }
 
     /**
      * Creates a stub for queries
-     * @param channel to communicate through
-     * @return torii query stub
+     * @param host - iroha host
+     * @param port - iroha port     * @return torii query stub
      */
-    fun getQueryStub(
-        channel: ManagedChannel = getChannel()
-    ): QueryServiceGrpc.QueryServiceBlockingStub =
-        QueryServiceGrpc.newBlockingStub(channel)
+    fun getQueryStub(host: String, port: Int): QueryServiceGrpc.QueryServiceBlockingStub {
+        val channel = getChannel(host, port)
+        return QueryServiceGrpc.newBlockingStub(channel)
+    }
 
     /**
      * Reads file from path as bytes
