@@ -73,15 +73,46 @@ services:
     ports:
       - 5432:5432
 
+  d3-deploy-relay:
+    build:
+      context: ..
+      dockerfile: deploy-relay.dockerfile
+    container_name: d3-deploy-relay
+    depends_on:
+      - d3-iroha
+      - d3-eth-node0
+
+  d3-registration:
+    build:
+      context: ..
+      dockerfile: registration.dockerfile
+    container_name: d3-registration
+    depends_on:
+      - d3-iroha
+      - d3-eth-node0
+    ports:
+      - 8083:8083
+
   d3-notary:
     build:
       context: ..
       dockerfile: notary.dockerfile
     container_name: d3-notary
     depends_on:
+      - d3-iroha
+      - d3-eth-node0
       - d3-notary-postgres
     ports:
-      - 8083:8083
+      - 8080:8080
+
+  d3-withdrawal:
+    build:
+      context: ..
+      dockerfile: withdrawal.dockerfile
+    container_name: d3-withdrawal
+    depends_on:
+      - d3-iroha
+      - d3-eth-node0
 
 volumes:
   iroha_block_store:
