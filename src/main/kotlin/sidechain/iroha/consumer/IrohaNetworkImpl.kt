@@ -16,8 +16,7 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
 
     /** Grpc stub for streaming output calls on the service */
     val toriiStub by lazy {
-        val channel = ModelUtil.getChannel(host, port)
-        ModelUtil.getCommandStub(channel)
+        ModelUtil.getCommandStub(host, port)
     }
 
 

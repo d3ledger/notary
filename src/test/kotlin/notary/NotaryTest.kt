@@ -80,7 +80,7 @@ class NotaryTest {
                             assertEquals(expectedUserId, cmd.destAccountId)
                             assertEquals("${expectedAssetId}#ethereum", cmd.assetId)
                             assertEquals("", cmd.description)
-                            assertEquals(expectedAmount.toString(), cmd.amount)
+                            assertEquals(expectedAmount, cmd.amount)
                         } else {
                             fail { "Wrong IrohaCommand type" }
                         }

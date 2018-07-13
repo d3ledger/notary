@@ -3,6 +3,7 @@ package notary
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser
 import com.github.kittinunf.result.Result
+import config.ConfigKeys
 import jp.co.soramitsu.iroha.Keypair
 import sidechain.iroha.util.ModelUtil
 import java.math.BigInteger
@@ -38,7 +39,10 @@ class EthWalletsProviderIrohaImpl(
 
             val proto_query = ModelUtil.prepareQuery(query, keypair)
 
-            val response = ModelUtil.getQueryStub().find(proto_query)
+            val response = ModelUtil.getQueryStub(
+                CONFIG[ConfigKeys.notaryIrohaHostname],
+                CONFIG[ConfigKeys.notaryIrohaPort]
+            ).find(proto_query)
 
             val account = response.accountResponse.account
             val stringBuilder = StringBuilder(account.jsonData)
