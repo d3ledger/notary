@@ -3,7 +3,7 @@ version: '3'
 services:
   d3-iroha:
     image: hyperledger/iroha:develop
-    container_name: d3ledger-iroha
+    container_name: d3-iroha
     ports:
       - 50051:50051
     depends_on:
@@ -15,11 +15,11 @@ services:
       - /opt/iroha_data/entrypoint.sh
     volumes:
       - iroha_block_store:/tmp/block_store
-      - ./deploy/iroha:/opt/iroha_data
+      - ./iroha:/opt/iroha_data
 
   d3-iroha-postgres:
     image: postgres:9.5
-    container_name: d3ledger-postgres
+    container_name: d3-iroha-postgres
     environment:
       - POSTGRES_PASSWORD=mysecretpassword
     expose:
@@ -31,10 +31,10 @@ services:
   d3-eth-node0:
     build:
       context: .
-      dockerfile: parity.dockerfile
+      dockerfile: ethereum/parity.dockerfile
     container_name: d3-eth-node0
     volumes:
-      - ./deploy/ethereum:/eth
+      - ./ethereum:/eth
     environment:
       - NODE=0
     ports:
@@ -43,23 +43,23 @@ services:
   d3-eth-node1:
     build:
       context: .
-      dockerfile: parity.dockerfile
+      dockerfile: ethereum/parity.dockerfile
     container_name: d3-eth-node1
     volumes:
-      - ./deploy/ethereum:/eth
+      - ./ethereum:/eth
     environment:
       - NODE=1
 
   d3-eth-manager:
     build:
       context: .
-      dockerfile: eth-manager.dockerfile
+      dockerfile: ethereum/eth-manager.dockerfile
     container_name: d3-eth-manager
     depends_on:
       - d3-eth-node0
       - d3-eth-node1
     volumes:
-      - ./deploy/ethereum:/eth
+      - ./ethereum:/eth
 
   # d3
   d3-notary-postgres:
@@ -68,20 +68,51 @@ services:
     environment:
       - POSTGRES_PASSWORD=mysecretpassword
     volumes:
-      - ./deploy/db/sql/init:/docker-entrypoint-initdb.d
+      - ./db/sql/init:/docker-entrypoint-initdb.d
       - /var/lib/postgresql/data
     ports:
       - 5432:5432
 
+  d3-deploy-relay:
+    build:
+      context: ..
+      dockerfile: deploy-relay.dockerfile
+    container_name: d3-deploy-relay
+    depends_on:
+      - d3-iroha
+      - d3-eth-node0
+
+  d3-registration:
+    build:
+      context: ..
+      dockerfile: registration.dockerfile
+    container_name: d3-registration
+    depends_on:
+      - d3-iroha
+      - d3-eth-node0
+    ports:
+      - 8083:8083
+
   d3-notary:
     build:
-      context: .
+      context: ..
       dockerfile: notary.dockerfile
     container_name: d3-notary
     depends_on:
+      - d3-iroha
+      - d3-eth-node0
       - d3-notary-postgres
     ports:
-      - 8083:8083
+      - 8080:8080
+
+  d3-withdrawal:
+    build:
+      context: ..
+      dockerfile: withdrawal.dockerfile
+    container_name: d3-withdrawal
+    depends_on:
+      - d3-iroha
+      - d3-eth-node0
 
 volumes:
   iroha_block_store:

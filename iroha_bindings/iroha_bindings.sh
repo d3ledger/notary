@@ -5,13 +5,13 @@
 # change dir to script location
 cd "$(dirname "$0")"
 
-build="iroha_bindings/$1"
+build="$1"
 echo "iroha target dir" ${build}
 
 # clear previous bindings
 rm -rf ${build} && mkdir ${build}
 
-bindings_dir=vendor/iroha/example/java
+bindings_dir=../vendor/iroha/example/java
 
 # generate iroha bindings
 sh ${bindings_dir}/build_library.sh
@@ -23,5 +23,5 @@ cp -R ${bindings_dir}/dist/libirohajava.jnilib ${build}/libirohajava.jnilib
 # move protoc library to bindings
 unamestr=`uname`
 if [[ "$unamestr" == 'Linux' ]]; then
-    cp vendor/iroha/external/src/google_protobuf-build/libprotobuf.so dist/
+    cp ../vendor/iroha/external/src/google_protobuf-build/libprotobuf.so dist/
 fi
