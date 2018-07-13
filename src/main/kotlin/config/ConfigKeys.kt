@@ -14,101 +14,101 @@ class ConfigKeys {
         // --------- Iroha ---------
         /** Notary account in Iroha */
         /** Iroha peer hostname */
-        val notaryIrohaHostname = Key("notary.irohaHostname", stringType)
+        val notaryIrohaHostname = Key("notary.iroha.hostname", stringType)
         /** Iroha peer port */
-        val notaryIrohaPort = Key("notary.irohaPort", intType)
-        val notaryIrohaAccount = Key("notary.irohaAccount", stringType)
+        val notaryIrohaPort = Key("notary.iroha.port", intType)
+        val notaryIrohaAccount = Key("notary.iroha.account", stringType)
         /** Path to public key of Iroha transactions creator */
-        val notaryPubkeyPath = Key("notary.pubkeyPath", stringType)
+        val notaryPubkeyPath = Key("notary.iroha.pubkey-path", stringType)
         /** Path to private key of Iroha transactions creator */
-        val notaryPrivkeyPath = Key("notary.privkeyPath", stringType)
+        val notaryPrivkeyPath = Key("notary.iroha.privkey-path", stringType)
 
         // --------- Ethereum ---------
         /** URL of Ethereum client */
-        val notaryEthConnectionUrl = Key("notary.ethConnectionUrl", stringType)
+        val notaryEthConnectionUrl = Key("notary.ethereum.url", stringType)
 
         // --------- Refund notary.endpoint ---------
         /** Port for refund REST API */
-        val notaryRefundPort = Key("notary.refundPort", intType)
+        val notaryRefundPort = Key("notary.refund.port", intType)
         /** URL of refund for ETH side chain */
-        val notaryEthEndpoint = Key("notary.ethEndpoint", stringType)
+        val notaryEthEndpoint = Key("notary.refund.endpoint.ethereum", stringType)
 
 
         // ========= Relay Registration =========
 
         // --------- Iroha ---------
         /** Iroha peer hostname */
-        val relayRegistrationIrohaHostname = Key("relayRegistration.irohaHostname", stringType)
+        val relayRegistrationIrohaHostname = Key("relay-registration.iroha.hostname", stringType)
         /** Iroha peer port */
-        val relayRegistrationIrohaPort = Key("relayRegistration.irohaPort", intType)
+        val relayRegistrationIrohaPort = Key("relay-registration.iroha.port", intType)
         /** Notary account in Iroha */
-        val relayRegistrationIrohaAccount = Key("relayRegistration.irohaAccount", stringType)
+        val relayRegistrationIrohaAccount = Key("relay-registration.iroha.account", stringType)
         /** Path to public key of Iroha transactions creator */
-        val relayRegistrationPubkeyPath = Key("relayRegistration.pubkeyPath", stringType)
+        val relayRegistrationPubkeyPath = Key("relay-registration.iroha.pubkey-path", stringType)
         /** Path to private key of Iroha transactions creator */
-        val relayRegistrationPrivkeyPath = Key("relayRegistration.privkeyPath", stringType)
+        val relayRegistrationPrivkeyPath = Key("relay-registration.iroha.privkey-path", stringType)
         /** Account to store registered free wallets */
-        val relayRegistrationNotaryIrohaAccount = Key("relayRegistration.notaryIrohaAccount", stringType)
+        val relayRegistrationNotaryIrohaAccount = Key("relay-registration.iroha.notary-account", stringType)
 
         // --------- Ethereum ---------
         /** URL of Ethereum client */
-        val relayRegistartionEthConnectionUrl = Key("relayRegistration.ethConnectionUrl", stringType)
+        val relayRegistartionEthConnectionUrl = Key("relay-registration.ethereum.url", stringType)
         /** Path to Ethereum credentials */
-        val relayRegistartionEthCredentialPath = Key("relayRegistration.ethCredentialPath", stringType)
+        val relayRegistartionEthCredentialPath = Key("relay-registration.ethereum.credentials-path", stringType)
         /** Password for Ethereum credentials */
-        val relayRegistartionEthCredentialPassword = Key("relayRegistration.ethCredentialPassword", stringType)
+        val relayRegistartionEthCredentialPassword = Key("relay-registration.ethereum.credentials-password", stringType)
         /** Gas price for relay smart contract deployment */
-        val relayRegistartionEthGasPrice = Key("relayRegistration.ethGasPrice", longType)
+        val relayRegistartionEthGasPrice = Key("relay-registration.ethereum.gas-price", longType)
         /** Gas limit for relay smart contract deployment */
-        val relayRegistartionEthGasLimit = Key("relayRegistration.ethGasLimit", longType)
+        val relayRegistartionEthGasLimit = Key("relay-registration.ethereum.gas-limit", longType)
 
 
         // ========= Registration Service =========
-        val registrationPort = Key("registrationService.port", intType)
+        val registrationPort = Key("registration.port", intType)
         /** Iroha peer hostname */
-        val registrationServiceIrohaHostname = Key("registrationService.irohaHostname", stringType)
+        val registrationServiceIrohaHostname = Key("registration.iroha.hostname", stringType)
         /** Iroha peer port */
-        val registrationServiceIrohaPort = Key("registrationService.irohaPort", intType)
+        val registrationServiceIrohaPort = Key("registration.iroha.port", intType)
         /** Iroha peer hostname */
-        val registrationServiceIrohaAccount = Key("registrationService.irohaAccount", stringType)
+        val registrationServiceIrohaAccount = Key("registration.iroha.account", stringType)
         /** Account to store registered free wallets */
-        val registrationServiceNotaryIrohaAccount = Key("registrationService.notaryIrohaAccount", stringType)
+        val registrationServiceNotaryIrohaAccount = Key("registration.iroha.notary-account", stringType)
         /** Account of relay registration service */
         val registrationServiceRelayRegistrationIrohaAccount =
-            Key("registrationService.relayRegistrationIrohaAccount", stringType)
+            Key("registrationService.iroha.relay-registration-account", stringType)
         /** Path to public key of Iroha transactions creator */
-        val registrationServicePubkeyPath = Key("registrationService.pubkeyPath", stringType)
+        val registrationServicePubkeyPath = Key("registration.iroha.pubkey-path", stringType)
         /** Path to private key of Iroha transactions creator */
-        val registrationServicePrivkeyPath = Key("registrationService.privkeyPath", stringType)
+        val registrationServicePrivkeyPath = Key("registration.iroha.privkey-path", stringType)
 
 
         // ========= Test =========
         /** Iroha peer hostname */
-        val testIrohaHostname = Key("test.irohaHostname", stringType)
+        val testIrohaHostname = Key("test.iroha.hostname", stringType)
         /** Iroha peer port */
-        val testIrohaPort = Key("test.irohaPort", intType)
+        val testIrohaPort = Key("test.iroha.port", intType)
         /** Notary account in Iroha */
-        val testIrohaAccount = Key("test.irohaAccount", stringType)
+        val testIrohaAccount = Key("test.iroha.account", stringType)
         /** Path to public key of Iroha transactions creator */
-        val testPubkeyPath = Key("test.pubkeyPath", stringType)
+        val testPubkeyPath = Key("test.iroha.pubkey-path", stringType)
         /** Path to private key of Iroha transactions creator */
-        val testPrivkeyPath = Key("test.privkeyPath", stringType)
+        val testPrivkeyPath = Key("test.iroha.privkey-path", stringType)
         /** URL of Ethereum client */
-        val testEthConnectionUrl = Key("test.ethConnectionUrl", stringType)
+        val testEthConnectionUrl = Key("test.ethereum.url", stringType)
 
         /** Ethereum token name in Iroha */
-        val irohaEthToken = Key("irohaEtherToken", stringType)
+        val irohaEthToken = Key("iroha.ether-token", stringType)
 
         // --------- Ethereum ---------
         /** Confirmation period */
-        val ethConfirmationPeriod = Key("ethConfirmationPeriod", longType)
+        val ethConfirmationPeriod = Key("ethereum.confirmation-period", longType)
 
         // --------- Database ----------
         /** url of notary db instance */
-        val dbUrl = Key("dbUrl", stringType)
+        val dbUrl = Key("db.url", stringType)
         /** username to connect to notary db instance */
-        val dbUsername = Key("dbUsername", stringType)
+        val dbUsername = Key("db.username", stringType)
         /** password to connect to notary db instance */
-        val dbPassword = Key("dbPassword", stringType)
+        val dbPassword = Key("db.password", stringType)
     }
 }
