@@ -3,7 +3,7 @@ version: '3'
 services:
   d3-iroha:
     image: hyperledger/iroha:develop
-    container_name: d3ledger-iroha
+    container_name: d3-iroha
     ports:
       - 50051:50051
     depends_on:
@@ -19,7 +19,7 @@ services:
 
   d3-iroha-postgres:
     image: postgres:9.5
-    container_name: d3ledger-postgres
+    container_name: d3-iroha-postgres
     environment:
       - POSTGRES_PASSWORD=mysecretpassword
     expose:

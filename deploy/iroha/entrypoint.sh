@@ -1,5 +1,5 @@
 #!/bin/sh
-#while ! curl http://d3ledger-postgres:5432/ 2>&1 | grep '52'
+#while ! curl http://d3-iroha-postgres:5432/ 2>&1 | grep '52'
 #do
 #done
 sleep 10
