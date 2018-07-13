@@ -41,7 +41,8 @@
                         "permissions":[
                             "can_create_account",
                             "can_set_detail",
-                            "can_get_domain_accounts"
+                            "can_get_domain_accounts",
+                            "can_get_my_acc_detail"
                         ]
                     }
                   },

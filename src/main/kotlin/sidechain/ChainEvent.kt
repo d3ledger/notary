@@ -47,7 +47,8 @@ sealed class SideChainEvent {
         data class SideChainTransfer(
             val asset: String,
             val amount: BigInteger,
-            val description: String
+            val description: String,
+            val hash: String
         ) : IrohaEvent() {
 
             companion object {

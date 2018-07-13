@@ -1,13 +1,17 @@
-package integration
+package util.eth
 
 import contract.BasicCoin
 import contract.Master
 import contract.Relay
 import notary.CONFIG
 import config.ConfigKeys
+import org.web3j.crypto.RawTransaction
+import org.web3j.crypto.TransactionEncoder
 import org.web3j.crypto.WalletUtils
 import org.web3j.protocol.Web3j
+import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.http.HttpService
+import org.web3j.utils.Numeric
 import java.math.BigInteger
 
 /**
@@ -26,6 +30,29 @@ class DeployHelper {
 
     /** Max gas limit */
     val gasLimit = BigInteger.valueOf(999999)
+
+    fun sendEthereum(amount: BigInteger, to: String) {
+        // get the next available nonce
+        val ethGetTransactionCount = web3.ethGetTransactionCount(
+                credentials.address, DefaultBlockParameterName.LATEST
+        ).send()
+        val nonce = ethGetTransactionCount.transactionCount
+
+        // create our transaction
+        val rawTransaction = RawTransaction.createTransaction(
+                nonce,
+                gasPrice,
+                gasLimit,
+                to,
+                amount,
+                ""
+        )
+
+        // sign & send our transaction
+        val signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials)
+        val hexValue = Numeric.toHexString(signedMessage)
+        web3.ethSendRawTransaction(hexValue).send()
+    }
 
     /**
      * Deploy BasicCoin smart contract

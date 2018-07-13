@@ -5,6 +5,7 @@ package registration.relay
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.natpryce.konfig.ConfigurationProperties
+import config.ConfigKeys
 import mu.KLogging
 import sidechain.iroha.IrohaInitialization
 
@@ -21,7 +22,7 @@ fun main(args: Array<String>) {
 
     // TODO a.chernyshov - think about automatization of trigger and obtaining master address
     val num = 10
-    val master = "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e"
+    val master = notary.CONFIG[ConfigKeys.ethereumMasterAddress]
 
     IrohaInitialization.loadIrohaLibrary()
         .flatMap { RelayRegistration().deploy(num, master) }

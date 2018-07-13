@@ -8,5 +8,5 @@ sealed class WithdrawalServiceOutputEvent {
     /**
      * Refund in Ethereum chain
      */
-    class EthRefund() : WithdrawalServiceOutputEvent()
+    data class EthRefund(val proof: RollbackApproval?) : WithdrawalServiceOutputEvent()
 }
