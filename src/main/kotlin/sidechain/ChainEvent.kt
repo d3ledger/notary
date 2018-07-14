@@ -45,6 +45,8 @@ sealed class SideChainEvent {
          * @param amount of ethereum to withdraw
          */
         data class SideChainTransfer(
+            val srcAccount: String,
+            val dstAccount: String,
             val asset: String,
             val amount: BigInteger,
             val description: String,
@@ -56,8 +58,9 @@ sealed class SideChainEvent {
                 /**
                  * Generate [SideChainTransfer] from proto
                  */
-                fun fromProto(cmd: Commands.TransferAsset): SideChainTransfer {
-                    return SideChainTransfer(cmd.assetId, cmd.amount.value.toBigInteger(), cmd.description)
+                fun fromProto(cmd: Commands.TransferAsset, hash: String): SideChainTransfer {
+                    return SideChainTransfer(cmd.srcAccountId, cmd.destAccountId,
+                            cmd.assetId, cmd.amount.value.toBigInteger(), cmd.description,  hash)
                 }
             }
 

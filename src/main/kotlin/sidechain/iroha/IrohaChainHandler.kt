@@ -23,11 +23,10 @@ class IrohaChainHandler : ChainHandler<iroha.protocol.BlockOuterClass.Block> {
                 it
             }
             .flatMap { it.payload.reducedPayload.commandsList }
-            .flatMap { it.payload.commandsList }
             .map {
                 when {
                     it.hasAddPeer() -> SideChainEvent.IrohaEvent.AddPeer.fromProto(it.addPeer)
-                    it.hasTransferAsset() -> SideChainEvent.IrohaEvent.SideChainTransfer.fromProto(it.transferAsset)
+                    it.hasTransferAsset() -> SideChainEvent.IrohaEvent.SideChainTransfer.fromProto(it.transferAsset, hash)
                     else -> null
                 }
             }

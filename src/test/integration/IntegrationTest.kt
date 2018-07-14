@@ -368,7 +368,7 @@ class IntegrationTest {
         val ethWallet = toAddress
 
         // add assets to user
-        addAssetIroha(creator, assetId, amount)
+        addAssetIroha(assetId, amount)
         Thread.sleep(5000)
         transferAssetIroha(creator, full_name, assetId, amount, "")
         Thread.sleep(5000)
