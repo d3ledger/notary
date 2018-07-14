@@ -7,20 +7,27 @@ import config.ConfigKeys
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.Queries
 import iroha.protocol.QueryServiceGrpc
-import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelProtoQuery
 import jp.co.soramitsu.iroha.ModelQueryBuilder
 import notary.CONFIG
 import registration.EthFreeWalletsProvider
+import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.toByteArray
 import java.math.BigInteger
 
 /**
- *
+ * Retrieves relays from Iroha
+ * @param acc account to retrieve relays from
+ * @return Map with relay addresses as keys and iroha accounts (or "free") as values
  */
-fun getRelays(acc: String, keypair: Keypair): Map<String, String> {
+fun getRelays(acc: String): Map<String, String> {
     val creator = CONFIG[ConfigKeys.registrationServiceIrohaAccount]
     val relayRegistrationAccount = CONFIG[ConfigKeys.registrationServiceRelayRegistrationIrohaAccount]
+
+    val keypair = ModelUtil.loadKeypair(
+            CONFIG[ConfigKeys.registrationServicePubkeyPath],
+            CONFIG[ConfigKeys.registrationServicePrivkeyPath]
+    ).get()
 
     val currentTime = System.currentTimeMillis()
 

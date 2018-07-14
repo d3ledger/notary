@@ -33,13 +33,11 @@ class WithdrawalServiceImpl(
 ) : WithdrawalService {
     val notaryPeerListProvider = NotaryPeerListProviderImpl()
     val coins: HashMap<String, String> = hashMapOf("ether#ethereum" to "0x0000000000000000000000000000000000000000")
-    val keypair =
-            ModelUtil.loadKeypair(CONFIG[ConfigKeys.testPubkeyPath], CONFIG[ConfigKeys.testPrivkeyPath]).get()
     val masterAccount = CONFIG[ConfigKeys.notaryIrohaAccount]
 
     fun findInAccDetail(acc: String, name: String): String {
-        val myMap = getRelays(acc, keypair)
-        for (record in myMap) {
+        val relays = getRelays(acc)
+        for (record in relays) {
             if (record.value == name) {
                 return record.key
             }

@@ -18,7 +18,7 @@ class EthFreeWalletsProvider(
     val notaryIrohaAccount: String = CONFIG[ConfigKeys.registrationServiceNotaryIrohaAccount]
 ) {
     fun getWallet(): String {
-        val myMap = getRelays(notaryIrohaAccount, keypair)
+        val myMap = getRelays(notaryIrohaAccount)
         val res = myMap.filterValues { it == "free" }.keys
         return res.first()
     }
