@@ -2,15 +2,15 @@ package registration
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import config.ConfigKeys
-import notary.CONFIG
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 
 /**
  * Initialisation of Registration Service
+ *
+ * @param registrationConfig - configurations of registration service
  */
-class RegistrationServiceInitialization {
+class RegistrationServiceInitialization(val registrationConfig: RegistrationConfig) {
 
     /**
      * Init Registration Service
@@ -18,14 +18,19 @@ class RegistrationServiceInitialization {
     fun init(): Result<Unit, Exception> {
         return Result.of {
             ModelUtil.loadKeypair(
-                CONFIG[ConfigKeys.registrationServicePubkeyPath],
-                CONFIG[ConfigKeys.registrationServicePrivkeyPath]
+                registrationConfig.iroha.pubkeyPath,
+                registrationConfig.iroha.privkeyPath
             )
                 .map { Pair(EthFreeWalletsProvider(it), IrohaConsumerImpl(it)) }
                 .map { (ethFreeWalletsProvider, irohaConsumer) ->
-                    RegistrationStrategyImpl(ethFreeWalletsProvider, irohaConsumer)
+                    RegistrationStrategyImpl(
+                        ethFreeWalletsProvider,
+                        irohaConsumer,
+                        registrationConfig.notaryIrohaAccount,
+                        registrationConfig.iroha
+                    )
                 }
-                .map { RegistrationServiceEndpoint(CONFIG[ConfigKeys.registrationPort], it) }
+                .map { RegistrationServiceEndpoint(registrationConfig.port, it) }
             Unit
         }
     }

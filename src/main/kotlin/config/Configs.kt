@@ -40,12 +40,6 @@ interface RefundConfig {
     val endPointEth: String
 }
 
-interface RegistrationServiceConfig {
-    val port: Int
-    val notaryAccount: String
-    val relayRegistrationAccount: String
-}
-
 /**
  * Load configs from Java properties
  */

@@ -2,9 +2,8 @@ package registration
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
-import config.ConfigKeys
 import com.github.kittinunf.result.map
-import notary.CONFIG
+import config.IrohaConfig
 import notary.IrohaCommand
 import notary.IrohaTransaction
 import sidechain.iroha.consumer.IrohaConsumer
@@ -16,7 +15,9 @@ import sidechain.iroha.consumer.IrohaNetworkImpl
  */
 class RegistrationStrategyImpl(
     val ethFreeWalletsProvider: EthFreeWalletsProvider,
-    val irohaConsumer: IrohaConsumer
+    val irohaConsumer: IrohaConsumer,
+    val notaryIrohaAccount: String,
+    val irohaConfig: IrohaConfig
 ) : RegistrationStrategy {
 
     /**
@@ -32,9 +33,8 @@ class RegistrationStrategyImpl(
 
         return Result.of {
             ethWallet = ethFreeWalletsProvider.getWallet()
-            val creator = CONFIG[ConfigKeys.registrationServiceIrohaAccount]
+            val creator = irohaConfig.creator
             val domain = "notary"
-            val masterAccount = CONFIG[ConfigKeys.registrationServiceNotaryIrohaAccount]
 
             IrohaTransaction(
                 creator,
@@ -51,7 +51,7 @@ class RegistrationStrategyImpl(
                     ),
                     // Set ethereum wallet as occupied by user id
                     IrohaCommand.CommandSetAccountDetail(
-                        masterAccount,
+                        notaryIrohaAccount,
                         ethWallet,
                         "$name@$domain"
                     )
@@ -60,10 +60,7 @@ class RegistrationStrategyImpl(
         }.flatMap {
             val utx = IrohaConverterImpl().convert(it)
             val tx = irohaConsumer.convertToProto(utx)
-            IrohaNetworkImpl(
-                CONFIG[ConfigKeys.registrationServiceIrohaHostname],
-                CONFIG[ConfigKeys.registrationServiceIrohaPort]
-            ).sendAndCheck(tx, utx.hash())
+            IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port).sendAndCheck(tx, utx.hash())
         }.map {
             ethWallet
         }
