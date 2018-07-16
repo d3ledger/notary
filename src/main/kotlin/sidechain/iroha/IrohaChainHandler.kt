@@ -3,7 +3,7 @@ package sidechain.iroha
 import mu.KLogging
 import sidechain.ChainHandler
 import sidechain.SideChainEvent
-import util.iroha.getHash
+import sidechain.iroha.util.getHash
 
 /**
  * Implementation of [ChainHandler] to convert from Iroha protocol to [SideChainEvent.IrohaEvent]

@@ -9,9 +9,9 @@ import org.junit.jupiter.api.Test
 import org.web3j.crypto.Hash
 import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.utils.Numeric.hexStringToByteArray
-import util.eth.DeployHelper
-import util.eth.hashToWithdraw
-import util.eth.signUserData
+import sidechain.eth.util.DeployHelper
+import sidechain.eth.util.hashToWithdraw
+import sidechain.eth.util.signUserData
 import java.math.BigInteger
 
 /**
@@ -34,17 +34,18 @@ class ContractsTest {
         // first event is amount of peers after new peer was added
         // second one is address of added peer
         // events should be aligned to 64 hex digits and prefixed with 0x
-        assert(addPeer.logs.size == 2)
-        assert(addPeer.logs[0].data == "0x" + String.format("%064x", 1))
-        assert(
-            addPeer.logs[1].data == "0x" + "0".repeat(24) +
-                    address.slice(2 until address.length)
+        assertEquals(2, addPeer.logs.size)
+        assertEquals("0x" + String.format("%064x", 1), addPeer.logs[0].data)
+        assertEquals(
+            "0x" + "0".repeat(24) +
+                    address.slice(2 until address.length),
+            addPeer.logs[1].data
         )
     }
 
     private fun transferTokensToMaster(amount: BigInteger) {
         token.transfer(master.contractAddress, amount).send()
-        assert(token.balanceOf(master.contractAddress).send() == amount)
+        assertEquals(amount, token.balanceOf(master.contractAddress).send())
     }
 
     private fun withdraw(
@@ -111,12 +112,12 @@ class ContractsTest {
         deployHelper.sendEthereum(BigInteger.valueOf(300_000_000), master.contractAddress)
         // have to wait some time until balance will be updated
         Thread.sleep(15000)
-        assert(
-            initialBalance + BigInteger.valueOf(300_000_000) ==
-                    deployHelper.web3.ethGetBalance(
-                        master.contractAddress,
-                        DefaultBlockParameterName.LATEST
-                    ).send().balance
+        assertEquals(
+            initialBalance + BigInteger.valueOf(300_000_000),
+            deployHelper.web3.ethGetBalance(
+                master.contractAddress,
+                DefaultBlockParameterName.LATEST
+            ).send().balance
         )
     }
 
@@ -131,7 +132,7 @@ class ContractsTest {
         sendAddPeer(deployHelper.credentials.address)
         transferTokensToMaster(BigInteger.valueOf(5))
         withdraw(BigInteger.valueOf(1))
-        assert(token.balanceOf(master.contractAddress).send() == BigInteger.valueOf(4))
+        assertEquals(BigInteger.valueOf(4), token.balanceOf(master.contractAddress).send())
     }
 
     /**
@@ -202,8 +203,8 @@ class ContractsTest {
         sendAddPeer(deployHelper.credentials.address)
         transferTokensToMaster(BigInteger.valueOf(5))
         withdraw(BigInteger.valueOf(1))
-        assert(token.balanceOf(master.contractAddress).send() == BigInteger.valueOf(4))
+        assertEquals(BigInteger.valueOf(4), token.balanceOf(master.contractAddress).send())
         withdraw(BigInteger.valueOf(1))
-        assert(token.balanceOf(master.contractAddress).send() == BigInteger.valueOf(4))
+        assertEquals(BigInteger.valueOf(4), token.balanceOf(master.contractAddress).send())
     }
 }

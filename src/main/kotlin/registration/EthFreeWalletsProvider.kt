@@ -4,7 +4,7 @@ import config.ConfigKeys
 import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
 import notary.CONFIG
-import util.iroha.getRelays
+import sidechain.iroha.util.getRelays
 
 /**
  * Provides with free ethereum relay wallet

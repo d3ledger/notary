@@ -12,8 +12,8 @@ import mu.KLogging
 import notary.CONFIG
 import sidechain.iroha.util.toBigInteger
 import sidechain.iroha.util.toByteArray
-import util.eth.hashToWithdraw
-import util.eth.signUserData
+import sidechain.eth.util.hashToWithdraw
+import sidechain.eth.util.signUserData
 import java.math.BigInteger
 
 class NotaryException(val reason: String) : Exception(reason)
@@ -132,7 +132,12 @@ class EthRefundStrategyImpl(private val keypair: Keypair) : EthRefundStrategy {
         logger.info { "Make refund. Address: ${ethRefund.address}, amount: ${ethRefund.amount} ${ethRefund.assetId}, hash: ${ethRefund.irohaTxHash}" }
         return Result.of {
             val finalHash =
-                hashToWithdraw(ethRefund.assetId, ethRefund.amount, ethRefund.address, ethRefund.irohaTxHash)
+                hashToWithdraw(
+                    ethRefund.assetId,
+                    ethRefund.amount,
+                    ethRefund.address,
+                    ethRefund.irohaTxHash
+                )
             val signature = signUserData(finalHash)
             EthNotaryResponse.Successful(signature, ethRefund)
         }

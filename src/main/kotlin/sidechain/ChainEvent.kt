@@ -41,8 +41,12 @@ sealed class SideChainEvent {
         /**
          * Event which is raised when custodian transfer assets to notary account to withdraw asset
          *
+         * @param srcAccount source of transfer
+         * @param dstAccount destination of transfer
          * @param asset is asset id in Iroha
          * @param amount of ethereum to withdraw
+         * @param description description field of transfer
+         * @param hash hash of transaction in Iroha
          */
         data class SideChainTransfer(
             val srcAccount: String,

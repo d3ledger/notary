@@ -1,4 +1,4 @@
-package util.eth
+package sidechain.eth.util
 
 import contract.BasicCoin
 import contract.Master
@@ -31,6 +31,11 @@ class DeployHelper {
     /** Max gas limit */
     val gasLimit = BigInteger.valueOf(999999)
 
+    /**
+     * Sends given amount of ether from some predefined account to given account
+     * @param amount amount of ether to send
+     * @param to target account
+     */
     fun sendEthereum(amount: BigInteger, to: String) {
         // get the next available nonce
         val ethGetTransactionCount = web3.ethGetTransactionCount(

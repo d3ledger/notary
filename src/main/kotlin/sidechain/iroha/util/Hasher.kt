@@ -1,4 +1,4 @@
-package util.iroha
+package sidechain.iroha.util
 
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import sidechain.iroha.util.toBigInteger

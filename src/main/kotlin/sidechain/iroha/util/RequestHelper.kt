@@ -1,4 +1,4 @@
-package util.iroha
+package sidechain.iroha.util
 
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser

@@ -26,9 +26,9 @@ import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.toBigInteger
 import sidechain.iroha.util.toByteArray
-import util.eth.DeployHelper
-import util.eth.hashToWithdraw
-import util.eth.signUserData
+import sidechain.eth.util.DeployHelper
+import sidechain.eth.util.hashToWithdraw
+import sidechain.eth.util.signUserData
 import java.math.BigInteger
 import java.sql.DriverManager
 import java.util.*
