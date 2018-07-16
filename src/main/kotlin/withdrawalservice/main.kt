@@ -4,7 +4,9 @@ package withdrawalservice
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
+import config.loadConfigs
 import mu.KLogging
+import registration.RegistrationConfig
 import sidechain.iroha.IrohaInitialization
 
 
@@ -14,8 +16,10 @@ import sidechain.iroha.IrohaInitialization
 fun main(args: Array<String>) {
     val logger = KLogging()
 
+    val withdrawalConfig = loadConfigs("withdrawal", WithdrawalServiceConfig::class.java)
+
     IrohaInitialization.loadIrohaLibrary()
-        .flatMap { WithdrawalServiceInitialization().init() }
+        .flatMap { WithdrawalServiceInitialization(withdrawalConfig).init() }
         .failure {
             logger.logger.error { it }
             System.exit(1)
