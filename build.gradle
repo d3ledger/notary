@@ -96,6 +96,8 @@ dependencies {
 
     // Configuration
     compile "com.natpryce:konfig:1.6.7.0"
+    compile group: 'com.jdiazcano.cfg4k', name: 'cfg4k-core', version: '0.8'
+
 
     // ------------------| Test dependencies |------------------
 
