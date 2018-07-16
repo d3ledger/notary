@@ -23,7 +23,7 @@ class DeployHelper {
 
     /** credentials of ethereum user */
     val credentials =
-            WalletUtils.loadCredentials("user", "deploy/ethereum/keys/user.key")
+        WalletUtils.loadCredentials("user", "deploy/ethereum/keys/user.key")
 
     /** Gas price */
     val gasPrice = BigInteger.ONE
@@ -34,18 +34,18 @@ class DeployHelper {
     fun sendEthereum(amount: BigInteger, to: String) {
         // get the next available nonce
         val ethGetTransactionCount = web3.ethGetTransactionCount(
-                credentials.address, DefaultBlockParameterName.LATEST
+            credentials.address, DefaultBlockParameterName.LATEST
         ).send()
         val nonce = ethGetTransactionCount.transactionCount
 
         // create our transaction
         val rawTransaction = RawTransaction.createTransaction(
-                nonce,
-                gasPrice,
-                gasLimit,
-                to,
-                amount,
-                ""
+            nonce,
+            gasPrice,
+            gasLimit,
+            to,
+            amount,
+            ""
         )
 
         // sign & send our transaction
@@ -60,12 +60,12 @@ class DeployHelper {
      */
     fun deployBasicCoinSmartContract(): BasicCoin {
         return contract.BasicCoin.deploy(
-                web3,
-                credentials,
-                gasPrice,
-                gasLimit,
-                BigInteger.valueOf(1000),
-                credentials.address
+            web3,
+            credentials,
+            gasPrice,
+            gasLimit,
+            BigInteger.valueOf(1000),
+            credentials.address
         ).send()
     }
 
@@ -75,10 +75,10 @@ class DeployHelper {
      */
     fun deployMasterSmartContract(): Master {
         return contract.Master.deploy(
-                web3,
-                credentials,
-                gasPrice,
-                gasLimit
+            web3,
+            credentials,
+            gasPrice,
+            gasLimit
         ).send()
     }
 
@@ -90,12 +90,12 @@ class DeployHelper {
      */
     fun deployRelaySmartContract(master: String, tokens: List<String>): Relay {
         return contract.Relay.deploy(
-                web3,
-                credentials,
-                gasPrice,
-                gasLimit,
-                master,
-                tokens
+            web3,
+            credentials,
+            gasPrice,
+            gasLimit,
+            master,
+            tokens
         ).send()
     }
 

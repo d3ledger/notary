@@ -131,8 +131,9 @@ class EthRefundStrategyImpl(private val keypair: Keypair) : EthRefundStrategy {
     private fun makeRefund(ethRefund: EthRefund): Result<EthNotaryResponse, Exception> {
         logger.info { "Make refund. Address: ${ethRefund.address}, amount: ${ethRefund.amount} ${ethRefund.assetId}, hash: ${ethRefund.irohaTxHash}" }
         return Result.of {
-            val final_hash = hashToWithdraw(ethRefund.assetId, ethRefund.amount, ethRefund.address, ethRefund.irohaTxHash)
-            val signature = signUserData(final_hash)
+            val finalHash =
+                hashToWithdraw(ethRefund.assetId, ethRefund.amount, ethRefund.address, ethRefund.irohaTxHash)
+            val signature = signUserData(finalHash)
             EthNotaryResponse.Successful(signature, ethRefund)
         }
     }

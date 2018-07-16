@@ -26,7 +26,10 @@ class IrohaChainHandler : ChainHandler<iroha.protocol.BlockOuterClass.Block> {
             .map {
                 when {
                     it.hasAddPeer() -> SideChainEvent.IrohaEvent.AddPeer.fromProto(it.addPeer)
-                    it.hasTransferAsset() -> SideChainEvent.IrohaEvent.SideChainTransfer.fromProto(it.transferAsset, hash)
+                    it.hasTransferAsset() -> SideChainEvent.IrohaEvent.SideChainTransfer.fromProto(
+                        it.transferAsset,
+                        hash
+                    )
                     else -> null
                 }
             }

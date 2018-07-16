@@ -17,25 +17,27 @@ class EthConsumer {
                             "account ${event.proof.account}\n" +
                             "amount ${event.proof.amount}\n" +
                             "token ${event.proof.tokenContractAddress}\n" +
-                            "iroha_hash ${event.proof.iroha_hash}\n" +
+                            "iroha hash ${event.proof.irohaHash}\n" +
                             "relay ${event.proof.relay}\n"
                 }
 
                 val relay = contract.Relay.load(
-                        event.proof.relay,
-                        deployHelper.web3,
-                        deployHelper.credentials,
-                        deployHelper.gasPrice,
-                        deployHelper.gasLimit)
+                    event.proof.relay,
+                    deployHelper.web3,
+                    deployHelper.credentials,
+                    deployHelper.gasPrice,
+                    deployHelper.gasLimit
+                )
 
                 relay.withdraw(
-                        event.proof.tokenContractAddress,
-                        event.proof.amount,
-                        event.proof.account,
-                        Numeric.hexStringToByteArray(event.proof.iroha_hash),
-                        event.proof.v,
-                        event.proof.r,
-                        event.proof.s).sendAsync()
+                    event.proof.tokenContractAddress,
+                    event.proof.amount,
+                    event.proof.account,
+                    Numeric.hexStringToByteArray(event.proof.irohaHash),
+                    event.proof.v,
+                    event.proof.r,
+                    event.proof.s
+                ).sendAsync()
             }
         }
     }

@@ -59,8 +59,10 @@ sealed class SideChainEvent {
                  * Generate [SideChainTransfer] from proto
                  */
                 fun fromProto(cmd: Commands.TransferAsset, hash: String): SideChainTransfer {
-                    return SideChainTransfer(cmd.srcAccountId, cmd.destAccountId,
-                            cmd.assetId, cmd.amount.value.toBigInteger(), cmd.description,  hash)
+                    return SideChainTransfer(
+                        cmd.srcAccountId, cmd.destAccountId,
+                        cmd.assetId, cmd.amount.value.toBigInteger(), cmd.description, hash
+                    )
                 }
             }
 

@@ -25,17 +25,17 @@ fun getRelays(acc: String): Map<String, String> {
     val relayRegistrationAccount = CONFIG[ConfigKeys.registrationServiceRelayRegistrationIrohaAccount]
 
     val keypair = ModelUtil.loadKeypair(
-            CONFIG[ConfigKeys.registrationServicePubkeyPath],
-            CONFIG[ConfigKeys.registrationServicePrivkeyPath]
+        CONFIG[ConfigKeys.registrationServicePubkeyPath],
+        CONFIG[ConfigKeys.registrationServicePrivkeyPath]
     ).get()
 
     val currentTime = System.currentTimeMillis()
 
     val uquery = ModelQueryBuilder().creatorAccountId(creator)
-            .queryCounter(BigInteger.valueOf(1))
-            .createdTime(BigInteger.valueOf(currentTime))
-            .getAccount(acc)
-            .build()
+        .queryCounter(BigInteger.valueOf(1))
+        .createdTime(BigInteger.valueOf(currentTime))
+        .getAccount(acc)
+        .build()
     val queryBlob = ModelProtoQuery(uquery).signAndAddSignature(keypair).finish().blob()
     val bquery = queryBlob.toByteArray()
 
@@ -47,9 +47,10 @@ fun getRelays(acc: String): Map<String, String> {
     }
 
     val channel = ManagedChannelBuilder.forAddress(
-            CONFIG[ConfigKeys.registrationServiceIrohaHostname],
-            CONFIG[ConfigKeys.registrationServiceIrohaPort])
-            .usePlaintext(true).build()
+        CONFIG[ConfigKeys.registrationServiceIrohaHostname],
+        CONFIG[ConfigKeys.registrationServiceIrohaPort]
+    )
+        .usePlaintext(true).build()
     val queryStub = QueryServiceGrpc.newBlockingStub(channel)
     val queryResponse = queryStub.find(protoQuery)
 
