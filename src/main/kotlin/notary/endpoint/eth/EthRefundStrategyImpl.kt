@@ -2,14 +2,13 @@ package notary.endpoint.eth
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
+import config.IrohaConfig
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.BlockOuterClass.Transaction
 import iroha.protocol.Queries
 import iroha.protocol.QueryServiceGrpc
 import jp.co.soramitsu.iroha.*
-import config.ConfigKeys
 import mu.KLogging
-import notary.CONFIG
 import sidechain.iroha.util.toBigInteger
 import sidechain.iroha.util.toByteArray
 import java.math.BigInteger
@@ -19,7 +18,10 @@ class NotaryException(val reason: String) : Exception(reason)
 /**
  * Class performs effective implementation of refund strategy for Ethereum
  */
-class EthRefundStrategyImpl(private val keypair: Keypair) : EthRefundStrategy {
+class EthRefundStrategyImpl(
+    val irohaConfig: IrohaConfig,
+    private val keypair: Keypair
+) : EthRefundStrategy {
 
     override fun performRefund(request: EthRefundRequest): EthNotaryResponse {
         return performQuery(request)
@@ -39,7 +41,7 @@ class EthRefundStrategyImpl(private val keypair: Keypair) : EthRefundStrategy {
             val hashes = HashVector()
             hashes.add(Hash.fromHexString(request.irohaTx))
 
-            val uquery = ModelQueryBuilder().creatorAccountId(CONFIG[ConfigKeys.notaryIrohaAccount])
+            val uquery = ModelQueryBuilder().creatorAccountId(irohaConfig.creator)
                 .queryCounter(BigInteger.valueOf(1))
                 .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
                 .getTransactions(hashes)
@@ -47,8 +49,8 @@ class EthRefundStrategyImpl(private val keypair: Keypair) : EthRefundStrategy {
             val queryBlob = ModelProtoQuery(uquery).signAndAddSignature(keypair).finish().blob().toByteArray()
             val protoQuery = Queries.Query.parseFrom(queryBlob)
 
-            val irohaHost = CONFIG[ConfigKeys.notaryIrohaHostname]
-            val irohaPort = CONFIG[ConfigKeys.notaryIrohaPort]
+            val irohaHost = irohaConfig.hostname
+            val irohaPort = irohaConfig.port
             val channel = ManagedChannelBuilder.forAddress(irohaHost, irohaPort).usePlaintext(true).build()
             val queryStub = QueryServiceGrpc.newBlockingStub(channel)
             val queryResponse = queryStub.find(protoQuery)
@@ -104,7 +106,7 @@ class EthRefundStrategyImpl(private val keypair: Keypair) : EthRefundStrategy {
                 (appearedTx.payload.reducedPayload.commandsCount == 1) &&
                         commands.hasTransferAsset() -> {
                     val destAccount = commands.transferAsset.destAccountId
-                    if (destAccount != CONFIG[ConfigKeys.notaryIrohaAccount])
+                    if (destAccount != irohaConfig.creator)
                         throw NotaryException("Refund - check transaction. Destination account is wrong '$destAccount'")
 
                     val amount = commands.transferAsset.amount.value.toBigInteger()

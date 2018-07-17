@@ -24,6 +24,7 @@ interface EthereumConfig {
     val credentialsPassword: String
     val gasPrice: Long
     val gasLimit: Long
+    val confirmationPeriod: Long
 }
 
 /**
@@ -33,11 +34,6 @@ interface DatabaseConfig {
     val url: String
     val username: String
     val password: String
-}
-
-interface RefundConfig {
-    val port: Int
-    val endPointEth: String
 }
 
 /**

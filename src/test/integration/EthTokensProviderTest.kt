@@ -1,17 +1,18 @@
 package integration
 
-import config.ConfigKeys
-import notary.CONFIG
+import config.loadConfigs
 import notary.db.tables.Tokens
 import org.jooq.impl.DSL
 import org.junit.jupiter.api.Disabled
-import java.sql.DriverManager
 import org.junit.jupiter.api.Test
+import java.sql.DriverManager
 
 /**
  * Test Postgres ethereum ERC20 tokens provider
  */
 class EthTokensProviderTest {
+
+    val dbConfig = loadConfigs("test", TestConfig::class.java).db
 
     /**
      * List all tokens in database
@@ -20,9 +21,9 @@ class EthTokensProviderTest {
     @Test
     fun listTokens() {
         val connection = DriverManager.getConnection(
-            CONFIG[ConfigKeys.dbUrl],
-            CONFIG[ConfigKeys.dbUsername],
-            CONFIG[ConfigKeys.dbPassword]
+            dbConfig.url,
+            dbConfig.username,
+            dbConfig.password
         )
 
         DSL.using(connection).use { ctx ->

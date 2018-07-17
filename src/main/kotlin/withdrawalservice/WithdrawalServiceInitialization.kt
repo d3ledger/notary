@@ -3,10 +3,8 @@ package withdrawalservice
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import config.ConfigKeys
 import io.reactivex.Observable
 import mu.KLogging
-import notary.CONFIG
 import sidechain.SideChainEvent
 import sidechain.eth.consumer.EthConsumer
 import sidechain.iroha.IrohaChainHandler

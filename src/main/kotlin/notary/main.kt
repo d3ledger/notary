@@ -4,14 +4,10 @@ package notary
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
-import com.natpryce.konfig.ConfigurationProperties
-import config.ConfigKeys
+import config.loadConfigs
 import mu.KLogging
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.util.ModelUtil
-
-/** Configuration parameters for notary instance */
-val CONFIG = ConfigurationProperties.fromResource("defaults.properties")
 
 /**
  * Application entry point
@@ -19,16 +15,18 @@ val CONFIG = ConfigurationProperties.fromResource("defaults.properties")
 fun main(args: Array<String>) {
     val logger = KLogging()
 
+    val notaryConfig = loadConfigs("notary", NotaryConfig::class.java)
+
     IrohaInitialization.loadIrohaLibrary()
-        .flatMap { ModelUtil.loadKeypair(CONFIG[ConfigKeys.notaryPubkeyPath], CONFIG[ConfigKeys.notaryPrivkeyPath]) }
+        .flatMap { ModelUtil.loadKeypair(notaryConfig.iroha.pubkeyPath, notaryConfig.iroha.privkeyPath) }
         .flatMap { keypair ->
             val ethWalletsProvider = EthWalletsProviderIrohaImpl(
-                CONFIG[ConfigKeys.notaryIrohaAccount],
+                notaryConfig.iroha,
                 keypair,
-                CONFIG[ConfigKeys.registrationServiceIrohaAccount],
-                CONFIG[ConfigKeys.registrationServiceNotaryIrohaAccount]
+                notaryConfig.registrationServiceIrohaAccount,
+                notaryConfig.iroha.creator
             )
-            NotaryInitialization(ethWalletsProvider).init()
+            NotaryInitialization(notaryConfig, ethWalletsProvider).init()
         }
         .failure {
             logger.logger.error { it }

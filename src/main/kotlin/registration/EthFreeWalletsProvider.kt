@@ -3,15 +3,14 @@ package registration
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser
 import com.google.protobuf.InvalidProtocolBufferException
+import config.IrohaConfig
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.Queries
 import iroha.protocol.QueryServiceGrpc
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelProtoQuery
 import jp.co.soramitsu.iroha.ModelQueryBuilder
-import config.ConfigKeys
 import mu.KLogging
-import notary.CONFIG
 import sidechain.iroha.util.toByteArray
 import java.math.BigInteger
 
@@ -23,22 +22,21 @@ import java.math.BigInteger
 // TODO Prevent double relay accounts usage (in perfect world it is on Iroha side with custom code). In real world
 // on provider side with some synchronization.
 class EthFreeWalletsProvider(
+    irohaConfig: IrohaConfig,
     val keypair: Keypair,
-    val notaryIrohaAccount: String = CONFIG[ConfigKeys.registrationServiceNotaryIrohaAccount]
+    val notaryIrohaAccount: String,
+    val relayRegistrationAccount: String
 ) {
 
     /** Creator of txs in Iroha  */
-    val creator = CONFIG[ConfigKeys.registrationServiceIrohaAccount]
-
-    /** Relay registration service account is needed to get free relay */
-    val relayRegistrationAccount = CONFIG[ConfigKeys.registrationServiceRelayRegistrationIrohaAccount]
+    val creator = irohaConfig.creator
 
     /** Iroha query counter */
     var queryCounter: Long = 1
 
     val channel = ManagedChannelBuilder.forAddress(
-        CONFIG[ConfigKeys.registrationServiceIrohaHostname],
-        CONFIG[ConfigKeys.registrationServiceIrohaPort]
+        irohaConfig.hostname,
+        irohaConfig.port
     )
         .usePlaintext(true).build()
 

@@ -3,7 +3,7 @@ package notary
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser
 import com.github.kittinunf.result.Result
-import config.ConfigKeys
+import config.IrohaConfig
 import jp.co.soramitsu.iroha.Keypair
 import sidechain.iroha.util.ModelUtil
 import java.math.BigInteger
@@ -11,13 +11,13 @@ import java.math.BigInteger
 /**
  * Implementation of [EthWalletsProvider] with Iroha storage.
  *
- * @param creator - Iroha query creator
+ * @param irohaConfig - Iroha configuration
  * @param keypair - Iroha keypair to query
  * @param relayRegistrationAccount - account of a registration service that has set details
  * @param registrationServiceNotaryIrohaAccount - notary account that contains details
  */
 class EthWalletsProviderIrohaImpl(
-    val creator: String,
+    val irohaConfig: IrohaConfig,
     val keypair: Keypair,
     val relayRegistrationAccount: String,
     val registrationServiceNotaryIrohaAccount: String
@@ -31,7 +31,7 @@ class EthWalletsProviderIrohaImpl(
     override fun getWallets(): Result<Map<String, String>, Exception> {
         return Result.of {
             val query = ModelUtil.getModelQueryBuilder()
-                .creatorAccountId(creator)
+                .creatorAccountId(irohaConfig.creator)
                 .createdTime(ModelUtil.getCurrentTime())
                 .queryCounter(BigInteger.ONE)
                 .getAccount(registrationServiceNotaryIrohaAccount)
@@ -40,8 +40,8 @@ class EthWalletsProviderIrohaImpl(
             val proto_query = ModelUtil.prepareQuery(query, keypair)
 
             val response = ModelUtil.getQueryStub(
-                CONFIG[ConfigKeys.notaryIrohaHostname],
-                CONFIG[ConfigKeys.notaryIrohaPort]
+                irohaConfig.hostname,
+                irohaConfig.port
             ).find(proto_query)
 
             val account = response.accountResponse.account

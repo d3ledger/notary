@@ -1,10 +1,9 @@
 package integration
 
+import config.loadConfigs
 import contract.BasicCoin
 import contract.Master
 import contract.Relay
-import notary.CONFIG
-import config.ConfigKeys
 import org.web3j.crypto.WalletUtils
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
@@ -14,12 +13,16 @@ import java.math.BigInteger
  * Helper class for contracts deploying
  */
 class DeployHelper {
+
+    /** Test configurations */
+    val testConfig = loadConfigs("test", TestConfig::class.java)
+
     /** web3 service instance to communicate with Ethereum network */
-    val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.testEthConnectionUrl]))
+    val web3 = Web3j.build(HttpService(testConfig.ethereum.url))
 
     /** credentials of ethereum user */
     val credentials =
-            WalletUtils.loadCredentials("user", "deploy/ethereum/keys/user.key")
+        WalletUtils.loadCredentials("user", "deploy/ethereum/keys/user.key")
 
     /** Gas price */
     val gasPrice = BigInteger.ONE
@@ -33,12 +36,12 @@ class DeployHelper {
      */
     fun deployBasicCoinSmartContract(): BasicCoin {
         return contract.BasicCoin.deploy(
-                web3,
-                credentials,
-                gasPrice,
-                gasLimit,
-                BigInteger.valueOf(1000),
-                credentials.address
+            web3,
+            credentials,
+            gasPrice,
+            gasLimit,
+            BigInteger.valueOf(1000),
+            credentials.address
         ).send()
     }
 
@@ -48,10 +51,10 @@ class DeployHelper {
      */
     fun deployMasterSmartContract(): Master {
         return contract.Master.deploy(
-                web3,
-                credentials,
-                gasPrice,
-                gasLimit
+            web3,
+            credentials,
+            gasPrice,
+            gasLimit
         ).send()
     }
 
@@ -63,12 +66,12 @@ class DeployHelper {
      */
     fun deployRelaySmartContract(master: String, tokens: List<String>): Relay {
         return contract.Relay.deploy(
-                web3,
-                credentials,
-                gasPrice,
-                gasLimit,
-                master,
-                tokens
+            web3,
+            credentials,
+            gasPrice,
+            gasLimit,
+            master,
+            tokens
         ).send()
     }
 

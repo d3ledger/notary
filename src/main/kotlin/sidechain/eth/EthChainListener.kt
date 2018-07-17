@@ -3,8 +3,6 @@ package sidechain.eth
 import com.github.kittinunf.result.Result
 import hu.akarnokd.rxjava.interop.RxJavaInterop
 import io.reactivex.Observable
-import notary.CONFIG
-import config.ConfigKeys
 import mu.KLogging
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.DefaultBlockParameter
@@ -15,12 +13,12 @@ import java.math.BigInteger
 /**
  * Implementation of [ChainListener] for Ethereum sidechain
  * @param web3 - notary.endpoint of Ethereum client
+ * @param confirmationPeriod - number of block to consider block final
  */
-class EthChainListener(val web3: Web3j) : ChainListener<EthBlock> {
-
-    /** Confirmation period is the number of blocks that we assume that may be reorganised */
-    private val confirmationPeriod = BigInteger.valueOf(CONFIG[ConfigKeys.ethConfirmationPeriod])
-
+class EthChainListener(
+    private val web3: Web3j,
+    private val confirmationPeriod: BigInteger
+) : ChainListener<EthBlock> {
     /** Keep counting blocks to prevent double emitting in case of chain reorganisation */
     private var lastBlock = confirmationPeriod
 

@@ -21,7 +21,16 @@ class RegistrationServiceInitialization(val registrationConfig: RegistrationConf
                 registrationConfig.iroha.pubkeyPath,
                 registrationConfig.iroha.privkeyPath
             )
-                .map { Pair(EthFreeWalletsProvider(it), IrohaConsumerImpl(it)) }
+                .map {
+                    Pair(
+                        EthFreeWalletsProvider(
+                            registrationConfig.iroha,
+                            it,
+                            registrationConfig.notaryIrohaAccount,
+                            registrationConfig.relayRegistrationIrohaAccount
+                        ), IrohaConsumerImpl(it)
+                    )
+                }
                 .map { (ethFreeWalletsProvider, irohaConsumer) ->
                     RegistrationStrategyImpl(
                         ethFreeWalletsProvider,

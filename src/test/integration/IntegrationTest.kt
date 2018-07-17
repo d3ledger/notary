@@ -3,22 +3,18 @@ package integration
 import com.github.kittinunf.result.failure
 import com.google.protobuf.InvalidProtocolBufferException
 import com.squareup.moshi.Moshi
-import notary.endpoint.eth.BigIntegerMoshiAdapter
-import notary.endpoint.eth.EthNotaryResponse
-import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
+import config.loadConfigs
 import io.grpc.ManagedChannelBuilder
-import iroha.protocol.BlockOuterClass
-import iroha.protocol.CommandServiceGrpc
 import iroha.protocol.Queries.Query
 import iroha.protocol.QueryServiceGrpc
 import jp.co.soramitsu.iroha.ModelProtoQuery
-import jp.co.soramitsu.iroha.ModelProtoTransaction
 import jp.co.soramitsu.iroha.ModelQueryBuilder
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import kotlinx.coroutines.experimental.async
-import config.ConfigKeys
-import notary.CONFIG
 import notary.db.tables.Tokens
+import notary.endpoint.eth.BigIntegerMoshiAdapter
+import notary.endpoint.eth.EthNotaryResponse
+import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
 import notary.main
 import org.jooq.impl.DSL
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -37,7 +33,6 @@ import sidechain.iroha.util.toByteArray
 import java.math.BigInteger
 import java.sql.DriverManager
 
-
 /**
  * Class for Ethereum sidechain infrastructure deployment and communication.
  */
@@ -51,20 +46,21 @@ class IntegrationTest {
             }
     }
 
+    val testConfig = loadConfigs("test", TestConfig::class.java)
+
     private val deploy_helper = DeployHelper()
 
     /** Iroha host */
-    val irohaHost = CONFIG[ConfigKeys.testIrohaHostname]
+    val irohaHost = testConfig.iroha.hostname
 
     /** Iroha port */
-    val irohaPort = CONFIG[ConfigKeys.testIrohaPort]
+    val irohaPort = testConfig.iroha.port
 
     /** Iroha transaction creator */
-    val creator = CONFIG[ConfigKeys.testIrohaAccount]
+    val creator = testConfig.iroha.creator
 
     /** Iroha keypair */
-    val keypair =
-        ModelUtil.loadKeypair(CONFIG[ConfigKeys.testPubkeyPath], CONFIG[ConfigKeys.testPrivkeyPath]).get()
+    val keypair = ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
 
     val irohaNetwork = IrohaNetworkImpl(irohaHost, irohaPort)
 
@@ -133,7 +129,7 @@ class IntegrationTest {
      * @return hex representation of transaction hash
      */
     fun setAccountDetail(accountId: String, key: String, value: String): String {
-        val creator = CONFIG[ConfigKeys.registrationServiceIrohaAccount]
+        val creator = testConfig.iroha.creator
         val currentTime = System.currentTimeMillis()
 
         // build transaction (still unsigned)
@@ -211,9 +207,9 @@ class IntegrationTest {
      */
     fun insertToken(wallet: String, token: String) {
         val connection = DriverManager.getConnection(
-            CONFIG[ConfigKeys.dbUrl],
-            CONFIG[ConfigKeys.dbUsername],
-            CONFIG[ConfigKeys.dbPassword]
+            testConfig.db.url,
+            testConfig.db.username,
+            testConfig.db.password
         )
 
         DSL.using(connection).use { ctx ->
@@ -318,7 +314,7 @@ class IntegrationTest {
             main(arrayOf())
         }
 
-        val masterAccount = CONFIG[ConfigKeys.notaryIrohaAccount]
+        val masterAccount = testConfig.notaryIrohaAccount
         val amount = "64203"
         val assetId = "ether#ethereum"
         val ethWallet = "eth_wallet"

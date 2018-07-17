@@ -1,10 +1,9 @@
 package integration
 
+import config.loadConfigs
 import contract.BasicCoin
 import contract.Master
 import contract.Relay
-import notary.CONFIG
-import config.ConfigKeys
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.web3j.crypto.Hash
@@ -22,6 +21,9 @@ class ContractsTest {
     private lateinit var master: Master
     private lateinit var relay: Relay
 
+    /** Test configurations */
+    val testConfig = loadConfigs("test", TestConfig::class.java)
+
     // predefined account which already exists on parity node
     private val acc_green = "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e"
 
@@ -38,7 +40,7 @@ class ContractsTest {
 
     private fun signUserData(to_sign: String): String {
         // TODO luckychess 26.06.2018 D3-100 find a way to produce correct signatures locally
-        val parity = Parity.build(HttpService(CONFIG[ConfigKeys.testEthConnectionUrl]))
+        val parity = Parity.build(HttpService(testConfig.ethereum.url))
         val unlock = parity.personalUnlockAccount(deploy_helper.credentials.address, "user").send()
         assert(unlock.accountUnlocked())
         val signature = parity.ethSign(deploy_helper.credentials.address, to_sign).send().signature
@@ -54,8 +56,10 @@ class ContractsTest {
         // events should be aligned to 64 hex digits and prefixed with 0x
         assert(add_peer.logs.size == 2)
         assert(add_peer.logs[0].data == "0x" + String.format("%064x", 1))
-        assert(add_peer.logs[1].data == "0x" + "0".repeat(24) +
-                address.slice(2 until address.length))
+        assert(
+            add_peer.logs[1].data == "0x" + "0".repeat(24) +
+                    address.slice(2 until address.length)
+        )
     }
 
     private fun transferTokensToMaster(amount: BigInteger) {
@@ -64,14 +68,17 @@ class ContractsTest {
     }
 
     private fun withdraw(
-            amount: BigInteger,
-            iroha_hash: String = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))) {
+        amount: BigInteger,
+        iroha_hash: String = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))
+    ) {
         // it was really painful to find out how to combine fields
         // in a same way as js and solidity do
-        val final_hash = Hash.sha3(token.contractAddress.replace("0x", "")
-                + String.format("%064x", amount).replace("0x", "")
-                + acc_green.replace("0x", "")
-                + iroha_hash.replace("0x", ""))
+        val final_hash = Hash.sha3(
+            token.contractAddress.replace("0x", "")
+                    + String.format("%064x", amount).replace("0x", "")
+                    + acc_green.replace("0x", "")
+                    + iroha_hash.replace("0x", "")
+        )
         println("hash: $final_hash")
 
         val signature = signUserData(final_hash)
@@ -88,13 +95,14 @@ class ContractsTest {
 
         val byte_hash = hexStringToByteArray(iroha_hash.slice(2 until iroha_hash.length))
         master.withdraw(
-                token.contractAddress,
-                amount,
-                acc_green,
-                byte_hash,
-                vv,
-                rr,
-                ss).send()
+            token.contractAddress,
+            amount,
+            acc_green,
+            byte_hash,
+            vv,
+            rr,
+            ss
+        ).send()
     }
 
     @BeforeEach

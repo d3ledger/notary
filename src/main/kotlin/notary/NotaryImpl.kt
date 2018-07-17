@@ -1,7 +1,6 @@
 package notary
 
 import io.reactivex.Observable
-import config.ConfigKeys
 import mu.KLogging
 import sidechain.SideChainEvent
 import java.math.BigInteger
@@ -10,15 +9,16 @@ import java.math.BigInteger
  * Implementation of [Notary] business logic
  */
 class NotaryImpl(
+    notaryConfig: NotaryConfig,
     private val ethHandler: Observable<SideChainEvent>,
     private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
 ) : Notary {
 
     /** Notary account in Iroha */
-    val creator = CONFIG[ConfigKeys.notaryIrohaAccount]
+    val creator = notaryConfig.iroha.creator
 
     /** Ethereum asset id in Iroha */
-    val ethereumAssetId = CONFIG[ConfigKeys.irohaEthToken]
+    val ethereumAssetId = "eth"
 
     /**
      * Handle Ethereum deposit event. Notaries create the ordered bunch of

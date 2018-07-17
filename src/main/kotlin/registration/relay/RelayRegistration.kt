@@ -20,7 +20,7 @@ import java.math.BigInteger
  */
 class RelayRegistration(
     val relayRegistrationConfig: RelayRegistrationConfig,
-    val ethTokensProvider: EthTokensProvider = EthTokensProviderImpl()
+    val ethTokensProvider: EthTokensProvider = EthTokensProviderImpl(relayRegistrationConfig.db)
 ) {
 
     /** web3 service instance to communicate with Ethereum network */

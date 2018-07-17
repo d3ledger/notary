@@ -1,22 +1,22 @@
 package notary
 
 import com.github.kittinunf.result.Result
-import config.ConfigKeys
+import config.DatabaseConfig
 import notary.db.tables.Tokens
 import org.jooq.impl.DSL
 import java.sql.DriverManager
 
 /** Implementation of [EthTokensProvider] with PostgreSQL storage. */
-class EthTokensProviderImpl : EthTokensProvider {
+class EthTokensProviderImpl(val dbConfig: DatabaseConfig) : EthTokensProvider {
 
     override fun getTokens(): Result<Map<String, String>, Exception> {
         return Result.of {
             val result = mutableMapOf<String, String>()
 
             val connection = DriverManager.getConnection(
-                CONFIG[ConfigKeys.dbUrl],
-                CONFIG[ConfigKeys.dbUsername],
-                CONFIG[ConfigKeys.dbPassword]
+                dbConfig.url,
+                dbConfig.username,
+                dbConfig.password
             )
 
             DSL.using(connection).use { ctx ->
