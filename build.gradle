@@ -95,7 +95,6 @@ dependencies {
     compile group: 'com.github.kittinunf.result', name: 'result', version: '1.4.0'
 
     // Configuration
-    compile "com.natpryce:konfig:1.6.7.0"
     compile group: 'com.jdiazcano.cfg4k', name: 'cfg4k-core', version: '0.8'
 
 
