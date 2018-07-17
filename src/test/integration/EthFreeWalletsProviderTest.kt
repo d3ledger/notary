@@ -101,11 +101,16 @@ class EthFreeWalletsProviderTest {
     fun getFreeWallet() {
         val ethFreeWallet = "eth_free_wallet_stub"
 
-        setAccountDetail(relayRegistrationIrohaAccount, ethFreeWallet, "free")
+        setAccountDetail(testConfig.notaryIrohaAccount, ethFreeWallet, "free")
         Thread.sleep(4_000)
 
         val freeWalletsProvider =
-            EthFreeWalletsProvider(testConfig.iroha, keypair, creator, relayRegistrationIrohaAccount)
+            EthFreeWalletsProvider(
+                testConfig.iroha,
+                keypair,
+                testConfig.notaryIrohaAccount,
+                relayRegistrationIrohaAccount
+            )
         val result = freeWalletsProvider.getWallet()
 
         assertEquals(ethFreeWallet, result)

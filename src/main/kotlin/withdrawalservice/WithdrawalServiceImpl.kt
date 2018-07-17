@@ -2,10 +2,8 @@ package withdrawalservice
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import config.ConfigKeys
 import io.reactivex.Observable
 import mu.KLogging
-import notary.CONFIG
 import notary.EthTokensProvider
 import notary.EthTokensProviderImpl
 import org.web3j.utils.Numeric.hexStringToByteArray
@@ -42,14 +40,15 @@ data class RollbackApproval(
  * Implementation of Withdrawal Service
  */
 class WithdrawalServiceImpl(
+    val withdrawalServiceConfig: WithdrawalServiceConfig,
     private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
 ) : WithdrawalService {
     private val notaryPeerListProvider = NotaryPeerListProviderImpl()
-    private val tokensProvider: EthTokensProvider = EthTokensProviderImpl()
-    private val masterAccount = CONFIG[ConfigKeys.notaryIrohaAccount]
+    private val tokensProvider: EthTokensProvider = EthTokensProviderImpl(withdrawalServiceConfig.db)
+    private val masterAccount = withdrawalServiceConfig.notaryIrohaAccount
 
     private fun findInAccDetail(acc: String, name: String): String {
-        val relays = getRelays(acc)
+        val relays = getRelays(withdrawalServiceConfig.iroha, acc, withdrawalServiceConfig.registrationIrohaAccount)
         for (record in relays) {
             if (record.value == name) {
                 return record.key
@@ -99,7 +98,7 @@ class WithdrawalServiceImpl(
             notaryPeerListProvider.getPeerList().forEach { peer ->
                 // TODO: replace with valid peer requests
                 val signature =
-                    signUserData(hashToWithdraw(coinAddress, amount, address, hash))
+                    signUserData(withdrawalServiceConfig.ethereum, hashToWithdraw(coinAddress, amount, address, hash))
                 val r = hexStringToByteArray(signature.substring(2, 66))
                 val s = hexStringToByteArray(signature.substring(66, 130))
                 val v = signature.substring(130, 132).toBigInteger(16)
@@ -119,7 +118,7 @@ class WithdrawalServiceImpl(
     override fun onIrohaEvent(irohaEvent: SideChainEvent.IrohaEvent): Result<WithdrawalServiceOutputEvent, Exception> {
         when (irohaEvent) {
             is SideChainEvent.IrohaEvent.SideChainTransfer -> {
-                if (irohaEvent.dstAccount == CONFIG[ConfigKeys.notaryIrohaAccount]) {
+                if (irohaEvent.dstAccount == withdrawalServiceConfig.notaryIrohaAccount) {
                     return requestNotary(irohaEvent)
                         .map { WithdrawalServiceOutputEvent.EthRefund(it) }
                 }

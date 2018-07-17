@@ -4,16 +4,11 @@ import com.github.kittinunf.result.failure
 import com.google.protobuf.InvalidProtocolBufferException
 import com.squareup.moshi.Moshi
 import config.loadConfigs
-import config.ConfigKeys
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.Queries.Query
 import iroha.protocol.QueryServiceGrpc
-import jp.co.soramitsu.iroha.ModelProtoQuery
-import jp.co.soramitsu.iroha.ModelQueryBuilder
-import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import jp.co.soramitsu.iroha.*
 import kotlinx.coroutines.experimental.async
-import notary.CONFIG
 import notary.db.tables.Tokens
 import notary.endpoint.eth.BigIntegerMoshiAdapter
 import notary.endpoint.eth.EthNotaryResponse
@@ -25,14 +20,14 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.web3j.protocol.core.DefaultBlockParameterName
+import sidechain.eth.util.DeployHelper
+import sidechain.eth.util.hashToWithdraw
+import sidechain.eth.util.signUserData
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.toBigInteger
 import sidechain.iroha.util.toByteArray
-import sidechain.eth.util.DeployHelper
-import sidechain.eth.util.hashToWithdraw
-import sidechain.eth.util.signUserData
 import java.math.BigInteger
 import java.sql.DriverManager
 import java.util.*
@@ -52,7 +47,7 @@ class IntegrationTest {
 
     val testConfig = loadConfigs("test", TestConfig::class.java)
 
-    private val deployHelper = DeployHelper()
+    private val deployHelper = DeployHelper(testConfig.ethereum)
 
     /** Iroha host */
     val irohaHost = testConfig.iroha.hostname
@@ -68,7 +63,7 @@ class IntegrationTest {
 
     val irohaNetwork = IrohaNetworkImpl(irohaHost, irohaPort)
 
-    val masterAccount = CONFIG[ConfigKeys.notaryIrohaAccount]
+    val masterAccount = testConfig.notaryIrohaAccount
 
     /** Ethereum address to transfer to */
     private val toAddress = "0x00aa39d30f0d20ff03a22ccfc30b7efbfca597c2"
@@ -262,7 +257,7 @@ class IntegrationTest {
         assertEquals(BigInteger.ZERO, queryIroha(assetId))
 
         // Deploy ERC20 smart contract
-        val contract = DeployHelper().deployBasicCoinSmartContract()
+        val contract = DeployHelper(testConfig.ethereum).deployBasicCoinSmartContract()
         val contractAddress = contract.contractAddress
         insertToken(contractAddress, asset)
 
@@ -333,6 +328,7 @@ class IntegrationTest {
 
         assertEquals(
             signUserData(
+                testConfig.ethereum,
                 hashToWithdraw(
                     assetId.split("#")[0],
                     amount.toBigInteger(),

@@ -45,14 +45,14 @@ class WithdrawalServiceInitialization(val withdrawalConfig: WithdrawalServiceCon
     private fun initWithdrawalService(inputEvents: Observable<SideChainEvent.IrohaEvent>): WithdrawalService {
         logger.info { "Init Withdrawal Service" }
 
-        return WithdrawalServiceImpl(inputEvents)
+        return WithdrawalServiceImpl(withdrawalConfig, inputEvents)
     }
 
     private fun initEthConsumer(withdrawalService: WithdrawalService): Result<Unit, Exception> {
         logger.info { "Init Ether consumer" }
 
         return Result.of {
-            val ethConsumer = EthConsumer()
+            val ethConsumer = EthConsumer(withdrawalConfig.ethereum)
             withdrawalService.output()
                 .subscribe({
                     it.map {

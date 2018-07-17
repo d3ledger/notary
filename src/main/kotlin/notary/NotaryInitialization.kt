@@ -149,7 +149,7 @@ class NotaryInitialization(
         logger.info { "Init Refund notary.endpoint" }
         RefundServerEndpoint(
             ServerInitializationBundle(notaryConfig.refund.port, notaryConfig.refund.endPointEth),
-            EthRefundStrategyImpl(notaryConfig.iroha, irohaKeypair)
+            EthRefundStrategyImpl(notaryConfig.iroha, notaryConfig.ethereum, irohaKeypair)
         )
     }
 
