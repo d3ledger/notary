@@ -23,7 +23,10 @@ class DeployHelper {
 
     /** credentials of ethereum user */
     val credentials =
-        WalletUtils.loadCredentials("user", "deploy/ethereum/keys/user.key")
+        WalletUtils.loadCredentials(
+            CONFIG[ConfigKeys.relayRegistartionEthCredentialPassword],
+            CONFIG[ConfigKeys.relayRegistartionEthCredentialPath]
+        )
 
     /** Gas price */
     val gasPrice = BigInteger.ONE

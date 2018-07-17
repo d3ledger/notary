@@ -25,6 +25,7 @@ class IrohaChainHandler : ChainHandler<iroha.protocol.BlockOuterClass.Block> {
             .flatMap { it.payload.reducedPayload.commandsList }
             .map {
                 when {
+                    //TODO: create separate ChainHandler impl for withdrawal proof events
                     it.hasAddPeer() -> SideChainEvent.IrohaEvent.AddPeer.fromProto(it.addPeer)
                     it.hasTransferAsset() -> SideChainEvent.IrohaEvent.SideChainTransfer.fromProto(
                         it.transferAsset,

@@ -1,7 +1,5 @@
 package sidechain.eth.consumer
 
-import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.success
 import mu.KLogging
 import org.web3j.utils.Numeric
 import sidechain.eth.util.DeployHelper
@@ -10,38 +8,35 @@ import withdrawalservice.WithdrawalServiceOutputEvent
 class EthConsumer {
     private val deployHelper = DeployHelper()
 
-    fun consume(event: Result<WithdrawalServiceOutputEvent, Exception>) {
-        event.success {
-            logger.info { "consumed eth event" }
-            val eventSuccess = event.get()
-            if (eventSuccess is WithdrawalServiceOutputEvent.EthRefund) {
-                logger.info {
-                    "Got proof:\n" +
-                            "account ${eventSuccess.proof.account}\n" +
-                            "amount ${eventSuccess.proof.amount}\n" +
-                            "token ${eventSuccess.proof.tokenContractAddress}\n" +
-                            "iroha hash ${eventSuccess.proof.irohaHash}\n" +
-                            "relay ${eventSuccess.proof.relay}\n"
-                }
-
-                val relay = contract.Relay.load(
-                    eventSuccess.proof.relay,
-                    deployHelper.web3,
-                    deployHelper.credentials,
-                    deployHelper.gasPrice,
-                    deployHelper.gasLimit
-                )
-
-                relay.withdraw(
-                    eventSuccess.proof.tokenContractAddress,
-                    eventSuccess.proof.amount,
-                    eventSuccess.proof.account,
-                    Numeric.hexStringToByteArray(eventSuccess.proof.irohaHash),
-                    eventSuccess.proof.v,
-                    eventSuccess.proof.r,
-                    eventSuccess.proof.s
-                ).sendAsync()
+    fun consume(event: WithdrawalServiceOutputEvent) {
+        logger.info { "consumed eth event" }
+        if (event is WithdrawalServiceOutputEvent.EthRefund) {
+            logger.info {
+                "Got proof:\n" +
+                        "account ${event.proof.account}\n" +
+                        "amount ${event.proof.amount}\n" +
+                        "token ${event.proof.tokenContractAddress}\n" +
+                        "iroha hash ${event.proof.irohaHash}\n" +
+                        "relay ${event.proof.relay}\n"
             }
+
+            val relay = contract.Relay.load(
+                event.proof.relay,
+                deployHelper.web3,
+                deployHelper.credentials,
+                deployHelper.gasPrice,
+                deployHelper.gasLimit
+            )
+
+            relay.withdraw(
+                event.proof.tokenContractAddress,
+                event.proof.amount,
+                event.proof.account,
+                Numeric.hexStringToByteArray(event.proof.irohaHash),
+                event.proof.v,
+                event.proof.r,
+                event.proof.s
+            ).sendAsync()
         }
     }
 

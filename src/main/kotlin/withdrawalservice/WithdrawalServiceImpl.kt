@@ -1,8 +1,10 @@
 package withdrawalservice
 
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.map
 import config.ConfigKeys
 import io.reactivex.Observable
+import mu.KLogging
 import notary.CONFIG
 import notary.EthTokensProvider
 import notary.EthTokensProviderImpl
@@ -88,7 +90,7 @@ class WithdrawalServiceImpl(
             if (relayAddress == "") {
                 throw Exception("Unable to find relay for " + event.srcAccount)
             }
-            println("relay found: $relayAddress")
+            logger.info { "relay found: $relayAddress" }
 
             val vv = ArrayList<BigInteger>()
             val rr = ArrayList<ByteArray>()
@@ -118,16 +120,14 @@ class WithdrawalServiceImpl(
         when (irohaEvent) {
             is SideChainEvent.IrohaEvent.SideChainTransfer -> {
                 if (irohaEvent.dstAccount == CONFIG[ConfigKeys.notaryIrohaAccount]) {
-                    return Result.of {
-                        val proof = requestNotary(irohaEvent)
-                        WithdrawalServiceOutputEvent.EthRefund(proof.get())
-                    }
+                    return requestNotary(irohaEvent)
+                        .map { WithdrawalServiceOutputEvent.EthRefund(it) }
                 }
             }
             else -> {
             }
         }
-        return Result.of { throw Exception("Wrong event type or wrong destination account") }
+        return Result.error(Exception("Wrong event type or wrong destination account"))
     }
 
     /**
@@ -139,4 +139,9 @@ class WithdrawalServiceImpl(
                 onIrohaEvent(it)
             }
     }
+
+    /**
+     * Logger
+     */
+    companion object : KLogging()
 }
