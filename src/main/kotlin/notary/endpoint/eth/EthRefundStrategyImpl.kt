@@ -11,6 +11,8 @@ import jp.co.soramitsu.iroha.*
 import mu.KLogging
 import sidechain.iroha.util.toBigInteger
 import sidechain.iroha.util.toByteArray
+import sidechain.eth.util.hashToWithdraw
+import sidechain.eth.util.signUserData
 import java.math.BigInteger
 
 class NotaryException(val reason: String) : Exception(reason)
@@ -129,10 +131,17 @@ class EthRefundStrategyImpl(
      * @return signed refund or error
      */
     private fun makeRefund(ethRefund: EthRefund): Result<EthNotaryResponse, Exception> {
-        logger.info { "Make refund. Address: ${ethRefund.address}, amount: ${ethRefund.amount} ${ethRefund.assetId}" }
+        logger.info { "Make refund. Address: ${ethRefund.address}, amount: ${ethRefund.amount} ${ethRefund.assetId}, hash: ${ethRefund.irohaTxHash}" }
         return Result.of {
-            // TODO a.chernyshov replace with effective implementation
-            EthNotaryResponse.Successful("mockSignature", ethRefund)
+            val finalHash =
+                hashToWithdraw(
+                    ethRefund.assetId,
+                    ethRefund.amount,
+                    ethRefund.address,
+                    ethRefund.irohaTxHash
+                )
+            val signature = signUserData(finalHash)
+            EthNotaryResponse.Successful(signature, ethRefund)
         }
     }
 

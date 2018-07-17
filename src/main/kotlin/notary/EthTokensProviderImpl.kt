@@ -25,7 +25,7 @@ class EthTokensProviderImpl(val dbConfig: DatabaseConfig) : EthTokensProvider {
                 ctx.select(tokens.WALLET, tokens.TOKEN)
                     .from(tokens)
                     .forEach { (wallet, token) ->
-                        result.put(wallet, token)
+                        result[wallet] = token
                     }
             }
 

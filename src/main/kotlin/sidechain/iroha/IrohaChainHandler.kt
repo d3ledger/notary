@@ -3,6 +3,7 @@ package sidechain.iroha
 import mu.KLogging
 import sidechain.ChainHandler
 import sidechain.SideChainEvent
+import sidechain.iroha.util.getHash
 
 /**
  * Implementation of [ChainHandler] to convert from Iroha protocol to [SideChainEvent.IrohaEvent]
@@ -14,12 +15,22 @@ class IrohaChainHandler : ChainHandler<iroha.protocol.BlockOuterClass.Block> {
      */
     override fun parseBlock(block: iroha.protocol.BlockOuterClass.Block): List<SideChainEvent.IrohaEvent> {
         logger.info { "Iroha chain handler" }
+
+        var hash = ""
         return block.payload.transactionsList
+            .map {
+                hash = getHash(it.toByteArray())
+                it
+            }
             .flatMap { it.payload.reducedPayload.commandsList }
             .map {
                 when {
+                    //TODO: create separate ChainHandler impl for withdrawal proof events
                     it.hasAddPeer() -> SideChainEvent.IrohaEvent.AddPeer.fromProto(it.addPeer)
-                    it.hasTransferAsset() -> SideChainEvent.IrohaEvent.SideChainTransfer.fromProto(it.transferAsset)
+                    it.hasTransferAsset() -> SideChainEvent.IrohaEvent.SideChainTransfer.fromProto(
+                        it.transferAsset,
+                        hash
+                    )
                     else -> null
                 }
             }

@@ -1,4 +1,4 @@
-package integration
+package sidechain.eth.util
 
 import config.loadConfigs
 import contract.BasicCoin
@@ -6,7 +6,9 @@ import contract.Master
 import contract.Relay
 import org.web3j.crypto.WalletUtils
 import org.web3j.protocol.Web3j
+import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.http.HttpService
+import org.web3j.utils.Numeric
 import java.math.BigInteger
 
 /**
@@ -22,13 +24,44 @@ class DeployHelper {
 
     /** credentials of ethereum user */
     val credentials =
-        WalletUtils.loadCredentials("user", "deploy/ethereum/keys/user.key")
+        WalletUtils.loadCredentials(
+            CONFIG[ConfigKeys.relayRegistartionEthCredentialPassword],
+            CONFIG[ConfigKeys.relayRegistartionEthCredentialPath]
+        )
 
     /** Gas price */
     val gasPrice = BigInteger.ONE
 
     /** Max gas limit */
     val gasLimit = BigInteger.valueOf(999999)
+
+    /**
+     * Sends given amount of ether from some predefined account to given account
+     * @param amount amount of ether to send
+     * @param to target account
+     */
+    fun sendEthereum(amount: BigInteger, to: String) {
+        // get the next available nonce
+        val ethGetTransactionCount = web3.ethGetTransactionCount(
+            credentials.address, DefaultBlockParameterName.LATEST
+        ).send()
+        val nonce = ethGetTransactionCount.transactionCount
+
+        // create our transaction
+        val rawTransaction = RawTransaction.createTransaction(
+            nonce,
+            gasPrice,
+            gasLimit,
+            to,
+            amount,
+            ""
+        )
+
+        // sign & send our transaction
+        val signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials)
+        val hexValue = Numeric.toHexString(signedMessage)
+        web3.ethSendRawTransaction(hexValue).send()
+    }
 
     /**
      * Deploy BasicCoin smart contract

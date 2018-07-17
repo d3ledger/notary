@@ -44,7 +44,7 @@ contract Relay {
     /**
      * A special function-like stub to allow ether accepting
      */
-    function() public payable { }
+    function() external payable { }
 
     /**
      * Sends ether and all tokens from this contract to master
@@ -85,11 +85,11 @@ contract Relay {
      * @param s array of signatures of tx_hash (s-component)
      */
     function withdraw(address coin_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s) public {
+        // TODO: remove if statement
         if (coin_address != 0) {
             assert(checkTokenAddress(coin_address));
             emit address_event(coin_address);
         }
-        sendAllToMaster();
         emit address_event(master_);
         in_.withdraw(coin_address, amount, to, tx_hash, v, r, s);
     }
