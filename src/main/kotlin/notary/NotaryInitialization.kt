@@ -1,9 +1,6 @@
 package notary
 
-import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.fanout
-import com.github.kittinunf.result.flatMap
-import com.github.kittinunf.result.map
+import com.github.kittinunf.result.*
 import config.ConfigKeys
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
@@ -19,6 +16,7 @@ import sidechain.eth.EthChainHandler
 import sidechain.eth.EthChainListener
 import sidechain.iroha.IrohaChainHandler
 import sidechain.iroha.IrohaChainListener
+import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl

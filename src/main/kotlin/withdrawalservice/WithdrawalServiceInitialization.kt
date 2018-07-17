@@ -1,6 +1,7 @@
 package withdrawalservice
 
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.ConfigKeys
@@ -50,7 +51,11 @@ class WithdrawalServiceInitialization {
             val ethConsumer = EthConsumer()
             withdrawalService.output()
                 .subscribe({
-                    ethConsumer.consume(it)
+                    it.map {
+                        ethConsumer.consume(it)
+                    }.failure {
+                        logger.error { it }
+                    }
                 }, {
                     logger.error { it }
                 })

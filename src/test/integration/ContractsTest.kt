@@ -3,78 +3,61 @@ package integration
 import contract.BasicCoin
 import contract.Master
 import contract.Relay
-import notary.CONFIG
-import config.ConfigKeys
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.web3j.crypto.Hash
-import org.web3j.protocol.http.HttpService
-import org.web3j.protocol.parity.Parity
+import org.web3j.protocol.core.DefaultBlockParameterName
+import org.web3j.utils.Numeric.hexStringToByteArray
+import sidechain.eth.util.DeployHelper
+import sidechain.eth.util.hashToWithdraw
+import sidechain.eth.util.signUserData
 import java.math.BigInteger
 
 /**
  * Class for Ethereum sidechain infrastructure deployment and communication.
  */
 class ContractsTest {
-    val deploy_helper = DeployHelper()
+    val deployHelper = DeployHelper()
 
     private lateinit var token: BasicCoin
     private lateinit var master: Master
     private lateinit var relay: Relay
 
-    // predefined account which already exists on parity node
-    private val acc_green = "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e"
-
-    private fun hexStringToByteArray(s: String): ByteArray {
-        val len = s.length
-        val data = ByteArray(len / 2)
-        var i = 0
-        while (i < len) {
-            data[i / 2] = ((Character.digit(s[i], 16) shl 4) + Character.digit(s[i + 1], 16)).toByte()
-            i += 2
-        }
-        return data
-    }
-
-    private fun signUserData(to_sign: String): String {
-        // TODO luckychess 26.06.2018 D3-100 find a way to produce correct signatures locally
-        val parity = Parity.build(HttpService(CONFIG[ConfigKeys.testEthConnectionUrl]))
-        val unlock = parity.personalUnlockAccount(deploy_helper.credentials.address, "user").send()
-        assert(unlock.accountUnlocked())
-        val signature = parity.ethSign(deploy_helper.credentials.address, to_sign).send().signature
-        println("eth_sign: $signature")
-        return signature
-    }
+    // predefined accounts which already exists on parity node
+    private val accGreen = "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e"
+    private val accAnother = "0x00aa39d30f0d20ff03a22ccfc30b7efbfca597c2"
 
     private fun sendAddPeer(address: String) {
-        val add_peer = master.addPeer(address).send()
+        val addPeer = master.addPeer(address).send()
         // addPeer call produces 2 events
         // first event is amount of peers after new peer was added
         // second one is address of added peer
         // events should be aligned to 64 hex digits and prefixed with 0x
-        assert(add_peer.logs.size == 2)
-        assert(add_peer.logs[0].data == "0x" + String.format("%064x", 1))
-        assert(add_peer.logs[1].data == "0x" + "0".repeat(24) +
-                address.slice(2 until address.length))
+        assertEquals(2, addPeer.logs.size)
+        assertEquals("0x" + String.format("%064x", 1), addPeer.logs[0].data)
+        assertEquals(
+            "0x" + "0".repeat(24) +
+                    address.slice(2 until address.length),
+            addPeer.logs[1].data
+        )
     }
 
     private fun transferTokensToMaster(amount: BigInteger) {
         token.transfer(master.contractAddress, amount).send()
-        assert(token.balanceOf(master.contractAddress).send() == amount)
+        assertEquals(amount, token.balanceOf(master.contractAddress).send())
     }
 
     private fun withdraw(
-            amount: BigInteger,
-            iroha_hash: String = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))) {
-        // it was really painful to find out how to combine fields
-        // in a same way as js and solidity do
-        val final_hash = Hash.sha3(token.contractAddress.replace("0x", "")
-                + String.format("%064x", amount).replace("0x", "")
-                + acc_green.replace("0x", "")
-                + iroha_hash.replace("0x", ""))
-        println("hash: $final_hash")
+        amount: BigInteger,
+        irohaHash: String = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345))),
+        tokenAddress: String = token.contractAddress,
+        to: String = accGreen,
+        fromMaster: Boolean = true
+    ) {
+        val finalHash = hashToWithdraw(tokenAddress, amount, to, irohaHash)
 
-        val signature = signUserData(final_hash)
+        val signature = signUserData(finalHash)
         val r = hexStringToByteArray(signature.substring(2, 66))
         val s = hexStringToByteArray(signature.substring(66, 130))
         val v = signature.substring(130, 132).toBigInteger(16)
@@ -86,22 +69,56 @@ class ContractsTest {
         val ss = ArrayList<ByteArray>()
         ss.add(s)
 
-        val byte_hash = hexStringToByteArray(iroha_hash.slice(2 until iroha_hash.length))
-        master.withdraw(
-                token.contractAddress,
+        val byteHash = hexStringToByteArray(irohaHash.slice(2 until irohaHash.length))
+        if (fromMaster) {
+            master.withdraw(
+                tokenAddress,
                 amount,
-                acc_green,
-                byte_hash,
+                to,
+                byteHash,
                 vv,
                 rr,
-                ss).send()
+                ss
+            ).send()
+        } else {
+            relay.withdraw(
+                tokenAddress,
+                amount,
+                to,
+                byteHash,
+                vv,
+                rr,
+                ss
+            ).send()
+        }
     }
 
     @BeforeEach
     fun setup() {
-        token = deploy_helper.deployBasicCoinSmartContract()
-        master = deploy_helper.deployMasterSmartContract()
-        relay = deploy_helper.deployRelaySmartContract(master.contractAddress, listOf(token.contractAddress))
+        token = deployHelper.deployBasicCoinSmartContract()
+        master = deployHelper.deployMasterSmartContract()
+        relay = deployHelper.deployRelaySmartContract(master.contractAddress, listOf(token.contractAddress))
+    }
+
+    /**
+     * @given master account deployed
+     * @when transfer 300_000_000 WEIs to master account
+     * @then balance of master account increased by 300_000_000
+     */
+    @Test
+    fun canAcceptEther() {
+        val initialBalance =
+            deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+        deployHelper.sendEthereum(BigInteger.valueOf(300_000_000), master.contractAddress)
+        // have to wait some time until balance will be updated
+        Thread.sleep(15000)
+        assertEquals(
+            initialBalance + BigInteger.valueOf(300_000_000),
+            deployHelper.web3.ethGetBalance(
+                master.contractAddress,
+                DefaultBlockParameterName.LATEST
+            ).send().balance
+        )
     }
 
     /**
@@ -111,11 +128,68 @@ class ContractsTest {
      * @then call to withdraw succeeded
      */
     @Test
-    fun singleCorrectSignatureTest() {
-        sendAddPeer(deploy_helper.credentials.address)
+    fun singleCorrectSignatureTokenTest() {
+        sendAddPeer(deployHelper.credentials.address)
         transferTokensToMaster(BigInteger.valueOf(5))
         withdraw(BigInteger.valueOf(1))
-        assert(token.balanceOf(master.contractAddress).send() == BigInteger.valueOf(4))
+        assertEquals(BigInteger.valueOf(4), token.balanceOf(master.contractAddress).send())
+    }
+
+    /**
+     * @given deployed master contract
+     * @when one peer added to master, 5000 Wei transferred to master,
+     * request to withdraw 1000 Wei is sent to master
+     * @then call to withdraw succeeded
+     */
+    @Test
+    fun singleCorrectSignatureEtherTestMaster() {
+        val initialBalance =
+            deployHelper.web3.ethGetBalance(accAnother, DefaultBlockParameterName.LATEST).send().balance
+        sendAddPeer(deployHelper.credentials.address)
+        deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
+        // have to wait some time until balance will be updated
+        Thread.sleep(15000)
+        withdraw(
+            BigInteger.valueOf(1000),
+            tokenAddress = "0x0000000000000000000000000000000000000000",
+            to = accAnother
+        )
+        assertEquals(
+            BigInteger.valueOf(4000),
+            deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+        )
+        assertEquals(
+            initialBalance + BigInteger.valueOf(1000),
+            deployHelper.web3.ethGetBalance(accAnother, DefaultBlockParameterName.LATEST).send().balance
+        )
+    }
+
+    /**
+     * @given deployed master and relay contracts
+     * @when one peer added to master, 5000 Wei transferred to master,
+     * request to withdraw 1000 Wei is sent to relay
+     * @then call to withdraw succeeded
+     */
+    @Test
+    fun singleCorrectSignatureEtherTestRelay() {
+        val initialBalance =
+            deployHelper.web3.ethGetBalance(accAnother, DefaultBlockParameterName.LATEST).send().balance
+        sendAddPeer(deployHelper.credentials.address)
+        deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
+        // have to wait some time until balance will be updated
+        Thread.sleep(15000)
+        withdraw(
+            BigInteger.valueOf(1000), tokenAddress = "0x0000000000000000000000000000000000000000",
+            fromMaster = false, to = accAnother
+        )
+        assertEquals(
+            BigInteger.valueOf(4000),
+            deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+        )
+        assertEquals(
+            initialBalance + BigInteger.valueOf(1000),
+            deployHelper.web3.ethGetBalance(accAnother, DefaultBlockParameterName.LATEST).send().balance
+        )
     }
 
     /**
@@ -126,11 +200,11 @@ class ContractsTest {
      */
     @Test
     fun usedHashTest() {
-        sendAddPeer(deploy_helper.credentials.address)
+        sendAddPeer(deployHelper.credentials.address)
         transferTokensToMaster(BigInteger.valueOf(5))
         withdraw(BigInteger.valueOf(1))
-        assert(token.balanceOf(master.contractAddress).send() == BigInteger.valueOf(4))
+        assertEquals(BigInteger.valueOf(4), token.balanceOf(master.contractAddress).send())
         withdraw(BigInteger.valueOf(1))
-        assert(token.balanceOf(master.contractAddress).send() == BigInteger.valueOf(4))
+        assertEquals(BigInteger.valueOf(4), token.balanceOf(master.contractAddress).send())
     }
 }

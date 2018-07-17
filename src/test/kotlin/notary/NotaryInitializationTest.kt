@@ -1,16 +1,25 @@
 package notary
 
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.failure
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
+import sidechain.iroha.IrohaInitialization
 
 class NotaryInitializationTest {
-
     /** Some exception message */
     val throwMessage = "Hey, look at my exception!"
+
+    init {
+        IrohaInitialization.loadIrohaLibrary()
+            .failure {
+                println(it)
+                System.exit(1)
+            }
+    }
 
     /**
      * @given eth wallets loader and notary initializer

@@ -1,13 +1,17 @@
-package integration
+package sidechain.eth.util
 
 import contract.BasicCoin
 import contract.Master
 import contract.Relay
 import notary.CONFIG
 import config.ConfigKeys
+import org.web3j.crypto.RawTransaction
+import org.web3j.crypto.TransactionEncoder
 import org.web3j.crypto.WalletUtils
 import org.web3j.protocol.Web3j
+import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.http.HttpService
+import org.web3j.utils.Numeric
 import java.math.BigInteger
 
 /**
@@ -19,7 +23,10 @@ class DeployHelper {
 
     /** credentials of ethereum user */
     val credentials =
-            WalletUtils.loadCredentials("user", "deploy/ethereum/keys/user.key")
+        WalletUtils.loadCredentials(
+            CONFIG[ConfigKeys.relayRegistartionEthCredentialPassword],
+            CONFIG[ConfigKeys.relayRegistartionEthCredentialPath]
+        )
 
     /** Gas price */
     val gasPrice = BigInteger.ONE
@@ -28,17 +35,45 @@ class DeployHelper {
     val gasLimit = BigInteger.valueOf(999999)
 
     /**
+     * Sends given amount of ether from some predefined account to given account
+     * @param amount amount of ether to send
+     * @param to target account
+     */
+    fun sendEthereum(amount: BigInteger, to: String) {
+        // get the next available nonce
+        val ethGetTransactionCount = web3.ethGetTransactionCount(
+            credentials.address, DefaultBlockParameterName.LATEST
+        ).send()
+        val nonce = ethGetTransactionCount.transactionCount
+
+        // create our transaction
+        val rawTransaction = RawTransaction.createTransaction(
+            nonce,
+            gasPrice,
+            gasLimit,
+            to,
+            amount,
+            ""
+        )
+
+        // sign & send our transaction
+        val signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials)
+        val hexValue = Numeric.toHexString(signedMessage)
+        web3.ethSendRawTransaction(hexValue).send()
+    }
+
+    /**
      * Deploy BasicCoin smart contract
      * @return token smart contract object
      */
     fun deployBasicCoinSmartContract(): BasicCoin {
         return contract.BasicCoin.deploy(
-                web3,
-                credentials,
-                gasPrice,
-                gasLimit,
-                BigInteger.valueOf(1000),
-                credentials.address
+            web3,
+            credentials,
+            gasPrice,
+            gasLimit,
+            BigInteger.valueOf(1000),
+            credentials.address
         ).send()
     }
 
@@ -48,10 +83,10 @@ class DeployHelper {
      */
     fun deployMasterSmartContract(): Master {
         return contract.Master.deploy(
-                web3,
-                credentials,
-                gasPrice,
-                gasLimit
+            web3,
+            credentials,
+            gasPrice,
+            gasLimit
         ).send()
     }
 
@@ -63,12 +98,12 @@ class DeployHelper {
      */
     fun deployRelaySmartContract(master: String, tokens: List<String>): Relay {
         return contract.Relay.deploy(
-                web3,
-                credentials,
-                gasPrice,
-                gasLimit,
-                master,
-                tokens
+            web3,
+            credentials,
+            gasPrice,
+            gasLimit,
+            master,
+            tokens
         ).send()
     }
 

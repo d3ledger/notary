@@ -1,5 +1,6 @@
 package withdrawalservice
 
+import com.github.kittinunf.result.Result
 import sidechain.SideChainEvent
 
 /**
@@ -13,11 +14,11 @@ interface WithdrawalService {
     /**
      * Handle Iroha events.
      */
-    fun onIrohaEvent(irohaEvent: SideChainEvent.IrohaEvent): WithdrawalServiceOutputEvent
+    fun onIrohaEvent(irohaEvent: SideChainEvent.IrohaEvent): Result<WithdrawalServiceOutputEvent, Exception>
 
     /**
      * Events emitted by [WithdrawalService]
      */
-    fun output(): io.reactivex.Observable<WithdrawalServiceOutputEvent>
+    fun output(): io.reactivex.Observable<Result<WithdrawalServiceOutputEvent, Exception>>
 
 }

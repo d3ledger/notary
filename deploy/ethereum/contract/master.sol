@@ -34,7 +34,7 @@ contract Master {
     /**
      * A special function-like stub to allow ether accepting
      */
-    function() public payable { }
+    function() external payable { }
 
     /**
      * Recovers address from a given single signature
@@ -47,8 +47,6 @@ contract Master {
     function recoverAddress(bytes32 hash, uint8 v, bytes32 r, bytes32 s) private returns(address) {
         emit bytes_event(hash);
         bytes32 simple_hash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
-        emit bytes_event(simple_hash);
-
         address res = ecrecover(simple_hash, v, r, s);
         emit address_event(res);
         return res;
@@ -98,6 +96,7 @@ contract Master {
         // TODO luckychess 26.06.2018 D3-103 fix whitelist checks inconsistency
         // TODO luckychess 26.06.2018 D3-101 improve require checks (copy-paste) (use modifiers)
         require(used_[tx_hash] == false);
+        emit number_event(amount);
         require(peers_count_ >= 1);
         // sigs - at least 2f+1 from 3f+1
         // e. g. len(peers)==12 -> 3f+1=12; f=3; 12-3=9 -> at least 9 sigs we need
@@ -123,6 +122,7 @@ contract Master {
             emit number_event(address(this).balance);
             assert(address(this).balance >= amount);
             to.transfer(amount);
+            emit number_event(address(this).balance);
         } else {
             ic_ = ICoin(coin_address);
             emit address_event(coin_address);

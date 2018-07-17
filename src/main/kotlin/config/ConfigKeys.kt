@@ -61,6 +61,8 @@ class ConfigKeys {
         val relayRegistartionEthGasPrice = Key("relayRegistration.ethGasPrice", longType)
         /** Gas limit for relay smart contract deployment */
         val relayRegistartionEthGasLimit = Key("relayRegistration.ethGasLimit", longType)
+        /** address of master contract */
+        val ethereumMasterAddress = Key("ethereum.masterAddress", stringType)
 
 
         // ========= Registration Service =========

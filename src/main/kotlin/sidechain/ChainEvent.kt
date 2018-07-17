@@ -41,13 +41,20 @@ sealed class SideChainEvent {
         /**
          * Event which is raised when custodian transfer assets to notary account to withdraw asset
          *
+         * @param srcAccount source of transfer
+         * @param dstAccount destination of transfer
          * @param asset is asset id in Iroha
          * @param amount of ethereum to withdraw
+         * @param description description field of transfer
+         * @param hash hash of transaction in Iroha
          */
         data class SideChainTransfer(
+            val srcAccount: String,
+            val dstAccount: String,
             val asset: String,
             val amount: BigInteger,
-            val description: String
+            val description: String,
+            val hash: String
         ) : IrohaEvent() {
 
             companion object {
@@ -55,8 +62,11 @@ sealed class SideChainEvent {
                 /**
                  * Generate [SideChainTransfer] from proto
                  */
-                fun fromProto(cmd: Commands.TransferAsset): SideChainTransfer {
-                    return SideChainTransfer(cmd.assetId, cmd.amount.value.toBigInteger(), cmd.description)
+                fun fromProto(cmd: Commands.TransferAsset, hash: String): SideChainTransfer {
+                    return SideChainTransfer(
+                        cmd.srcAccountId, cmd.destAccountId,
+                        cmd.assetId, cmd.amount.value.toBigInteger(), cmd.description, hash
+                    )
                 }
             }
 
