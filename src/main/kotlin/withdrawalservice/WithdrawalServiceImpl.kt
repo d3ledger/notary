@@ -3,6 +3,7 @@ package withdrawalservice
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import io.reactivex.Observable
+import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
 import notary.EthTokensProvider
 import notary.EthTokensProviderImpl
@@ -10,6 +11,7 @@ import org.web3j.utils.Numeric.hexStringToByteArray
 import sidechain.SideChainEvent
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
+import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getRelays
 import java.math.BigInteger
 
@@ -41,6 +43,8 @@ data class RollbackApproval(
  */
 class WithdrawalServiceImpl(
     val withdrawalServiceConfig: WithdrawalServiceConfig,
+    val keypair: Keypair,
+    val irohaNetwork: IrohaNetwork,
     private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
 ) : WithdrawalService {
     private val notaryPeerListProvider = NotaryPeerListProviderImpl()
@@ -48,8 +52,14 @@ class WithdrawalServiceImpl(
     private val masterAccount = withdrawalServiceConfig.notaryIrohaAccount
 
     private fun findInAccDetail(acc: String, name: String): String {
-        val relays = getRelays(withdrawalServiceConfig.iroha, acc, withdrawalServiceConfig.registrationIrohaAccount)
-        for (record in relays) {
+        val relays = getRelays(
+            withdrawalServiceConfig.iroha,
+            keypair,
+            irohaNetwork,
+            acc,
+            withdrawalServiceConfig.registrationIrohaAccount
+        )
+        for (record in relays.get()) {
             if (record.value == name) {
                 return record.key
             }

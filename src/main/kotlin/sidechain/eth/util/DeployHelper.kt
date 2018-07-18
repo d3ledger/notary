@@ -1,7 +1,6 @@
 package sidechain.eth.util
 
 import config.EthereumConfig
-import config.loadConfigs
 import contract.BasicCoin
 import contract.Master
 import contract.Relay
@@ -23,11 +22,12 @@ class DeployHelper(ethereumConfig: EthereumConfig) {
     val web3 = Web3j.build(HttpService(ethereumConfig.url))
 
     /** credentials of ethereum user */
-    val credentials =
+    val credentials by lazy {
         WalletUtils.loadCredentials(
             ethereumConfig.credentialsPassword,
             ethereumConfig.credentialsPath
         )
+    }
 
     /** Gas price */
     val gasPrice = BigInteger.ONE

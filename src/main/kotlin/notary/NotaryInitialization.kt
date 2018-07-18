@@ -20,6 +20,7 @@ import sidechain.iroha.IrohaChainHandler
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
+import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import java.math.BigInteger
@@ -32,7 +33,8 @@ import java.math.BigInteger
 class NotaryInitialization(
     val notaryConfig: NotaryConfig,
     val ethWalletsProvider: EthWalletsProvider,
-    val ethTokensProvider: EthTokensProvider = EthTokensProviderImpl(notaryConfig.db)
+    val ethTokensProvider: EthTokensProvider = EthTokensProviderImpl(notaryConfig.db),
+    val irohaNetwork: IrohaNetwork = IrohaNetworkImpl(notaryConfig.iroha.hostname, notaryConfig.iroha.port)
 ) {
     val irohaAccount = notaryConfig.iroha.creator
     val irohaKeypair =
@@ -129,10 +131,7 @@ class NotaryInitialization(
                     .subscribe(
                         // send to Iroha network layer
                         {
-                            IrohaNetworkImpl(
-                                notaryConfig.iroha.hostname,
-                                notaryConfig.iroha.port
-                            ).sendAndCheck(it, hash)
+                            irohaNetwork.sendAndCheck(it, hash)
                         },
                         // on error
                         { logger.error { it } },
@@ -149,7 +148,7 @@ class NotaryInitialization(
         logger.info { "Init Refund notary.endpoint" }
         RefundServerEndpoint(
             ServerInitializationBundle(notaryConfig.refund.port, notaryConfig.refund.endPointEth),
-            EthRefundStrategyImpl(notaryConfig.iroha, notaryConfig.ethereum, irohaKeypair)
+            EthRefundStrategyImpl(notaryConfig.iroha, irohaNetwork, notaryConfig.ethereum, irohaKeypair)
         )
     }
 

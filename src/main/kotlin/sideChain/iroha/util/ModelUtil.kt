@@ -53,22 +53,18 @@ object ModelUtil {
 
     /**
      * Creates a stub for commands
-     * @param host - iroha host
-     * @param port - iroha port
+     * @param channel - channel with Iroha peer
      * @return torii command stub
      */
-    fun getCommandStub(host: String, port: Int): CommandServiceGrpc.CommandServiceBlockingStub {
-        val channel = getChannel(host, port)
+    fun getCommandStub(channel: io.grpc.Channel): CommandServiceGrpc.CommandServiceBlockingStub {
         return CommandServiceGrpc.newBlockingStub(channel)
     }
 
     /**
      * Creates a stub for queries
-     * @param host - iroha host
-     * @param port - iroha port     * @return torii query stub
+     * @param channel - channel with Iroha peer
      */
-    fun getQueryStub(host: String, port: Int): QueryServiceGrpc.QueryServiceBlockingStub {
-        val channel = getChannel(host, port)
+    fun getQueryStub(channel: io.grpc.Channel): QueryServiceGrpc.QueryServiceBlockingStub {
         return QueryServiceGrpc.newBlockingStub(channel)
     }
 
@@ -122,21 +118,15 @@ object ModelUtil {
      * @param keys used to sign query
      * @return proto query, if succeeded
      */
-    fun prepareQuery(uquery: UnsignedQuery, keys: Keypair): Query? {
-
-        val queryBlob = ModelProtoQuery(uquery)
-            .signAndAddSignature(keys)
-            .finish()
-            .blob()
-        val bquery = queryBlob.toByteArray()
-
-        var protoQuery: Query? = null
-        try {
-            protoQuery = Query.parseFrom(bquery)
-        } catch (e: InvalidProtocolBufferException) {
-            logger.error { "Exception while converting byte array to protobuf:" + e.message }
+    fun prepareQuery(uquery: UnsignedQuery, keys: Keypair): Result<Query, Exception> {
+        return Result.of {
+            val bquery = ModelProtoQuery(uquery)
+                .signAndAddSignature(keys)
+                .finish()
+                .blob()
+                .toByteArray()
+            Query.parseFrom(bquery)
         }
-        return protoQuery
     }
 
     /**

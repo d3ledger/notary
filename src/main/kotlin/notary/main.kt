@@ -7,6 +7,7 @@ import com.github.kittinunf.result.flatMap
 import config.loadConfigs
 import mu.KLogging
 import sidechain.iroha.IrohaInitialization
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
 /**
@@ -16,6 +17,7 @@ fun main(args: Array<String>) {
     val logger = KLogging()
 
     val notaryConfig = loadConfigs("notary", NotaryConfig::class.java)
+    val irohaNetwork = IrohaNetworkImpl(notaryConfig.iroha.hostname, notaryConfig.iroha.port)
 
     IrohaInitialization.loadIrohaLibrary()
         .flatMap { ModelUtil.loadKeypair(notaryConfig.iroha.pubkeyPath, notaryConfig.iroha.privkeyPath) }
@@ -23,6 +25,7 @@ fun main(args: Array<String>) {
             val ethWalletsProvider = EthWalletsProviderIrohaImpl(
                 notaryConfig.iroha,
                 keypair,
+                irohaNetwork,
                 notaryConfig.registrationServiceIrohaAccount,
                 notaryConfig.iroha.creator
             )

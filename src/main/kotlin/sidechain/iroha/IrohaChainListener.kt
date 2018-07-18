@@ -7,6 +7,7 @@ import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelBlocksQueryBuilder
 import mu.KLogging
+import org.bouncycastle.math.raw.Mod
 import sidechain.ChainListener
 import sidechain.iroha.util.ModelUtil
 import java.math.BigInteger
@@ -28,7 +29,7 @@ class IrohaChainListener(
         .build()
 
     val query = ModelUtil.prepareBlocksQuery(uquery, keypair)
-    val stub = ModelUtil.getQueryStub(irohaHost, irohaPort)
+    val stub = ModelUtil.getQueryStub(ModelUtil.getChannel(irohaHost, irohaPort))
 
     /**
      * Returns an observable that emits a new block every time it gets it from Iroha

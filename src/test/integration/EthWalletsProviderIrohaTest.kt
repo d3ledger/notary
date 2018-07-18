@@ -1,8 +1,7 @@
-package registration
+package integration
 
 import com.github.kittinunf.result.failure
 import config.loadConfigs
-import integration.TestConfig
 import notary.EthWalletsProviderIrohaImpl
 import notary.IrohaCommand
 import notary.IrohaTransaction
@@ -45,6 +44,9 @@ class EthWalletsProviderIrohaTest {
 
     /** Iroha account that holds details */
     val detailHolder = testConfig.notaryIrohaAccount
+
+    /** Iroha network */
+    val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
 
     /**
      * @given [detailHolder] has ethereum wallets in details
@@ -90,7 +92,13 @@ class EthWalletsProviderIrohaTest {
             testConfig.iroha.port
         ).sendAndCheck(tx, hash)
 
-        val lst = EthWalletsProviderIrohaImpl(testConfig.iroha, keypair, detailSetter, detailHolder).getWallets()
+        val lst = EthWalletsProviderIrohaImpl(
+            testConfig.iroha,
+            keypair,
+            irohaNetwork,
+            detailSetter,
+            detailHolder
+        ).getWallets()
         assertEquals(valid, lst.component1())
     }
 
@@ -102,13 +110,14 @@ class EthWalletsProviderIrohaTest {
     @Disabled
     @Test
     fun testEmptyStorage() {
-        EthWalletsProviderIrohaImpl(testConfig.iroha, keypair, detailSetter, detailHolder).getWallets().fold(
-            {
-                assert(it.isEmpty())
-            },
-            {
-                fail { "result has exception ${it.toString()}" }
-            }
-        )
+        EthWalletsProviderIrohaImpl(testConfig.iroha, keypair, irohaNetwork, detailSetter, detailHolder).getWallets()
+            .fold(
+                {
+                    assert(it.isEmpty())
+                },
+                {
+                    fail { "result has exception ${it.toString()}" }
+                }
+            )
     }
 }

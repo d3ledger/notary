@@ -1,12 +1,11 @@
 package notary
 
-import com.beust.klaxon.JsonObject
-import com.beust.klaxon.Parser
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.map
 import config.IrohaConfig
 import jp.co.soramitsu.iroha.Keypair
-import sidechain.iroha.util.ModelUtil
-import java.math.BigInteger
+import sidechain.iroha.consumer.IrohaNetwork
+import sidechain.iroha.util.getRelays
 
 /**
  * Implementation of [EthWalletsProvider] with Iroha storage.
@@ -19,6 +18,7 @@ import java.math.BigInteger
 class EthWalletsProviderIrohaImpl(
     val irohaConfig: IrohaConfig,
     val keypair: Keypair,
+    val irohaNetwork: IrohaNetwork,
     val relayRegistrationAccount: String,
     val registrationServiceNotaryIrohaAccount: String
 ) : EthWalletsProvider {
@@ -29,31 +29,12 @@ class EthWalletsProviderIrohaImpl(
      * @return map<eth_wallet -> iroha_account> in success case or exception otherwise
      */
     override fun getWallets(): Result<Map<String, String>, Exception> {
-        return Result.of {
-            val query = ModelUtil.getModelQueryBuilder()
-                .creatorAccountId(irohaConfig.creator)
-                .createdTime(ModelUtil.getCurrentTime())
-                .queryCounter(BigInteger.ONE)
-                .getAccount(registrationServiceNotaryIrohaAccount)
-                .build()
-
-            val proto_query = ModelUtil.prepareQuery(query, keypair)
-
-            val response = ModelUtil.getQueryStub(
-                irohaConfig.hostname,
-                irohaConfig.port
-            ).find(proto_query)
-
-            val account = response.accountResponse.account
-            val stringBuilder = StringBuilder(account.jsonData)
-            val json: JsonObject = Parser().parse(stringBuilder) as JsonObject
-
-            if (json.map[relayRegistrationAccount] == null)
-                mapOf<String, String>()
-            else {
-                val wallets = json.map[relayRegistrationAccount] as Map<String, String>
-                wallets.filterValues { it != "free" }
-            }
-        }
+        return getRelays(
+            irohaConfig,
+            keypair,
+            irohaNetwork,
+            relayRegistrationAccount,
+            registrationServiceNotaryIrohaAccount
+        ).map { it.filterValues { it != "free" } }
     }
 }
