@@ -79,7 +79,7 @@ class EthNotaryResponseMoshiAdapter {
             ethRefund = response.ethRefund
         )
         is EthNotaryResponse.Error -> EthNotaryResponseLayer(
-            type = EthNotaryResponseType.Successful,
+            type = EthNotaryResponseType.Error,
             reason = response.reason
         )
     }

@@ -10,7 +10,6 @@ import iroha.protocol.Responses
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelQueryBuilder
 import notary.endpoint.eth.NotaryException
-import registration.EthFreeWalletsProvider
 import sidechain.iroha.consumer.IrohaNetwork
 import java.math.BigInteger
 
@@ -46,7 +45,7 @@ fun getRelays(
             val json: JsonObject = Parser().parse(stringBuilder) as JsonObject
 
             if (json.map[detailSetterAccount] == null)
-                throw Exception("No free relay wallets found. There is no attributes set by $detailSetterAccount")
+                throw Exception("No relay wallets found. There is no attributes set by $detailSetterAccount")
             json.map[detailSetterAccount] as Map<String, String>
         }
 }

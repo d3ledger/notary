@@ -129,6 +129,7 @@ class WithdrawalServiceImpl(
         when (irohaEvent) {
             is SideChainEvent.IrohaEvent.SideChainTransfer -> {
                 if (irohaEvent.dstAccount == withdrawalServiceConfig.notaryIrohaAccount) {
+                    logger.info { "Withdrawal event" }
                     return requestNotary(irohaEvent)
                         .map { WithdrawalServiceOutputEvent.EthRefund(it) }
                 }

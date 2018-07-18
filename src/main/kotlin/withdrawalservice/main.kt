@@ -6,7 +6,6 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import config.loadConfigs
 import mu.KLogging
-import registration.RegistrationConfig
 import sidechain.iroha.IrohaInitialization
 
 

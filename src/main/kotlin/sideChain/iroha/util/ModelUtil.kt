@@ -11,6 +11,8 @@ import iroha.protocol.QueryServiceGrpc
 import iroha.protocol.Responses.QueryResponse
 import jp.co.soramitsu.iroha.*
 import mu.KLogging
+import sidechain.iroha.consumer.IrohaConsumer
+import sidechain.iroha.consumer.IrohaNetwork
 import java.io.IOException
 import java.math.BigInteger
 import java.nio.file.Files
@@ -158,18 +160,20 @@ object ModelUtil {
      * @param keys used to sign transaction
      * @return proto transaction, if succeeded
      */
-    fun prepareTransaction(utx: UnsignedTx, keys: Keypair): Transaction {
-        // sign transaction and get its binary representation (Blob)
-        val txblob = ModelProtoTransaction(utx)
-            .signAndAddSignature(keys)
-            .finish()
-            .blob()
+    fun prepareTransaction(utx: UnsignedTx, keys: Keypair): Result<Transaction, Exception> {
+        return Result.of {
+            // sign transaction and get its binary representation (Blob)
+            val txblob = ModelProtoTransaction(utx)
+                .signAndAddSignature(keys)
+                .finish()
+                .blob()
 
-        // Convert ByteVector to byte array
-        val bs = txblob.toByteArray()
+            // Convert ByteVector to byte array
+            val bs = txblob.toByteArray()
 
-        // create proto object
-        return Transaction.parseFrom(bs)
+            // create proto object
+            Transaction.parseFrom(bs)
+        }
     }
 
     /**
@@ -181,4 +185,28 @@ object ModelUtil {
     fun isStatelessValid(resp: QueryResponse) =
         !(resp.hasErrorResponse() &&
                 resp.errorResponse.reason.toString() == "STATELESS_INVALID")
+
+    /**
+     * Send SetAccountDetail to Iroha
+     * @param irohaConsumer - iroha network layer
+     * @param creator - transaction creator
+     * @param accountId - account to set details
+     * @param key - key of detail
+     * @param value - value of detail
+     * @return hex representation of transaction hash
+     */
+    fun setAccountDetail(
+        irohaConsumer: IrohaConsumer,
+        creator: String,
+        accountId: String,
+        key: String,
+        value: String
+    ): Result<String, Exception> {
+        val tx = ModelTransactionBuilder()
+            .creatorAccountId(creator)
+            .createdTime(ModelUtil.getCurrentTime())
+            .setAccountDetail(accountId, key, value)
+            .build()
+        return irohaConsumer.sendAndCheck(tx)
+    }
 }

@@ -62,8 +62,7 @@ class RegistrationStrategyImpl(
             )
         }.flatMap {
             val utx = IrohaConverterImpl().convert(it)
-            val tx = irohaConsumer.convertToProto(utx)
-            IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port).sendAndCheck(tx, utx.hash())
+            irohaConsumer.sendAndCheck(utx)
         }.map {
             ethWallet
         }

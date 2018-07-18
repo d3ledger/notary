@@ -5,10 +5,8 @@ import config.loadConfigs
 import notary.EthWalletsProviderIrohaImpl
 import notary.IrohaCommand
 import notary.IrohaTransaction
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Disabled
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.fail
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
@@ -18,6 +16,7 @@ import sidechain.iroha.util.ModelUtil
 /**
  * Requires Iroha is running
  */
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class EthWalletsProviderIrohaTest {
 
     init {
@@ -47,6 +46,11 @@ class EthWalletsProviderIrohaTest {
 
     /** Iroha network */
     val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
+
+    @AfterAll
+    fun finit() {
+        irohaNetwork.shutdown()
+    }
 
     /**
      * @given [detailHolder] has ethereum wallets in details
@@ -83,23 +87,22 @@ class EthWalletsProviderIrohaTest {
             }
         )
 
-        val it = IrohaConverterImpl().convert(irohaOutput)
-        val hash = it.hash()
-        val tx = IrohaConsumerImpl(keypair).convertToProto(it)
+        val tx = IrohaConverterImpl().convert(irohaOutput)
 
-        IrohaNetworkImpl(
-            testConfig.iroha.hostname,
-            testConfig.iroha.port
-        ).sendAndCheck(tx, hash)
+        IrohaConsumerImpl(testConfig.iroha).sendAndCheck(tx)
+            .failure { fail(it) }
 
-        val lst = EthWalletsProviderIrohaImpl(
+        EthWalletsProviderIrohaImpl(
             testConfig.iroha,
             keypair,
             irohaNetwork,
-            detailSetter,
-            detailHolder
+            masterAccount,
+            creator
         ).getWallets()
-        assertEquals(valid, lst.component1())
+            .fold(
+                { assertEquals(valid, it) },
+                { fail(it.toString()) }
+            )
     }
 
     /**

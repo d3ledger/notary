@@ -26,8 +26,8 @@ fun main(args: Array<String>) {
                 notaryConfig.iroha,
                 keypair,
                 irohaNetwork,
-                notaryConfig.registrationServiceIrohaAccount,
-                notaryConfig.iroha.creator
+                notaryConfig.iroha.creator,
+                notaryConfig.registrationServiceIrohaAccount
             )
             NotaryInitialization(notaryConfig, ethWalletsProvider).init()
         }

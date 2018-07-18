@@ -12,15 +12,15 @@ import sidechain.iroha.util.getRelays
  *
  * @param irohaConfig - Iroha configuration
  * @param keypair - Iroha keypair to query
- * @param relayRegistrationAccount - account of a registration service that has set details
- * @param registrationServiceNotaryIrohaAccount - notary account that contains details
+ * @param account - account that contains details
+ * @param setter - account that has set details
  */
 class EthWalletsProviderIrohaImpl(
     val irohaConfig: IrohaConfig,
     val keypair: Keypair,
     val irohaNetwork: IrohaNetwork,
-    val relayRegistrationAccount: String,
-    val registrationServiceNotaryIrohaAccount: String
+    val account: String,
+    val setter: String
 ) : EthWalletsProvider {
 
     /**
@@ -33,8 +33,8 @@ class EthWalletsProviderIrohaImpl(
             irohaConfig,
             keypair,
             irohaNetwork,
-            relayRegistrationAccount,
-            registrationServiceNotaryIrohaAccount
+            account,
+            setter
         ).map { it.filterValues { it != "free" } }
     }
 }

@@ -30,10 +30,10 @@ class DeployHelper(ethereumConfig: EthereumConfig) {
     }
 
     /** Gas price */
-    val gasPrice = BigInteger.ONE
+    val gasPrice = BigInteger.valueOf(ethereumConfig.gasPrice)
 
     /** Max gas limit */
-    val gasLimit = BigInteger.valueOf(999999)
+    val gasLimit = BigInteger.valueOf(ethereumConfig.gasLimit)
 
     /**
      * Sends given amount of ether from some predefined account to given account

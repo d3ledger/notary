@@ -1,13 +1,16 @@
 package sidechain.iroha.consumer
 
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.map
 import com.google.protobuf.ByteString
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Endpoint
 import iroha.protocol.Responses
 import jp.co.soramitsu.iroha.Hash
+import jp.co.soramitsu.iroha.Keypair
+import jp.co.soramitsu.iroha.Transaction
+import jp.co.soramitsu.iroha.UnsignedTx
 import mu.KLogging
-import notary.endpoint.eth.NotaryException
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.toByteArray
 
@@ -31,7 +34,7 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
      * Send transaction to iroha
      * @param protoTx protobuf representation of transaction
      */
-    override fun send(protoTx: BlockOuterClass.Transaction) {
+    fun send(protoTx: BlockOuterClass.Transaction) {
         logger.info { "send TX to IROHA" }
 
         // Send transaction to iroha
@@ -40,8 +43,10 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
 
     /**
      * Check if transaction is committed to Iroha
+     * @param hash - hash of transaction to check
+     * @return string representation of hash or failure
      */
-    fun checkTransactionStatus(hash: Hash): Result<Unit, Exception> {
+    fun checkTransactionStatus(hash: Hash): Result<String, Exception> {
         return Result.of {
             val bhash = hash.blob().toByteArray()
 
@@ -55,20 +60,30 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
                     throw Exception("Iroha transacion ${hash.hex()} received STATEFUL_VALIDATION_FAILED")
                 }
             }
+
+            hash.hex()
         }
     }
 
     /**
-     * Send and check transaction to Iroha
+     * Send transaction to Iroha and check it's status
+     *
+     * @param tx - transaction
+     * @param hash - transaction hash
+     * @return string representation of transaction hash or Exception has raised
      */
-    override fun sendAndCheck(protoTx: BlockOuterClass.Transaction, hash: Hash): Result<Unit, Exception> {
-        send(protoTx)
+    override fun sendAndCheck(tx: BlockOuterClass.Transaction, hash: Hash): Result<String, Exception> {
+        send(tx)
         return checkTransactionStatus(hash)
     }
 
     /** Send query and check result */
     override fun sendQuery(protoQuery: iroha.protocol.Queries.Query): Result<Responses.QueryResponse, Exception> {
         return Result.of { queryStub.find(protoQuery) }
+    }
+
+    fun shutdown() {
+        channel.shutdown()
     }
 
     /**

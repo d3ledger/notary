@@ -9,19 +9,14 @@ import jp.co.soramitsu.iroha.Hash
  * Interface for network layer of Iroha chain
  */
 interface IrohaNetwork {
-    /**
-     * Send transaction to Iroha
-     * @param protoTx protobuf representation of transaction
-     */
-    fun send(protoTx: BlockOuterClass.Transaction)
 
     /**
      * Send transaction to Iroha and check if it is committed with status stream
-     * @param protoTx - transaction to send
+     * @param tx - transaction to send
      * @param hash - hash of transaction
-     * @return Result with possible failure
+     * @return Result with string representation of hash or possible failure
      */
-    fun sendAndCheck(protoTx: BlockOuterClass.Transaction, hash: Hash): Result<Unit, Exception>
+    fun sendAndCheck(tx: BlockOuterClass.Transaction, hash: Hash): Result<String, Exception>
 
     /**
      * Send query to Iroha

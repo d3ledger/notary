@@ -1,6 +1,8 @@
 package integration
 
+import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
+import com.github.kittinunf.result.flatMap
 import com.google.protobuf.InvalidProtocolBufferException
 import com.squareup.moshi.Moshi
 import config.loadConfigs
@@ -24,6 +26,7 @@ import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
 import sidechain.iroha.IrohaInitialization
+import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.toBigInteger
@@ -55,6 +58,8 @@ class IntegrationTest {
     /** Iroha port */
     val irohaPort = testConfig.iroha.port
 
+    val irohaConsumer = IrohaConsumerImpl(testConfig.iroha)
+
     /** Iroha transaction creator */
     val creator = testConfig.iroha.creator
 
@@ -78,46 +83,35 @@ class IntegrationTest {
     }
 
     /**
-     * Sends transaction to Iroha.
-     * @return hex representation of transaction
-     */
-    fun sendTxToIroha(txBuilder: ModelTransactionBuilder, kp: Keypair = keypair): String {
-        val utx = txBuilder.build()
-        val hash = utx.hash()
-
-        val tx = ModelUtil.prepareTransaction(utx, kp)
-        irohaNetwork.sendAndCheck(tx, hash)
-
-        return hash.hex()
-    }
-
-    /**
      * Add asset in iroha
      * @return hex representation of transaction hash
      */
-    fun addAssetIroha(assetId: String, amount: String): String {
-        val currentTime = System.currentTimeMillis()
-
-        // build transaction (still unsigned)
-        val txBuilder = ModelTransactionBuilder().creatorAccountId(creator)
-            .createdTime(BigInteger.valueOf(currentTime))
+    fun addAssetIroha(assetId: String, amount: String): Result<String, Exception> {
+        val tx = ModelTransactionBuilder()
+            .creatorAccountId(creator)
+            .createdTime(ModelUtil.getCurrentTime())
             .addAssetQuantity(assetId, amount)
-        return sendTxToIroha(txBuilder)
+            .build()
+        return irohaConsumer.sendAndCheck(tx)
     }
 
     /**
      * Set account detail in Iroha
      * @return hex representation of transaction hash
      */
-    fun setAccountDetail(accountId: String, key: String, value: String): String {
-        val creator = testConfig.iroha.creator
-        val currentTime = System.currentTimeMillis()
-
-        // build transaction (still unsigned)
-        val txBuilder = ModelTransactionBuilder().creatorAccountId(creator)
-            .createdTime(BigInteger.valueOf(currentTime))
+    fun setAccountDetail(
+        accountId: String, key: String, value: String,
+        creatorAccountId: String = creator,
+        kp: Keypair = keypair
+    ): Result<String, Exception> {
+        val utx = ModelTransactionBuilder()
+            .creatorAccountId(creatorAccountId)
+            .createdTime(ModelUtil.getCurrentTime())
             .setAccountDetail(accountId, key, value)
-        return sendTxToIroha(txBuilder)
+            .build()
+        val hash = utx.hash()
+        return ModelUtil.prepareTransaction(utx, kp)
+            .flatMap { IrohaNetworkImpl(irohaHost, irohaPort).sendAndCheck(it, hash) }
     }
 
     /**
@@ -132,14 +126,16 @@ class IntegrationTest {
         description: String,
         creatorAccountId: String = creator,
         kp: Keypair = keypair
-    ): String {
-        val currentTime = System.currentTimeMillis()
+    ): Result<String, Exception> {
 
-        // build transaction (still unsigned)
-        val txBuilder = ModelTransactionBuilder().creatorAccountId(creatorAccountId)
-            .createdTime(BigInteger.valueOf(currentTime))
+        val utx = ModelTransactionBuilder()
+            .creatorAccountId(creatorAccountId)
+            .createdTime(ModelUtil.getCurrentTime())
             .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
-        return sendTxToIroha(txBuilder, kp)
+            .build()
+        val hash = utx.hash()
+        return ModelUtil.prepareTransaction(utx, kp)
+            .flatMap { IrohaNetworkImpl(irohaHost, irohaPort).sendAndCheck(it, hash) }
     }
 
     /**
@@ -148,7 +144,8 @@ class IntegrationTest {
     fun queryIroha(assetId: String, accountId: String = "user1@notary"): BigInteger {
         val queryCounter: Long = 1
 
-        val uquery = ModelQueryBuilder().creatorAccountId(creator)
+        val uquery = ModelQueryBuilder()
+            .creatorAccountId(creator)
             .queryCounter(BigInteger.valueOf(queryCounter))
             .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
             .getAccountAssets(accountId)
@@ -209,7 +206,6 @@ class IntegrationTest {
      * @when "fromAddress" transfers 1234000000000000 Wei to "toAddress"
      * @then Associated Iroha account balance is increased on 1234000000000000 Wei
      */
-    // TODO: I'm broken, fix me please
     @Disabled
     @Test
     fun depositOfETH() {
@@ -219,7 +215,7 @@ class IntegrationTest {
         // ensure that initial wallet value is 0
         assertEquals(BigInteger.ZERO, queryIroha(assetId))
 
-        setAccountDetail("notary_red@notary", toAddress, "user1@notary")
+        setAccountDetail("notary_red@notary", toAddress, "user1@notary", testConfig.registrationIrohaAccount)
 
         // run notary
         async {
@@ -304,7 +300,7 @@ class IntegrationTest {
         addAssetIroha(assetId, amount)
 
         // transfer assets from user to notary master account
-        val hash = transferAssetIroha(creator, masterAccount, assetId, amount, ethWallet)
+        val hash = transferAssetIroha(creator, masterAccount, assetId, amount, ethWallet).get()
 
         // query
         Thread.sleep(4_000)
@@ -354,9 +350,13 @@ class IntegrationTest {
         val kp = ModelCrypto().generateKeypair()
 
         async {
+            registration.main(emptyArray())
+        }
+
+        async {
             withdrawalservice.main(emptyArray())
         }
-        Thread.sleep(5000)
+        Thread.sleep(10_000)
 
         val res = khttp.post(
             "http://127.0.0.1:$registerServicePort/users",
@@ -373,14 +373,13 @@ class IntegrationTest {
 
         // add assets to user
         addAssetIroha(assetId, amount)
-        Thread.sleep(5000)
+        Thread.sleep(5_000)
         transferAssetIroha(creator, fullName, assetId, amount, "")
-        Thread.sleep(5000)
+        Thread.sleep(5_000)
 
         // transfer assets from user to notary master account
         transferAssetIroha(fullName, masterAccount, assetId, amount, ethWallet, fullName, kp)
-        Thread.sleep(15000)
-
+        Thread.sleep(15_000)
 
         assertEquals(
             initialBalance + BigInteger.valueOf(amount.toLong()),

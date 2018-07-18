@@ -61,9 +61,17 @@
                   },
                   {
                     "createRole":{
+                        "roleName":"withdrawal",
+                        "permissions":[
+                            "can_get_domain_accounts",
+                            "can_get_blocks"
+                        ]
+                    }
+                  },
+                  {
+                    "createRole":{
                         "roleName":"none",
                         "permissions":[
-                            "can_receive"
                         ]
                     }
                   },
@@ -134,6 +142,19 @@
                      "appendRole":{
                         "accountId":"registration_service_red@notary",
                         "roleName":"relayDeployer"
+                     }
+                  },
+                  {
+                     "createAccount":{
+                        "accountName":"withdrawal_red",
+                        "domainId":"notary",
+                        "mainPubkey":"iJ9riB4zG+IUh9t33PMsX409XoBm540v6sQjn+kdQW8="
+                     }
+                  },
+                  {
+                     "appendRole":{
+                        "accountId":"withdrawal_red@notary",
+                        "roleName":"withdrawal"
                      }
                   },
                   {
