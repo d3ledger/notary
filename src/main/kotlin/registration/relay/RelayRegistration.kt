@@ -2,7 +2,6 @@ package registration.relay
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import config.ConfigKeys
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import mu.KLogging
@@ -20,41 +19,42 @@ import java.math.BigInteger
  * Deploys relay smart contracts in Ethereum network and records it in Iroha.
  */
 class RelayRegistration(
-    val ethTokensProvider: EthTokensProvider = EthTokensProviderImpl()
+    val relayRegistrationConfig: RelayRegistrationConfig,
+    val ethTokensProvider: EthTokensProvider = EthTokensProviderImpl(relayRegistrationConfig.db)
 ) {
 
     /** web3 service instance to communicate with Ethereum network */
-    private val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.relayRegistartionEthConnectionUrl]))
+    private val web3 = Web3j.build(HttpService(relayRegistrationConfig.ethereum.url))
 
     /** credentials of ethereum user */
     private val credentials = WalletUtils.loadCredentials(
-        CONFIG[ConfigKeys.relayRegistartionEthCredentialPassword],
-        CONFIG[ConfigKeys.relayRegistartionEthCredentialPath]
+        relayRegistrationConfig.ethereum.credentialsPassword,
+        relayRegistrationConfig.ethereum.credentialsPath
     )
 
     /** Gas price */
-    private val gasPrice = BigInteger.valueOf(CONFIG[ConfigKeys.relayRegistartionEthGasPrice])
+    private val gasPrice = BigInteger.valueOf(relayRegistrationConfig.ethereum.gasPrice)
 
     /** Max gas limit */
-    private val gasLimit = BigInteger.valueOf(CONFIG[ConfigKeys.relayRegistartionEthGasLimit])
+    private val gasLimit = BigInteger.valueOf(relayRegistrationConfig.ethereum.gasLimit)
 
     /** Iroha keypair */
     val keypair: Keypair = ModelUtil.loadKeypair(
-        CONFIG[ConfigKeys.relayRegistrationPubkeyPath],
-        CONFIG[ConfigKeys.relayRegistrationPrivkeyPath]
+        relayRegistrationConfig.iroha.pubkeyPath,
+        relayRegistrationConfig.iroha.privkeyPath
     ).get()
 
     /** Iroha host */
-    val irohaHost = CONFIG[ConfigKeys.relayRegistrationIrohaHostname]
+    val irohaHost = relayRegistrationConfig.iroha.hostname
 
     /** Iroha port */
-    val irohaPort = CONFIG[ConfigKeys.relayRegistrationIrohaPort]
+    val irohaPort = relayRegistrationConfig.iroha.port
 
     /** Iroha transaction creator */
-    val creator = CONFIG[ConfigKeys.relayRegistrationIrohaAccount]
+    val creator = relayRegistrationConfig.iroha.creator
 
     /** Notary master account */
-    val notaryIrohaAccount = CONFIG[ConfigKeys.relayRegistrationNotaryIrohaAccount]
+    val notaryIrohaAccount = relayRegistrationConfig.notaryIrohaAccount
 
     /**
      * Deploy user smart contract
@@ -98,15 +98,15 @@ class RelayRegistration(
     }
 
     /**
-     * Deploy [num] relay wallets
-     * @param num - number of wallets to deploy
+     * Deploy relay wallets
      */
-    fun deploy(num: Int, master: String): Result<Unit, Exception> {
+    fun deploy(): Result<Unit, Exception> {
         return ethTokensProvider
             .getTokens()
             .map { token ->
-                (1..num).forEach {
-                    val relayWallet = deployRelaySmartContract(master, token.keys.toList())
+                (1..relayRegistrationConfig.number).forEach {
+                    val relayWallet =
+                        deployRelaySmartContract(relayRegistrationConfig.ethMasterWallet, token.keys.toList())
                     sendRelayToIroha(relayWallet)
                 }
             }

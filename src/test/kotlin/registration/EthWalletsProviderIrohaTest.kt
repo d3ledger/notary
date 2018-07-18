@@ -1,8 +1,8 @@
 package registration
 
 import com.github.kittinunf.result.failure
-import config.ConfigKeys
-import notary.CONFIG
+import config.loadConfigs
+import integration.TestConfig
 import notary.EthWalletsProviderIrohaImpl
 import notary.IrohaCommand
 import notary.IrohaTransaction
@@ -29,20 +29,22 @@ class EthWalletsProviderIrohaTest {
             }
     }
 
+    val testConfig = loadConfigs("test", TestConfig::class.java)
+
     /** Creator of txs in Iroha */
-    val creator: String = CONFIG[ConfigKeys.testIrohaAccount]
+    val creator: String = testConfig.iroha.creator
 
     /** Iroha keypair */
     val keypair = ModelUtil.loadKeypair(
-        CONFIG[ConfigKeys.testPubkeyPath],
-        CONFIG[ConfigKeys.testPrivkeyPath]
+        testConfig.iroha.pubkeyPath,
+        testConfig.iroha.privkeyPath
     ).get()
 
     /** Iroha account that has set details */
-    val detailSetter = CONFIG[ConfigKeys.registrationServiceIrohaAccount]
+    val detailSetter = testConfig.registrationIrohaAccount
 
     /** Iroha account that holds details */
-    val detailHolder = CONFIG[ConfigKeys.registrationServiceNotaryIrohaAccount]
+    val detailHolder = testConfig.notaryIrohaAccount
 
     /**
      * @given [detailHolder] has ethereum wallets in details
@@ -65,7 +67,7 @@ class EthWalletsProviderIrohaTest {
 
         val valid = entries.filter { it.value != "free" }
 
-        val masterAccount = CONFIG[ConfigKeys.registrationServiceNotaryIrohaAccount]
+        val masterAccount = testConfig.registrationIrohaAccount
 
         val irohaOutput = IrohaTransaction(
             creator,
@@ -84,11 +86,11 @@ class EthWalletsProviderIrohaTest {
         val tx = IrohaConsumerImpl(keypair).convertToProto(it)
 
         IrohaNetworkImpl(
-            "localhost",
-            CONFIG[ConfigKeys.registrationServiceIrohaPort]
+            testConfig.iroha.hostname,
+            testConfig.iroha.port
         ).sendAndCheck(tx, hash)
 
-        val lst = EthWalletsProviderIrohaImpl(creator, keypair, detailSetter, detailHolder).getWallets()
+        val lst = EthWalletsProviderIrohaImpl(testConfig.iroha, keypair, detailSetter, detailHolder).getWallets()
         assertEquals(valid, lst.component1())
     }
 
@@ -100,7 +102,7 @@ class EthWalletsProviderIrohaTest {
     @Disabled
     @Test
     fun testEmptyStorage() {
-        EthWalletsProviderIrohaImpl(creator, keypair, detailSetter, detailHolder).getWallets().fold(
+        EthWalletsProviderIrohaImpl(testConfig.iroha, keypair, detailSetter, detailHolder).getWallets().fold(
             {
                 assert(it.isEmpty())
             },

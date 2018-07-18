@@ -3,30 +3,27 @@ package sidechain.iroha.util
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser
 import com.google.protobuf.InvalidProtocolBufferException
-import config.ConfigKeys
+import config.IrohaConfig
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.Queries
 import iroha.protocol.QueryServiceGrpc
 import jp.co.soramitsu.iroha.ModelProtoQuery
 import jp.co.soramitsu.iroha.ModelQueryBuilder
-import notary.CONFIG
 import registration.EthFreeWalletsProvider
-import sidechain.iroha.util.ModelUtil
-import sidechain.iroha.util.toByteArray
 import java.math.BigInteger
 
 /**
  * Retrieves relays from Iroha
  * @param acc account to retrieve relays from
+ * @param detailSetterAccount - account that has set the details
  * @return Map with relay addresses as keys and iroha accounts (or "free") as values
  */
-fun getRelays(acc: String): Map<String, String> {
-    val creator = CONFIG[ConfigKeys.registrationServiceIrohaAccount]
-    val relayRegistrationAccount = CONFIG[ConfigKeys.registrationServiceRelayRegistrationIrohaAccount]
+fun getRelays(irohaConfig: IrohaConfig, acc: String, detailSetterAccount: String): Map<String, String> {
+    val creator = irohaConfig.creator
 
     val keypair = ModelUtil.loadKeypair(
-        CONFIG[ConfigKeys.registrationServicePubkeyPath],
-        CONFIG[ConfigKeys.registrationServicePrivkeyPath]
+        irohaConfig.pubkeyPath,
+        irohaConfig.privkeyPath
     ).get()
 
     val currentTime = System.currentTimeMillis()
@@ -47,8 +44,8 @@ fun getRelays(acc: String): Map<String, String> {
     }
 
     val channel = ManagedChannelBuilder.forAddress(
-        CONFIG[ConfigKeys.registrationServiceIrohaHostname],
-        CONFIG[ConfigKeys.registrationServiceIrohaPort]
+        irohaConfig.hostname,
+        irohaConfig.port
     )
         .usePlaintext(true).build()
     val queryStub = QueryServiceGrpc.newBlockingStub(channel)
@@ -65,7 +62,7 @@ fun getRelays(acc: String): Map<String, String> {
     val stringBuilder = StringBuilder(account.jsonData)
     val json: JsonObject = Parser().parse(stringBuilder) as JsonObject
 
-    if (json.map[relayRegistrationAccount] == null)
-        throw Exception("No free relay wallets found. There is no attributes set by $relayRegistrationAccount")
-    return json.map[relayRegistrationAccount] as Map<String, String>
+    if (json.map[detailSetterAccount] == null)
+        throw Exception("No free relay wallets found. There is no attributes set by $detailSetterAccount")
+    return json.map[detailSetterAccount] as Map<String, String>
 }

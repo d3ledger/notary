@@ -2,14 +2,13 @@ package integration
 
 import com.github.kittinunf.result.failure
 import com.google.protobuf.InvalidProtocolBufferException
+import config.loadConfigs
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.CommandServiceGrpc
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelProtoTransaction
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
-import config.ConfigKeys
-import notary.CONFIG
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -29,24 +28,27 @@ class EthFreeWalletsProviderTest {
             }
     }
 
+    /** Test configurations */
+    val testConfig = loadConfigs("test", TestConfig::class.java)
+
     /** Iroha keypair */
     val keypair: Keypair =
         ModelUtil.loadKeypair(
-            CONFIG[ConfigKeys.relayRegistrationPubkeyPath],
-            CONFIG[ConfigKeys.relayRegistrationPrivkeyPath]
+            testConfig.iroha.pubkeyPath,
+            testConfig.iroha.privkeyPath
         ).get()
 
     /** Iroha host */
-    val irohaHost = CONFIG[ConfigKeys.relayRegistrationIrohaHostname]
+    val irohaHost = testConfig.iroha.hostname
 
     /** Iroha port */
-    val irohaPort = CONFIG[ConfigKeys.relayRegistrationIrohaPort]
+    val irohaPort = testConfig.iroha.port
 
     /** Iroha transaction creator */
-    val creator = CONFIG[ConfigKeys.relayRegistrationIrohaAccount]
+    val creator = testConfig.iroha.creator
 
     /** Iroha master */
-    val master = CONFIG[ConfigKeys.relayRegistrationNotaryIrohaAccount]
+    val relayRegistrationIrohaAccount = testConfig.relayRegistrationIrohaAccount
 
     /**
      * Send SetAccountDetail to Iroha
@@ -99,10 +101,16 @@ class EthFreeWalletsProviderTest {
     fun getFreeWallet() {
         val ethFreeWallet = "eth_free_wallet_stub"
 
-        setAccountDetail(master, ethFreeWallet, "free")
+        setAccountDetail(testConfig.notaryIrohaAccount, ethFreeWallet, "free")
         Thread.sleep(4_000)
 
-        val freeWalletsProvider = EthFreeWalletsProvider(keypair)
+        val freeWalletsProvider =
+            EthFreeWalletsProvider(
+                testConfig.iroha,
+                keypair,
+                testConfig.notaryIrohaAccount,
+                relayRegistrationIrohaAccount
+            )
         val result = freeWalletsProvider.getWallet()
 
         assertEquals(ethFreeWallet, result)
@@ -118,10 +126,10 @@ class EthFreeWalletsProviderTest {
         val ethFreeWallet = "eth_free_wallet_stub"
         val wrongMasterAccount = "wrong@account"
 
-        setAccountDetail(master, ethFreeWallet, "free")
+        setAccountDetail(relayRegistrationIrohaAccount, ethFreeWallet, "free")
         Thread.sleep(4_000)
 
-        val freeWalletsProvider = EthFreeWalletsProvider(keypair, wrongMasterAccount)
+        val freeWalletsProvider = EthFreeWalletsProvider(testConfig.iroha, keypair, creator, wrongMasterAccount)
         assertThrows<Exception> { freeWalletsProvider.getWallet() }
     }
 }

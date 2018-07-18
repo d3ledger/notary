@@ -1,10 +1,10 @@
 package sidechain.eth.util
 
+import config.EthereumConfig
+import config.loadConfigs
 import contract.BasicCoin
 import contract.Master
 import contract.Relay
-import notary.CONFIG
-import config.ConfigKeys
 import org.web3j.crypto.RawTransaction
 import org.web3j.crypto.TransactionEncoder
 import org.web3j.crypto.WalletUtils
@@ -17,15 +17,16 @@ import java.math.BigInteger
 /**
  * Helper class for contracts deploying
  */
-class DeployHelper {
+class DeployHelper(ethereumConfig: EthereumConfig) {
+
     /** web3 service instance to communicate with Ethereum network */
-    val web3 = Web3j.build(HttpService(CONFIG[ConfigKeys.testEthConnectionUrl]))
+    val web3 = Web3j.build(HttpService(ethereumConfig.url))
 
     /** credentials of ethereum user */
     val credentials =
         WalletUtils.loadCredentials(
-            CONFIG[ConfigKeys.relayRegistartionEthCredentialPassword],
-            CONFIG[ConfigKeys.relayRegistartionEthCredentialPath]
+            ethereumConfig.credentialsPassword,
+            ethereumConfig.credentialsPath
         )
 
     /** Gas price */

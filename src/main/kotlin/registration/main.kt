@@ -4,12 +4,9 @@ package registration
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
-import com.natpryce.konfig.ConfigurationProperties
+import config.loadConfigs
 import mu.KLogging
 import sidechain.iroha.IrohaInitialization
-
-/** Configuration parameters for notary instance */
-val CONFIG = ConfigurationProperties.fromResource("defaults.properties")
 
 /**
  * Entry point for Registration Service
@@ -17,8 +14,10 @@ val CONFIG = ConfigurationProperties.fromResource("defaults.properties")
 fun main(args: Array<String>) {
     val logger = KLogging()
 
+    val registrationConfig = loadConfigs("registration", RegistrationConfig::class.java)
+
     IrohaInitialization.loadIrohaLibrary()
-        .flatMap { RegistrationServiceInitialization().init() }
+        .flatMap { RegistrationServiceInitialization(registrationConfig).init() }
         .failure {
             logger.logger.error { it }
             System.exit(1)

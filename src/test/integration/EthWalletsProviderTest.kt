@@ -1,17 +1,18 @@
 package integration
 
-import config.ConfigKeys
-import notary.CONFIG
+import config.loadConfigs
 import notary.db.tables.Wallets
 import org.jooq.impl.DSL
 import org.junit.jupiter.api.Disabled
-import java.sql.DriverManager
 import org.junit.jupiter.api.Test
+import java.sql.DriverManager
 
 /**
  * Test Postgres ethereum wallets provider
  */
 class EthWalletsProviderTest {
+
+    val dbConfig = loadConfigs("test", TestConfig::class.java).db
 
     /**
      * List all wallets in database
@@ -20,9 +21,9 @@ class EthWalletsProviderTest {
     @Test
     fun listWallets() {
         val connection = DriverManager.getConnection(
-            CONFIG[ConfigKeys.dbUrl],
-            CONFIG[ConfigKeys.dbUsername],
-            CONFIG[ConfigKeys.dbPassword]
+            dbConfig.url,
+            dbConfig.username,
+            dbConfig.password
         )
 
         DSL.using(connection).use { ctx ->

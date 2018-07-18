@@ -1,12 +1,13 @@
 package sidechain.eth.consumer
 
+import config.EthereumConfig
 import mu.KLogging
 import org.web3j.utils.Numeric
 import sidechain.eth.util.DeployHelper
 import withdrawalservice.WithdrawalServiceOutputEvent
 
-class EthConsumer {
-    private val deployHelper = DeployHelper()
+class EthConsumer(ethereumConfig: EthereumConfig) {
+    private val deployHelper = DeployHelper(ethereumConfig)
 
     fun consume(event: WithdrawalServiceOutputEvent) {
         logger.info { "consumed eth event" }

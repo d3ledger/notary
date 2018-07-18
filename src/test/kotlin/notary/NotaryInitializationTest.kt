@@ -4,14 +4,15 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
+import config.DatabaseConfig
+import config.EthereumConfig
+import config.IrohaConfig
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import sidechain.iroha.IrohaInitialization
 
 class NotaryInitializationTest {
-    /** Some exception message */
-    val throwMessage = "Hey, look at my exception!"
 
     init {
         IrohaInitialization.loadIrohaLibrary()
@@ -19,6 +20,31 @@ class NotaryInitializationTest {
                 println(it)
                 System.exit(1)
             }
+    }
+
+    /** Some exception message */
+    val throwMessage = "Hey, look at my exception!"
+
+    /** Mock iroha configs */
+    val irohaConfig = mock<IrohaConfig>() {
+        on { creator } doReturn "iroha_creator"
+        on { pubkeyPath } doReturn "deploy/iroha/keys/admin@notary.pub"
+        on { privkeyPath } doReturn "deploy/iroha/keys/admin@notary.priv"
+    }
+
+    /** Ethereum configs */
+    val ethereumConfig = mock<EthereumConfig>() {
+        on { url } doReturn "http://localhost:8545"
+    }
+
+    /** Mock database configs */
+    val dbConfig = mock<DatabaseConfig>()
+
+    /** Mock notary configs */
+    val notaryConfig = mock<NotaryConfig>() {
+        on { iroha } doReturn irohaConfig
+        on { ethereum } doReturn ethereumConfig
+        on { db } doReturn dbConfig
     }
 
     /**
@@ -36,7 +62,7 @@ class NotaryInitializationTest {
             } doReturn Result.of { throw Exception(throwMessage) }
         }
 
-        val notaryInit = NotaryInitialization(failEthWalletProvider)
+        val notaryInit = NotaryInitialization(notaryConfig, failEthWalletProvider)
 
         notaryInit.init().fold(
             { fail { "Exception should be thrown in wallets loader" } },
@@ -68,7 +94,7 @@ class NotaryInitializationTest {
             } doReturn Result.of { throw Exception(throwMessage) }
         }
 
-        val notaryInit = NotaryInitialization(ethWalletProvider, failEthTokenProvider)
+        val notaryInit = NotaryInitialization(notaryConfig, ethWalletProvider, failEthTokenProvider)
 
         notaryInit.init().fold(
             { fail { "Exception should be thrown in tokens loader" } },

@@ -1,11 +1,11 @@
 package sidechain.iroha
 
 import com.github.kittinunf.result.map
-import config.ConfigKeys
+import config.loadConfigs
+import integration.TestConfig
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
-import notary.CONFIG
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -21,6 +21,8 @@ import java.util.concurrent.TimeUnit
  */
 class IrohaBlockStreamingTest {
 
+    val testConfig = loadConfigs("test", TestConfig::class.java)
+
     /**
      * @given Iroha running
      * @when new tx is sent to Iroha
@@ -31,22 +33,22 @@ class IrohaBlockStreamingTest {
     fun irohaStreamingTest() {
         System.loadLibrary("irohajava")
 
-        val irohaHost = CONFIG[ConfigKeys.testIrohaHostname]
-        val irohaPort = CONFIG[ConfigKeys.testIrohaPort]
+        val irohaHost = testConfig.iroha.hostname
+        val irohaPort = testConfig.iroha.port
 
-        val admin = CONFIG[ConfigKeys.testIrohaAccount]
+        val creator = testConfig.iroha.creator
         val keypair = ModelUtil.loadKeypair(
-            CONFIG[ConfigKeys.testPubkeyPath],
-            CONFIG[ConfigKeys.testPrivkeyPath]
+            testConfig.iroha.pubkeyPath,
+            testConfig.iroha.privkeyPath
         ).get()
 
 
         var cmds = listOf<iroha.protocol.Commands.Command>()
 
         IrohaChainListener(
-            CONFIG[ConfigKeys.testIrohaHostname],
-            CONFIG[ConfigKeys.testIrohaPort],
-            admin, keypair
+            testConfig.iroha.hostname,
+            testConfig.iroha.port,
+            creator, keypair
         ).getBlockObservable()
             .map {
                 it.map { block ->
@@ -58,9 +60,9 @@ class IrohaBlockStreamingTest {
             }
 
         val utx = getModelTransactionBuilder()
-            .creatorAccountId(admin)
+            .creatorAccountId(creator)
             .createdTime(getCurrentTime())
-            .setAccountDetail(admin, "test", "test")
+            .setAccountDetail(creator, "test", "test")
             .build()
 
         val tx = prepareTransaction(utx, keypair)
@@ -70,7 +72,7 @@ class IrohaBlockStreamingTest {
         }
 
         assertEquals(1, cmds.size)
-        assertEquals(admin, cmds.first().setAccountDetail.accountId)
+        assertEquals(creator, cmds.first().setAccountDetail.accountId)
         assertEquals("test", cmds.first().setAccountDetail.key)
         assertEquals("test", cmds.first().setAccountDetail.value)
     }

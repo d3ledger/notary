@@ -1,5 +1,6 @@
 package integration
 
+import config.loadConfigs
 import contract.BasicCoin
 import contract.Master
 import contract.Relay
@@ -18,7 +19,9 @@ import java.math.BigInteger
  * Class for Ethereum sidechain infrastructure deployment and communication.
  */
 class ContractsTest {
-    val deployHelper = DeployHelper()
+    val testConfig = loadConfigs("test", TestConfig::class.java)
+
+    val deployHelper = DeployHelper(testConfig.ethereum)
 
     private lateinit var token: BasicCoin
     private lateinit var master: Master
@@ -57,7 +60,7 @@ class ContractsTest {
     ) {
         val finalHash = hashToWithdraw(tokenAddress, amount, to, irohaHash)
 
-        val signature = signUserData(finalHash)
+        val signature = signUserData(testConfig.ethereum, finalHash)
         val r = hexStringToByteArray(signature.substring(2, 66))
         val s = hexStringToByteArray(signature.substring(66, 130))
         val v = signature.substring(130, 132).toBigInteger(16)

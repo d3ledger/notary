@@ -1,9 +1,8 @@
 package registration
 
-import config.ConfigKeys
+import config.IrohaConfig
 import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
-import notary.CONFIG
 import sidechain.iroha.util.getRelays
 
 /**
@@ -14,11 +13,14 @@ import sidechain.iroha.util.getRelays
 // TODO Prevent double relay accounts usage (in perfect world it is on Iroha side with custom code). In real world
 // on provider side with some synchronization.
 class EthFreeWalletsProvider(
+    val irohaConfig: IrohaConfig,
     val keypair: Keypair,
-    val notaryIrohaAccount: String = CONFIG[ConfigKeys.registrationServiceNotaryIrohaAccount]
+    val notaryIrohaAccount: String,
+    val registrationIrohaAccount: String
 ) {
     fun getWallet(): String {
-        return getRelays(notaryIrohaAccount).filterValues { it == "free" }.keys.first()
+        return getRelays(irohaConfig, notaryIrohaAccount, registrationIrohaAccount).filterValues { it == "free" }
+            .keys.first()
     }
 
     /**

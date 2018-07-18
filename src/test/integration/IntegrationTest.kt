@@ -3,13 +3,12 @@ package integration
 import com.github.kittinunf.result.failure
 import com.google.protobuf.InvalidProtocolBufferException
 import com.squareup.moshi.Moshi
-import config.ConfigKeys
+import config.loadConfigs
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.Queries.Query
 import iroha.protocol.QueryServiceGrpc
 import jp.co.soramitsu.iroha.*
 import kotlinx.coroutines.experimental.async
-import notary.CONFIG
 import notary.db.tables.Tokens
 import notary.endpoint.eth.BigIntegerMoshiAdapter
 import notary.endpoint.eth.EthNotaryResponse
@@ -21,23 +20,23 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.web3j.protocol.core.DefaultBlockParameterName
+import sidechain.eth.util.DeployHelper
+import sidechain.eth.util.hashToWithdraw
+import sidechain.eth.util.signUserData
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.toBigInteger
 import sidechain.iroha.util.toByteArray
-import sidechain.eth.util.DeployHelper
-import sidechain.eth.util.hashToWithdraw
-import sidechain.eth.util.signUserData
 import java.math.BigInteger
 import java.sql.DriverManager
 import java.util.*
-
 
 /**
  * Class for Ethereum sidechain infrastructure deployment and communication.
  */
 class IntegrationTest {
+
     init {
         IrohaInitialization.loadIrohaLibrary()
             .failure {
@@ -46,24 +45,25 @@ class IntegrationTest {
             }
     }
 
-    private val deployHelper = DeployHelper()
+    val testConfig = loadConfigs("test", TestConfig::class.java)
+
+    private val deployHelper = DeployHelper(testConfig.ethereum)
 
     /** Iroha host */
-    val irohaHost = CONFIG[ConfigKeys.testIrohaHostname]
+    val irohaHost = testConfig.iroha.hostname
 
     /** Iroha port */
-    val irohaPort = CONFIG[ConfigKeys.testIrohaPort]
+    val irohaPort = testConfig.iroha.port
 
     /** Iroha transaction creator */
-    val creator = CONFIG[ConfigKeys.testIrohaAccount]
+    val creator = testConfig.iroha.creator
 
     /** Iroha keypair */
-    val keypair =
-        ModelUtil.loadKeypair(CONFIG[ConfigKeys.testPubkeyPath], CONFIG[ConfigKeys.testPrivkeyPath]).get()
+    val keypair = ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
 
     val irohaNetwork = IrohaNetworkImpl(irohaHost, irohaPort)
 
-    val masterAccount = CONFIG[ConfigKeys.notaryIrohaAccount]
+    val masterAccount = testConfig.notaryIrohaAccount
 
     /** Ethereum address to transfer to */
     private val toAddress = "0x00aa39d30f0d20ff03a22ccfc30b7efbfca597c2"
@@ -110,7 +110,7 @@ class IntegrationTest {
      * @return hex representation of transaction hash
      */
     fun setAccountDetail(accountId: String, key: String, value: String): String {
-        val creator = CONFIG[ConfigKeys.registrationServiceIrohaAccount]
+        val creator = testConfig.iroha.creator
         val currentTime = System.currentTimeMillis()
 
         // build transaction (still unsigned)
@@ -187,9 +187,9 @@ class IntegrationTest {
      */
     fun insertToken(wallet: String, token: String) {
         val connection = DriverManager.getConnection(
-            CONFIG[ConfigKeys.dbUrl],
-            CONFIG[ConfigKeys.dbUsername],
-            CONFIG[ConfigKeys.dbPassword]
+            testConfig.db.url,
+            testConfig.db.username,
+            testConfig.db.password
         )
 
         DSL.using(connection).use { ctx ->
@@ -257,7 +257,7 @@ class IntegrationTest {
         assertEquals(BigInteger.ZERO, queryIroha(assetId))
 
         // Deploy ERC20 smart contract
-        val contract = DeployHelper().deployBasicCoinSmartContract()
+        val contract = DeployHelper(testConfig.ethereum).deployBasicCoinSmartContract()
         val contractAddress = contract.contractAddress
         insertToken(contractAddress, asset)
 
@@ -295,7 +295,7 @@ class IntegrationTest {
             main(arrayOf())
         }
 
-        val masterAccount = CONFIG[ConfigKeys.notaryIrohaAccount]
+        val masterAccount = testConfig.notaryIrohaAccount
         val amount = "64203"
         val assetId = "ether#ethereum"
         val ethWallet = "eth_wallet"
@@ -328,6 +328,7 @@ class IntegrationTest {
 
         assertEquals(
             signUserData(
+                testConfig.ethereum,
                 hashToWithdraw(
                     assetId.split("#")[0],
                     amount.toBigInteger(),

@@ -1,7 +1,6 @@
 package sidechain.eth.util
 
-import config.ConfigKeys
-import notary.CONFIG
+import config.EthereumConfig
 import org.web3j.crypto.Hash
 import org.web3j.protocol.http.HttpService
 import org.web3j.protocol.parity.Parity
@@ -12,13 +11,13 @@ import java.math.BigInteger
  * @param toSign data to sign
  * @return signed data
  */
-fun signUserData(toSign: String): String {
+fun signUserData(ethereumConfig: EthereumConfig, toSign: String): String {
     // TODO luckychess 26.06.2018 D3-100 find a way to produce correct signatures locally
-    val deployHelper = DeployHelper()
-    val parity = Parity.build(HttpService(CONFIG[ConfigKeys.testEthConnectionUrl]))
+    val deployHelper = DeployHelper(ethereumConfig)
+    val parity = Parity.build(HttpService(ethereumConfig.url))
     parity.personalUnlockAccount(
         deployHelper.credentials.address,
-        CONFIG[ConfigKeys.relayRegistartionEthCredentialPassword]
+        ethereumConfig.credentialsPassword
     ).send()
     return parity.ethSign(deployHelper.credentials.address, toSign).send().signature
 }

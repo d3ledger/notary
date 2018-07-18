@@ -4,23 +4,27 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import config.ConfigKeys
 import io.reactivex.Observable
 import mu.KLogging
-import notary.CONFIG
 import sidechain.SideChainEvent
 import sidechain.eth.consumer.EthConsumer
 import sidechain.iroha.IrohaChainHandler
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.util.ModelUtil
 
-class WithdrawalServiceInitialization {
-    val irohaAccount = CONFIG[ConfigKeys.notaryIrohaAccount]
+/**
+ * @param withdrawalConfig - configuration for withdrawal service
+ */
+class WithdrawalServiceInitialization(val withdrawalConfig: WithdrawalServiceConfig) {
+    val irohaCreator = withdrawalConfig.iroha.creator
     val irohaKeypair =
-        ModelUtil.loadKeypair(CONFIG[ConfigKeys.notaryPubkeyPath], CONFIG[ConfigKeys.notaryPrivkeyPath]).get()
+        ModelUtil.loadKeypair(
+            withdrawalConfig.iroha.pubkeyPath,
+            withdrawalConfig.iroha.privkeyPath
+        ).get()
 
-    val irohaHost = CONFIG[ConfigKeys.notaryIrohaHostname]
-    val irohaPort = CONFIG[ConfigKeys.notaryIrohaPort]
+    val irohaHost = withdrawalConfig.iroha.hostname
+    val irohaPort = withdrawalConfig.iroha.port
 
     /**
      * Init Iroha chain listener
@@ -29,7 +33,7 @@ class WithdrawalServiceInitialization {
     private fun initIrohaChain(): Result<Observable<SideChainEvent.IrohaEvent>, Exception> {
         logger.info { "Init Iroha chain listener" }
 
-        return IrohaChainListener(irohaHost, irohaPort, irohaAccount, irohaKeypair).getBlockObservable()
+        return IrohaChainListener(irohaHost, irohaPort, irohaCreator, irohaKeypair).getBlockObservable()
             .map { observable ->
                 observable.flatMapIterable { IrohaChainHandler().parseBlock(it) }
             }
@@ -41,14 +45,14 @@ class WithdrawalServiceInitialization {
     private fun initWithdrawalService(inputEvents: Observable<SideChainEvent.IrohaEvent>): WithdrawalService {
         logger.info { "Init Withdrawal Service" }
 
-        return WithdrawalServiceImpl(inputEvents)
+        return WithdrawalServiceImpl(withdrawalConfig, inputEvents)
     }
 
     private fun initEthConsumer(withdrawalService: WithdrawalService): Result<Unit, Exception> {
         logger.info { "Init Ether consumer" }
 
         return Result.of {
-            val ethConsumer = EthConsumer()
+            val ethConsumer = EthConsumer(withdrawalConfig.ethereum)
             withdrawalService.output()
                 .subscribe({
                     it.map {
