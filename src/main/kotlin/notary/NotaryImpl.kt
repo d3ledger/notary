@@ -18,7 +18,7 @@ class NotaryImpl(
     val creator = notaryConfig.iroha.creator
 
     /** Ethereum asset id in Iroha */
-    val ethereumAssetId = "eth"
+    val ethereumAssetId = "ether"
 
     /**
      * Handle Ethereum deposit event. Notaries create the ordered bunch of
