@@ -3,12 +3,12 @@ package sidechain.iroha.util
 import com.github.kittinunf.result.Result
 import com.google.protobuf.InvalidProtocolBufferException
 import io.grpc.ManagedChannelBuilder
-import iroha.protocol.BlockOuterClass.Transaction
 import iroha.protocol.CommandServiceGrpc
+import iroha.protocol.QryResponses.QueryResponse
 import iroha.protocol.Queries.BlocksQuery
 import iroha.protocol.Queries.Query
 import iroha.protocol.QueryServiceGrpc
-import iroha.protocol.Responses.QueryResponse
+import iroha.protocol.TransactionOuterClass.Transaction
 import jp.co.soramitsu.iroha.*
 import mu.KLogging
 import java.io.IOException

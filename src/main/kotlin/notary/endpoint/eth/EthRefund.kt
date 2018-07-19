@@ -18,7 +18,7 @@ typealias CoinType = String
 /**
  * Type of amount in Ethereum
  */
-typealias AmountType = BigInteger
+typealias AmountType = String
 
 /**
  * Refund structure

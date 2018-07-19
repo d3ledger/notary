@@ -1,7 +1,6 @@
 package sidechain.iroha.util
 
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
-import sidechain.iroha.util.toBigInteger
 import java.math.BigInteger
 
 /**
@@ -9,7 +8,7 @@ import java.math.BigInteger
  * will be merged into iroha (https://github.com/hyperledger/iroha/pull/1543)
  */
 fun getHash(data: ByteArray): String {
-    val tx = iroha.protocol.BlockOuterClass.Transaction.parseFrom(data)
+    val tx = iroha.protocol.TransactionOuterClass.Transaction.parseFrom(data)
     val creator = tx.payload.reducedPayload.creatorAccountId
     val quorum = tx.payload.reducedPayload.quorum
     val time = tx.payload.reducedPayload.createdTime
@@ -22,18 +21,18 @@ fun getHash(data: ByteArray): String {
     val cmd = tx.payload.reducedPayload.commandsList[0].transferAsset
 
     val hash = ModelTransactionBuilder()
-            .creatorAccountId(creator)
-            .createdTime(BigInteger.valueOf(time))
-            .quorum(quorum)
-            .transferAsset(
-                    cmd.srcAccountId,
-                    cmd.destAccountId,
-                    cmd.assetId,
-                    cmd.description,
-                    cmd.amount.value.toBigInteger().toString()
-            )
-            .build()
-            .hash()
+        .creatorAccountId(creator)
+        .createdTime(BigInteger.valueOf(time))
+        .quorum(quorum)
+        .transferAsset(
+            cmd.srcAccountId,
+            cmd.destAccountId,
+            cmd.assetId,
+            cmd.description,
+            cmd.amount
+        )
+        .build()
+        .hash()
 
     return hash.hex()
 }

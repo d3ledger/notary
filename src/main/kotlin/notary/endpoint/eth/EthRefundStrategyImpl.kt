@@ -5,15 +5,14 @@ import com.github.kittinunf.result.flatMap
 import config.EthereumConfig
 import config.IrohaConfig
 import io.grpc.ManagedChannelBuilder
-import iroha.protocol.BlockOuterClass.Transaction
 import iroha.protocol.Queries
 import iroha.protocol.QueryServiceGrpc
+import iroha.protocol.TransactionOuterClass.Transaction
 import jp.co.soramitsu.iroha.*
 import mu.KLogging
-import sidechain.iroha.util.toBigInteger
-import sidechain.iroha.util.toByteArray
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
+import sidechain.iroha.util.toByteArray
 import java.math.BigInteger
 
 class NotaryException(val reason: String) : Exception(reason)
@@ -104,7 +103,7 @@ class EthRefundStrategyImpl(
                     val destEthAddress = ""
                     logger.info { "Rollback case ($key, $value)" }
 
-                    EthRefund(destEthAddress, "mockCoinType", BigInteger.TEN, request.irohaTx)
+                    EthRefund(destEthAddress, "mockCoinType", "10", request.irohaTx)
                 }
             // withdrawal case
                 (appearedTx.payload.reducedPayload.commandsCount == 1) &&
@@ -113,7 +112,7 @@ class EthRefundStrategyImpl(
                     if (destAccount != irohaConfig.creator)
                         throw NotaryException("Refund - check transaction. Destination account is wrong '$destAccount'")
 
-                    val amount = commands.transferAsset.amount.value.toBigInteger()
+                    val amount = commands.transferAsset.amount
                     val token = commands.transferAsset.assetId.dropLastWhile { it != '#' }.dropLast(1)
                     val destEthAddress = commands.transferAsset.description
 

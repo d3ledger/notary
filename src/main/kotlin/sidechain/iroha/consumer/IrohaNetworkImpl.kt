@@ -2,8 +2,8 @@ package sidechain.iroha.consumer
 
 import com.github.kittinunf.result.Result
 import com.google.protobuf.ByteString
-import iroha.protocol.BlockOuterClass
 import iroha.protocol.Endpoint
+import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.Hash
 import mu.KLogging
 import sidechain.iroha.util.ModelUtil
@@ -24,7 +24,7 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
      * Send transaction to iroha
      * @param protoTx protobuf representation of transaction
      */
-    override fun send(protoTx: BlockOuterClass.Transaction) {
+    override fun send(protoTx: TransactionOuterClass.Transaction) {
         logger.info { "send TX to IROHA" }
 
         // Send transaction to iroha
@@ -54,7 +54,7 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
     /**
      * Send and check transaction to Iroha
      */
-    fun sendAndCheck(protoTx: BlockOuterClass.Transaction, hash: Hash): Result<Unit, Exception> {
+    fun sendAndCheck(protoTx: TransactionOuterClass.Transaction, hash: Hash): Result<Unit, Exception> {
         send(protoTx)
         return checkTransactionStatus(hash)
     }

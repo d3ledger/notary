@@ -1,6 +1,6 @@
 package sidechain.iroha.consumer
 
-import iroha.protocol.BlockOuterClass
+import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelProtoTransaction
 import jp.co.soramitsu.iroha.UnsignedTx
@@ -17,14 +17,14 @@ class IrohaConsumerImpl(val keypair: Keypair) : IrohaConsumer {
     /** Convert transaction to Protobuf
      * @param utx unsigned Iroha transaction
      */
-    override fun convertToProto(utx: UnsignedTx): BlockOuterClass.Transaction {
+    override fun convertToProto(utx: UnsignedTx): TransactionOuterClass.Transaction {
         // sign transaction and get its binary representation (Blob)
         val txblob = ModelProtoTransaction(utx).signAndAddSignature(keypair).finish().blob().toByteArray()
 
         // create proto object
-        lateinit var protoTx: BlockOuterClass.Transaction
+        lateinit var protoTx: TransactionOuterClass.Transaction
         try {
-            protoTx = BlockOuterClass.Transaction.parseFrom(txblob)
+            protoTx = TransactionOuterClass.Transaction.parseFrom(txblob)
         } catch (e: InvalidProtocolBufferException) {
             logger.error { "Exception while converting byte array to protobuf: ${e.message}" }
             System.exit(1)

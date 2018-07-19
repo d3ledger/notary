@@ -4,8 +4,8 @@ import com.github.kittinunf.result.failure
 import com.google.protobuf.InvalidProtocolBufferException
 import config.loadConfigs
 import io.grpc.ManagedChannelBuilder
-import iroha.protocol.BlockOuterClass
 import iroha.protocol.CommandServiceGrpc
+import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelProtoTransaction
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
@@ -76,9 +76,9 @@ class EthFreeWalletsProviderTest {
         val txblob = ModelProtoTransaction(utx).signAndAddSignature(keypair).finish().blob().toByteArray()
 
         // create proto object
-        var protoTx: BlockOuterClass.Transaction? = null
+        var protoTx: TransactionOuterClass.Transaction? = null
         try {
-            protoTx = BlockOuterClass.Transaction.parseFrom(txblob)
+            protoTx = TransactionOuterClass.Transaction.parseFrom(txblob)
         } catch (e: InvalidProtocolBufferException) {
             System.err.println("Exception while converting byte array to protobuf:" + e.message)
             System.exit(1)

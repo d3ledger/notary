@@ -2,7 +2,6 @@ package sidechain
 
 import com.google.protobuf.ByteString
 import iroha.protocol.Commands
-import sidechain.iroha.util.toBigInteger
 import java.math.BigInteger
 
 /**
@@ -52,7 +51,7 @@ sealed class SideChainEvent {
             val srcAccount: String,
             val dstAccount: String,
             val asset: String,
-            val amount: BigInteger,
+            val amount: String,
             val description: String,
             val hash: String
         ) : IrohaEvent() {
@@ -65,7 +64,7 @@ sealed class SideChainEvent {
                 fun fromProto(cmd: Commands.TransferAsset, hash: String): SideChainTransfer {
                     return SideChainTransfer(
                         cmd.srcAccountId, cmd.destAccountId,
-                        cmd.assetId, cmd.amount.value.toBigInteger(), cmd.description, hash
+                        cmd.assetId, cmd.amount, cmd.description, hash
                     )
                 }
             }

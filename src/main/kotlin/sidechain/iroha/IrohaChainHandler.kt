@@ -1,9 +1,11 @@
 package sidechain.iroha
 
+import jp.co.soramitsu.iroha.iroha.hashTransaction
 import mu.KLogging
 import sidechain.ChainHandler
 import sidechain.SideChainEvent
 import sidechain.iroha.util.getHash
+import sidechain.iroha.util.toByteVector
 
 /**
  * Implementation of [ChainHandler] to convert from Iroha protocol to [SideChainEvent.IrohaEvent]
@@ -19,13 +21,13 @@ class IrohaChainHandler : ChainHandler<iroha.protocol.BlockOuterClass.Block> {
         var hash = ""
         return block.payload.transactionsList
             .map {
-                hash = getHash(it.toByteArray())
+                hash = hashTransaction(it.toByteArray().toByteVector()).toString()
                 it
             }
             .flatMap { it.payload.reducedPayload.commandsList }
             .map {
                 when {
-                    //TODO: create separate ChainHandler impl for withdrawal proof events
+                //TODO: create separate ChainHandler impl for withdrawal proof events
                     it.hasAddPeer() -> SideChainEvent.IrohaEvent.AddPeer.fromProto(it.addPeer)
                     it.hasTransferAsset() -> SideChainEvent.IrohaEvent.SideChainTransfer.fromProto(
                         it.transferAsset,

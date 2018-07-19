@@ -26,7 +26,7 @@ import java.math.BigInteger
  */
 data class RollbackApproval(
     val tokenContractAddress: String,
-    val amount: BigInteger,
+    val amount: String,
     val account: String,
     val irohaHash: String,
     val r: ArrayList<ByteArray>,
