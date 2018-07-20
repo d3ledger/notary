@@ -5,10 +5,7 @@ import com.github.kittinunf.result.flatMap
 import config.EthereumConfig
 import config.IrohaConfig
 import iroha.protocol.BlockOuterClass.Transaction
-import jp.co.soramitsu.iroha.Hash
-import jp.co.soramitsu.iroha.HashVector
-import jp.co.soramitsu.iroha.Keypair
-import jp.co.soramitsu.iroha.ModelQueryBuilder
+import jp.co.soramitsu.iroha.*
 import mu.KLogging
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
@@ -18,7 +15,7 @@ import sidechain.iroha.util.getFirstTransaction
 import sidechain.iroha.util.toBigInteger
 import java.math.BigInteger
 
-class NotaryException(val reason: String) : Exception(reason)
+class NotaryException(reason: String) : Exception(reason)
 
 /**
  * Class performs effective implementation of refund strategy for Ethereum

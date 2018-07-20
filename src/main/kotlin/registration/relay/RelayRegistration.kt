@@ -56,7 +56,7 @@ class RelayRegistration(
     /**
      * Sends transaction to Iroha.
      * @param wallet - ethereum wallet to record into Iroha
-     * @return hex representation of transaction
+     * @return Result with string representation of hash or possible failure
      */
     private fun sendRelayToIroha(wallet: String): Result<String, Exception> {
         val utx = ModelTransactionBuilder()

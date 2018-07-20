@@ -27,13 +27,20 @@ class RegistrationStrategyImpl(
      * - SetAccountDetail on notary node account to mark relay address in pool as assigned to the particular user
      * @param name - client name
      * @param pubkey - client public key
+     * @return ethereum wallet has been registered
      */
     override fun register(name: String, pubkey: String): Result<String, Exception> {
         return ethFreeWalletsProvider.getWallet()
             .flatMap { sendToIroha(it, name, pubkey) }
     }
 
-    /** Form transaction and send to Iroha */
+    /**
+     * Form transaction and send to Iroha
+     * @param ethWallet - ethereum wallet
+     * @param name - client name in Iroha
+     * @param pubkey - client's public key
+     * @return ethereum wallet
+     */
     private fun sendToIroha(ethWallet: String, name: String, pubkey: String): Result<String, Exception> {
         return Result.of {
             val creator = irohaConfig.creator

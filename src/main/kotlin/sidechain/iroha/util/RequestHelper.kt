@@ -15,6 +15,9 @@ import java.math.BigInteger
 
 /**
  * Retrieves relays from Iroha
+ * @param irohaConfig - Iroha configuration parameters
+ * @param keypair - iroha keypair
+ * @param irohaNetwork - iroha network layer
  * @param acc account to retrieve relays from
  * @param detailSetterAccount - account that has set the details
  * @return Map with relay addresses as keys and iroha accounts (or "free") as values
@@ -52,6 +55,8 @@ fun getRelays(
 
 /**
  * Return first transaction from transaction query response
+ * @param queryResponse - query response on getTransactions
+ * @return first transaction
  */
 fun getFirstTransaction(queryResponse: Responses.QueryResponse): Result<iroha.protocol.BlockOuterClass.Transaction, Exception> {
     return Result.of {

@@ -23,6 +23,10 @@ class EthFreeWalletsProvider(
 ) {
     val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
 
+    /**
+     * Get free ethereum relay wallet.
+     * @return free ethereum relay wallet
+     */
     fun getWallet(): Result<String, Exception> {
         return getRelays(irohaConfig, keypair, irohaNetwork, notaryIrohaAccount, registrationIrohaAccount)
             .map {
