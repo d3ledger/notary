@@ -12,6 +12,7 @@ import sidechain.iroha.util.getRelays
  *
  * @param irohaConfig - Iroha configuration
  * @param keypair - Iroha keypair to query
+ * @param irohaNetwork - iroha network layer
  * @param account - account that contains details
  * @param setter - account that has set details
  */

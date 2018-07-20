@@ -2,7 +2,6 @@ package sidechain.iroha.consumer
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
-import com.github.kittinunf.result.map
 import com.google.protobuf.ByteString
 import iroha.protocol.Endpoint
 import iroha.protocol.QryResponses
@@ -20,7 +19,7 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
     val channel = ModelUtil.getChannel(host, port)
 
     /** Grpc stub for streaming output calls on the service */
-    val commnandStub by lazy {
+    val commandStub by lazy {
         ModelUtil.getCommandStub(channel)
     }
 
@@ -36,7 +35,7 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
         logger.info { "send TX to IROHA" }
 
         // Send transaction to iroha
-        commnandStub.torii(protoTx)
+        commandStub.torii(protoTx)
     }
 
     /**
@@ -49,7 +48,7 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
             val bhash = hash.blob().toByteArray()
 
             val request = Endpoint.TxStatusRequest.newBuilder().setTxHash(ByteString.copyFrom(bhash)).build()
-            val response = commnandStub.statusStream(request)
+            val response = commandStub.statusStream(request)
 
             while (response.hasNext()) {
                 val res = response.next()
@@ -75,11 +74,19 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
             .flatMap { checkTransactionStatus(hash) }
     }
 
-    /** Send query and check result */
+    /**
+     * Send query and check result
+     *
+     * @param protoQuery - iroha protocol query
+     * @return Query response on success or Exception on failure
+     */
     override fun sendQuery(protoQuery: iroha.protocol.Queries.Query): Result<QryResponses.QueryResponse, Exception> {
         return Result.of { queryStub.find(protoQuery) }
     }
 
+    /**
+     * Shutdown channel
+     */
     fun shutdown() {
         channel.shutdown()
     }
