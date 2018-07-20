@@ -28,7 +28,7 @@ class RegistrationServiceInitialization(val registrationConfig: RegistrationConf
                             it,
                             registrationConfig.notaryIrohaAccount,
                             registrationConfig.relayRegistrationIrohaAccount
-                        ), IrohaConsumerImpl(it)
+                        ), IrohaConsumerImpl(registrationConfig.iroha)
                     )
                 }
                 .map { (ethFreeWalletsProvider, irohaConsumer) ->

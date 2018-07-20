@@ -4,25 +4,25 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import config.EthereumConfig
 import config.IrohaConfig
-import io.grpc.ManagedChannelBuilder
 import iroha.protocol.BlockOuterClass.Transaction
-import iroha.protocol.Queries
-import iroha.protocol.QueryServiceGrpc
 import jp.co.soramitsu.iroha.*
 import mu.KLogging
-import sidechain.iroha.util.toBigInteger
-import sidechain.iroha.util.toByteArray
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
+import sidechain.iroha.consumer.IrohaNetwork
+import sidechain.iroha.util.ModelUtil
+import sidechain.iroha.util.getFirstTransaction
+import sidechain.iroha.util.toBigInteger
 import java.math.BigInteger
 
-class NotaryException(val reason: String) : Exception(reason)
+class NotaryException(reason: String) : Exception(reason)
 
 /**
  * Class performs effective implementation of refund strategy for Ethereum
  */
 class EthRefundStrategyImpl(
     val irohaConfig: IrohaConfig,
+    val irohaNetwork: IrohaNetwork,
     val ethereumConfig: EthereumConfig,
     private val keypair: Keypair
 ) : EthRefundStrategy {
@@ -41,36 +41,18 @@ class EthRefundStrategyImpl(
      * @return Transaction which is appeared in Iroha or error
      */
     private fun performQuery(request: EthRefundRequest): Result<Transaction, Exception> {
-        return Result.of {
-            val hashes = HashVector()
-            hashes.add(Hash.fromHexString(request.irohaTx))
+        val hashes = HashVector()
+        hashes.add(Hash.fromHexString(request.irohaTx))
 
-            val uquery = ModelQueryBuilder().creatorAccountId(irohaConfig.creator)
-                .queryCounter(BigInteger.valueOf(1))
-                .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
-                .getTransactions(hashes)
-                .build()
-            val queryBlob = ModelProtoQuery(uquery).signAndAddSignature(keypair).finish().blob().toByteArray()
-            val protoQuery = Queries.Query.parseFrom(queryBlob)
+        val uquery = ModelQueryBuilder().creatorAccountId(irohaConfig.creator)
+            .queryCounter(BigInteger.valueOf(1))
+            .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
+            .getTransactions(hashes)
+            .build()
 
-            val irohaHost = irohaConfig.hostname
-            val irohaPort = irohaConfig.port
-            val channel = ManagedChannelBuilder.forAddress(irohaHost, irohaPort).usePlaintext(true).build()
-            val queryStub = QueryServiceGrpc.newBlockingStub(channel)
-            val queryResponse = queryStub.find(protoQuery)
-
-            val fieldDescriptor =
-                queryResponse.descriptorForType.findFieldByName("transactions_response")
-            if (!queryResponse.hasField(fieldDescriptor)) {
-                throw NotaryException("Query response error ${queryResponse.errorResponse}")
-            }
-
-            if (queryResponse.transactionsResponse.transactionsCount == 0)
-                throw Exception("Withdrawal service. Transaction ${request.irohaTx} not found.")
-
-            // return transaction
-            queryResponse.transactionsResponse.transactionsList[0]
-        }
+        return ModelUtil.prepareQuery(uquery, keypair)
+            .flatMap { irohaNetwork.sendQuery(it) }
+            .flatMap { getFirstTransaction(it) }
     }
 
     /**

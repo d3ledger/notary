@@ -3,6 +3,7 @@ package withdrawalservice
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import io.reactivex.Observable
+import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
 import notary.EthTokensProvider
 import notary.EthTokensProviderImpl
@@ -10,6 +11,7 @@ import org.web3j.utils.Numeric.hexStringToByteArray
 import sidechain.SideChainEvent
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
+import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getRelays
 import java.math.BigInteger
 
@@ -41,84 +43,94 @@ data class RollbackApproval(
  */
 class WithdrawalServiceImpl(
     val withdrawalServiceConfig: WithdrawalServiceConfig,
+    val keypair: Keypair,
+    val irohaNetwork: IrohaNetwork,
     private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
 ) : WithdrawalService {
     private val notaryPeerListProvider = NotaryPeerListProviderImpl()
     private val tokensProvider: EthTokensProvider = EthTokensProviderImpl(withdrawalServiceConfig.db)
     private val masterAccount = withdrawalServiceConfig.notaryIrohaAccount
 
-    private fun findInAccDetail(acc: String, name: String): String {
-        val relays = getRelays(withdrawalServiceConfig.iroha, acc, withdrawalServiceConfig.registrationIrohaAccount)
-        for (record in relays) {
-            if (record.value == name) {
-                return record.key
-            }
+    private fun findInAccDetail(acc: String, name: String): Result<String, Exception> {
+        return getRelays(
+            withdrawalServiceConfig.iroha,
+            keypair,
+            irohaNetwork,
+            acc,
+            withdrawalServiceConfig.registrationIrohaAccount
+        ).map { relays ->
+            val keys = relays.filterValues { it == name }.keys
+            if (keys.isEmpty())
+                throw Exception("No relay address in account details $acc set by $name")
+            else
+                keys.first()
         }
-        return ""
     }
 
     /**
      * Query all notaries for approval of refund
+     * @param event - iroha transfer event
+     * @return rollback approval or exception
      */
     private fun requestNotary(event: SideChainEvent.IrohaEvent.SideChainTransfer): Result<RollbackApproval, Exception> {
-        return Result.of {
-            val hash = event.hash
-            val amount = event.amount
-            val coins = tokensProvider.getTokens().get().toMutableMap()
-            coins["0x0000000000000000000000000000000000000000"] = "ether"
+        // description field holds target account address
+        return findInAccDetail(masterAccount, event.srcAccount)
+            .map { relayAddress ->
+                val hash = event.hash
+                val amount = event.amount
+                val coins = tokensProvider.getTokens().get().toMutableMap()
+                coins["0x0000000000000000000000000000000000000000"] = "ether"
 
-            if (!event.asset.contains("#ethereum")) {
-                throw Exception("Incorrect asset name in Iroha event: " + event.asset)
-            }
-            val asset = event.asset.replace("#ethereum", "")
-
-            var coinAddress = ""
-            for (coin in coins) {
-                if (coin.value == asset) {
-                    coinAddress = coin.key
-                    break
+                if (!event.asset.contains("#ethereum")) {
+                    throw Exception("Incorrect asset name in Iroha event: " + event.asset)
                 }
-            }
-            if (coinAddress == "") {
-                throw Exception("Not supported token type")
-            }
+                val asset = event.asset.replace("#ethereum", "")
 
-            val address = event.description
-            // description field holds target account address
-            val relayAddress = findInAccDetail(masterAccount, event.srcAccount)
-            if (relayAddress == "") {
-                throw Exception("Unable to find relay for " + event.srcAccount)
+                var coinAddress = ""
+                for (coin in coins) {
+                    if (coin.value == asset) {
+                        coinAddress = coin.key
+                        break
+                    }
+                }
+                if (coinAddress == "") {
+                    throw Exception("Not supported token type")
+                }
+
+                val address = event.description
+                val vv = ArrayList<BigInteger>()
+                val rr = ArrayList<ByteArray>()
+                val ss = ArrayList<ByteArray>()
+
+                notaryPeerListProvider.getPeerList().forEach { peer ->
+                    // TODO: replace with valid peer requests
+                    val signature =
+                        signUserData(
+                            withdrawalServiceConfig.ethereum,
+                            hashToWithdraw(coinAddress, amount, address, hash)
+                        )
+                    val r = hexStringToByteArray(signature.substring(2, 66))
+                    val s = hexStringToByteArray(signature.substring(66, 130))
+                    val v = signature.substring(130, 132).toBigInteger(16)
+
+                    vv.add(v)
+                    rr.add(r)
+                    ss.add(s)
+                }
+                RollbackApproval(coinAddress, amount, address, hash, rr, ss, vv, relayAddress)
             }
-            logger.info { "relay found: $relayAddress" }
-
-            val vv = ArrayList<BigInteger>()
-            val rr = ArrayList<ByteArray>()
-            val ss = ArrayList<ByteArray>()
-
-            notaryPeerListProvider.getPeerList().forEach { peer ->
-                // TODO: replace with valid peer requests
-                val signature =
-                    signUserData(withdrawalServiceConfig.ethereum, hashToWithdraw(coinAddress, amount, address, hash))
-                val r = hexStringToByteArray(signature.substring(2, 66))
-                val s = hexStringToByteArray(signature.substring(66, 130))
-                val v = signature.substring(130, 132).toBigInteger(16)
-
-                vv.add(v)
-                rr.add(r)
-                ss.add(s)
-            }
-            RollbackApproval(coinAddress, amount, address, hash, rr, ss, vv, relayAddress)
-        }
     }
-
 
     /**
      * Handle IrohaEvent
+     * @param irohaEvent - iroha event
+     * @return withdrawal service output event or exception
      */
     override fun onIrohaEvent(irohaEvent: SideChainEvent.IrohaEvent): Result<WithdrawalServiceOutputEvent, Exception> {
         when (irohaEvent) {
             is SideChainEvent.IrohaEvent.SideChainTransfer -> {
                 if (irohaEvent.dstAccount == withdrawalServiceConfig.notaryIrohaAccount) {
+                    logger.info { "Withdrawal event" }
                     return requestNotary(irohaEvent)
                         .map { WithdrawalServiceOutputEvent.EthRefund(it) }
                 }

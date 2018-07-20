@@ -3,7 +3,6 @@ package notary.endpoint.eth
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.ToJson
 
-
 /**
  * Interface represents notary response with proof of rollback from Iroha to Ethereum
  */
@@ -80,7 +79,7 @@ class EthNotaryResponseMoshiAdapter {
             ethRefund = response.ethRefund
         )
         is EthNotaryResponse.Error -> EthNotaryResponseLayer(
-            type = EthNotaryResponseType.Successful,
+            type = EthNotaryResponseType.Error,
             reason = response.reason
         )
     }

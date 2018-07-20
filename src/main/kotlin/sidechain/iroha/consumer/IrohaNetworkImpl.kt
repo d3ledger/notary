@@ -4,6 +4,7 @@ import com.github.kittinunf.result.Result
 import com.google.protobuf.ByteString
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Endpoint
+import iroha.protocol.Responses
 import jp.co.soramitsu.iroha.Hash
 import mu.KLogging
 import sidechain.iroha.util.ModelUtil
@@ -14,32 +15,39 @@ import sidechain.iroha.util.toByteArray
  */
 class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
 
+    val channel = ModelUtil.getChannel(host, port)
+
     /** Grpc stub for streaming output calls on the service */
-    val toriiStub by lazy {
-        ModelUtil.getCommandStub(host, port)
+    val commandStub by lazy {
+        ModelUtil.getCommandStub(channel)
     }
 
+    val queryStub by lazy {
+        ModelUtil.getQueryStub(channel)
+    }
 
     /**
      * Send transaction to iroha
      * @param protoTx protobuf representation of transaction
      */
-    override fun send(protoTx: BlockOuterClass.Transaction) {
+    fun send(protoTx: BlockOuterClass.Transaction) {
         logger.info { "send TX to IROHA" }
 
         // Send transaction to iroha
-        toriiStub.torii(protoTx)
+        commandStub.torii(protoTx)
     }
 
     /**
      * Check if transaction is committed to Iroha
+     * @param hash - hash of transaction to check
+     * @return string representation of hash or failure
      */
-    fun checkTransactionStatus(hash: Hash): Result<Unit, Exception> {
+    fun checkTransactionStatus(hash: Hash): Result<String, Exception> {
         return Result.of {
             val bhash = hash.blob().toByteArray()
 
             val request = Endpoint.TxStatusRequest.newBuilder().setTxHash(ByteString.copyFrom(bhash)).build()
-            val response = toriiStub.statusStream(request)
+            val response = commandStub.statusStream(request)
 
             while (response.hasNext()) {
                 val res = response.next()
@@ -48,15 +56,38 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
                     throw Exception("Iroha transacion ${hash.hex()} received STATEFUL_VALIDATION_FAILED")
                 }
             }
+
+            hash.hex()
         }
     }
 
     /**
-     * Send and check transaction to Iroha
+     * Send transaction to Iroha and check it's status
+     *
+     * @param tx - transaction
+     * @param hash - transaction hash
+     * @return string representation of transaction hash or Exception has raised
      */
-    fun sendAndCheck(protoTx: BlockOuterClass.Transaction, hash: Hash): Result<Unit, Exception> {
-        send(protoTx)
+    override fun sendAndCheck(tx: BlockOuterClass.Transaction, hash: Hash): Result<String, Exception> {
+        send(tx)
         return checkTransactionStatus(hash)
+    }
+
+    /**
+     * Send query and check result
+     *
+     * @param protoQuery - iroha protocol query
+     * @return Query response on success or Exception on failure
+     */
+    override fun sendQuery(protoQuery: iroha.protocol.Queries.Query): Result<Responses.QueryResponse, Exception> {
+        return Result.of { queryStub.find(protoQuery) }
+    }
+
+    /**
+     * Shutdown channel
+     */
+    fun shutdown() {
+        channel.shutdown()
     }
 
     /**

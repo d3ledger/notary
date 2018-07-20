@@ -1,15 +1,12 @@
-package registration
+package integration
 
 import com.github.kittinunf.result.failure
 import config.loadConfigs
-import integration.TestConfig
 import notary.EthWalletsProviderIrohaImpl
 import notary.IrohaCommand
 import notary.IrohaTransaction
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Disabled
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.fail
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
@@ -19,6 +16,7 @@ import sidechain.iroha.util.ModelUtil
 /**
  * Requires Iroha is running
  */
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class EthWalletsProviderIrohaTest {
 
     init {
@@ -45,6 +43,14 @@ class EthWalletsProviderIrohaTest {
 
     /** Iroha account that holds details */
     val detailHolder = testConfig.notaryIrohaAccount
+
+    /** Iroha network */
+    val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
+
+    @AfterAll
+    fun finit() {
+        irohaNetwork.shutdown()
+    }
 
     /**
      * @given [detailHolder] has ethereum wallets in details
@@ -81,17 +87,22 @@ class EthWalletsProviderIrohaTest {
             }
         )
 
-        val it = IrohaConverterImpl().convert(irohaOutput)
-        val hash = it.hash()
-        val tx = IrohaConsumerImpl(keypair).convertToProto(it)
+        val tx = IrohaConverterImpl().convert(irohaOutput)
 
-        IrohaNetworkImpl(
-            testConfig.iroha.hostname,
-            testConfig.iroha.port
-        ).sendAndCheck(tx, hash)
+        IrohaConsumerImpl(testConfig.iroha).sendAndCheck(tx)
+            .failure { fail(it) }
 
-        val lst = EthWalletsProviderIrohaImpl(testConfig.iroha, keypair, detailSetter, detailHolder).getWallets()
-        assertEquals(valid, lst.component1())
+        EthWalletsProviderIrohaImpl(
+            testConfig.iroha,
+            keypair,
+            irohaNetwork,
+            masterAccount,
+            creator
+        ).getWallets()
+            .fold(
+                { assertEquals(valid, it) },
+                { fail(it.toString()) }
+            )
     }
 
     /**
@@ -102,13 +113,14 @@ class EthWalletsProviderIrohaTest {
     @Disabled
     @Test
     fun testEmptyStorage() {
-        EthWalletsProviderIrohaImpl(testConfig.iroha, keypair, detailSetter, detailHolder).getWallets().fold(
-            {
-                assert(it.isEmpty())
-            },
-            {
-                fail { "result has exception ${it.toString()}" }
-            }
-        )
+        EthWalletsProviderIrohaImpl(testConfig.iroha, keypair, irohaNetwork, detailSetter, detailHolder).getWallets()
+            .fold(
+                {
+                    assert(it.isEmpty())
+                },
+                {
+                    fail { "result has exception ${it.toString()}" }
+                }
+            )
     }
 }

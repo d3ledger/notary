@@ -1,8 +1,11 @@
 package registration
 
+import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.map
 import config.IrohaConfig
 import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.getRelays
 
 /**
@@ -18,9 +21,17 @@ class EthFreeWalletsProvider(
     val notaryIrohaAccount: String,
     val registrationIrohaAccount: String
 ) {
-    fun getWallet(): String {
-        return getRelays(irohaConfig, notaryIrohaAccount, registrationIrohaAccount).filterValues { it == "free" }
-            .keys.first()
+    val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
+
+    /**
+     * Get free ethereum relay wallet.
+     * @return free ethereum relay wallet
+     */
+    fun getWallet(): Result<String, Exception> {
+        return getRelays(irohaConfig, keypair, irohaNetwork, notaryIrohaAccount, registrationIrohaAccount)
+            .map {
+                it.filterValues { it == "free" }.keys.first()
+            }
     }
 
     /**

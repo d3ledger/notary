@@ -1,6 +1,7 @@
 package registration.relay
 
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
@@ -10,6 +11,8 @@ import notary.EthTokensProviderImpl
 import org.web3j.crypto.WalletUtils
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
+import sidechain.eth.util.DeployHelper
+import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import java.math.BigInteger
@@ -19,36 +22,17 @@ import java.math.BigInteger
  * Deploys relay smart contracts in Ethereum network and records it in Iroha.
  */
 class RelayRegistration(
-    val relayRegistrationConfig: RelayRegistrationConfig,
-    val ethTokensProvider: EthTokensProvider = EthTokensProviderImpl(relayRegistrationConfig.db)
+    val relayRegistrationConfig: RelayRegistrationConfig
 ) {
 
-    /** web3 service instance to communicate with Ethereum network */
-    private val web3 = Web3j.build(HttpService(relayRegistrationConfig.ethereum.url))
+    /** Ethereum token list provider */
+    val ethTokensProvider: EthTokensProvider = EthTokensProviderImpl(relayRegistrationConfig.db)
 
-    /** credentials of ethereum user */
-    private val credentials = WalletUtils.loadCredentials(
-        relayRegistrationConfig.ethereum.credentialsPassword,
-        relayRegistrationConfig.ethereum.credentialsPath
-    )
+    /** Ethereum endpoint */
+    val deployHelper = DeployHelper(relayRegistrationConfig.ethereum)
 
-    /** Gas price */
-    private val gasPrice = BigInteger.valueOf(relayRegistrationConfig.ethereum.gasPrice)
-
-    /** Max gas limit */
-    private val gasLimit = BigInteger.valueOf(relayRegistrationConfig.ethereum.gasLimit)
-
-    /** Iroha keypair */
-    val keypair: Keypair = ModelUtil.loadKeypair(
-        relayRegistrationConfig.iroha.pubkeyPath,
-        relayRegistrationConfig.iroha.privkeyPath
-    ).get()
-
-    /** Iroha host */
-    val irohaHost = relayRegistrationConfig.iroha.hostname
-
-    /** Iroha port */
-    val irohaPort = relayRegistrationConfig.iroha.port
+    /** Iroha endpoint */
+    val irohaConsumer = IrohaConsumerImpl(relayRegistrationConfig.iroha)
 
     /** Iroha transaction creator */
     val creator = relayRegistrationConfig.iroha.creator
@@ -63,15 +47,7 @@ class RelayRegistration(
      * @return user smart contract address
      */
     private fun deployRelaySmartContract(master: String, tokens: List<String>): String {
-        val contract =
-            contract.Relay.deploy(
-                web3,
-                credentials,
-                gasPrice,
-                gasLimit,
-                master,
-                tokens
-            ).send()
+        val contract = deployHelper.deployRelaySmartContract(master, tokens)
 
         logger.info { "Relay wallet created with address ${contract.contractAddress}" }
         return contract.contractAddress
@@ -80,21 +56,16 @@ class RelayRegistration(
     /**
      * Sends transaction to Iroha.
      * @param wallet - ethereum wallet to record into Iroha
-     * @return hex representation of transaction
+     * @return Result with string representation of hash or possible failure
      */
-    private fun sendRelayToIroha(wallet: String): String {
-        val currentTime = System.currentTimeMillis()
-        val utx = ModelTransactionBuilder().creatorAccountId(creator)
-            .createdTime(BigInteger.valueOf(currentTime))
+    private fun sendRelayToIroha(wallet: String): Result<String, Exception> {
+        val utx = ModelTransactionBuilder()
+            .creatorAccountId(creator)
+            .createdTime(ModelUtil.getCurrentTime())
             .setAccountDetail(notaryIrohaAccount, wallet, "free")
             .build()
 
-        val hash = utx.hash()
-
-        val protoTx = ModelUtil.prepareTransaction(utx, keypair)
-        IrohaNetworkImpl(irohaHost, irohaPort).sendAndCheck(protoTx, hash)
-
-        return hash.hex()
+        return irohaConsumer.sendAndCheck(utx)
     }
 
     /**
@@ -103,11 +74,12 @@ class RelayRegistration(
     fun deploy(): Result<Unit, Exception> {
         return ethTokensProvider
             .getTokens()
-            .map { token ->
+            .map { tokens ->
                 (1..relayRegistrationConfig.number).forEach {
                     val relayWallet =
-                        deployRelaySmartContract(relayRegistrationConfig.ethMasterWallet, token.keys.toList())
+                        deployRelaySmartContract(relayRegistrationConfig.ethMasterWallet, tokens.keys.toList())
                     sendRelayToIroha(relayWallet)
+                        .failure { logger.error { it } }
                 }
             }
     }

@@ -1,35 +1,32 @@
 package sidechain.iroha.consumer
 
-import iroha.protocol.BlockOuterClass
+import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.flatMap
+import config.IrohaConfig
 import jp.co.soramitsu.iroha.Keypair
-import jp.co.soramitsu.iroha.ModelProtoTransaction
 import jp.co.soramitsu.iroha.UnsignedTx
 import mu.KLogging
-import sidechain.iroha.util.toByteArray
-import kotlin.reflect.jvm.internal.impl.protobuf.InvalidProtocolBufferException
+import sidechain.iroha.util.ModelUtil
 
 /**
  * Endpoint of Iroha to write transactions
- * @param keypair Iroha keypair for signing
+ * @param irohaConfig Iroha configurations
  */
-class IrohaConsumerImpl(val keypair: Keypair) : IrohaConsumer {
+class IrohaConsumerImpl(irohaConfig: IrohaConfig) : IrohaConsumer {
 
-    /** Convert transaction to Protobuf
-     * @param utx unsigned Iroha transaction
+    val keypair = ModelUtil.loadKeypair(irohaConfig.pubkeyPath, irohaConfig.privkeyPath).get()
+
+    val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
+
+    /**
+     * Send transaction to Iroha and check if it is committed with status stream
+     * @param utx - unsigned transaction to send
+     * @return Result with string representation of hash or possible failure
      */
-    override fun convertToProto(utx: UnsignedTx): BlockOuterClass.Transaction {
-        // sign transaction and get its binary representation (Blob)
-        val txblob = ModelProtoTransaction(utx).signAndAddSignature(keypair).finish().blob().toByteArray()
-
-        // create proto object
-        lateinit var protoTx: BlockOuterClass.Transaction
-        try {
-            protoTx = BlockOuterClass.Transaction.parseFrom(txblob)
-        } catch (e: InvalidProtocolBufferException) {
-            logger.error { "Exception while converting byte array to protobuf: ${e.message}" }
-            System.exit(1)
-        }
-        return protoTx
+    override fun sendAndCheck(utx: UnsignedTx): Result<String, Exception> {
+        val hash = utx.hash()
+        return ModelUtil.prepareTransaction(utx, keypair)
+            .flatMap { irohaNetwork.sendAndCheck(it, hash) }
     }
 
     /**
