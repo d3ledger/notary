@@ -1,6 +1,7 @@
 package sidechain.iroha.consumer
 
-import iroha.protocol.TransactionOuterClass
+import com.github.kittinunf.result.Result
+import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.UnsignedTx
 
 /**
@@ -9,8 +10,9 @@ import jp.co.soramitsu.iroha.UnsignedTx
 interface IrohaConsumer {
 
     /**
-     * Sign and convert to protobuf
-     * @param utx - unsigned transaction
+     * Send transaction to Iroha and check if it is committed with status stream
+     * @param utx - unsigned transaction to send
+     * @return Result with string representation of hash or possible failure
      */
-    fun convertToProto(utx: UnsignedTx): TransactionOuterClass.Transaction
+    fun sendAndCheck(utx: UnsignedTx): Result<String, Exception>
 }

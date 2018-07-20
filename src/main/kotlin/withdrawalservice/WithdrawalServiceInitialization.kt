@@ -10,6 +10,7 @@ import sidechain.SideChainEvent
 import sidechain.eth.consumer.EthConsumer
 import sidechain.iroha.IrohaChainHandler
 import sidechain.iroha.IrohaChainListener
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
 /**
@@ -25,6 +26,7 @@ class WithdrawalServiceInitialization(val withdrawalConfig: WithdrawalServiceCon
 
     val irohaHost = withdrawalConfig.iroha.hostname
     val irohaPort = withdrawalConfig.iroha.port
+    val irohaNetwork = IrohaNetworkImpl(irohaHost, irohaPort)
 
     /**
      * Init Iroha chain listener
@@ -45,7 +47,7 @@ class WithdrawalServiceInitialization(val withdrawalConfig: WithdrawalServiceCon
     private fun initWithdrawalService(inputEvents: Observable<SideChainEvent.IrohaEvent>): WithdrawalService {
         logger.info { "Init Withdrawal Service" }
 
-        return WithdrawalServiceImpl(withdrawalConfig, inputEvents)
+        return WithdrawalServiceImpl(withdrawalConfig, irohaKeypair, irohaNetwork, inputEvents)
     }
 
     private fun initEthConsumer(withdrawalService: WithdrawalService): Result<Unit, Exception> {

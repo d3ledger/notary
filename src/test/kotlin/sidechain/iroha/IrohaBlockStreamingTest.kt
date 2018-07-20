@@ -9,11 +9,10 @@ import kotlinx.coroutines.experimental.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import sidechain.iroha.consumer.IrohaNetworkImpl
+import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.ModelUtil.getCurrentTime
 import sidechain.iroha.util.ModelUtil.getModelTransactionBuilder
-import sidechain.iroha.util.ModelUtil.prepareTransaction
 import java.util.concurrent.TimeUnit
 
 /**
@@ -32,9 +31,6 @@ class IrohaBlockStreamingTest {
     @Test
     fun irohaStreamingTest() {
         System.loadLibrary("irohajava")
-
-        val irohaHost = testConfig.iroha.hostname
-        val irohaPort = testConfig.iroha.port
 
         val creator = testConfig.iroha.creator
         val keypair = ModelUtil.loadKeypair(
@@ -65,8 +61,7 @@ class IrohaBlockStreamingTest {
             .setAccountDetail(creator, "test", "test")
             .build()
 
-        val tx = prepareTransaction(utx, keypair)
-        IrohaNetworkImpl(irohaHost, irohaPort).sendAndCheck(tx, utx.hash())
+        IrohaConsumerImpl(testConfig.iroha).sendAndCheck(utx)
         runBlocking {
             delay(5000, TimeUnit.MILLISECONDS)
         }

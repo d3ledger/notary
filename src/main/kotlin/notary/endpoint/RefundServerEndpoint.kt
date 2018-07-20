@@ -1,7 +1,6 @@
 package notary.endpoint
 
 import com.squareup.moshi.Moshi
-import notary.endpoint.eth.*
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.features.CORS
@@ -11,6 +10,7 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import mu.KLogging
+import notary.endpoint.eth.*
 import util.functional.bind
 import util.functional.endValue
 import java.math.BigInteger

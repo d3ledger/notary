@@ -29,10 +29,13 @@ class RegistrationStrategyImpl(
      * @param pubkey - client public key
      */
     override fun register(name: String, pubkey: String): Result<String, Exception> {
-        lateinit var ethWallet: String
+        return ethFreeWalletsProvider.getWallet()
+            .flatMap { sendToIroha(it, name, pubkey) }
+    }
 
+    /** Form transaction and send to Iroha */
+    private fun sendToIroha(ethWallet: String, name: String, pubkey: String): Result<String, Exception> {
         return Result.of {
-            ethWallet = ethFreeWalletsProvider.getWallet()
             val creator = irohaConfig.creator
             val domain = "notary"
 
@@ -59,10 +62,10 @@ class RegistrationStrategyImpl(
             )
         }.flatMap {
             val utx = IrohaConverterImpl().convert(it)
-            val tx = irohaConsumer.convertToProto(utx)
-            IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port).sendAndCheck(tx, utx.hash())
+            irohaConsumer.sendAndCheck(utx)
         }.map {
             ethWallet
         }
+
     }
 }

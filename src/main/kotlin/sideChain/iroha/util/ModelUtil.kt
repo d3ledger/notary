@@ -11,6 +11,8 @@ import iroha.protocol.QueryServiceGrpc
 import iroha.protocol.TransactionOuterClass.Transaction
 import jp.co.soramitsu.iroha.*
 import mu.KLogging
+import sidechain.iroha.consumer.IrohaConsumer
+import sidechain.iroha.consumer.IrohaNetwork
 import java.io.IOException
 import java.math.BigInteger
 import java.nio.file.Files
@@ -53,22 +55,18 @@ object ModelUtil {
 
     /**
      * Creates a stub for commands
-     * @param host - iroha host
-     * @param port - iroha port
+     * @param channel - channel with Iroha peer
      * @return torii command stub
      */
-    fun getCommandStub(host: String, port: Int): CommandServiceGrpc.CommandServiceBlockingStub {
-        val channel = getChannel(host, port)
+    fun getCommandStub(channel: io.grpc.Channel): CommandServiceGrpc.CommandServiceBlockingStub {
         return CommandServiceGrpc.newBlockingStub(channel)
     }
 
     /**
      * Creates a stub for queries
-     * @param host - iroha host
-     * @param port - iroha port     * @return torii query stub
+     * @param channel - channel with Iroha peer
      */
-    fun getQueryStub(host: String, port: Int): QueryServiceGrpc.QueryServiceBlockingStub {
-        val channel = getChannel(host, port)
+    fun getQueryStub(channel: io.grpc.Channel): QueryServiceGrpc.QueryServiceBlockingStub {
         return QueryServiceGrpc.newBlockingStub(channel)
     }
 
@@ -122,21 +120,15 @@ object ModelUtil {
      * @param keys used to sign query
      * @return proto query, if succeeded
      */
-    fun prepareQuery(uquery: UnsignedQuery, keys: Keypair): Query? {
-
-        val queryBlob = ModelProtoQuery(uquery)
-            .signAndAddSignature(keys)
-            .finish()
-            .blob()
-        val bquery = queryBlob.toByteArray()
-
-        var protoQuery: Query? = null
-        try {
-            protoQuery = Query.parseFrom(bquery)
-        } catch (e: InvalidProtocolBufferException) {
-            logger.error { "Exception while converting byte array to protobuf:" + e.message }
+    fun prepareQuery(uquery: UnsignedQuery, keys: Keypair): Result<Query, Exception> {
+        return Result.of {
+            val bquery = ModelProtoQuery(uquery)
+                .signAndAddSignature(keys)
+                .finish()
+                .blob()
+                .toByteArray()
+            Query.parseFrom(bquery)
         }
-        return protoQuery
     }
 
     /**
@@ -168,18 +160,20 @@ object ModelUtil {
      * @param keys used to sign transaction
      * @return proto transaction, if succeeded
      */
-    fun prepareTransaction(utx: UnsignedTx, keys: Keypair): Transaction {
-        // sign transaction and get its binary representation (Blob)
-        val txblob = ModelProtoTransaction(utx)
-            .signAndAddSignature(keys)
-            .finish()
-            .blob()
+    fun prepareTransaction(utx: UnsignedTx, keys: Keypair): Result<Transaction, Exception> {
+        return Result.of {
+            // sign transaction and get its binary representation (Blob)
+            val txblob = ModelProtoTransaction(utx)
+                .signAndAddSignature(keys)
+                .finish()
+                .blob()
 
-        // Convert ByteVector to byte array
-        val bs = txblob.toByteArray()
+            // Convert ByteVector to byte array
+            val bs = txblob.toByteArray()
 
-        // create proto object
-        return Transaction.parseFrom(bs)
+            // create proto object
+            Transaction.parseFrom(bs)
+        }
     }
 
     /**
@@ -191,4 +185,28 @@ object ModelUtil {
     fun isStatelessValid(resp: QueryResponse) =
         !(resp.hasErrorResponse() &&
                 resp.errorResponse.reason.toString() == "STATELESS_INVALID")
+
+    /**
+     * Send SetAccountDetail to Iroha
+     * @param irohaConsumer - iroha network layer
+     * @param creator - transaction creator
+     * @param accountId - account to set details
+     * @param key - key of detail
+     * @param value - value of detail
+     * @return hex representation of transaction hash
+     */
+    fun setAccountDetail(
+        irohaConsumer: IrohaConsumer,
+        creator: String,
+        accountId: String,
+        key: String,
+        value: String
+    ): Result<String, Exception> {
+        val tx = ModelTransactionBuilder()
+            .creatorAccountId(creator)
+            .createdTime(ModelUtil.getCurrentTime())
+            .setAccountDetail(accountId, key, value)
+            .build()
+        return irohaConsumer.sendAndCheck(tx)
+    }
 }

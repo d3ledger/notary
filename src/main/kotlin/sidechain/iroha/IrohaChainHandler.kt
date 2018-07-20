@@ -28,15 +28,17 @@ class IrohaChainHandler : ChainHandler<iroha.protocol.BlockOuterClass.Block> {
             .map {
                 when {
                 //TODO: create separate ChainHandler impl for withdrawal proof events
-                    it.hasAddPeer() -> SideChainEvent.IrohaEvent.AddPeer.fromProto(it.addPeer)
-                    it.hasTransferAsset() -> SideChainEvent.IrohaEvent.SideChainTransfer.fromProto(
-                        it.transferAsset,
-                        hash
+                    it.hasAddPeer() -> listOf(SideChainEvent.IrohaEvent.AddPeer.fromProto(it.addPeer))
+                    it.hasTransferAsset() -> listOf(
+                        SideChainEvent.IrohaEvent.SideChainTransfer.fromProto(
+                            it.transferAsset,
+                            hash
+                        )
                     )
-                    else -> null
+                    else -> listOf()
                 }
             }
-            .filterNotNull()
+            .flatten()
     }
 
     /**
