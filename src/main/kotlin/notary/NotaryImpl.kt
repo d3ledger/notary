@@ -29,7 +29,7 @@ class NotaryImpl(
         hash: String,
         account: String,
         asset: String,
-        amount: BigInteger
+        amount: String
     ): IrohaOrderedBatch {
         val domain = "ethereum"
 
@@ -63,7 +63,7 @@ class NotaryImpl(
                     arrayListOf(
                         IrohaCommand.CommandAddAssetQuantity(
                             "$asset#$domain",
-                            amount.toString()
+                            amount
                         ),
                         IrohaCommand.CommandTransferAsset(
                             creator,
@@ -88,13 +88,13 @@ class NotaryImpl(
                 ethInputEvent.hash,
                 ethInputEvent.user,
                 ethereumAssetId,
-                ethInputEvent.amount
+                ethInputEvent.amount.toString()
             )
             is SideChainEvent.EthereumEvent.OnEthSidechainDepositToken -> onEthSidechainDeposit(
                 ethInputEvent.hash,
                 ethInputEvent.user,
                 ethInputEvent.token,
-                ethInputEvent.amount
+                ethInputEvent.amount.toString()
             )
         }
     }

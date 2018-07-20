@@ -34,7 +34,7 @@ fun signUserData(ethereumConfig: EthereumConfig, toSign: String): String {
 fun hashToWithdraw(tokenAddress: String, amount: AmountType, accountAddress: String, irohaHash: String): String {
     return Hash.sha3(
         tokenAddress.replace("0x", "")
-                + String.format("%064x", amount).replace("0x", "")
+                + String.format("%064x", BigInteger(amount)).replace("0x", "")
                 + accountAddress.replace("0x", "")
                 + irohaHash.replace("0x", "")
     )

@@ -1,15 +1,13 @@
 package sidechain.iroha.consumer
 
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import com.google.protobuf.ByteString
 import iroha.protocol.Endpoint
-import iroha.protocol.Responses
+import iroha.protocol.QryResponses
 import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.Hash
-import jp.co.soramitsu.iroha.Keypair
-import jp.co.soramitsu.iroha.Transaction
-import jp.co.soramitsu.iroha.UnsignedTx
 import mu.KLogging
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.toByteArray
@@ -73,12 +71,12 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
      * @return string representation of transaction hash or Exception has raised
      */
     override fun sendAndCheck(tx: TransactionOuterClass.Transaction, hash: Hash): Result<String, Exception> {
-        send(tx)
-        return checkTransactionStatus(hash)
+        return Result.of { send(tx) }
+            .flatMap { checkTransactionStatus(hash) }
     }
 
     /** Send query and check result */
-    override fun sendQuery(protoQuery: iroha.protocol.Queries.Query): Result<Responses.QueryResponse, Exception> {
+    override fun sendQuery(protoQuery: iroha.protocol.Queries.Query): Result<QryResponses.QueryResponse, Exception> {
         return Result.of { queryStub.find(protoQuery) }
     }
 

@@ -7,9 +7,9 @@ import jp.co.soramitsu.iroha.ByteVector
  */
 fun ByteArray.toByteVector(): ByteVector {
     val size = this.size
-    val bs = ByteVector(size as Long)
+    val bs = ByteVector(size.toLong())
     for (i in 0 until size) {
-        bs[i] = this.get(i) as Short
+        bs[i] = this.get(i).toShort()
     }
     return bs
 }

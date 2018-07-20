@@ -1,10 +1,10 @@
 package sidechain.iroha
 
+import jp.co.soramitsu.iroha.Blob
 import jp.co.soramitsu.iroha.iroha.hashTransaction
 import mu.KLogging
 import sidechain.ChainHandler
 import sidechain.SideChainEvent
-import sidechain.iroha.util.getHash
 import sidechain.iroha.util.toByteVector
 
 /**
@@ -21,7 +21,7 @@ class IrohaChainHandler : ChainHandler<iroha.protocol.BlockOuterClass.Block> {
         var hash = ""
         return block.payload.transactionsList
             .map {
-                hash = hashTransaction(it.toByteArray().toByteVector()).toString()
+                hash = Blob(hashTransaction(it.toByteArray().toByteVector())).hex()
                 it
             }
             .flatMap { it.payload.reducedPayload.commandsList }

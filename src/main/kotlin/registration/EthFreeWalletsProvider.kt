@@ -26,7 +26,11 @@ class EthFreeWalletsProvider(
     fun getWallet(): Result<String, Exception> {
         return getRelays(irohaConfig, keypair, irohaNetwork, notaryIrohaAccount, registrationIrohaAccount)
             .map {
-                it.filterValues { it == "free" }.keys.first()
+                val freeWallets = it.filterValues { it == "free" }.keys
+                if (freeWallets.isEmpty())
+                    throw Exception("EthFreeWalletsProvider - no free relay wallets")
+                else
+                    freeWallets.first()
             }
     }
 

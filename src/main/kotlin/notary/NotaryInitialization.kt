@@ -123,7 +123,13 @@ class NotaryInitialization(
                     .subscribeOn(Schedulers.io())
                     .subscribe(
                         // send to Iroha network layer
-                        { irohaConsumer.sendAndCheck(it) },
+                        {
+                            irohaConsumer.sendAndCheck(it)
+                                .fold(
+                                    { println("send success") },
+                                    { println("send failure $it") }
+                                )
+                        },
                         // on error
                         { logger.error { it } },
                         // should be never called
