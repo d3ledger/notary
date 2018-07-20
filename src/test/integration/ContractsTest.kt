@@ -44,10 +44,12 @@ class ContractsTest {
                     address.slice(2 until address.length),
             addPeer.logs[1].data
         )
+        Thread.sleep(120_000)
     }
 
     private fun transferTokensToMaster(amount: BigInteger) {
         token.transfer(master.contractAddress, amount).send()
+        Thread.sleep(120_000)
         assertEquals(amount, token.balanceOf(master.contractAddress).send())
     }
 
@@ -94,12 +96,14 @@ class ContractsTest {
                 ss
             ).send()
         }
+        Thread.sleep(120_000)
     }
 
     @BeforeEach
     fun setup() {
         token = deployHelper.deployBasicCoinSmartContract()
         master = deployHelper.deployMasterSmartContract()
+        //Thread.sleep(120_000)
         relay = deployHelper.deployRelaySmartContract(master.contractAddress, listOf(token.contractAddress))
     }
 
@@ -114,7 +118,7 @@ class ContractsTest {
             deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
         deployHelper.sendEthereum(BigInteger.valueOf(300_000_000), master.contractAddress)
         // have to wait some time until balance will be updated
-        Thread.sleep(15000)
+        Thread.sleep(120_000)
         assertEquals(
             initialBalance + BigInteger.valueOf(300_000_000),
             deployHelper.web3.ethGetBalance(
@@ -151,7 +155,7 @@ class ContractsTest {
         sendAddPeer(deployHelper.credentials.address)
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
         // have to wait some time until balance will be updated
-        Thread.sleep(15000)
+        Thread.sleep(120_000)
         withdraw(
             BigInteger.valueOf(1000),
             tokenAddress = "0x0000000000000000000000000000000000000000",
@@ -180,7 +184,7 @@ class ContractsTest {
         sendAddPeer(deployHelper.credentials.address)
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
         // have to wait some time until balance will be updated
-        Thread.sleep(15000)
+        Thread.sleep(120_000)
         withdraw(
             BigInteger.valueOf(1000), tokenAddress = "0x0000000000000000000000000000000000000000",
             fromMaster = false, to = accAnother
