@@ -1,10 +1,10 @@
 package sidechain.eth.util
 
 import config.EthereumConfig
+import notary.endpoint.eth.AmountType
 import org.web3j.crypto.Hash
 import org.web3j.protocol.http.HttpService
 import org.web3j.protocol.parity.Parity
-import java.math.BigInteger
 
 /**
  * Signs user-provided data with predefined account deployed on local Parity node
@@ -30,7 +30,7 @@ fun signUserData(ethereumConfig: EthereumConfig, toSign: String): String {
  * @param irohaHash hash of transaction in Iroha
  * @return keccak-256 hash of all provided fields
  */
-fun hashToWithdraw(tokenAddress: String, amount: BigInteger, accountAddress: String, irohaHash: String): String {
+fun hashToWithdraw(tokenAddress: String, amount: AmountType, accountAddress: String, irohaHash: String): String {
     return Hash.sha3(
         tokenAddress.replace("0x", "")
                 + String.format("%064x", amount).replace("0x", "")

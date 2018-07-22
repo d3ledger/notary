@@ -140,6 +140,8 @@ sourceSets {
         proto {
             // iroha schema
             srcDirs += "vendor/iroha/schema"
+            srcDirs += "vendor/iroha/shared_model/schema"
+
         }
     }
 }

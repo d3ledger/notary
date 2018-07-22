@@ -5,6 +5,7 @@ import mu.KLogging
 import org.web3j.utils.Numeric
 import sidechain.eth.util.DeployHelper
 import withdrawalservice.WithdrawalServiceOutputEvent
+import java.math.BigInteger
 
 class EthConsumer(ethereumConfig: EthereumConfig) {
     private val deployHelper = DeployHelper(ethereumConfig)
@@ -31,7 +32,7 @@ class EthConsumer(ethereumConfig: EthereumConfig) {
 
             relay.withdraw(
                 event.proof.tokenContractAddress,
-                event.proof.amount,
+                BigInteger(event.proof.amount),
                 event.proof.account,
                 Numeric.hexStringToByteArray(event.proof.irohaHash),
                 event.proof.v,
