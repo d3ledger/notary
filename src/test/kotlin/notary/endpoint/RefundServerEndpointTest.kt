@@ -42,7 +42,7 @@ class RefundServerEndpointTest {
 
     private val response = EthNotaryResponse.Successful(
         "signature",
-        EthRefund("address", "coin", BigInteger.TEN, "irohaTxHash")
+        EthRefund("address", "coin", "10", "irohaTxHash")
     )
 
     private val ethRefundStrategyMock = mock<EthRefundStrategy> {
