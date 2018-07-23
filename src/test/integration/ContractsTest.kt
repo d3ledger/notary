@@ -100,7 +100,6 @@ class ContractsTest {
     fun setup() {
         token = deployHelper.deployBasicCoinSmartContract()
         master = deployHelper.deployMasterSmartContract()
-        // println(master.contractAddress) // TODO remove after eth testnet deployment
         relay = deployHelper.deployRelaySmartContract(master.contractAddress, listOf(token.contractAddress))
     }
 
@@ -123,7 +122,6 @@ class ContractsTest {
                 DefaultBlockParameterName.LATEST
             ).send().balance
         )
-        // sendAddPeer(deployHelper.credentials.address) // TODO remove after eth testnet deployment
     }
 
     /**
