@@ -71,7 +71,7 @@ class IntegrationTest {
     val masterAccount = testConfig.notaryIrohaAccount
 
     /** Ethereum address to transfer to */
-    private val toAddress = "0x00aa39d30f0d20ff03a22ccfc30b7efbfca597c2"
+    private val toAddress = testConfig.ropstenTestAccount
 
     private fun getRandomString(): String {
         val chars = "abcdefghijklmnopqrstuvwxyz"
@@ -201,16 +201,16 @@ class IntegrationTest {
     /**
      * Test US-001 Deposit of ETH
      * Note: Ethereum and Iroha must be deployed to pass the test.
-     * @given Ethereum and Iroha networks running and two ethereum wallets and "fromAddress" with at least 0.001 Ether
-     * (1234000000000000 Wei) and notary running
-     * @when "fromAddress" transfers 1234000000000000 Wei to "toAddress"
-     * @then Associated Iroha account balance is increased on 1234000000000000 Wei
+     * @given Ethereum and Iroha networks running and two ethereum wallets and "fromAddress" with at least
+     * 1234000000000 Wei and notary running
+     * @when "fromAddress" transfers 1234000000000 Wei to "toAddress"
+     * @then Associated Iroha account balance is increased on 1234000000000 Wei
      */
     @Disabled
     @Test
     fun depositOfETH() {
         val assetId = "ether#ethereum"
-        val amount = BigInteger.valueOf(1_234_000_000_000_000)
+        val amount = BigInteger.valueOf(1_234_000_000_000)
 
         // ensure that initial wallet value is 0
         assertEquals(BigInteger.ZERO, queryIroha(assetId))
@@ -225,11 +225,11 @@ class IntegrationTest {
 
         // send ETH
         deployHelper.sendEthereum(amount, toAddress)
-        Thread.sleep(5_000)
+        Thread.sleep(120_000)
 
         // Send again any transaction to commit in Ethereum network
         deployHelper.sendEthereum(amount, toAddress)
-        Thread.sleep(20_000)
+        Thread.sleep(120_000)
 
         assertEquals(amount, queryIroha(assetId))
     }
@@ -254,6 +254,7 @@ class IntegrationTest {
 
         // Deploy ERC20 smart contract
         val contract = DeployHelper(testConfig.ethereum).deployBasicCoinSmartContract()
+        Thread.sleep(120_000)
         val contractAddress = contract.contractAddress
         insertToken(contractAddress, asset)
 
@@ -266,14 +267,13 @@ class IntegrationTest {
 
         // send ETH
         contract.transfer(toAddress, amount).send()
+        Thread.sleep(120_000)
         assertEquals(amount, contract.balanceOf(toAddress).send())
-        Thread.sleep(5_000)
 
 
         // Send again any transaction to commit in Ethereum network
         contract.transfer(toAddress, amount).send()
-        Thread.sleep(20_000)
-
+        Thread.sleep(120_000)
         assertEquals(amount, queryIroha(assetId))
     }
 
