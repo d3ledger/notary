@@ -2,9 +2,9 @@ package sidechain.iroha.consumer
 
 import com.github.kittinunf.result.Result
 import com.google.protobuf.ByteString
-import iroha.protocol.BlockOuterClass
 import iroha.protocol.Endpoint
-import iroha.protocol.Responses
+import iroha.protocol.QryResponses
+import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.Hash
 import mu.KLogging
 import sidechain.iroha.util.ModelUtil
@@ -30,7 +30,7 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
      * Send transaction to iroha
      * @param protoTx protobuf representation of transaction
      */
-    fun send(protoTx: BlockOuterClass.Transaction) {
+    fun send(protoTx: TransactionOuterClass.Transaction) {
         logger.info { "send TX to IROHA" }
 
         // Send transaction to iroha
@@ -68,7 +68,7 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
      * @param hash - transaction hash
      * @return string representation of transaction hash or Exception has raised
      */
-    override fun sendAndCheck(tx: BlockOuterClass.Transaction, hash: Hash): Result<String, Exception> {
+    override fun sendAndCheck(tx: TransactionOuterClass.Transaction, hash: Hash): Result<String, Exception> {
         send(tx)
         return checkTransactionStatus(hash)
     }
@@ -79,7 +79,7 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
      * @param protoQuery - iroha protocol query
      * @return Query response on success or Exception on failure
      */
-    override fun sendQuery(protoQuery: iroha.protocol.Queries.Query): Result<Responses.QueryResponse, Exception> {
+    override fun sendQuery(protoQuery: iroha.protocol.Queries.Query): Result<QryResponses.QueryResponse, Exception> {
         return Result.of { queryStub.find(protoQuery) }
     }
 

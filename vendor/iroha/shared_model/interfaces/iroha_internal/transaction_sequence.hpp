@@ -8,6 +8,7 @@
 
 #include "common/result.hpp"
 #include "interfaces/common_objects/transaction_sequence_common.hpp"
+#include "interfaces/iroha_internal/transaction_batch.hpp"
 #include "validators/transactions_collection/transactions_collection_validator.hpp"
 
 namespace shared_model {
@@ -21,16 +22,41 @@ namespace shared_model {
      */
     class TransactionSequence {
      public:
+
       /**
-       * Get transactions collection
-       * @return transactions collection
+       * Creator of transaction sequence
+       * @param transactions collection of transactions
+       * @param validator validator of the collections
+       * @return Result containing transaction sequence if validation
+       * successful and string message containing error otherwise
        */
-      types::TransactionsForwardCollectionType transactions();
+      template <typename TransactionValidator, typename OrderValidator>
+      static iroha::expected::Result<TransactionSequence, std::string>
+      createTransactionSequence(
+          const types::SharedTxsCollectionType &transactions,
+          const validation::TransactionsCollectionValidator<
+              TransactionValidator,
+              OrderValidator> &validator);
 
-      explicit TransactionSequence(
-          const types::TransactionsForwardCollectionType &transactions);
+      /**
+       * Retrieves transactions from all batches as single collection
+       * @return all batches transactions
+       */
+      const types::SharedTxsCollectionType &transactions() const;
 
-      types::TransactionsForwardCollectionType transactions_;
+      /**
+       * Get batches in transaction sequence
+       * Note that transaction without batch meta are returned as batch with
+       * single transaction
+       * @return collection of batches from transaction sequence
+       */
+      const types::BatchesCollectionType &batches() const;
+
+     private:
+      explicit TransactionSequence(const types::BatchesCollectionType &batches);
+
+      types::BatchesCollectionType batches_;
+      mutable boost::optional<types::SharedTxsCollectionType> transactions_;
     };
 
   }  // namespace interface

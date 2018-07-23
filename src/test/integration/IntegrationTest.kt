@@ -29,7 +29,6 @@ import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
-import sidechain.iroha.util.toBigInteger
 import sidechain.iroha.util.toByteArray
 import java.math.BigInteger
 import java.sql.DriverManager
@@ -171,7 +170,7 @@ class IntegrationTest {
         val assets = queryResponse.accountAssetsResponse.accountAssetsList
         for (asset in assets) {
             if (assetId == asset.assetId)
-                return asset.balance.value.toBigInteger()
+                return BigInteger(asset.balance)
         }
 
         return BigInteger.ZERO
@@ -327,7 +326,7 @@ class IntegrationTest {
                 testConfig.ethereum,
                 hashToWithdraw(
                     assetId.split("#")[0],
-                    amount.toBigInteger(),
+                    amount,
                     ethWallet,
                     hash
                 )
