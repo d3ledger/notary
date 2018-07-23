@@ -126,8 +126,8 @@ class NotaryInitialization(
                         {
                             irohaConsumer.sendAndCheck(it)
                                 .fold(
-                                    { println("send success") },
-                                    { println("send failure $it") }
+                                    { logger.info { "send to Iorha success" } },
+                                    { logger.error { "send failure $it" } }
                                 )
                         },
                         // on error
