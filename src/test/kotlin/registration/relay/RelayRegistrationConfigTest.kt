@@ -27,7 +27,6 @@ class RelayRegistrationConfigTest {
 
         assertEquals("http://localhost:8545", relayRegistrationConfig.ethereum.url)
         assertEquals("deploy/ethereum/keys/user.key", relayRegistrationConfig.ethereum.credentialsPath)
-        assertEquals("user", relayRegistrationConfig.ethereum.credentialsPassword)
         assertEquals(1, relayRegistrationConfig.ethereum.gasPrice)
         assertEquals(999999, relayRegistrationConfig.ethereum.gasLimit)
     }

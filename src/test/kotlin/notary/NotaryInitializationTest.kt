@@ -6,6 +6,7 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import config.DatabaseConfig
 import config.EthereumConfig
+import config.EthereumPasswords
 import config.IrohaConfig
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -34,6 +35,9 @@ class NotaryInitializationTest {
         on { pubkeyPath } doReturn "deploy/iroha/keys/admin@notary.pub"
         on { privkeyPath } doReturn "deploy/iroha/keys/admin@notary.priv"
     }
+
+    /** EthereumPasswords mock */
+    val passwordConfig = mock<EthereumPasswords> {}
 
     /** Ethereum configs */
     val ethereumConfig = mock<EthereumConfig> {
@@ -78,7 +82,8 @@ class NotaryInitializationTest {
             } doReturn Result.of { throw Exception(throwMessage) }
         }
 
-        val notaryInit = NotaryInitialization(notaryConfig, failEthWalletProvider, ethTokenProvider, irohaNetwork)
+        val notaryInit =
+            NotaryInitialization(notaryConfig, passwordConfig, failEthWalletProvider, ethTokenProvider, irohaNetwork)
 
         notaryInit.init().fold(
             { fail { "Exception should be thrown in wallets loader" } },
@@ -103,7 +108,7 @@ class NotaryInitializationTest {
             } doReturn Result.of { throw Exception(throwMessage) }
         }
 
-        val notaryInit = NotaryInitialization(notaryConfig, ethWalletProvider, failEthTokenProvider)
+        val notaryInit = NotaryInitialization(notaryConfig, passwordConfig, ethWalletProvider, failEthTokenProvider)
 
         notaryInit.init().fold(
             { fail { "Exception should be thrown in tokens loader" } },

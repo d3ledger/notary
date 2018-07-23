@@ -4,6 +4,7 @@ package notary
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
+import config.EthereumPasswords
 import config.loadConfigs
 import mu.KLogging
 import sidechain.iroha.IrohaInitialization
@@ -17,6 +18,9 @@ fun main(args: Array<String>) {
     val logger = KLogging()
 
     val notaryConfig = loadConfigs("notary", NotaryConfig::class.java)
+    val passwordConfig =
+        loadConfigs("notary", EthereumPasswords::class.java, "/ethereum_password.properties")
+
     val irohaNetwork = IrohaNetworkImpl(notaryConfig.iroha.hostname, notaryConfig.iroha.port)
 
     IrohaInitialization.loadIrohaLibrary()
@@ -29,7 +33,7 @@ fun main(args: Array<String>) {
                 notaryConfig.iroha.creator,
                 notaryConfig.registrationServiceIrohaAccount
             )
-            NotaryInitialization(notaryConfig, ethWalletsProvider).init()
+            NotaryInitialization(notaryConfig, passwordConfig, ethWalletsProvider).init()
         }
         .failure {
             logger.logger.error { it }

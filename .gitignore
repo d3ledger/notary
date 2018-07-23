@@ -87,3 +87,6 @@ fabric.properties
 
 # Editor-based Rest Client
 .idea/httpRequests
+
+# Ethereum passwords config
+src/main/resources/ethereum_password.properties

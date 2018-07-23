@@ -1,5 +1,6 @@
 package integration
 
+import config.EthereumPasswords
 import config.loadConfigs
 import contract.BasicCoin
 import contract.Master
@@ -20,8 +21,9 @@ import java.math.BigInteger
  */
 class ContractsTest {
     val testConfig = loadConfigs("test", TestConfig::class.java)
+    val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/ethereum_password.properties")
 
-    val deployHelper = DeployHelper(testConfig.ethereum)
+    val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
 
     private lateinit var token: BasicCoin
     private lateinit var master: Master
@@ -62,7 +64,7 @@ class ContractsTest {
     ) {
         val finalHash = hashToWithdraw(tokenAddress, amount, to, irohaHash)
 
-        val signature = signUserData(testConfig.ethereum, finalHash)
+        val signature = signUserData(testConfig.ethereum, passwordConfig, finalHash)
         val r = hexStringToByteArray(signature.substring(2, 66))
         val s = hexStringToByteArray(signature.substring(66, 130))
         val v = signature.substring(130, 132).toBigInteger(16)

@@ -5,6 +5,7 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.google.protobuf.InvalidProtocolBufferException
 import com.squareup.moshi.Moshi
+import config.EthereumPasswords
 import config.loadConfigs
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.Queries.Query
@@ -49,8 +50,9 @@ class IntegrationTest {
     }
 
     val testConfig = loadConfigs("test", TestConfig::class.java)
+    val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/ethereum_password.properties")
 
-    private val deployHelper = DeployHelper(testConfig.ethereum)
+    private val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
 
     /** Iroha host */
     val irohaHost = testConfig.iroha.hostname
@@ -253,7 +255,7 @@ class IntegrationTest {
         assertEquals(BigInteger.ZERO, queryIroha(assetId))
 
         // Deploy ERC20 smart contract
-        val contract = DeployHelper(testConfig.ethereum).deployBasicCoinSmartContract()
+        val contract = DeployHelper(testConfig.ethereum, passwordConfig).deployBasicCoinSmartContract()
         Thread.sleep(120_000)
         val contractAddress = contract.contractAddress
         insertToken(contractAddress, asset)
@@ -325,6 +327,7 @@ class IntegrationTest {
         assertEquals(
             signUserData(
                 testConfig.ethereum,
+                passwordConfig,
                 hashToWithdraw(
                     assetId.split("#")[0],
                     amount.toBigInteger(),

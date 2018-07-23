@@ -1,6 +1,7 @@
 package sidechain.eth.util
 
 import config.EthereumConfig
+import config.EthereumPasswords
 import contract.BasicCoin
 import contract.Master
 import contract.Relay
@@ -16,7 +17,7 @@ import java.math.BigInteger
 /**
  * Helper class for contracts deploying
  */
-class DeployHelper(ethereumConfig: EthereumConfig) {
+class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPasswords) {
 
     /** web3 service instance to communicate with Ethereum network */
     val web3 = Web3j.build(HttpService(ethereumConfig.url))
@@ -24,7 +25,7 @@ class DeployHelper(ethereumConfig: EthereumConfig) {
     /** credentials of ethereum user */
     val credentials by lazy {
         WalletUtils.loadCredentials(
-            ethereumConfig.credentialsPassword,
+            ethereumPasswords.credentialsPassword,
             ethereumConfig.credentialsPath
         )
     }
