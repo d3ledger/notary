@@ -59,11 +59,11 @@ class EthFreeWalletsProviderTest {
                 testConfig.iroha,
                 keypair,
                 testConfig.notaryIrohaAccount,
-                relayRegistrationIrohaAccount
+                creator
             )
         val result = freeWalletsProvider.getWallet()
 
-        assertEquals(ethFreeWallet, result)
+        assertEquals(ethFreeWallet, result.get())
     }
 
     /**
