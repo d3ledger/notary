@@ -6,9 +6,7 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import config.loadConfigs
 import mu.KLogging
-import registration.RegistrationConfig
 import sidechain.iroha.IrohaInitialization
-
 
 /**
  * Main entry point of Withdrawal Service app
