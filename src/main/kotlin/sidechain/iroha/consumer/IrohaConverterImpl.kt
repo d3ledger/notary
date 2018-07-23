@@ -58,7 +58,7 @@ class IrohaConverterImpl {
                         cmd.destAccountId,
                         cmd.assetId,
                         cmd.description,
-                        cmd.amount.toString()
+                        cmd.amount
                     )
             }
         }

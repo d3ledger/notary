@@ -1,6 +1,7 @@
 package sidechain.iroha.consumer
 
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.flatMap
 import com.google.protobuf.ByteString
 import iroha.protocol.Endpoint
 import iroha.protocol.QryResponses
@@ -69,8 +70,8 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
      * @return string representation of transaction hash or Exception has raised
      */
     override fun sendAndCheck(tx: TransactionOuterClass.Transaction, hash: Hash): Result<String, Exception> {
-        send(tx)
-        return checkTransactionStatus(hash)
+        return Result.of { send(tx) }
+            .flatMap { checkTransactionStatus(hash) }
     }
 
     /**

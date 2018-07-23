@@ -73,6 +73,5 @@ class RegistrationStrategyImpl(
         }.map {
             ethWallet
         }
-
     }
 }
