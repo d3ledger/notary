@@ -11,8 +11,6 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import mu.KLogging
 import notary.endpoint.eth.*
-import util.functional.bind
-import util.functional.endValue
 import java.math.BigInteger
 
 /**
@@ -54,21 +52,9 @@ class RefundServerEndpoint(
      * @param rawRequest - raw string of request
      */
     fun onCallEthRefund(rawRequest: String?): String {
-        return createRequest(rawRequest)
-            .bind(ethStrategy::performRefund)
-            .bind(ethNotaryAdapter::toJson)
-            .endValue({
-                it
-            }, {
-                onErrorPipelineCall()
-            })
-    }
-
-    /**
-     * Creates a [EthRefundRequest] object from request string
-     */
-    private fun createRequest(txHash: String?): EthRefundRequest? {
-        return txHash?.let { EthRefundRequest(it) }
+        return rawRequest?.let {
+            ethNotaryAdapter.toJson(ethStrategy.performRefund(EthRefundRequest(rawRequest)))
+        } ?: onErrorPipelineCall()
     }
 
     /**
