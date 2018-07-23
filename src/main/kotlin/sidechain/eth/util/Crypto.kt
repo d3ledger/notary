@@ -2,6 +2,7 @@ package sidechain.eth.util
 
 import config.EthereumConfig
 import config.EthereumPasswords
+import notary.endpoint.eth.AmountType
 import org.web3j.crypto.Hash
 import org.web3j.protocol.http.HttpService
 import org.web3j.protocol.parity.Parity
@@ -31,10 +32,10 @@ fun signUserData(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPass
  * @param irohaHash hash of transaction in Iroha
  * @return keccak-256 hash of all provided fields
  */
-fun hashToWithdraw(tokenAddress: String, amount: BigInteger, accountAddress: String, irohaHash: String): String {
+fun hashToWithdraw(tokenAddress: String, amount: AmountType, accountAddress: String, irohaHash: String): String {
     return Hash.sha3(
         tokenAddress.replace("0x", "")
-                + String.format("%064x", amount).replace("0x", "")
+                + String.format("%064x", BigInteger(amount)).replace("0x", "")
                 + accountAddress.replace("0x", "")
                 + irohaHash.replace("0x", "")
     )

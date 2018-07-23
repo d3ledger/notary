@@ -8,6 +8,7 @@ import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
 import notary.EthTokensProvider
 import notary.EthTokensProviderImpl
+import notary.endpoint.eth.AmountType
 import org.web3j.utils.Numeric.hexStringToByteArray
 import sidechain.SideChainEvent
 import sidechain.eth.util.hashToWithdraw
@@ -29,7 +30,7 @@ import java.math.BigInteger
  */
 data class RollbackApproval(
     val tokenContractAddress: String,
-    val amount: BigInteger,
+    val amount: AmountType,
     val account: String,
     val irohaHash: String,
     val r: ArrayList<ByteArray>,

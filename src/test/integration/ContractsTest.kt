@@ -61,7 +61,7 @@ class ContractsTest {
         to: String = accGreen,
         fromMaster: Boolean = true
     ) {
-        val finalHash = hashToWithdraw(tokenAddress, amount, to, irohaHash)
+        val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, irohaHash)
 
         val signature = signUserData(testConfig.ethereum, passwordConfig, finalHash)
         val r = hexStringToByteArray(signature.substring(2, 66))

@@ -6,7 +6,8 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.IrohaConfig
-import iroha.protocol.Responses
+import iroha.protocol.QryResponses
+import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelQueryBuilder
 import notary.endpoint.eth.NotaryException
@@ -58,7 +59,7 @@ fun getRelays(
  * @param queryResponse - query response on getTransactions
  * @return first transaction
  */
-fun getFirstTransaction(queryResponse: Responses.QueryResponse): Result<iroha.protocol.BlockOuterClass.Transaction, Exception> {
+fun getFirstTransaction(queryResponse: QryResponses.QueryResponse): Result<TransactionOuterClass.Transaction, Exception> {
     return Result.of {
         val fieldDescriptor = queryResponse.descriptorForType.findFieldByName("transactions_response")
 

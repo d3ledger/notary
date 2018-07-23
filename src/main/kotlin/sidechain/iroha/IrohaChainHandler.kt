@@ -1,9 +1,11 @@
 package sidechain.iroha
 
+import jp.co.soramitsu.iroha.Blob
+import jp.co.soramitsu.iroha.iroha.hashTransaction
 import mu.KLogging
 import sidechain.ChainHandler
 import sidechain.SideChainEvent
-import sidechain.iroha.util.getHash
+import sidechain.iroha.util.toByteVector
 
 /**
  * Implementation of [ChainHandler] to convert from Iroha protocol to [SideChainEvent.IrohaEvent]
@@ -19,7 +21,7 @@ class IrohaChainHandler : ChainHandler<iroha.protocol.BlockOuterClass.Block> {
         var hash = ""
         return block.payload.transactionsList
             .map {
-                hash = getHash(it.toByteArray())
+                hash = Blob(hashTransaction(it.toByteArray().toByteVector())).hex()
                 it
             }
             .flatMap { it.payload.reducedPayload.commandsList }
@@ -27,12 +29,15 @@ class IrohaChainHandler : ChainHandler<iroha.protocol.BlockOuterClass.Block> {
                 when {
                 //TODO: create separate ChainHandler impl for withdrawal proof events
                     it.hasAddPeer() -> listOf(SideChainEvent.IrohaEvent.AddPeer.fromProto(it.addPeer))
-                    it.hasTransferAsset() -> listOf(
-                        SideChainEvent.IrohaEvent.SideChainTransfer.fromProto(
-                            it.transferAsset,
-                            hash
+                    it.hasTransferAsset() -> {
+                        logger.info { "transfer iroha event (from: ${it.transferAsset.srcAccountId}, to ${it.transferAsset.destAccountId}, amount: ${it.transferAsset.amount}, asset: ${it.transferAsset.assetId}" }
+                        listOf(
+                            SideChainEvent.IrohaEvent.SideChainTransfer.fromProto(
+                                it.transferAsset,
+                                hash
+                            )
                         )
-                    )
+                    }
                     else -> listOf()
                 }
             }

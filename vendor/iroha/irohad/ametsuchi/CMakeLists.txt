@@ -16,11 +16,16 @@ add_library(ametsuchi
 target_link_libraries(ametsuchi
     logger
     rxcpp
-    pqxx
     libs_common
     command_execution
     query_execution
     shared_model_interfaces
     shared_model_proto_backend
     shared_model_stateless_validation
+    SOCI::core
+    SOCI::postgresql
+    )
+
+target_compile_definitions(ametsuchi
+    PRIVATE SOCI_USE_BOOST HAVE_BOOST
     )

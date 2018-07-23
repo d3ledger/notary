@@ -67,7 +67,7 @@ sealed class IrohaCommand {
         val destAccountId: String,
         val assetId: String,
         val description: String,
-        val amount: BigInteger
+        val amount: String
     ) : IrohaCommand()
 
     /**

@@ -30,7 +30,6 @@ import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
-import sidechain.iroha.util.toBigInteger
 import sidechain.iroha.util.toByteArray
 import java.math.BigInteger
 import java.sql.DriverManager
@@ -67,6 +66,9 @@ class IntegrationTest {
 
     /** Iroha keypair */
     val keypair = ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
+
+    /** Iroha client account */
+    val clientIrohaAccount = "user1@notary"
 
     val irohaNetwork = IrohaNetworkImpl(irohaHost, irohaPort)
 
@@ -143,7 +145,7 @@ class IntegrationTest {
     /**
      * Query Iroha account balance
      */
-    fun queryIroha(assetId: String, accountId: String = "user1@notary"): BigInteger {
+    fun queryIroha(assetId: String, accountId: String): BigInteger {
         val queryCounter: Long = 1
 
         val uquery = ModelQueryBuilder()
@@ -173,7 +175,7 @@ class IntegrationTest {
         val assets = queryResponse.accountAssetsResponse.accountAssetsList
         for (asset in assets) {
             if (assetId == asset.assetId)
-                return asset.balance.value.toBigInteger()
+                return BigInteger(asset.balance)
         }
 
         return BigInteger.ZERO
@@ -215,9 +217,9 @@ class IntegrationTest {
         val amount = BigInteger.valueOf(1_234_000_000_000)
 
         // ensure that initial wallet value is 0
-        assertEquals(BigInteger.ZERO, queryIroha(assetId))
+        assertEquals(BigInteger.ZERO, queryIroha(assetId, clientIrohaAccount))
 
-        setAccountDetail("notary_red@notary", toAddress, "user1@notary", testConfig.registrationIrohaAccount)
+        setAccountDetail("notary_red@notary", toAddress, clientIrohaAccount, testConfig.registrationIrohaAccount)
 
         // run notary
         async {
@@ -233,7 +235,7 @@ class IntegrationTest {
         deployHelper.sendEthereum(amount, toAddress)
         Thread.sleep(120_000)
 
-        assertEquals(amount, queryIroha(assetId))
+        assertEquals(amount, queryIroha(assetId, clientIrohaAccount))
     }
 
     /**
@@ -252,7 +254,7 @@ class IntegrationTest {
         val amount = BigInteger.valueOf(51)
 
         // ensure that initial wallet value is 0
-        assertEquals(BigInteger.ZERO, queryIroha(assetId))
+        assertEquals(BigInteger.ZERO, queryIroha(assetId, clientIrohaAccount))
 
         // Deploy ERC20 smart contract
         val contract = DeployHelper(testConfig.ethereum, passwordConfig).deployBasicCoinSmartContract()
@@ -276,7 +278,7 @@ class IntegrationTest {
         // Send again any transaction to commit in Ethereum network
         contract.transfer(toAddress, amount).send()
         Thread.sleep(120_000)
-        assertEquals(amount, queryIroha(assetId))
+        assertEquals(amount, queryIroha(assetId, clientIrohaAccount))
     }
 
     /**
@@ -320,7 +322,7 @@ class IntegrationTest {
         assert(response is EthNotaryResponse.Successful)
         response as EthNotaryResponse.Successful
 
-        assertEquals(BigInteger(amount), response.ethRefund.amount)
+        assertEquals(amount, response.ethRefund.amount)
         assertEquals(ethWallet, response.ethRefund.address)
         assertEquals("ether", response.ethRefund.assetId)
 
@@ -330,7 +332,7 @@ class IntegrationTest {
                 passwordConfig,
                 hashToWithdraw(
                     assetId.split("#")[0],
-                    amount.toBigInteger(),
+                    amount,
                     ethWallet,
                     hash
                 )
