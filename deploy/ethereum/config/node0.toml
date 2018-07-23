@@ -1,3 +1,10 @@
+[parity]
+chain = "ropsten"
+base_path = "/eth"
+db_path = "/eth/data"
+keys_path = "/eth/keys"
+light = false
+
 [rpc]
 apis = ["web3", "eth", "net", "personal", "parity", "parity_set", "traces", "rpc", "parity_accounts"]
 disable = false

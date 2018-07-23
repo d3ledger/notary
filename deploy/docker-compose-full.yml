@@ -27,18 +27,18 @@ services:
     volumes:
       - /var/lib/postgresql/data
 
-  # ethereum
-  d3-eth-node0:
-    build:
-      context: .
-      dockerfile: ethereum/parity.dockerfile
-    container_name: d3-eth-node0
-    volumes:
-      - ./ethereum:/eth
-    environment:
-      - NODE=0
-    ports:
-      - 8545:8545
+  # ethereum (uncomment if you want to run local node)
+#  d3-eth-node0:
+#    build:
+#      context: .
+#      dockerfile: ethereum/parity.dockerfile
+#    container_name: d3-eth-node0
+#    volumes:
+#      - ./ethereum:/eth
+#    environment:
+#      - NODE=0
+#    ports:
+#      - 8545:8545
 
   # d3
   d3-notary-postgres:

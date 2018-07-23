@@ -29,9 +29,8 @@ class ContractsTest {
     private lateinit var master: Master
     private lateinit var relay: Relay
 
-    // predefined accounts which already exists on parity node
-    private val accGreen = "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e"
-    private val accAnother = "0x00aa39d30f0d20ff03a22ccfc30b7efbfca597c2"
+    // some ropsten account
+    private val accGreen = "0x93668c6b9b8b9b9ea2393ab689e413cdd1e3440f"
 
     private fun sendAddPeer(address: String) {
         val addPeer = master.addPeer(address).send()
@@ -153,7 +152,7 @@ class ContractsTest {
     @Test
     fun singleCorrectSignatureEtherTestMaster() {
         val initialBalance =
-            deployHelper.web3.ethGetBalance(accAnother, DefaultBlockParameterName.LATEST).send().balance
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         sendAddPeer(deployHelper.credentials.address)
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
         // have to wait some time until balance will be updated
@@ -161,7 +160,7 @@ class ContractsTest {
         withdraw(
             BigInteger.valueOf(1000),
             tokenAddress = "0x0000000000000000000000000000000000000000",
-            to = accAnother
+            to = accGreen
         )
         assertEquals(
             BigInteger.valueOf(4000),
@@ -169,7 +168,7 @@ class ContractsTest {
         )
         assertEquals(
             initialBalance + BigInteger.valueOf(1000),
-            deployHelper.web3.ethGetBalance(accAnother, DefaultBlockParameterName.LATEST).send().balance
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         )
     }
 
@@ -182,14 +181,14 @@ class ContractsTest {
     @Test
     fun singleCorrectSignatureEtherTestRelay() {
         val initialBalance =
-            deployHelper.web3.ethGetBalance(accAnother, DefaultBlockParameterName.LATEST).send().balance
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         sendAddPeer(deployHelper.credentials.address)
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
         // have to wait some time until balance will be updated
         Thread.sleep(120_000)
         withdraw(
             BigInteger.valueOf(1000), tokenAddress = "0x0000000000000000000000000000000000000000",
-            fromMaster = false, to = accAnother
+            fromMaster = false, to = accGreen
         )
         assertEquals(
             BigInteger.valueOf(4000),
@@ -197,7 +196,7 @@ class ContractsTest {
         )
         assertEquals(
             initialBalance + BigInteger.valueOf(1000),
-            deployHelper.web3.ethGetBalance(accAnother, DefaultBlockParameterName.LATEST).send().balance
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         )
     }
 
