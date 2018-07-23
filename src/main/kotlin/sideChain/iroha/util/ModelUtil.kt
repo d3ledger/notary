@@ -12,7 +12,6 @@ import iroha.protocol.TransactionOuterClass.Transaction
 import jp.co.soramitsu.iroha.*
 import mu.KLogging
 import sidechain.iroha.consumer.IrohaConsumer
-import sidechain.iroha.consumer.IrohaNetwork
 import java.io.IOException
 import java.math.BigInteger
 import java.nio.file.Files
