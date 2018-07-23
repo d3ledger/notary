@@ -384,7 +384,7 @@ class IntegrationTest {
 
         // transfer assets from user to notary master account
         transferAssetIroha(fullName, masterAccount, assetId, amount, ethWallet, fullName, kp)
-        Thread.sleep(120_000)
+        Thread.sleep(300_000)
 
 
         assertEquals(

@@ -50,7 +50,8 @@ class ContractsTest {
 
     private fun transferTokensToMaster(amount: BigInteger) {
         token.transfer(master.contractAddress, amount).send()
-        Thread.sleep(120_000)
+        //TODO: find a better way to wait
+        Thread.sleep(300_000)
         assertEquals(amount, token.balanceOf(master.contractAddress).send())
     }
 
@@ -104,7 +105,7 @@ class ContractsTest {
     fun setup() {
         token = deployHelper.deployBasicCoinSmartContract()
         master = deployHelper.deployMasterSmartContract()
-        //Thread.sleep(120_000)
+        Thread.sleep(120_000)
         relay = deployHelper.deployRelaySmartContract(master.contractAddress, listOf(token.contractAddress))
     }
 
