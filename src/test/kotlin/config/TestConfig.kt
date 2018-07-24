@@ -1,4 +1,4 @@
-package integration
+package config
 
 import config.DatabaseConfig
 import config.EthereumConfig

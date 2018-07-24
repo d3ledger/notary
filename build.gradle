@@ -89,7 +89,7 @@ dependencies {
     implementation 'com.beust:klaxon:3.0.1'
 
     // JSON converter
-    implementation 'com.squareup.moshi:moshi-kotlin:1.5.0'
+    compile 'com.squareup.moshi:moshi-kotlin:1.5.0'
 
     // for Result
     compile group: 'com.github.kittinunf.result', name: 'result', version: '1.4.0'
@@ -144,6 +144,19 @@ sourceSets {
 
         }
     }
+    integrationTest {
+        kotlin {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDirs += 'src/integration-test/kotlin'
+        }
+        resources.srcDir file('src/integration-test/resources')
+    }
+}
+
+configurations {
+    integrationTestCompile.extendsFrom testCompile
+    integrationTestRuntime.extendsFrom testRuntime
 }
 
 test {
@@ -152,6 +165,21 @@ test {
     println "Runtime Iroha library path:${systemProperties}"
     environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
 }
+
+task integrationTest(type: Test) {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = 'Runs the integration tests.'
+
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+
+    // Enable JUnit5 tests
+    useJUnitPlatform {
+    }
+
+    mustRunAfter test
+}
+check.dependsOn integrationTest
 
 run {
     systemProperty "java.library.path", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
