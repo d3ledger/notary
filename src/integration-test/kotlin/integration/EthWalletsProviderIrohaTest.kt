@@ -1,6 +1,7 @@
 package integration
 
 import com.github.kittinunf.result.failure
+import config.TestConfig
 import config.loadConfigs
 import notary.EthWalletsProviderIrohaImpl
 import notary.IrohaCommand

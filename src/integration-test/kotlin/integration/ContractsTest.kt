@@ -1,5 +1,6 @@
 package integration
 
+import config.TestConfig
 import config.loadConfigs
 import contract.BasicCoin
 import contract.Master

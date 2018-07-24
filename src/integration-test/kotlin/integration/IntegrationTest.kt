@@ -5,6 +5,7 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.google.protobuf.InvalidProtocolBufferException
 import com.squareup.moshi.Moshi
+import config.TestConfig
 import config.loadConfigs
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.Queries.Query
