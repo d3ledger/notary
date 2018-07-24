@@ -2,6 +2,7 @@ package withdrawalservice
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
+import config.EthereumPasswords
 import io.reactivex.Observable
 import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
@@ -44,6 +45,7 @@ data class RollbackApproval(
  */
 class WithdrawalServiceImpl(
     val withdrawalServiceConfig: WithdrawalServiceConfig,
+    val withdrawalServicePasswords: EthereumPasswords,
     val keypair: Keypair,
     val irohaNetwork: IrohaNetwork,
     private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
@@ -108,6 +110,7 @@ class WithdrawalServiceImpl(
                     val signature =
                         signUserData(
                             withdrawalServiceConfig.ethereum,
+                            withdrawalServicePasswords,
                             hashToWithdraw(coinAddress, amount, address, hash)
                         )
                     val r = hexStringToByteArray(signature.substring(2, 66))

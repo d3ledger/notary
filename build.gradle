@@ -57,8 +57,8 @@ dependencies {
     compile fileTree(dir: iroha_bindings_dir, include: '*.jar')
 
     // Eth library
-    compile 'org.web3j:core:3.3.1'
-    compile 'org.web3j:parity:3.3.1'
+    compile 'org.web3j:core:3.4.0'
+    compile 'org.web3j:parity:3.4.0'
 
     // Waves library
     compile 'com.wavesplatform:wavesj:0.4'

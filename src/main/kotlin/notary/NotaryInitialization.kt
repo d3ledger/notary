@@ -4,6 +4,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
+import config.EthereumPasswords
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import mu.KLogging
@@ -31,6 +32,7 @@ import java.math.BigInteger
  */
 class NotaryInitialization(
     val notaryConfig: NotaryConfig,
+    val passwordsConfig: EthereumPasswords,
     val ethWalletsProvider: EthWalletsProvider,
     val ethTokensProvider: EthTokensProvider = EthTokensProviderImpl(notaryConfig.db),
     val irohaNetwork: IrohaNetwork = IrohaNetworkImpl(notaryConfig.iroha.hostname, notaryConfig.iroha.port)
@@ -146,7 +148,13 @@ class NotaryInitialization(
         logger.info { "Init Refund notary.endpoint" }
         RefundServerEndpoint(
             ServerInitializationBundle(notaryConfig.refund.port, notaryConfig.refund.endpointEthereum),
-            EthRefundStrategyImpl(notaryConfig.iroha, irohaNetwork, notaryConfig.ethereum, irohaKeypair)
+            EthRefundStrategyImpl(
+                notaryConfig.iroha,
+                irohaNetwork,
+                notaryConfig.ethereum,
+                passwordsConfig,
+                irohaKeypair
+            )
         )
     }
 

@@ -3,6 +3,7 @@ package notary.endpoint.eth
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import config.EthereumConfig
+import config.EthereumPasswords
 import config.IrohaConfig
 import iroha.protocol.TransactionOuterClass.Transaction
 import jp.co.soramitsu.iroha.Hash
@@ -26,6 +27,7 @@ class EthRefundStrategyImpl(
     val irohaConfig: IrohaConfig,
     val irohaNetwork: IrohaNetwork,
     val ethereumConfig: EthereumConfig,
+    val ethereumPasswords: EthereumPasswords,
     private val keypair: Keypair
 ) : EthRefundStrategy {
 
@@ -126,7 +128,7 @@ class EthRefundStrategyImpl(
                     ethRefund.address,
                     ethRefund.irohaTxHash
                 )
-            val signature = signUserData(ethereumConfig, finalHash)
+            val signature = signUserData(ethereumConfig, ethereumPasswords, finalHash)
             EthNotaryResponse.Successful(signature, ethRefund)
         }
     }

@@ -3,6 +3,7 @@ package registration.relay
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
+import config.EthereumPasswords
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import mu.KLogging
@@ -22,14 +23,15 @@ import java.math.BigInteger
  * Deploys relay smart contracts in Ethereum network and records it in Iroha.
  */
 class RelayRegistration(
-    val relayRegistrationConfig: RelayRegistrationConfig
+    val relayRegistrationConfig: RelayRegistrationConfig,
+    val relayRegistrationEthereumPasswords: EthereumPasswords
 ) {
 
     /** Ethereum token list provider */
     val ethTokensProvider: EthTokensProvider = EthTokensProviderImpl(relayRegistrationConfig.db)
 
     /** Ethereum endpoint */
-    val deployHelper = DeployHelper(relayRegistrationConfig.ethereum)
+    val deployHelper = DeployHelper(relayRegistrationConfig.ethereum, relayRegistrationEthereumPasswords)
 
     /** Iroha endpoint */
     val irohaConsumer = IrohaConsumerImpl(relayRegistrationConfig.iroha)
