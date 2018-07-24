@@ -31,7 +31,7 @@ class EthFreeWalletsProvider(
             .map {
                 val freeWallets = it.filterValues { it == "free" }.keys
                 if (freeWallets.isEmpty())
-                    throw Exception("EthFreeWalletsProvider - no free relay wallets")
+                    throw Exception("EthFreeWalletsProvider - no free relay wallets created by $registrationIrohaAccount")
                 else
                     freeWallets.first()
             }
