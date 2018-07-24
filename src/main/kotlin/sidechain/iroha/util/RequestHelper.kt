@@ -49,8 +49,9 @@ fun getRelays(
             val json: JsonObject = Parser().parse(stringBuilder) as JsonObject
 
             if (json.map[detailSetterAccount] == null)
-                throw Exception("No relay wallets found. There is no attributes set by $detailSetterAccount")
-            json.map[detailSetterAccount] as Map<String, String>
+                mapOf<String, String>()
+            else
+                json.map[detailSetterAccount] as Map<String, String>
         }
 }
 
