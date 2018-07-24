@@ -59,7 +59,7 @@ services:
     container_name: d3-deploy-relay
     depends_on:
       - d3-iroha
-      - d3-eth-node0
+      # - d3-eth-node0
 
   d3-registration:
     build:
@@ -68,7 +68,7 @@ services:
     container_name: d3-registration
     depends_on:
       - d3-iroha
-      - d3-eth-node0
+     # - d3-eth-node0
     ports:
       - 8083:8083
 
@@ -79,7 +79,7 @@ services:
     container_name: d3-notary
     depends_on:
       - d3-iroha
-      - d3-eth-node0
+     # - d3-eth-node0
       - d3-notary-postgres
     ports:
       - 8080:8080
@@ -91,7 +91,7 @@ services:
     container_name: d3-withdrawal
     depends_on:
       - d3-iroha
-      - d3-eth-node0
+     # - d3-eth-node0
 
   grpcwebproxy:
     build:
