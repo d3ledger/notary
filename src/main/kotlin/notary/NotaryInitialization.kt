@@ -65,21 +65,16 @@ class NotaryInitialization(
 
         val web3 = Web3j.build(HttpService(notaryConfig.ethereum.url))
         /** List of all observable wallets */
-        return ethWalletsProvider.getWallets()
-            .fanout {
-                /** List of all observable ERC20 tokens */
-                ethTokensProvider.getTokens()
-            }.flatMap { (wallets, tokens) ->
-                val ethHandler = EthChainHandler(web3, wallets, tokens)
-                EthChainListener(
-                    web3,
-                    BigInteger.valueOf(notaryConfig.ethereum.confirmationPeriod)
-                ).getBlockObservable()
-                    .map { observable ->
-                        observable.flatMapIterable { ethHandler.parseBlock(it) }
-                    }
+        val ethHandler = EthChainHandler(web3, ethWalletsProvider, ethTokensProvider)
+        return EthChainListener(
+            web3,
+            BigInteger.valueOf(notaryConfig.ethereum.confirmationPeriod)
+        ).getBlockObservable()
+            .map { observable ->
+                observable.flatMapIterable { ethHandler.parseBlock(it) }
             }
     }
+
 
     /**
      * Init Iroha chain listener
