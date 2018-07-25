@@ -58,7 +58,8 @@ class EthChainHandler(
                     wallets[to]!!,
                     // all non-existent keys were filtered out in parseBlock
                     tokens[tx.to]!!,
-                    amount
+                    amount,
+                    from
                 )
             }
     }
@@ -74,7 +75,8 @@ class EthChainHandler(
                 tx.hash,
                 // all non-existent keys were filtered out in parseBlock
                 wallets[tx.to]!!,
-                tx.value
+                tx.value,
+                tx.from
             )
         )
     }
