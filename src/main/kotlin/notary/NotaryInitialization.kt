@@ -128,7 +128,7 @@ class NotaryInitialization(
                                 )
                         },
                         // on error
-                        { logger.error { it } },
+                        { logger.error { "OnError called $it" } },
                         // should be never called
                         { logger.error { "OnComplete called" } }
                     )
