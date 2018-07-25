@@ -21,10 +21,16 @@ interface IrohaConfig {
 interface EthereumConfig {
     val url: String
     val credentialsPath: String
-    val credentialsPassword: String
     val gasPrice: Long
     val gasLimit: Long
     val confirmationPeriod: Long
+}
+
+/**
+ * Ethereum passwords
+ */
+interface EthereumPasswords {
+    val credentialsPassword: String
 }
 
 /**
@@ -39,8 +45,8 @@ interface DatabaseConfig {
 /**
  * Load configs from Java properties
  */
-fun <T : Any> loadConfigs(prefix: String, type: Class<T>): T {
-    val loader = PropertyConfigLoader(ClasspathConfigSource("/defaults.properties"))
+fun <T : Any> loadConfigs(prefix: String, type: Class<T>, filename: String = "/defaults.properties"): T {
+    val loader = PropertyConfigLoader(ClasspathConfigSource(filename))
     val provider = ProxyConfigProvider(loader)
     return provider.bind(prefix, type)
 }

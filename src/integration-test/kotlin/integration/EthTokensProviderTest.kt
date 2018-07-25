@@ -1,5 +1,6 @@
 package integration
 
+import config.TestConfig
 import config.loadConfigs
 import notary.db.tables.Tokens
 import org.jooq.impl.DSL

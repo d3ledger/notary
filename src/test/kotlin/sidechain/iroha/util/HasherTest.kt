@@ -1,8 +1,8 @@
 package sidechain.iroha.util
 
 import com.github.kittinunf.result.failure
+import config.TestConfig
 import config.loadConfigs
-import integration.TestConfig
 import jp.co.soramitsu.iroha.Blob
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import jp.co.soramitsu.iroha.iroha

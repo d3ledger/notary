@@ -5,6 +5,7 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.google.protobuf.InvalidProtocolBufferException
 import com.squareup.moshi.Moshi
+import config.EthereumPasswords
 import config.TestConfig
 import config.loadConfigs
 import io.grpc.ManagedChannelBuilder
@@ -49,8 +50,9 @@ class IntegrationTest {
     }
 
     val testConfig = loadConfigs("test", TestConfig::class.java)
+    val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/ethereum_password.properties")
 
-    private val deployHelper = DeployHelper(testConfig.ethereum)
+    private val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
 
     /** Iroha host */
     val irohaHost = testConfig.iroha.hostname
@@ -74,7 +76,7 @@ class IntegrationTest {
     val masterAccount = testConfig.notaryIrohaAccount
 
     /** Ethereum address to transfer to */
-    private val toAddress = "0x00aa39d30f0d20ff03a22ccfc30b7efbfca597c2"
+    private val toAddress = testConfig.ropstenTestAccount
 
     private fun getRandomString(): String {
         val chars = "abcdefghijklmnopqrstuvwxyz"
@@ -204,16 +206,16 @@ class IntegrationTest {
     /**
      * Test US-001 Deposit of ETH
      * Note: Ethereum and Iroha must be deployed to pass the test.
-     * @given Ethereum and Iroha networks running and two ethereum wallets and "fromAddress" with at least 0.001 Ether
-     * (1234000000000000 Wei) and notary running
-     * @when "fromAddress" transfers 1234000000000000 Wei to "toAddress"
-     * @then Associated Iroha account balance is increased on 1234000000000000 Wei
+     * @given Ethereum and Iroha networks running and two ethereum wallets and "fromAddress" with at least
+     * 1234000000000 Wei and notary running
+     * @when "fromAddress" transfers 1234000000000 Wei to "toAddress"
+     * @then Associated Iroha account balance is increased on 1234000000000 Wei
      */
     @Disabled
     @Test
     fun depositOfETH() {
         val assetId = "ether#ethereum"
-        val amount = BigInteger.valueOf(1_234_000_000_000_000)
+        val amount = BigInteger.valueOf(1_234_000_000_000)
 
         // ensure that initial wallet value is 0
         assertEquals(BigInteger.ZERO, queryIroha(assetId, clientIrohaAccount))
@@ -228,11 +230,11 @@ class IntegrationTest {
 
         // send ETH
         deployHelper.sendEthereum(amount, toAddress)
-        Thread.sleep(5_000)
+        Thread.sleep(120_000)
 
         // Send again any transaction to commit in Ethereum network
         deployHelper.sendEthereum(amount, toAddress)
-        Thread.sleep(20_000)
+        Thread.sleep(120_000)
 
         assertEquals(amount, queryIroha(assetId, clientIrohaAccount))
     }
@@ -256,7 +258,8 @@ class IntegrationTest {
         assertEquals(BigInteger.ZERO, queryIroha(assetId, clientIrohaAccount))
 
         // Deploy ERC20 smart contract
-        val contract = DeployHelper(testConfig.ethereum).deployBasicCoinSmartContract()
+        val contract = DeployHelper(testConfig.ethereum, passwordConfig).deployBasicCoinSmartContract()
+        Thread.sleep(120_000)
         val contractAddress = contract.contractAddress
         insertToken(contractAddress, asset)
 
@@ -269,14 +272,13 @@ class IntegrationTest {
 
         // send ETH
         contract.transfer(toAddress, amount).send()
+        Thread.sleep(120_000)
         assertEquals(amount, contract.balanceOf(toAddress).send())
-        Thread.sleep(5_000)
 
 
         // Send again any transaction to commit in Ethereum network
         contract.transfer(toAddress, amount).send()
-        Thread.sleep(20_000)
-
+        Thread.sleep(120_000)
         assertEquals(amount, queryIroha(assetId, clientIrohaAccount))
     }
 
@@ -328,6 +330,7 @@ class IntegrationTest {
         assertEquals(
             signUserData(
                 testConfig.ethereum,
+                passwordConfig,
                 hashToWithdraw(
                     assetId.split("#")[0],
                     amount,
@@ -382,7 +385,7 @@ class IntegrationTest {
 
         // transfer assets from user to notary master account
         transferAssetIroha(fullName, masterAccount, assetId, amount, ethWallet, fullName, kp)
-        Thread.sleep(15_000)
+        Thread.sleep(300_000)
 
         assertEquals(
             initialBalance + BigInteger.valueOf(amount.toLong()),

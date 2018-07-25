@@ -4,6 +4,7 @@ package registration.relay
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
+import config.EthereumPasswords
 import config.loadConfigs
 import mu.KLogging
 import sidechain.iroha.IrohaInitialization
@@ -18,9 +19,11 @@ fun main(args: Array<String>) {
     val logger = KLogging()
 
     val relayRegistrationConfig = loadConfigs("relay-registration", RelayRegistrationConfig::class.java)
+    val passwordConfig =
+        loadConfigs("relay-registration", EthereumPasswords::class.java, "/ethereum_password.properties")
 
     IrohaInitialization.loadIrohaLibrary()
-        .flatMap { RelayRegistration(relayRegistrationConfig).deploy() }
+        .flatMap { RelayRegistration(relayRegistrationConfig, passwordConfig).deploy() }
         .failure {
             logger.logger.error { it }
             System.exit(1)

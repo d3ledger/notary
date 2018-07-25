@@ -87,3 +87,12 @@ fabric.properties
 
 # Editor-based Rest Client
 .idea/httpRequests
+
+# Ethereum passwords config
+src/main/resources/ethereum_password.properties
+
+# Artifacts of parity node
+deploy/ethereum/cache
+deploy/ethereum/data
+deploy/ethereum/network
+deploy/ethereum/keys/test

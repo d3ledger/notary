@@ -4,6 +4,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
+import config.EthereumPasswords
 import io.reactivex.Observable
 import mu.KLogging
 import sidechain.SideChainEvent
@@ -15,8 +16,12 @@ import sidechain.iroha.util.ModelUtil
 
 /**
  * @param withdrawalConfig - configuration for withdrawal service
+ * @param withdrawalEthereumPasswords - passwords for ethereum withdrawal account
  */
-class WithdrawalServiceInitialization(val withdrawalConfig: WithdrawalServiceConfig) {
+class WithdrawalServiceInitialization(
+    val withdrawalConfig: WithdrawalServiceConfig,
+    val withdrawalEthereumPasswords: EthereumPasswords
+) {
     val irohaCreator = withdrawalConfig.iroha.creator
     val irohaKeypair =
         ModelUtil.loadKeypair(
@@ -47,14 +52,14 @@ class WithdrawalServiceInitialization(val withdrawalConfig: WithdrawalServiceCon
     private fun initWithdrawalService(inputEvents: Observable<SideChainEvent.IrohaEvent>): WithdrawalService {
         logger.info { "Init Withdrawal Service" }
 
-        return WithdrawalServiceImpl(withdrawalConfig, irohaKeypair, irohaNetwork, inputEvents)
+        return WithdrawalServiceImpl(withdrawalConfig, withdrawalEthereumPasswords, irohaKeypair, irohaNetwork, inputEvents)
     }
 
     private fun initEthConsumer(withdrawalService: WithdrawalService): Result<Unit, Exception> {
         logger.info { "Init Ether consumer" }
 
         return Result.of {
-            val ethConsumer = EthConsumer(withdrawalConfig.ethereum)
+            val ethConsumer = EthConsumer(withdrawalConfig.ethereum, withdrawalEthereumPasswords)
             withdrawalService.output()
                 .subscribe({
                     it.map {

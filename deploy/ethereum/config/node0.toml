@@ -1,6 +1,9 @@
 [parity]
-chain = "/eth/genesis.json"
-base_path = "/tmp/parity/node0"
+chain = "ropsten"
+base_path = "/eth"
+db_path = "/eth/data"
+keys_path = "/eth/keys"
+light = false
 
 [rpc]
 apis = ["web3", "eth", "net", "personal", "parity", "parity_set", "traces", "rpc", "parity_accounts"]
@@ -12,12 +15,3 @@ cors = ["all"]
 [websockets]
 port = 8546
 interface = "0.0.0.0"
-
-[account]
-unlock = ["0x00bd138abd70e2f00903268f3db08f2d25677c9e"]
-password = ["/eth/node.pwds"]
-
-[mining]
-engine_signer = "0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e"
-reseal_on_txs = "none"
-
