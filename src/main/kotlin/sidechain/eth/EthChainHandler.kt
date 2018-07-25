@@ -46,7 +46,8 @@ class EthChainHandler(val web3: Web3j, val wallets: Map<String, String>, val tok
                     wallets[to]!!,
                     // all non-existent keys were filtered out in parseBlock
                     tokens[tx.to]!!,
-                    amount
+                    amount,
+                    from
                 )
             }
     }
@@ -62,7 +63,8 @@ class EthChainHandler(val web3: Web3j, val wallets: Map<String, String>, val tok
                 tx.hash,
                 // all non-existent keys were filtered out in parseBlock
                 wallets[tx.to]!!,
-                tx.value
+                tx.value,
+                tx.from
             )
         )
     }

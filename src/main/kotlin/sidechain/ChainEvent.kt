@@ -83,11 +83,13 @@ sealed class SideChainEvent {
          * @param hash transaction hash
          * @param user user name in Iroha
          * @param amount amount of Ether transfered
+         * @param from - from ethereum address
          */
         data class OnEthSidechainDeposit(
             val hash: String,
             val user: String,
-            val amount: BigInteger
+            val amount: BigInteger,
+            val from: String
         ) : EthereumEvent()
 
         /**
@@ -96,12 +98,14 @@ sealed class SideChainEvent {
          * @param user user name in Iroha
          * @param token token name
          * @param amount amount of tokens
+         * @param from - from ethereum address
          */
         data class OnEthSidechainDepositToken(
             val hash: String,
             val user: String,
             val token: String,
-            val amount: BigInteger
+            val amount: BigInteger,
+            val from: String
         ) : EthereumEvent()
     }
 }
