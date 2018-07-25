@@ -34,6 +34,16 @@ class EthChainHandler(val web3: Web3j, val wallets: Map<String, String>, val tok
                 it.topics[0] == "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef" &&
                         wallets.containsKey(to)
             }
+            .filter {
+                // check if amount > 0
+                if (BigInteger(it.data.drop(2), 16).compareTo(BigInteger.ZERO) > 0) {
+                    true
+                } else {
+                    logger.warn { "Transaction ${tx.hash} from Ethereum with 0 ERC20 amount" }
+                    false
+                }
+
+            }
             .map {
                 // second and third topics are addresses from and to
                 val from = "0x" + it.topics[1].drop(26).toLowerCase()
@@ -57,14 +67,19 @@ class EthChainHandler(val web3: Web3j, val wallets: Map<String, String>, val tok
      * @return list of notary events on Ether deposit
      */
     private fun handleEther(tx: Transaction): List<SideChainEvent> {
-        return listOf(
-            SideChainEvent.EthereumEvent.OnEthSidechainDeposit(
-                tx.hash,
-                // all non-existent keys were filtered out in parseBlock
-                wallets[tx.to]!!,
-                tx.value
+        return if (tx.value.compareTo(BigInteger.ZERO) > 0) {
+            listOf(
+                SideChainEvent.EthereumEvent.OnEthSidechainDeposit(
+                    tx.hash,
+                    // all non-existent keys were filtered out in parseBlock
+                    wallets[tx.to]!!,
+                    tx.value
+                )
             )
-        )
+        } else {
+            logger.warn { "Transaction ${tx.hash} from Ethereum with 0 ETH amount" }
+            listOf()
+        }
     }
 
     /**
