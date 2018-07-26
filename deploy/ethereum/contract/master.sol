@@ -29,9 +29,7 @@ contract Master {
      */
     constructor(address[] tokens) public {
         owner_ = msg.sender;
-        for (uint i = 0; i < tokens.length; ++i) {
-            tokens_.push(tokens[i]);
-        }
+        tokens_ = tokens;
     }
 
     /**
@@ -57,9 +55,9 @@ contract Master {
      */
     function recoverAddress(bytes32 hash, uint8 v, bytes32 r, bytes32 s) private returns(address) {
         emit bytes_event(hash);
+        emit address_event(res);
         bytes32 simple_hash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
         address res = ecrecover(simple_hash, v, r, s);
-        emit address_event(res);
         return res;
     }
 
@@ -68,13 +66,12 @@ contract Master {
      * @param new_address address of new peer
      */
     function addPeer(address new_address) public {
-        if (msg.sender == owner_) {
-            require(peers_[new_address] == false);
-            peers_[new_address] = true;
-            ++peers_count_;
-            emit number_event(peers_count_);
-            emit address_event(new_address);
-        }
+        require(msg.sender == owner_);
+        require(peers_[new_address] == false);
+        peers_[new_address] = true;
+        ++peers_count_;
+        emit number_event(peers_count_);
+        emit address_event(new_address);
     }
 
     /**
@@ -127,18 +124,21 @@ contract Master {
         require(checkTokenAddress(coin_address));
         // TODO luckychess 26.06.2018 D3-101 improve require checks (copy-paste) (use modifiers)
         require(used_[tx_hash] == false);
-        emit number_event(amount);
         require(peers_count_ >= 1);
+        require(v.length == r.length);
+        require(r.length == s.length);
+
         // sigs - at least 2f+1 from 3f+1
         // e. g. len(peers)==12 -> 3f+1=12; f=3; 12-3=9 -> at least 9 sigs we need
         // if we've got more sigs than we need all will be validated
         uint f = (peers_count_ - 1) / 3;
         uint need_sigs = peers_count_ - f;
-        emit number_event(need_sigs);
-
-        require(v.length == r.length);
-        require(r.length == s.length);
         require(s.length >= need_sigs);
+
+        used_[tx_hash] = true;
+
+        emit number_event(amount);
+        emit number_event(need_sigs);
         emit number_event(s.length);
 
         address[] memory recovered_addresses = new address[](s.length);
@@ -150,19 +150,14 @@ contract Master {
         require(checkForUniqueness(recovered_addresses));
 
         if (coin_address == 0) {
-            emit number_event(address(this).balance);
             require(address(this).balance >= amount);
             // untrusted transfer, relies on provided cryptographic proof
             to.transfer(amount);
-            emit number_event(address(this).balance);
         } else {
-            ICoin ic = ICoin(coin_address);
-            emit address_event(coin_address);
-            emit number_event(ic.balanceOf(this));
-            require(ic.balanceOf(this) >= amount);
+            ICoin coin = ICoin(coin_address);
+            require(coin.balanceOf(this) >= amount);
             // untrusted call, relies on provided cryptographic proof
-            ic.transfer(to, amount);
+            coin.transfer(to, amount);
         }
-        used_[tx_hash] = true;
     }
 }
