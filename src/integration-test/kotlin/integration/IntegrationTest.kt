@@ -33,6 +33,8 @@ import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.toByteArray
+import util.toStringWithPrecision
+import java.math.BigDecimal
 import java.math.BigInteger
 import java.sql.DriverManager
 import java.util.*
@@ -147,7 +149,7 @@ class IntegrationTest {
     /**
      * Query Iroha account balance
      */
-    fun queryIroha(assetId: String, accountId: String): BigInteger {
+    fun queryIroha(assetId: String, accountId: String): String {
         val queryCounter: Long = 1
 
         val uquery = ModelQueryBuilder()
@@ -177,10 +179,10 @@ class IntegrationTest {
         val assets = queryResponse.accountAssetsResponse.accountAssetsList
         for (asset in assets) {
             if (assetId == asset.assetId)
-                return BigInteger(asset.balance)
+                return asset.balance
         }
 
-        return BigInteger.ZERO
+        return "0"
     }
 
     /**
@@ -216,9 +218,10 @@ class IntegrationTest {
     fun depositOfETH() {
         val assetId = "ether#ethereum"
         val amount = BigInteger.valueOf(1_234_000_000_000)
+        val expectedAmount = amount.toStringWithPrecision(18)
 
         // ensure that initial wallet value is 0
-        assertEquals(BigInteger.ZERO, queryIroha(assetId, clientIrohaAccount))
+        assertEquals("0", queryIroha(assetId, clientIrohaAccount))
 
         setAccountDetail("notary_red@notary", toAddress, clientIrohaAccount, testConfig.registrationIrohaAccount)
 
@@ -232,7 +235,7 @@ class IntegrationTest {
         deployHelper.sendEthereum(amount, toAddress)
         Thread.sleep(120_000)
 
-        assertEquals(amount, queryIroha(assetId, clientIrohaAccount))
+        assertEquals(expectedAmount, queryIroha(assetId, clientIrohaAccount))
     }
 
     /**
@@ -248,9 +251,10 @@ class IntegrationTest {
     fun depositAfterAddOfETH() {
         val assetId = "ether#ethereum"
         val amount = BigInteger.valueOf(1_234_000_000_000)
+        val expectedAmount = amount.toStringWithPrecision(18)
 
         // ensure that initial wallet value is 0
-        assertEquals(BigInteger.ZERO, queryIroha(assetId, clientIrohaAccount))
+        assertEquals("0", queryIroha(assetId, clientIrohaAccount))
 
         // run notary
         async {
@@ -264,7 +268,7 @@ class IntegrationTest {
         deployHelper.sendEthereum(amount, toAddress)
         Thread.sleep(120_000)
 
-        assertEquals(amount, queryIroha(assetId, clientIrohaAccount))
+        assertEquals(expectedAmount, queryIroha(assetId, clientIrohaAccount))
     }
 
     /**
@@ -281,9 +285,10 @@ class IntegrationTest {
         val assetId = "ether#ethereum"
         val zeroAmount = BigInteger.ZERO
         val amount = BigInteger.valueOf(1_234_000_000_000)
+        val expectedAmount = amount.toStringWithPrecision(18)
 
         // ensure that initial wallet value is 0
-        assertEquals(BigInteger.ZERO, queryIroha(assetId, clientIrohaAccount))
+        assertEquals("0", queryIroha(assetId, clientIrohaAccount))
 
         setAccountDetail("notary_red@notary", toAddress, clientIrohaAccount, testConfig.registrationIrohaAccount)
 
@@ -301,7 +306,7 @@ class IntegrationTest {
         deployHelper.sendEthereum(amount, toAddress)
         Thread.sleep(120_000)
 
-        assertEquals(amount, queryIroha(assetId, clientIrohaAccount))
+        assertEquals(expectedAmount, queryIroha(assetId, clientIrohaAccount))
     }
 
     /**
@@ -318,9 +323,10 @@ class IntegrationTest {
         val asset = "coin"
         val assetId = "$asset#ethereum"
         val amount = BigInteger.valueOf(51)
+        val expectedAmount = amount.toStringWithPrecision(0)
 
         // ensure that initial wallet value is 0
-        assertEquals(BigInteger.ZERO, queryIroha(assetId, clientIrohaAccount))
+        assertEquals("0", queryIroha(assetId, clientIrohaAccount))
 
         // Deploy ERC20 smart contract
         val contract = DeployHelper(testConfig.ethereum, passwordConfig).deployERC20TokenSmartContract()
@@ -344,7 +350,7 @@ class IntegrationTest {
         // Send again any transaction to commit in Ethereum network
         contract.transfer(toAddress, amount).send()
         Thread.sleep(120_000)
-        assertEquals(amount, queryIroha(assetId, clientIrohaAccount))
+        assertEquals(expectedAmount, queryIroha(assetId, clientIrohaAccount))
     }
 
     /**
@@ -361,6 +367,7 @@ class IntegrationTest {
         val assetId = "$asset#ethereum"
         val zeroAmount = BigInteger.ZERO
         val amount = BigInteger.valueOf(51)
+        val expectedAmount = amount.toStringWithPrecision(0)
 
         // ensure that initial wallet value is 0
         assertEquals(BigInteger.ZERO, queryIroha(assetId, clientIrohaAccount))
@@ -385,7 +392,7 @@ class IntegrationTest {
         // Send again
         contract.transfer(toAddress, amount).send()
         Thread.sleep(120_000)
-        assertEquals(amount, queryIroha(assetId, clientIrohaAccount))
+        assertEquals(expectedAmount, queryIroha(assetId, clientIrohaAccount))
     }
 
     /**
@@ -479,9 +486,21 @@ class IntegrationTest {
         val initialBalance =
             deployHelper.web3.ethGetBalance(toAddress, DefaultBlockParameterName.LATEST).send().balance
 
-        val amount = "125"
+        val amount = "0.00000000000004567"
         val assetId = "ether#ethereum"
         val ethWallet = toAddress
+
+        println("balbance $initialBalance")
+        println(
+            "amount ${BigDecimal(amount).multiply(
+                BigDecimal.TEN.pow(18)
+            ).toBigInteger()
+            }"
+        )
+
+        val expectedValue = initialBalance + BigDecimal(amount).multiply(
+            BigDecimal.TEN.pow(18)
+        ).toBigInteger()
 
         // add assets to user
         addAssetIroha(assetId, amount)
@@ -494,7 +513,7 @@ class IntegrationTest {
         Thread.sleep(300_000)
 
         assertEquals(
-            initialBalance + BigInteger.valueOf(amount.toLong()),
+            expectedValue,
             deployHelper.web3.ethGetBalance(toAddress, DefaultBlockParameterName.LATEST).send().balance
         )
     }

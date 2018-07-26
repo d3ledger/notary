@@ -109,7 +109,7 @@
                      "createAsset":{
                         "assetName":"ether",
                         "domainId":"ethereum",
-                        "precision":0
+                        "precision":18
                      }
                   },
                   {

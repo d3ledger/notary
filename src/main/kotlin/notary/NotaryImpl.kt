@@ -3,7 +3,7 @@ package notary
 import io.reactivex.Observable
 import mu.KLogging
 import sidechain.SideChainEvent
-import java.math.BigInteger
+import util.toStringWithPrecision
 
 /**
  * Implementation of [Notary] business logic
@@ -20,6 +20,9 @@ class NotaryImpl(
     /** Ethereum asset id in Iroha */
     val ethereumAssetId = "ether"
 
+    /** Ethereum precision */
+    val ethereumPrecision: Short = 18
+
     /**
      * Handle Ethereum deposit event. Notaries create the ordered bunch of
      * transactions:{tx1: setAccountDetail, tx2: CreateAsset, tx3: addAssetQuantity, transferAsset}.
@@ -29,6 +32,7 @@ class NotaryImpl(
         hash: String,
         account: String,
         asset: String,
+        precision: Short,
         amount: String,
         from: String
     ): IrohaOrderedBatch {
@@ -55,7 +59,7 @@ class NotaryImpl(
                         IrohaCommand.CommandCreateAsset(
                             asset,
                             domain,
-                            0
+                            precision
                         )
                     )
                 ),
@@ -89,13 +93,15 @@ class NotaryImpl(
                 ethInputEvent.hash,
                 ethInputEvent.user,
                 ethereumAssetId,
-                ethInputEvent.amount.toString(),
+                ethereumPrecision,
+                ethInputEvent.amount.toStringWithPrecision(ethereumPrecision),
                 ethInputEvent.from
             )
             is SideChainEvent.EthereumEvent.OnEthSidechainDepositToken -> onEthSidechainDeposit(
                 ethInputEvent.hash,
                 ethInputEvent.user,
                 ethInputEvent.token,
+                0,
                 ethInputEvent.amount.toString(),
                 ethInputEvent.from
             )

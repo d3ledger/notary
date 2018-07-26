@@ -15,6 +15,7 @@ import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getRelays
+import java.math.BigDecimal
 import java.math.BigInteger
 
 /**
@@ -80,7 +81,7 @@ class WithdrawalServiceImpl(
         return findInAccDetail(masterAccount, event.srcAccount)
             .map { relayAddress ->
                 val hash = event.hash
-                val amount = event.amount
+                var amount = event.amount
                 val coins = tokensProvider.getTokens().get().toMutableMap()
                 coins["0x0000000000000000000000000000000000000000"] = "ether"
 
@@ -98,6 +99,10 @@ class WithdrawalServiceImpl(
                 }
                 if (coinAddress == "") {
                     throw Exception("Not supported token type")
+                }
+
+                if (asset == "ether") {
+                    amount = BigDecimal(amount).multiply(BigDecimal.TEN.pow(18)).toBigInteger().toString()
                 }
 
                 val address = event.description
