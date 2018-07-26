@@ -203,9 +203,34 @@ object ModelUtil {
     ): Result<String, Exception> {
         val tx = ModelTransactionBuilder()
             .creatorAccountId(creator)
-            .createdTime(ModelUtil.getCurrentTime())
+            .createdTime(getCurrentTime())
             .setAccountDetail(accountId, key, value)
             .build()
         return irohaConsumer.sendAndCheck(tx)
+    }
+
+    /**
+     * Send createAsset to Iroha
+     * @param irohaConsumer - iroha network layer
+     * @param creator - transaction creator
+     * @param assetName - asset name in iroha
+     * @param domainId - domain id
+     * @param precision - precision of asset
+     * @return hex representation of transaction hash
+     */
+    fun createAsset(
+        irohaConsumer: IrohaConsumer,
+        creator: String,
+        assetName: String,
+        domainId: String,
+        precision: Short
+    ): Result<String, Exception> {
+        return irohaConsumer.sendAndCheck(
+            ModelTransactionBuilder()
+                .creatorAccountId(creator)
+                .createdTime(getCurrentTime())
+                .createAsset(assetName, domainId, precision)
+                .build()
+        )
     }
 }
