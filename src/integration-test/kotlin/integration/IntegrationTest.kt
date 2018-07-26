@@ -6,6 +6,7 @@ import com.github.kittinunf.result.flatMap
 import com.google.protobuf.InvalidProtocolBufferException
 import com.squareup.moshi.Moshi
 import config.EthereumPasswords
+import config.TestConfig
 import config.loadConfigs
 import contract.BasicCoin
 import io.grpc.ManagedChannelBuilder

@@ -1,8 +1,4 @@
-package integration
-
-import config.DatabaseConfig
-import config.EthereumConfig
-import config.IrohaConfig
+package config
 
 interface TestConfig {
     val notaryIrohaAccount: String

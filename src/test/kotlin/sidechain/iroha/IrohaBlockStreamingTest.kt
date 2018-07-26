@@ -1,8 +1,8 @@
 package sidechain.iroha
 
 import com.github.kittinunf.result.map
+import config.TestConfig
 import config.loadConfigs
-import integration.TestConfig
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking

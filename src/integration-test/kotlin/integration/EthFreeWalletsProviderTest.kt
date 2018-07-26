@@ -2,6 +2,7 @@ package integration
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.success
+import config.TestConfig
 import config.loadConfigs
 import jp.co.soramitsu.iroha.Keypair
 import org.junit.jupiter.api.Assertions.assertEquals

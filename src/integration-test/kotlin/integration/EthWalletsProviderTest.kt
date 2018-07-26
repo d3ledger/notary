@@ -1,5 +1,6 @@
 package integration
 
+import config.TestConfig
 import config.loadConfigs
 import notary.db.tables.Wallets
 import org.jooq.impl.DSL
