@@ -7,9 +7,7 @@ import com.github.kittinunf.result.flatMap
 import config.EthereumPasswords
 import config.loadConfigs
 import mu.KLogging
-import registration.RegistrationConfig
 import sidechain.iroha.IrohaInitialization
-
 
 /**
  * Main entry point of Withdrawal Service app
