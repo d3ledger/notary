@@ -65,16 +65,16 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
     }
 
     /**
-     * Deploy BasicCoin smart contract
+     * Deploy ERC20 token smart contract
      * @return token smart contract object
      */
-    fun deployBasicCoinSmartContract(): BasicCoin {
+    fun deployERC20TokenSmartContract(): BasicCoin {
         return contract.BasicCoin.deploy(
             web3,
             credentials,
             gasPrice,
             gasLimit,
-            BigInteger.valueOf(1000),
+            BigInteger.valueOf(Long.MAX_VALUE),
             credentials.address
         ).send()
     }
@@ -116,7 +116,7 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      * - relay
      */
     fun deployAll() {
-        val token = deployBasicCoinSmartContract()
+        val token = deployERC20TokenSmartContract()
         val master = deployMasterSmartContract()
 
         val tokens = listOf(token.contractAddress)

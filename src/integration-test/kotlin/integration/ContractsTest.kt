@@ -109,7 +109,7 @@ class ContractsTest {
 
     @BeforeEach
     fun setup() {
-        token = deployHelper.deployBasicCoinSmartContract()
+        token = deployHelper.deployERC20TokenSmartContract()
         master = deployHelper.deployMasterSmartContract()
         Thread.sleep(120_000)
         relay = deployHelper.deployRelaySmartContract(master.contractAddress, listOf(token.contractAddress))
