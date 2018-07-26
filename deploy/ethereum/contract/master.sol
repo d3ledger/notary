@@ -12,7 +12,6 @@ contract ICoin {
  * Provides functionality of master contract
  */
 contract Master {
-    ICoin private ic_;
     address private owner_;
     mapping(address => bool) private peers_;
     uint private peers_count_;
@@ -153,14 +152,16 @@ contract Master {
         if (coin_address == 0) {
             emit number_event(address(this).balance);
             require(address(this).balance >= amount);
+            // untrusted transfer, relies on provided cryptographic proof
             to.transfer(amount);
             emit number_event(address(this).balance);
         } else {
-            ic_ = ICoin(coin_address);
+            ICoin ic = ICoin(coin_address);
             emit address_event(coin_address);
-            emit number_event(ic_.balanceOf(this));
-            require(ic_.balanceOf(this) >= amount);
-            ic_.transfer(to, amount);
+            emit number_event(ic.balanceOf(this));
+            require(ic.balanceOf(this) >= amount);
+            // untrusted call, relies on provided cryptographic proof
+            ic.transfer(to, amount);
         }
         used_[tx_hash] = true;
     }

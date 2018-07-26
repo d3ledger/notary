@@ -20,8 +20,8 @@ contract IMaster {
  * Provides functionality of relay contract
  */
 contract Relay {
-    address private master_;
-    IMaster private in_;
+    address private master_address_;
+    IMaster private master_instance_;
 
     event address_event(address input);
     event string_event(string input);
@@ -33,8 +33,8 @@ contract Relay {
      * @param master address of master contract
      */
     constructor(address master) public {
-        master_ = master;
-        in_ = IMaster(master_);
+        master_address_ = master;
+        master_instance_ = IMaster(master_address_);
     }
 
     /**
@@ -46,12 +46,16 @@ contract Relay {
      * Sends ether and all tokens from this contract to master
      */
     function sendAllToMaster() public {
-        master_.transfer(address(this).balance);
+        // trusted transfer
+        master_address_.transfer(address(this).balance);
         // loop through all token addresses and transfer all tokens to master address
-        address[] memory tokens = in_.getTokensList();
+        // trusted call
+        address[] memory tokens = master_instance_.getTokensList();
         for (uint i = 0; i < tokens.length; ++i) {
             ICoin ic = ICoin(tokens[i]);
-            ic.transfer(master_, ic.balanceOf(address(this)));
+            // untrusted calls in general but coin addresses are received from trusted master contract
+            // which contains and manages whitelist of them
+            ic.transfer(master_address_, ic.balanceOf(address(this)));
         }
     }
 
@@ -66,7 +70,8 @@ contract Relay {
      * @param s array of signatures of tx_hash (s-component)
      */
     function withdraw(address coin_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s) public {
-        emit address_event(master_);
-        in_.withdraw(coin_address, amount, to, tx_hash, v, r, s);
+        emit address_event(master_address_);
+        // trusted call
+        master_instance_.withdraw(coin_address, amount, to, tx_hash, v, r, s);
     }
 }
