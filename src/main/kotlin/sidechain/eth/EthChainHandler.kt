@@ -35,6 +35,8 @@ class EthChainHandler(
         wallets: Map<String, String>,
         tokens: Map<String, String>
     ): List<SideChainEvent> {
+        logger.info { "handle ERC20 tx ${tx.hash}" }
+
         // get receipt that contains data about solidity function execution
         val receipt = web3.ethGetTransactionReceipt(tx.hash).send()
 
@@ -54,7 +56,6 @@ class EthChainHandler(
                     logger.warn { "Transaction ${tx.hash} from Ethereum with 0 ERC20 amount" }
                     false
                 }
-
             }
             .map {
                 // second and third topics are addresses from and to
@@ -80,6 +81,8 @@ class EthChainHandler(
      * @return list of notary events on Ether deposit
      */
     private fun handleEther(tx: Transaction, wallets: Map<String, String>): List<SideChainEvent> {
+        logger.info { "handle Ethereum tx ${tx.hash}" }
+
         return if (tx.value.compareTo(BigInteger.ZERO) > 0) {
             listOf(
                 SideChainEvent.EthereumEvent.OnEthSidechainDeposit(
@@ -113,7 +116,7 @@ class EthChainHandler(
                         if (wallets.containsKey(it.to))
                             handleEther(it, wallets)
                         else if (tokens.containsKey(it.to))
-                            handleErc20(it, tokens, wallets)
+                            handleErc20(it, wallets, tokens)
                         else
                             listOf()
                     }

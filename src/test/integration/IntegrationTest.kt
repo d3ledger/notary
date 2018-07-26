@@ -321,7 +321,7 @@ class IntegrationTest {
         assertEquals(BigInteger.ZERO, queryIroha(assetId, clientIrohaAccount))
 
         // Deploy ERC20 smart contract
-        val contract = DeployHelper(testConfig.ethereum, passwordConfig).deployBasicCoinSmartContract()
+        val contract = DeployHelper(testConfig.ethereum, passwordConfig).deployERC20TokenSmartContract()
         Thread.sleep(120_000)
         val contractAddress = contract.contractAddress
         insertToken(contractAddress, asset)
@@ -364,7 +364,7 @@ class IntegrationTest {
         assertEquals(BigInteger.ZERO, queryIroha(assetId, clientIrohaAccount))
 
         // Deploy ERC20 smart contract
-        val contract = DeployHelper(testConfig.ethereum, passwordConfig).deployBasicCoinSmartContract()
+        val contract = DeployHelper(testConfig.ethereum, passwordConfig).deployERC20TokenSmartContract()
         Thread.sleep(120_000)
         val contractAddress = contract.contractAddress
         insertToken(contractAddress, asset)
