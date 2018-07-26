@@ -105,29 +105,29 @@ contract Master {
         uint need_sigs = peers_count_ - f;
         emit number_event(need_sigs);
 
-        assert(v.length == r.length);
-        assert(r.length == s.length);
-        assert(s.length >= need_sigs);
+        require(v.length == r.length);
+        require(r.length == s.length);
+        require(s.length >= need_sigs);
         emit number_event(s.length);
 
         address[] memory recovered_addresses = new address[](s.length);
         for (uint i = 0; i < s.length; ++i) {
             recovered_addresses[i] = recoverAddress(keccak256(abi.encodePacked(coin_address, amount, to, tx_hash)), v[i], r[i], s[i]);
             // recovered address should be in peers_
-            assert(peers_[recovered_addresses[i]] == true);
+            require(peers_[recovered_addresses[i]] == true);
         }
-        assert(checkForUniqueness(recovered_addresses));
+        require(checkForUniqueness(recovered_addresses));
 
         if (coin_address == 0) {
             emit number_event(address(this).balance);
-            assert(address(this).balance >= amount);
+            require(address(this).balance >= amount);
             to.transfer(amount);
             emit number_event(address(this).balance);
         } else {
             ic_ = ICoin(coin_address);
             emit address_event(coin_address);
             emit number_event(ic_.balanceOf(this));
-            assert(ic_.balanceOf(this) >= amount);
+            require(ic_.balanceOf(this) >= amount);
             ic_.transfer(to, amount);
         }
         used_[tx_hash] = true;

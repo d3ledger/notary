@@ -87,7 +87,7 @@ contract Relay {
     function withdraw(address coin_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s) public {
         // TODO: remove if statement
         if (coin_address != 0) {
-            assert(checkTokenAddress(coin_address));
+            require(checkTokenAddress(coin_address));
             emit address_event(coin_address);
         }
         emit address_event(master_);
