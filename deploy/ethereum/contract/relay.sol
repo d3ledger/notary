@@ -13,6 +13,7 @@ contract ICoin {
  */
 contract IMaster {
     function withdraw(address coin_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s) public;
+    function getTokensList() public constant returns (address[]);
 }
 
 /**
@@ -20,7 +21,6 @@ contract IMaster {
  */
 contract Relay {
     address private master_;
-    address[] private tokens_;
     IMaster private in_;
 
     event address_event(address input);
@@ -31,13 +31,9 @@ contract Relay {
     /**
      * Relay constructor
      * @param master address of master contract
-     * @param tokens whitelist of supported ERC-20 tokens
      */
-    constructor(address master, address[] tokens) public {
+    constructor(address master) public {
         master_ = master;
-        for (uint i = 0; i < tokens.length; ++i) {
-            tokens_.push(tokens[i]);
-        }
         in_ = IMaster(master_);
     }
 
@@ -52,26 +48,11 @@ contract Relay {
     function sendAllToMaster() public {
         master_.transfer(address(this).balance);
         // loop through all token addresses and transfer all tokens to master address
-        for (uint i = 0; i < tokens_.length; ++i) {
-            ICoin ic = ICoin(tokens_[i]);
+        address[] memory tokens = in_.getTokensList();
+        for (uint i = 0; i < tokens.length; ++i) {
+            ICoin ic = ICoin(tokens[i]);
             ic.transfer(master_, ic.balanceOf(address(this)));
         }
-    }
-
-    /**
-     * Checks is given token inside a whitelist or not
-     * @param token address of token to check
-     * @return true if token inside whitelist or false otherwise
-     */
-    function checkTokenAddress(address token) private constant returns (bool) {
-        bool token_found = false;
-        for (uint i = 0; i < tokens_.length; ++i) {
-            if (tokens_[i] == token) {
-                token_found = true;
-                break;
-            }
-        }
-        return token_found;
     }
 
     /**
@@ -85,11 +66,6 @@ contract Relay {
      * @param s array of signatures of tx_hash (s-component)
      */
     function withdraw(address coin_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s) public {
-        // TODO: remove if statement
-        if (coin_address != 0) {
-            require(checkTokenAddress(coin_address));
-            emit address_event(coin_address);
-        }
         emit address_event(master_);
         in_.withdraw(coin_address, amount, to, tx_hash, v, r, s);
     }

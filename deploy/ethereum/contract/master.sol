@@ -5,7 +5,6 @@ pragma solidity ^0.4.23;
  */
 contract ICoin {
     function transfer(address to, uint256 value) public returns (bool);
-    function approve(address spender, uint256 value) public returns (bool);
     function balanceOf(address who) public constant returns (uint256);
 }
 
@@ -18,6 +17,7 @@ contract Master {
     mapping(address => bool) private peers_;
     uint private peers_count_;
     mapping(bytes32 => bool) private used_;
+    address[] private tokens_;
 
     event address_event(address input);
     event string_event(string input);
@@ -26,15 +26,27 @@ contract Master {
 
     /**
      * Constructor. Sets contract owner to contract creator.
+     * @param tokens whitelist of supported ERC-20 tokens
      */
-    constructor() public {
+    constructor(address[] tokens) public {
         owner_ = msg.sender;
+        for (uint i = 0; i < tokens.length; ++i) {
+            tokens_.push(tokens[i]);
+        }
     }
 
     /**
      * A special function-like stub to allow ether accepting
      */
     function() external payable { }
+
+    /**
+     * Returns supported ERC-20 tokens
+     * @return array of supported tokens addresses
+     */
+    function getTokensList() public constant returns (address[]) {
+        return tokens_;
+    }
 
     /**
      * Recovers address from a given single signature
@@ -83,6 +95,26 @@ contract Master {
     }
 
     /**
+     * Checks is given token inside a whitelist or not
+     * @param token address of token to check
+     * @return true if token inside whitelist or false otherwise
+     */
+    function checkTokenAddress(address token) private constant returns (bool) {
+        // 0 means ether which is definitely in whitelist
+        if (token == 0) {
+            return true;
+        }
+        bool token_found = false;
+        for (uint i = 0; i < tokens_.length; ++i) {
+            if (tokens_[i] == token) {
+                token_found = true;
+                break;
+            }
+        }
+        return token_found;
+    }
+
+    /**
      * Withdraws specified amount of ether or one of ERC-20 tokens to provided address
      * @param coin_address address of token to withdraw (0 for ether)
      * @param amount amount of tokens or ether to withdraw
@@ -93,7 +125,7 @@ contract Master {
      * @param s array of signatures of tx_hash (s-component)
      */
     function withdraw(address coin_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s) public {
-        // TODO luckychess 26.06.2018 D3-103 fix whitelist checks inconsistency
+        require(checkTokenAddress(coin_address));
         // TODO luckychess 26.06.2018 D3-101 improve require checks (copy-paste) (use modifiers)
         require(used_[tx_hash] == false);
         emit number_event(amount);
