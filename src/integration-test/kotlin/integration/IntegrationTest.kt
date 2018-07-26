@@ -207,11 +207,10 @@ class IntegrationTest {
      * Test US-001 Deposit of ETH
      * Note: Ethereum and Iroha must be deployed to pass the test.
      * @given Ethereum and Iroha networks running and two ethereum wallets and "fromAddress" with at least
-     * 1234000000000 Wei and notary running
+     * 1234000000000 Wei and notary running and user registered with ethereum toAddress
      * @when "fromAddress" transfers 1234000000000 Wei to "toAddress"
      * @then Associated Iroha account balance is increased on 1234000000000 Wei
      */
-    @Disabled
     @Test
     fun depositOfETH() {
         val assetId = "ether#ethereum"
@@ -232,7 +231,72 @@ class IntegrationTest {
         deployHelper.sendEthereum(amount, toAddress)
         Thread.sleep(120_000)
 
-        // Send again any transaction to commit in Ethereum network
+        assertEquals(amount, queryIroha(assetId, clientIrohaAccount))
+    }
+
+    /**
+     * Test US-001 Deposit of ETH
+     * Note: Ethereum and Iroha must be deployed to pass the test.
+     * @given Ethereum and Iroha networks running and two ethereum wallets and "fromAddress" with at least
+     * 1234000000000 Wei and notary running
+     * @when Notary is running, test registers user with "toAddress" and then "fromAddress" transfers 1234000000000 Wei
+     * to "toAddress"
+     * @then Associated Iroha account balance is increased on 1234000000000 Wei
+     */
+    @Test
+    fun depositAfterAddOfETH() {
+        val assetId = "ether#ethereum"
+        val amount = BigInteger.valueOf(1_234_000_000_000)
+
+        // ensure that initial wallet value is 0
+        assertEquals(BigInteger.ZERO, queryIroha(assetId, clientIrohaAccount))
+
+        // run notary
+        async {
+            main(arrayOf())
+        }
+        Thread.sleep(3_000)
+
+        setAccountDetail("notary_red@notary", toAddress, clientIrohaAccount, testConfig.registrationIrohaAccount)
+
+        // send ETH
+        deployHelper.sendEthereum(amount, toAddress)
+        Thread.sleep(120_000)
+
+        assertEquals(amount, queryIroha(assetId, clientIrohaAccount))
+    }
+
+    /**
+     * Test US-001 Deposit of ETH
+     * Note: Ethereum and Iroha must be deployed to pass the test.
+     * @given Ethereum and Iroha networks running and two ethereum wallets and "fromAddress" with at least
+     * 1234000000000 Wei and notary running
+     * @when "fromAddress" transfers 0 Wei to "toAddress" and then "fromAddress" transfers 1234000000000 Wei
+     * to "toAddress"
+     * @then Associated Iroha account balance is increased on 1234000000000 Wei
+     */
+    @Test
+    fun depositZeroETH() {
+        val assetId = "ether#ethereum"
+        val zeroAmount = BigInteger.ZERO
+        val amount = BigInteger.valueOf(1_234_000_000_000)
+
+        // ensure that initial wallet value is 0
+        assertEquals(BigInteger.ZERO, queryIroha(assetId, clientIrohaAccount))
+
+        setAccountDetail("notary_red@notary", toAddress, clientIrohaAccount, testConfig.registrationIrohaAccount)
+
+        // run notary
+        async {
+            main(arrayOf())
+        }
+        Thread.sleep(3_000)
+
+        // send 0 ETH
+        deployHelper.sendEthereum(zeroAmount, toAddress)
+        Thread.sleep(220_000)
+
+        // Send again 1234000000000 Ethereum network
         deployHelper.sendEthereum(amount, toAddress)
         Thread.sleep(120_000)
 
@@ -277,6 +341,47 @@ class IntegrationTest {
 
 
         // Send again any transaction to commit in Ethereum network
+        contract.transfer(toAddress, amount).send()
+        Thread.sleep(120_000)
+        assertEquals(amount, queryIroha(assetId, clientIrohaAccount))
+    }
+
+    /**
+     * Test US-002 Deposit of ETH
+     * Note: Ethereum and Iroha must be deployed to pass the test.
+     * @given Ethereum and Iroha networks running and two ethereum wallets and "fromAddress" with at least 51 coin
+     * (51 coin) and notary running
+     * @when "fromAddress" transfers 0 tokens to "toAddress" and then "fromAddress" transfers 51 coin to "toAddress"
+     * @then Associated Iroha account balance is increased on 51 coin
+     */
+    @Test
+    fun depositZeroOfERC20() {
+        val asset = "coin"
+        val assetId = "$asset#ethereum"
+        val zeroAmount = BigInteger.ZERO
+        val amount = BigInteger.valueOf(51)
+
+        // ensure that initial wallet value is 0
+        assertEquals(BigInteger.ZERO, queryIroha(assetId, clientIrohaAccount))
+
+        // Deploy ERC20 smart contract
+        val contract = DeployHelper(testConfig.ethereum, passwordConfig).deployBasicCoinSmartContract()
+        Thread.sleep(120_000)
+        val contractAddress = contract.contractAddress
+        insertToken(contractAddress, asset)
+
+        // run notary
+        async {
+            main(arrayOf())
+        }
+        Thread.sleep(3_000)
+
+        // send 0 ERC20
+        contract.transfer(toAddress, zeroAmount).send()
+        Thread.sleep(120_000)
+        assertEquals(amount, contract.balanceOf(toAddress).send())
+
+        // Send again
         contract.transfer(toAddress, amount).send()
         Thread.sleep(120_000)
         assertEquals(amount, queryIroha(assetId, clientIrohaAccount))
