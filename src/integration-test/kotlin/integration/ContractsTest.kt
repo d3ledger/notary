@@ -257,6 +257,34 @@ class ContractsTest {
     }
 
     /**
+     * @given deployed master and relay contracts
+     * @when one peer added to master, 5000 Wei transferred to master,
+     * request to withdraw 1000 Wei is sent to relay, destination address is also set to relay
+     * @then call to withdraw succeeded
+     */
+    @Test
+    fun singleCorrectSignatureEtherTestRelayToRelay() {
+        val initialBalance =
+            deployHelper.web3.ethGetBalance(relay.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+        sendAddPeer(deployHelper.credentials.address)
+        deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
+        // have to wait some time until balance will be updated
+        Thread.sleep(120_000)
+        withdraw(
+            BigInteger.valueOf(1000), tokenAddress = "0x0000000000000000000000000000000000000000",
+            fromMaster = false, to = relay.contractAddress
+        )
+        assertEquals(
+            BigInteger.valueOf(4000),
+            deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+        )
+        assertEquals(
+            initialBalance + BigInteger.valueOf(1000),
+            deployHelper.web3.ethGetBalance(relay.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+        )
+    }
+
+    /**
      * @given deployed master and token contracts
      * @when 5 tokens transferred to master,
      * request to withdraw 1 token is sent to master
