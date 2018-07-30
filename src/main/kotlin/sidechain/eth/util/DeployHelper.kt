@@ -126,4 +126,15 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
         println("Master contract address: $master")
         println("Relay contract address: $relay")
     }
+
+    /**
+     * Send ERC20 tokens
+     * @param tokenAddress - address of token smart contract
+     * @param toAddress - address transfer to
+     * @param amount - amount of tokens
+     */
+    fun sendERC20(tokenAddress: String, toAddress: String, amount: BigInteger) {
+        val token = contract.BasicCoin.load(tokenAddress, web3, credentials, gasPrice, gasLimit)
+        token.transfer(toAddress, amount).send()
+    }
 }

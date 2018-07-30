@@ -155,6 +155,7 @@ sourceSets {
 }
 
 configurations {
+    integrationTestImplementation.extendsFrom testImplementation
     integrationTestCompile.extendsFrom testCompile
     integrationTestRuntime.extendsFrom testRuntime
 }
