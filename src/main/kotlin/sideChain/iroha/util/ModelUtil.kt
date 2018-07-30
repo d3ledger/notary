@@ -233,4 +233,56 @@ object ModelUtil {
                 .build()
         )
     }
+
+    /**
+     * Add asset in iroha
+     * @param irohaConsumer - iroha network layer
+     * @param creator - transaction creator
+     * @param assetId - asset name in Iroha
+     * @param amount - amount to add
+     * @return hex representation of transaction hash
+     */
+    fun addAssetIroha(
+        irohaConsumer: IrohaConsumer,
+        creator: String,
+        assetId: String,
+        amount: String
+    ): Result<String, Exception> {
+        return irohaConsumer.sendAndCheck(
+            ModelTransactionBuilder()
+                .creatorAccountId(creator)
+                .createdTime(ModelUtil.getCurrentTime())
+                .addAssetQuantity(assetId, amount)
+                .build()
+        )
+    }
+
+    /**
+     * Transfer asset in iroha
+     * @param irohaConsumer - iroha network layer
+     * @param creator - transaction creator
+     * @param srcAccountId - source account
+     * @param destAccountId - destination account
+     * @param assetId - asset id in Iroha
+     * @param description - transfer description
+     * @param amount - amount
+     * @return hex representation of transaction hash
+     */
+    fun transferAssetIroha(
+        irohaConsumer: IrohaConsumer,
+        creator: String,
+        srcAccountId: String,
+        destAccountId: String,
+        assetId: String,
+        description: String,
+        amount: String
+    ): Result<String, Exception> {
+        return irohaConsumer.sendAndCheck(
+            ModelTransactionBuilder()
+                .creatorAccountId(creator)
+                .createdTime(ModelUtil.getCurrentTime())
+                .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
+                .build()
+        )
+    }
 }
