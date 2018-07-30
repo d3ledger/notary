@@ -40,7 +40,10 @@ contract Relay {
     /**
      * A special function-like stub to allow ether accepting
      */
-    function() external payable { }
+    function() external payable {
+        require(msg.data.length == 0);
+        emit address_event(msg.sender);
+    }
 
     /**
      * Sends ether and all tokens from this contract to master

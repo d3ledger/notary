@@ -36,7 +36,10 @@ contract Master {
     /**
      * A special function-like stub to allow ether accepting
      */
-    function() external payable { }
+    function() external payable {
+        require(msg.data.length == 0);
+        emit address_event(msg.sender);
+    }
 
     /**
      * Recovers address from a given single signature
