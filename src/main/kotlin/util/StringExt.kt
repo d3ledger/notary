@@ -18,7 +18,7 @@ fun String.hexToAscii(): String {
     return output.toString()
 }
 
-/** Returns tandom string of [len] characters */
+/** Returns random string of [len] characters */
 fun String.Companion.getRandomString(len: Int): String {
     val chars = "abcdefghijklmnopqrstuvwxyz"
     val res = StringBuilder()
