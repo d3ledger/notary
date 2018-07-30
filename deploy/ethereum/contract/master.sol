@@ -91,7 +91,7 @@ contract Master {
      * @param token address of token to check
      * @return true if token inside whitelist or false otherwise
      */
-    function checkTokenAddress(address token) private view returns (bool) {
+    function checkTokenAddress(address token) public view returns (bool) {
         // 0 means ether which is definitely in whitelist
         if (token == 0) {
             return true;

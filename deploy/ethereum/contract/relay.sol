@@ -14,6 +14,7 @@ contract ICoin {
 contract IMaster {
     function withdraw(address coin_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s) public;
     function tokens() public view returns (address[]);
+    function checkTokenAddress(address token) public view returns (bool);
 }
 
 /**
@@ -48,15 +49,15 @@ contract Relay {
     /**
      * Sends ether and all tokens from this contract to master
      */
-    function sendAllToMaster() public {
-        // trusted transfer
-        master_address_.transfer(address(this).balance);
-        // loop through all token addresses and transfer all tokens to master address
+    function sendAllToMaster(address token_address) public {
         // trusted call
-        address[] memory tokens = master_instance_.tokens();
-        for (uint i = 0; i < tokens.length; ++i) {
-            ICoin ic = ICoin(tokens[i]);
-            // untrusted calls in general but coin addresses are received from trusted master contract
+        require(master_instance_.checkTokenAddress(token_address));
+        if (token_address == 0) {
+            // trusted transfer
+            master_address_.transfer(address(this).balance);
+        } else {
+            ICoin ic = ICoin(token_address);
+            // untrusted call in general but coin addresses are received from trusted master contract
             // which contains and manages whitelist of them
             ic.transfer(master_address_, ic.balanceOf(address(this)));
         }
