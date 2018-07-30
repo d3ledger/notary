@@ -16,6 +16,7 @@ contract Master {
     mapping(address => bool) private peers_;
     uint private peers_count_;
     mapping(bytes32 => bool) private used_;
+    mapping(address => bool) private unique_addresses_;
 
     address[] public tokens;
 
@@ -75,30 +76,38 @@ contract Master {
      * @param addresses addresses array to check
      * @return true if all given addresses are unique or false otherwise
      */
-    function checkForUniqueness(address[] memory addresses) internal pure returns(bool) {
-        for (uint i = 0; i < addresses.length; ++i) {
-            for (uint j = i+1; j < addresses.length; ++j) {
-                if (addresses[i] == addresses[j]) {
-                    return false;
-                }
+    function checkForUniqueness(address[] memory addresses) internal returns(bool) {
+        uint i;
+        bool isUnique = true;
+        for (i = 0; i < addresses.length; ++i) {
+            if (unique_addresses_[addresses[i]] == true) {
+                isUnique = false;
+                break;
             }
+            unique_addresses_[addresses[i]] = true;
         }
-        return true;
+        
+        // restore state for future usages
+        for (i = 0; i < addresses.length; ++i) {
+            unique_addresses_[addresses[i]] = false;
+        }
+        
+        return isUnique;
     }
 
     /**
      * Checks is given token inside a whitelist or not
-     * @param token address of token to check
+     * @param token_address address of token to check
      * @return true if token inside whitelist or false otherwise
      */
-    function checkTokenAddress(address token) public view returns (bool) {
+    function checkTokenAddress(address token_address) public view returns (bool) {
         // 0 means ether which is definitely in whitelist
-        if (token == 0) {
+        if (token_address == 0) {
             return true;
         }
         bool token_found = false;
         for (uint i = 0; i < tokens.length; ++i) {
-            if (tokens[i] == token) {
+            if (tokens[i] == token_address) {
                 token_found = true;
                 break;
             }
@@ -108,7 +117,7 @@ contract Master {
 
     /**
      * Withdraws specified amount of ether or one of ERC-20 tokens to provided address
-     * @param coin_address address of token to withdraw (0 for ether)
+     * @param token_address address of token to withdraw (0 for ether)
      * @param amount amount of tokens or ether to withdraw
      * @param to target account address
      * @param tx_hash hash of transaction from Iroha
@@ -116,8 +125,8 @@ contract Master {
      * @param r array of signatures of tx_hash (r-component)
      * @param s array of signatures of tx_hash (s-component)
      */
-    function withdraw(address coin_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s) public {
-        require(checkTokenAddress(coin_address));
+    function withdraw(address token_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s) public {
+        require(checkTokenAddress(token_address));
         // TODO luckychess 26.06.2018 D3-101 improve require checks (copy-paste) (use modifiers)
         require(used_[tx_hash] == false);
         require(peers_count_ >= 1);
@@ -139,18 +148,18 @@ contract Master {
 
         address[] memory recovered_addresses = new address[](s.length);
         for (uint i = 0; i < s.length; ++i) {
-            recovered_addresses[i] = recoverAddress(keccak256(abi.encodePacked(coin_address, amount, to, tx_hash)), v[i], r[i], s[i]);
+            recovered_addresses[i] = recoverAddress(keccak256(abi.encodePacked(token_address, amount, to, tx_hash)), v[i], r[i], s[i]);
             // recovered address should be in peers_
             require(peers_[recovered_addresses[i]] == true);
         }
         require(checkForUniqueness(recovered_addresses));
 
-        if (coin_address == 0) {
+        if (token_address == 0) {
             require(address(this).balance >= amount);
             // untrusted transfer, relies on provided cryptographic proof
             to.transfer(amount);
         } else {
-            ICoin coin = ICoin(coin_address);
+            ICoin coin = ICoin(token_address);
             require(coin.balanceOf(this) >= amount);
             // untrusted call, relies on provided cryptographic proof
             coin.transfer(to, amount);

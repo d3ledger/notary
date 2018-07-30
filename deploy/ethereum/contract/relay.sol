@@ -12,7 +12,7 @@ contract ICoin {
  * Subset of master contract interface
  */
 contract IMaster {
-    function withdraw(address coin_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s) public;
+    function withdraw(address token_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s) public;
     function tokens() public view returns (address[]);
     function checkTokenAddress(address token) public view returns (bool);
 }
@@ -48,8 +48,9 @@ contract Relay {
 
     /**
      * Sends ether and all tokens from this contract to master
+     * @param token_address address of sending token (0 for Ether)
      */
-    function sendAllToMaster(address token_address) public {
+    function sendToMaster(address token_address) public {
         // trusted call
         require(master_instance_.checkTokenAddress(token_address));
         if (token_address == 0) {
@@ -65,7 +66,7 @@ contract Relay {
 
     /**
      * Withdraws specified amount of ether or one of ERC-20 tokens to provided address
-     * @param coin_address address of token to withdraw (0 for ether)
+     * @param token_address address of token to withdraw (0 for ether)
      * @param amount amount of tokens or ether to withdraw
      * @param to target account address
      * @param tx_hash hash of transaction from Iroha
@@ -73,9 +74,9 @@ contract Relay {
      * @param r array of signatures of tx_hash (r-component)
      * @param s array of signatures of tx_hash (s-component)
      */
-    function withdraw(address coin_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s) public {
+    function withdraw(address token_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s) public {
         emit address_event(master_address_);
         // trusted call
-        master_instance_.withdraw(coin_address, amount, to, tx_hash, v, r, s);
+        master_instance_.withdraw(token_address, amount, to, tx_hash, v, r, s);
     }
 }
