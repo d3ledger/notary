@@ -5,7 +5,7 @@ pragma solidity 0.4.24;
  */
 contract ICoin {
     function transfer(address to, uint256 value) public returns (bool);
-    function balanceOf(address who) public constant returns (uint256);
+    function balanceOf(address who) public view returns (uint256);
 }
 
 /**
@@ -16,7 +16,8 @@ contract Master {
     mapping(address => bool) private peers_;
     uint private peers_count_;
     mapping(bytes32 => bool) private used_;
-    address[] private tokens_;
+
+    address[] public tokens;
 
     event address_event(address input);
     event string_event(string input);
@@ -25,25 +26,17 @@ contract Master {
 
     /**
      * Constructor. Sets contract owner to contract creator.
-     * @param tokens whitelist of supported ERC-20 tokens
+     * @param tokens_list whitelist of supported ERC-20 tokens
      */
-    constructor(address[] tokens) public {
+    constructor(address[] tokens_list) public {
         owner_ = msg.sender;
-        tokens_ = tokens;
+        tokens = tokens_list;
     }
 
     /**
      * A special function-like stub to allow ether accepting
      */
     function() external payable { }
-
-    /**
-     * Returns supported ERC-20 tokens
-     * @return array of supported tokens addresses
-     */
-    function getTokensList() public constant returns (address[]) {
-        return tokens_;
-    }
 
     /**
      * Recovers address from a given single signature
@@ -79,7 +72,7 @@ contract Master {
      * @param addresses addresses array to check
      * @return true if all given addresses are unique or false otherwise
      */
-    function checkForUniqueness(address[] memory addresses) pure internal returns(bool) {
+    function checkForUniqueness(address[] memory addresses) internal pure returns(bool) {
         for (uint i = 0; i < addresses.length; ++i) {
             for (uint j = i+1; j < addresses.length; ++j) {
                 if (addresses[i] == addresses[j]) {
@@ -95,14 +88,14 @@ contract Master {
      * @param token address of token to check
      * @return true if token inside whitelist or false otherwise
      */
-    function checkTokenAddress(address token) private constant returns (bool) {
+    function checkTokenAddress(address token) private view returns (bool) {
         // 0 means ether which is definitely in whitelist
         if (token == 0) {
             return true;
         }
         bool token_found = false;
-        for (uint i = 0; i < tokens_.length; ++i) {
-            if (tokens_[i] == token) {
+        for (uint i = 0; i < tokens.length; ++i) {
+            if (tokens[i] == token) {
                 token_found = true;
                 break;
             }

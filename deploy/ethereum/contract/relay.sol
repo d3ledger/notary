@@ -5,7 +5,7 @@ pragma solidity 0.4.24;
  */
 contract ICoin {
     function transfer(address to, uint256 value) public returns (bool);
-    function balanceOf(address who) public constant returns (uint256);
+    function balanceOf(address who) public view returns (uint256);
 }
 
 /**
@@ -13,7 +13,7 @@ contract ICoin {
  */
 contract IMaster {
     function withdraw(address coin_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s) public;
-    function getTokensList() public constant returns (address[]);
+    function tokens() public view returns (address[]);
 }
 
 /**
@@ -50,7 +50,7 @@ contract Relay {
         master_address_.transfer(address(this).balance);
         // loop through all token addresses and transfer all tokens to master address
         // trusted call
-        address[] memory tokens = master_instance_.getTokensList();
+        address[] memory tokens = master_instance_.tokens();
         for (uint i = 0; i < tokens.length; ++i) {
             ICoin ic = ICoin(tokens[i]);
             // untrusted calls in general but coin addresses are received from trusted master contract
