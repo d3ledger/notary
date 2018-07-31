@@ -160,6 +160,7 @@ contract Master {
             to.transfer(amount);
         } else {
             ICoin coin = ICoin(token_address);
+            // untrusted call, relies on token whitelist check
             require(coin.balanceOf(this) >= amount);
             // untrusted call, relies on provided cryptographic proof
             coin.transfer(to, amount);
