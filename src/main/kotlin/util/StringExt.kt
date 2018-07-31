@@ -1,5 +1,7 @@
 package util
 
+import java.util.*
+
 /**
  * Extension function to convert hexidecimal string to text
  */
@@ -14,4 +16,14 @@ fun String.hexToAscii(): String {
     }
 
     return output.toString()
+}
+
+/** Returns random string of [len] characters */
+fun String.Companion.getRandomString(len: Int): String {
+    val chars = "abcdefghijklmnopqrstuvwxyz"
+    val res = StringBuilder()
+    for (i in 0..len) {
+        res.append(chars[Random().nextInt(chars.length)])
+    }
+    return res.toString()
 }
