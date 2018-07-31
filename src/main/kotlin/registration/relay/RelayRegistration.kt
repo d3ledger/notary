@@ -48,8 +48,8 @@ class RelayRegistration(
      * @param tokens list of supported tokens
      * @return user smart contract address
      */
-    private fun deployRelaySmartContract(master: String, tokens: List<String>): String {
-        val contract = deployHelper.deployRelaySmartContract(master, tokens)
+    private fun deployRelaySmartContract(master: String): String {
+        val contract = deployHelper.deployRelaySmartContract(master)
 
         logger.info { "Relay wallet created with address ${contract.contractAddress}" }
         return contract.contractAddress
@@ -79,7 +79,7 @@ class RelayRegistration(
             .map { tokens ->
                 (1..relayRegistrationConfig.number).forEach {
                     val relayWallet =
-                        deployRelaySmartContract(relayRegistrationConfig.ethMasterWallet, tokens.keys.toList())
+                        deployRelaySmartContract(relayRegistrationConfig.ethMasterWallet)
                     sendRelayToIroha(relayWallet)
                         .failure { logger.error { it } }
                 }

@@ -81,31 +81,31 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
 
     /**
      * Deploy master smart contract
+     * @param tokens list of supported tokens
      * @return master smart contract object
      */
-    fun deployMasterSmartContract(): Master {
+    fun deployMasterSmartContract(tokens: List<String>): Master {
         return contract.Master.deploy(
             web3,
             credentials,
             gasPrice,
-            gasLimit
+            gasLimit,
+            tokens
         ).send()
     }
 
     /**
      * Deploy relay smart contract
      * @param master notary master account
-     * @param tokens list of supported tokens
      * @return relay smart contract object
      */
-    fun deployRelaySmartContract(master: String, tokens: List<String>): Relay {
+    fun deployRelaySmartContract(master: String): Relay {
         return contract.Relay.deploy(
             web3,
             credentials,
             gasPrice,
             gasLimit,
-            master,
-            tokens
+            master
         ).send()
     }
 
@@ -117,10 +117,8 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      */
     fun deployAll() {
         val token = deployERC20TokenSmartContract()
-        val master = deployMasterSmartContract()
-
-        val tokens = listOf(token.contractAddress)
-        val relay = deployRelaySmartContract(master.contractAddress, tokens)
+        val master = deployMasterSmartContract(listOf(token.contractAddress))
+        val relay = deployRelaySmartContract(master.contractAddress)
 
         println("Token contract address: $token")
         println("Master contract address: $master")
