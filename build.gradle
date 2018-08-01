@@ -382,5 +382,10 @@ jacocoTestReport {
 pitest {
     pitestVersion = "1.3.0"
     testPlugin = "junit5"
-    targetClasses = ['util.*', 'notary.*']
+    targetClasses = ['util.*', 'notary.*', 'registration.*', 'withdrawalservice.*']
+    excludedClasses = ['notary.db.*', '*Test*']
+    targetTests = ['util.*', 'notary.*', 'registration.*', 'withdrawalservice.*']
+    avoidCallsTo = ['kotlin.jvm.internal', 'mu']
+    mutators = ['CONDITIONALS_BOUNDARY', 'NEGATE_CONDITIONALS', 'REMOVE_CONDITIONALS', 'MATH', 'INCREMENTS',
+                'INVERT_NEGS', 'INLINE_CONSTS', 'VOID_METHOD_CALLS']
 }
