@@ -4,10 +4,14 @@ import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.squareup.moshi.Moshi
+import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.experimental.async
 import notary.endpoint.eth.*
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import registration.RegistrationServiceEndpoint
 import java.math.BigInteger
 
 /**
@@ -15,6 +19,12 @@ import java.math.BigInteger
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RefundServerEndpointTest {
+
+    /** Server port */
+    val port = 8080
+
+    /** Refund server */
+    lateinit var server: RefundServerEndpoint
 
     /** Server initialization bundle */
     val serverBundle = ServerInitializationBundle(8080, "eth")
@@ -24,11 +34,7 @@ class RefundServerEndpointTest {
         Moshi.Builder().add(EthNotaryResponseMoshiAdapter()).add(BigInteger::class.java, BigIntegerMoshiAdapter())
             .build()
 
-    /** Stub for ethereum refund request, should represent tx hash from Iroha */
-    private val ethRequest = EthRefundRequest("tx_hash_from_iroha")
-
-    /** Successful response */
-    private val successResponse = EthNotaryResponse.Successful(
+    val successResponse = EthNotaryResponse.Successful(
         "signature",
         EthRefund("address", "coin", "10", "irohaTxHash")
     )
@@ -41,7 +47,21 @@ class RefundServerEndpointTest {
         } doReturn successResponse
     }
 
-    val server = RefundServerEndpoint(serverBundle, ethRefundStrategyMock)
+    /**
+     * Send GET request to local server
+     */
+    fun get(hash: String): khttp.responses.Response {
+        return khttp.get("http://127.0.0.1:$port/eth/$hash")
+    }
+
+    @BeforeAll
+    fun init() {
+        async {
+            server = RefundServerEndpoint(serverBundle, ethRefundStrategyMock)
+        }
+
+        Thread.sleep(3_000)
+    }
 
     /**
      * @given initialized server class
@@ -50,10 +70,10 @@ class RefundServerEndpointTest {
      */
     @Test
     fun onEthRefundCallTest() {
-        val request = moshi.adapter(EthRefundRequest::class.java).toJson(ethRequest)
-        val refundAnswer = server.onCallEthRefund(request)
+        val actual = khttp.get("http://127.0.0.1:$port/eth/some_tx_hash")
 
-        assertEquals(successResponse, moshi.adapter(EthNotaryResponse::class.java).fromJson(refundAnswer))
+        assertEquals(HttpStatusCode.OK.value, actual.statusCode)
+        assertEquals(successResponse, moshi.adapter(EthNotaryResponse::class.java).fromJson(actual.text))
     }
 
     /**
