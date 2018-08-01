@@ -1,27 +1,28 @@
-pragma solidity ^0.4.23;
+pragma solidity 0.4.24;
 
 /**
  * Subset of ERC-20 token interface
  */
 contract ICoin {
     function transfer(address to, uint256 value) public returns (bool);
-    function balanceOf(address who) public constant returns (uint256);
+    function balanceOf(address who) public view returns (uint256);
 }
 
 /**
  * Subset of master contract interface
  */
 contract IMaster {
-    function withdraw(address coin_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s) public;
+    function withdraw(address token_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s) public;
+    function tokens() public view returns (address[]);
+    function checkTokenAddress(address token) public view returns (bool);
 }
 
 /**
  * Provides functionality of relay contract
  */
 contract Relay {
-    address private master_;
-    address[] private tokens_;
-    IMaster private in_;
+    address private master_address_;
+    IMaster private master_instance_;
 
     event address_event(address input);
     event string_event(string input);
@@ -31,52 +32,41 @@ contract Relay {
     /**
      * Relay constructor
      * @param master address of master contract
-     * @param tokens whitelist of supported ERC-20 tokens
      */
-    constructor(address master, address[] tokens) public {
-        master_ = master;
-        for (uint i = 0; i < tokens.length; ++i) {
-            tokens_.push(tokens[i]);
-        }
-        in_ = IMaster(master_);
+    constructor(address master) public {
+        master_address_ = master;
+        master_instance_ = IMaster(master_address_);
     }
 
     /**
      * A special function-like stub to allow ether accepting
      */
-    function() external payable { }
-
-    /**
-     * Sends ether and all tokens from this contract to master
-     */
-    function sendAllToMaster() public {
-        master_.transfer(address(this).balance);
-        // loop through all token addresses and transfer all tokens to master address
-        for (uint i = 0; i < tokens_.length; ++i) {
-            ICoin ic = ICoin(tokens_[i]);
-            ic.transfer(master_, ic.balanceOf(address(this)));
-        }
+    function() external payable {
+        require(msg.data.length == 0);
+        emit address_event(msg.sender);
     }
 
     /**
-     * Checks is given token inside a whitelist or not
-     * @param token address of token to check
-     * @return true if token inside whitelist or false otherwise
+     * Sends ether and all tokens from this contract to master
+     * @param token_address address of sending token (0 for Ether)
      */
-    function checkTokenAddress(address token) private constant returns (bool) {
-        bool token_found = false;
-        for (uint i = 0; i < tokens_.length; ++i) {
-            if (tokens_[i] == token) {
-                token_found = true;
-                break;
-            }
+    function sendToMaster(address token_address) public {
+        // trusted call
+        require(master_instance_.checkTokenAddress(token_address));
+        if (token_address == 0) {
+            // trusted transfer
+            master_address_.transfer(address(this).balance);
+        } else {
+            ICoin ic = ICoin(token_address);
+            // untrusted call in general but coin addresses are received from trusted master contract
+            // which contains and manages whitelist of them
+            ic.transfer(master_address_, ic.balanceOf(address(this)));
         }
-        return token_found;
     }
 
     /**
      * Withdraws specified amount of ether or one of ERC-20 tokens to provided address
-     * @param coin_address address of token to withdraw (0 for ether)
+     * @param token_address address of token to withdraw (0 for ether)
      * @param amount amount of tokens or ether to withdraw
      * @param to target account address
      * @param tx_hash hash of transaction from Iroha
@@ -84,13 +74,9 @@ contract Relay {
      * @param r array of signatures of tx_hash (r-component)
      * @param s array of signatures of tx_hash (s-component)
      */
-    function withdraw(address coin_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s) public {
-        // TODO: remove if statement
-        if (coin_address != 0) {
-            assert(checkTokenAddress(coin_address));
-            emit address_event(coin_address);
-        }
-        emit address_event(master_);
-        in_.withdraw(coin_address, amount, to, tx_hash, v, r, s);
+    function withdraw(address token_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s) public {
+        emit address_event(master_address_);
+        // trusted call
+        master_instance_.withdraw(token_address, amount, to, tx_hash, v, r, s);
     }
 }
