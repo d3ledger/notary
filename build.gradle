@@ -342,6 +342,15 @@ task runDeployRelay(type: JavaExec) {
     environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
 }
 
+task runVacuumRelay(type: JavaExec) {
+    main = 'registration.relay.VacuumRelayMain'
+    classpath = sourceSets.main.runtimeClasspath
+
+    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
+    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
+}
+
+
 task runWithdrawal(type: JavaExec) {
     main = 'withdrawalservice.WithdrawalServiceMain'
     classpath = sourceSets.main.runtimeClasspath
