@@ -251,7 +251,7 @@ object ModelUtil {
         return irohaConsumer.sendAndCheck(
             ModelTransactionBuilder()
                 .creatorAccountId(creator)
-                .createdTime(ModelUtil.getCurrentTime())
+                .createdTime(getCurrentTime())
                 .addAssetQuantity(assetId, amount)
                 .build()
         )
@@ -280,7 +280,7 @@ object ModelUtil {
         return irohaConsumer.sendAndCheck(
             ModelTransactionBuilder()
                 .creatorAccountId(creator)
-                .createdTime(ModelUtil.getCurrentTime())
+                .createdTime(getCurrentTime())
                 .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
                 .build()
         )
