@@ -36,6 +36,8 @@ class EthWalletsProviderIrohaImpl(
             irohaNetwork,
             account,
             setter
-        ).map { it.filterValues { it != "free" } }
+        ).map { relays ->
+            relays.filterValues { it != "free" }
+        }
     }
 }
