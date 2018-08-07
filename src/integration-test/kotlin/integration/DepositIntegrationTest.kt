@@ -1,14 +1,11 @@
 package integration
 
 import com.github.kittinunf.result.failure
-import com.google.protobuf.InvalidProtocolBufferException
 import config.EthereumPasswords
 import config.TestConfig
 import config.loadConfigs
 import io.grpc.ManagedChannelBuilder
-import iroha.protocol.Queries
 import iroha.protocol.QueryServiceGrpc
-import jp.co.soramitsu.iroha.ModelProtoQuery
 import jp.co.soramitsu.iroha.ModelQueryBuilder
 import kotlinx.coroutines.experimental.async
 import notary.db.tables.Tokens
@@ -22,7 +19,6 @@ import sidechain.eth.util.DeployHelper
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
-import sidechain.iroha.util.toByteArray
 import java.math.BigInteger
 import java.sql.DriverManager
 
@@ -106,33 +102,34 @@ class DepositIntegrationTest {
             .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
             .getAccountAssets(accountId)
             .build()
-        val queryBlob = ModelProtoQuery(uquery).signAndAddSignature(keypair).finish().blob().toByteArray()
 
-        val protoQuery: Queries.Query?
-        try {
-            protoQuery = Queries.Query.parseFrom(queryBlob)
-        } catch (e: InvalidProtocolBufferException) {
-            fail { "Exception while converting byte array to protobuf:" + e.message }
-        }
+        return ModelUtil.prepareQuery(uquery, keypair)
+            .fold(
+                { protoQuery ->
+                    val channel =
+                        ManagedChannelBuilder.forAddress(testConfig.iroha.hostname, testConfig.iroha.port)
+                            .usePlaintext(true)
+                            .build()
+                    val queryStub = QueryServiceGrpc.newBlockingStub(channel)
+                    val queryResponse = queryStub.find(protoQuery)
 
-        val channel =
-            ManagedChannelBuilder.forAddress(testConfig.iroha.hostname, testConfig.iroha.port).usePlaintext(true)
-                .build()
-        val queryStub = QueryServiceGrpc.newBlockingStub(channel)
-        val queryResponse = queryStub.find(protoQuery)
+                    val fieldDescriptor = queryResponse.descriptorForType.findFieldByName("account_assets_response")
+                    if (!queryResponse.hasField(fieldDescriptor)) {
+                        fail { "Query response error ${queryResponse.errorResponse}" }
+                    }
 
-        val fieldDescriptor = queryResponse.descriptorForType.findFieldByName("account_assets_response")
-        if (!queryResponse.hasField(fieldDescriptor)) {
-            fail { "Query response error ${queryResponse.errorResponse}" }
-        }
+                    val assets = queryResponse.accountAssetsResponse.accountAssetsList
+                    for (asset in assets) {
+                        if (assetId == asset.assetId)
+                            return BigInteger(asset.balance)
+                    }
 
-        val assets = queryResponse.accountAssetsResponse.accountAssetsList
-        for (asset in assets) {
-            if (assetId == asset.assetId)
-                return BigInteger(asset.balance)
-        }
-
-        return BigInteger.ZERO
+                    BigInteger.ZERO
+                },
+                {
+                    fail { "Exception while converting byte array to protobuf:" + it.message }
+                }
+            )
     }
 
     /**
