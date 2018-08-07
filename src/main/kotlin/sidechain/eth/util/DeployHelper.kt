@@ -5,6 +5,7 @@ import config.EthereumPasswords
 import contract.BasicCoin
 import contract.Master
 import contract.Relay
+import mu.KLogging
 import org.web3j.crypto.RawTransaction
 import org.web3j.crypto.TransactionEncoder
 import org.web3j.crypto.WalletUtils
@@ -61,7 +62,8 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
         // sign & send our transaction
         val signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials)
         val hexValue = Numeric.toHexString(signedMessage)
-        web3.ethSendRawTransaction(hexValue).send()
+        val transactionHash = web3.ethSendRawTransaction(hexValue).send().transactionHash
+        logger.info ("sendEthereum($amount,$to) transaction hash $transactionHash")
     }
 
     /**
@@ -135,4 +137,9 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
         val token = contract.BasicCoin.load(tokenAddress, web3, credentials, gasPrice, gasLimit)
         token.transfer(toAddress, amount).send()
     }
+    
+    /**
+     * Logger
+     */
+    companion object : KLogging()
 }
