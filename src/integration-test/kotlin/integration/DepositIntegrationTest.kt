@@ -11,10 +11,7 @@ import kotlinx.coroutines.experimental.async
 import notary.db.tables.Tokens
 import notary.main
 import org.jooq.impl.DSL
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.fail
+import org.junit.jupiter.api.*
 import sidechain.eth.util.DeployHelper
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
@@ -148,6 +145,14 @@ class DepositIntegrationTest {
     }
 
     /**
+     * Set relay wallet for client
+     */
+    @BeforeEach
+    fun setup() {
+        setRelayToAccount(clientIrohaAccount, relayWallet)
+    }
+
+    /**
      * Test US-001 Deposit of ETH
      * Note: Ethereum and Iroha must be deployed to pass the test.
      * @given Ethereum and Iroha networks running and two ethereum wallets and "fromAddress" with at least
@@ -160,8 +165,6 @@ class DepositIntegrationTest {
         val assetId = "ether#ethereum"
         val initialAmount = getAccountBalance(clientIrohaAccount, assetId)
         val amount = BigInteger.valueOf(1_234_000_000_000)
-
-        setRelayToAccount(clientIrohaAccount, relayWallet)
 
         // send ETH
         deployHelper.sendEthereum(amount, relayWallet)
@@ -185,8 +188,6 @@ class DepositIntegrationTest {
         val initialAmount = getAccountBalance(clientIrohaAccount, assetId)
         val zeroAmount = BigInteger.ZERO
         val amount = BigInteger.valueOf(1_234_000_000_000)
-
-        setRelayToAccount(clientIrohaAccount, relayWallet)
 
         // send 0 ETH
         deployHelper.sendEthereum(zeroAmount, relayWallet)
@@ -221,8 +222,6 @@ class DepositIntegrationTest {
         val contractAddress = contract.contractAddress
         insertToken(contractAddress, asset)
 
-        setRelayToAccount(clientIrohaAccount, relayWallet)
-
         // send ETH
         contract.transfer(relayWallet, amount).send()
         Thread.sleep(120_000)
@@ -249,8 +248,6 @@ class DepositIntegrationTest {
         val contract = DeployHelper(testConfig.ethereum, passwordConfig).deployERC20TokenSmartContract()
         val contractAddress = contract.contractAddress
         insertToken(contractAddress, asset)
-
-        setRelayToAccount(clientIrohaAccount, relayWallet)
 
         // send 0 ERC20
         contract.transfer(relayWallet, zeroAmount).send()
