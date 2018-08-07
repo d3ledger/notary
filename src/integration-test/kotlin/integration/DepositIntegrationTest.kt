@@ -94,7 +94,7 @@ class DepositIntegrationTest {
     /**
      * Query Iroha account balance
      */
-    fun queryIroha(assetId: String, accountId: String): BigInteger {
+    fun getAccountBalance(accountId: String, assetId: String): BigInteger {
         val queryCounter: Long = 1
 
         val uquery = ModelQueryBuilder()
@@ -158,7 +158,7 @@ class DepositIntegrationTest {
     @Test
     fun depositOfETH() {
         val assetId = "ether#ethereum"
-        val initialAmount = queryIroha(assetId, clientIrohaAccount)
+        val initialAmount = getAccountBalance(clientIrohaAccount, assetId)
         val amount = BigInteger.valueOf(1_234_000_000_000)
 
         setRelayToAccount(clientIrohaAccount, relayWallet)
@@ -167,7 +167,7 @@ class DepositIntegrationTest {
         deployHelper.sendEthereum(amount, relayWallet)
         Thread.sleep(120_000)
 
-        Assertions.assertEquals(initialAmount + amount, queryIroha(assetId, clientIrohaAccount))
+        Assertions.assertEquals(initialAmount + amount, getAccountBalance(clientIrohaAccount, assetId))
     }
 
     /**
@@ -182,7 +182,7 @@ class DepositIntegrationTest {
     @Test
     fun depositZeroETH() {
         val assetId = "ether#ethereum"
-        val initialAmount = queryIroha(assetId, clientIrohaAccount)
+        val initialAmount = getAccountBalance(clientIrohaAccount, assetId)
         val zeroAmount = BigInteger.ZERO
         val amount = BigInteger.valueOf(1_234_000_000_000)
 
@@ -192,13 +192,13 @@ class DepositIntegrationTest {
         deployHelper.sendEthereum(zeroAmount, relayWallet)
         Thread.sleep(120_000)
 
-        Assertions.assertEquals(initialAmount, queryIroha(assetId, clientIrohaAccount))
+        Assertions.assertEquals(initialAmount, getAccountBalance(clientIrohaAccount, assetId))
 
         // Send again 1234000000000 Ethereum network
         deployHelper.sendEthereum(amount, relayWallet)
         Thread.sleep(120_000)
 
-        Assertions.assertEquals(initialAmount + amount, queryIroha(assetId, clientIrohaAccount))
+        Assertions.assertEquals(initialAmount + amount, getAccountBalance(clientIrohaAccount, assetId))
     }
 
     /**
@@ -213,7 +213,7 @@ class DepositIntegrationTest {
     fun depositOfERC20() {
         val asset = "coin"
         val assetId = "$asset#ethereum"
-        val initialAmount = queryIroha(assetId, clientIrohaAccount)
+        val initialAmount = getAccountBalance(clientIrohaAccount, assetId)
         val amount = BigInteger.valueOf(51)
 
         // Deploy ERC20 smart contract
@@ -226,7 +226,7 @@ class DepositIntegrationTest {
         // send ETH
         contract.transfer(relayWallet, amount).send()
         Thread.sleep(120_000)
-        Assertions.assertEquals(initialAmount + amount, queryIroha(assetId, clientIrohaAccount))
+        Assertions.assertEquals(initialAmount + amount, getAccountBalance(clientIrohaAccount, assetId))
     }
 
     /**
@@ -241,7 +241,7 @@ class DepositIntegrationTest {
     fun depositZeroOfERC20() {
         val asset = "coin"
         val assetId = "$asset#ethereum"
-        val initialAmount = queryIroha(assetId, clientIrohaAccount)
+        val initialAmount = getAccountBalance(clientIrohaAccount, assetId)
         val zeroAmount = BigInteger.ZERO
         val amount = BigInteger.valueOf(51)
 
@@ -256,12 +256,12 @@ class DepositIntegrationTest {
         contract.transfer(relayWallet, zeroAmount).send()
         Thread.sleep(120_000)
 
-        Assertions.assertEquals(initialAmount, queryIroha(assetId, clientIrohaAccount))
+        Assertions.assertEquals(initialAmount, getAccountBalance(clientIrohaAccount, assetId))
 
         // Send again
         contract.transfer(relayWallet, amount).send()
         Thread.sleep(120_000)
-        Assertions.assertEquals(initialAmount + amount, queryIroha(assetId, clientIrohaAccount))
+        Assertions.assertEquals(initialAmount + amount, getAccountBalance(clientIrohaAccount, assetId))
     }
 
 }
