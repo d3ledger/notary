@@ -93,6 +93,9 @@ class DepositIntegrationTest {
 
     /**
      * Query Iroha account balance
+     * @param accountIf - account in Iroha
+     * @param assetId - asset in Iroha
+     * @return balance of account asset
      */
     fun getAccountBalance(accountId: String, assetId: String): BigInteger {
         val queryCounter: Long = 1
