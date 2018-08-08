@@ -49,7 +49,7 @@ class WithdrawalIntegrationTest {
     /** Ethereum utils */
     private val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
 
-    /** Ethereum test address */
+    /** Ethereum test address where we want to withdraw to */
     private val toAddress = testConfig.ropstenTestAccount
 
     /** Registration service port */
