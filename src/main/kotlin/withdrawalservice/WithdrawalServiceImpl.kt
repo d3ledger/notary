@@ -11,6 +11,7 @@ import notary.EthTokensProviderImpl
 import notary.endpoint.eth.AmountType
 import org.web3j.utils.Numeric.hexStringToByteArray
 import sidechain.SideChainEvent
+import sidechain.eth.util.extractVRS
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
 import sidechain.iroha.consumer.IrohaNetwork
@@ -113,13 +114,10 @@ class WithdrawalServiceImpl(
                             withdrawalServicePasswords,
                             hashToWithdraw(coinAddress, amount, address, hash)
                         )
-                    val r = hexStringToByteArray(signature.substring(2, 66))
-                    val s = hexStringToByteArray(signature.substring(66, 130))
-                    val v = signature.substring(130, 132).toBigInteger(16)
-
-                    vv.add(v)
-                    rr.add(r)
-                    ss.add(s)
+                    val vrs = extractVRS(signature)
+                    vv.add(vrs.v)
+                    rr.add(vrs.r)
+                    ss.add(vrs.s)
                 }
                 RollbackApproval(coinAddress, amount, address, hash, rr, ss, vv, relayAddress)
             }
