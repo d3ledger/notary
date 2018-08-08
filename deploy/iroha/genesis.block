@@ -70,6 +70,14 @@
                   },
                   {
                     "createRole":{
+                        "roleName":"vacuumer",
+                        "permissions":[
+                            "can_get_domain_accounts"
+                        ]
+                    }
+                  },
+                  {
+                    "createRole":{
                         "roleName":"none",
                         "permissions":[
                         ]
@@ -176,7 +184,20 @@
                         "accountId":"test@notary",
                         "roleName":"tester"
                      }
-                  }
+                  },
+                  {
+                     "createAccount":{
+                        "accountName":"vacuumer",
+                        "domainId":"notary",
+                        "mainPubkey":"iJ9riB4zG+IUh9t33PMsX409XoBm540v6sQjn+kdQW8="
+                     }
+                  },
+                  {
+                     "appendRole":{
+                        "accountId":"vacuumer@notary",
+                        "roleName":"vacuumer"
+                     }
+                  },
                 ],
                 "quorum": 1
               }
