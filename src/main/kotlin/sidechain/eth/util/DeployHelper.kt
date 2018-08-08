@@ -16,6 +16,9 @@ import java.math.BigInteger
 
 /**
  * Helper class for contracts deploying
+ * @param ethereumConfig config with Ethereum network parameters
+ * @param ethereumPasswords config with Ethereum passwords
+ * @param etherTest is class used for contract tests or not (TODO: remove after config rework)
  */
 class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPasswords, etherTest: Boolean = false) {
 
