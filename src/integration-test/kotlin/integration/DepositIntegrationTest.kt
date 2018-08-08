@@ -86,7 +86,7 @@ class DepositIntegrationTest {
 
     /**
      * Query Iroha account balance
-     * @param accountIf - account in Iroha
+     * @param accountId - account in Iroha
      * @param assetId - asset in Iroha
      * @return balance of account asset
      */
