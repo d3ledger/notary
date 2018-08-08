@@ -28,7 +28,7 @@ class EthWalletsProviderIrohaTest {
             }
     }
 
-    val testConfig = loadConfigs("test", TestConfig::class.java)
+    val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
     /** Creator of txs in Iroha */
     val creator: String = testConfig.iroha.creator

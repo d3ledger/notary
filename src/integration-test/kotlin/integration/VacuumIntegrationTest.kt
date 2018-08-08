@@ -32,7 +32,7 @@ class VacuumIntegrationTest {
     }
 
     /** Configurations for tests */
-    private val testConfig = loadConfigs("test", TestConfig::class.java)
+    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
     private val relayRegistrationConfig = loadConfigs("relay-registration", RelayRegistrationConfig::class.java)
 

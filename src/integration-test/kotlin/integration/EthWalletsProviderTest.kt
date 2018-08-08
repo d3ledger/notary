@@ -13,7 +13,7 @@ import java.sql.DriverManager
  */
 class EthWalletsProviderTest {
 
-    val dbConfig = loadConfigs("test", TestConfig::class.java).db
+    val dbConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").db
 
     /**
      * List all wallets in database

@@ -40,7 +40,7 @@ class DepositIntegrationTest {
     }
 
     /** Configurations for tests */
-    val testConfig = loadConfigs("test", TestConfig::class.java)
+    val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
     /** Ethereum password configs */
     val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/ethereum_password.properties")

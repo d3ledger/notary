@@ -35,7 +35,7 @@ class WithdrawalIntegrationTest {
     }
 
     /** Configurations for tests */
-    private val testConfig = loadConfigs("test", TestConfig::class.java)
+    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
     /** Iroha transaction creator */
     val creator = testConfig.iroha.creator

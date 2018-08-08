@@ -23,7 +23,7 @@ import java.math.BigInteger
  * Class for Ethereum sidechain infrastructure deployment and communication.
  */
 class ContractsTest {
-    private val testConfig = loadConfigs("test", TestConfig::class.java)
+    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
     private val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/ethereum_password.properties")
 
     private val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)

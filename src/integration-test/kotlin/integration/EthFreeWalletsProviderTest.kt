@@ -25,7 +25,7 @@ class EthFreeWalletsProviderTest {
     }
 
     /** Test configurations */
-    val testConfig = loadConfigs("test", TestConfig::class.java)
+    val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
     /** Iroha keypair */
     val keypair: Keypair =
@@ -39,9 +39,6 @@ class EthFreeWalletsProviderTest {
 
     /** Iroha transaction creator */
     val creator = testConfig.iroha.creator
-
-    /** Iroha master */
-    val relayRegistrationIrohaAccount = testConfig.relayRegistrationIrohaAccount
 
     /**
      * @given Iroha network running and Iroha master account with attribute ["eth_wallet", "free"] set by master account
