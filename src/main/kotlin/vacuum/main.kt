@@ -17,7 +17,7 @@ private const val RELAY_VACUUM_PREFIX = "relay-vacuum"
  */
 fun main(args: Array<String>) {
     val logger = KLogging()
-    val relayVacuumConfig = loadConfigs(RELAY_VACUUM_PREFIX, RelayVacuumConfig::class.java)
+    val relayVacuumConfig = loadConfigs(RELAY_VACUUM_PREFIX, RelayVacuumConfig::class.java, "/vacuum.properties")
     val passwordConfig =
         loadConfigs(RELAY_VACUUM_PREFIX, EthereumPasswords::class.java, "/ethereum_password.properties")
     IrohaInitialization.loadIrohaLibrary()
