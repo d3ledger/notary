@@ -18,7 +18,8 @@ import sidechain.iroha.IrohaInitialization
 fun main(args: Array<String>) {
     val logger = KLogging()
 
-    val relayRegistrationConfig = loadConfigs("relay-registration", RelayRegistrationConfig::class.java)
+    val relayRegistrationConfig =
+        loadConfigs("relay-registration", RelayRegistrationConfig::class.java, "/relay_registration.properties")
     val passwordConfig =
         loadConfigs("relay-registration", EthereumPasswords::class.java, "/ethereum_password.properties")
 
