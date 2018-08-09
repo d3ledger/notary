@@ -52,9 +52,9 @@ contract Master {
      */
     function recoverAddress(bytes32 hash, uint8 v, bytes32 r, bytes32 s) private returns(address) {
         emit bytes_event(hash);
-        emit address_event(res);
         bytes32 simple_hash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
         address res = ecrecover(simple_hash, v, r, s);
+        emit address_event(res);
         return res;
     }
 

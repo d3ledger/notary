@@ -17,17 +17,36 @@ import java.math.BigInteger
 
 /**
  * Helper class for contracts deploying
+ * @param ethereumConfig config with Ethereum network parameters
+ * @param ethereumPasswords config with Ethereum passwords
+ * @param etherTest is class used for contract tests or not (TODO: remove after config rework)
  */
-class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPasswords) {
+class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPasswords, etherTest: Boolean = false) {
 
     /** web3 service instance to communicate with Ethereum network */
-    val web3 = Web3j.build(HttpService(ethereumConfig.url))
+    val web3 = Web3j.build(
+        HttpService(
+            if (etherTest) {
+                "http://127.0.0.1:8545"
+            } else {
+                ethereumConfig.url
+            }
+        )
+    )
 
     /** credentials of ethereum user */
     val credentials by lazy {
         WalletUtils.loadCredentials(
-            ethereumPasswords.credentialsPassword,
-            ethereumConfig.credentialsPath
+            if (etherTest) {
+                "user"
+            } else {
+                ethereumPasswords.credentialsPassword
+            },
+            if (etherTest) {
+                "deploy/ethereum/keys/ganache.key"
+            } else {
+                ethereumConfig.credentialsPath
+            }
         )
     }
 
