@@ -30,8 +30,8 @@ class EthFreeRelayProvider(
     }
 
     /**
-     * Get all free ethereum relay wallets
-     * @return free ethereum relay wallets
+     * Get all free Ethereum relay wallets
+     * @return free Ethereum relay wallets
      */
     fun getRelays(): Result<Set<String>, Exception> {
         return getRelays(irohaConfig, keypair, irohaNetwork, notaryIrohaAccount, registrationIrohaAccount)

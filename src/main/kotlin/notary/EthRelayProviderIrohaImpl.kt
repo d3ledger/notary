@@ -23,7 +23,6 @@ class EthRelayProviderIrohaImpl(
     private val accountDetailHolder: String,
     private val accountDetailSetter: String
 ) : EthRelayProvider {
-
     /**
      * Gets all non free relay wallets
      *
