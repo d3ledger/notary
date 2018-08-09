@@ -3,11 +3,11 @@ package integration
 import com.github.kittinunf.result.failure
 import config.TestConfig
 import config.loadConfigs
-import notary.EthRelayProviderIrohaImpl
 import notary.IrohaCommand
 import notary.IrohaTransaction
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
+import provider.EthRelayProviderIrohaImpl
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
@@ -96,7 +96,6 @@ class EthRelayProviderIrohaTest {
         EthRelayProviderIrohaImpl(
             testConfig.iroha,
             keypair,
-            irohaNetwork,
             masterAccount,
             creator
         ).getRelays()
@@ -114,13 +113,13 @@ class EthRelayProviderIrohaTest {
     @Disabled
     @Test
     fun testEmptyStorage() {
-        EthRelayProviderIrohaImpl(testConfig.iroha, keypair, irohaNetwork, detailSetter, detailHolder).getRelays()
+        EthRelayProviderIrohaImpl(testConfig.iroha, keypair, detailSetter, detailHolder).getRelays()
             .fold(
                 {
                     assert(it.isEmpty())
                 },
                 {
-                    fail { "result has exception ${it.toString()}" }
+                    fail { "result has exception $it" }
                 }
             )
     }

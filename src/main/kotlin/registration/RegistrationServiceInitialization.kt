@@ -2,6 +2,7 @@ package registration
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
+import provider.EthFreeRelayProvider
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 

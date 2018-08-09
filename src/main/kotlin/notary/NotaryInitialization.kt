@@ -7,12 +7,16 @@ import com.github.kittinunf.result.map
 import config.EthereumPasswords
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
+import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
 import notary.endpoint.RefundServerEndpoint
 import notary.endpoint.ServerInitializationBundle
 import notary.endpoint.eth.EthRefundStrategyImpl
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
+import provider.EthRelayProvider
+import provider.EthTokensProvider
+import provider.EthTokensProviderImpl
 import sidechain.SideChainEvent
 import sidechain.eth.EthChainHandler
 import sidechain.eth.EthChainListener
@@ -31,16 +35,14 @@ import java.math.BigInteger
  * @param ethTokensProvider - provides with white list of ethereum ERC20 tokens
  */
 class NotaryInitialization(
-    val notaryConfig: NotaryConfig,
-    val passwordsConfig: EthereumPasswords,
-    val ethRelayProvider: EthRelayProvider,
-    val ethTokensProvider: EthTokensProvider = EthTokensProviderImpl(notaryConfig.db),
-    val irohaNetwork: IrohaNetwork = IrohaNetworkImpl(notaryConfig.iroha.hostname, notaryConfig.iroha.port)
+    private val irohaKeyPair: Keypair,
+    private val notaryConfig: NotaryConfig,
+    private val passwordsConfig: EthereumPasswords,
+    private val ethRelayProvider: EthRelayProvider,
+    private val ethTokensProvider: EthTokensProvider,
+    private val irohaNetwork: IrohaNetwork = IrohaNetworkImpl(notaryConfig.iroha.hostname, notaryConfig.iroha.port)
 ) {
-    val irohaAccount = notaryConfig.iroha.creator
-    val irohaKeypair =
-        ModelUtil.loadKeypair(notaryConfig.iroha.pubkeyPath, notaryConfig.iroha.privkeyPath).get()
-
+    private val irohaAccount = notaryConfig.iroha.creator
     /**
      * Init notary
      */
@@ -85,7 +87,7 @@ class NotaryInitialization(
         return IrohaChainListener(
             notaryConfig.iroha.hostname,
             notaryConfig.iroha.port,
-            irohaAccount, irohaKeypair
+            irohaAccount, irohaKeyPair
         ).getBlockObservable()
             .map { observable ->
                 observable.flatMapIterable { IrohaChainHandler().parseBlock(it) }
@@ -148,7 +150,7 @@ class NotaryInitialization(
                 irohaNetwork,
                 notaryConfig.ethereum,
                 passwordsConfig,
-                irohaKeypair
+                irohaKeyPair
             )
         )
     }
