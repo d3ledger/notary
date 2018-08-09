@@ -8,7 +8,7 @@ import contract.Relay
 import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
 import notary.EthTokensProviderImpl
-import notary.EthWalletsProviderIrohaImpl
+import notary.EthRelayProviderIrohaImpl
 import sidechain.eth.util.DeployHelper
 import sidechain.iroha.consumer.IrohaNetworkImpl
 
@@ -29,7 +29,7 @@ class RelayVacuum(
 
     private val ethTokensProvider = EthTokensProviderImpl(relayVacuumConfig.db)
 
-    private val ethWalletsProvider = EthWalletsProviderIrohaImpl(
+    private val ethRelayProvider = EthRelayProviderIrohaImpl(
         relayVacuumConfig.iroha,
         keypair,
         irohaNetwork,
@@ -41,7 +41,7 @@ class RelayVacuum(
      * Returns all non free relays
      */
     private fun getAllRelays(): Result<List<Relay>, Exception> {
-        return ethWalletsProvider.getWallets().map { wallets ->
+        return ethRelayProvider.getRelays().map { wallets ->
             wallets.keys.map { ethPublicKey ->
                 Relay.load(
                     ethPublicKey,

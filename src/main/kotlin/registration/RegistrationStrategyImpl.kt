@@ -3,21 +3,19 @@ package registration
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import config.IrohaConfig
 import notary.IrohaCommand
 import notary.IrohaTransaction
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.consumer.IrohaConverterImpl
-import sidechain.iroha.consumer.IrohaNetworkImpl
 
 /**
  * Effective implementation of [RegistrationStrategy]
  */
 class RegistrationStrategyImpl(
-    val ethFreeWalletsProvider: EthFreeWalletsProvider,
-    val irohaConsumer: IrohaConsumer,
-    val notaryIrohaAccount: String,
-    val irohaConfig: IrohaConfig
+    private val ethFreeRelayProvider: EthFreeRelayProvider,
+    private val irohaConsumer: IrohaConsumer,
+    private val notaryIrohaAccount: String,
+    private val creator: String
 ) : RegistrationStrategy {
 
     /**
@@ -30,22 +28,22 @@ class RegistrationStrategyImpl(
      * @return ethereum wallet has been registered
      */
     override fun register(name: String, pubkey: String): Result<String, Exception> {
-        return ethFreeWalletsProvider.getWallet()
-            .flatMap { sendToIroha(it, name, pubkey) }
+        return ethFreeRelayProvider.getRelay()
+            .flatMap { freeEthWallet ->
+                addIrohaEthAccount(freeEthWallet, name, pubkey)
+            }
     }
 
     /**
-     * Form transaction and send to Iroha
+     * Adds new account to Iroha with given Ethereum address
      * @param ethWallet - ethereum wallet
      * @param name - client name in Iroha
      * @param pubkey - client's public key
      * @return ethereum wallet
      */
-    private fun sendToIroha(ethWallet: String, name: String, pubkey: String): Result<String, Exception> {
+    private fun addIrohaEthAccount(ethWallet: String, name: String, pubkey: String): Result<String, Exception> {
         return Result.of {
-            val creator = irohaConfig.creator
             val domain = "notary"
-
             IrohaTransaction(
                 creator,
                 arrayListOf(
@@ -67,8 +65,8 @@ class RegistrationStrategyImpl(
                     )
                 )
             )
-        }.flatMap {
-            val utx = IrohaConverterImpl().convert(it)
+        }.flatMap { irohaTx ->
+            val utx = IrohaConverterImpl().convert(irohaTx)
             irohaConsumer.sendAndCheck(utx)
         }.map {
             ethWallet

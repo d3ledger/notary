@@ -3,7 +3,6 @@ package notary
 import io.reactivex.Observable
 import mu.KLogging
 import sidechain.SideChainEvent
-import java.math.BigInteger
 
 /**
  * Implementation of [Notary] business logic

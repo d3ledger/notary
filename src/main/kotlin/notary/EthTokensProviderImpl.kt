@@ -7,7 +7,7 @@ import org.jooq.impl.DSL
 import java.sql.DriverManager
 
 /** Implementation of [EthTokensProvider] with PostgreSQL storage. */
-class EthTokensProviderImpl(val dbConfig: DatabaseConfig) : EthTokensProvider {
+class EthTokensProviderImpl(private val dbConfig: DatabaseConfig) : EthTokensProvider {
 
     override fun getTokens(): Result<Map<String, String>, Exception> {
         return Result.of {

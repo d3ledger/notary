@@ -37,7 +37,7 @@ fun getRelays(
         .build()
 
     return ModelUtil.prepareQuery(uquery, keypair)
-        .flatMap { irohaNetwork.sendQuery(it) }
+        .flatMap { query -> irohaNetwork.sendQuery(query) }
         .map { queryResponse ->
             val fieldDescriptor = queryResponse.descriptorForType.findFieldByName("account_response")
             if (!queryResponse.hasField(fieldDescriptor)) {
@@ -49,7 +49,7 @@ fun getRelays(
             val json: JsonObject = Parser().parse(stringBuilder) as JsonObject
 
             if (json.map[detailSetterAccount] == null)
-                mapOf<String, String>()
+                mapOf()
             else
                 json.map[detailSetterAccount] as Map<String, String>
         }
@@ -66,9 +66,7 @@ fun getFirstTransaction(queryResponse: QryResponses.QueryResponse): Result<Trans
 
         if (!queryResponse.hasField(fieldDescriptor)) {
             throw NotaryException("Query response error ${queryResponse.errorResponse}")
-        }
-
-        if (queryResponse.transactionsResponse.transactionsCount == 0)
+        } else if (queryResponse.transactionsResponse.transactionsCount == 0)
             throw Exception("There is no transactions.")
 
         // return transaction

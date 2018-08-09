@@ -1,21 +1,14 @@
 package integration
 
 import com.github.kittinunf.result.failure
-import config.EthereumPasswords
-import config.TestConfig
-import config.loadConfigs
+import config.*
+import integration.helper.IntegrationHelperUtil
 import kotlinx.coroutines.experimental.async
 import mu.KLogging
-import notary.EthWalletsProviderIrohaImpl
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.web3j.protocol.core.DefaultBlockParameterName
-import registration.relay.RelayRegistrationConfig
-import sidechain.eth.util.DeployHelper
 import sidechain.iroha.IrohaInitialization
-import sidechain.iroha.consumer.IrohaNetworkImpl
-import sidechain.iroha.util.ModelUtil
-import util.getRandomString
+import vacuum.RelayVacuumConfig
 import java.math.BigInteger
 
 /**
@@ -34,78 +27,62 @@ class VacuumIntegrationTest {
     /** Configurations for tests */
     private val testConfig = loadConfigs("test", TestConfig::class.java)
 
-    private val relayRegistrationConfig = loadConfigs("relay-registration", RelayRegistrationConfig::class.java)
-
-    /** Ethereum password configs */
-    private val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/ethereum_password.properties")
-
-    /** Registration service port */
-    private val registrationServicePort = 8083
-
-    /** Ethereum utils */
-    private val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
-
-    /** Iroha keypair */
-    private val keypair = ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
-
-    /** Iroha network */
-    private val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
-
-    private val ethWalletsProvider = EthWalletsProviderIrohaImpl(
-        testConfig.iroha, keypair, irohaNetwork, testConfig.notaryIrohaAccount, testConfig.registrationIrohaAccount
-    )
+    private val integrationHelper = IntegrationHelperUtil()
 
     /**
      * Test US-001 Vacuum of ETH
      * Note: Ethereum and Iroha must be deployed to pass the test.
      * @given Ethereum and Iroha networks running and few non free relay contracts with little amount of ETH are deployed
      * @when vacuum is invoked
-     * @then all ETH from deployed relay contracts goes to master contract
+     * @then all ETH assets from deployed relay contracts transferred to master contract
      */
     @Test
     fun testVacuum() {
-        val name = String.getRandomString(9)
+        integrationHelper.deployRelays(2)
+        integrationHelper.registerRandomRelay()
+        logger.info("test is ready to proceed")
         val amount = BigInteger.valueOf(2_345_678_000_000)
         var totalRelayBalance = BigInteger.ZERO
-        async {
-            registration.main(emptyArray())
-        }
-        Thread.sleep(3_000)
-        val res = khttp.post(
-            "http://127.0.0.1:$registrationServicePort/users",
-            data = mapOf("name" to name, "pubkey" to keypair.publicKey().hex())
-        )
-        Assertions.assertEquals(200, res.statusCode)
-        logger.info("user was registered")
-        val wallets = ethWalletsProvider.getWallets().get().keys
+        val wallets = integrationHelper.getRegisteredEthWallets()
         wallets.forEach { ethPublicKey ->
-            deployHelper.sendEthereum(amount, ethPublicKey)
+            integrationHelper.sendEth(amount, ethPublicKey)
         }
         logger.info("done sending")
-        Thread.sleep(180_000)
+        Thread.sleep(120_000)
         wallets.forEach { ethPublicKey ->
-            val balance = getEthBalance(ethPublicKey)
+            val balance = integrationHelper.getEthBalance(ethPublicKey)
             totalRelayBalance = totalRelayBalance.add(balance)
             logger.info("$ethPublicKey has $balance ETH")
         }
-        val initialMasterBalance = getEthBalance(relayRegistrationConfig.ethMasterWallet)
+        val initialMasterBalance = integrationHelper.getMasterEthBalance()
         logger.info("initialMasterBalance $initialMasterBalance")
         async {
-            vacuum.main(emptyArray())
+            vacuum.executeVacuum(getRelayConfig())
         }
-        Thread.sleep(600_000)
-        val newMasterBalance = getEthBalance(relayRegistrationConfig.ethMasterWallet)
+        Thread.sleep(300_000)
+        val newMasterBalance = integrationHelper.getMasterEthBalance()
         Assertions.assertEquals(newMasterBalance, initialMasterBalance.add(totalRelayBalance))
         wallets.forEach { ethPublicKey ->
-            Assertions.assertEquals(getEthBalance(ethPublicKey), BigInteger.ZERO)
+            Assertions.assertEquals(integrationHelper.getEthBalance(ethPublicKey), BigInteger.ZERO)
         }
     }
 
-    /**
-     * Return ETH balance for a given address
-     */
-    private fun getEthBalance(address: String): BigInteger {
-        return deployHelper.web3.ethGetBalance(address, DefaultBlockParameterName.LATEST).send().balance
+    private fun getRelayConfig(): RelayVacuumConfig {
+        return object : RelayVacuumConfig {
+            override val registrationServiceIrohaAccount = integrationHelper.masterAccount
+
+            /** Notary Iroha account that stores relay register */
+            override val notaryIrohaAccount = testConfig.notaryIrohaAccount
+
+            /** Iroha configurations */
+            override val iroha = testConfig.iroha
+
+            /** Ethereum configurations */
+            override val ethereum = testConfig.ethereum
+
+            /** Db configurations */
+            override val db = testConfig.db
+        }
     }
 
     /**
