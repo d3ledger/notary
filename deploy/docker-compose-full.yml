@@ -27,18 +27,6 @@ services:
     volumes:
       - /var/lib/postgresql/data
 
-  # d3
-  d3-notary-postgres:
-    image: postgres:9.5
-    container_name: d3-notary-postgres
-    environment:
-      - POSTGRES_PASSWORD=mysecretpassword
-    volumes:
-      - ./db/sql/init:/docker-entrypoint-initdb.d
-      - /var/lib/postgresql/data
-    ports:
-      - 5432:5432
-
   d3-deploy-relay:
     build:
       context: ..
@@ -67,7 +55,6 @@ services:
     depends_on:
       - d3-iroha
      # - d3-eth-node0
-      - d3-notary-postgres
     ports:
       - 8080:8080
 

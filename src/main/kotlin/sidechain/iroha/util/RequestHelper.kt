@@ -15,15 +15,15 @@ import sidechain.iroha.consumer.IrohaNetwork
 import java.math.BigInteger
 
 /**
- * Retrieves relays from Iroha
+ * Retrieves account details from Iroha
  * @param irohaConfig - Iroha configuration parameters
  * @param keypair - iroha keypair
  * @param irohaNetwork - iroha network layer
  * @param acc account to retrieve relays from
  * @param detailSetterAccount - account that has set the details
- * @return Map with relay addresses as keys and iroha accounts (or "free") as values
+ * @return Map with account details
  */
-fun getRelays(
+fun getAccountDetails(
     irohaConfig: IrohaConfig,
     keypair: Keypair,
     irohaNetwork: IrohaNetwork,
@@ -41,7 +41,7 @@ fun getRelays(
         .map { queryResponse ->
             val fieldDescriptor = queryResponse.descriptorForType.findFieldByName("account_response")
             if (!queryResponse.hasField(fieldDescriptor)) {
-                throw Exception("Query response error: ${queryResponse.errorResponse}")
+                throw IllegalStateException("Query response error: ${queryResponse.errorResponse}")
             }
 
             val account = queryResponse.accountResponse.account

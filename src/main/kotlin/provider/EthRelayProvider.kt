@@ -1,4 +1,4 @@
-package notary
+package provider
 
 import com.github.kittinunf.result.Result
 

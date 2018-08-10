@@ -1,11 +1,11 @@
-package registration
+package provider
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import config.IrohaConfig
 import jp.co.soramitsu.iroha.Keypair
 import sidechain.iroha.consumer.IrohaNetworkImpl
-import sidechain.iroha.util.getRelays
+import sidechain.iroha.util.getAccountDetails
 
 /**
  * Provides with free ethereum relay wallet
@@ -34,14 +34,19 @@ class EthFreeRelayProvider(
      * @return free Ethereum relay wallets
      */
     fun getRelays(): Result<Set<String>, Exception> {
-        return getRelays(irohaConfig, keypair, irohaNetwork, notaryIrohaAccount, registrationIrohaAccount)
-            .map { relays ->
-                val freeWallets = relays.filterValues { irohaAccount -> irohaAccount == "free" }.keys
-                if (freeWallets.isEmpty())
-                    throw IllegalStateException("EthFreeRelayProvider - no free relay wallets created by $registrationIrohaAccount")
-                else
-                    freeWallets
-            }
+        return getAccountDetails(
+            irohaConfig,
+            keypair,
+            irohaNetwork,
+            notaryIrohaAccount,
+            registrationIrohaAccount
+        ).map { relays ->
+            val freeWallets = relays.filterValues { irohaAccount -> irohaAccount == "free" }.keys
+            if (freeWallets.isEmpty())
+                throw IllegalStateException("EthFreeRelayProvider - no free relay wallets created by $registrationIrohaAccount")
+            else
+                freeWallets
+        }
     }
 
 }
