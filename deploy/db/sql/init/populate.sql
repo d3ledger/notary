@@ -11,7 +11,7 @@ INSERT INTO notary.tokens (wallet, token) VALUES
 ('0x0d8775f648430679a709e98d2b0cb6250d2887ef', 'bat'),
 ('0x1985365e9f78359a9B6AD760e32412f4a445E862', 'rep'),
 ('0xcb97e65f07da24d46bcdd078ebebd7c6e6e3d750', 'btm'),
-('0x7b39940dbac110f1227d37c395675def270afcd7', 'eos'),
+('0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0', 'eos'),
 ('0xa74476443119A942dE498590Fe1f2454d7D4aC0d', 'gnt'),
 ('0xe0b7927c4af23765cb51314a0e0521a9645f0e2a', 'dgd'),
 ('0xb63b606ac810a52cca15e44bb630fd42d8d1d83d', 'mco'),
