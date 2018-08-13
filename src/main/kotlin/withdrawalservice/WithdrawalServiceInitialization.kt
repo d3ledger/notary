@@ -19,19 +19,19 @@ import sidechain.iroha.util.ModelUtil
  * @param withdrawalEthereumPasswords - passwords for ethereum withdrawal account
  */
 class WithdrawalServiceInitialization(
-    val withdrawalConfig: WithdrawalServiceConfig,
-    val withdrawalEthereumPasswords: EthereumPasswords
+    private val withdrawalConfig: WithdrawalServiceConfig,
+    private val withdrawalEthereumPasswords: EthereumPasswords
 ) {
-    val irohaCreator = withdrawalConfig.iroha.creator
-    val irohaKeypair =
+    private val irohaCreator = withdrawalConfig.iroha.creator
+    private val irohaKeypair =
         ModelUtil.loadKeypair(
             withdrawalConfig.iroha.pubkeyPath,
             withdrawalConfig.iroha.privkeyPath
         ).get()
 
-    val irohaHost = withdrawalConfig.iroha.hostname
-    val irohaPort = withdrawalConfig.iroha.port
-    val irohaNetwork = IrohaNetworkImpl(irohaHost, irohaPort)
+    private val irohaHost = withdrawalConfig.iroha.hostname
+    private val irohaPort = withdrawalConfig.iroha.port
+    private val irohaNetwork = IrohaNetworkImpl(irohaHost, irohaPort)
 
     /**
      * Init Iroha chain listener

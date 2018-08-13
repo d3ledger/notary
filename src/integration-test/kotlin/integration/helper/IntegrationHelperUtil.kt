@@ -12,10 +12,10 @@ import jp.co.soramitsu.iroha.ModelProtoQuery
 import jp.co.soramitsu.iroha.ModelQueryBuilder
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import mu.KLogging
-import notary.EthTokensProviderImpl
-import notary.EthRelayProviderIrohaImpl
 import org.web3j.protocol.core.DefaultBlockParameterName
-import registration.EthFreeRelayProvider
+import provider.EthFreeRelayProvider
+import provider.EthRelayProviderIrohaImpl
+import provider.EthTokensProviderImpl
 import registration.RegistrationStrategyImpl
 import registration.relay.RelayRegistration
 import registration.relay.RelayRegistrationConfig
@@ -45,8 +45,8 @@ class IntegrationHelperUtil {
     private val irohaKeyPair = ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
 
     private val irohaConsumer = IrohaConsumerImpl(testConfig.iroha)
-    /** New Iroha master account to register new contracts in Iroha*/
-    val masterAccount: String by lazy {
+    /** New Iroha data setter account*/
+    val dataSetterAccount: String by lazy {
         createRegistrationAccount()
     }
     /** New master ETH master contract*/
@@ -56,7 +56,12 @@ class IntegrationHelperUtil {
         wallet
     }
 
-    private val ethTokensProvider = EthTokensProviderImpl(testConfig.db)
+    private val ethTokensProvider = EthTokensProviderImpl(
+        testConfig.iroha,
+        irohaKeyPair,
+        testConfig.notaryIrohaAccount,
+        testConfig.tokenStorageAccount
+    )
 
     private val relayRegistrationConfig = loadConfigs("relay-registration", RelayRegistrationConfig::class.java)
 
@@ -64,17 +69,22 @@ class IntegrationHelperUtil {
         testConfig.iroha,
         irohaKeyPair,
         testConfig.notaryIrohaAccount,
-        masterAccount
+        dataSetterAccount
     )
     /** Iroha network */
     private val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
 
-    /** Provider of ETH wallets created by masterAccount*/
+    /** Provider of ETH wallets created by dataSetterAccount*/
     private val ethRelayProvider = EthRelayProviderIrohaImpl(
-        testConfig.iroha, irohaKeyPair, irohaNetwork, testConfig.notaryIrohaAccount, masterAccount
+        testConfig.iroha, irohaKeyPair, testConfig.notaryIrohaAccount, dataSetterAccount
     )
     private val registrationStrategy =
-        RegistrationStrategyImpl(ethFreeRelayProvider, irohaConsumer, testConfig.notaryIrohaAccount, masterAccount)
+        RegistrationStrategyImpl(
+            ethFreeRelayProvider,
+            irohaConsumer,
+            testConfig.notaryIrohaAccount,
+            dataSetterAccount
+        )
 
     private val relayRegistration = RelayRegistration(relayRegistrationConfig, passwordConfig)
 
@@ -98,7 +108,9 @@ class IntegrationHelperUtil {
     private fun deployMasterEth(): Master {
         ethTokensProvider.getTokens()
             .fold(
-                { tokens -> return deployHelper.deployMasterSmartContract(tokens.keys.toList()) },
+                { tokens ->
+                    return deployHelper.deployMasterSmartContract(tokens.keys.toList())
+                },
                 { ex -> throw ex })
     }
 
@@ -106,7 +118,7 @@ class IntegrationHelperUtil {
      * Deploys relay contracts in Ethereum network
      */
     fun deployRelays(relaysToDeploy: Int) {
-        relayRegistration.deploy(relaysToDeploy, masterEthWallet, masterAccount)
+        relayRegistration.deploy(relaysToDeploy, masterEthWallet, dataSetterAccount)
         logger.info("relays were deployed")
         Thread.sleep(30_000)
     }

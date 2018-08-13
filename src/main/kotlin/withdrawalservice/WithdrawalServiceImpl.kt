@@ -6,16 +6,15 @@ import config.EthereumPasswords
 import io.reactivex.Observable
 import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
-import notary.EthTokensProvider
-import notary.EthTokensProviderImpl
+import provider.EthTokensProvider
+import provider.EthTokensProviderImpl
 import notary.endpoint.eth.AmountType
-import org.web3j.utils.Numeric.hexStringToByteArray
 import sidechain.SideChainEvent
 import sidechain.eth.util.extractVRS
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
 import sidechain.iroha.consumer.IrohaNetwork
-import sidechain.iroha.util.getRelays
+import sidechain.iroha.util.getAccountDetails
 import java.math.BigInteger
 
 /**
@@ -52,11 +51,16 @@ class WithdrawalServiceImpl(
     private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
 ) : WithdrawalService {
     private val notaryPeerListProvider = NotaryPeerListProviderImpl()
-    private val tokensProvider: EthTokensProvider = EthTokensProviderImpl(withdrawalServiceConfig.db)
+    private val tokensProvider: EthTokensProvider = EthTokensProviderImpl(
+        withdrawalServiceConfig.iroha,
+        keypair,
+        withdrawalServiceConfig.notaryIrohaAccount,
+        withdrawalServiceConfig.tokenStorageAccount
+    )
     private val masterAccount = withdrawalServiceConfig.notaryIrohaAccount
 
     private fun findInAccDetail(acc: String, name: String): Result<String, Exception> {
-        return getRelays(
+        return getAccountDetails(
             withdrawalServiceConfig.iroha,
             keypair,
             irohaNetwork,

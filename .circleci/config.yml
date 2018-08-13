@@ -40,5 +40,4 @@ jobs:
 
       - run: sh .circleci/copy_bindings.sh
 
-      # run tests!
-      - run: ./gradlew test --info
+      - run: ./gradlew build --info
