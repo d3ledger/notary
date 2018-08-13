@@ -7,10 +7,9 @@ import config.EthereumPasswords
 import contract.Relay
 import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
-import notary.EthTokensProviderImpl
-import notary.EthRelayProviderIrohaImpl
+import provider.EthRelayProviderIrohaImpl
+import provider.EthTokensProviderImpl
 import sidechain.eth.util.DeployHelper
-import sidechain.iroha.consumer.IrohaNetworkImpl
 
 /**
  * Class is responsible for relay contracts vacuum
@@ -22,17 +21,20 @@ class RelayVacuum(
     keypair: Keypair
 ) {
     private val ethTokenAddress = "0x0000000000000000000000000000000000000000"
-    private val irohaNetwork = IrohaNetworkImpl(relayVacuumConfig.iroha.hostname, relayVacuumConfig.iroha.port)
 
     /** Ethereum endpoint */
     private val deployHelper = DeployHelper(relayVacuumConfig.ethereum, relayVacuumEthereumPasswords)
 
-    private val ethTokensProvider = EthTokensProviderImpl(relayVacuumConfig.db)
+    private val ethTokensProvider = EthTokensProviderImpl(
+        relayVacuumConfig.iroha,
+        keypair,
+        relayVacuumConfig.notaryIrohaAccount,
+        relayVacuumConfig.tokenStorageAccount
+    )
 
     private val ethRelayProvider = EthRelayProviderIrohaImpl(
         relayVacuumConfig.iroha,
         keypair,
-        irohaNetwork,
         relayVacuumConfig.notaryIrohaAccount,
         relayVacuumConfig.registrationServiceIrohaAccount
     )

@@ -2,11 +2,11 @@ package sidechain.eth
 
 import com.github.kittinunf.result.fanout
 import mu.KLogging
-import notary.EthTokensProvider
-import notary.EthRelayProvider
+import provider.EthTokensProvider
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.methods.response.EthBlock
 import org.web3j.protocol.core.methods.response.Transaction
+import provider.EthRelayProvider
 import sidechain.ChainHandler
 import sidechain.SideChainEvent
 import java.math.BigInteger

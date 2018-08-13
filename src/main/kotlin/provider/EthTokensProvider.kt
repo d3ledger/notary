@@ -1,4 +1,4 @@
-package notary
+package provider
 
 import com.github.kittinunf.result.Result
 
@@ -7,4 +7,7 @@ interface EthTokensProvider {
 
     /** Returns token list in form of (Ethereum wallet -> token name) */
     fun getTokens(): Result<Map<String, String>, Exception>
+
+    /** Adds new token to token list*/
+    fun addToken(ethWallet: String, tokenName: String): Result<Unit, Exception>
 }

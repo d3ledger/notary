@@ -14,6 +14,8 @@ interface RefundConfig {
 interface NotaryConfig {
     /** Iroha account that has registered wallets */
     val registrationServiceIrohaAccount: String
+    /** Iroha account that stores tokens */
+    val tokenStorageAccount: String
     val refund: RefundConfig
     val iroha: IrohaConfig
     val ethereum: EthereumConfig
