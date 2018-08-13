@@ -25,6 +25,7 @@ import java.sql.DriverManager
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DepositIntegrationTest {
 
+    
     init {
         IrohaInitialization.loadIrohaLibrary()
             .failure {
