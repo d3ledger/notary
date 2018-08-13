@@ -107,12 +107,7 @@ class IntegrationHelperUtil {
      * Deploys ETH master contract
      */
     fun deployMasterEth(): Master {
-        ethTokensProvider.getTokens()
-            .fold(
-                { tokens ->
-                    return deployHelper.deployMasterSmartContract(tokens.keys.toList())
-                },
-                { ex -> throw ex })
+         return deployHelper.deployMasterSmartContract()
     }
 
     /**
