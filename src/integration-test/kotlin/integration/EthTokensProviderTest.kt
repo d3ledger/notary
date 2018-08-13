@@ -13,7 +13,7 @@ import java.sql.DriverManager
  */
 class EthTokensProviderTest {
 
-    val dbConfig = loadConfigs("test", TestConfig::class.java).db
+    private val dbConfig = loadConfigs("test", TestConfig::class.java).db
 
     /**
      * List all tokens in database

@@ -3,7 +3,6 @@ package sidechain.iroha.consumer
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import config.IrohaConfig
-import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.UnsignedTx
 import mu.KLogging
 import sidechain.iroha.util.ModelUtil

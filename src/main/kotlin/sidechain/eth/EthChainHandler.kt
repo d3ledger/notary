@@ -3,7 +3,7 @@ package sidechain.eth
 import com.github.kittinunf.result.fanout
 import mu.KLogging
 import notary.EthTokensProvider
-import notary.EthWalletsProvider
+import notary.EthRelayProvider
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.methods.response.EthBlock
 import org.web3j.protocol.core.methods.response.Transaction
@@ -15,12 +15,12 @@ import java.math.BigInteger
  * Implementation of [ChainHandler] for Ethereum side chain.
  * Extract interesting transactions from Ethereum block.
  * @param web3 - notary.endpoint of Ethereum client
- * @param ethWalletsProvider - provider of observable wallets
+ * @param ethRelayProvider - provider of observable wallets
  * @param ethTokensProvider - provider of observable tokens
  */
 class EthChainHandler(
     val web3: Web3j,
-    val ethWalletsProvider: EthWalletsProvider,
+    val ethRelayProvider: EthRelayProvider,
     val ethTokensProvider: EthTokensProvider
 ) :
     ChainHandler<EthBlock> {
@@ -106,7 +106,7 @@ class EthChainHandler(
     override fun parseBlock(block: EthBlock): List<SideChainEvent> {
         logger.info { "Eth chain handler for block ${block.block.number}" }
 
-        return ethWalletsProvider.getWallets().fanout {
+        return ethRelayProvider.getRelays().fanout {
             ethTokensProvider.getTokens()
         }.fold(
             { (wallets, tokens) ->

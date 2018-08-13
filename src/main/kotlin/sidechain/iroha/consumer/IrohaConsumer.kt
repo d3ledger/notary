@@ -1,7 +1,6 @@
 package sidechain.iroha.consumer
 
 import com.github.kittinunf.result.Result
-import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.UnsignedTx
 
 /**

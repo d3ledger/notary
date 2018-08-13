@@ -3,7 +3,7 @@ package integration
 import com.github.kittinunf.result.failure
 import config.TestConfig
 import config.loadConfigs
-import notary.EthWalletsProviderIrohaImpl
+import notary.EthRelayProviderIrohaImpl
 import notary.IrohaCommand
 import notary.IrohaTransaction
 import org.junit.jupiter.api.*
@@ -18,7 +18,7 @@ import sidechain.iroha.util.ModelUtil
  * Requires Iroha is running
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class EthWalletsProviderIrohaTest {
+class EthRelayProviderIrohaTest {
 
     init {
         IrohaInitialization.loadIrohaLibrary()
@@ -55,7 +55,7 @@ class EthWalletsProviderIrohaTest {
 
     /**
      * @given [detailHolder] has ethereum wallets in details
-     * @when getWallets() is called
+     * @when getRelays() is called
      * @then not free wallets are returned in a map
      */
     @Disabled
@@ -93,13 +93,13 @@ class EthWalletsProviderIrohaTest {
         IrohaConsumerImpl(testConfig.iroha).sendAndCheck(tx)
             .failure { fail(it) }
 
-        EthWalletsProviderIrohaImpl(
+        EthRelayProviderIrohaImpl(
             testConfig.iroha,
             keypair,
             irohaNetwork,
             masterAccount,
             creator
-        ).getWallets()
+        ).getRelays()
             .fold(
                 { assertEquals(valid, it) },
                 { fail(it.toString()) }
@@ -108,13 +108,13 @@ class EthWalletsProviderIrohaTest {
 
     /**
      * @given There is no account details on [detailHolder]
-     * @when getWallets() is called
+     * @when getRelays() is called
      * @then empty map is returned
      */
     @Disabled
     @Test
     fun testEmptyStorage() {
-        EthWalletsProviderIrohaImpl(testConfig.iroha, keypair, irohaNetwork, detailSetter, detailHolder).getWallets()
+        EthRelayProviderIrohaImpl(testConfig.iroha, keypair, irohaNetwork, detailSetter, detailHolder).getRelays()
             .fold(
                 {
                     assert(it.isEmpty())

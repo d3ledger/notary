@@ -8,9 +8,6 @@ import config.DatabaseConfig
 import config.EthereumConfig
 import config.EthereumPasswords
 import config.IrohaConfig
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.fail
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaNetwork
 
@@ -52,9 +49,9 @@ class NotaryInitializationTest {
     }
 
     /** Mock Wallet provider */
-    val ethWalletProvider = mock<EthWalletsProvider> {
+    val ethWalletProvider = mock<EthRelayProvider> {
         on {
-            getWallets()
+            getRelays()
         } doReturn Result.of { mapOf<String, String>() }
     }
 

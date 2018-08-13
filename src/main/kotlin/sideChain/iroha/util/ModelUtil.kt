@@ -148,7 +148,7 @@ object ModelUtil {
         try {
             protoQuery = BlocksQuery.parseFrom(bquery)
         } catch (e: InvalidProtocolBufferException) {
-            logger.error { "Exception while converting byte array to protobuf:" + e.message }
+            logger.error { "Exception while converting byte array to protobuf: ${e.message}" }
         }
         return protoQuery
     }

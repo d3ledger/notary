@@ -8,34 +8,34 @@ import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getRelays
 
 /**
- * Implementation of [EthWalletsProvider] with Iroha storage.
+ * Implementation of [EthRelayProvider] with Iroha storage.
  *
  * @param irohaConfig - Iroha configuration
  * @param keypair - Iroha keypair to query
  * @param irohaNetwork - iroha network layer
- * @param account - account that contains details
- * @param setter - account that has set details
+ * @param accountDetailHolder - account that contains details
+ * @param accountDetailSetter - account that has set details
  */
-class EthWalletsProviderIrohaImpl(
-    val irohaConfig: IrohaConfig,
-    val keypair: Keypair,
-    val irohaNetwork: IrohaNetwork,
-    val account: String,
-    val setter: String
-) : EthWalletsProvider {
+class EthRelayProviderIrohaImpl(
+    private val irohaConfig: IrohaConfig,
+    private val keypair: Keypair,
+    private val irohaNetwork: IrohaNetwork,
+    private val accountDetailHolder: String,
+    private val accountDetailSetter: String
+) : EthRelayProvider {
 
     /**
-     * Account of registration service that has set details.
+     * Gets all non free relay wallets
      *
      * @return map<eth_wallet -> iroha_account> in success case or exception otherwise
      */
-    override fun getWallets(): Result<Map<String, String>, Exception> {
+    override fun getRelays(): Result<Map<String, String>, Exception> {
         return getRelays(
             irohaConfig,
             keypair,
             irohaNetwork,
-            account,
-            setter
+            accountDetailHolder,
+            accountDetailSetter
         ).map { relays ->
             relays.filterValues { it != "free" }
         }

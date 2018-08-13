@@ -8,13 +8,13 @@ import jp.co.soramitsu.iroha.Keypair
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
-import registration.EthFreeWalletsProvider
+import registration.EthFreeRelayProvider
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil.loadKeypair
 import sidechain.iroha.util.ModelUtil.setAccountDetail
 
-class EthFreeWalletsProviderTest {
+class EthFreeRelayProviderTest {
 
     init {
         IrohaInitialization.loadIrohaLibrary()
@@ -40,12 +40,9 @@ class EthFreeWalletsProviderTest {
     /** Iroha transaction creator */
     val creator = testConfig.iroha.creator
 
-    /** Iroha master */
-    val relayRegistrationIrohaAccount = testConfig.relayRegistrationIrohaAccount
-
     /**
      * @given Iroha network running and Iroha master account with attribute ["eth_wallet", "free"] set by master account
-     * @when getWallet() of FreeWalletProvider is called
+     * @when getRelay() of FreeRelayProvider is called
      * @then "eth_wallet" attribute key is returned
      */
     @Test
@@ -56,28 +53,28 @@ class EthFreeWalletsProviderTest {
             .failure { fail(it) }
 
         val freeWalletsProvider =
-            EthFreeWalletsProvider(
+            EthFreeRelayProvider(
                 testConfig.iroha,
                 keypair,
                 testConfig.notaryIrohaAccount,
                 creator
             )
-        val result = freeWalletsProvider.getWallet()
+        val result = freeWalletsProvider.getRelay()
 
         assertEquals(ethFreeWallet, result.get())
     }
 
     /**
      * @given Iroha network running and Iroha master account
-     * @when getWallet() of FreeWalletProvider is called with wrong master account
+     * @when getRelay() of FreeRelayProvider is called with wrong master account
      * @then "eth_wallet" attribute key is returned
      */
     @Test
     fun getFreeWalletException() {
         val wrongMasterAccount = "wrong@account"
 
-        val freeWalletsProvider = EthFreeWalletsProvider(testConfig.iroha, keypair, creator, wrongMasterAccount)
-        freeWalletsProvider.getWallet()
+        val freeWalletsProvider = EthFreeRelayProvider(testConfig.iroha, keypair, creator, wrongMasterAccount)
+        freeWalletsProvider.getRelay()
             .success { fail { "should return Exception" } }
     }
 }

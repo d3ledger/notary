@@ -2,6 +2,9 @@ package util
 
 import java.util.*
 
+
+private const val CHAR = "abcdefghijklmnopqrstuvwxyz"
+
 /**
  * Extension function to convert hexidecimal string to text
  */
@@ -20,10 +23,9 @@ fun String.hexToAscii(): String {
 
 /** Returns random string of [len] characters */
 fun String.Companion.getRandomString(len: Int): String {
-    val chars = "abcdefghijklmnopqrstuvwxyz"
     val res = StringBuilder()
     for (i in 0..len) {
-        res.append(chars[Random().nextInt(chars.length)])
+        res.append(CHAR[Random().nextInt(CHAR.length)])
     }
     return res.toString()
 }

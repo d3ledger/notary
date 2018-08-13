@@ -29,7 +29,7 @@
                   },
                   {
                     "createRole":{
-                        "roleName":"relayDeployer",
+                        "roleName":"relay_deployer",
                         "permissions":[
                             "can_set_detail"
                         ]
@@ -37,7 +37,7 @@
                   },
                   {
                     "createRole":{
-                        "roleName":"registrationService",
+                        "roleName":"registration_service",
                         "permissions":[
                             "can_create_account",
                             "can_set_detail",
@@ -95,9 +95,11 @@
                             "can_create_account",
                             "can_receive",
                             "can_read_assets",
+                            "can_append_role",
                             "can_add_peer",
                             "can_set_detail",
-                            "can_get_blocks"
+                            "can_get_blocks",
+                            "can_get_domain_accounts"
                         ]
                     }
                   },
@@ -143,13 +145,13 @@
                   {
                      "appendRole":{
                         "accountId":"registration_service_red@notary",
-                        "roleName":"registrationService"
+                        "roleName":"registration_service"
                      }
                   },
                   {
                      "appendRole":{
                         "accountId":"registration_service_red@notary",
-                        "roleName":"relayDeployer"
+                        "roleName":"relay_deployer"
                      }
                   },
                   {

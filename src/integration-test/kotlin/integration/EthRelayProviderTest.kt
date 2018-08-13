@@ -11,7 +11,7 @@ import java.sql.DriverManager
 /**
  * Test Postgres ethereum wallets provider
  */
-class EthWalletsProviderTest {
+class EthRelayProviderTest {
 
     val dbConfig = loadConfigs("test", TestConfig::class.java).db
 
