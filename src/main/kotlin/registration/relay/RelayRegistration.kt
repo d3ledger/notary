@@ -1,12 +1,8 @@
 package registration.relay
 
 import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.failure
-import com.github.kittinunf.result.map
 import config.EthereumPasswords
 import mu.KLogging
-import notary.EthTokensProvider
-import notary.EthTokensProviderImpl
 import sidechain.eth.util.DeployHelper
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
@@ -16,61 +12,62 @@ import sidechain.iroha.util.ModelUtil
  * Deploys relay smart contracts in Ethereum network and records it in Iroha.
  */
 class RelayRegistration(
-    val relayRegistrationConfig: RelayRegistrationConfig,
+    private val relayRegistrationConfig: RelayRegistrationConfig,
     relayRegistrationEthereumPasswords: EthereumPasswords
 ) {
-
-    /** Ethereum token list provider */
-    val ethTokensProvider: EthTokensProvider = EthTokensProviderImpl(relayRegistrationConfig.db)
-
     /** Ethereum endpoint */
-    val deployHelper = DeployHelper(relayRegistrationConfig.ethereum, relayRegistrationEthereumPasswords)
+    private val deployHelper = DeployHelper(relayRegistrationConfig.ethereum, relayRegistrationEthereumPasswords)
 
     /** Iroha endpoint */
-    val irohaConsumer = IrohaConsumerImpl(relayRegistrationConfig.iroha)
+    private val irohaConsumer = IrohaConsumerImpl(relayRegistrationConfig.iroha)
 
     /** Iroha transaction creator */
-    val creator = relayRegistrationConfig.iroha.creator
+    private val creator = relayRegistrationConfig.iroha.creator
 
-    /** Notary master account */
-    val notaryIrohaAccount = relayRegistrationConfig.notaryIrohaAccount
+    private val notaryIrohaAccount = relayRegistrationConfig.notaryIrohaAccount
 
     /**
      * Deploy user smart contract
      * @param master notary master account
-     * @param tokens list of supported tokens
      * @return user smart contract address
      */
     private fun deployRelaySmartContract(master: String): String {
         val contract = deployHelper.deployRelaySmartContract(master)
-
         logger.info { "Relay wallet created with address ${contract.contractAddress}" }
         return contract.contractAddress
     }
 
     /**
-     * Sends transaction to Iroha.
+     * Registers relay in Iroha.
      * @param wallet - ethereum wallet to record into Iroha
+     * @param creator - relay creator
      * @return Result with string representation of hash or possible failure
      */
-    private fun sendRelayToIroha(wallet: String): Result<String, Exception> {
+    fun registerRelayIroha(wallet: String, creator: String): Result<String, Exception> {
         return ModelUtil.setAccountDetail(irohaConsumer, creator, notaryIrohaAccount, wallet, "free")
     }
 
-    /**
-     * Deploy relay wallets
-     */
     fun deploy(): Result<Unit, Exception> {
-        return ethTokensProvider
-            .getTokens()
-            .map { tokens ->
-                (1..relayRegistrationConfig.number).forEach {
-                    val relayWallet =
-                        deployRelaySmartContract(relayRegistrationConfig.ethMasterWallet)
-                    sendRelayToIroha(relayWallet)
-                        .failure { logger.error { it } }
-                }
+        return deploy(
+            relayRegistrationConfig.number,
+            relayRegistrationConfig.ethMasterWallet,
+            creator
+        )
+    }
+
+    fun deploy(
+        relaysToDeploy: Int,
+        ethMasterWallet: String,
+        creator: String
+    ): Result<Unit, Exception> {
+        return Result.of {
+            (1..relaysToDeploy).forEach {
+                val relayWallet = deployRelaySmartContract(ethMasterWallet)
+                registerRelayIroha(relayWallet, creator).fold(
+                    { logger.info("relay was deployed") },
+                    { ex -> logger.error { ex } })
             }
+        }
     }
 
     /**

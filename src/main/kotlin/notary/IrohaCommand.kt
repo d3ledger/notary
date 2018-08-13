@@ -1,6 +1,5 @@
 package notary
 
-import java.math.BigInteger
 import java.util.*
 
 /**

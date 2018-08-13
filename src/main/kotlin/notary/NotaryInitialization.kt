@@ -27,13 +27,13 @@ import java.math.BigInteger
 
 /**
  * Class for notary instantiation
- * @param ethWalletsProvider - provides with white list of ethereum wallets
+ * @param ethRelayProvider - provides with white list of ethereum wallets
  * @param ethTokensProvider - provides with white list of ethereum ERC20 tokens
  */
 class NotaryInitialization(
     val notaryConfig: NotaryConfig,
     val passwordsConfig: EthereumPasswords,
-    val ethWalletsProvider: EthWalletsProvider,
+    val ethRelayProvider: EthRelayProvider,
     val ethTokensProvider: EthTokensProvider = EthTokensProviderImpl(notaryConfig.db),
     val irohaNetwork: IrohaNetwork = IrohaNetworkImpl(notaryConfig.iroha.hostname, notaryConfig.iroha.port)
 ) {
@@ -65,7 +65,7 @@ class NotaryInitialization(
 
         val web3 = Web3j.build(HttpService(notaryConfig.ethereum.url))
         /** List of all observable wallets */
-        val ethHandler = EthChainHandler(web3, ethWalletsProvider, ethTokensProvider)
+        val ethHandler = EthChainHandler(web3, ethRelayProvider, ethTokensProvider)
         return EthChainListener(
             web3,
             BigInteger.valueOf(notaryConfig.ethereum.confirmationPeriod)

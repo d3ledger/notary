@@ -23,7 +23,7 @@ class RegistrationServiceInitialization(val registrationConfig: RegistrationConf
             )
                 .map {
                     Pair(
-                        EthFreeWalletsProvider(
+                        EthFreeRelayProvider(
                             registrationConfig.iroha,
                             it,
                             registrationConfig.notaryIrohaAccount,
@@ -31,12 +31,12 @@ class RegistrationServiceInitialization(val registrationConfig: RegistrationConf
                         ), IrohaConsumerImpl(registrationConfig.iroha)
                     )
                 }
-                .map { (ethFreeWalletsProvider, irohaConsumer) ->
+                .map { (ethFreeRelayProvider, irohaConsumer) ->
                     RegistrationStrategyImpl(
-                        ethFreeWalletsProvider,
+                        ethFreeRelayProvider,
                         irohaConsumer,
                         registrationConfig.notaryIrohaAccount,
-                        registrationConfig.iroha
+                        registrationConfig.iroha.creator
                     )
                 }
                 .map { RegistrationServiceEndpoint(registrationConfig.port, it) }

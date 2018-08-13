@@ -26,14 +26,14 @@ fun main(args: Array<String>) {
     IrohaInitialization.loadIrohaLibrary()
         .flatMap { ModelUtil.loadKeypair(notaryConfig.iroha.pubkeyPath, notaryConfig.iroha.privkeyPath) }
         .flatMap { keypair ->
-            val ethWalletsProvider = EthWalletsProviderIrohaImpl(
+            val ethRelayProvider = EthRelayProviderIrohaImpl(
                 notaryConfig.iroha,
                 keypair,
                 irohaNetwork,
                 notaryConfig.iroha.creator,
                 notaryConfig.registrationServiceIrohaAccount
             )
-            NotaryInitialization(notaryConfig, passwordConfig, ethWalletsProvider).init()
+            NotaryInitialization(notaryConfig, passwordConfig, ethRelayProvider).init()
         }
         .failure {
             logger.logger.error { it }

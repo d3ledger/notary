@@ -6,10 +6,10 @@ import notary.db.tables.Wallets
 import org.jooq.impl.DSL
 import java.sql.DriverManager
 
-/** Implementation of [EthWalletsProvider] with PostgreSQL storage. */
-class EthWalletsProviderPostgresImpl(val databaseConfig: DatabaseConfig) : EthWalletsProvider {
+/** Implementation of [EthRelayProvider] with PostgreSQL storage. */
+class EthRelayProviderPostgresImpl(val databaseConfig: DatabaseConfig) : EthRelayProvider {
 
-    override fun getWallets(): Result<Map<String, String>, Exception> {
+    override fun getRelays(): Result<Map<String, String>, Exception> {
         return Result.of {
             val result = mutableMapOf<String, String>()
 

@@ -7,7 +7,6 @@ import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelBlocksQueryBuilder
 import mu.KLogging
-import org.bouncycastle.math.raw.Mod
 import sidechain.ChainListener
 import sidechain.iroha.util.ModelUtil
 import java.math.BigInteger
