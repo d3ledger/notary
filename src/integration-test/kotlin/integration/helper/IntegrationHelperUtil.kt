@@ -110,7 +110,8 @@ class IntegrationHelperUtil {
         ethTokensProvider.getTokens()
             .fold(
                 { tokens ->
-                    val master = deployHelper.deployMasterSmartContract()for (token in tokens) {
+                    val master = deployHelper.deployMasterSmartContract()
+                    for (token in tokens) {
                         master.addToken(token.key).send()
                     }
                     return master
