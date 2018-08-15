@@ -16,7 +16,6 @@ import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
 import provider.EthRelayProvider
 import provider.EthTokensProvider
-import provider.EthTokensProviderImpl
 import sidechain.SideChainEvent
 import sidechain.eth.EthChainHandler
 import sidechain.eth.EthChainListener

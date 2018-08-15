@@ -56,7 +56,7 @@ dependencies {
     compile "com.github.akarnokd:rxjava2-interop:0.12.7"
 
     // Iroha bindings
-    def iroha_bindings_dir = Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
+    def iroha_bindings_dir = Paths.get(projectDir.toString(), "iroha_bindings").toString()
     compile fileTree(dir: iroha_bindings_dir, include: '*.jar')
 
     // Eth library
