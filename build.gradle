@@ -262,7 +262,7 @@ task osInfo {
     }
 }
 
-compileIrohaBindings.dependsOn(osInfo)
+retrieveIrohaBindings.dependsOn(osInfo)
 
 // -------------------------| End Iroha bindings |-------------------------
 
