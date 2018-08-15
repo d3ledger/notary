@@ -1,7 +1,8 @@
 package integration
 
 import com.github.kittinunf.result.failure
-import config.*
+import config.TestConfig
+import config.loadConfigs
 import integration.helper.IntegrationHelperUtil
 import kotlinx.coroutines.experimental.async
 import mu.KLogging
@@ -69,7 +70,9 @@ class VacuumIntegrationTest {
 
     private fun getRelayConfig(): RelayVacuumConfig {
         return object : RelayVacuumConfig {
-            override val registrationServiceIrohaAccount = integrationHelper.masterAccount
+            override val registrationServiceIrohaAccount = integrationHelper.dataSetterAccount
+
+            override val tokenStorageAccount = testConfig.tokenStorageAccount
 
             /** Notary Iroha account that stores relay register */
             override val notaryIrohaAccount = testConfig.notaryIrohaAccount
@@ -79,9 +82,6 @@ class VacuumIntegrationTest {
 
             /** Ethereum configurations */
             override val ethereum = testConfig.ethereum
-
-            /** Db configurations */
-            override val db = testConfig.db
         }
     }
 

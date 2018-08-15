@@ -10,7 +10,6 @@ buildscript {
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.3'
-        classpath 'nu.studer:gradle-jooq-plugin:2.0.11'
         classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.3.0'
         pitest 'org.pitest:pitest-junit5-plugin:0.3'
     }
@@ -22,7 +21,6 @@ version = '1.0-SNAPSHOT'
 apply plugin: 'java'
 apply plugin: 'kotlin'
 apply plugin: 'com.google.protobuf'
-apply plugin: 'nu.studer.jooq'
 apply plugin: 'application'
 apply plugin: "jacoco"
 apply plugin: 'info.solidsoft.pitest'
@@ -58,7 +56,7 @@ dependencies {
     compile "com.github.akarnokd:rxjava2-interop:0.12.7"
 
     // Iroha bindings
-    def iroha_bindings_dir = Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
+    def iroha_bindings_dir = Paths.get(projectDir.toString(), "iroha_bindings").toString()
     compile fileTree(dir: iroha_bindings_dir, include: '*.jar')
 
     // Eth library
@@ -66,11 +64,6 @@ dependencies {
 
     // Waves library
     compile 'com.wavesplatform:wavesj:0.4'
-
-    // DB layer
-    compile 'org.jooq:jooq:3.11.0'
-    compile group: 'org.postgresql', name: 'postgresql', version: '42.2.2'
-    jooqRuntime group: 'org.postgresql', name: 'postgresql', version: '42.2.2'
 
     // logging
     compile 'org.slf4j:slf4j-simple:1.7.25'
@@ -139,12 +132,6 @@ sourceSets {
             srcDirs += "build/generated/source/proto/main/grpc"
 
             srcDirs += "src/test"
-        }
-        proto {
-            // iroha schema
-            srcDirs += "vendor/iroha/schema"
-            srcDirs += "vendor/iroha/shared_model/schema"
-
         }
     }
     integrationTest {
@@ -257,8 +244,8 @@ static def getCurrentOs() {
     }
 }
 
-task compileIrohaBindings(type: Exec) {
-    description = 'Generate Iroha binding for specific platform'
+task retrieveIrohaBindings(type: Exec) {
+    description = 'Downloads Iroha binding for specific platform'
 
     def bindings_invocation = ['sh', 'iroha_bindings.sh', getCurrentOs()]
 
@@ -275,45 +262,9 @@ task osInfo {
     }
 }
 
-compileIrohaBindings.dependsOn(osInfo)
+retrieveIrohaBindings.dependsOn(osInfo)
 
 // -------------------------| End Iroha bindings |-------------------------
-
-// -------------------------| jOOQ db schema generation |-------------------------
-
-jooq {
-    notary(sourceSets.main) {
-        jdbc {
-            driver = 'org.postgresql.Driver'
-            url = 'jdbc:postgresql://localhost:54321/'
-            user = 'postgres'
-            password = 'mysecretpassword'
-            schema = 'notary'
-        }
-        generator {
-            name = 'org.jooq.util.DefaultGenerator'
-            strategy {
-                name = 'org.jooq.util.DefaultGeneratorStrategy'
-            }
-            database {
-                name = 'org.jooq.util.postgres.PostgresDatabase'
-                includes = 'wallets|tokens'
-            }
-            generate {
-                daos = true
-            }
-            target {
-                packageName = 'notary.db'
-                directory = 'src/main/java'
-            }
-        }
-    }
-}
-
-// disable genearation task for CI builds
-generateNotaryJooqSchemaSource.enabled = false
-
-// -------------------------| End jOOQ db schema generation |-------------------------
 
 // -------------------------| Run services |-------------------------
 
@@ -379,7 +330,6 @@ jacocoTestReport {
             fileTree(dir: it, exclude: ['iroha/**',
                                         'notary/db/**',
                                         'contract/**',
-                                        'vendor/**',
                                         'integration/**'])
         })
     }

@@ -19,7 +19,7 @@ services:
 
   d3-iroha-postgres:
     image: postgres:9.5
-    container_name: d3ledger-postgres
+    container_name: d3-iroha-postgres
     environment:
       - POSTGRES_PASSWORD=mysecretpassword
     expose:
@@ -46,18 +46,6 @@ services:
       - --secure
       - -h
       - 0.0.0.0
-
-  # d3
-  d3-notary-postgres:
-    image: postgres:9.5
-    container_name: d3-notary-postgres
-    environment:
-      - POSTGRES_PASSWORD=mysecretpassword
-    volumes:
-      - ./db/sql/init:/docker-entrypoint-initdb.d
-      - /var/lib/postgresql/data
-    ports:
-      - 5432:5432
 
 volumes:
   iroha_block_store:

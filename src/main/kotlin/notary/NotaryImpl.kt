@@ -9,8 +9,7 @@ import sidechain.SideChainEvent
  */
 class NotaryImpl(
     notaryConfig: NotaryConfig,
-    private val ethHandler: Observable<SideChainEvent>,
-    private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
+    private val ethHandler: Observable<SideChainEvent.EthereumEvent>
 ) : Notary {
 
     /** Notary account in Iroha */
@@ -102,27 +101,11 @@ class NotaryImpl(
     }
 
     /**
-     * Handle Iroha event
-     */
-    override fun onIrohaEvent(irohaInputEvent: SideChainEvent.IrohaEvent): IrohaOrderedBatch {
-        logger.info { "Notary performs IROHA event" }
-
-        // TODO replace output with effective implementation
-        return IrohaOrderedBatch(arrayListOf())
-    }
-
-    /**
      * Relay side chain [SideChainEvent] to Iroha output
      */
     override fun irohaOutput(): Observable<IrohaOrderedBatch> {
-        return Observable.merge(
-            ethHandler,
-            irohaHandler
-        ).map { event ->
-            when (event) {
-                is SideChainEvent.EthereumEvent -> onEthEvent(event)
-                is SideChainEvent.IrohaEvent -> onIrohaEvent(event)
-            }
+        return ethHandler.map {
+            onEthEvent(it)
         }
     }
 

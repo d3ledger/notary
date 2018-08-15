@@ -14,12 +14,6 @@ interface Notary {
     fun onEthEvent(ethInputEvent: SideChainEvent.EthereumEvent): IrohaOrderedBatch
 
     /**
-     * Calls when Iroha event is occurred
-     * @return transaction to be commited to Iroha
-     */
-    fun onIrohaEvent(irohaInputEvent: SideChainEvent.IrohaEvent): IrohaOrderedBatch
-
-    /**
      * Observable with output for sending to Iroha
      */
     fun irohaOutput(): io.reactivex.Observable<IrohaOrderedBatch>

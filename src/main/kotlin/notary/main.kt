@@ -7,8 +7,9 @@ import com.github.kittinunf.result.flatMap
 import config.EthereumPasswords
 import config.loadConfigs
 import mu.KLogging
+import provider.EthRelayProviderIrohaImpl
+import provider.EthTokensProviderImpl
 import sidechain.iroha.IrohaInitialization
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
 /**
@@ -21,19 +22,28 @@ fun main(args: Array<String>) {
     val passwordConfig =
         loadConfigs("notary", EthereumPasswords::class.java, "/ethereum_password.properties")
 
-    val irohaNetwork = IrohaNetworkImpl(notaryConfig.iroha.hostname, notaryConfig.iroha.port)
-
     IrohaInitialization.loadIrohaLibrary()
         .flatMap { ModelUtil.loadKeypair(notaryConfig.iroha.pubkeyPath, notaryConfig.iroha.privkeyPath) }
         .flatMap { keypair ->
             val ethRelayProvider = EthRelayProviderIrohaImpl(
                 notaryConfig.iroha,
                 keypair,
-                irohaNetwork,
                 notaryConfig.iroha.creator,
                 notaryConfig.registrationServiceIrohaAccount
             )
-            NotaryInitialization(notaryConfig, passwordConfig, ethRelayProvider).init()
+            val ethTokensProvider = EthTokensProviderImpl(
+                notaryConfig.iroha,
+                keypair,
+                notaryConfig.iroha.creator,
+                notaryConfig.tokenStorageAccount
+            )
+            NotaryInitialization(
+                keypair,
+                notaryConfig,
+                passwordConfig,
+                ethRelayProvider,
+                ethTokensProvider
+            ).init()
         }
         .failure {
             logger.logger.error { it }

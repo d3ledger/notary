@@ -1,6 +1,7 @@
 package integration
 
 import com.github.kittinunf.result.failure
+import com.github.kittinunf.result.success
 import config.EthereumPasswords
 import config.TestConfig
 import config.loadConfigs
@@ -8,16 +9,14 @@ import io.grpc.ManagedChannelBuilder
 import iroha.protocol.QueryServiceGrpc
 import jp.co.soramitsu.iroha.ModelQueryBuilder
 import kotlinx.coroutines.experimental.async
-import notary.db.tables.Tokens
 import notary.main
-import org.jooq.impl.DSL
 import org.junit.jupiter.api.*
+import provider.EthTokensProviderImpl
 import sidechain.eth.util.DeployHelper
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import java.math.BigInteger
-import java.sql.DriverManager
 
 /**
  * Integration tests for deposit case.
@@ -40,19 +39,19 @@ class DepositIntegrationTest {
     }
 
     /** Configurations for tests */
-    val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
+    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
     /** Ethereum password configs */
-    val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/ethereum_password.properties")
+    private val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/ethereum_password.properties")
 
     /** Iroha transaction creator */
-    val creator = testConfig.iroha.creator
+    private val creator = testConfig.iroha.creator
 
     /** Iroha keypair */
-    val keypair = ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
+    private val keypair = ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
 
     /** Iroha client account */
-    val clientIrohaAccount = "user1@notary"
+    private val clientIrohaAccount = "user1@notary"
 
     /** Ethereum address to transfer to */
     private val relayWallet = testConfig.ropstenTestAccount
@@ -61,7 +60,10 @@ class DepositIntegrationTest {
     private val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
 
     /** Iroha network layer */
-    val irohaConsumer = IrohaConsumerImpl(testConfig.iroha)
+    private val irohaConsumer = IrohaConsumerImpl(testConfig.iroha)
+
+    private val ethTokensProvider =
+        EthTokensProviderImpl(testConfig.iroha, keypair, testConfig.notaryIrohaAccount, testConfig.tokenStorageAccount)
 
     /**
      * Insert token into database
@@ -69,19 +71,8 @@ class DepositIntegrationTest {
      * @param token - token name
      */
     fun insertToken(wallet: String, token: String) {
-        val connection = DriverManager.getConnection(
-            testConfig.db.url,
-            testConfig.db.username,
-            testConfig.db.password
-        )
-
-        DSL.using(connection).use { ctx ->
-            val tokens = Tokens.TOKENS
-
-            ctx.insertInto(tokens, tokens.WALLET, tokens.TOKEN)
-                .values(wallet, token)
-                .execute()
-        }
+        ethTokensProvider.addToken(wallet, token)
+            .success { println("token was inserted. ${ethTokensProvider.getTokens()}") }
     }
 
     /**

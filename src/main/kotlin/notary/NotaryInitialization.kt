@@ -1,23 +1,23 @@
 package notary
 
 import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.EthereumPasswords
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
+import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
 import notary.endpoint.RefundServerEndpoint
 import notary.endpoint.ServerInitializationBundle
 import notary.endpoint.eth.EthRefundStrategyImpl
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
+import provider.EthRelayProvider
+import provider.EthTokensProvider
 import sidechain.SideChainEvent
 import sidechain.eth.EthChainHandler
 import sidechain.eth.EthChainListener
-import sidechain.iroha.IrohaChainHandler
-import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.consumer.IrohaNetwork
@@ -31,25 +31,21 @@ import java.math.BigInteger
  * @param ethTokensProvider - provides with white list of ethereum ERC20 tokens
  */
 class NotaryInitialization(
-    val notaryConfig: NotaryConfig,
-    val passwordsConfig: EthereumPasswords,
-    val ethRelayProvider: EthRelayProvider,
-    val ethTokensProvider: EthTokensProvider = EthTokensProviderImpl(notaryConfig.db),
-    val irohaNetwork: IrohaNetwork = IrohaNetworkImpl(notaryConfig.iroha.hostname, notaryConfig.iroha.port)
+    private val irohaKeyPair: Keypair,
+    private val notaryConfig: NotaryConfig,
+    private val passwordsConfig: EthereumPasswords,
+    private val ethRelayProvider: EthRelayProvider,
+    private val ethTokensProvider: EthTokensProvider,
+    private val irohaNetwork: IrohaNetwork = IrohaNetworkImpl(notaryConfig.iroha.hostname, notaryConfig.iroha.port)
 ) {
-    val irohaAccount = notaryConfig.iroha.creator
-    val irohaKeypair =
-        ModelUtil.loadKeypair(notaryConfig.iroha.pubkeyPath, notaryConfig.iroha.privkeyPath).get()
-
     /**
      * Init notary
      */
     fun init(): Result<Unit, Exception> {
         logger.info { "Notary initialization" }
         return initEthChain()
-            .fanout { initIrohaChain() }
-            .map { (ethEvent, irohaEvents) ->
-                initNotary(ethEvent, irohaEvents)
+            .map { ethEvent ->
+                initNotary(ethEvent)
             }
             .flatMap { initIrohaConsumer(it) }
             .map { initRefund() }
@@ -60,7 +56,7 @@ class NotaryInitialization(
      * Init Ethereum chain listener
      * @return Observable on Ethereum sidechain events
      */
-    private fun initEthChain(): Result<Observable<SideChainEvent>, Exception> {
+    private fun initEthChain(): Result<Observable<SideChainEvent.EthereumEvent>, Exception> {
         logger.info { "Init Eth chain" }
 
         val web3 = Web3j.build(HttpService(notaryConfig.ethereum.url))
@@ -75,32 +71,14 @@ class NotaryInitialization(
             }
     }
 
-
-    /**
-     * Init Iroha chain listener
-     * @return Observable on Iroha sidechain events
-     */
-    private fun initIrohaChain(): Result<Observable<SideChainEvent.IrohaEvent>, Exception> {
-        logger.info { "Init Iroha chain" }
-        return IrohaChainListener(
-            notaryConfig.iroha.hostname,
-            notaryConfig.iroha.port,
-            irohaAccount, irohaKeypair
-        ).getBlockObservable()
-            .map { observable ->
-                observable.flatMapIterable { IrohaChainHandler().parseBlock(it) }
-            }
-    }
-
     /**
      * Init Notary
      */
     private fun initNotary(
-        ethEvents: Observable<SideChainEvent>,
-        irohaEvents: Observable<SideChainEvent.IrohaEvent>
+        ethEvents: Observable<SideChainEvent.EthereumEvent>
     ): Notary {
         logger.info { "Init Notary notary" }
-        return NotaryImpl(notaryConfig, ethEvents, irohaEvents)
+        return NotaryImpl(notaryConfig, ethEvents)
     }
 
     /**
@@ -148,7 +126,7 @@ class NotaryInitialization(
                 irohaNetwork,
                 notaryConfig.ethereum,
                 passwordsConfig,
-                irohaKeypair
+                irohaKeyPair
             )
         )
     }

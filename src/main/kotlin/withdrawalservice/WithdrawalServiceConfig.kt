@@ -10,6 +10,9 @@ interface WithdrawalServiceConfig {
     /** Notary account in Iroha */
     val notaryIrohaAccount: String
 
+    /** Iroha account that stores tokens */
+    val tokenStorageAccount: String
+
     /** Notary account in Iroha */
     val registrationIrohaAccount: String
 
