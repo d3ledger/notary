@@ -56,7 +56,7 @@ dependencies {
     compile "com.github.akarnokd:rxjava2-interop:0.12.7"
 
     // Iroha bindings
-    def iroha_bindings_dir = Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
+    def iroha_bindings_dir = Paths.get(projectDir.toString(), "iroha_bindings").toString()
     compile fileTree(dir: iroha_bindings_dir, include: '*.jar')
 
     // Eth library
@@ -132,12 +132,6 @@ sourceSets {
             srcDirs += "build/generated/source/proto/main/grpc"
 
             srcDirs += "src/test"
-        }
-        proto {
-            // iroha schema
-            srcDirs += "vendor/iroha/schema"
-            srcDirs += "vendor/iroha/shared_model/schema"
-
         }
     }
     integrationTest {
@@ -250,8 +244,8 @@ static def getCurrentOs() {
     }
 }
 
-task compileIrohaBindings(type: Exec) {
-    description = 'Generate Iroha binding for specific platform'
+task retrieveIrohaBindings(type: Exec) {
+    description = 'Downloads Iroha binding for specific platform'
 
     def bindings_invocation = ['sh', 'iroha_bindings.sh', getCurrentOs()]
 
@@ -268,7 +262,7 @@ task osInfo {
     }
 }
 
-compileIrohaBindings.dependsOn(osInfo)
+retrieveIrohaBindings.dependsOn(osInfo)
 
 // -------------------------| End Iroha bindings |-------------------------
 
@@ -336,7 +330,6 @@ jacocoTestReport {
             fileTree(dir: it, exclude: ['iroha/**',
                                         'notary/db/**',
                                         'contract/**',
-                                        'vendor/**',
                                         'integration/**'])
         })
     }
