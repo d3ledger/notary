@@ -1,9 +1,0 @@
-# Ignore everything
-*
-!.gitignore
-!tx-example.py
-!blocks-query.py
-!permissions/
-!permissions/*
-!prepare.sh
-!README.md
