@@ -12,8 +12,8 @@ import jp.co.soramitsu.iroha.ModelProtoQuery
 import jp.co.soramitsu.iroha.ModelQueryBuilder
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import mu.KLogging
-import notary.EthTokensProviderImpl
 import notary.EthRelayProviderIrohaImpl
+import notary.EthTokensProviderImpl
 import org.web3j.protocol.core.DefaultBlockParameterName
 import registration.EthFreeRelayProvider
 import registration.RegistrationStrategyImpl
@@ -33,7 +33,7 @@ import java.math.BigInteger
  */
 class IntegrationHelperUtil {
     /** Configurations for tests */
-    private val testConfig = loadConfigs("test", TestConfig::class.java)
+    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
     /** Ethereum password configs */
     private val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/ethereum_password.properties")
@@ -58,7 +58,8 @@ class IntegrationHelperUtil {
 
     private val ethTokensProvider = EthTokensProviderImpl(testConfig.db)
 
-    private val relayRegistrationConfig = loadConfigs("relay-registration", RelayRegistrationConfig::class.java)
+    private val relayRegistrationConfig =
+        loadConfigs("test", RelayRegistrationConfig::class.java, "/test.properties")
 
     private val ethFreeRelayProvider = EthFreeRelayProvider(
         testConfig.iroha,

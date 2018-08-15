@@ -6,6 +6,7 @@ import config.EthereumPasswords
 import config.TestConfig
 import config.loadConfigs
 import contract.BasicCoin
+import integration.helper.IntegrationHelperUtil
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelCrypto
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
@@ -58,6 +59,8 @@ class WithdrawalIntegrationTest {
     /** Notary account in Iroha */
     val notaryAccount = testConfig.notaryIrohaAccount
 
+    private val integrationHelper = IntegrationHelperUtil()
+
     /**
      * Transfer asset in iroha with custom keypair
      * @param creator - iroha transaction creator
@@ -100,6 +103,8 @@ class WithdrawalIntegrationTest {
         val name = String.getRandomString(9)
         val fullName = "$name@notary"
         val keypair = ModelCrypto().generateKeypair()
+
+        integrationHelper.deployRelays(1)
 
         async {
             registration.main(emptyArray())
@@ -155,6 +160,8 @@ class WithdrawalIntegrationTest {
 
         /** ERC20 token "OMG" address */
         val tokenAddress = "0x9d65d6209bcd37f1f546315171b000663117d42f"
+
+        integrationHelper.deployRelays(1)
 
         // run services
         async {
