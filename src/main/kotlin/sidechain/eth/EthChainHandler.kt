@@ -2,11 +2,11 @@ package sidechain.eth
 
 import com.github.kittinunf.result.fanout
 import mu.KLogging
-import provider.EthTokensProvider
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.methods.response.EthBlock
 import org.web3j.protocol.core.methods.response.Transaction
 import provider.EthRelayProvider
+import provider.EthTokensProvider
 import sidechain.ChainHandler
 import sidechain.SideChainEvent
 import java.math.BigInteger
@@ -34,7 +34,7 @@ class EthChainHandler(
         tx: Transaction,
         wallets: Map<String, String>,
         tokens: Map<String, String>
-    ): List<SideChainEvent> {
+    ): List<SideChainEvent.EthereumEvent> {
         logger.info { "handle ERC20 tx ${tx.hash}" }
 
         // get receipt that contains data about solidity function execution
@@ -80,7 +80,7 @@ class EthChainHandler(
      * @param tx transaction in block
      * @return list of notary events on Ether deposit
      */
-    private fun handleEther(tx: Transaction, wallets: Map<String, String>): List<SideChainEvent> {
+    private fun handleEther(tx: Transaction, wallets: Map<String, String>): List<SideChainEvent.EthereumEvent> {
         logger.info { "handle Ethereum tx ${tx.hash}" }
 
         return if (tx.value.compareTo(BigInteger.ZERO) > 0) {
@@ -103,7 +103,7 @@ class EthChainHandler(
      * Parse [EthBlock] for transactions.
      * @return List of transation we are interested in
      */
-    override fun parseBlock(block: EthBlock): List<SideChainEvent> {
+    override fun parseBlock(block: EthBlock): List<SideChainEvent.EthereumEvent> {
         logger.info { "Eth chain handler for block ${block.block.number}" }
 
         return ethRelayProvider.getRelays().fanout {
