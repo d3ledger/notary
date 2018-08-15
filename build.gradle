@@ -133,12 +133,6 @@ sourceSets {
 
             srcDirs += "src/test"
         }
-        proto {
-            // iroha schema
-            srcDirs += "vendor/iroha/schema"
-            srcDirs += "vendor/iroha/shared_model/schema"
-
-        }
     }
     integrationTest {
         kotlin {
@@ -250,8 +244,8 @@ static def getCurrentOs() {
     }
 }
 
-task compileIrohaBindings(type: Exec) {
-    description = 'Generate Iroha binding for specific platform'
+task retrieveIrohaBindings(type: Exec) {
+    description = 'Downloads Iroha binding for specific platform'
 
     def bindings_invocation = ['sh', 'iroha_bindings.sh', getCurrentOs()]
 
@@ -336,7 +330,6 @@ jacocoTestReport {
             fileTree(dir: it, exclude: ['iroha/**',
                                         'notary/db/**',
                                         'contract/**',
-                                        'vendor/**',
                                         'integration/**'])
         })
     }
