@@ -112,6 +112,14 @@
                 }
               },
               {
+                "createRole": {
+                  "roleName": "whitelist_setter",
+                  "permissions": [
+                    "can_set_detail"
+                  ]
+                }
+              },
+              {
                 "createDomain": {
                   "domainId": "notary",
                   "defaultRole": "client"
@@ -219,6 +227,19 @@
                 "appendRole": {
                   "accountId": "vacuumer@notary",
                   "roleName": "vacuumer"
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "whitelist_setter",
+                  "domainId": "notary",
+                  "mainPubkey": "iJ9riB4zG+IUh9t33PMsX409XoBm540v6sQjn+kdQW8="
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "whitelist_setter@notary",
+                  "roleName": "whitelist_setter"
                 }
               }
             ],
