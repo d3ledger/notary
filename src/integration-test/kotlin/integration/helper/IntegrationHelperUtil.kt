@@ -45,10 +45,12 @@ class IntegrationHelperUtil {
     private val irohaKeyPair = ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
 
     private val irohaConsumer = IrohaConsumerImpl(testConfig.iroha)
+
     /** New Iroha data setter account*/
     val dataSetterAccount: String by lazy {
         createRegistrationAccount()
     }
+
     /** New master ETH master contract*/
     private val masterEthWallet by lazy {
         val wallet = deployMasterEth().contractAddress
@@ -202,6 +204,16 @@ class IntegrationHelperUtil {
         )
         logger.info("master account $name@notary was created")
         return "$name@notary"
+    }
+
+    /**
+     * Add Ethrereum addresses to client whitelist, so that she can withdraw only for that addresses
+     * @param clientAccount - client account id in Iroha network
+     * @param addresses - ethereum addresses where client can withdraw her assets
+     */
+    private fun setWhitelist(clientAccount: String, addresses: String) {
+        val whitelistSetter = "whitelist_setter@notary"
+        ModelUtil.setAccountDetail(irohaConsumer, whitelistSetter, clientAccount, "eth_whitelist", addresses)
     }
 
     /**

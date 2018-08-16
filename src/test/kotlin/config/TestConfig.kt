@@ -6,6 +6,7 @@ interface TestConfig {
     val tokenStorageAccount: String
     val registrationIrohaAccount: String
     val ropstenTestAccount: String
+    val whitelistSetter: String
     val ethereum: EthereumConfig
     val iroha: IrohaConfig
     val db: DatabaseConfig
