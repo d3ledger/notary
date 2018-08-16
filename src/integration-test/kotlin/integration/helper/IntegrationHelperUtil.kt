@@ -12,8 +12,6 @@ import jp.co.soramitsu.iroha.ModelProtoQuery
 import jp.co.soramitsu.iroha.ModelQueryBuilder
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import mu.KLogging
-import notary.EthRelayProviderIrohaImpl
-import notary.EthTokensProviderImpl
 import org.web3j.protocol.core.DefaultBlockParameterName
 import provider.EthFreeRelayProvider
 import provider.EthRelayProviderIrohaImpl
