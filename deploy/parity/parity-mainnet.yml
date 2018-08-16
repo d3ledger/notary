@@ -1,0 +1,55 @@
+version: '3'
+
+services:
+  parity:
+    image: parity/parity
+    container_name: d3-parity-mainnet
+    ports:
+      - 30313:30303
+      - 30313:30303/udp
+      - 8190:8180
+    expose:
+      - 8545
+    volumes:
+      - /opt/parity/mainnet:/data
+    command: >
+      --db-compaction ssd
+      --cache-size 4096
+      --jsonrpc-interface all
+      --jsonrpc-apis all
+      --jsonrpc-cors all
+      --base-path /data
+    environment:
+      - VIRTUAL_HOST=parity-d3.test.iroha.tech
+      - VIRTUAL_PORT=8545
+      - LETSENCRYPT_HOST=parity-d3.test.iroha.tech
+      - LETSENCRYPT_EMAIL=admin@soramitsu.co.jp
+
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: parity-nginx-proxy
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /var/nginx/conf.d:/etc/nginx/conf.d
+      - /var/nginx/vhost.d:/etc/nginx/vhost.d
+      - /var/nginx/html:/usr/share/nginx/html
+      - /var/nginx/htpasswd:/etc/nginx/htpasswd
+      - /etc/ssl/letsencrypt:/etc/nginx/certs:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    labels:
+      - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy=true"
+
+  letsencrypt-nginx-proxy-companion:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    container_name: letsencrypt-nginx
+    depends_on:
+      - nginx-proxy
+    volumes:
+      - /var/nginx/conf.d:/etc/nginx/conf.d
+      - /var/nginx/vhost.d:/etc/nginx/vhost.d
+      - /var/nginx/html:/usr/share/nginx/html
+      - /var/nginx/htpasswd:/etc/nginx/htpasswd
+      - /etc/ssl/letsencrypt:/etc/nginx/certs:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
