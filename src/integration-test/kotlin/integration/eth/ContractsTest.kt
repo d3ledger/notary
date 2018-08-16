@@ -1,4 +1,4 @@
-package integration
+package integration.eth
 
 import config.EthereumPasswords
 import config.TestConfig

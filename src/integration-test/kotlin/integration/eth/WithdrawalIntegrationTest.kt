@@ -1,4 +1,4 @@
-package integration
+package integration.eth
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap

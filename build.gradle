@@ -47,6 +47,15 @@ dependencies {
     // kotlin related
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
+    //bitcoin
+    compile 'org.bitcoinj:bitcoinj-core:0.14.7'
+    // https://mvnrepository.com/artifact/org.iq80.leveldb/leveldb
+    compile group: 'org.iq80.leveldb', name: 'leveldb', version: '0.10'
+    // https://mvnrepository.com/artifact/org.fusesource.leveldbjni/leveldbjni
+    compile group: 'org.fusesource.leveldbjni', name: 'leveldbjni', version: '1.8'
+    implementation 'org.fusesource.leveldbjni:leveldbjni-all:1.8'
+
+
     // rx2
     compile "io.reactivex.rxjava2:rxjava:2.0.0"
     compile "io.reactivex.rxjava2:rxkotlin:2.0.0"
@@ -268,8 +277,16 @@ retrieveIrohaBindings.dependsOn(osInfo)
 
 // -------------------------| Run services |-------------------------
 
-task runNotary(type: JavaExec) {
-    main = 'notary.NotaryMain'
+task runEthNotary(type: JavaExec) {
+    main = 'notary.eth.EthNotaryMain'
+    classpath = sourceSets.main.runtimeClasspath
+
+    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
+    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
+}
+
+task runBtcNotary(type: JavaExec) {
+    main = 'notary.btc.BtcNotaryMain'
     classpath = sourceSets.main.runtimeClasspath
 
     systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()

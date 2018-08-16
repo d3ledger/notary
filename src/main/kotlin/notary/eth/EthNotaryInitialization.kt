@@ -1,28 +1,27 @@
-package notary
+package notary.eth
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.EthereumPasswords
 import io.reactivex.Observable
-import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
+import notary.Notary
+import notary.NotaryConfig
+import notary.createEthNotary
 import notary.endpoint.RefundServerEndpoint
 import notary.endpoint.ServerInitializationBundle
 import notary.endpoint.eth.EthRefundStrategyImpl
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
-import provider.EthRelayProvider
-import provider.EthTokensProvider
+import provider.eth.EthRelayProvider
+import provider.eth.EthTokensProvider
 import sidechain.SideChainEvent
 import sidechain.eth.EthChainHandler
 import sidechain.eth.EthChainListener
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.consumer.IrohaNetworkImpl
-import sidechain.iroha.util.ModelUtil
 import java.math.BigInteger
 
 /**
@@ -30,7 +29,7 @@ import java.math.BigInteger
  * @param ethRelayProvider - provides with white list of ethereum wallets
  * @param ethTokensProvider - provides with white list of ethereum ERC20 tokens
  */
-class NotaryInitialization(
+class EthNotaryInitialization(
     private val irohaKeyPair: Keypair,
     private val notaryConfig: NotaryConfig,
     private val passwordsConfig: EthereumPasswords,
@@ -42,21 +41,20 @@ class NotaryInitialization(
      * Init notary
      */
     fun init(): Result<Unit, Exception> {
-        logger.info { "Notary initialization" }
+        logger.info { "Eth notary initialization" }
         return initEthChain()
             .map { ethEvent ->
                 initNotary(ethEvent)
             }
-            .flatMap { initIrohaConsumer(it) }
+            .flatMap { it.initIrohaConsumer() }
             .map { initRefund() }
-
     }
 
     /**
      * Init Ethereum chain listener
      * @return Observable on Ethereum sidechain events
      */
-    private fun initEthChain(): Result<Observable<SideChainEvent.EthereumEvent>, Exception> {
+    private fun initEthChain(): Result<Observable<SideChainEvent.PrimaryBlockChainEvent>, Exception> {
         logger.info { "Init Eth chain" }
 
         val web3 = Web3j.build(HttpService(notaryConfig.ethereum.url))
@@ -75,43 +73,10 @@ class NotaryInitialization(
      * Init Notary
      */
     private fun initNotary(
-        ethEvents: Observable<SideChainEvent.EthereumEvent>
+        ethEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>
     ): Notary {
         logger.info { "Init Notary notary" }
-        return NotaryImpl(notaryConfig, ethEvents)
-    }
-
-    /**
-     * Init Iroha consumer
-     */
-    private fun initIrohaConsumer(notary: Notary): Result<Unit, Exception> {
-        logger.info { "Init Iroha consumer" }
-        return ModelUtil.loadKeypair(notaryConfig.iroha.pubkeyPath, notaryConfig.iroha.privkeyPath)
-            .map {
-                val irohaConsumer = IrohaConsumerImpl(notaryConfig.iroha)
-
-                // Init Iroha Consumer pipeline
-                notary.irohaOutput()
-                    // convert from Notary model to Iroha model
-                    // TODO rework Iroha batch transaction
-                    .flatMapIterable { IrohaConverterImpl().convert(it) }
-                    .subscribeOn(Schedulers.io())
-                    .subscribe(
-                        // send to Iroha network layer
-                        {
-                            irohaConsumer.sendAndCheck(it)
-                                .fold(
-                                    { logger.info { "send to Iorha success" } },
-                                    { logger.error { "send failure $it" } }
-                                )
-                        },
-                        // on error
-                        { logger.error { "OnError called $it" } },
-                        // should be never called
-                        { logger.error { "OnComplete called" } }
-                    )
-                Unit
-            }
+        return createEthNotary(notaryConfig, ethEvents)
     }
 
     /**

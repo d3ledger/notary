@@ -1,4 +1,4 @@
-package withdrawalservice
+package provider
 
 typealias PeerAddress = String
 

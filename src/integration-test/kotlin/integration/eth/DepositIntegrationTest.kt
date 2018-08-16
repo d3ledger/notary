@@ -1,4 +1,4 @@
-package integration
+package integration.eth
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.success
@@ -9,9 +9,9 @@ import io.grpc.ManagedChannelBuilder
 import iroha.protocol.QueryServiceGrpc
 import jp.co.soramitsu.iroha.ModelQueryBuilder
 import kotlinx.coroutines.experimental.async
-import notary.main
+import notary.eth.main
 import org.junit.jupiter.api.*
-import provider.EthTokensProviderImpl
+import provider.eth.EthTokensProviderImpl
 import sidechain.eth.util.DeployHelper
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
@@ -62,7 +62,12 @@ class DepositIntegrationTest {
     private val irohaConsumer = IrohaConsumerImpl(testConfig.iroha)
 
     private val ethTokensProvider =
-        EthTokensProviderImpl(testConfig.iroha, keypair, testConfig.notaryIrohaAccount, testConfig.tokenStorageAccount)
+        EthTokensProviderImpl(
+            testConfig.iroha,
+            keypair,
+            testConfig.notaryIrohaAccount,
+            testConfig.tokenStorageAccount
+        )
 
     /**
      * Insert token into database
@@ -71,7 +76,6 @@ class DepositIntegrationTest {
      */
     fun insertToken(wallet: String, token: String) {
         ethTokensProvider.addToken(wallet, token)
-            .success { println("token was inserted. ${ethTokensProvider.getTokens()}") }
     }
 
     /**

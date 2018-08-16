@@ -1,14 +1,15 @@
-@file:JvmName("NotaryMain")
+@file:JvmName("EthNotaryMain")
 
-package notary
+package notary.eth
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import config.EthereumPasswords
 import config.loadConfigs
 import mu.KLogging
-import provider.EthRelayProviderIrohaImpl
-import provider.EthTokensProviderImpl
+import notary.NotaryConfig
+import provider.eth.EthRelayProviderIrohaImpl
+import provider.eth.EthTokensProviderImpl
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.util.ModelUtil
 
@@ -37,7 +38,7 @@ fun main(args: Array<String>) {
                 notaryConfig.iroha.creator,
                 notaryConfig.tokenStorageAccount
             )
-            NotaryInitialization(
+            EthNotaryInitialization(
                 keypair,
                 notaryConfig,
                 passwordConfig,

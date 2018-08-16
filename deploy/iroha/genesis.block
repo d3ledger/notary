@@ -131,6 +131,19 @@
                 }
               },
               {
+                "createDomain": {
+                  "domainId": "bitcoin",
+                  "defaultRole": "none"
+                }
+              },
+              {
+                "createAsset": {
+                  "assetName": "btc",
+                  "domainId": "bitcoin",
+                  "precision": 0
+                }
+              },
+              {
                 "createAccount": {
                   "accountName": "notary_red",
                   "domainId": "notary",

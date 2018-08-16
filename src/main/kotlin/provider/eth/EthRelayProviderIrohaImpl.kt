@@ -1,4 +1,4 @@
-package provider
+package provider.eth
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
