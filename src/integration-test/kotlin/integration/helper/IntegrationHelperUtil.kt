@@ -5,25 +5,22 @@ import config.TestConfig
 import config.loadConfigs
 import contract.Master
 import io.grpc.ManagedChannelBuilder
-import iroha.protocol.Queries
 import iroha.protocol.QueryServiceGrpc
 import jp.co.soramitsu.iroha.ModelCrypto
-import jp.co.soramitsu.iroha.ModelProtoQuery
 import jp.co.soramitsu.iroha.ModelQueryBuilder
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import mu.KLogging
+import org.junit.jupiter.api.fail
 import org.web3j.protocol.core.DefaultBlockParameterName
-import provider.EthFreeRelayProvider
-import provider.EthRelayProviderIrohaImpl
-import provider.EthTokensProviderImpl
+import provider.eth.EthFreeRelayProvider
+import provider.eth.EthRelayProviderIrohaImpl
+import provider.eth.EthTokensProviderImpl
 import registration.RegistrationStrategyImpl
 import registration.relay.RelayRegistration
 import registration.relay.RelayRegistrationConfig
 import sidechain.eth.util.DeployHelper
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
-import sidechain.iroha.util.toByteArray
 import util.getRandomString
 import java.math.BigInteger
 
@@ -71,8 +68,6 @@ class IntegrationHelperUtil {
         testConfig.notaryIrohaAccount,
         dataSetterAccount
     )
-    /** Iroha network */
-    private val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
 
     /** Provider of ETH wallets created by dataSetterAccount*/
     private val ethRelayProvider = EthRelayProviderIrohaImpl(
@@ -158,31 +153,63 @@ class IntegrationHelperUtil {
      */
     fun getIrohaBalance(assetId: String, accountId: String): BigInteger {
         val queryCounter: Long = 1
+
         val uquery = ModelQueryBuilder()
-            .creatorAccountId(testConfig.notaryIrohaAccount)
+            .creatorAccountId(testConfig.iroha.creator)
             .queryCounter(BigInteger.valueOf(queryCounter))
             .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
             .getAccountAssets(accountId)
             .build()
-        val queryBlob = ModelProtoQuery(uquery).signAndAddSignature(irohaKeyPair).finish().blob().toByteArray()
-        val protoQuery: Queries.Query?
-        protoQuery = Queries.Query.parseFrom(queryBlob)
-        val channel =
-            ManagedChannelBuilder.forAddress(testConfig.iroha.hostname, testConfig.iroha.port).usePlaintext(true)
-                .build()
-        val queryStub = QueryServiceGrpc.newBlockingStub(channel)
-        val queryResponse = queryStub.find(protoQuery)
 
-        val fieldDescriptor = queryResponse.descriptorForType.findFieldByName("account_assets_response")
-        if (!queryResponse.hasField(fieldDescriptor)) {
-            throw IllegalStateException("Query response error ${queryResponse.errorResponse}")
-        }
-        val assets = queryResponse.accountAssetsResponse.accountAssetsList
-        for (asset in assets) {
-            if (assetId == asset.assetId)
-                return BigInteger(asset.balance)
-        }
-        return BigInteger.ZERO
+        return ModelUtil.prepareQuery(uquery, irohaKeyPair)
+            .fold(
+                { protoQuery ->
+                    val channel =
+                        ManagedChannelBuilder.forAddress(testConfig.iroha.hostname, testConfig.iroha.port)
+                            .usePlaintext(true)
+                            .build()
+                    val queryStub = QueryServiceGrpc.newBlockingStub(channel)
+                    val queryResponse = queryStub.find(protoQuery)
+                    val fieldDescriptor = queryResponse.descriptorForType.findFieldByName("account_assets_response")
+                    if (!queryResponse.hasField(fieldDescriptor)) {
+                        fail { "Query response error ${queryResponse.errorResponse}" }
+                    }
+                    val assets = queryResponse.accountAssetsResponse.accountAssetsList
+                    for (asset in assets) {
+                        if (assetId == asset.assetId)
+                            return BigInteger(asset.balance)
+                    }
+
+                    BigInteger.ZERO
+                },
+                { ex ->
+                    fail { "Exception while converting byte array to protobuf: ${ex.message}" }
+                }
+            )
+    }
+
+    /**
+     * Sends btc to a given address
+     */
+    fun sendBtc(address: String, amount: Int): Boolean {
+        return runCommand("bitcoin-cli -regtest sendtoaddress $address $amount")
+                && generateBtcBlocks()
+    }
+
+    /**
+     * Creates 100 more blocks in bitcoin blockchain. May be used as transaction confirmation mechanism.
+     */
+    private fun generateBtcBlocks(): Boolean {
+        return runCommand("bitcoin-cli -regtest generate 100")
+    }
+
+    /**
+     * Runs command line
+     */
+    private fun runCommand(cmd: String): Boolean {
+        val pr = Runtime.getRuntime().exec(cmd)
+        pr.waitFor()
+        return pr.exitValue() == 0
     }
 
     /**

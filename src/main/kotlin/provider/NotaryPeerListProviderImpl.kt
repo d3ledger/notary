@@ -1,4 +1,4 @@
-package withdrawalservice
+package provider
 
 /**
  * Provides with list of all notaries peers in the system

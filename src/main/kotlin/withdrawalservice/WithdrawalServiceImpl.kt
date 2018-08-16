@@ -6,9 +6,10 @@ import config.EthereumPasswords
 import io.reactivex.Observable
 import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
-import provider.EthTokensProvider
-import provider.EthTokensProviderImpl
+import provider.eth.EthTokensProvider
+import provider.eth.EthTokensProviderImpl
 import notary.endpoint.eth.AmountType
+import provider.NotaryPeerListProviderImpl
 import sidechain.SideChainEvent
 import sidechain.eth.util.extractVRS
 import sidechain.eth.util.hashToWithdraw

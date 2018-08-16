@@ -8,8 +8,8 @@ import config.DatabaseConfig
 import config.EthereumConfig
 import config.EthereumPasswords
 import config.IrohaConfig
-import provider.EthRelayProvider
-import provider.EthTokensProvider
+import provider.eth.EthRelayProvider
+import provider.eth.EthTokensProvider
 
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaNetwork

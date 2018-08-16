@@ -1,4 +1,4 @@
-package integration
+package integration.eth
 
 import com.github.kittinunf.result.failure
 import config.TestConfig
@@ -7,7 +7,7 @@ import notary.IrohaCommand
 import notary.IrohaTransaction
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import provider.EthRelayProviderIrohaImpl
+import provider.eth.EthRelayProviderIrohaImpl
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl

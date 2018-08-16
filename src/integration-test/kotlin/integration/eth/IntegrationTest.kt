@@ -1,4 +1,4 @@
-package integration
+package integration.eth
 
 import com.github.kittinunf.result.failure
 import com.squareup.moshi.Moshi
@@ -9,7 +9,7 @@ import kotlinx.coroutines.experimental.async
 import notary.endpoint.eth.BigIntegerMoshiAdapter
 import notary.endpoint.eth.EthNotaryResponse
 import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
-import notary.main
+import notary.eth.main
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test

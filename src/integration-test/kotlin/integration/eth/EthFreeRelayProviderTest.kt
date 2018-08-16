@@ -1,4 +1,4 @@
-package integration
+package integration.eth
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.success
@@ -8,7 +8,7 @@ import jp.co.soramitsu.iroha.Keypair
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
-import provider.EthFreeRelayProvider
+import provider.eth.EthFreeRelayProvider
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil.loadKeypair
@@ -73,7 +73,8 @@ class EthFreeRelayProviderTest {
     fun getFreeWalletException() {
         val wrongMasterAccount = "wrong@account"
 
-        val freeWalletsProvider = EthFreeRelayProvider(testConfig.iroha, keypair, creator, wrongMasterAccount)
+        val freeWalletsProvider =
+            EthFreeRelayProvider(testConfig.iroha, keypair, creator, wrongMasterAccount)
         freeWalletsProvider.getRelay()
             .success { fail { "should return Exception" } }
     }

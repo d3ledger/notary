@@ -5,7 +5,7 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import notary.IrohaCommand
 import notary.IrohaTransaction
-import provider.EthFreeRelayProvider
+import provider.eth.EthFreeRelayProvider
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.consumer.IrohaConverterImpl
 

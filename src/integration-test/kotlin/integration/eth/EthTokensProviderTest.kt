@@ -1,4 +1,4 @@
-package integration
+package integration.eth
 
 import com.github.kittinunf.result.failure
 import config.TestConfig
@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
-import provider.EthTokensProviderImpl
+import provider.eth.EthTokensProviderImpl
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.util.ModelUtil
 
