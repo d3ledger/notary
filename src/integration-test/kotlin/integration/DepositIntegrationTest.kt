@@ -54,7 +54,7 @@ class DepositIntegrationTest {
     private val clientIrohaAccount = "user1@notary"
 
     /** Ethereum address to transfer to */
-    private val relayWallet = testConfig.ropstenTestAccount
+    private val relayWallet = testConfig.ethTestAccount
 
     /** Ethereum utils */
     private val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
