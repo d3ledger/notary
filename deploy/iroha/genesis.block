@@ -242,16 +242,7 @@
                   "accountId": "whitelist_setter@notary",
                   "roleName": "whitelist_setter"
                 }
-              }
-            ],
-            "quorum": 1
-          }
-        }
-      },
-      {
-        "payload": {
-          "reducedPayload": {
-            "commands": [
+              },
               {
                 "setAccountDetail": {
                   "accountId": "notary_red@notary",
