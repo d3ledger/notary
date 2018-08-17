@@ -22,6 +22,9 @@ import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import java.math.BigInteger
 import kotlin.test.assertEquals
+import com.squareup.moshi.Moshi
+
+
 
 /**
  * Integration tests for withdrawal usecase.
@@ -118,7 +121,7 @@ class WithdrawalIntegrationTest {
         )
         Assertions.assertEquals(200, res.statusCode)
 
-        IntegrationHelperUtil().setWhitelist(fullName, toAddress)
+        IntegrationHelperUtil().setWhitelist(fullName, arrayOf(toAddress))
 
         val initialBalance =
             deployHelper.web3.ethGetBalance(toAddress, DefaultBlockParameterName.LATEST).send().balance
@@ -177,7 +180,7 @@ class WithdrawalIntegrationTest {
         )
         Assertions.assertEquals(200, res.statusCode)
 
-        IntegrationHelperUtil().setWhitelist(fullName, toAddress)
+        IntegrationHelperUtil().setWhitelist(fullName, arrayOf(toAddress))
 
         val token = BasicCoin.load(
             tokenAddress,
@@ -230,7 +233,7 @@ class WithdrawalIntegrationTest {
         val clientId = integrationHelper.registerClient()
         val clientKeypair = integrationHelper.irohaKeyPair
 
-        IntegrationHelperUtil().setWhitelist(clientId, toAddress)
+        IntegrationHelperUtil().setWhitelist(clientId, arrayOf(toAddress, "qwerqt"))
 
         val amount = "125"
         val assetId = "ether#ethereum"

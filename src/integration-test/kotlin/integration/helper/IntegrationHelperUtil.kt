@@ -1,5 +1,6 @@
 package integration.helper
 
+import com.squareup.moshi.Moshi
 import config.EthereumPasswords
 import config.TestConfig
 import config.loadConfigs
@@ -229,8 +230,16 @@ class IntegrationHelperUtil {
      * @param clientAccount - client account id in Iroha network
      * @param addresses - ethereum addresses where client can withdraw her assets
      */
-    fun setWhitelist(clientAccount: String, addresses: String) {
-        ModelUtil.setAccountDetail(irohaConsumer, testConfig.whitelistSetter, clientAccount, "eth_whitelist", addresses)
+    fun setWhitelist(clientAccount: String, addresses: Array<String>) {
+        val text = addresses.joinToString()
+
+        ModelUtil.setAccountDetail(
+            irohaConsumer,
+            testConfig.whitelistSetter,
+            clientAccount,
+            "eth_whitelist",
+            text
+        )
     }
 
     /**

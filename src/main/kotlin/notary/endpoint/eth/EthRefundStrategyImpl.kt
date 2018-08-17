@@ -3,6 +3,7 @@ package notary.endpoint.eth
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
+import com.squareup.moshi.Moshi
 import config.EthereumConfig
 import config.EthereumPasswords
 import config.IrohaConfig
@@ -137,11 +138,9 @@ class EthRefundStrategyImpl(
             srcAccountId,
             whitelistSetter
         ).map { details ->
-            println(srcAccountId)
-            println("details")
-            println(details)
-            val whitelist = details["eth_whitelist"]
-            whitelist == address
+            val whitelist = details["eth_whitelist"]!!.split(",")
+
+            whitelist.contains(address)
         }
     }
 
