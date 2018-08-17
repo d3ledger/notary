@@ -1,7 +1,7 @@
 package integration
 
-import config.EthereumConfig
 import config.EthereumPasswords
+import config.TestConfig
 import config.loadConfigs
 import contract.BasicCoin
 import contract.Master
@@ -24,10 +24,10 @@ import java.math.BigInteger
  * Class for Ethereum sidechain infrastructure deployment and communication.
  */
 class ContractsTest {
-    private val etherConfig = loadConfigs("ethereum", EthereumConfig::class.java, "/ethereum_ganache.properties")
-    private val passwordConfig = loadConfigs("ganache", EthereumPasswords::class.java, "/ethereum_password.properties")
+    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
+    private val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/ethereum_password.properties")
 
-    private val deployHelper = DeployHelper(etherConfig, passwordConfig)
+    private val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
 
     private lateinit var token: BasicCoin
     private lateinit var master: Master
@@ -69,7 +69,7 @@ class ContractsTest {
         fromMaster: Boolean = true
     ) {
         val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, irohaHash)
-        val signature = signUserData(etherConfig, passwordConfig, finalHash)
+        val signature = signUserData(testConfig.ethereum, passwordConfig, finalHash)
         val vrs = extractVRS(signature)
 
         val vv = ArrayList<BigInteger>()
@@ -296,7 +296,7 @@ class ContractsTest {
         val irohaHash = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))
         val finalHash = hashToWithdraw(token.contractAddress, amount.toString(), accGreen, irohaHash)
 
-        val signature = signUserData(etherConfig, passwordConfig, finalHash)
+        val signature = signUserData(testConfig.ethereum, passwordConfig, finalHash)
         val vrs = extractVRS(signature)
 
         val vv = ArrayList<BigInteger>()
@@ -338,7 +338,7 @@ class ContractsTest {
         val irohaHash = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))
         val finalHash = hashToWithdraw(token.contractAddress, amount.toString(), accGreen, irohaHash)
 
-        val signature = signUserData(etherConfig, passwordConfig, finalHash)
+        val signature = signUserData(testConfig.ethereum, passwordConfig, finalHash)
         val vrs = extractVRS(signature)
 
         val vv = ArrayList<BigInteger>()
@@ -381,7 +381,7 @@ class ContractsTest {
         val irohaHash = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))
         val finalHash = hashToWithdraw(token.contractAddress, amount.toString(), accGreen, irohaHash)
 
-        val signature = signUserData(etherConfig, passwordConfig, finalHash)
+        val signature = signUserData(testConfig.ethereum, passwordConfig, finalHash)
         val vrs = extractVRS(signature)
 
         // let's corrupt first byte of s
