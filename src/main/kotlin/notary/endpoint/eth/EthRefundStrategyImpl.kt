@@ -138,9 +138,12 @@ class EthRefundStrategyImpl(
             srcAccountId,
             whitelistSetter
         ).map { details ->
-            val whitelist = details["eth_whitelist"]!!.split(",")
+            val whitelist = details["eth_whitelist"]
 
-            whitelist.contains(address)
+            if (whitelist != null)
+                whitelist.split(",").contains(address)
+            else
+                false
         }
     }
 
