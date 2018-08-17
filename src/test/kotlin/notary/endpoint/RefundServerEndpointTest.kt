@@ -70,6 +70,7 @@ class RefundServerEndpointTest {
 
         val refundAnswer = server.onCallEthRefund(null)
 
-        assertEquals(failureResponse.reason, refundAnswer)
+        assertEquals(HttpStatusCode.BadRequest, refundAnswer.code)
+        assertEquals(failureResponse.reason, refundAnswer.message)
     }
 }
