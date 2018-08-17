@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit
 class IrohaBlockStreamingTest {
 
     /** Test configurations */
-    val testConfig = loadConfigs("test", TestConfig::class.java)
+    val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
     /**
      * @given Iroha running

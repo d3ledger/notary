@@ -19,7 +19,7 @@ class HasherTest {
     }
 
     /** Test configurations */
-    val testConfig = loadConfigs("test", TestConfig::class.java)
+    val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
     /** Test keypair */
     val keypair = ModelUtil.loadKeypair(

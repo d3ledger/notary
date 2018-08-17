@@ -23,6 +23,7 @@ import java.math.BigInteger
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DepositIntegrationTest {
+
     init {
         IrohaInitialization.loadIrohaLibrary()
             .failure {
@@ -38,7 +39,7 @@ class DepositIntegrationTest {
     }
 
     /** Configurations for tests */
-    private val testConfig = loadConfigs("test", TestConfig::class.java)
+    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
     /** Ethereum password configs */
     private val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/ethereum_password.properties")
@@ -53,7 +54,7 @@ class DepositIntegrationTest {
     private val clientIrohaAccount = "user1@notary"
 
     /** Ethereum address to transfer to */
-    private val relayWallet = testConfig.ropstenTestAccount
+    private val relayWallet = testConfig.ethTestAccount
 
     /** Ethereum utils */
     private val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)

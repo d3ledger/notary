@@ -25,7 +25,7 @@ class EthFreeRelayProviderTest {
     }
 
     /** Test configurations */
-    val testConfig = loadConfigs("test", TestConfig::class.java)
+    val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
     /** Iroha keypair */
     val keypair: Keypair =

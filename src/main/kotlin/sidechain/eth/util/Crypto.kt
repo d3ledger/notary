@@ -26,13 +26,6 @@ fun signUserData(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPass
     return admin.ethSign(deployHelper.credentials.address, toSign).send().signature
 }
 
-// TODO: remove when config hell will be fixed
-fun testSignUserData(url: String, address: String, toSign: String): String {
-    val admin = Admin.build(HttpService(url))
-    assert(admin.personalUnlockAccount(address, "user").send().accountUnlocked())
-    return admin.ethSign(address, toSign).send().signature
-}
-
 /**
  * Calculates keccak-256 hash of several params concatenation. Params are:
  * @param tokenAddress Ethereum address of ERC-20 token (0x0000000000000000000000000000000000000000 for ether)

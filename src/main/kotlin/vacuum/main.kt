@@ -16,7 +16,7 @@ private const val RELAY_VACUUM_PREFIX = "relay-vacuum"
  * Entry point for moving all currency from relay contracts to master contract
  */
 fun main(args: Array<String>) {
-    val relayVacuumConfig = loadConfigs(RELAY_VACUUM_PREFIX, RelayVacuumConfig::class.java)
+    val relayVacuumConfig = loadConfigs(RELAY_VACUUM_PREFIX, RelayVacuumConfig::class.java, "/vacuum.properties")
     executeVacuum(relayVacuumConfig)
 }
 

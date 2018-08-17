@@ -15,7 +15,7 @@ import sidechain.iroha.IrohaInitialization
 fun main(args: Array<String>) {
     val logger = KLogging()
 
-    val withdrawalConfig = loadConfigs("withdrawal", WithdrawalServiceConfig::class.java)
+    val withdrawalConfig = loadConfigs("withdrawal", WithdrawalServiceConfig::class.java, "/withdrawal.properties")
     val passwordConfig =
         loadConfigs("withdrawal", EthereumPasswords::class.java, "/ethereum_password.properties")
 
