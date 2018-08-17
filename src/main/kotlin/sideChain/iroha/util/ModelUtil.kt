@@ -1,6 +1,7 @@
 package sidechain.iroha.util
 
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.flatMap
 import com.google.protobuf.InvalidProtocolBufferException
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.CommandServiceGrpc
@@ -11,7 +12,9 @@ import iroha.protocol.QueryServiceGrpc
 import iroha.protocol.TransactionOuterClass.Transaction
 import jp.co.soramitsu.iroha.*
 import mu.KLogging
+import notary.endpoint.eth.EthRefundRequest
 import sidechain.iroha.consumer.IrohaConsumer
+import sidechain.iroha.consumer.IrohaNetwork
 import java.io.IOException
 import java.math.BigInteger
 import java.nio.file.Files
@@ -184,6 +187,31 @@ object ModelUtil {
     fun isStatelessValid(resp: QueryResponse) =
         !(resp.hasErrorResponse() &&
                 resp.errorResponse.reason.toString() == "STATELESS_INVALID")
+
+    /**
+     * Get transaction from Iroha by [hash]
+     * @param hash - hash of transaction
+     * @return transaction
+     */
+    fun getTransaction(
+        irohaNetwork: IrohaNetwork,
+        creator: String,
+        keypair: Keypair,
+        hash: String
+    ): Result<Transaction, Exception> {
+        val hashes = HashVector()
+        hashes.add(Hash.fromHexString(hash))
+
+        val uquery = ModelQueryBuilder().creatorAccountId(creator)
+            .queryCounter(BigInteger.valueOf(1))
+            .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
+            .getTransactions(hashes)
+            .build()
+
+        return prepareQuery(uquery, keypair)
+            .flatMap { irohaNetwork.sendQuery(it) }
+            .flatMap { getFirstTransaction(it) }
+    }
 
     /**
      * Send SetAccountDetail to Iroha

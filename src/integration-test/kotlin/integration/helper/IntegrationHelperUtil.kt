@@ -42,7 +42,7 @@ class IntegrationHelperUtil {
     private val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
 
     /** Iroha keypair */
-    private val irohaKeyPair = ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
+    val irohaKeyPair = ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
 
     private val irohaConsumer = IrohaConsumerImpl(testConfig.iroha)
 
@@ -202,7 +202,25 @@ class IntegrationHelperUtil {
                 .appendRole("$name@$domain", "registration_service")
                 .build()
         )
-        logger.info("master account $name@notary was created")
+        logger.info("registration_service account $name@notary was created")
+        return "$name@notary"
+    }
+
+    /**
+     * Register client
+     */
+    fun registerClient(): String {
+        val name = String.getRandomString(9)
+        val domain = "notary"
+        val creator = testConfig.iroha.creator
+        irohaConsumer.sendAndCheck(
+            ModelTransactionBuilder()
+                .creatorAccountId(creator)
+                .createdTime(ModelUtil.getCurrentTime())
+                .createAccount(name, domain, irohaKeyPair.publicKey())
+                .build()
+        )
+        logger.info("client account $name@notary was created")
         return "$name@notary"
     }
 
@@ -211,9 +229,8 @@ class IntegrationHelperUtil {
      * @param clientAccount - client account id in Iroha network
      * @param addresses - ethereum addresses where client can withdraw her assets
      */
-    private fun setWhitelist(clientAccount: String, addresses: String) {
-        val whitelistSetter = "whitelist_setter@notary"
-        ModelUtil.setAccountDetail(irohaConsumer, whitelistSetter, clientAccount, "eth_whitelist", addresses)
+    fun setWhitelist(clientAccount: String, addresses: String) {
+        ModelUtil.setAccountDetail(irohaConsumer, testConfig.whitelistSetter, clientAccount, "eth_whitelist", addresses)
     }
 
     /**

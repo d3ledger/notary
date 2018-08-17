@@ -17,6 +17,7 @@
                 "createRole": {
                   "roleName": "notary",
                   "permissions": [
+                    "can_get_all_accounts",
                     "can_create_asset",
                     "can_add_asset_qty",
                     "can_transfer",

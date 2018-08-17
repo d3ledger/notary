@@ -6,6 +6,7 @@ import config.EthereumPasswords
 import config.TestConfig
 import config.loadConfigs
 import contract.BasicCoin
+import integration.helper.IntegrationHelperUtil
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelCrypto
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
@@ -20,6 +21,7 @@ import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import java.math.BigInteger
+import kotlin.test.assertEquals
 
 /**
  * Integration tests for withdrawal usecase.
@@ -116,6 +118,8 @@ class WithdrawalIntegrationTest {
         )
         Assertions.assertEquals(200, res.statusCode)
 
+        IntegrationHelperUtil().setWhitelist(fullName, toAddress)
+
         val initialBalance =
             deployHelper.web3.ethGetBalance(toAddress, DefaultBlockParameterName.LATEST).send().balance
 
@@ -173,6 +177,8 @@ class WithdrawalIntegrationTest {
         )
         Assertions.assertEquals(200, res.statusCode)
 
+        IntegrationHelperUtil().setWhitelist(fullName, toAddress)
+
         val token = BasicCoin.load(
             tokenAddress,
             deployHelper.web3,
@@ -202,4 +208,81 @@ class WithdrawalIntegrationTest {
 
         Assertions.assertEquals(initialBalance + BigInteger.valueOf(amount.toLong()), token.balanceOf(toAddress).send())
     }
+
+    /**
+     * Try to withdraw to address in whitelist
+     * @given A notary client and withdrawal address. Withdrawal address is in whitelist
+     * @when client initiates withdrawal
+     * @then notary approves the withdrawal
+     */
+    @Test
+    fun testWithdrawInWhitelist() {
+        val integrationHelper = IntegrationHelperUtil()
+
+        val peer = "http://localhost:8080"
+
+        async {
+            notary.main(emptyArray())
+        }
+        Thread.sleep(5_000)
+
+        // create client
+        val clientId = integrationHelper.registerClient()
+        val clientKeypair = integrationHelper.irohaKeyPair
+
+        IntegrationHelperUtil().setWhitelist(clientId, toAddress)
+
+        val amount = "125"
+        val assetId = "ether#ethereum"
+
+        // add assets to user
+        ModelUtil.addAssetIroha(irohaConsumer, creator, assetId, amount)
+        ModelUtil.transferAssetIroha(irohaConsumer, creator, creator, clientId, assetId, "", amount)
+
+        // make tra
+        val hash = transferAssetIroha(clientId, clientKeypair, clientId, notaryAccount, assetId, toAddress, amount)
+
+        val res = khttp.get("$peer/eth/$hash")
+
+        assertEquals(200, res.statusCode)
+    }
+
+    /**
+     * Try to withdraw to address not in whitelist
+     * @given A notary client and withdrawal address. Withdrawal address is absent in whitelist
+     * @when client initiates withdrawal
+     * @then withdrawal is prevented by notary
+     */
+    @Test
+    fun testWithdrawNotInWhitelist() {
+        val fakeEthAddress = "fake_address"
+        val integrationHelper = IntegrationHelperUtil()
+
+        val peer = "http://localhost:8080"
+
+        async {
+            notary.main(emptyArray())
+        }
+        Thread.sleep(5_000)
+
+        // create client
+        val clientId = integrationHelper.registerClient()
+        val clientKeypair = integrationHelper.irohaKeyPair
+
+        val amount = "125"
+        val assetId = "ether#ethereum"
+
+        // add assets to user
+        ModelUtil.addAssetIroha(irohaConsumer, creator, assetId, amount)
+        ModelUtil.transferAssetIroha(irohaConsumer, creator, creator, clientId, assetId, "", amount)
+
+        // make tra
+        val hash = transferAssetIroha(clientId, clientKeypair, clientId, notaryAccount, assetId, fakeEthAddress, amount)
+
+        val res = khttp.get("$peer/eth/$hash")
+
+        assertEquals(400, res.statusCode)
+        assertEquals("notary.endpoint.eth.NotaryException: fake_address not in whitelist", res.jsonObject.get("reason"))
+    }
+
 }

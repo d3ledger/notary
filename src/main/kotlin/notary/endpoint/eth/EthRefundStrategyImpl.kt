@@ -2,21 +2,18 @@ package notary.endpoint.eth
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
+import com.github.kittinunf.result.map
 import config.EthereumConfig
 import config.EthereumPasswords
 import config.IrohaConfig
 import iroha.protocol.TransactionOuterClass.Transaction
-import jp.co.soramitsu.iroha.Hash
-import jp.co.soramitsu.iroha.HashVector
 import jp.co.soramitsu.iroha.Keypair
-import jp.co.soramitsu.iroha.ModelQueryBuilder
 import mu.KLogging
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
-import sidechain.iroha.util.getFirstTransaction
-import java.math.BigInteger
+import sidechain.iroha.util.getAccountDetails
 
 class NotaryException(reason: String) : Exception(reason)
 
@@ -32,31 +29,13 @@ class EthRefundStrategyImpl(
 ) : EthRefundStrategy {
 
     override fun performRefund(request: EthRefundRequest): EthNotaryResponse {
-        return performQuery(request)
+        logger.info("check tx ${request.irohaTx} for refund")
+
+        return ModelUtil.getTransaction(irohaNetwork, irohaConfig.creator, keypair, request.irohaTx)
             .flatMap { checkTransaction(it, request) }
             .flatMap { makeRefund(it) }
             .fold({ it },
                 { EthNotaryResponse.Error(it.toString()) })
-    }
-
-    /**
-     * The method passes the query with transaction to Iroha and return the answer
-     * @param request - user's request with transaction hash
-     * @return Transaction which is appeared in Iroha or error
-     */
-    private fun performQuery(request: EthRefundRequest): Result<Transaction, Exception> {
-        val hashes = HashVector()
-        hashes.add(Hash.fromHexString(request.irohaTx))
-
-        val uquery = ModelQueryBuilder().creatorAccountId(irohaConfig.creator)
-            .queryCounter(BigInteger.valueOf(1))
-            .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
-            .getTransactions(hashes)
-            .build()
-
-        return ModelUtil.prepareQuery(uquery, keypair)
-            .flatMap { irohaNetwork.sendQuery(it) }
-            .flatMap { getFirstTransaction(it) }
     }
 
     /**
@@ -103,6 +82,18 @@ class EthRefundStrategyImpl(
                     val token = commands.transferAsset.assetId.dropLastWhile { it != '#' }.dropLast(1)
                     val destEthAddress = commands.transferAsset.description
 
+                    val srcAccountId = commands.transferAsset.srcAccountId
+                    checkWithdrawalAddress(srcAccountId, destEthAddress)
+                        .fold(
+                            {
+                                if (!it) {
+                                    logger.warn { "$destEthAddress not in whitelist" }
+                                    throw NotaryException("$destEthAddress not in whitelist")
+                                }
+                            },
+                            { throw it }
+                        )
+
                     EthRefund(destEthAddress, token, amount, request.irohaTx)
                 }
                 else -> {
@@ -134,8 +125,28 @@ class EthRefundStrategyImpl(
     }
 
     /**
+     * Check if [srcAccountId] has Ethereum withdrawal [address] in whitelist
+     */
+    private fun checkWithdrawalAddress(srcAccountId: String, address: String): Result<Boolean, Exception> {
+        val whitelistSetter = "whitelist_setter@notary"
+
+        return getAccountDetails(
+            irohaConfig,
+            keypair,
+            irohaNetwork,
+            srcAccountId,
+            whitelistSetter
+        ).map { details ->
+            println(srcAccountId)
+            println("details")
+            println(details)
+            val whitelist = details["eth_whitelist"]
+            whitelist == address
+        }
+    }
+
+    /**
      * Logger
      */
     companion object : KLogging()
-
 }
