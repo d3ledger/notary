@@ -18,7 +18,7 @@ class RelayRegistrationConfigTest {
 
         assertEquals(10, relayRegistrationConfig.number)
         assertEquals("notary_red@notary", relayRegistrationConfig.notaryIrohaAccount)
-        assertEquals("0xbe45f06f5b82cce01543a2f198ade2f7652b4dae", relayRegistrationConfig.ethMasterWallet)
+        assertEquals("0x57dd50c6b4ec7a33ee3bb5056bf38856e181684c", relayRegistrationConfig.ethMasterWallet)
 
         assertEquals("localhost", relayRegistrationConfig.iroha.hostname)
         assertEquals(50051, relayRegistrationConfig.iroha.port)
