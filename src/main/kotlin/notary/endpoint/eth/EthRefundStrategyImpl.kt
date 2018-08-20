@@ -26,7 +26,8 @@ class EthRefundStrategyImpl(
     val irohaNetwork: IrohaNetwork,
     val ethereumConfig: EthereumConfig,
     val ethereumPasswords: EthereumPasswords,
-    private val keypair: Keypair
+    private val keypair: Keypair,
+    private val whitelistSetter: String
 ) : EthRefundStrategy {
 
     override fun performRefund(request: EthRefundRequest): EthNotaryResponse {
@@ -129,8 +130,6 @@ class EthRefundStrategyImpl(
      * Check if [srcAccountId] has Ethereum withdrawal [address] in whitelist
      */
     private fun checkWithdrawalAddress(srcAccountId: String, address: String): Result<Boolean, Exception> {
-        val whitelistSetter = "whitelist_setter@notary"
-
         return getAccountDetails(
             irohaConfig,
             keypair,

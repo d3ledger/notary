@@ -227,7 +227,7 @@ class IntegrationHelperUtil {
      * @param clientAccount - client account id in Iroha network
      * @param addresses - ethereum addresses where client can withdraw her assets
      */
-    fun setWhitelist(clientAccount: String, addresses: Array<String>) {
+    fun setWhitelist(clientAccount: String, addresses: List<String>) {
         val text = addresses.joinToString()
 
         ModelUtil.setAccountDetail(
