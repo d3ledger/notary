@@ -1,5 +1,6 @@
 package integration.helper
 
+import com.squareup.moshi.Moshi
 import config.EthereumPasswords
 import config.TestConfig
 import config.loadConfigs
@@ -42,12 +43,12 @@ class IntegrationHelperUtil {
     private val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
 
     /** Iroha keypair */
-    private val irohaKeyPair = ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
+    val irohaKeyPair = ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
 
     private val irohaConsumer = IrohaConsumerImpl(testConfig.iroha)
 
     /** New Iroha data setter account*/
-    val dataSetterAccount = testConfig.relayRegistrationIrohaAccount
+    val dataSetterAccount= testConfig.relayRegistrationIrohaAccount
 
     /** New master ETH master contract*/
     val masterEthWallet by lazy {
@@ -203,8 +204,43 @@ class IntegrationHelperUtil {
                 .appendRole("$name@$domain", "registration_service")
                 .build()
         )
-        logger.info("master account $name@notary was created")
+        logger.info("registration_service account $name@notary was created")
         return "$name@notary"
+    }
+
+    /**
+     * Register client
+     */
+    fun registerClient(): String {
+        val name = String.getRandomString(9)
+        val domain = "notary"
+        val creator = testConfig.iroha.creator
+        irohaConsumer.sendAndCheck(
+            ModelTransactionBuilder()
+                .creatorAccountId(creator)
+                .createdTime(ModelUtil.getCurrentTime())
+                .createAccount(name, domain, irohaKeyPair.publicKey())
+                .build()
+        )
+        logger.info("client account $name@notary was created")
+        return "$name@notary"
+    }
+
+    /**
+     * Add Ethrereum addresses to client whitelist, so that she can withdraw only for that addresses
+     * @param clientAccount - client account id in Iroha network
+     * @param addresses - ethereum addresses where client can withdraw her assets
+     */
+    fun setWhitelist(clientAccount: String, addresses: List<String>) {
+        val text = addresses.joinToString()
+
+        ModelUtil.setAccountDetail(
+            irohaConsumer,
+            testConfig.whitelistSetter,
+            clientAccount,
+            "eth_whitelist",
+            text
+        )
     }
 
     /**

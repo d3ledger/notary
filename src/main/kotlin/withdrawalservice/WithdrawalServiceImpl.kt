@@ -111,6 +111,8 @@ class WithdrawalServiceImpl(
                 val ss = ArrayList<ByteArray>()
 
                 notaryPeerListProvider.getPeerList().forEach { peer ->
+                    val res = khttp.get("$peer/eth/$hash")
+
                     // TODO: replace with valid peer requests
                     val signature =
                         signUserData(

@@ -4,10 +4,12 @@ import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.squareup.moshi.Moshi
+import io.ktor.http.HttpStatusCode
 import notary.endpoint.eth.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import sidechain.eth.util.DeployHelper
 import java.math.BigInteger
 
 /**
@@ -51,9 +53,10 @@ class RefundServerEndpointTest {
     @Test
     fun onEthRefundCallTest() {
         val request = moshi.adapter(EthRefundRequest::class.java).toJson(ethRequest)
-        val refundAnswer = server.onCallEthRefund(request)
+        val result = server.onCallEthRefund(request)
 
-        assertEquals(successResponse, moshi.adapter(EthNotaryResponse::class.java).fromJson(refundAnswer))
+        assertEquals(HttpStatusCode.OK, result.code)
+        assertEquals(successResponse, moshi.adapter(EthNotaryResponse::class.java).fromJson(result.message))
     }
 
     /**
@@ -67,6 +70,7 @@ class RefundServerEndpointTest {
 
         val refundAnswer = server.onCallEthRefund(null)
 
-        assertEquals(failureResponse.reason, refundAnswer)
+        assertEquals(HttpStatusCode.BadRequest, refundAnswer.code)
+        assertEquals(failureResponse.reason, refundAnswer.message)
     }
 }

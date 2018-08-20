@@ -126,7 +126,8 @@ class NotaryInitialization(
                 irohaNetwork,
                 notaryConfig.ethereum,
                 passwordsConfig,
-                irohaKeyPair
+                irohaKeyPair,
+                notaryConfig.whitelistSetter
             )
         )
     }
