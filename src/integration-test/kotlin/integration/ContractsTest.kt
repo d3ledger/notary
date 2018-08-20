@@ -106,7 +106,7 @@ class ContractsTest {
     @BeforeEach
     fun setup() {
         token = deployHelper.deployERC20TokenSmartContract()
-        master = deployHelper.deployMasterSmartContract(listOf(token.contractAddress))
+        master = deployHelper.deployMasterSmartContract()
         relay = deployHelper.deployRelaySmartContract(master.contractAddress)
         addPeerCalls = 0
     }
@@ -139,6 +139,7 @@ class ContractsTest {
     @Test
     fun singleCorrectSignatureTokenTest() {
         sendAddPeer(accMain)
+        master.addToken(token.contractAddress).send()
         transferTokensToMaster(BigInteger.valueOf(5))
         withdraw(BigInteger.valueOf(1))
         assertEquals(BigInteger.valueOf(4), token.balanceOf(master.contractAddress).send())
@@ -418,6 +419,7 @@ class ContractsTest {
     @Test
     fun usedHashTest() {
         sendAddPeer(accMain)
+        master.addToken(token.contractAddress).send()
         transferTokensToMaster(BigInteger.valueOf(5))
         withdraw(BigInteger.valueOf(1))
         assertEquals(BigInteger.valueOf(4), token.balanceOf(master.contractAddress).send())
@@ -444,5 +446,32 @@ class ContractsTest {
     fun addSamePeer() {
         sendAddPeer(accGreen)
         Assertions.assertThrows(TransactionException::class.java) { master.addPeer(accGreen).send() }
+    }
+
+    /**
+     * @given deployed master contract
+     * @when addToken called twice with different addresses
+     * @then both calls succeeded, both tokens are added
+     */
+    @Test
+    fun addTokenTest() {
+        val fakeTokenAddress = "0xf230b790e05390fc8295f4d3f60332c93bed42d1"
+        master.addToken(token.contractAddress).send()
+        master.addToken(fakeTokenAddress).send()
+        val res = master.tokens.send()
+        assertEquals(2, res.size)
+        assertEquals(token.contractAddress, res[0])
+        assertEquals(fakeTokenAddress, res[1])
+    }
+
+    /**
+     * @given deployed master contract
+     * @when addToken called twice with same addresses
+     * @then second call throws exception
+     */
+    @Test
+    fun addSameTokensTest() {
+        master.addToken(token.contractAddress).send()
+        Assertions.assertThrows(TransactionException::class.java) { master.addToken(token.contractAddress).send() }
     }
 }

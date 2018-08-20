@@ -18,7 +18,7 @@ contract Master {
     mapping(bytes32 => bool) private used_;
     mapping(address => bool) private unique_addresses_;
 
-    address[] public tokens;
+    address[] private tokens_;
 
     event address_event(address input);
     event string_event(string input);
@@ -27,11 +27,9 @@ contract Master {
 
     /**
      * Constructor. Sets contract owner to contract creator.
-     * @param tokens_list whitelist of supported ERC-20 tokens
      */
-    constructor(address[] tokens_list) public {
+    constructor() public {
         owner_ = msg.sender;
-        tokens = tokens_list;
     }
 
     /**
@@ -40,6 +38,10 @@ contract Master {
     function() external payable {
         require(msg.data.length == 0);
         emit address_event(msg.sender);
+    }
+
+    function getTokens() view public returns(address[]) {
+        return tokens_;
     }
 
     /**
@@ -69,6 +71,19 @@ contract Master {
         ++peers_count_;
         emit number_event(peers_count_);
         emit address_event(new_address);
+    }
+
+    /**
+     * Adds new token to whitelist. Token should not been already added.
+     * @param new_token token to add
+     */
+    function addToken(address new_token) public {
+        require(msg.sender == owner_);
+        uint i;
+        for (i = 0; i < tokens_.length; ++i) {
+            require(tokens_[i] != new_token);
+        }
+        tokens_.push(new_token);
     }
 
     /**
@@ -106,8 +121,8 @@ contract Master {
             return true;
         }
         bool token_found = false;
-        for (uint i = 0; i < tokens.length; ++i) {
-            if (tokens[i] == token_address) {
+        for (uint i = 0; i < tokens_.length; ++i) {
+            if (tokens_[i] == token_address) {
                 token_found = true;
                 break;
             }

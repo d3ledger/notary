@@ -13,7 +13,6 @@ contract ICoin {
  */
 contract IMaster {
     function withdraw(address token_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s) public;
-    function tokens() public view returns (address[]);
     function checkTokenAddress(address token) public view returns (bool);
 }
 
