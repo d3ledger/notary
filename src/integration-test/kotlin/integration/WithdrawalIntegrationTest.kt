@@ -249,7 +249,7 @@ class WithdrawalIntegrationTest {
         ModelUtil.addAssetIroha(irohaConsumer, creator, assetId, amount)
         ModelUtil.transferAssetIroha(irohaConsumer, creator, creator, clientId, assetId, "", amount)
 
-        // make tra
+        // make transfer trx
         val hash = transferAssetIroha(clientId, clientKeypair, clientId, notaryAccount, assetId, toAddress, amount)
 
         val res = khttp.get("$peer/eth/$hash")
