@@ -34,10 +34,10 @@ import java.math.BigInteger
  */
 class IntegrationHelperUtil {
     /** Configurations for tests */
-    private val testConfig = loadConfigs("test", TestConfig::class.java)
+    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
     /** Ethereum password configs */
-    private val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/ethereum_password.properties")
+    private val passwordConfig = loadConfigs("ganache", EthereumPasswords::class.java, "/ethereum_password.properties")
 
     /** Ethereum utils */
     private val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
@@ -48,12 +48,10 @@ class IntegrationHelperUtil {
     private val irohaConsumer = IrohaConsumerImpl(testConfig.iroha)
 
     /** New Iroha data setter account*/
-    val dataSetterAccount: String by lazy {
-        createRegistrationAccount()
-    }
+    val dataSetterAccount= testConfig.relayRegistrationIrohaAccount
 
     /** New master ETH master contract*/
-    private val masterEthWallet by lazy {
+    val masterEthWallet by lazy {
         val wallet = deployMasterEth().contractAddress
         logger.info("master eth wallet $wallet was deployed ")
         wallet
@@ -66,7 +64,8 @@ class IntegrationHelperUtil {
         testConfig.tokenStorageAccount
     )
 
-    private val relayRegistrationConfig = loadConfigs("relay-registration", RelayRegistrationConfig::class.java)
+    private val relayRegistrationConfig =
+        loadConfigs("test", RelayRegistrationConfig::class.java, "/test.properties")
 
     private val ethFreeRelayProvider = EthFreeRelayProvider(
         testConfig.iroha,
@@ -108,7 +107,7 @@ class IntegrationHelperUtil {
     /**
      * Deploys ETH master contract
      */
-    private fun deployMasterEth(): Master {
+    fun deployMasterEth(): Master {
         ethTokensProvider.getTokens()
             .fold(
                 { tokens ->
@@ -147,9 +146,7 @@ class IntegrationHelperUtil {
     /**
      * Send ETH with given amount to ethPublicKey
      */
-    fun sendEth(amount: BigInteger, ethPublicKey: String) {
-        deployHelper.sendEthereum(amount, ethPublicKey)
-    }
+    fun sendEth(amount: BigInteger, to: String) = deployHelper.sendEthereum(amount, to)
 
     /**
      * Returns wallets registered by master account in Iroha

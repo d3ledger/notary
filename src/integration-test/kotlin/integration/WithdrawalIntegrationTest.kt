@@ -40,7 +40,10 @@ class WithdrawalIntegrationTest {
     }
 
     /** Configurations for tests */
-    private val testConfig = loadConfigs("test", TestConfig::class.java)
+    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
+
+    /** Ethereum password configs */
+    private val passwordConfig = loadConfigs("ganache", EthereumPasswords::class.java, "/ethereum_password.properties")
 
     /** Iroha transaction creator */
     val creator = testConfig.iroha.creator
@@ -48,20 +51,19 @@ class WithdrawalIntegrationTest {
     /** Iroha network layer */
     val irohaConsumer = IrohaConsumerImpl(testConfig.iroha)
 
-    /** Ethereum password configs */
-    private val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/ethereum_password.properties")
-
     /** Ethereum utils */
     private val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
 
     /** Ethereum test address where we want to withdraw to */
-    private val toAddress = testConfig.ropstenTestAccount
+    private val toAddress = testConfig.ethTestAccount
 
     /** Registration service port */
     private val registrationServicePort = 8083
 
     /** Notary account in Iroha */
     val notaryAccount = testConfig.notaryIrohaAccount
+
+    private val integrationHelper = IntegrationHelperUtil()
 
     /**
      * Transfer asset in iroha with custom keypair
@@ -106,6 +108,10 @@ class WithdrawalIntegrationTest {
         val fullName = "$name@notary"
         val keypair = ModelCrypto().generateKeypair()
 
+        integrationHelper.deployRelays(1)
+
+        integrationHelper.sendEth(BigInteger.valueOf(125), integrationHelper.masterEthWallet)
+
         async {
             registration.main(emptyArray())
         }
@@ -140,7 +146,7 @@ class WithdrawalIntegrationTest {
         // transfer assets from user to notary master account
         transferAssetIroha(fullName, keypair, fullName, notaryAccount, assetId, toAddress, amount)
         println("transfer asset to $notaryAccount")
-        Thread.sleep(300_000)
+        Thread.sleep(30_000)
 
         Assertions.assertEquals(
             initialBalance + BigInteger.valueOf(amount.toLong()),
@@ -162,6 +168,8 @@ class WithdrawalIntegrationTest {
 
         /** ERC20 token "OMG" address */
         val tokenAddress = "0x9d65d6209bcd37f1f546315171b000663117d42f"
+
+        integrationHelper.deployRelays(1)
 
         // run services
         async {

@@ -26,7 +26,7 @@ class RefundServerEndpointTest {
         Moshi.Builder().add(EthNotaryResponseMoshiAdapter()).add(BigInteger::class.java, BigIntegerMoshiAdapter())
             .build()
 
-    /** Stub for ethereum refund request, should represent tx hash from Iroha */
+    /** Stub for Ethereum refund request, should represent tx hash from Iroha */
     private val ethRequest = EthRefundRequest("tx_hash_from_iroha")
 
     /** Successful response */

@@ -14,7 +14,7 @@ import sidechain.iroha.IrohaInitialization
 fun main(args: Array<String>) {
     val logger = KLogging()
 
-    val registrationConfig = loadConfigs("registration", RegistrationConfig::class.java)
+    val registrationConfig = loadConfigs("registration", RegistrationConfig::class.java, "/registration.properties")
 
     IrohaInitialization.loadIrohaLibrary()
         .flatMap { RegistrationServiceInitialization(registrationConfig).init() }

@@ -13,7 +13,8 @@ class RelayRegistrationConfigTest {
      */
     @Test
     fun allSetTest() {
-        val relayRegistrationConfig = loadConfigs("relay-registration", RelayRegistrationConfig::class.java)
+        val relayRegistrationConfig =
+            loadConfigs("relay-registration", RelayRegistrationConfig::class.java, "/relay_registration.properties")
 
         assertEquals(10, relayRegistrationConfig.number)
         assertEquals("notary_red@notary", relayRegistrationConfig.notaryIrohaAccount)

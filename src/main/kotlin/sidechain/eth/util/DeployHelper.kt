@@ -21,33 +21,16 @@ import java.math.BigInteger
  * @param ethereumPasswords config with Ethereum passwords
  * @param etherTest is class used for contract tests or not (TODO: remove after config rework)
  */
-class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPasswords, etherTest: Boolean = false) {
+class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPasswords) {
 
     /** web3 service instance to communicate with Ethereum network */
     val web3 = Web3j.build(
-        HttpService(
-            if (etherTest) {
-                "http://127.0.0.1:8545"
-            } else {
-                ethereumConfig.url
-            }
-        )
+        HttpService(ethereumConfig.url)
     )
 
     /** credentials of ethereum user */
     val credentials by lazy {
-        WalletUtils.loadCredentials(
-            if (etherTest) {
-                "user"
-            } else {
-                ethereumPasswords.credentialsPassword
-            },
-            if (etherTest) {
-                "deploy/ethereum/keys/ganache.key"
-            } else {
-                ethereumConfig.credentialsPath
-            }
-        )
+        WalletUtils.loadCredentials(ethereumPasswords.credentialsPassword, ethereumConfig.credentialsPath)
     }
 
     /** Gas price */
@@ -82,7 +65,7 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
         val signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials)
         val hexValue = Numeric.toHexString(signedMessage)
         val transactionHash = web3.ethSendRawTransaction(hexValue).send().transactionHash
-        logger.info ("sendEthereum($amount,$to) transaction hash $transactionHash")
+        logger.info("sendEthereum($amount,$to) transaction hash $transactionHash")
     }
 
     /**
@@ -156,7 +139,7 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
         val token = contract.BasicCoin.load(tokenAddress, web3, credentials, gasPrice, gasLimit)
         token.transfer(toAddress, amount).send()
     }
-    
+
     /**
      * Logger
      */

@@ -25,7 +25,7 @@ class EthTokensProviderTest {
             }
     }
 
-    private val testConfig = loadConfigs("test", TestConfig::class.java)
+    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
     private val integrationHelper = IntegrationHelperUtil()
 
     /** Iroha keypair */
