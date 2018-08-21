@@ -28,9 +28,13 @@ class IrohaConsumerImpl(irohaConfig: IrohaConfig) : IrohaConsumer {
             .flatMap { irohaNetwork.sendAndCheck(it, hash) }
     }
 
-    fun sendAdnCheck(lst: List<UnsignedTx>): Result<String, Exception> {
-        val signed = lst.map { ModelUtil.prepareTransaction(it, keypair).get() }
-        irohaNetwork.sendAndCheck(signed)
+    override fun sendAndCheck(lst: List<UnsignedTx>): Result<List<String>, Exception> {
+        val results = lst.map { tx ->
+            ModelUtil.prepareTransaction(tx, keypair)
+                .flatMap { irohaNetwork.sendAndCheck(it, tx.hash()) }
+                .get()
+        }
+        return Result.of { results }
 
     }
 

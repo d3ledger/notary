@@ -14,4 +14,6 @@ interface IrohaConsumer {
      * @return Result with string representation of hash or possible failure
      */
     fun sendAndCheck(utx: UnsignedTx): Result<String, Exception>
+
+    fun sendAndCheck(lst: List<UnsignedTx>): Result<List<String>, Exception>
 }
