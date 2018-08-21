@@ -1,7 +1,5 @@
 package notary
 
-import java.util.*
-
 /**
  * Class represents commands that [Notary] can send to [sidechain.iroha.consumer.IrohaConsumer]
  */
@@ -86,15 +84,6 @@ sealed class IrohaCommand {
      */
     data class CommandAddPeer(
         val address: String,
-        val peerKey: ByteArray
-    ) : IrohaCommand() {
-
-        override fun equals(other: Any?): Boolean {
-            other as CommandAddPeer
-            return address == other.address && Arrays.equals(peerKey, other.peerKey)
-        }
-
-        override fun hashCode(): Int =
-            Arrays.hashCode(address.toByteArray() + peerKey)
-    }
+        val peerKey: String
+    ) : IrohaCommand()
 }

@@ -1,8 +1,6 @@
 package sidechain.iroha.consumer
 
-import jp.co.soramitsu.iroha.ModelTransactionBuilder
-import jp.co.soramitsu.iroha.PublicKey
-import jp.co.soramitsu.iroha.UnsignedTx
+import jp.co.soramitsu.iroha.*
 import mu.KLogging
 import notary.IrohaCommand
 import notary.IrohaOrderedBatch
@@ -14,55 +12,74 @@ import java.math.BigInteger
  */
 class IrohaConverterImpl {
 
+    private fun appendCmd(txBuilder: ModelTransactionBuilder, cmd: IrohaCommand): ModelTransactionBuilder {
+        return when (cmd) {
+            is IrohaCommand.CommandCreateAccount ->
+                txBuilder.createAccount(
+                    cmd.accountName,
+                    cmd.domainId,
+                    PublicKey(PublicKey.fromHexString(cmd.mainPubkey))
+                )
+            is IrohaCommand.CommandAddAssetQuantity ->
+                txBuilder.addAssetQuantity(
+                    cmd.assetId,
+                    cmd.amount
+                )
+            is IrohaCommand.CommandAddSignatory ->
+                txBuilder.addSignatory(
+                    cmd.accountId,
+                    PublicKey(PublicKey.fromHexString(cmd.publicKey))
+                )
+            is IrohaCommand.CommandCreateAsset ->
+                txBuilder.createAsset(
+                    cmd.assetName,
+                    cmd.domainId,
+                    cmd.precision
+                )
+            is IrohaCommand.CommandSetAccountDetail ->
+                txBuilder.setAccountDetail(
+                    cmd.accountId,
+                    cmd.key,
+                    cmd.value
+                )
+            is IrohaCommand.CommandTransferAsset ->
+                txBuilder.transferAsset(
+                    cmd.srcAccountId,
+                    cmd.destAccountId,
+                    cmd.assetId,
+                    cmd.description,
+                    cmd.amount
+                )
+            is IrohaCommand.CommandAddPeer ->
+                txBuilder.addPeer(
+                    cmd.address,
+                    PublicKey(PublicKey.fromHexString(cmd.peerKey))
+                )
+        }
+    }
+
+    private fun prepare(transaction: IrohaTransaction): ModelTransactionBuilder {
+        return ModelTransactionBuilder()
+            .creatorAccountId(transaction.creator)
+            .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
+    }
+
+    private fun appendCommands(
+        txBuilder: ModelTransactionBuilder,
+        transaction: IrohaTransaction
+    ): ModelTransactionBuilder {
+        var builder = txBuilder
+        transaction.commands.forEach { cmd ->
+            builder = appendCmd(txBuilder, cmd)
+        }
+        return builder
+    }
+
     /**
      * Convert Notary intention [notary.IrohaTransaction] to Iroha protobuf [UnsignedTx]
      */
     fun convert(transaction: IrohaTransaction): UnsignedTx {
-        var txBuilder = ModelTransactionBuilder()
-            .creatorAccountId(transaction.creator)
-            .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
-
-        for (cmd in transaction.commands) {
-            when (cmd) {
-                is IrohaCommand.CommandCreateAccount ->
-                    txBuilder = txBuilder.createAccount(
-                        cmd.accountName,
-                        cmd.domainId,
-                        PublicKey(PublicKey.fromHexString(cmd.mainPubkey))
-                    )
-                is IrohaCommand.CommandAddAssetQuantity ->
-                    txBuilder = txBuilder.addAssetQuantity(
-                        cmd.assetId,
-                        cmd.amount
-                    )
-                is IrohaCommand.CommandAddSignatory ->
-                    txBuilder = txBuilder.addSignatory(
-                        cmd.accountId,
-                        PublicKey(PublicKey.fromHexString(cmd.publicKey))
-                    )
-                is IrohaCommand.CommandCreateAsset ->
-                    txBuilder = txBuilder.createAsset(
-                        cmd.assetName,
-                        cmd.domainId,
-                        cmd.precision
-                    )
-                is IrohaCommand.CommandSetAccountDetail ->
-                    txBuilder = txBuilder.setAccountDetail(
-                        cmd.accountId,
-                        cmd.key,
-                        cmd.value
-                    )
-                is IrohaCommand.CommandTransferAsset ->
-                    txBuilder = txBuilder.transferAsset(
-                        cmd.srcAccountId,
-                        cmd.destAccountId,
-                        cmd.assetId,
-                        cmd.description,
-                        cmd.amount
-                    )
-            }
-        }
-
+        val txBuilder = appendCommands(prepare(transaction), transaction)
         return txBuilder.build()
     }
 
@@ -70,11 +87,21 @@ class IrohaConverterImpl {
      * Convert Notary [notary.IrohaOrderedBatch] to Iroha [UnsignedTx]
      */
     fun convert(batch: IrohaOrderedBatch): List<UnsignedTx> {
-        // TODO rework with batch transactions
         val txs = mutableListOf<UnsignedTx>()
 
-        for (transaction in batch.transactions) {
-            txs.add(convert(transaction))
+        val hashes = HashVector()
+        batch.transactions.map {
+            val utx = convert(it)
+            iroha.utxReducedHash(utx)
+        }
+            .forEach { hashes.add(it) }
+
+        batch.transactions.forEach { tx ->
+            val txBuilder = appendCommands(prepare(tx), tx)
+                .batchMeta(BatchType.ORDERED, hashes)
+
+            txs.add(txBuilder.build())
+
         }
         return txs
     }

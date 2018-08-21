@@ -35,6 +35,8 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
         logger.info { "send TX to IROHA" }
 
         // Send transaction to iroha
+        val lst = Endpoint.TxList.newBuilder().addTransactions(protoTx).build()
+        commandStub.listTorii(lst)
         commandStub.torii(protoTx)
     }
 
