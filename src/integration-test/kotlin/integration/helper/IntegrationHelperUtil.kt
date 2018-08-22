@@ -1,5 +1,6 @@
 package integration.helper
 
+import com.github.kittinunf.result.flatMap
 import config.EthereumPasswords
 import config.TestConfig
 import config.loadConfigs
@@ -8,10 +9,7 @@ import contract.Master
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.Queries
 import iroha.protocol.QueryServiceGrpc
-import jp.co.soramitsu.iroha.ModelCrypto
-import jp.co.soramitsu.iroha.ModelProtoQuery
-import jp.co.soramitsu.iroha.ModelQueryBuilder
-import jp.co.soramitsu.iroha.ModelTransactionBuilder
+import jp.co.soramitsu.iroha.*
 import mu.KLogging
 import org.web3j.protocol.core.DefaultBlockParameterName
 import provider.EthFreeRelayProvider
@@ -26,7 +24,6 @@ import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.toByteArray
 import util.getRandomString
-import withdrawalservice.NotaryPeerListProviderImpl
 import java.math.BigInteger
 
 /**
@@ -276,6 +273,37 @@ class IntegrationHelperUtil {
             "eth_whitelist",
             text
         )
+    }
+
+    /**
+     * Transfer asset in iroha with custom creator
+     * @param creator - iroha transaction creator
+     * @param kp - keypair
+     * @param srcAccountId - source account id
+     * @param destAccountId - destination account id
+     * @param assetId - asset id
+     * @param description - transaction description
+     * @param amount - amount
+     * @return hex representation of transaction hash
+     */
+    fun transferAssetIrohaFromClient(
+        creator: String,
+        kp: Keypair,
+        srcAccountId: String,
+        destAccountId: String,
+        assetId: String,
+        description: String,
+        amount: String
+    ): String {
+        val utx = ModelTransactionBuilder()
+            .creatorAccountId(creator)
+            .createdTime(ModelUtil.getCurrentTime())
+            .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
+            .build()
+        val hash = utx.hash()
+        return ModelUtil.prepareTransaction(utx, kp)
+            .flatMap { IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port).sendAndCheck(it, hash) }
+            .get()
     }
 
     /**

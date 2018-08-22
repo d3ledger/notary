@@ -1,14 +1,11 @@
 package integration
 
 import com.github.kittinunf.result.failure
-import com.github.kittinunf.result.flatMap
 import config.EthereumPasswords
 import config.TestConfig
 import config.loadConfigs
 import integration.helper.IntegrationHelperUtil
-import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelCrypto
-import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import kotlinx.coroutines.experimental.async
 import notary.NotaryConfig
 import org.junit.jupiter.api.Assertions
@@ -18,7 +15,6 @@ import org.web3j.protocol.core.DefaultBlockParameterName
 import sidechain.eth.util.DeployHelper
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import java.math.BigInteger
@@ -77,37 +73,6 @@ class WithdrawalIntegrationTest {
     val notaryAccount = testConfig.notaryIrohaAccount
 
     /**
-     * Transfer asset in iroha with custom keypair
-     * @param creator - iroha transaction creator
-     * @param kp - keypair
-     * @param srcAccountId - source account id
-     * @param destAccountId - destination account id
-     * @param assetId - asset id
-     * @param description - transaction description
-     * @param amount - amount
-     * @return hex representation of transaction hash
-     */
-    fun transferAssetIroha(
-        creator: String,
-        kp: Keypair,
-        srcAccountId: String,
-        destAccountId: String,
-        assetId: String,
-        description: String,
-        amount: String
-    ): String {
-        val utx = ModelTransactionBuilder()
-            .creatorAccountId(creator)
-            .createdTime(ModelUtil.getCurrentTime())
-            .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
-            .build()
-        val hash = utx.hash()
-        return ModelUtil.prepareTransaction(utx, kp)
-            .flatMap { IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port).sendAndCheck(it, hash) }
-            .get()
-    }
-
-    /**
      * Full withdrawal pipeline test
      * @given iroha and withdrawal services are running, free relays available, user account has 125 Wei in Iroha
      * @when user transfers 125 Wei to Iroha master account
@@ -153,7 +118,15 @@ class WithdrawalIntegrationTest {
         integrationHelper.addIrohaAssetTo(clientId, assetId, amount)
 
         // transfer assets from user to notary master account
-        transferAssetIroha(clientId, keypair, clientId, notaryAccount, assetId, toAddress, amount)
+        integrationHelper.transferAssetIrohaFromClient(
+            clientId,
+            keypair,
+            clientId,
+            notaryAccount,
+            assetId,
+            toAddress,
+            amount
+        )
         println("transfer asset to $notaryAccount")
         Thread.sleep(15_000)
 
@@ -214,7 +187,15 @@ class WithdrawalIntegrationTest {
         integrationHelper.addIrohaAssetTo(fullName, assetId, amount)
 
         // transfer assets from user to notary master account
-        transferAssetIroha(fullName, keypair, fullName, notaryAccount, assetId, toAddress, amount)
+        integrationHelper.transferAssetIrohaFromClient(
+            fullName,
+            keypair,
+            fullName,
+            notaryAccount,
+            assetId,
+            toAddress,
+            amount
+        )
         Thread.sleep(15_000)
 
         Assertions.assertEquals(initialBalance + BigInteger.valueOf(amount.toLong()), token.balanceOf(toAddress).send())
@@ -241,7 +222,15 @@ class WithdrawalIntegrationTest {
         integrationHelper.addIrohaAssetTo(clientId, assetId, amount)
 
         // make transfer to notaryAccount to initiate withdrawal
-        val hash = transferAssetIroha(clientId, clientKeypair, clientId, notaryAccount, assetId, toAddress, amount)
+        val hash = integrationHelper.transferAssetIrohaFromClient(
+            clientId,
+            clientKeypair,
+            clientId,
+            notaryAccount,
+            assetId,
+            toAddress,
+            amount
+        )
 
         // try get proof from peer
         val res = khttp.get("$refundAddress/eth/$hash")
@@ -270,7 +259,15 @@ class WithdrawalIntegrationTest {
         integrationHelper.addIrohaAssetTo(clientId, assetId, amount)
 
         // make transfer trx
-        val hash = transferAssetIroha(clientId, clientKeypair, clientId, notaryAccount, assetId, fakeEthAddress, amount)
+        val hash = integrationHelper.transferAssetIrohaFromClient(
+            clientId,
+            clientKeypair,
+            clientId,
+            notaryAccount,
+            assetId,
+            fakeEthAddress,
+            amount
+        )
 
         val res = khttp.get("$refundAddress/eth/$hash")
 
