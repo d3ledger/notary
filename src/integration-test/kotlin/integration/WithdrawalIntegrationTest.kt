@@ -14,8 +14,6 @@ import org.junit.jupiter.api.TestInstance
 import org.web3j.protocol.core.DefaultBlockParameterName
 import sidechain.eth.util.DeployHelper
 import sidechain.iroha.IrohaInitialization
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import java.math.BigInteger
 import kotlin.test.assertEquals
@@ -50,12 +48,6 @@ class WithdrawalIntegrationTest {
 
     /** Refund endpoint address */
     val refundAddress = "http://localhost:${notaryConfig.refund.port}"
-
-    /** Iroha transaction creator */
-    val creator = testConfig.iroha.creator
-
-    /** Iroha network layer */
-    val irohaConsumer = IrohaConsumerImpl(testConfig.iroha)
 
     /** Ethereum utils */
     private val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
@@ -160,8 +152,6 @@ class WithdrawalIntegrationTest {
         val amount = "125"
         val domain = "ethereum"
         val assetId = "$assetName#$domain"
-
-        ModelUtil.createAsset(irohaConsumer, creator, assetName, domain, 0)
 
         // run services
         async {

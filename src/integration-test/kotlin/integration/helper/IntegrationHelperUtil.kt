@@ -133,6 +133,9 @@ class IntegrationHelperUtil {
         val contract = deployHelper.deployERC20TokenSmartContract()
         val hash = masterContract.addToken(contract.contractAddress).send().transactionHash
         ethTokensProvider.addToken(contract.contractAddress, tokenName)
+
+        ModelUtil.createAsset(irohaConsumer, testConfig.iroha.creator, tokenName, "ethereum", 0)
+
         logger.info { "ERC20 token $tokenName was deployed on ${contract.contractAddress}, tx hash: $hash" }
 
         tokens.put(tokenName, contract)
