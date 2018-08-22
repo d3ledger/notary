@@ -43,6 +43,13 @@ interface DatabaseConfig {
 }
 
 /**
+ * Bitcoin config
+ */
+interface BitcoinConfig {
+    val url: String
+}
+
+/**
  * Load configs from Java properties
  */
 fun <T : Any> loadConfigs(prefix: String, type: Class<T>, filename: String = "/defaults.properties"): T {
