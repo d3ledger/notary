@@ -93,7 +93,6 @@ class NotaryInitialization(
                 // Init Iroha Consumer pipeline
                 notary.irohaOutput()
                     // convert from Notary model to Iroha model
-                    // TODO rework Iroha batch transaction
                     .subscribeOn(Schedulers.io())
                     .subscribe(
                         // send to Iroha network layer
