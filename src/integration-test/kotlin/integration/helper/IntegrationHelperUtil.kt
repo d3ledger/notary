@@ -1,6 +1,6 @@
 package integration.helper
 
-import com.squareup.moshi.Moshi
+import com.github.kittinunf.result.success
 import config.EthereumPasswords
 import config.TestConfig
 import config.loadConfigs
@@ -48,7 +48,7 @@ class IntegrationHelperUtil {
     private val irohaConsumer = IrohaConsumerImpl(testConfig.iroha)
 
     /** New Iroha data setter account*/
-    val dataSetterAccount= testConfig.relayRegistrationIrohaAccount
+    val dataSetterAccount = testConfig.relayRegistrationIrohaAccount
 
     /** New master ETH master contract*/
     val masterEthWallet by lazy {
@@ -97,6 +97,14 @@ class IntegrationHelperUtil {
         return deployHelper.web3.ethGetBalance(address, DefaultBlockParameterName.LATEST).send().balance
     }
 
+    fun deployFewTokens() {
+        for (i in 1..5) {
+            val tokenAddress = deployHelper.deployERC20TokenSmartContract().contractAddress
+            ethTokensProvider.addToken(tokenAddress, "$i")
+                .success { logger.info { "token $tokenAddress was deployed" } }
+        }
+    }
+
     /**
      * Returns master contract ETH balance
      */
@@ -114,6 +122,7 @@ class IntegrationHelperUtil {
                     val master = deployHelper.deployMasterSmartContract()
                     for (token in tokens) {
                         master.addToken(token.key).send()
+                        logger.info { "add token ${token.key} to master" }
                     }
                     return master
                 },

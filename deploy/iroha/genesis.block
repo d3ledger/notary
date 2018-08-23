@@ -242,79 +242,8 @@
                   "accountId": "whitelist_setter@notary",
                   "roleName": "whitelist_setter"
                 }
-              },
-              {
-                "setAccountDetail": {
-                  "accountId": "notary_red@notary",
-                  "key": "0x9d65d6209bcd37f1f546315171b000663117d42f",
-                  "value": "omg"
-                }
-              },
-              {
-                "setAccountDetail": {
-                  "accountId": "notary_red@notary",
-                  "key": "0x92fd99502914010942db94181061cdda1ce3b370",
-                  "value": "bat"
-                }
-              },
-              {
-                "setAccountDetail": {
-                  "accountId": "notary_red@notary",
-                  "key": "0x084f2750c7eb6bb6e40cecfed5f54b198ab1b8c7",
-                  "value": "rep"
-                }
-              },
-              {
-                "setAccountDetail": {
-                  "accountId": "notary_red@notary",
-                  "key": "0xbd10c47bfd673f7c0213c10e245bc7ffd4435c5b",
-                  "value": "btm"
-                }
-              },
-              {
-                "setAccountDetail": {
-                  "accountId": "notary_red@notary",
-                  "key": "0x65327d02cf82f65331323a3cc9e908beca95d029",
-                  "value": "eos"
-                }
-              },
-              {
-                "setAccountDetail": {
-                  "accountId": "notary_red@notary",
-                  "key": "0xba93c2539cea86ef4b59555167ac36debf59da4a",
-                  "value": "gnt"
-                }
-              },
-              {
-                "setAccountDetail": {
-                  "accountId": "notary_red@notary",
-                  "key": "0x8e832894260c768d267fe405324f023b10f6bc3d",
-                  "value": "dgd"
-                }
-              },
-              {
-                "setAccountDetail": {
-                  "accountId": "notary_red@notary",
-                  "key": "0x520924212c5ea068abf845e62bf2d531af8af635",
-                  "value": "mco"
-                }
-              },
-              {
-                "setAccountDetail": {
-                  "accountId": "notary_red@notary",
-                  "key": "0x84d6edf34a7a1fb56520094ee671f39783199e7e",
-                  "value": "salt"
-                }
-              },
-              {
-                "setAccountDetail": {
-                  "accountId": "notary_red@notary",
-                  "key": "0x220f2d5184127b01de2f0d0b1442eae96fff611b",
-                  "value": "icn"
-                }
               }
             ],
-            "creatorAccountId": "token_storage_service@notary",
             "quorum": 1
           }
         }
