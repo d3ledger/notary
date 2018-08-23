@@ -43,4 +43,4 @@ jobs:
       # run tests!
       - run: ./gradlew test --info
 
-      - run: ./gradlew compileIntegrationTestKotlin --info
+      - run: ./gradlew integrationTest --info

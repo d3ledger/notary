@@ -7,6 +7,7 @@ import integration.helper.IntegrationHelperUtil
 import kotlinx.coroutines.experimental.async
 import mu.KLogging
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import sidechain.iroha.IrohaInitialization
 import vacuum.RelayVacuumConfig
@@ -37,6 +38,7 @@ class VacuumIntegrationTest {
      * @when vacuum is invoked
      * @then all ETH assets from deployed relay contracts transferred to master contract
      */
+    @Disabled
     @Test
     fun testVacuum() {
         integrationHelper.deployRelays(2)
