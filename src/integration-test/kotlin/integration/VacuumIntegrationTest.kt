@@ -39,6 +39,7 @@ class VacuumIntegrationTest {
      */
     @Test
     fun testVacuum() {
+        integrationHelper.deployFewTokens()
         integrationHelper.deployRelays(2)
         integrationHelper.registerRandomRelay()
         logger.info("test is ready to proceed")
@@ -49,7 +50,7 @@ class VacuumIntegrationTest {
             integrationHelper.sendEth(amount, ethPublicKey)
         }
         logger.info("done sending")
-        Thread.sleep(120_000)
+        Thread.sleep(20_000)
         wallets.forEach { ethPublicKey ->
             val balance = integrationHelper.getEthBalance(ethPublicKey)
             totalRelayBalance = totalRelayBalance.add(balance)
@@ -60,7 +61,7 @@ class VacuumIntegrationTest {
         async {
             vacuum.executeVacuum(getRelayConfig())
         }
-        Thread.sleep(300_000)
+        Thread.sleep(30_000)
         val newMasterBalance = integrationHelper.getMasterEthBalance()
         Assertions.assertEquals(newMasterBalance, initialMasterBalance.add(totalRelayBalance))
         wallets.forEach { ethPublicKey ->
