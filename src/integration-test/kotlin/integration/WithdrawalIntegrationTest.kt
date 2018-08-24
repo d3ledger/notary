@@ -145,7 +145,7 @@ class WithdrawalIntegrationTest {
 
         // create ERC20 token and transfer to master
         integrationHelper.deployERC20Token()
-        val (assetName, token) = integrationHelper.tokens.entries.first()
+        val (assetName, token) = integrationHelper.tokenContracts.entries.first()
 
         token.transfer(integrationHelper.masterContract.contractAddress, BigInteger.valueOf(125)).send()
 

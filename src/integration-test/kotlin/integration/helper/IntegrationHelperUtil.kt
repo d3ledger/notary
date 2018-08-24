@@ -59,7 +59,7 @@ class IntegrationHelperUtil {
     }
 
     /** List of deployed ERC20 tokens */
-    val tokens = mutableMapOf<String, BasicCoin>()
+    val tokenContracts = mutableMapOf<String, BasicCoin>()
 
     private val ethTokensProvider = EthTokensProviderImpl(
         testConfig.iroha,
@@ -138,7 +138,7 @@ class IntegrationHelperUtil {
 
         logger.info { "ERC20 token $tokenName was deployed on ${contract.contractAddress}, tx hash: $hash" }
 
-        tokens.put(tokenName, contract)
+        tokenContracts.put(tokenName, contract)
     }
 
     /**
