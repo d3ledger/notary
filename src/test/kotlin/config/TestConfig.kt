@@ -10,5 +10,4 @@ interface TestConfig {
     val ethTestAccount: String
     val ethereum: EthereumConfig
     val iroha: IrohaConfig
-    val db: DatabaseConfig
 }
