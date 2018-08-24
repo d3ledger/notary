@@ -39,7 +39,7 @@ class VacuumIntegrationTest {
      */
     @Test
     fun testVacuum() {
-        integrationHelper.deployFewTokens()
+        deployFewTokens()
         integrationHelper.deployRelays(2)
         integrationHelper.registerRandomRelay()
         logger.info("test is ready to proceed")
@@ -69,11 +69,17 @@ class VacuumIntegrationTest {
         }
     }
 
+    private fun deployFewTokens() {
+        for (i in 1..3) {
+            integrationHelper.deployRandomToken()
+        }
+    }
+
     private fun getRelayConfig(): RelayVacuumConfig {
         return object : RelayVacuumConfig {
-            override val registrationServiceIrohaAccount = integrationHelper.dataSetterAccount
+            override val registrationServiceIrohaAccount = integrationHelper.registrationAccount
 
-            override val tokenStorageAccount = testConfig.tokenStorageAccount
+            override val tokenStorageAccount = integrationHelper.tokenStorageAccount
 
             /** Notary Iroha account that stores relay register */
             override val notaryIrohaAccount = testConfig.notaryIrohaAccount

@@ -1,17 +1,16 @@
 package integration
 
 import com.github.kittinunf.result.failure
-import com.github.kittinunf.result.success
-import config.EthereumPasswords
-import config.TestConfig
-import config.loadConfigs
+import config.*
+import integration.helper.IntegrationHelperUtil
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.QueryServiceGrpc
 import jp.co.soramitsu.iroha.ModelQueryBuilder
 import kotlinx.coroutines.experimental.async
-import notary.main
+import notary.NotaryConfig
+import notary.RefundConfig
+import notary.executeNotary
 import org.junit.jupiter.api.*
-import provider.EthTokensProviderImpl
 import sidechain.eth.util.DeployHelper
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
@@ -30,16 +29,22 @@ class DepositIntegrationTest {
                 println(it)
                 System.exit(1)
             }
-
-        // run notary
-        async {
-            main(arrayOf())
-        }
-        Thread.sleep(3_000)
     }
+
+    private val integrationHelper = IntegrationHelperUtil()
 
     /** Configurations for tests */
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
+
+    private val notaryConfig = loadConfigs("notary", NotaryConfig::class.java, "/notary.properties")
+
+    init {
+        // run notary
+        async {
+            executeNotary(createConfig())
+        }
+        Thread.sleep(3_000)
+    }
 
     /** Ethereum password configs */
     private val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/ethereum_password.properties")
@@ -56,14 +61,8 @@ class DepositIntegrationTest {
     /** Ethereum address to transfer to */
     private val relayWallet = testConfig.ethTestAccount
 
-    /** Ethereum utils */
-    private val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
-
     /** Iroha network layer */
     private val irohaConsumer = IrohaConsumerImpl(testConfig.iroha)
-
-    private val ethTokensProvider =
-        EthTokensProviderImpl(testConfig.iroha, keypair, testConfig.notaryIrohaAccount, testConfig.tokenStorageAccount)
 
     /**
      * Insert token into database
@@ -71,8 +70,7 @@ class DepositIntegrationTest {
      * @param token - token name
      */
     fun insertToken(wallet: String, token: String) {
-        ethTokensProvider.addToken(wallet, token)
-            .success { println("token was inserted. ${ethTokensProvider.getTokens()}") }
+        integrationHelper.addToken(wallet, token)
     }
 
     /**
@@ -158,8 +156,8 @@ class DepositIntegrationTest {
         val amount = BigInteger.valueOf(1_234_000_000_000)
 
         // send ETH
-        deployHelper.sendEthereum(amount, relayWallet)
-        Thread.sleep(120_000)
+        integrationHelper.sendEth(amount, relayWallet)
+        Thread.sleep(20_000)
 
         Assertions.assertEquals(initialAmount + amount, getAccountBalance(clientIrohaAccount, assetId))
     }
@@ -181,14 +179,14 @@ class DepositIntegrationTest {
         val amount = BigInteger.valueOf(1_234_000_000_000)
 
         // send 0 ETH
-        deployHelper.sendEthereum(zeroAmount, relayWallet)
-        Thread.sleep(120_000)
+        integrationHelper.sendEth(zeroAmount, relayWallet)
+        Thread.sleep(20_000)
 
         Assertions.assertEquals(initialAmount, getAccountBalance(clientIrohaAccount, assetId))
 
         // Send again 1234000000000 Ethereum network
-        deployHelper.sendEthereum(amount, relayWallet)
-        Thread.sleep(120_000)
+        integrationHelper.sendEth(amount, relayWallet)
+        Thread.sleep(20_000)
 
         Assertions.assertEquals(initialAmount + amount, getAccountBalance(clientIrohaAccount, assetId))
     }
@@ -201,6 +199,7 @@ class DepositIntegrationTest {
      * @when "fromAddress" transfers 51 coin to "relayWallet"
      * @then Associated Iroha account balance is increased on 51 coin
      */
+    @Disabled
     @Test
     fun depositOfERC20() {
         val asset = "coin"
@@ -215,7 +214,7 @@ class DepositIntegrationTest {
 
         // send ETH
         contract.transfer(relayWallet, amount).send()
-        Thread.sleep(120_000)
+        Thread.sleep(20_000)
         Assertions.assertEquals(initialAmount + amount, getAccountBalance(clientIrohaAccount, assetId))
     }
 
@@ -227,6 +226,7 @@ class DepositIntegrationTest {
      * @when "fromAddress" transfers 0 tokens to "relayWallet" and then "fromAddress" transfers 51 coin to "relayWallet"
      * @then Associated Iroha account balance is increased on 51 coin
      */
+    @Disabled
     @Test
     fun depositZeroOfERC20() {
         val asset = "coin"
@@ -242,14 +242,33 @@ class DepositIntegrationTest {
 
         // send 0 ERC20
         contract.transfer(relayWallet, zeroAmount).send()
-        Thread.sleep(120_000)
+        Thread.sleep(20_000)
 
         Assertions.assertEquals(initialAmount, getAccountBalance(clientIrohaAccount, assetId))
 
         // Send again
         contract.transfer(relayWallet, amount).send()
-        Thread.sleep(120_000)
+        Thread.sleep(20_000)
         Assertions.assertEquals(initialAmount + amount, getAccountBalance(clientIrohaAccount, assetId))
+    }
+
+    private fun createConfig(): NotaryConfig {
+        return object : NotaryConfig {
+            override val registrationServiceIrohaAccount: String
+                get() = integrationHelper.registrationAccount
+            override val tokenStorageAccount: String
+                get() = integrationHelper.tokenStorageAccount
+            override val whitelistSetter: String
+                get() = notaryConfig.whitelistSetter
+            override val refund: RefundConfig
+                get() = notaryConfig.refund
+            override val iroha: IrohaConfig
+                get() = notaryConfig.iroha
+            override val ethereum: EthereumConfig
+                get() = notaryConfig.ethereum
+            override val bitcoin: BitcoinConfig
+                get() = notaryConfig.bitcoin
+        }
     }
 
 }

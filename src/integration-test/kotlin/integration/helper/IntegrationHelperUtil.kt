@@ -22,7 +22,6 @@ import registration.relay.RelayRegistration
 import registration.relay.RelayRegistrationConfig
 import sidechain.eth.util.DeployHelper
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.toByteArray
 import util.getRandomString
@@ -37,7 +36,7 @@ class IntegrationHelperUtil {
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
     /** Ethereum password configs */
-    private val passwordConfig = loadConfigs("ganache", EthereumPasswords::class.java, "/ethereum_password.properties")
+    private val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/ethereum_password.properties")
 
     /** Ethereum utils */
     private val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
@@ -47,8 +46,9 @@ class IntegrationHelperUtil {
 
     private val irohaConsumer = IrohaConsumerImpl(testConfig.iroha)
 
-    /** New Iroha data setter account*/
-    val dataSetterAccount = testConfig.relayRegistrationIrohaAccount
+    val registrationAccount = createRegistrationAccount()
+
+    val tokenStorageAccount = createRegistrationAccount()
 
     /** New master ETH master contract*/
     val masterEthWallet by lazy {
@@ -61,7 +61,7 @@ class IntegrationHelperUtil {
         testConfig.iroha,
         irohaKeyPair,
         testConfig.notaryIrohaAccount,
-        testConfig.tokenStorageAccount
+        tokenStorageAccount
     )
 
     private val relayRegistrationConfig =
@@ -71,21 +71,19 @@ class IntegrationHelperUtil {
         testConfig.iroha,
         irohaKeyPair,
         testConfig.notaryIrohaAccount,
-        dataSetterAccount
+        registrationAccount
     )
-    /** Iroha network */
-    private val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
 
-    /** Provider of ETH wallets created by dataSetterAccount*/
+    /** Provider of ETH wallets created by registrationAccount*/
     private val ethRelayProvider = EthRelayProviderIrohaImpl(
-        testConfig.iroha, irohaKeyPair, testConfig.notaryIrohaAccount, dataSetterAccount
+        testConfig.iroha, irohaKeyPair, testConfig.notaryIrohaAccount, registrationAccount
     )
     private val registrationStrategy =
         RegistrationStrategyImpl(
             ethFreeRelayProvider,
             irohaConsumer,
             testConfig.notaryIrohaAccount,
-            dataSetterAccount
+            registrationAccount
         )
 
     private val relayRegistration = RelayRegistration(relayRegistrationConfig, passwordConfig)
@@ -97,12 +95,18 @@ class IntegrationHelperUtil {
         return deployHelper.web3.ethGetBalance(address, DefaultBlockParameterName.LATEST).send().balance
     }
 
-    fun deployFewTokens() {
-        for (i in 1..5) {
-            val tokenAddress = deployHelper.deployERC20TokenSmartContract().contractAddress
-            ethTokensProvider.addToken(tokenAddress, "$i")
-                .success { logger.info { "token $tokenAddress was deployed" } }
-        }
+    fun deployRandomToken() {
+        deployToken(String.getRandomString(5))
+    }
+
+    fun deployToken(tokenName: String) {
+        val tokenAddress = deployHelper.deployERC20TokenSmartContract().contractAddress
+        addToken(tokenName, tokenAddress)
+    }
+
+    fun addToken(tokenName: String, tokenAddress: String) {
+        ethTokensProvider.addToken(tokenAddress, tokenName)
+            .success { logger.info { "token $tokenAddress was deployed" } }
     }
 
     /**
@@ -133,7 +137,7 @@ class IntegrationHelperUtil {
      * Deploys relay contracts in Ethereum network
      */
     fun deployRelays(relaysToDeploy: Int) {
-        relayRegistration.deploy(relaysToDeploy, masterEthWallet, dataSetterAccount)
+        relayRegistration.deploy(relaysToDeploy, masterEthWallet, registrationAccount)
         logger.info("relays were deployed")
         Thread.sleep(30_000)
     }
@@ -213,7 +217,7 @@ class IntegrationHelperUtil {
                 .appendRole("$name@$domain", "registration_service")
                 .build()
         )
-        logger.info("registration_service account $name@notary was created")
+        logger.info("account $name@notary was created")
         return "$name@notary"
     }
 

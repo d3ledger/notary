@@ -22,6 +22,5 @@ interface NotaryConfig {
     val refund: RefundConfig
     val iroha: IrohaConfig
     val ethereum: EthereumConfig
-    val db: DatabaseConfig
     val bitcoin: BitcoinConfig
 }
