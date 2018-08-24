@@ -312,8 +312,8 @@ processResources {
     def profile = (project.hasProperty('profile') ? project.profile : 'develop').toLowerCase()
 
     from('src/main/resources') {
-        include "**/(.*)_${profile}.properties"
-        rename "(.*)_${profile}.properties", '\$1.properties'
+        include "**/**_${profile}.properties"
+        rename "(.*)_${profile}.properties", '$1.properties'
     }
 
 }
