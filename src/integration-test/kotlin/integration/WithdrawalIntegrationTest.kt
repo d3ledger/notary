@@ -5,13 +5,13 @@ import com.squareup.moshi.Moshi
 import config.EthereumPasswords
 import config.TestConfig
 import config.loadConfigs
+import integration.helper.IntegrationHelperUtil
 import kotlinx.coroutines.experimental.async
 import notary.endpoint.eth.BigIntegerMoshiAdapter
 import notary.endpoint.eth.EthNotaryResponse
 import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
 import notary.main
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
@@ -45,6 +45,9 @@ class WithdrawalIntegrationTest {
     /** Iroha transaction creator */
     val creator = testConfig.iroha.creator
 
+    /** Integration tests util */
+    private val integrationHelper = IntegrationHelperUtil()
+
     /**
      * Test US-003 Withdrawal of ETH token
      * Note: Iroha must be deployed to pass the test.
@@ -52,7 +55,6 @@ class WithdrawalIntegrationTest {
      * @when withdrawal service queries notary
      * @then notary replies with refund information and signature
      */
-    @Disabled
     @Test
     fun testRefund() {
         async {
@@ -67,9 +69,11 @@ class WithdrawalIntegrationTest {
         // add assets to user
         ModelUtil.addAssetIroha(irohaConsumer, creator, assetId, amount)
 
+        integrationHelper.setWhitelist(creator, listOf("0x123", ethWallet))
+
         // transfer assets from user to notary master account
         val hash =
-            ModelUtil.transferAssetIroha(irohaConsumer, creator, creator, masterAccount, assetId, amount, ethWallet)
+            ModelUtil.transferAssetIroha(irohaConsumer, creator, creator, masterAccount, assetId, ethWallet, amount)
                 .get()
 
         // query
