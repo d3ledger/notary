@@ -1,17 +1,15 @@
 package integration.helper
 
-import com.squareup.moshi.Moshi
+import com.github.kittinunf.result.flatMap
 import config.EthereumPasswords
 import config.TestConfig
 import config.loadConfigs
+import contract.BasicCoin
 import contract.Master
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.Queries
 import iroha.protocol.QueryServiceGrpc
-import jp.co.soramitsu.iroha.ModelCrypto
-import jp.co.soramitsu.iroha.ModelProtoQuery
-import jp.co.soramitsu.iroha.ModelQueryBuilder
-import jp.co.soramitsu.iroha.ModelTransactionBuilder
+import jp.co.soramitsu.iroha.*
 import mu.KLogging
 import org.web3j.protocol.core.DefaultBlockParameterName
 import provider.EthFreeRelayProvider
@@ -37,7 +35,7 @@ class IntegrationHelperUtil {
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
     /** Ethereum password configs */
-    private val passwordConfig = loadConfigs("ganache", EthereumPasswords::class.java, "/ethereum_password.properties")
+    private val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/ethereum_password.properties")
 
     /** Ethereum utils */
     private val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
@@ -48,14 +46,20 @@ class IntegrationHelperUtil {
     private val irohaConsumer = IrohaConsumerImpl(testConfig.iroha)
 
     /** New Iroha data setter account*/
-    val dataSetterAccount= testConfig.relayRegistrationIrohaAccount
+    val dataSetterAccount = testConfig.relayRegistrationIrohaAccount
+
+    /** Notary ethereum address that is used in master smart contract to verify proof provided by notary */
+    val notaryEthAddress = "0x6826d84158e516f631bbf14586a9be7e255b2d23"
 
     /** New master ETH master contract*/
-    val masterEthWallet by lazy {
-        val wallet = deployMasterEth().contractAddress
+    val masterContract by lazy {
+        val wallet = deployMasterEth()
         logger.info("master eth wallet $wallet was deployed ")
         wallet
     }
+
+    /** List of deployed ERC20 tokens */
+    val tokenContracts = mutableMapOf<String, BasicCoin>()
 
     private val ethTokensProvider = EthTokensProviderImpl(
         testConfig.iroha,
@@ -101,7 +105,7 @@ class IntegrationHelperUtil {
      * Returns master contract ETH balance
      */
     fun getMasterEthBalance(): BigInteger {
-        return getEthBalance(masterEthWallet)
+        return getEthBalance(masterContract.contractAddress)
     }
 
     /**
@@ -115,16 +119,33 @@ class IntegrationHelperUtil {
                     for (token in tokens) {
                         master.addToken(token.key).send()
                     }
+                    master.addPeer(notaryEthAddress).send()
                     return master
                 },
                 { ex -> throw ex })
     }
 
     /**
+     * Deploy ERC20 token and register it to the notary system
+     */
+    fun deployERC20Token() {
+        val tokenName = String.getRandomString(5).toLowerCase()
+        val contract = deployHelper.deployERC20TokenSmartContract()
+        val hash = masterContract.addToken(contract.contractAddress).send().transactionHash
+        ethTokensProvider.addToken(contract.contractAddress, tokenName)
+
+        ModelUtil.createAsset(irohaConsumer, testConfig.iroha.creator, tokenName, "ethereum", 0)
+
+        logger.info { "ERC20 token $tokenName was deployed on ${contract.contractAddress}, tx hash: $hash" }
+
+        tokenContracts.put(tokenName, contract)
+    }
+
+    /**
      * Deploys relay contracts in Ethereum network
      */
     fun deployRelays(relaysToDeploy: Int) {
-        relayRegistration.deploy(relaysToDeploy, masterEthWallet, dataSetterAccount)
+        relayRegistration.deploy(relaysToDeploy, masterContract.contractAddress, dataSetterAccount)
         logger.info("relays were deployed")
         Thread.sleep(30_000)
     }
@@ -156,6 +177,20 @@ class IntegrationHelperUtil {
      * Returns wallets registered by master account in Iroha
      */
     fun getRegisteredEthWallets(): Set<String> = ethRelayProvider.getRelays().get().keys
+
+    /**
+     * Add asset to Iroha account
+     * Add asset to creator and then transfer to destination account.
+     * @param accountId - destination account
+     * @param assetId - asset to add
+     * @param amount - amount to add
+     */
+    fun addIrohaAssetTo(accountId: String, assetId: String, amount: String) {
+        val creator = testConfig.iroha.creator
+
+        ModelUtil.addAssetIroha(irohaConsumer, creator, assetId, amount)
+        ModelUtil.transferAssetIroha(irohaConsumer, creator, creator, accountId, assetId, "", amount)
+    }
 
     /**
      * Returns balance in Iroha
@@ -241,6 +276,37 @@ class IntegrationHelperUtil {
             "eth_whitelist",
             text
         )
+    }
+
+    /**
+     * Transfer asset in iroha with custom creator
+     * @param creator - iroha transaction creator
+     * @param kp - keypair
+     * @param srcAccountId - source account id
+     * @param destAccountId - destination account id
+     * @param assetId - asset id
+     * @param description - transaction description
+     * @param amount - amount
+     * @return hex representation of transaction hash
+     */
+    fun transferAssetIrohaFromClient(
+        creator: String,
+        kp: Keypair,
+        srcAccountId: String,
+        destAccountId: String,
+        assetId: String,
+        description: String,
+        amount: String
+    ): String {
+        val utx = ModelTransactionBuilder()
+            .creatorAccountId(creator)
+            .createdTime(ModelUtil.getCurrentTime())
+            .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
+            .build()
+        val hash = utx.hash()
+        return ModelUtil.prepareTransaction(utx, kp)
+            .flatMap { IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port).sendAndCheck(it, hash) }
+            .get()
     }
 
     /**
