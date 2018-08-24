@@ -5,9 +5,11 @@
 version: 2
 jobs:
   build:
-    docker:
+    machine:
+      enabled: true
+
       # specify the version you desire here
-      - image: circleci/openjdk:8-jdk
+      image: circleci/classic:edge
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
@@ -31,7 +33,7 @@ jobs:
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
 
-      - run: gradle dependencies
+      - run: ./gradlew dependencies
 
       - save_cache:
           paths:
@@ -39,8 +41,6 @@ jobs:
           key: v1-dependencies-{{ checksum "build.gradle" }}
 
       - run: sh .circleci/copy_bindings.sh
-
-      - setup_remote_docker
 
       - run:
           name: Start docker-compose
