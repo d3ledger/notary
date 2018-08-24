@@ -1,6 +1,6 @@
 package notary
 
-import config.DatabaseConfig
+import config.BitcoinConfig
 import config.EthereumConfig
 import config.IrohaConfig
 
@@ -16,8 +16,10 @@ interface NotaryConfig {
     val registrationServiceIrohaAccount: String
     /** Iroha account that stores tokens */
     val tokenStorageAccount: String
+    /** Iroha account that set whitelist for client */
+    val whitelistSetter: String
     val refund: RefundConfig
     val iroha: IrohaConfig
     val ethereum: EthereumConfig
-    val db: DatabaseConfig
+    val bitcoin: BitcoinConfig
 }

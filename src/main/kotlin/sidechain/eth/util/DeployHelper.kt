@@ -85,16 +85,14 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
 
     /**
      * Deploy master smart contract
-     * @param tokens list of supported tokens
      * @return master smart contract object
      */
-    fun deployMasterSmartContract(tokens: List<String>): Master {
+    fun deployMasterSmartContract(): Master {
         return contract.Master.deploy(
             web3,
             credentials,
             gasPrice,
-            gasLimit,
-            tokens
+            gasLimit
         ).send()
     }
 
@@ -121,7 +119,7 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      */
     fun deployAll() {
         val token = deployERC20TokenSmartContract()
-        val master = deployMasterSmartContract(listOf(token.contractAddress))
+        val master = deployMasterSmartContract()
         val relay = deployRelaySmartContract(master.contractAddress)
 
         println("Token contract address: $token")
