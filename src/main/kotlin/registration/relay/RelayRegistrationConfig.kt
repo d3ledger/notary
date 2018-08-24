@@ -1,6 +1,5 @@
 package registration.relay
 
-import config.DatabaseConfig
 import config.EthereumConfig
 import config.IrohaConfig
 
@@ -23,7 +22,4 @@ interface RelayRegistrationConfig {
 
     /** Ethereum configurations */
     val ethereum: EthereumConfig
-
-    /** Db configurations */
-    val db: DatabaseConfig
 }
