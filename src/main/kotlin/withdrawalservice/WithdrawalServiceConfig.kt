@@ -1,6 +1,5 @@
 package withdrawalservice
 
-import config.DatabaseConfig
 import config.EthereumConfig
 import config.IrohaConfig
 
@@ -21,7 +20,4 @@ interface WithdrawalServiceConfig {
 
     /** Ethereum config */
     val ethereum: EthereumConfig
-
-    /** Database configuration */
-    val db: DatabaseConfig
 }

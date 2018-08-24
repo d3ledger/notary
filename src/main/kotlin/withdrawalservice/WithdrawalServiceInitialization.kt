@@ -22,6 +22,14 @@ class WithdrawalServiceInitialization(
     private val withdrawalConfig: WithdrawalServiceConfig,
     private val withdrawalEthereumPasswords: EthereumPasswords
 ) {
+
+    init {
+        logger.info {
+            """Start withdrawal service initialization with configs:
+iroha: ${withdrawalConfig.iroha.hostname}:${withdrawalConfig.iroha.port}"""
+        }
+    }
+
     private val irohaCreator = withdrawalConfig.iroha.creator
     private val irohaKeypair =
         ModelUtil.loadKeypair(

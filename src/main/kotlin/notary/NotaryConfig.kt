@@ -1,7 +1,6 @@
 package notary
 
 import config.BitcoinConfig
-import config.DatabaseConfig
 import config.EthereumConfig
 import config.IrohaConfig
 
@@ -22,6 +21,5 @@ interface NotaryConfig {
     val refund: RefundConfig
     val iroha: IrohaConfig
     val ethereum: EthereumConfig
-    val db: DatabaseConfig
     val bitcoin: BitcoinConfig
 }

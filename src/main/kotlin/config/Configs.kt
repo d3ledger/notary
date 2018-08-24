@@ -34,15 +34,6 @@ interface EthereumPasswords {
 }
 
 /**
- * Database configurations
- */
-interface DatabaseConfig {
-    val url: String
-    val username: String
-    val password: String
-}
-
-/**
  * Bitcoin config
  */
 interface BitcoinConfig {
