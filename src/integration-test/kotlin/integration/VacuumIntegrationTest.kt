@@ -19,8 +19,8 @@ class VacuumIntegrationTest {
 
     init {
         IrohaInitialization.loadIrohaLibrary()
-            .failure {
-                println(it)
+            .failure { ex ->
+                println(ex)
                 System.exit(1)
             }
     }
