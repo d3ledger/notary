@@ -474,4 +474,62 @@ class ContractsTest {
         master.addToken(token.contractAddress).send()
         Assertions.assertThrows(TransactionException::class.java) { master.addToken(token.contractAddress).send() }
     }
+
+    /**
+     * @given deployed master and relay contracts, 100000 Wei is sent to relay
+     * @when sendToMaster of relay contract for Ether is called
+     * @then relay contract has 0 Ether, master contract has 100000 Wei
+     */
+    @Test
+    fun vacuumEtherTest() {
+        deployHelper.sendEthereum(BigInteger.valueOf(100_000), relay.contractAddress)
+        assertEquals(
+            BigInteger.valueOf(0),
+            deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+        )
+        assertEquals(
+            BigInteger.valueOf(100_000),
+            deployHelper.web3.ethGetBalance(relay.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+        )
+        relay.sendToMaster("0x0000000000000000000000000000000000000000").send()
+        assertEquals(
+            BigInteger.valueOf(100_000),
+            deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+        )
+        assertEquals(
+            BigInteger.valueOf(0),
+            deployHelper.web3.ethGetBalance(relay.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+        )
+    }
+
+    /**
+     * @given deployed master, relay and token contracts, addToken with token contract address is called,
+     * 987654 tokens is sent to relay
+     * @when sendToMaster of relay contract for token address is called
+     * @then relay contract has 0 tokens, master contract has 987654 tokens
+     */
+    @Test
+    fun vacuumTokenTest() {
+        master.addToken(token.contractAddress).send()
+        token.transfer(relay.contractAddress, BigInteger.valueOf(987_654)).send()
+        assertEquals(BigInteger.valueOf(0), token.balanceOf(master.contractAddress).send())
+        assertEquals(BigInteger.valueOf(987_654), token.balanceOf(relay.contractAddress).send())
+        relay.sendToMaster(token.contractAddress).send()
+        assertEquals(BigInteger.valueOf(987_654), token.balanceOf(master.contractAddress).send())
+        assertEquals(BigInteger.valueOf(0), token.balanceOf(relay.contractAddress).send())
+    }
+
+    /**
+     * @given deployed master, relay and token contracts, addToken never called,
+     * 987654 tokens is sent to relay
+     * @when sendToMaster of relay contract for token address is called
+     * @then sendToMaster call fails
+     */
+    @Test
+    fun vacuumInvalidTokenTest() {
+        token.transfer(relay.contractAddress, BigInteger.valueOf(987_654)).send()
+        assertEquals(BigInteger.valueOf(0), token.balanceOf(master.contractAddress).send())
+        assertEquals(BigInteger.valueOf(987_654), token.balanceOf(relay.contractAddress).send())
+        Assertions.assertThrows(TransactionException::class.java) { relay.sendToMaster(token.contractAddress).send() }
+    }
 }
