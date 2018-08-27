@@ -58,7 +58,7 @@ class IrohaConverterImpl {
         }
     }
 
-    private fun prepare(transaction: IrohaTransaction): ModelTransactionBuilder {
+    private fun buildModelTransactionBuilder(transaction: IrohaTransaction): ModelTransactionBuilder {
         return ModelTransactionBuilder()
             .creatorAccountId(transaction.creator)
             .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
@@ -79,7 +79,7 @@ class IrohaConverterImpl {
      * Convert Notary intention [notary.IrohaTransaction] to Iroha protobuf [UnsignedTx]
      */
     fun convert(transaction: IrohaTransaction): UnsignedTx {
-        val txBuilder = appendCommands(prepare(transaction), transaction)
+        val txBuilder = appendCommands(buildModelTransactionBuilder(transaction), transaction)
         return txBuilder.build()
     }
 
@@ -97,7 +97,7 @@ class IrohaConverterImpl {
             .forEach { hashes.add(it) }
 
         batch.transactions.forEach { tx ->
-            val txBuilder = appendCommands(prepare(tx), tx)
+            val txBuilder = appendCommands(buildModelTransactionBuilder(tx), tx)
                 .batchMeta(BatchType.ORDERED, hashes)
 
             txs.add(txBuilder.build())

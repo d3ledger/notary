@@ -21,27 +21,29 @@ import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.toByteVector
+import util.getRandomString
 import java.math.BigInteger
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
-
 
 class IrohaBatchTest {
     val testConfig by lazy {
         loadConfigs("test", NotaryConfig::class.java)
     }
 
-    val tester = "test@notary"
-    val keypair by lazy {
+    private val tester = "test@notary"
+
+    private val keypair by lazy {
         ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
     }
 
-    val counter = BigInteger.ONE
+    private val counter = BigInteger.ONE
 
-    val channel by lazy {
+    private val channel by lazy {
         ModelUtil.getChannel(testConfig.iroha.hostname, testConfig.iroha.port)
     }
-    val queryStub by lazy {
+
+    private val queryStub by lazy {
         ModelUtil.getQueryStub(channel)
     }
 
@@ -50,11 +52,7 @@ class IrohaBatchTest {
         System.loadLibrary("irohajava")
     }
 
-    fun randomString() = java.util.UUID
-        .randomUUID()
-        .toString()
-        .replace("-", "")
-        .substring(0, 10)
+    private fun randomString() = String.getRandomString(10)
 
     /**
      * @given A batch
