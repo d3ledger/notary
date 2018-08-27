@@ -13,6 +13,7 @@ import notary.IrohaCommand
 import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
 import notary.NotaryConfig
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import sidechain.iroha.IrohaChainListener
@@ -44,8 +45,27 @@ class IrohaBatchTest {
         ModelUtil.getQueryStub(channel)
     }
 
+    @BeforeEach
+    fun load() {
+        System.loadLibrary("irohajava")
+    }
+
+    fun randomString() = java.util.UUID
+        .randomUUID()
+        .toString()
+        .replace("-", "")
+        .substring(0, 10)
+
+    /**
+     * @given A batch
+     * @when All transactions are valid and sent as a batch
+     * @then They all are accepted and committed in the same block
+     */
     @Test
-    fun batchTest() {
+    fun allValidBatchTest() {
+
+        val user = randomString()
+        val asset_name = randomString()
 
         val irohaConsumer = IrohaConsumerImpl(testConfig.iroha)
 
@@ -55,7 +75,7 @@ class IrohaBatchTest {
                     tester,
                     listOf(
                         IrohaCommand.CommandCreateAccount(
-                            "u1",
+                            user,
                             "notary",
                             ModelCrypto().generateKeypair().publicKey().hex()
                         )
@@ -65,7 +85,7 @@ class IrohaBatchTest {
                     tester,
                     listOf(
                         IrohaCommand.CommandSetAccountDetail(
-                            "u1@notary",
+                            "$user@notary",
                             "key",
                             "value"
                         )
@@ -75,18 +95,18 @@ class IrohaBatchTest {
                     tester,
                     listOf(
                         IrohaCommand.CommandCreateAsset(
-                            "batches",
+                            asset_name,
                             "notary",
                             0
                         ),
                         IrohaCommand.CommandAddAssetQuantity(
-                            "batches#notary",
+                            "$asset_name#notary",
                             "100"
                         ),
                         IrohaCommand.CommandTransferAsset(
                             tester,
-                            "u1@notary",
-                            "batches#notary",
+                            "$user@notary",
+                            "$asset_name#notary",
                             "desc",
                             "27"
                         )
@@ -123,7 +143,7 @@ class IrohaBatchTest {
             .creatorAccountId(tester)
             .queryCounter(counter)
             .createdTime(ModelUtil.getCurrentTime())
-            .getAccount("u1@notary")
+            .getAccount("$user@notary")
             .build()
 
         val account = ModelUtil.prepareQuery(uquery, keypair)
@@ -141,7 +161,7 @@ class IrohaBatchTest {
             .creatorAccountId(tester)
             .queryCounter(counter)
             .createdTime(ModelUtil.getCurrentTime())
-            .getAssetInfo("batches#notary")
+            .getAssetInfo("$asset_name#notary")
             .build()
 
         val asset = ModelUtil.prepareQuery(uquery, keypair)
@@ -178,7 +198,7 @@ class IrohaBatchTest {
             .creatorAccountId(tester)
             .queryCounter(counter)
             .createdTime(ModelUtil.getCurrentTime())
-            .getAccountAssets("u1@notary")
+            .getAccountAssets("$user@notary")
             .build()
 
         val u1_amount = ModelUtil.prepareQuery(uquery, keypair)
@@ -194,15 +214,201 @@ class IrohaBatchTest {
 
 
         assertEquals(hashes, successHash)
-        assertEquals(account.accountId, "u1@notary")
+        assertEquals(account.accountId, "$user@notary")
         assertEquals(account.jsonData, "{\"test@notary\": {\"key\": \"value\"}}")
-        assertEquals(asset.assetId, "batches#notary")
+        assertEquals(asset.assetId, "$asset_name#notary")
         assertEquals(tester_amount.toInt(), 73)
         assertEquals(u1_amount.toInt(), 27)
 
         val scope = async {
             while (blockHashes == null);
-            assertEquals(blockHashes, hashes)
+            assertEquals(hashes, blockHashes)
+
+        }
+        runBlocking {
+            withTimeout(10, TimeUnit.SECONDS) { scope.await() }
+        }
+    }
+
+    /**
+     * @given A batch
+     * @when Not all transactions are valid and sent as a batch
+     * @then Only valid are accepted and committed in the same block
+     */
+    @Test
+    fun notAllValidBatchTest() {
+        val user = randomString()
+        val asset_name = randomString()
+
+        val irohaConsumer = IrohaConsumerImpl(testConfig.iroha)
+
+        val txList =
+            listOf(
+                IrohaTransaction(
+                    tester,
+                    listOf(
+                        IrohaCommand.CommandCreateAccount(
+                            user,
+                            "notary",
+                            ModelCrypto().generateKeypair().publicKey().hex()
+                        )
+                    )
+                ),
+                IrohaTransaction(
+                    tester,
+                    listOf(
+                        IrohaCommand.CommandSetAccountDetail(
+                            "$user@notary",
+                            "key",
+                            "value"
+                        )
+                    )
+                ),
+                IrohaTransaction(
+                    tester,
+                    listOf(
+                        IrohaCommand.CommandCreateAsset(
+                            asset_name,
+                            "notary",
+                            0
+                        ),
+                        IrohaCommand.CommandAddAssetQuantity(
+                            "$asset_name#notary",
+                            "100"
+                        ),
+                        IrohaCommand.CommandTransferAsset(
+                            tester,
+                            "$user@notary",
+                            "$asset_name#notary",
+                            "desc",
+                            "27"
+                        )
+                    )
+                ),
+                IrohaTransaction(
+                    tester,
+                    listOf(
+                        IrohaCommand.CommandTransferAsset(
+                            tester,
+                            "$user@notary",
+                            "$asset_name#notary",
+                            "",
+                            "1234"
+                        )
+                    )
+                )
+
+            )
+
+
+        val batch = IrohaOrderedBatch(
+            txList
+        )
+        val lst = IrohaConverterImpl().convert(batch)
+        val hashes = lst.map { it.hash().hex() }
+        val expectedHashes = hashes.subList(0, hashes.size - 1)
+        var blockHashes: List<String>? = null
+
+        IrohaChainListener(
+            testConfig.iroha.hostname,
+            testConfig.iroha.port,
+            tester, keypair
+        ).getBlockObservable().get().map { block ->
+            val txs = block.payload.transactionsList
+
+            blockHashes = txs.map {
+                Blob(iroha.hashTransaction(it.toByteArray().toByteVector())).hex()
+            }
+        }.subscribeOn(Schedulers.io()).subscribe()
+
+
+        val successHash = irohaConsumer.sendAndCheck(lst).get()
+
+
+        var uquery = ModelQueryBuilder()
+            .creatorAccountId(tester)
+            .queryCounter(counter)
+            .createdTime(ModelUtil.getCurrentTime())
+            .getAccount("$user@notary")
+            .build()
+
+        val account = ModelUtil.prepareQuery(uquery, keypair)
+            .fold(
+                { protoQuery ->
+                    val queryResponse = queryStub.find(protoQuery)
+                    queryResponse.accountResponse.account
+                },
+                {
+                    fail { "Exception while converting byte array to protobuf:" + it.message }
+                }
+            )
+
+        uquery = ModelQueryBuilder()
+            .creatorAccountId(tester)
+            .queryCounter(counter)
+            .createdTime(ModelUtil.getCurrentTime())
+            .getAssetInfo("$asset_name#notary")
+            .build()
+
+        val asset = ModelUtil.prepareQuery(uquery, keypair)
+            .fold(
+                { protoQuery ->
+                    val queryResponse = queryStub.find(protoQuery)
+                    queryResponse.assetResponse.asset
+                },
+                {
+                    fail { "Exception while converting byte array to protobuf:" + it.message }
+                }
+            )
+
+        uquery = ModelQueryBuilder()
+            .creatorAccountId(tester)
+            .queryCounter(counter)
+            .createdTime(ModelUtil.getCurrentTime())
+            .getAccountAssets(tester)
+            .build()
+
+        val tester_amount = ModelUtil.prepareQuery(uquery, keypair)
+            .fold(
+                { protoQuery ->
+                    val queryResponse = queryStub.find(protoQuery)
+                    queryResponse.accountAssetsResponse.accountAssetsList.first().balance
+                },
+                {
+                    fail { "Exception while converting byte array to protobuf:" + it.message }
+                }
+            )
+
+
+        uquery = ModelQueryBuilder()
+            .creatorAccountId(tester)
+            .queryCounter(counter)
+            .createdTime(ModelUtil.getCurrentTime())
+            .getAccountAssets("$user@notary")
+            .build()
+
+        val u1_amount = ModelUtil.prepareQuery(uquery, keypair)
+            .fold(
+                { protoQuery ->
+                    val queryResponse = queryStub.find(protoQuery)
+                    queryResponse.accountAssetsResponse.accountAssetsList.first().balance
+                },
+                {
+                    fail { "Exception while converting byte array to protobuf:" + it.message }
+                }
+            )
+
+
+        assertEquals(expectedHashes, successHash)
+        assertEquals(account.accountId, "$user@notary")
+        assertEquals(account.jsonData, "{\"test@notary\": {\"key\": \"value\"}}")
+        assertEquals(asset.assetId, "$asset_name#notary")
+        assertEquals(tester_amount.toInt(), 73)
+        assertEquals(u1_amount.toInt(), 27)
+
+        val scope = async {
+            while (blockHashes == null);
+            assertEquals(expectedHashes, blockHashes)
 
         }
         runBlocking {
