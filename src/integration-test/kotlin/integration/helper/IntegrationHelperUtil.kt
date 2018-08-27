@@ -66,7 +66,6 @@ class IntegrationHelperUtil {
     /** Notary ethereum address that is used in master smart contract to verify proof provided by notary */
     private val notaryEthAddress = "0x6826d84158e516f631bbf14586a9be7e255b2d23"
 
-
     /** New master ETH master contract*/
     val masterContract by lazy {
         val wallet = deployMasterEth()
@@ -480,6 +479,7 @@ class IntegrationHelperUtil {
     fun sendRegistrationRequest(name: String, pubkey: PublicKey, port: Int): khttp.responses.Response {
         return khttp.post(
             "http://127.0.0.1:${port}/users",
+
             data = mapOf("name" to name, "pubkey" to pubkey.hex())
         )
     }
