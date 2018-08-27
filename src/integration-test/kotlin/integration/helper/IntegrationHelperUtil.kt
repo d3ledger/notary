@@ -56,8 +56,7 @@ class IntegrationHelperUtil {
 
     /** Ethereum utils */
     private val deployHelper by lazy { DeployHelper(configHelper.testConfig.ethereum, configHelper.ethPasswordConfig) }
-
-
+    
     private val irohaNetwork by lazy {
         IrohaNetworkImpl(configHelper.testConfig.iroha.hostname, configHelper.testConfig.iroha.port)
     }
@@ -452,6 +451,7 @@ class IntegrationHelperUtil {
     fun sendRegistrationRequest(name: String, pubkey: PublicKey, port: Int): khttp.responses.Response {
         return khttp.post(
             "http://127.0.0.1:${port}/users",
+
             data = mapOf("name" to name, "pubkey" to pubkey.hex())
         )
     }
