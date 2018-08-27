@@ -45,5 +45,4 @@ class BtcNotaryIntegrationTest {
         return btc * 100_000_000L
     }
 
-
 }

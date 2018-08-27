@@ -52,5 +52,4 @@ class BtcRegistrationIntegrationTest {
         assertNotNull(wallet.issuedReceiveAddresses.find { address -> address.toBase58() == registeredBtcAddress })
     }
 
-
 }

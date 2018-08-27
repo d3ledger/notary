@@ -7,6 +7,7 @@ import config.EthereumPasswords
 import io.reactivex.Observable
 import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
+
 import notary.endpoint.eth.AmountType
 import notary.endpoint.eth.BigIntegerMoshiAdapter
 import notary.endpoint.eth.EthNotaryResponse

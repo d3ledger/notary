@@ -20,6 +20,7 @@ import provider.eth.EthTokensProviderImpl
 import registration.btc.BtcRegistrationConfig
 import registration.btc.BtcRegistrationStrategyImpl
 import registration.eth.EthRegistrationConfig
+
 import registration.eth.EthRegistrationStrategyImpl
 import registration.eth.relay.RelayRegistration
 import sidechain.eth.util.DeployHelper
@@ -63,6 +64,7 @@ class IntegrationHelperUtil {
     private val notaryEthAddress = "0x6826d84158e516f631bbf14586a9be7e255b2d23"
 
     /** Account that used to store registered clients.*/
+
     val registrationAccount by lazy {
         createTesterAccount()
     }
@@ -118,6 +120,7 @@ class IntegrationHelperUtil {
             registrationAccount
         )
     }
+
     private val btcRegistrationStrategy by lazy {
         BtcRegistrationStrategyImpl(
             irohaConsumer,
@@ -498,6 +501,7 @@ class IntegrationHelperUtil {
     fun sendRegistrationRequest(name: String, pubkey: PublicKey, port: Int): khttp.responses.Response {
         return khttp.post(
             "http://127.0.0.1:${port}/users",
+
             data = mapOf("name" to name, "pubkey" to pubkey.hex())
         )
 
@@ -518,4 +522,5 @@ class IntegrationHelperUtil {
      * Logger
      */
     companion object : KLogging()
+
 }

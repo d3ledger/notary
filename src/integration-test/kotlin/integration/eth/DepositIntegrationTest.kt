@@ -1,6 +1,5 @@
 package integration.eth
 
-
 import integration.helper.IntegrationHelperUtil
 import kotlinx.coroutines.experimental.async
 import org.junit.jupiter.api.Assertions
@@ -16,7 +15,6 @@ const val WAIT_IROHA_MILLIS = 30_000L
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DepositIntegrationTest {
-
     /** Utility functions for integration tests */
     private val integrationHelper = IntegrationHelperUtil()
 

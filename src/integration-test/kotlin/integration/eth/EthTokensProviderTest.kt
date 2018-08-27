@@ -14,7 +14,6 @@ import util.getRandomString
  * Test Iroha Ethereum ERC20 tokens provider
  */
 class EthTokensProviderTest {
-
     private val integrationHelper = IntegrationHelperUtil()
 
     private val testConfig = integrationHelper.configHelper.testConfig

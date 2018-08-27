@@ -64,6 +64,7 @@ class ConfigHelper {
         }
     }
 
+
     fun createBtcNotaryConfig(registrationAccount: String): BtcNotaryConfig {
         return object : BtcNotaryConfig {
             override val notaryIrohaAccount: String

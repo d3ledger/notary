@@ -20,7 +20,6 @@ import sidechain.iroha.util.ModelUtil
 class EthRelayProviderIrohaTest {
 
     val integrationHelper = IntegrationHelperUtil()
-
     val testConfig = integrationHelper.configHelper.testConfig
 
     /** Creator of txs in Iroha */
