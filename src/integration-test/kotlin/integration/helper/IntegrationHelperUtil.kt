@@ -4,7 +4,6 @@ import com.github.kittinunf.result.flatMap
 import config.EthereumPasswords
 import config.TestConfig
 import config.loadConfigs
-import contract.BasicCoin
 import contract.Master
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.Queries
@@ -57,9 +56,6 @@ class IntegrationHelperUtil {
         logger.info("master eth wallet $wallet was deployed ")
         wallet
     }
-
-    /** List of deployed ERC20 tokens */
-    val tokenContracts = mutableMapOf<String, BasicCoin>()
 
     private val ethTokensProvider = EthTokensProviderImpl(
         testConfig.iroha,
@@ -127,8 +123,9 @@ class IntegrationHelperUtil {
 
     /**
      * Deploy ERC20 token and register it to the notary system
+     * @return token name in iroha and address of ERC20 smart contract
      */
-    fun deployERC20Token() {
+    fun deployERC20Token(): Pair<String, String> {
         val tokenName = String.getRandomString(5).toLowerCase()
         val contract = deployHelper.deployERC20TokenSmartContract()
         val hash = masterContract.addToken(contract.contractAddress).send().transactionHash
@@ -138,8 +135,25 @@ class IntegrationHelperUtil {
 
         logger.info { "ERC20 token $tokenName was deployed on ${contract.contractAddress}, tx hash: $hash" }
 
-        tokenContracts.put(tokenName, contract)
+        return Pair(tokenName, contract.contractAddress)
     }
+
+    /**
+     * Transfer [amount] ERC20 deployed at [contractAddress] tokens to [toAddress]
+     * @param contractAddress - address of ERC20 contract
+     * @param amount - amount to transfer
+     * @param toAddress - destination address
+     */
+    fun sendERC20Token(contractAddress: String, amount: BigInteger, toAddress: String) =
+        deployHelper.sendERC20(contractAddress, toAddress, amount)
+
+    /**
+     * Get [whoAddress] balance of ERC20 tokens with [contractAddress]
+     * @param contractAddress - address of ERC20 smart contract
+     * @param whoAddress - address of client
+     */
+    fun getERC20TokenBalance(contractAddress: String, whoAddress: String): BigInteger =
+        deployHelper.getERC20Balance(contractAddress, whoAddress)
 
     /**
      * Deploys relay contracts in Ethereum network

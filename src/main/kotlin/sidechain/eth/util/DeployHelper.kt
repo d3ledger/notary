@@ -139,6 +139,16 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
     }
 
     /**
+     * Get ERC20 balance
+     * @param tokenAddress - address of token smart contract
+     * @param whoAddress - user address to check
+     */
+    fun getERC20Balance(tokenAddress: String, whoAddress: String): BigInteger {
+        val token = contract.BasicCoin.load(tokenAddress, web3, credentials, gasPrice, gasLimit)
+        return token.balanceOf(whoAddress).send()
+    }
+
+    /**
      * Logger
      */
     companion object : KLogging()
