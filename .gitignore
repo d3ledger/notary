@@ -96,3 +96,6 @@ deploy/ethereum/cache
 deploy/ethereum/data
 deploy/ethereum/network
 deploy/ethereum/keys/test
+
+# Bitcoin wallets, blockchain and etc.
+deploy/bitcoin

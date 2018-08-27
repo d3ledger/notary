@@ -5,8 +5,8 @@ import mu.KLogging
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.methods.response.EthBlock
 import org.web3j.protocol.core.methods.response.Transaction
-import provider.EthRelayProvider
-import provider.EthTokensProvider
+import provider.eth.EthRelayProvider
+import provider.eth.EthTokensProvider
 import sidechain.ChainHandler
 import sidechain.SideChainEvent
 import java.math.BigInteger
@@ -34,7 +34,7 @@ class EthChainHandler(
         tx: Transaction,
         wallets: Map<String, String>,
         tokens: Map<String, String>
-    ): List<SideChainEvent.EthereumEvent> {
+    ): List<SideChainEvent.PrimaryBlockChainEvent> {
         logger.info { "handle ERC20 tx ${tx.hash}" }
 
         // get receipt that contains data about solidity function execution
@@ -64,7 +64,7 @@ class EthChainHandler(
                 // amount of transfer is stored in data
                 val amount = BigInteger(it.data.drop(2), 16)
 
-                SideChainEvent.EthereumEvent.OnEthSidechainDepositToken(
+                SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
                     tx.hash,
                     wallets[to]!!,
                     // all non-existent keys were filtered out in parseBlock
@@ -80,15 +80,19 @@ class EthChainHandler(
      * @param tx transaction in block
      * @return list of notary events on Ether deposit
      */
-    private fun handleEther(tx: Transaction, wallets: Map<String, String>): List<SideChainEvent.EthereumEvent> {
+    private fun handleEther(
+        tx: Transaction,
+        wallets: Map<String, String>
+    ): List<SideChainEvent.PrimaryBlockChainEvent> {
         logger.info { "handle Ethereum tx ${tx.hash}" }
 
         return if (tx.value.compareTo(BigInteger.ZERO) > 0) {
             listOf(
-                SideChainEvent.EthereumEvent.OnEthSidechainDeposit(
+                SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
                     tx.hash,
                     // all non-existent keys were filtered out in parseBlock
                     wallets[tx.to]!!,
+                    "ether",
                     tx.value,
                     tx.from
                 )
@@ -103,7 +107,7 @@ class EthChainHandler(
      * Parse [EthBlock] for transactions.
      * @return List of transation we are interested in
      */
-    override fun parseBlock(block: EthBlock): List<SideChainEvent.EthereumEvent> {
+    override fun parseBlock(block: EthBlock): List<SideChainEvent.PrimaryBlockChainEvent> {
         logger.info { "Eth chain handler for block ${block.block.number}" }
 
         return ethRelayProvider.getRelays().fanout {
@@ -120,8 +124,8 @@ class EthChainHandler(
                         else
                             listOf()
                     }
-            }, {
-                logger.error { it }
+            }, { ex ->
+                logger.error("cannot parse block", ex)
                 listOf()
             }
         )

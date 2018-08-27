@@ -12,7 +12,7 @@ import kotlinx.coroutines.experimental.withTimeout
 import notary.IrohaCommand
 import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
-import notary.NotaryConfig
+import notary.eth.EthNotaryConfig
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -29,7 +29,7 @@ import kotlin.test.assertEquals
 
 class IrohaBatchTest {
     val testConfig by lazy {
-        loadConfigs("test", NotaryConfig::class.java)
+        loadConfigs("test", EthNotaryConfig::class.java)
     }
 
     private val tester = "test@notary"

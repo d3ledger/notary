@@ -23,9 +23,14 @@ fun String.hexToAscii(): String {
 
 /** Returns random string of [len] characters */
 fun String.Companion.getRandomString(len: Int): String {
+    val random = Random()
     val res = StringBuilder()
     for (i in 0..len) {
-        res.append(CHAR[Random().nextInt(CHAR.length)])
+        res.append(CHAR[random.nextInt(CHAR.length)])
     }
     return res.toString()
+}
+
+fun String.Companion.getRandomId(): String {
+    return UUID.randomUUID().toString().replace("-", "").substring(0, 32)
 }

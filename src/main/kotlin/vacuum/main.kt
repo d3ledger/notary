@@ -16,19 +16,19 @@ private const val RELAY_VACUUM_PREFIX = "relay-vacuum"
  * Entry point for moving all currency from relay contracts to master contract
  */
 fun main(args: Array<String>) {
-    val relayVacuumConfig = loadConfigs(RELAY_VACUUM_PREFIX, RelayVacuumConfig::class.java, "/vacuum.properties")
+    val relayVacuumConfig = loadConfigs(RELAY_VACUUM_PREFIX, RelayVacuumConfig::class.java, "/eth/vacuum.properties")
     executeVacuum(relayVacuumConfig)
 }
 
 fun executeVacuum(relayVacuumConfig: RelayVacuumConfig) {
     val logger = KLogging()
     val passwordConfig =
-        loadConfigs(RELAY_VACUUM_PREFIX, EthereumPasswords::class.java, "/ethereum_password.properties")
+        loadConfigs(RELAY_VACUUM_PREFIX, EthereumPasswords::class.java, "/eth/ethereum_password.properties")
     IrohaInitialization.loadIrohaLibrary()
         .flatMap { ModelUtil.loadKeypair(relayVacuumConfig.iroha.pubkeyPath, relayVacuumConfig.iroha.privkeyPath) }
         .flatMap { keypair -> RelayVacuum(relayVacuumConfig, passwordConfig, keypair).vacuum() }
         .failure { ex ->
-            logger.logger.error { ex }
+            logger.logger.error("cannot run vacuum", ex)
             System.exit(1)
         }
 }

@@ -47,24 +47,26 @@ class RegistrationServiceEndpoint(
         server.start(wait = false)
     }
 
-    private fun responseError(code: HttpStatusCode, reason: String): registration.Response {
+    private fun responseError(code: HttpStatusCode, reason: String): Response {
         logger.warn { "Response has been failed. $reason" }
-        return registration.Response(code, "Response has been failed. $reason")
+        return Response(code, "Response has been failed. $reason")
     }
 
-    private fun onPostRegistration(name: String?, pubkey: String?): registration.Response {
-        if (name == null)
+    private fun onPostRegistration(name: String?, pubkey: String?): Response {
+        if (name == null && pubkey == null) {
+            return responseError(HttpStatusCode.BadRequest, "Parameters \"name\" and \"pubkey\" are not specified.")
+        } else if (name == null)
             return responseError(HttpStatusCode.BadRequest, "Parameter \"name\" is not specified.")
-        if (pubkey == null)
+        else if (pubkey == null)
             return responseError(HttpStatusCode.BadRequest, "Parameter \"pubkey\" is not specified.")
 
         registrationStrategy.register(name, pubkey).fold(
             { ethWallet ->
-                return registration.Response(HttpStatusCode.OK, ethWallet)
+                return Response(HttpStatusCode.OK, ethWallet)
             },
-            {
+            { ex ->
                 // TODO - D3-121 - a.chernyshov - distinguish correct status code response (500 - server internal error)
-                return responseError(HttpStatusCode.BadRequest, it.toString())
+                return responseError(HttpStatusCode.BadRequest, ex.toString())
             })
     }
 
