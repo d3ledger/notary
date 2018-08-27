@@ -26,13 +26,19 @@ class WithdrawalPipelineIntegrationTest {
 
     init {
         IrohaInitialization.loadIrohaLibrary()
-            .failure {
-                println(it)
+            .failure { ex ->
+                ex.printStackTrace()
                 System.exit(1)
             }
 
         async {
             notary.main(emptyArray())
+        }
+        async {
+            registration.main(emptyArray())
+        }
+        async {
+            withdrawalservice.main(emptyArray())
         }
         Thread.sleep(3_000)
     }
@@ -83,15 +89,6 @@ class WithdrawalPipelineIntegrationTest {
         // make sure master has enough assets
         integrationHelper.sendEth(BigInteger.valueOf(125), integrationHelper.masterContract.contractAddress)
 
-        async {
-            registration.main(emptyArray())
-        }
-
-        async {
-            withdrawalservice.main(emptyArray())
-        }
-        Thread.sleep(5_000)
-
         // register client
         val res = khttp.post(
             "http://127.0.0.1:$registrationServicePort/users",
@@ -119,7 +116,6 @@ class WithdrawalPipelineIntegrationTest {
             toAddress,
             amount
         )
-        println("transfer asset to $notaryAccount")
         Thread.sleep(15_000)
 
         Assertions.assertEquals(
@@ -152,15 +148,6 @@ class WithdrawalPipelineIntegrationTest {
         val amount = "125"
         val domain = "ethereum"
         val assetId = "$assetName#$domain"
-
-        // run services
-        async {
-            registration.main(emptyArray())
-        }
-        async {
-            withdrawalservice.main(emptyArray())
-        }
-        Thread.sleep(5_000)
 
         // register user
         val res = khttp.post(
