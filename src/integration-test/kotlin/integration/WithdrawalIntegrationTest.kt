@@ -242,6 +242,8 @@ class WithdrawalIntegrationTest {
         val clientId = integrationHelper.registerClient()
         val clientKeypair = integrationHelper.irohaKeyPair
 
+        integrationHelper.setWhitelist(clientId, listOf("0xSOME_ANOTHER_ETH_ADDRESS"))
+
         val amount = "125"
         val assetId = "ether#ethereum"
 
