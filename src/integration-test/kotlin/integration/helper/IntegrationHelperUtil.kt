@@ -1,16 +1,20 @@
 package integration.helper
 
 import com.github.kittinunf.result.flatMap
+import com.github.kittinunf.result.success
 import config.EthereumPasswords
 import config.TestConfig
 import config.loadConfigs
 import contract.BasicCoin
 import contract.Master
 import io.grpc.ManagedChannelBuilder
-import iroha.protocol.Queries
 import iroha.protocol.QueryServiceGrpc
-import jp.co.soramitsu.iroha.*
+import jp.co.soramitsu.iroha.Keypair
+import jp.co.soramitsu.iroha.ModelCrypto
+import jp.co.soramitsu.iroha.ModelQueryBuilder
+import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import mu.KLogging
+import org.junit.jupiter.api.fail
 import org.web3j.protocol.core.DefaultBlockParameterName
 import provider.EthFreeRelayProvider
 import provider.EthRelayProviderIrohaImpl
@@ -22,7 +26,6 @@ import sidechain.eth.util.DeployHelper
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
-import sidechain.iroha.util.toByteArray
 import util.getRandomString
 import java.math.BigInteger
 
@@ -45,11 +48,14 @@ class IntegrationHelperUtil {
 
     private val irohaConsumer = IrohaConsumerImpl(testConfig.iroha)
 
-    /** New Iroha data setter account*/
-    val dataSetterAccount = testConfig.relayRegistrationIrohaAccount
-
     /** Notary ethereum address that is used in master smart contract to verify proof provided by notary */
-    val notaryEthAddress = "0x6826d84158e516f631bbf14586a9be7e255b2d23"
+    private val notaryEthAddress = "0x6826d84158e516f631bbf14586a9be7e255b2d23"
+
+    /** Account that used to store registered clients.*/
+    val registrationAccount = createTesterAccount()
+
+    /** Account that used to store tokens*/
+    val tokenStorageAccount = createTesterAccount()
 
     /** New master ETH master contract*/
     val masterContract by lazy {
@@ -58,38 +64,41 @@ class IntegrationHelperUtil {
         wallet
     }
 
+    //TODO get rid of this
     /** List of deployed ERC20 tokens */
     val tokenContracts = mutableMapOf<String, BasicCoin>()
 
+    /** Provider that is used to store/fetch tokens*/
     private val ethTokensProvider = EthTokensProviderImpl(
         testConfig.iroha,
         irohaKeyPair,
         testConfig.notaryIrohaAccount,
-        testConfig.tokenStorageAccount
+        tokenStorageAccount
     )
 
     private val relayRegistrationConfig =
         loadConfigs("test", RelayRegistrationConfig::class.java, "/test.properties")
 
+    /** Provider that is used to get free registered relays*/
     private val ethFreeRelayProvider = EthFreeRelayProvider(
         testConfig.iroha,
         irohaKeyPair,
         testConfig.notaryIrohaAccount,
-        dataSetterAccount
+        registrationAccount
     )
-    /** Iroha network */
-    private val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
 
-    /** Provider of ETH wallets created by dataSetterAccount*/
+    /** Provider of ETH wallets created by registrationAccount*/
     private val ethRelayProvider = EthRelayProviderIrohaImpl(
-        testConfig.iroha, irohaKeyPair, testConfig.notaryIrohaAccount, dataSetterAccount
+        testConfig.iroha, irohaKeyPair, testConfig.notaryIrohaAccount, registrationAccount
     )
+
+    /** Provider of ETH wallets created by registrationAccount*/
     private val registrationStrategy =
         RegistrationStrategyImpl(
             ethFreeRelayProvider,
             irohaConsumer,
             testConfig.notaryIrohaAccount,
-            dataSetterAccount
+            registrationAccount
         )
 
     private val relayRegistration = RelayRegistration(relayRegistrationConfig, passwordConfig)
@@ -102,6 +111,27 @@ class IntegrationHelperUtil {
     }
 
     /**
+     * Deploys randomly named ERC20 token
+     */
+    fun deployRandomToken(): String {
+        return deployToken(String.getRandomString(5))
+    }
+
+    /**
+     * Deploys ERC20 token
+     */
+    fun deployToken(tokenName: String): String {
+        val tokenAddress = deployHelper.deployERC20TokenSmartContract().contractAddress
+        addToken(tokenName, tokenAddress)
+        return tokenAddress
+    }
+
+    private fun addToken(tokenName: String, tokenAddress: String) {
+        ethTokensProvider.addToken(tokenAddress, tokenName)
+            .success { logger.info { "token $tokenAddress was deployed" } }
+    }
+
+    /**
      * Returns master contract ETH balance
      */
     fun getMasterEthBalance(): BigInteger {
@@ -111,13 +141,14 @@ class IntegrationHelperUtil {
     /**
      * Deploys ETH master contract
      */
-    fun deployMasterEth(): Master {
+    private fun deployMasterEth(): Master {
         ethTokensProvider.getTokens()
             .fold(
                 { tokens ->
                     val master = deployHelper.deployMasterSmartContract()
                     for (token in tokens) {
                         master.addToken(token.key).send()
+                        logger.info { "add token ${token.key} to master" }
                     }
                     master.addPeer(notaryEthAddress).send()
                     return master
@@ -145,33 +176,41 @@ class IntegrationHelperUtil {
      * Deploys relay contracts in Ethereum network
      */
     fun deployRelays(relaysToDeploy: Int) {
-        relayRegistration.deploy(relaysToDeploy, masterContract.contractAddress, dataSetterAccount)
+        relayRegistration.deploy(relaysToDeploy, masterContract.contractAddress, registrationAccount)
         logger.info("relays were deployed")
-        Thread.sleep(30_000)
+        Thread.sleep(10_000)
     }
 
     /**
      * Registers first free relay contract in Iroha with given name and public key
      */
-    fun registerRelay(name: String, pubKey: String) {
-        registrationStrategy.register(name, pubKey)
-            .fold({ registeredEthWallet -> logger.info("registered eth wallet $registeredEthWallet") },
+    fun registerRelay(name: String): String {
+        val keypair = ModelCrypto().generateKeypair()
+        registrationStrategy.register(name, keypair.publicKey().hex())
+            .fold({ registeredEthWallet ->
+                logger.info("registered eth wallet $registeredEthWallet")
+                return registeredEthWallet
+            },
                 { ex -> throw RuntimeException("$name was not registered", ex) })
     }
 
     /**
      * Registers first free relay contract in Iroha with random name and public key
      */
-    fun registerRandomRelay() {
-        val keypair = ModelCrypto().generateKeypair()
-        registerRelay(String.getRandomString(9), keypair.publicKey().hex())
+    fun registerRandomRelay(): String {
+
+        val ethWallet = registerRelay(String.getRandomString(9))
         Thread.sleep(10_000)
+        return ethWallet
     }
 
     /**
      * Send ETH with given amount to ethPublicKey
      */
     fun sendEth(amount: BigInteger, to: String) = deployHelper.sendEthereum(amount, to)
+
+    fun sendToken(tokenAddress: String, amount: BigInteger, to: String) =
+        deployHelper.sendERC20(tokenAddress, to, amount)
 
     /**
      * Returns wallets registered by master account in Iroha
@@ -194,40 +233,54 @@ class IntegrationHelperUtil {
 
     /**
      * Returns balance in Iroha
+     * Query Iroha account balance
+     * @param accountId - account in Iroha
+     * @param assetId - asset in Iroha
+     * @return balance of account asset
      */
-    fun getIrohaBalance(assetId: String, accountId: String): BigInteger {
+    fun getIrohaAccountBalance(accountId: String, assetId: String): BigInteger {
         val queryCounter: Long = 1
+
         val uquery = ModelQueryBuilder()
-            .creatorAccountId(testConfig.notaryIrohaAccount)
+            .creatorAccountId(testConfig.iroha.creator)
             .queryCounter(BigInteger.valueOf(queryCounter))
             .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
             .getAccountAssets(accountId)
             .build()
-        val queryBlob = ModelProtoQuery(uquery).signAndAddSignature(irohaKeyPair).finish().blob().toByteArray()
-        val protoQuery: Queries.Query?
-        protoQuery = Queries.Query.parseFrom(queryBlob)
-        val channel =
-            ManagedChannelBuilder.forAddress(testConfig.iroha.hostname, testConfig.iroha.port).usePlaintext(true)
-                .build()
-        val queryStub = QueryServiceGrpc.newBlockingStub(channel)
-        val queryResponse = queryStub.find(protoQuery)
 
-        val fieldDescriptor = queryResponse.descriptorForType.findFieldByName("account_assets_response")
-        if (!queryResponse.hasField(fieldDescriptor)) {
-            throw IllegalStateException("Query response error ${queryResponse.errorResponse}")
-        }
-        val assets = queryResponse.accountAssetsResponse.accountAssetsList
-        for (asset in assets) {
-            if (assetId == asset.assetId)
-                return BigInteger(asset.balance)
-        }
-        return BigInteger.ZERO
+        return ModelUtil.prepareQuery(uquery, irohaKeyPair)
+            .fold(
+                { protoQuery ->
+                    val channel =
+                        ManagedChannelBuilder.forAddress(testConfig.iroha.hostname, testConfig.iroha.port)
+                            .usePlaintext(true)
+                            .build()
+                    val queryStub = QueryServiceGrpc.newBlockingStub(channel)
+                    val queryResponse = queryStub.find(protoQuery)
+
+                    val fieldDescriptor = queryResponse.descriptorForType.findFieldByName("account_assets_response")
+                    if (!queryResponse.hasField(fieldDescriptor)) {
+                        fail { "Query response error ${queryResponse.errorResponse}" }
+                    }
+
+                    val assets = queryResponse.accountAssetsResponse.accountAssetsList
+                    for (asset in assets) {
+                        if (assetId == asset.assetId)
+                            return BigInteger(asset.balance)
+                    }
+
+                    BigInteger.ZERO
+                },
+                { ex ->
+                    fail { "Exception while converting byte array to protobuf:  ${ex.message}" }
+                }
+            )
     }
 
     /**
-     * Creates randomly named registration account in Iroha
+     * Creates randomly named tester account in Iroha
      */
-    private fun createRegistrationAccount(): String {
+    private fun createTesterAccount(): String {
         val name = String.getRandomString(9)
         val domain = "notary"
         val creator = testConfig.iroha.creator
@@ -236,10 +289,10 @@ class IntegrationHelperUtil {
                 .creatorAccountId(creator)
                 .createdTime(ModelUtil.getCurrentTime())
                 .createAccount(name, domain, irohaKeyPair.publicKey())
-                .appendRole("$name@$domain", "registration_service")
+                .appendRole("$name@$domain", "tester")
                 .build()
         )
-        logger.info("registration_service account $name@notary was created")
+        logger.info("account $name@notary was created")
         return "$name@notary"
     }
 
