@@ -35,9 +35,20 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
         logger.info { "send TX to IROHA" }
 
         // Send transaction to iroha
-        val lst = Endpoint.TxList.newBuilder().addTransactions(protoTx).build()
-        commandStub.listTorii(lst)
         commandStub.torii(protoTx)
+    }
+
+    /**
+     * Send transaction batch to iroha
+     * @param batch list of protobuf representation of transactions
+     */
+    fun send(batch: List<TransactionOuterClass.Transaction>) {
+        logger.info { "send TX batch to IROHA" }
+
+        // Send transaction to iroha
+        val lst = Endpoint.TxList.newBuilder()
+        batch.forEach { lst.addTransactions(it) }
+        commandStub.listTorii(lst.build())
     }
 
     /**
@@ -74,6 +85,22 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
     override fun sendAndCheck(tx: TransactionOuterClass.Transaction, hash: Hash): Result<String, Exception> {
         return Result.of { send(tx) }
             .flatMap { checkTransactionStatus(hash) }
+    }
+
+    /**
+     * Send batch of transaction to Iroha and check it's status
+     *
+     * @param batch - batch of transactions
+     * @param hashes - transactions hashes
+     * @return list of hashes that were accepted by iroha
+     */
+    override fun sendAndCheck(
+        batch: List<TransactionOuterClass.Transaction>,
+        hashes: List<Hash>
+    ): Result<List<String>, Exception> {
+        send(batch)
+        val results = hashes.map { checkTransactionStatus(it) }.filter { it.component1() != null }.map { it.get() }
+        return Result.of { results }
     }
 
     /**

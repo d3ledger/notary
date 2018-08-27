@@ -1,30 +1,55 @@
 package integration
 
 import config.loadConfigs
+import io.reactivex.schedulers.Schedulers
+import jp.co.soramitsu.iroha.Blob
 import jp.co.soramitsu.iroha.ModelCrypto
 import jp.co.soramitsu.iroha.ModelQueryBuilder
+import jp.co.soramitsu.iroha.iroha
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.experimental.withTimeout
 import notary.IrohaCommand
 import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
 import notary.NotaryConfig
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
+import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.util.ModelUtil
+import sidechain.iroha.util.toByteVector
 import java.math.BigInteger
+import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 
+
 class IrohaBatchTest {
+    val testConfig by lazy {
+        loadConfigs("test", NotaryConfig::class.java)
+    }
+
+    val tester = "test@notary"
+    val keypair by lazy {
+        ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
+    }
+
+    val counter = BigInteger.ONE
+
+    val channel by lazy {
+        ModelUtil.getChannel(testConfig.iroha.hostname, testConfig.iroha.port)
+    }
+    val queryStub by lazy {
+        ModelUtil.getQueryStub(channel)
+    }
+
     @Test
     fun batchTest() {
-        System.loadLibrary("irohajava")
-        val tester = "test@notary"
-        val notaryConfig = loadConfigs("test", NotaryConfig::class.java)
 
-        val irohaConsumer = IrohaConsumerImpl(notaryConfig.iroha)
+        val irohaConsumer = IrohaConsumerImpl(testConfig.iroha)
 
-        val batch = IrohaOrderedBatch(
+        val txList =
             listOf(
                 IrohaTransaction(
                     tester,
@@ -53,21 +78,11 @@ class IrohaBatchTest {
                             "batches",
                             "notary",
                             0
-                        )
-                    )
-                ),
-                IrohaTransaction(
-                    tester,
-                    listOf(
+                        ),
                         IrohaCommand.CommandAddAssetQuantity(
                             "batches#notary",
                             "100"
-                        )
-                    )
-                ),
-                IrohaTransaction(
-                    tester,
-                    listOf(
+                        ),
                         IrohaCommand.CommandTransferAsset(
                             tester,
                             "u1@notary",
@@ -79,16 +94,30 @@ class IrohaBatchTest {
                 )
 
             )
+
+
+        val batch = IrohaOrderedBatch(
+            txList
         )
         val lst = IrohaConverterImpl().convert(batch)
-        irohaConsumer.sendAndCheck(lst)
+        val hashes = lst.map { it.hash().hex() }
+        var blockHashes: List<String>? = null
+
+        IrohaChainListener(
+            testConfig.iroha.hostname,
+            testConfig.iroha.port,
+            tester, keypair
+        ).getBlockObservable().get().map { block ->
+            val txs = block.payload.transactionsList
+
+            blockHashes = txs.map {
+                Blob(iroha.hashTransaction(it.toByteArray().toByteVector())).hex()
+            }
+        }.subscribeOn(Schedulers.io()).subscribe()
 
 
-        val counter = BigInteger.ONE
-        val keypair = ModelUtil.loadKeypair(notaryConfig.iroha.pubkeyPath, notaryConfig.iroha.privkeyPath).get()
+        val successHash = irohaConsumer.sendAndCheck(lst).get()
 
-        val channel = ModelUtil.getChannel(notaryConfig.iroha.hostname, notaryConfig.iroha.port)
-        val queryStub = ModelUtil.getQueryStub(channel)
 
         var uquery = ModelQueryBuilder()
             .creatorAccountId(tester)
@@ -163,10 +192,22 @@ class IrohaBatchTest {
                 }
             )
 
+
+        assertEquals(hashes, successHash)
         assertEquals(account.accountId, "u1@notary")
         assertEquals(account.jsonData, "{\"test@notary\": {\"key\": \"value\"}}")
         assertEquals(asset.assetId, "batches#notary")
         assertEquals(tester_amount.toInt(), 73)
         assertEquals(u1_amount.toInt(), 27)
+
+        val scope = async {
+            while (blockHashes == null);
+            assertEquals(blockHashes, hashes)
+
+        }
+        runBlocking {
+            withTimeout(10, TimeUnit.SECONDS) { scope.await() }
+        }
     }
 }
+

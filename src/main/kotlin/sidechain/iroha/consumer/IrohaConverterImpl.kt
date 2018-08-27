@@ -12,7 +12,7 @@ import java.math.BigInteger
  */
 class IrohaConverterImpl {
 
-    private fun appendCmd(txBuilder: ModelTransactionBuilder, cmd: IrohaCommand): ModelTransactionBuilder {
+    private fun appendCommand(txBuilder: ModelTransactionBuilder, cmd: IrohaCommand): ModelTransactionBuilder {
         return when (cmd) {
             is IrohaCommand.CommandCreateAccount ->
                 txBuilder.createAccount(
@@ -70,7 +70,7 @@ class IrohaConverterImpl {
     ): ModelTransactionBuilder {
         var builder = txBuilder
         transaction.commands.forEach { cmd ->
-            builder = appendCmd(txBuilder, cmd)
+            builder = appendCommand(builder, cmd)
         }
         return builder
     }
