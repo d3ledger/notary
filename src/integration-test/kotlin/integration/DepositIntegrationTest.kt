@@ -123,12 +123,12 @@ class DepositIntegrationTest {
         val asset = String.getRandomString(9)
         val assetId = "$asset#ethereum"
         // Deploy ERC20 smart contract
-        val tokenAddress = integrationHelper.deployToken(asset)
+        val tokenAddress = integrationHelper.deployERC20Token(asset)
         val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId)
         val amount = BigInteger.valueOf(51)
 
         // send ETH
-        integrationHelper.sendToken(tokenAddress, amount, relayWallet)
+        integrationHelper.sendERC20Token(tokenAddress, amount, relayWallet)
         Thread.sleep(WAIT_IROHA_MILLIS)
         Assertions.assertEquals(
             initialAmount + amount,
@@ -149,20 +149,20 @@ class DepositIntegrationTest {
     fun depositZeroOfERC20() {
         val asset = String.getRandomString(9)
         // Deploy ERC20 smart contract
-        val tokenAddress = integrationHelper.deployToken(asset)
+        val tokenAddress = integrationHelper.deployERC20Token(asset)
         val assetId = "$asset#ethereum"
         val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId)
         val zeroAmount = BigInteger.ZERO
         val amount = BigInteger.valueOf(51)
 
         // send 0 ERC20
-        integrationHelper.sendToken(tokenAddress, zeroAmount, relayWallet)
+        integrationHelper.sendERC20Token(tokenAddress, zeroAmount, relayWallet)
         Thread.sleep(WAIT_IROHA_MILLIS)
 
         Assertions.assertEquals(initialAmount, integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId))
 
         // Send again
-        integrationHelper.sendToken(tokenAddress, amount, relayWallet)
+        integrationHelper.sendERC20Token(tokenAddress, amount, relayWallet)
         Thread.sleep(WAIT_IROHA_MILLIS)
         Assertions.assertEquals(
             initialAmount + amount,
