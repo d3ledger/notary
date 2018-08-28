@@ -1,10 +1,6 @@
 package integration
 
-import com.github.kittinunf.result.failure
 import com.squareup.moshi.Moshi
-import config.EthereumPasswords
-import config.TestConfig
-import config.loadConfigs
 import integration.helper.IntegrationHelperUtil
 import kotlinx.coroutines.experimental.async
 import notary.endpoint.eth.BigIntegerMoshiAdapter
@@ -15,9 +11,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
-import sidechain.iroha.IrohaInitialization
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.util.ModelUtil
 import java.math.BigInteger
 
 /**
