@@ -69,7 +69,7 @@ class WithdrawalServiceImpl(
         ).map { relays ->
             val keys = relays.filterValues { it == name }.keys
             if (keys.isEmpty())
-                throw Exception("No relay address in account details $acc set by $name")
+                throw Exception("No relay address in account details $acc bind to $name")
             else
                 keys.first()
         }

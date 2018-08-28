@@ -71,7 +71,7 @@ class VacuumIntegrationTest {
 
     private fun deployFewTokens() {
         for (i in 1..3) {
-            integrationHelper.deployRandomToken()
+            integrationHelper.deployRandomERC20Token()
         }
     }
 
