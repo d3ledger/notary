@@ -50,6 +50,17 @@ class IntegrationHelperUtil {
     /** Ethereum password configs */
     val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/ethereum_password.properties")
 
+    /** Configuration for notary instance */
+    val notaryConfig = loadConfigs("notary", NotaryConfig::class.java, "/notary.properties")
+
+    /** Configuration for withdrawal service instance */
+    private val withdrawalConfig =
+        loadConfigs("withdrawal", WithdrawalServiceConfig::class.java, "/withdrawal.properties")
+
+    /** Configuration for registration instance */
+    val registrationConfig =
+        loadConfigs("registration", RegistrationConfig::class.java, "/registration.properties")
+
     /** Ethereum utils */
     private val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
 
@@ -125,9 +136,6 @@ class IntegrationHelperUtil {
         }
     }
 
-    /** Configuration for notary instance */
-    val notaryConfig = loadConfigs("notary", NotaryConfig::class.java, "/notary.properties")
-
     /** Test configuration of Notary with runtime dependencies */
     private fun createNotaryConfig(): NotaryConfig {
         return mock {
@@ -140,17 +148,6 @@ class IntegrationHelperUtil {
             on { bitcoin } doReturn notaryConfig.bitcoin
         }
     }
-
-    /**
-     * Run Notary service instance with integration test environment
-     */
-    fun runNotary() {
-        notary.executeNotary(createNotaryConfig())
-    }
-
-    /** Configuration for withdrawal service instance */
-    private val withdrawalConfig =
-        loadConfigs("withdrawal", WithdrawalServiceConfig::class.java, "/withdrawal.properties")
 
     /** Test configuration of Withdrawal service with runtime dependencies */
     private fun createWithdrawalConfig(): WithdrawalServiceConfig {
@@ -169,17 +166,6 @@ class IntegrationHelperUtil {
         }
     }
 
-    /**
-     * Run Withdrawal service instance with integration test environment
-     */
-    fun runWithdrawal() {
-        withdrawalservice.executeWithdrawal(createWithdrawalConfig(), passwordConfig)
-    }
-
-    /** Configuration for registration instance */
-    val registrationConfig =
-        loadConfigs("registration", RegistrationConfig::class.java, "/registration.properties")
-
     /** Test configuration of Registration with runtime dependencies */
     private fun createRegistrationConfig(): RegistrationConfig {
         return mock {
@@ -188,6 +174,20 @@ class IntegrationHelperUtil {
             on { notaryIrohaAccount } doReturn registrationConfig.notaryIrohaAccount
             on { iroha } doReturn createIrohaConfig()
         }
+    }
+
+    /**
+     * Run Notary service instance with integration test environment
+     */
+    fun runNotary() {
+        notary.executeNotary(createNotaryConfig())
+    }
+
+    /**
+     * Run Withdrawal service instance with integration test environment
+     */
+    fun runWithdrawal() {
+        withdrawalservice.executeWithdrawal(createWithdrawalConfig(), passwordConfig)
     }
 
     /**

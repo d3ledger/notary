@@ -25,9 +25,6 @@ class WithdrawalPipelineIntegrationTest {
     /** Ethereum test address where we want to withdraw to */
     private val toAddress = integrationHelper.testConfig.ethTestAccount
 
-    /** Registration service port */
-    private val registrationServicePort = integrationHelper.registrationConfig.port
-
     /** Notary account in Iroha */
     private val notaryAccount = integrationHelper.testConfig.notaryIrohaAccount
 
