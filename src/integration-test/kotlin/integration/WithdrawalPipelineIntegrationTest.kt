@@ -64,10 +64,7 @@ class WithdrawalPipelineIntegrationTest {
         integrationHelper.sendEth(BigInteger.valueOf(125), integrationHelper.masterContract.contractAddress)
 
         // register client
-        val res = khttp.post(
-            "http://127.0.0.1:$registrationServicePort/users",
-            data = mapOf("name" to name, "pubkey" to keypair.publicKey().hex())
-        )
+        val res = integrationHelper.sendRegistrationRequest(name, keypair.publicKey())
         Assertions.assertEquals(200, res.statusCode)
 
         integrationHelper.setWhitelist(clientId, listOf(toAddress))
@@ -126,11 +123,8 @@ class WithdrawalPipelineIntegrationTest {
         val domain = "ethereum"
         val assetId = "$assetName#$domain"
 
-        // register user
-        val res = khttp.post(
-            "http://127.0.0.1:$registrationServicePort/users",
-            data = mapOf("name" to name, "pubkey" to keypair.publicKey().hex())
-        )
+        // register client
+        val res = integrationHelper.sendRegistrationRequest(name, keypair.publicKey())
         Assertions.assertEquals(200, res.statusCode)
 
         integrationHelper.setWhitelist(fullName, listOf(toAddress))

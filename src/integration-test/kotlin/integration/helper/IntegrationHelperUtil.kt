@@ -9,10 +9,7 @@ import config.*
 import contract.Master
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.QueryServiceGrpc
-import jp.co.soramitsu.iroha.Keypair
-import jp.co.soramitsu.iroha.ModelCrypto
-import jp.co.soramitsu.iroha.ModelQueryBuilder
-import jp.co.soramitsu.iroha.ModelTransactionBuilder
+import jp.co.soramitsu.iroha.*
 import mu.KLogging
 import notary.NotaryConfig
 import org.junit.jupiter.api.fail
@@ -477,6 +474,19 @@ class IntegrationHelperUtil {
         return ModelUtil.prepareTransaction(utx, kp)
             .flatMap { IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port).sendAndCheck(it, hash) }
             .get()
+    }
+
+    /**
+     * Send HTTP POST request to registration service to register user
+     * @param name - user name
+     * @param pubkey - user public key
+     */
+    fun sendRegistrationRequest(name: String, pubkey: PublicKey): khttp.responses.Response {
+        return khttp.post(
+            "http://127.0.0.1:${registrationConfig.port}/users",
+            data = mapOf("name" to name, "pubkey" to pubkey.hex())
+        )
+
     }
 
     /**
