@@ -187,14 +187,14 @@ class WithdrawalPipelineIntegrationTest {
     }
 
     /**
-     * Try to withdraw to address not in whitelist
-     * @given A notary client and withdrawal address. Withdrawal address is absent in whitelist
+     * Try to withdraw to address with empty whitelist
+     * @given A notary client and withdrawal address. Whitelist is empty
      * @when client initiates withdrawal
-     * @then withdrawal is prevented by notary
+     * @then withdrawal is allowed by notary
      */
     @Test
-    fun testWithdrawNotInWhitelist() {
-        val fakeEthAddress = "fake_address"
+    fun testWithdrawEmptyWhitelist() {
+        val withdrawalEthAddress = "some_address"
 
         // create client
         val clientId = integrationHelper.registerClient()
@@ -213,14 +213,55 @@ class WithdrawalPipelineIntegrationTest {
             clientId,
             notaryAccount,
             assetId,
-            fakeEthAddress,
+            withdrawalEthAddress,
+            amount
+        )
+
+        val res = khttp.get("$refundAddress/eth/$hash")
+
+        assertEquals(200, res.statusCode)
+    }
+
+    /**
+     * Try to withdraw to address not in whitelist
+     * @given A notary client and withdrawal address. Withdrawal address is absent in whitelist
+     * @when client initiates withdrawal
+     * @then withdrawal is disallowed by notary
+     */
+    @Test
+    fun testWithdrawNotInWhitelist() {
+        val withdrawalEthAddress = "some_address"
+
+        // create client
+        val clientId = integrationHelper.registerClient()
+        val clientKeypair = integrationHelper.irohaKeyPair
+
+        integrationHelper.setWhitelist(clientId, listOf("0xANOTHER_ETH_ADDRESS"))
+
+        val amount = "125"
+        val assetId = "ether#ethereum"
+
+        // add assets to user
+        integrationHelper.addIrohaAssetTo(clientId, assetId, amount)
+
+        // make transfer trx
+        val hash = integrationHelper.transferAssetIrohaFromClient(
+            clientId,
+            clientKeypair,
+            clientId,
+            notaryAccount,
+            assetId,
+            withdrawalEthAddress,
             amount
         )
 
         val res = khttp.get("$refundAddress/eth/$hash")
 
         assertEquals(400, res.statusCode)
-        assertEquals("notary.endpoint.eth.NotaryException: fake_address not in whitelist", res.jsonObject.get("reason"))
+        assertEquals(
+            "notary.endpoint.eth.NotaryException: ${withdrawalEthAddress} not in whitelist",
+            res.jsonObject.get("reason")
+        )
     }
 
 }
