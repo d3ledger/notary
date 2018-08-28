@@ -128,7 +128,7 @@ class DepositIntegrationTest {
         val amount = BigInteger.valueOf(51)
 
         // send ETH
-        integrationHelper.sendToken(tokenAddress, amount, relayWallet)
+        integrationHelper.sendERC20Token(tokenAddress, amount, relayWallet)
         Thread.sleep(WAIT_IROHA_MILLIS)
         Assertions.assertEquals(
             initialAmount + amount,
@@ -156,13 +156,13 @@ class DepositIntegrationTest {
         val amount = BigInteger.valueOf(51)
 
         // send 0 ERC20
-        integrationHelper.sendToken(tokenAddress, zeroAmount, relayWallet)
+        integrationHelper.sendERC20Token(tokenAddress, zeroAmount, relayWallet)
         Thread.sleep(WAIT_IROHA_MILLIS)
 
         Assertions.assertEquals(initialAmount, integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId))
 
         // Send again
-        integrationHelper.sendToken(tokenAddress, amount, relayWallet)
+        integrationHelper.sendERC20Token(tokenAddress, amount, relayWallet)
         Thread.sleep(WAIT_IROHA_MILLIS)
         Assertions.assertEquals(
             initialAmount + amount,

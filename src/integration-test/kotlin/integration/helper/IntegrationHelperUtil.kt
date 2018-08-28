@@ -48,7 +48,7 @@ class IntegrationHelperUtil {
     val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
     /** Ethereum password configs */
-    private val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/ethereum_password.properties")
+    val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/ethereum_password.properties")
 
     /** Ethereum utils */
     private val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
@@ -318,15 +318,6 @@ class IntegrationHelperUtil {
     fun sendEth(amount: BigInteger, to: String) = deployHelper.sendEthereum(amount, to)
 
     /**
-     * Send [amount] ERC20 token deployed on [tokenAddress] to [toAddress]
-     * @param tokenAddress - ERC20 token smart contract
-     * @param amount - amount of tokens to send
-     * @param toAddress - address to send
-     */
-    fun sendToken(tokenAddress: String, amount: BigInteger, toAddress: String) =
-        deployHelper.sendERC20(tokenAddress, toAddress, amount)
-
-    /**
      * Returns wallets registered by master account in Iroha
      */
     fun getRegisteredEthWallets(): Set<String> = ethRelayProvider.getRelays().get().keys
@@ -342,7 +333,8 @@ class IntegrationHelperUtil {
         val creator = testConfig.iroha.creator
 
         ModelUtil.addAssetIroha(irohaConsumer, creator, assetId, amount)
-        ModelUtil.transferAssetIroha(irohaConsumer, creator, creator, accountId, assetId, "", amount)
+        if (creator != accountId)
+            ModelUtil.transferAssetIroha(irohaConsumer, creator, creator, accountId, assetId, "", amount)
     }
 
     /**

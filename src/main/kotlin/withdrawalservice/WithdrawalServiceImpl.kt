@@ -67,9 +67,6 @@ class WithdrawalServiceImpl(
             acc,
             withdrawalServiceConfig.registrationIrohaAccount
         ).map { relays ->
-            println("RELAYS")
-            println(relays.keys)
-            println(relays.values)
             val keys = relays.filterValues { it == name }.keys
             if (keys.isEmpty())
                 throw Exception("No relay address in account details $acc bind to $name")
