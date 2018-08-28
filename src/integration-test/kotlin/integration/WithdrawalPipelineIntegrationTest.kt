@@ -1,17 +1,11 @@
 package integration
 
-import com.github.kittinunf.result.failure
-import config.EthereumPasswords
-import config.TestConfig
-import config.loadConfigs
 import integration.helper.IntegrationHelperUtil
 import jp.co.soramitsu.iroha.ModelCrypto
 import kotlinx.coroutines.experimental.async
-import notary.NotaryConfig
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import sidechain.iroha.IrohaInitialization
 import util.getRandomString
 import java.math.BigInteger
 import kotlin.test.assertEquals
@@ -22,48 +16,33 @@ import kotlin.test.assertEquals
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class WithdrawalPipelineIntegrationTest {
 
-    init {
-        IrohaInitialization.loadIrohaLibrary()
-            .failure { ex ->
-                ex.printStackTrace()
-                System.exit(1)
-            }
-
-        async {
-            notary.main(emptyArray())
-        }
-        async {
-            registration.main(emptyArray())
-        }
-        async {
-            withdrawalservice.main(emptyArray())
-        }
-        Thread.sleep(3_000)
-    }
-
-    /** Configuration for notary instance */
-    private val notaryConfig = loadConfigs("notary", NotaryConfig::class.java, "/notary.properties")
-
-    /** Configurations for tests */
-    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
-
-    /** Ethereum password configs */
-    private val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/ethereum_password.properties")
-
-    /** Refund endpoint address */
-    val refundAddress = "http://localhost:${notaryConfig.refund.port}"
-
     /** Integration tests util */
     private val integrationHelper = IntegrationHelperUtil()
 
+    /** Refund endpoint address */
+    private val refundAddress = "http://localhost:${integrationHelper.notaryConfig.refund.port}"
+
     /** Ethereum test address where we want to withdraw to */
-    private val toAddress = testConfig.ethTestAccount
+    private val toAddress = integrationHelper.testConfig.ethTestAccount
 
     /** Registration service port */
-    private val registrationServicePort = 8083
+    private val registrationServicePort = integrationHelper.registrationConfig.port
 
     /** Notary account in Iroha */
-    val notaryAccount = testConfig.notaryIrohaAccount
+    private val notaryAccount = integrationHelper.testConfig.notaryIrohaAccount
+
+    init {
+        async {
+            integrationHelper.runNotary()
+        }
+        async {
+            integrationHelper.runRegistration()
+        }
+        async {
+            integrationHelper.runWithdrawal()
+        }
+        Thread.sleep(3_000)
+    }
 
     /**
      * Full withdrawal pipeline test
@@ -135,7 +114,7 @@ class WithdrawalPipelineIntegrationTest {
         integrationHelper.deployRelays(1)
 
         // create ERC20 token and transfer to master
-        val (assetName, tokenAddress) = integrationHelper.deployERC20Token()
+        val (assetName, tokenAddress) = integrationHelper.deployRandomERC20Token()
 
         integrationHelper.sendERC20Token(
             tokenAddress,

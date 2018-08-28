@@ -123,7 +123,7 @@ class DepositIntegrationTest {
         val asset = String.getRandomString(9)
         val assetId = "$asset#ethereum"
         // Deploy ERC20 smart contract
-        val tokenAddress = integrationHelper.deployToken(asset)
+        val tokenAddress = integrationHelper.deployERC20Token(asset)
         val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId)
         val amount = BigInteger.valueOf(51)
 
@@ -149,7 +149,7 @@ class DepositIntegrationTest {
     fun depositZeroOfERC20() {
         val asset = String.getRandomString(9)
         // Deploy ERC20 smart contract
-        val tokenAddress = integrationHelper.deployToken(asset)
+        val tokenAddress = integrationHelper.deployERC20Token(asset)
         val assetId = "$asset#ethereum"
         val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId)
         val zeroAmount = BigInteger.ZERO

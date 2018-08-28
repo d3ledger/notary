@@ -1,10 +1,11 @@
 package integration.helper
 
+import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.success
-import config.EthereumPasswords
-import config.TestConfig
-import config.loadConfigs
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.mock
+import config.*
 import contract.Master
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.QueryServiceGrpc
@@ -13,19 +14,23 @@ import jp.co.soramitsu.iroha.ModelCrypto
 import jp.co.soramitsu.iroha.ModelQueryBuilder
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import mu.KLogging
+import notary.NotaryConfig
 import org.junit.jupiter.api.fail
 import org.web3j.protocol.core.DefaultBlockParameterName
 import provider.EthFreeRelayProvider
 import provider.EthRelayProviderIrohaImpl
 import provider.EthTokensProviderImpl
+import registration.RegistrationConfig
 import registration.RegistrationStrategyImpl
 import registration.relay.RelayRegistration
 import registration.relay.RelayRegistrationConfig
 import sidechain.eth.util.DeployHelper
+import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
+import withdrawalservice.WithdrawalServiceConfig
 import java.math.BigInteger
 
 /**
@@ -33,8 +38,17 @@ import java.math.BigInteger
  * Class lazily creates new master contract in Etherem and master account in Iroha.
  */
 class IntegrationHelperUtil {
+
+    init {
+        IrohaInitialization.loadIrohaLibrary()
+            .failure { ex ->
+                ex.printStackTrace()
+                System.exit(1)
+            }
+    }
+
     /** Configurations for tests */
-    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
+    val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
     /** Ethereum password configs */
     private val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/ethereum_password.properties")
@@ -62,10 +76,6 @@ class IntegrationHelperUtil {
         logger.info("master eth wallet $wallet was deployed ")
         wallet
     }
-
-    //TODO get rid of this
-    /** List of deployed ERC20 tokens */
-    val tokenContracts = mutableMapOf<String, BasicCoin>()
 
     /** Provider that is used to store/fetch tokens*/
     private val ethTokensProvider = EthTokensProviderImpl(
@@ -102,6 +112,94 @@ class IntegrationHelperUtil {
 
     private val relayRegistration = RelayRegistration(relayRegistrationConfig, passwordConfig)
 
+    /** Test configuration for Iroha */
+    private fun createIrohaConfig(): IrohaConfig {
+        return object : IrohaConfig {
+            override val hostname: String
+                get() = withdrawalConfig.iroha.hostname
+            override val port: Int
+                get() = withdrawalConfig.iroha.port
+            override val creator: String
+                get() = registrationAccount
+            override val pubkeyPath: String
+                get() = withdrawalConfig.iroha.pubkeyPath
+            override val privkeyPath: String
+                get() = withdrawalConfig.iroha.privkeyPath
+        }
+    }
+
+    /** Configuration for notary instance */
+    val notaryConfig = loadConfigs("notary", NotaryConfig::class.java, "/notary.properties")
+
+    /** Test configuration of Notary with runtime dependencies */
+    private fun createNotaryConfig(): NotaryConfig {
+        return mock {
+            on { registrationServiceIrohaAccount } doReturn registrationAccount
+            on { tokenStorageAccount } doReturn tokenStorageAccount
+            on { whitelistSetter } doReturn testConfig.whitelistSetter
+            on { refund } doReturn notaryConfig.refund
+            on { iroha } doReturn notaryConfig.iroha
+            on { ethereum } doReturn notaryConfig.ethereum
+            on { bitcoin } doReturn notaryConfig.bitcoin
+        }
+    }
+
+    /**
+     * Run Notary service instance with integration test environment
+     */
+    fun runNotary() {
+        notary.executeNotary(createNotaryConfig())
+    }
+
+    /** Configuration for withdrawal service instance */
+    private val withdrawalConfig =
+        loadConfigs("withdrawal", WithdrawalServiceConfig::class.java, "/withdrawal.properties")
+
+    /** Test configuration of Withdrawal service with runtime dependencies */
+    private fun createWithdrawalConfig(): WithdrawalServiceConfig {
+        val outerTokenStorageAccount = tokenStorageAccount
+        return object : WithdrawalServiceConfig {
+            override val notaryIrohaAccount: String
+                get() = withdrawalConfig.notaryIrohaAccount
+            override val tokenStorageAccount: String
+                get() = outerTokenStorageAccount
+            override val registrationIrohaAccount: String
+                get() = registrationAccount
+            override val iroha: IrohaConfig
+                get() = createIrohaConfig()
+            override val ethereum: EthereumConfig
+                get() = withdrawalConfig.ethereum
+        }
+    }
+
+    /**
+     * Run Withdrawal service instance with integration test environment
+     */
+    fun runWithdrawal() {
+        withdrawalservice.executeWithdrawal(createWithdrawalConfig(), passwordConfig)
+    }
+
+    /** Configuration for registration instance */
+    val registrationConfig =
+        loadConfigs("registration", RegistrationConfig::class.java, "/registration.properties")
+
+    /** Test configuration of Registration with runtime dependencies */
+    private fun createRegistrationConfig(): RegistrationConfig {
+        return mock {
+            on { port } doReturn registrationConfig.port
+            on { relayRegistrationIrohaAccount } doReturn registrationAccount
+            on { notaryIrohaAccount } doReturn registrationConfig.notaryIrohaAccount
+            on { iroha } doReturn createIrohaConfig()
+        }
+    }
+
+    /**
+     * Run Registration service instance with integration test environment
+     */
+    fun runRegistration() {
+        registration.executeRegistration(createRegistrationConfig())
+    }
+
     /**
      * Returns ETH balance for a given address
      */
@@ -111,24 +209,54 @@ class IntegrationHelperUtil {
 
     /**
      * Deploys randomly named ERC20 token
+     * @return pair (tokenName, tokenAddress)
      */
-    fun deployRandomToken(): String {
-        return deployToken(String.getRandomString(5))
+    fun deployRandomERC20Token(): Pair<String, String> {
+        val tokenName = String.getRandomString(5)
+        return Pair(tokenName, deployERC20Token(tokenName))
     }
 
     /**
-     * Deploys ERC20 token
+     * Deploy ERC20 token and register it to the notary system:
+     * - create asset in Iroha
+     * - add to Token provider service
+     * - add to master contract
+     * @return token name in iroha and address of ERC20 smart contract
      */
-    fun deployToken(tokenName: String): String {
+    fun deployERC20Token(tokenName: String): String {
         val tokenAddress = deployHelper.deployERC20TokenSmartContract().contractAddress
-        addToken(tokenName, tokenAddress)
+        ModelUtil.createAsset(irohaConsumer, testConfig.iroha.creator, tokenName, "ethereum", 0)
+        addERC20Token(tokenName, tokenAddress)
+        masterContract.addToken(tokenAddress).send()
         return tokenAddress
     }
 
-    private fun addToken(tokenName: String, tokenAddress: String) {
+    /**
+     * Add token to Iroha token provider
+     * @param tokenName - user defined token name
+     * @param tokenAddress - token ERC20 smart contract address
+     */
+    private fun addERC20Token(tokenName: String, tokenAddress: String) {
         ethTokensProvider.addToken(tokenAddress, tokenName)
             .success { logger.info { "token $tokenAddress was deployed" } }
     }
+
+    /**
+     * Transfer [amount] ERC20 deployed at [contractAddress] tokens to [toAddress]
+     * @param contractAddress - address of ERC20 contract
+     * @param amount - amount to transfer
+     * @param toAddress - destination address
+     */
+    fun sendERC20Token(contractAddress: String, amount: BigInteger, toAddress: String) =
+        deployHelper.sendERC20(contractAddress, toAddress, amount)
+
+    /**
+     * Get [whoAddress] balance of ERC20 tokens with [contractAddress]
+     * @param contractAddress - address of ERC20 smart contract
+     * @param whoAddress - address of client
+     */
+    fun getERC20TokenBalance(contractAddress: String, whoAddress: String): BigInteger =
+        deployHelper.getERC20Balance(contractAddress, whoAddress)
 
     /**
      * Returns master contract ETH balance
@@ -154,40 +282,6 @@ class IntegrationHelperUtil {
                 },
                 { ex -> throw ex })
     }
-
-    /**
-     * Deploy ERC20 token and register it to the notary system
-     * @return token name in iroha and address of ERC20 smart contract
-     */
-    fun deployERC20Token(): Pair<String, String> {
-        val tokenName = String.getRandomString(5).toLowerCase()
-        val contract = deployHelper.deployERC20TokenSmartContract()
-        val hash = masterContract.addToken(contract.contractAddress).send().transactionHash
-        ethTokensProvider.addToken(contract.contractAddress, tokenName)
-
-        ModelUtil.createAsset(irohaConsumer, testConfig.iroha.creator, tokenName, "ethereum", 0)
-
-        logger.info { "ERC20 token $tokenName was deployed on ${contract.contractAddress}, tx hash: $hash" }
-
-        return Pair(tokenName, contract.contractAddress)
-    }
-
-    /**
-     * Transfer [amount] ERC20 deployed at [contractAddress] tokens to [toAddress]
-     * @param contractAddress - address of ERC20 contract
-     * @param amount - amount to transfer
-     * @param toAddress - destination address
-     */
-    fun sendERC20Token(contractAddress: String, amount: BigInteger, toAddress: String) =
-        deployHelper.sendERC20(contractAddress, toAddress, amount)
-
-    /**
-     * Get [whoAddress] balance of ERC20 tokens with [contractAddress]
-     * @param contractAddress - address of ERC20 smart contract
-     * @param whoAddress - address of client
-     */
-    fun getERC20TokenBalance(contractAddress: String, whoAddress: String): BigInteger =
-        deployHelper.getERC20Balance(contractAddress, whoAddress)
 
     /**
      * Deploys relay contracts in Ethereum network
@@ -226,8 +320,14 @@ class IntegrationHelperUtil {
      */
     fun sendEth(amount: BigInteger, to: String) = deployHelper.sendEthereum(amount, to)
 
-    fun sendToken(tokenAddress: String, amount: BigInteger, to: String) =
-        deployHelper.sendERC20(tokenAddress, to, amount)
+    /**
+     * Send [amount] ERC20 token deployed on [tokenAddress] to [toAddress]
+     * @param tokenAddress - ERC20 token smart contract
+     * @param amount - amount of tokens to send
+     * @param toAddress - address to send
+     */
+    fun sendToken(tokenAddress: String, amount: BigInteger, toAddress: String) =
+        deployHelper.sendERC20(tokenAddress, toAddress, amount)
 
     /**
      * Returns wallets registered by master account in Iroha
