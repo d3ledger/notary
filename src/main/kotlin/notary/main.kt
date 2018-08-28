@@ -16,9 +16,12 @@ import sidechain.iroha.util.ModelUtil
  * Application entry point
  */
 fun main(args: Array<String>) {
-    val logger = KLogging()
-
     val notaryConfig = loadConfigs("notary", NotaryConfig::class.java, "/notary.properties")
+    executeNotary(notaryConfig)
+}
+
+fun executeNotary(notaryConfig: NotaryConfig) {
+    val logger = KLogging()
     val passwordConfig =
         loadConfigs("notary", EthereumPasswords::class.java, "/ethereum_password.properties")
 
