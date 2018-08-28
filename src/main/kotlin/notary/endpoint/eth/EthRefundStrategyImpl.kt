@@ -140,7 +140,7 @@ class EthRefundStrategyImpl(
             val whitelist = details["eth_whitelist"]
 
             if (whitelist != null)
-                whitelist.split(",").contains(address)
+                whitelist.split(", ").contains(address)
             else
                 false
         }

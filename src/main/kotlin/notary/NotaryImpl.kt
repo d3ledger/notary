@@ -83,7 +83,8 @@ class NotaryImpl(
     override fun onEthEvent(ethInputEvent: SideChainEvent.EthereumEvent): IrohaOrderedBatch {
         logger.info { "Notary performs ETH event" }
         return when (ethInputEvent) {
-            is SideChainEvent.EthereumEvent.OnEthSidechainDeposit -> onEthSidechainDeposit(
+            is SideChainEvent.EthereumEvent.OnEthSidechainDeposit ->
+                onEthSidechainDeposit(
                 ethInputEvent.hash,
                 ethInputEvent.user,
                 ethereumAssetId,

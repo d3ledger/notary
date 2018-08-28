@@ -36,7 +36,7 @@ class EthTokensProviderTest {
         testConfig.iroha,
         irohaKeyPair,
         testConfig.notaryIrohaAccount,
-        integrationHelper.dataSetterAccount
+        integrationHelper.tokenStorageAccount
     )
 
     /**
