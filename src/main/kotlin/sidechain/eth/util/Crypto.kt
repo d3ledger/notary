@@ -4,11 +4,9 @@ import config.EthereumConfig
 import config.EthereumPasswords
 import notary.endpoint.eth.AmountType
 import org.web3j.crypto.Hash
-import org.web3j.protocol.admin.Admin
-import org.web3j.protocol.http.HttpService
 import org.web3j.utils.Numeric
+import org.web3j.crypto.Sign
 import java.math.BigInteger
-
 
 /**
  * Signs user-provided data with predefined account deployed on local Parity node
@@ -16,14 +14,21 @@ import java.math.BigInteger
  * @return signed data
  */
 fun signUserData(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPasswords, toSign: String): String {
-    // TODO luckychess 26.06.2018 D3-100 find a way to produce correct signatures locally
+
     val deployHelper = DeployHelper(ethereumConfig, ethereumPasswords)
+    // Message from hex to bytes
+    val dat = Numeric.hexStringToByteArray(toSign)
+    // Add ethereum signature format
+    val to_sign = ("\u0019Ethereum Signed Message:\n" + (dat.size)).toByteArray()
+    val data_sign = to_sign.plus(dat)
+    val signature = Sign.signMessage(data_sign, deployHelper.credentials.ecKeyPair, true)
 
-    val admin = Admin.build(HttpService(ethereumConfig.url))
-    admin.personalUnlockAccount(deployHelper.credentials.address, ethereumPasswords.credentialsPassword).send()
-    // TODO: signalize about error if unlock fails
-
-    return admin.ethSign(deployHelper.credentials.address, toSign).send().signature
+    // Combine in the signature
+    var res = Numeric.toHexString(signature.r)
+    res = res.plus(Numeric.toHexString(signature.s).substring(2))
+    //  The v is always either 27, or 28 - need to convert to 00 or 01
+    res = res.plus("0" + Integer.toString(signature.v.toInt() - 27))
+    return res
 }
 
 /**
@@ -36,10 +41,10 @@ fun signUserData(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPass
  */
 fun hashToWithdraw(tokenAddress: String, amount: AmountType, accountAddress: String, irohaHash: String): String {
     return Hash.sha3(
-        tokenAddress.replace("0x", "")
-                + String.format("%064x", BigInteger(amount)).replace("0x", "")
-                + accountAddress.replace("0x", "")
-                + irohaHash.replace("0x", "")
+            tokenAddress.replace("0x", "")
+                    + String.format("%064x", BigInteger(amount)).replace("0x", "")
+                    + accountAddress.replace("0x", "")
+                    + irohaHash.replace("0x", "")
     )
 }
 
