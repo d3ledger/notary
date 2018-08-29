@@ -25,7 +25,22 @@ class IrohaConsumerImpl(irohaConfig: IrohaConfig) : IrohaConsumer {
     override fun sendAndCheck(utx: UnsignedTx): Result<String, Exception> {
         val hash = utx.hash()
         return ModelUtil.prepareTransaction(utx, keypair)
-            .flatMap { irohaNetwork.sendAndCheck(it, hash) }
+            .flatMap {
+                irohaNetwork.sendAndCheck(it, hash)
+            }
+    }
+
+    /**
+     * Send a batch of transactions to Iroha and check if it is committed with status stream
+     * @param lst - list of unsigned transaction to send
+     * @return Result with list of passed transactions
+     */
+    override fun sendAndCheck(lst: List<UnsignedTx>): Result<List<String>, Exception> {
+        val batch = lst.map { tx ->
+            ModelUtil.prepareTransaction(tx, keypair).get()
+        }
+        val hashes = lst.map { it.hash() }
+        return irohaNetwork.sendAndCheck(batch, hashes)
     }
 
     /**

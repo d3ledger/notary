@@ -165,16 +165,16 @@ object ModelUtil {
     fun prepareTransaction(utx: UnsignedTx, keys: Keypair): Result<Transaction, Exception> {
         return Result.of {
             // sign transaction and get its binary representation (Blob)
-            val txblob = ModelProtoTransaction(utx)
+            val tx = ModelProtoTransaction(utx)
                 .signAndAddSignature(keys)
                 .finish()
-                .blob()
+            val blob = tx.blob()
+
 
             // Convert ByteVector to byte array
-            val bs = txblob.toByteArray()
-
-            // create proto object
-            Transaction.parseFrom(bs)
+            val bs = blob.toByteArray()
+            val protoTx = Transaction.parseFrom(bs)
+            protoTx
         }
     }
 
