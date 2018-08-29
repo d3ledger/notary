@@ -3,7 +3,6 @@ package notary.endpoint.eth
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import com.squareup.moshi.Moshi
 import config.EthereumConfig
 import config.EthereumPasswords
 import config.IrohaConfig
@@ -128,6 +127,9 @@ class EthRefundStrategyImpl(
 
     /**
      * Check if [srcAccountId] has Ethereum withdrawal [address] in whitelist
+     * @param srcAccountId - Iroha account - holder of whitelist
+     * @param address - ethereum address to check
+     * @return true if whitelist is not set, otherwise checks if [address] in the whitelist
      */
     private fun checkWithdrawalAddress(srcAccountId: String, address: String): Result<Boolean, Exception> {
         return getAccountDetails(
@@ -139,10 +141,10 @@ class EthRefundStrategyImpl(
         ).map { details ->
             val whitelist = details["eth_whitelist"]
 
-            if (whitelist != null)
-                whitelist.split(", ").contains(address)
+            if (whitelist == null || whitelist.isEmpty())
+                true
             else
-                false
+                whitelist.split(", ").contains(address)
         }
     }
 
