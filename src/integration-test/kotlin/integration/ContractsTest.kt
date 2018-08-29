@@ -28,6 +28,7 @@ class ContractsTest {
     private val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/ethereum_password.properties")
 
     private val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
+    private val keypair = deployHelper.credentials.ecKeyPair
 
     private lateinit var token: BasicCoin
     private lateinit var master: Master
@@ -69,7 +70,7 @@ class ContractsTest {
         fromMaster: Boolean = true
     ) {
         val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, irohaHash)
-        val signature = signUserData(testConfig.ethereum, passwordConfig, finalHash)
+        val signature = signUserData(keypair, finalHash)
         val vrs = extractVRS(signature)
 
         val vv = ArrayList<BigInteger>()
@@ -296,8 +297,8 @@ class ContractsTest {
         val amount = BigInteger.valueOf(1)
         val irohaHash = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))
         val finalHash = hashToWithdraw(token.contractAddress, amount.toString(), accGreen, irohaHash)
-
-        val signature = signUserData(testConfig.ethereum, passwordConfig, finalHash)
+        val keypair = DeployHelper(testConfig.ethereum, passwordConfig).credentials.ecKeyPair
+        val signature = signUserData(keypair, finalHash)
         val vrs = extractVRS(signature)
 
         val vv = ArrayList<BigInteger>()
@@ -338,8 +339,7 @@ class ContractsTest {
         val amount = BigInteger.valueOf(1)
         val irohaHash = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))
         val finalHash = hashToWithdraw(token.contractAddress, amount.toString(), accGreen, irohaHash)
-
-        val signature = signUserData(testConfig.ethereum, passwordConfig, finalHash)
+        val signature = signUserData(keypair, finalHash)
         val vrs = extractVRS(signature)
 
         val vv = ArrayList<BigInteger>()
@@ -381,8 +381,7 @@ class ContractsTest {
         val amount = BigInteger.valueOf(1)
         val irohaHash = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))
         val finalHash = hashToWithdraw(token.contractAddress, amount.toString(), accGreen, irohaHash)
-
-        val signature = signUserData(testConfig.ethereum, passwordConfig, finalHash)
+        val signature = signUserData(keypair, finalHash)
         val vrs = extractVRS(signature)
 
         // let's corrupt first byte of s

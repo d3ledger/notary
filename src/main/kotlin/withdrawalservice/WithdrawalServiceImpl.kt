@@ -10,6 +10,7 @@ import provider.EthTokensProvider
 import provider.EthTokensProviderImpl
 import notary.endpoint.eth.AmountType
 import sidechain.SideChainEvent
+import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.extractVRS
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
@@ -29,14 +30,14 @@ import java.math.BigInteger
  * @param relay Ethereum address of user relay contract
  */
 data class RollbackApproval(
-    val tokenContractAddress: String,
-    val amount: AmountType,
-    val account: String,
-    val irohaHash: String,
-    val r: ArrayList<ByteArray>,
-    val s: ArrayList<ByteArray>,
-    val v: ArrayList<BigInteger>,
-    val relay: String
+        val tokenContractAddress: String,
+        val amount: AmountType,
+        val account: String,
+        val irohaHash: String,
+        val r: ArrayList<ByteArray>,
+        val s: ArrayList<ByteArray>,
+        val v: ArrayList<BigInteger>,
+        val relay: String
 )
 
 
@@ -44,28 +45,30 @@ data class RollbackApproval(
  * Implementation of Withdrawal Service
  */
 class WithdrawalServiceImpl(
-    val withdrawalServiceConfig: WithdrawalServiceConfig,
-    val withdrawalServicePasswords: EthereumPasswords,
-    val keypair: Keypair,
-    val irohaNetwork: IrohaNetwork,
-    private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
+        val withdrawalServiceConfig: WithdrawalServiceConfig,
+        val withdrawalServicePasswords: EthereumPasswords,
+        val keypair: Keypair,
+        val irohaNetwork: IrohaNetwork,
+        private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
 ) : WithdrawalService {
     private val notaryPeerListProvider = NotaryPeerListProviderImpl()
     private val tokensProvider: EthTokensProvider = EthTokensProviderImpl(
-        withdrawalServiceConfig.iroha,
-        keypair,
-        withdrawalServiceConfig.notaryIrohaAccount,
-        withdrawalServiceConfig.tokenStorageAccount
+            withdrawalServiceConfig.iroha,
+            keypair,
+            withdrawalServiceConfig.notaryIrohaAccount,
+            withdrawalServiceConfig.tokenStorageAccount
     )
     private val masterAccount = withdrawalServiceConfig.notaryIrohaAccount
+    private val ecKeyPair = DeployHelper(withdrawalServiceConfig.ethereum,
+            withdrawalServicePasswords).credentials.ecKeyPair
 
     private fun findInAccDetail(acc: String, name: String): Result<String, Exception> {
         return getAccountDetails(
-            withdrawalServiceConfig.iroha,
-            keypair,
-            irohaNetwork,
-            acc,
-            withdrawalServiceConfig.registrationIrohaAccount
+                withdrawalServiceConfig.iroha,
+                keypair,
+                irohaNetwork,
+                acc,
+                withdrawalServiceConfig.registrationIrohaAccount
         ).map { relays ->
             val keys = relays.filterValues { it == name }.keys
             if (keys.isEmpty())
@@ -83,50 +86,49 @@ class WithdrawalServiceImpl(
     private fun requestNotary(event: SideChainEvent.IrohaEvent.SideChainTransfer): Result<RollbackApproval, Exception> {
         // description field holds target account address
         return findInAccDetail(masterAccount, event.srcAccount)
-            .map { relayAddress ->
-                val hash = event.hash
-                val amount = event.amount
-                val coins = tokensProvider.getTokens().get().toMutableMap()
-                coins["0x0000000000000000000000000000000000000000"] = "ether"
+                .map { relayAddress ->
+                    val hash = event.hash
+                    val amount = event.amount
+                    val coins = tokensProvider.getTokens().get().toMutableMap()
+                    coins["0x0000000000000000000000000000000000000000"] = "ether"
 
-                if (!event.asset.contains("#ethereum")) {
-                    throw Exception("Incorrect asset name in Iroha event: " + event.asset)
-                }
-                val asset = event.asset.replace("#ethereum", "")
-
-                var coinAddress = ""
-                for (coin in coins) {
-                    if (coin.value == asset) {
-                        coinAddress = coin.key
-                        break
+                    if (!event.asset.contains("#ethereum")) {
+                        throw Exception("Incorrect asset name in Iroha event: " + event.asset)
                     }
-                }
-                if (coinAddress == "") {
-                    throw Exception("Not supported token type")
-                }
+                    val asset = event.asset.replace("#ethereum", "")
 
-                val address = event.description
-                val vv = ArrayList<BigInteger>()
-                val rr = ArrayList<ByteArray>()
-                val ss = ArrayList<ByteArray>()
+                    var coinAddress = ""
+                    for (coin in coins) {
+                        if (coin.value == asset) {
+                            coinAddress = coin.key
+                            break
+                        }
+                    }
+                    if (coinAddress == "") {
+                        throw Exception("Not supported token type")
+                    }
 
-                notaryPeerListProvider.getPeerList().forEach { peer ->
-                    val res = khttp.get("$peer/eth/$hash")
+                    val address = event.description
+                    val vv = ArrayList<BigInteger>()
+                    val rr = ArrayList<ByteArray>()
+                    val ss = ArrayList<ByteArray>()
 
-                    // TODO: replace with valid peer requests
-                    val signature =
-                        signUserData(
-                            withdrawalServiceConfig.ethereum,
-                            withdrawalServicePasswords,
-                            hashToWithdraw(coinAddress, amount, address, hash)
-                        )
-                    val vrs = extractVRS(signature)
-                    vv.add(vrs.v)
-                    rr.add(vrs.r)
-                    ss.add(vrs.s)
+                    notaryPeerListProvider.getPeerList().forEach { peer ->
+                        val res = khttp.get("$peer/eth/$hash")
+
+                        // TODO: replace with valid peer requests
+                        val signature =
+                                signUserData(
+                                        ecKeyPair,
+                                        hashToWithdraw(coinAddress, amount, address, hash)
+                                )
+                        val vrs = extractVRS(signature)
+                        vv.add(vrs.v)
+                        rr.add(vrs.r)
+                        ss.add(vrs.s)
+                    }
+                    RollbackApproval(coinAddress, amount, address, hash, rr, ss, vv, relayAddress)
                 }
-                RollbackApproval(coinAddress, amount, address, hash, rr, ss, vv, relayAddress)
-            }
     }
 
     /**
@@ -140,7 +142,7 @@ class WithdrawalServiceImpl(
                 if (irohaEvent.dstAccount == withdrawalServiceConfig.notaryIrohaAccount) {
                     logger.info { "Withdrawal event" }
                     return requestNotary(irohaEvent)
-                        .map { WithdrawalServiceOutputEvent.EthRefund(it) }
+                            .map { WithdrawalServiceOutputEvent.EthRefund(it) }
                 }
             }
             else -> {
@@ -154,9 +156,9 @@ class WithdrawalServiceImpl(
      */
     override fun output(): Observable<Result<WithdrawalServiceOutputEvent, Exception>> {
         return irohaHandler
-            .map {
-                onIrohaEvent(it)
-            }
+                .map {
+                    onIrohaEvent(it)
+                }
     }
 
     /**

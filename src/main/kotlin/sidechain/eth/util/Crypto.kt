@@ -1,11 +1,10 @@
 package sidechain.eth.util
 
-import config.EthereumConfig
-import config.EthereumPasswords
 import notary.endpoint.eth.AmountType
+import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Hash
-import org.web3j.utils.Numeric
 import org.web3j.crypto.Sign
+import org.web3j.utils.Numeric
 import java.math.BigInteger
 
 /**
@@ -13,16 +12,14 @@ import java.math.BigInteger
  * @param toSign data to sign
  * @return signed data
  */
-fun signUserData(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPasswords, toSign: String): String {
+fun signUserData(ecKeyPair: ECKeyPair, toSign: String): String {
 
-    val deployHelper = DeployHelper(ethereumConfig, ethereumPasswords)
     // Message from hex to bytes
     val dat = Numeric.hexStringToByteArray(toSign)
     // Add ethereum signature format
     val to_sign = ("\u0019Ethereum Signed Message:\n" + (dat.size)).toByteArray()
     val data_sign = to_sign.plus(dat)
-    val signature = Sign.signMessage(data_sign, deployHelper.credentials.ecKeyPair, true)
-
+    val signature = Sign.signMessage(data_sign, ecKeyPair)
     // Combine in the signature
     var res = Numeric.toHexString(signature.r)
     res = res.plus(Numeric.toHexString(signature.s).substring(2))

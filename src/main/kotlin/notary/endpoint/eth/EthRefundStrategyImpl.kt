@@ -9,6 +9,8 @@ import config.IrohaConfig
 import iroha.protocol.TransactionOuterClass.Transaction
 import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
+import org.web3j.crypto.ECKeyPair
+import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
 import sidechain.iroha.consumer.IrohaNetwork
@@ -28,6 +30,8 @@ class EthRefundStrategyImpl(
     private val keypair: Keypair,
     private val whitelistSetter: String
 ) : EthRefundStrategy {
+
+    private var ecKeyPair: ECKeyPair = DeployHelper(ethereumConfig, ethereumPasswords).credentials.ecKeyPair
 
     override fun performRefund(request: EthRefundRequest): EthNotaryResponse {
         logger.info("check tx ${request.irohaTx} for refund")
@@ -120,7 +124,7 @@ class EthRefundStrategyImpl(
                     ethRefund.address,
                     ethRefund.irohaTxHash
                 )
-            val signature = signUserData(ethereumConfig, ethereumPasswords, finalHash)
+            val signature = signUserData(ecKeyPair, finalHash)
             EthNotaryResponse.Successful(signature, ethRefund)
         }
     }
@@ -152,4 +156,6 @@ class EthRefundStrategyImpl(
      * Logger
      */
     companion object : KLogging()
+
+
 }
