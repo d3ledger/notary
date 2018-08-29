@@ -19,6 +19,17 @@ interface IrohaNetwork {
     fun sendAndCheck(tx: TransactionOuterClass.Transaction, hash: Hash): Result<String, Exception>
 
     /**
+     * Send batch os transactions to Iroha and check if it is committed with status stream
+     * @param batch - list of transaction as a batch to send
+     * @param hashes - hashes of transactions
+     * @return Result with string representation of hashes that were committed or possible failure
+     */
+    fun sendAndCheck(
+        batch: List<TransactionOuterClass.Transaction>,
+        hashes: List<Hash>
+    ): Result<List<String>, Exception>
+
+    /**
      * Send query to Iroha
      * @param protoQuery - protobuf representation of query
      */
