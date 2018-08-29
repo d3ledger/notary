@@ -15,13 +15,13 @@ import sidechain.iroha.util.ModelUtil
 import util.getRandomId
 import java.io.File
 
+
 class BtcPublicKeyProvider(
     //BTC wallet
     private val wallet: Wallet,
     //BTC wallet file storage
     private val walletFile: File,
-    private val irohaConsumer: IrohaConsumer,
-    //Provider that helps us fetching all the peers registered in the network
+    private val irohaConsumer: IrohaConsumer,//Provider that helps us fetching all the peers registered in the network
     private val notaryPeerListProvider: NotaryPeerListProvider,
     //BTC registration account
     private val btcRegistrationAccount: String,

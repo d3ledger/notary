@@ -1,6 +1,7 @@
 package sidechain.iroha.consumer
 
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.google.protobuf.ByteString
 import iroha.protocol.Endpoint
@@ -86,7 +87,11 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
      */
     override fun sendAndCheck(tx: TransactionOuterClass.Transaction, hash: Hash): Result<String, Exception> {
         return Result.of { send(tx) }
-            .flatMap { checkTransactionStatus(hash) }
+            .flatMap {
+                val result = checkTransactionStatus(hash)
+                result.failure { it.printStackTrace() }
+                result
+            }
     }
 
     /**
@@ -101,7 +106,11 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
         hashes: List<Hash>
     ): Result<List<String>, Exception> {
         send(batch)
-        val results = hashes.map { checkTransactionStatus(it) }.filter { it.component1() != null }.map { it.get() }
+        val results = hashes.map {
+            val result = checkTransactionStatus(it)
+            result.failure { it.printStackTrace() }
+            result
+        }.filter { it.component1() != null }.map { it.get() }
         return Result.of { results }
     }
 

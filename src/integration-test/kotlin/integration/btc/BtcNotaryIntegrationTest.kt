@@ -1,5 +1,6 @@
 package integration.btc
 
+import enums.Domain
 import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Disabled
@@ -27,7 +28,7 @@ class BtcNotaryIntegrationTest {
         integrationHelper.generateBtcBlocks()
         notary.btc.executeNotary(integrationHelper.configHelper.createBtcNotaryConfig())
         val randomName = String.getRandomString(9)
-        val testClient = "$randomName@notary"
+        val testClient = "$randomName@${Domain.NOTARY.value}"
         val btcAddress = integrationHelper.registerBtcAddress(randomName)
         val initialBalance = integrationHelper.getIrohaAccountBalance(testClient, btcAsset)
         val btcAmount = 1

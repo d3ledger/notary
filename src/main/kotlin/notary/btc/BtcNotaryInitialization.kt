@@ -53,7 +53,6 @@ class BtcNotaryInitialization(
         peerGroup.downloadBlockChain()
         return Observable.create<SideChainEvent.PrimaryBlockChainEvent> { emitter ->
             wallet.addCoinsReceivedEventListener(ReceivedCoinsListener(btcAddressesProvider, confidenceLevel, emitter))
-
         }
     }
 

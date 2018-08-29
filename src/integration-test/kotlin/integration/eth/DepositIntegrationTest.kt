@@ -1,5 +1,6 @@
 package integration.eth
 
+import enums.Domain
 import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -28,7 +29,7 @@ class DepositIntegrationTest {
 
     /** Iroha client account */
     private val clientIrohaAccount = String.getRandomString(9)
-    private val clientIrohaAccountId = "$clientIrohaAccount@notary"
+    private val clientIrohaAccountId = "$clientIrohaAccount@${Domain.NOTARY.value}"
 
     /** Ethereum address to transfer to */
     private val relayWallet = registerRelay()

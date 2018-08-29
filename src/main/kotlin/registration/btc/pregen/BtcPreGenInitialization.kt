@@ -46,10 +46,10 @@ class BtcPreGenInitialization(
         )
     private val irohaNetwork = IrohaNetworkImpl(btcPreGenConfig.iroha.hostname, btcPreGenConfig.iroha.port)
 
-    /*
+/*
     Initiates listener that listens to events in trigger account.
     If trigger account is triggered, new session account full notary public keys will be created
-     */
+ */
     fun init(): Result<Unit, Exception> {
         return IrohaChainListener(
             btcPreGenConfig.iroha.hostname,

@@ -50,12 +50,15 @@ class IntegrationHelperUtil {
     val irohaKeyPair =
         ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
 
+
     val accountHelper by lazy { AccountHelper(irohaKeyPair) }
 
     val configHelper by lazy { ConfigHelper(accountHelper) }
 
     /** Ethereum utils */
     private val deployHelper by lazy { DeployHelper(configHelper.testConfig.ethereum, configHelper.ethPasswordConfig) }
+
+
 
     private val irohaNetwork by lazy {
         IrohaNetworkImpl(configHelper.testConfig.iroha.hostname, configHelper.testConfig.iroha.port)
@@ -288,6 +291,17 @@ class IntegrationHelperUtil {
             accountDetailHolder,
             accountDetailSetter
         ).get()
+    }
+
+    fun registerNotary(notaryName: String, notaryPort: Int) {
+        ModelUtil.setAccountDetail(
+            irohaConsumer,
+            accountHelper.notaryListSetterAccount,
+            accountHelper.notaryListStorageAccount,
+            notaryName,
+            "http://localhost:$notaryPort"
+        ).fold({ logger.info { "notary $notaryName was registered" } },
+            { ex -> logger.error("cannot register notary", ex) })
     }
 
     /**

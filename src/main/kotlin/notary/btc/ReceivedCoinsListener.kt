@@ -13,6 +13,7 @@ import java.math.BigInteger
 import java.util.concurrent.atomic.AtomicBoolean
 
 private const val BTC_ASSET_NAME = "btc"
+private const val BTC_CONFIDENCE_LEVEL = 6
 
 class ReceivedCoinsListener(
     private val btcAddressesProvider: BtcAddressesProvider,
