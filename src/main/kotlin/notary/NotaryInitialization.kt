@@ -93,13 +93,13 @@ class NotaryInitialization(
                 // Init Iroha Consumer pipeline
                 notary.irohaOutput()
                     // convert from Notary model to Iroha model
-                    // TODO rework Iroha batch transaction
-                    .flatMapIterable { IrohaConverterImpl().convert(it) }
                     .subscribeOn(Schedulers.io())
                     .subscribe(
                         // send to Iroha network layer
                         {
-                            irohaConsumer.sendAndCheck(it)
+                            val lst = IrohaConverterImpl().convert(it)
+
+                            irohaConsumer.sendAndCheck(lst)
                                 .fold(
                                     { logger.info { "send to Iroha success" } },
                                     { logger.error { "send failure $it" } }
