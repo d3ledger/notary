@@ -40,17 +40,7 @@ jobs:
 
       - run: sh .circleci/copy_bindings.sh
 
-      - setup_remote_docker
-
-      - run:
-          name: Start docker-compose
-          command: |
-            set -x
-            docker-compose -f deploy/docker-compose-dev.yml up --no-start
-            docker cp ./deploy/iroha/. d3-iroha:/opt/iroha_data/
-            docker-compose -f deploy/docker-compose-dev.yml up -d
-
       # run tests!
       - run: ./gradlew test --info
 
-      - run: ./gradlew integrationTest -Pprofile=deploy --info
+      - run: ./gradlew compileIntegrationTestKotlin --info
