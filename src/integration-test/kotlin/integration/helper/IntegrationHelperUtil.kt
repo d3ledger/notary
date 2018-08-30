@@ -460,7 +460,7 @@ class IntegrationHelperUtil {
      * Logger
      */
     companion object : KLogging() {
-        private var internalNotaryPort = 10000
+        private var internalNotaryPort = 20000
         fun generateNewPort(): Int {
             return internalNotaryPort++
         }

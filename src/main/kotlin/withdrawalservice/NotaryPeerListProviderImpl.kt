@@ -8,6 +8,6 @@ class NotaryPeerListProviderImpl() : NotaryPeerListProvider {
     override fun getPeerList(): List<PeerAddress> {
         // TODO replace with effective implementation
         // load from DB, think about hot addition of new peers
-        return listOf("http://localhost:10001")
+        return listOf("http://localhost:20001")
     }
 }
