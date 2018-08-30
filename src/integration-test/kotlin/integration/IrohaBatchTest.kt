@@ -14,6 +14,7 @@ import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
 import notary.NotaryConfig
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import sidechain.iroha.IrohaChainListener
@@ -59,6 +60,7 @@ class IrohaBatchTest {
      * @when All transactions are valid and sent as a batch
      * @then They all are accepted and committed in the same block
      */
+    @Disabled
     @Test
     fun allValidBatchTest() {
 
@@ -233,6 +235,7 @@ class IrohaBatchTest {
      * @when Not all transactions are valid and sent as a batch
      * @then Only valid are accepted and committed in the same block
      */
+    @Disabled
     @Test
     fun notAllValidBatchTest() {
         val user = randomString()

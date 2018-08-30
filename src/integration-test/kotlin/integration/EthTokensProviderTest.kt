@@ -11,22 +11,16 @@ import org.junit.jupiter.api.fail
 import provider.EthTokensProviderImpl
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.util.ModelUtil
+import util.getRandomString
 
 /**
  * Test Iroha Ethereum ERC20 tokens provider
  */
 class EthTokensProviderTest {
 
-    init {
-        IrohaInitialization.loadIrohaLibrary()
-            .failure { ex ->
-                ex.printStackTrace()
-                System.exit(1)
-            }
-    }
+    private val integrationHelper = IntegrationHelperUtil()
 
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
-    private val integrationHelper = IntegrationHelperUtil()
 
     /** Iroha keypair */
     private val irohaKeyPair = ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
@@ -61,6 +55,7 @@ class EthTokensProviderTest {
                 },
                 { ex -> fail("Cannot get tokens", ex) })
     }
+
     /**
      * Test US-002 Adding tokens using tokensProvider
      * Note: Iroha must be deployed to pass the test.
@@ -71,7 +66,7 @@ class EthTokensProviderTest {
     @Test
     fun testAddToken() {
         val initialNumberOfTokens = ethTokensProvider.getTokens().get().size
-        val newEthWallet = "0x123"
+        val newEthWallet = String.getRandomString(9)
         val newTokenName = "abc"
         ethTokensProvider.addToken(newEthWallet, newTokenName).failure { ex -> fail("Cannot add token", ex) }
         val tokens = ethTokensProvider.getTokens().get()

@@ -4,6 +4,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import config.IrohaConfig
 import jp.co.soramitsu.iroha.Keypair
+import mu.KLogging
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.getAccountDetails
 
@@ -22,6 +23,15 @@ class EthRelayProviderIrohaImpl(
     private val accountDetailSetter: String
 ) : EthRelayProvider {
 
+    init {
+        logger.info {
+            """Init relay provider:
+            |notary account: $accountDetailHolder
+            |registration account: $accountDetailSetter
+            """.trimMargin()
+        }
+    }
+
     private val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
     /**
      * Gets all non free relay wallets
@@ -39,4 +49,9 @@ class EthRelayProviderIrohaImpl(
             relays.filterValues { it != "free" }
         }
     }
+
+    /**
+     * Logger
+     */
+    companion object : KLogging()
 }

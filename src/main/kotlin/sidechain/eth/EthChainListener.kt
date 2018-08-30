@@ -19,6 +19,15 @@ class EthChainListener(
     private val web3: Web3j,
     private val confirmationPeriod: BigInteger
 ) : ChainListener<EthBlock> {
+
+    init {
+        logger.info {
+            """Init EthChainListener:
+                |confirmation period: $confirmationPeriod
+            """.trimMargin()
+        }
+    }
+
     /** Keep counting blocks to prevent double emitting in case of chain reorganisation */
     private var lastBlock = confirmationPeriod
 

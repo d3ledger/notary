@@ -5,13 +5,14 @@ import config.TestConfig
 import config.loadConfigs
 import notary.IrohaCommand
 import notary.IrohaTransaction
-import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.fail
 import provider.EthRelayProviderIrohaImpl
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
 /**
@@ -44,14 +45,6 @@ class EthRelayProviderIrohaTest {
 
     /** Iroha account that holds details */
     val detailHolder = testConfig.notaryIrohaAccount
-
-    /** Iroha network */
-    val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
-
-    @AfterAll
-    fun finit() {
-        irohaNetwork.shutdown()
-    }
 
     /**
      * @given [detailHolder] has ethereum wallets in details
