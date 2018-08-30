@@ -27,8 +27,10 @@ class WithdrawalIntegrationTest {
 
 
     /** Ethereum private key **/
-    private val keypair = DeployHelper(integrationHelper.testConfig.ethereum,
-            integrationHelper.passwordConfig).credentials.ecKeyPair
+    private val keypair = DeployHelper(
+        integrationHelper.testConfig.ethereum,
+        integrationHelper.passwordConfig
+    ).credentials.ecKeyPair
 
     /**
      * Test US-003 Withdrawal of ETH token
@@ -55,23 +57,23 @@ class WithdrawalIntegrationTest {
 
         // transfer assets from user to notary master account
         val hash = integrationHelper.transferAssetIrohaFromClient(
-                creator,
-                integrationHelper.irohaKeyPair,
-                creator,
-                masterAccount,
-                assetId,
-                ethWallet,
-                amount
+            creator,
+            integrationHelper.irohaKeyPair,
+            creator,
+            masterAccount,
+            assetId,
+            ethWallet,
+            amount
         )
 
         // query
         val res = khttp.get("http://127.0.0.1:8080/eth/$hash")
 
         val moshi = Moshi
-                .Builder()
-                .add(EthNotaryResponseMoshiAdapter())
-                .add(BigInteger::class.java, BigIntegerMoshiAdapter())
-                .build()!!
+            .Builder()
+            .add(EthNotaryResponseMoshiAdapter())
+            .add(BigInteger::class.java, BigIntegerMoshiAdapter())
+            .build()!!
         val ethNotaryAdapter = moshi.adapter(EthNotaryResponse::class.java)!!
         val response = ethNotaryAdapter.fromJson(res.jsonObject.toString())
 
@@ -84,15 +86,15 @@ class WithdrawalIntegrationTest {
 
 
         assertEquals(
-                signUserData(
-                        keypair,
-                        hashToWithdraw(
-                                assetId.split("#")[0],
-                                amount,
-                                ethWallet,
-                                hash
-                        )
-                ), response.ethSignature
+            signUserData(
+                keypair,
+                hashToWithdraw(
+                    assetId.split("#")[0],
+                    amount,
+                    ethWallet,
+                    hash
+                )
+            ), response.ethSignature
         )
     }
 

@@ -60,7 +60,13 @@ iroha: ${withdrawalConfig.iroha.hostname}:${withdrawalConfig.iroha.port}"""
     private fun initWithdrawalService(inputEvents: Observable<SideChainEvent.IrohaEvent>): WithdrawalService {
         logger.info { "Init Withdrawal Service" }
 
-        return WithdrawalServiceImpl(withdrawalConfig, withdrawalEthereumPasswords, irohaKeypair, irohaNetwork, inputEvents)
+        return WithdrawalServiceImpl(
+            withdrawalConfig,
+            withdrawalEthereumPasswords,
+            irohaKeypair,
+            irohaNetwork,
+            inputEvents
+        )
     }
 
     private fun initEthConsumer(withdrawalService: WithdrawalService): Result<Unit, Exception> {
