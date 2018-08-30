@@ -1,16 +1,10 @@
 package integration
 
-import com.github.kittinunf.result.failure
-import config.*
 import integration.helper.IntegrationHelperUtil
 import kotlinx.coroutines.experimental.async
-import notary.NotaryConfig
-import notary.RefundConfig
-import notary.executeNotary
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import sidechain.iroha.IrohaInitialization
 import util.getRandomString
 import java.math.BigInteger
 
@@ -22,25 +16,19 @@ const val WAIT_IROHA_MILLIS = 30_000L
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DepositIntegrationTest {
 
-    init {
-        IrohaInitialization.loadIrohaLibrary()
-            .failure { ex ->
-                println(ex)
-                System.exit(1)
-            }
-    }
-
+    /** Utility functions for integration tests */
     private val integrationHelper = IntegrationHelperUtil()
 
-    /** Configurations for tests */
-    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
+    /** Testing notrary configuration */
+    private val notaryConfig = integrationHelper.createNotaryConfig()
 
-    private val notaryConfig = loadConfigs("notary", NotaryConfig::class.java, "/notary.properties")
+    /** Ethereum assetId in Iroha */
+    private val etherAssetId = "ether#ethereum"
 
     init {
         // run notary
         async {
-            executeNotary(createConfig())
+            notary.executeNotary(notaryConfig)
         }
         Thread.sleep(3_000)
     }
@@ -52,7 +40,7 @@ class DepositIntegrationTest {
     /** Ethereum address to transfer to */
     private val relayWallet by lazy {
         integrationHelper.deployRelays(1)
-        integrationHelper.registerRelay(clientIrohaAccount)
+        integrationHelper.registerClient(clientIrohaAccount)
     }
 
     /**
@@ -65,15 +53,14 @@ class DepositIntegrationTest {
      */
     @Test
     fun depositOfETH() {
-        val assetId = "ether#ethereum"
-        val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId)
+        val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId)
         val amount = BigInteger.valueOf(1_234_000_000_000)
         // send ETH
         integrationHelper.sendEth(amount, relayWallet)
         Thread.sleep(WAIT_IROHA_MILLIS)
         Assertions.assertEquals(
             initialAmount + amount,
-            integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId)
+            integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId)
         )
     }
 
@@ -88,8 +75,7 @@ class DepositIntegrationTest {
      */
     @Test
     fun depositZeroETH() {
-        val assetId = "ether#ethereum"
-        val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId)
+        val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId)
         val zeroAmount = BigInteger.ZERO
         val amount = BigInteger.valueOf(1_234_000_000_000)
 
@@ -97,7 +83,10 @@ class DepositIntegrationTest {
         integrationHelper.sendEth(zeroAmount, relayWallet)
         Thread.sleep(WAIT_IROHA_MILLIS)
 
-        Assertions.assertEquals(initialAmount, integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId))
+        Assertions.assertEquals(
+            initialAmount,
+            integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId)
+        )
 
         // Send again 1234000000000 Ethereum network
         integrationHelper.sendEth(amount, relayWallet)
@@ -105,7 +94,7 @@ class DepositIntegrationTest {
 
         Assertions.assertEquals(
             initialAmount + amount,
-            integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId)
+            integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId)
         )
     }
 
@@ -120,10 +109,8 @@ class DepositIntegrationTest {
 
     @Test
     fun depositOfERC20() {
-        val asset = String.getRandomString(9)
-        val assetId = "$asset#ethereum"
-        // Deploy ERC20 smart contract
-        val tokenAddress = integrationHelper.deployERC20Token(asset)
+        val (tokenName, tokenAddress) = integrationHelper.deployRandomERC20Token()
+        val assetId = "$tokenName#ethereum"
         val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId)
         val amount = BigInteger.valueOf(51)
 
@@ -147,10 +134,8 @@ class DepositIntegrationTest {
 
     @Test
     fun depositZeroOfERC20() {
-        val asset = String.getRandomString(9)
-        // Deploy ERC20 smart contract
-        val tokenAddress = integrationHelper.deployERC20Token(asset)
-        val assetId = "$asset#ethereum"
+        val (tokenName, tokenAddress) = integrationHelper.deployRandomERC20Token()
+        val assetId = "$tokenName#ethereum"
         val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId)
         val zeroAmount = BigInteger.ZERO
         val amount = BigInteger.valueOf(51)
@@ -168,25 +153,6 @@ class DepositIntegrationTest {
             initialAmount + amount,
             integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId)
         )
-    }
-
-    private fun createConfig(): NotaryConfig {
-        return object : NotaryConfig {
-            override val registrationServiceIrohaAccount: String
-                get() = integrationHelper.registrationAccount
-            override val tokenStorageAccount: String
-                get() = integrationHelper.tokenStorageAccount
-            override val whitelistSetter: String
-                get() = notaryConfig.whitelistSetter
-            override val refund: RefundConfig
-                get() = notaryConfig.refund
-            override val iroha: IrohaConfig
-                get() = notaryConfig.iroha
-            override val ethereum: EthereumConfig
-                get() = testConfig.ethereum
-            override val bitcoin: BitcoinConfig
-                get() = notaryConfig.bitcoin
-        }
     }
 
 }
