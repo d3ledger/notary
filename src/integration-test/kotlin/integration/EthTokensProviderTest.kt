@@ -18,16 +18,9 @@ import util.getRandomString
  */
 class EthTokensProviderTest {
 
-    init {
-        IrohaInitialization.loadIrohaLibrary()
-            .failure { ex ->
-                ex.printStackTrace()
-                System.exit(1)
-            }
-    }
+    private val integrationHelper = IntegrationHelperUtil()
 
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
-    private val integrationHelper = IntegrationHelperUtil()
 
     /** Iroha keypair */
     private val irohaKeyPair = ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()

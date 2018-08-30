@@ -18,18 +18,10 @@ import java.math.BigInteger
  */
 class VacuumIntegrationTest {
 
-    init {
-        IrohaInitialization.loadIrohaLibrary()
-            .failure { ex ->
-                println(ex)
-                System.exit(1)
-            }
-    }
+    private val integrationHelper = IntegrationHelperUtil()
 
     /** Configurations for tests */
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
-
-    private val integrationHelper = IntegrationHelperUtil()
 
     /**
      * Test US-001 Vacuum of ETH
