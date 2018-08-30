@@ -124,21 +124,20 @@ class WithdrawalServiceImpl(
                     val ethNotaryAdapter = moshi.adapter(EthNotaryResponse::class.java)!!
                     val response = ethNotaryAdapter.fromJson(res.jsonObject.toString())
 
-                    if (response is EthNotaryResponse.Error) {
-                        logger.warn { "EthNotaryResponse.Error: ${response.reason}" }
-                        return@forEach
+                    when (response) {
+                        is EthNotaryResponse.Error -> {
+                            logger.warn { "EthNotaryResponse.Error: ${response.reason}" }
+                            return@forEach
+                        }
+
+                        is EthNotaryResponse.Successful -> {
+                            val signature = response.ethSignature
+                            val vrs = extractVRS(signature)
+                            vv.add(vrs.v)
+                            rr.add(vrs.r)
+                            ss.add(vrs.s)
+                        }
                     }
-
-                    // EthNotaryResponse.Error and EthNotaryResponse.Successful are only options
-                    // so we can check invariant here
-                    assert(response is EthNotaryResponse.Successful)
-                    response as EthNotaryResponse.Successful
-
-                    val signature = response.ethSignature
-                    val vrs = extractVRS(signature)
-                    vv.add(vrs.v)
-                    rr.add(vrs.r)
-                    ss.add(vrs.s)
                 }
                 RollbackApproval(coinAddress, amount, address, hash, rr, ss, vv, relayAddress)
             }
