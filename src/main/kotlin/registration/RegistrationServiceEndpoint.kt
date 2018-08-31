@@ -11,6 +11,7 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import mu.KLogging
+import notary.endpoint.RefundServerEndpoint
 
 data class Response(val code: HttpStatusCode, val message: String)
 
@@ -23,6 +24,8 @@ class RegistrationServiceEndpoint(
 ) {
 
     init {
+        RefundServerEndpoint.logger.info { "start registration server on port $port" }
+
         val server = embeddedServer(Netty, port = port) {
             install(CORS)
             {
