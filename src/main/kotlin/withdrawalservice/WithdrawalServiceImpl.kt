@@ -49,7 +49,6 @@ data class RollbackApproval(
  */
 class WithdrawalServiceImpl(
     val withdrawalServiceConfig: WithdrawalServiceConfig,
-    val withdrawalServicePasswords: EthereumPasswords,
     val keypair: Keypair,
     val irohaNetwork: IrohaNetwork,
     private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
@@ -108,6 +107,8 @@ class WithdrawalServiceImpl(
                 val ss = ArrayList<ByteArray>()
 
                 notaryPeerListProvider.getPeerList().forEach { peer ->
+                    logger.info { "Query $peer for proof" }
+
                     val res: khttp.responses.Response
                     try {
                         res = khttp.get("$peer/eth/$hash")
@@ -156,6 +157,8 @@ class WithdrawalServiceImpl(
     override fun onIrohaEvent(irohaEvent: SideChainEvent.IrohaEvent): Result<WithdrawalServiceOutputEvent, Exception> {
         when (irohaEvent) {
             is SideChainEvent.IrohaEvent.SideChainTransfer -> {
+                logger.info { "Iroha transfer event to ${irohaEvent.dstAccount}" }
+
                 if (irohaEvent.dstAccount == withdrawalServiceConfig.notaryIrohaAccount) {
                     logger.info { "Withdrawal event" }
                     return requestNotary(irohaEvent)

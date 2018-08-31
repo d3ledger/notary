@@ -23,6 +23,8 @@ class RegistrationServiceEndpoint(
 ) {
 
     init {
+        logger.info { "Start registration server on port $port" }
+
         val server = embeddedServer(Netty, port = port) {
             install(CORS)
             {
