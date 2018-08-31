@@ -16,6 +16,7 @@ import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
 import provider.EthRelayProvider
 import provider.EthTokensProvider
+import provider.EthTokensProviderImpl
 import sidechain.SideChainEvent
 import sidechain.eth.EthChainHandler
 import sidechain.eth.EthChainListener
@@ -123,6 +124,13 @@ class NotaryInitialization(
      * Init refund notary.endpoint
      */
     private fun initRefund() {
+        val ethTokensProvider = EthTokensProviderImpl(
+            notaryConfig.iroha,
+            irohaKeyPair,
+            notaryConfig.iroha.creator,
+            notaryConfig.tokenStorageAccount
+        )
+
         logger.info { "Init Refund notary.endpoint" }
         RefundServerEndpoint(
             ServerInitializationBundle(notaryConfig.refund.port, notaryConfig.refund.endpointEthereum),
@@ -132,7 +140,8 @@ class NotaryInitialization(
                 notaryConfig.ethereum,
                 passwordsConfig,
                 irohaKeyPair,
-                notaryConfig.whitelistSetter
+                notaryConfig.whitelistSetter,
+                ethTokensProvider
             )
         )
     }

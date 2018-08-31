@@ -9,6 +9,10 @@ import config.IrohaConfig
 import iroha.protocol.TransactionOuterClass.Transaction
 import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
+import provider.EthTokensProvider
+import sidechain.eth.util.findInTokens
+import org.web3j.crypto.ECKeyPair
+import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
 import sidechain.iroha.consumer.IrohaNetwork
@@ -26,8 +30,11 @@ class EthRefundStrategyImpl(
     val ethereumConfig: EthereumConfig,
     val ethereumPasswords: EthereumPasswords,
     private val keypair: Keypair,
-    private val whitelistSetter: String
+    private val whitelistSetter: String,
+    private val tokensProvider: EthTokensProvider
 ) : EthRefundStrategy {
+
+    private var ecKeyPair: ECKeyPair = DeployHelper(ethereumConfig, ethereumPasswords).credentials.ecKeyPair
 
     override fun performRefund(request: EthRefundRequest): EthNotaryResponse {
         logger.info("check tx ${request.irohaTx} for refund")
@@ -81,6 +88,9 @@ class EthRefundStrategyImpl(
 
                     val amount = commands.transferAsset.amount
                     val token = commands.transferAsset.assetId.dropLastWhile { it != '#' }.dropLast(1)
+                    val coins = tokensProvider.getTokens().get().toMutableMap()
+                    val coinAddress = findInTokens(token, coins)
+
                     val destEthAddress = commands.transferAsset.description
 
                     val srcAccountId = commands.transferAsset.srcAccountId
@@ -95,7 +105,7 @@ class EthRefundStrategyImpl(
                             { throw it }
                         )
 
-                    EthRefund(destEthAddress, token, amount, request.irohaTx)
+                    EthRefund(destEthAddress, coinAddress, amount, request.irohaTx)
                 }
                 else -> {
                     logger.error { "Transaction doesn't contain expected commands." }
@@ -120,7 +130,7 @@ class EthRefundStrategyImpl(
                     ethRefund.address,
                     ethRefund.irohaTxHash
                 )
-            val signature = signUserData(ethereumConfig, ethereumPasswords, finalHash)
+            val signature = signUserData(ecKeyPair, finalHash)
             EthNotaryResponse.Successful(signature, ethRefund)
         }
     }
