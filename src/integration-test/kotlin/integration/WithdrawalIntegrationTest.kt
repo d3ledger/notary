@@ -78,14 +78,14 @@ class WithdrawalIntegrationTest {
 
         assertEquals(amount, response.ethRefund.amount)
         assertEquals(ethWallet, response.ethRefund.address)
-        assertEquals("ether", response.ethRefund.assetId)
+        assertEquals("0x0000000000000000000000000000000000000000", response.ethRefund.assetId)
 
         assertEquals(
             signUserData(
                 integrationHelper.testConfig.ethereum,
                 integrationHelper.passwordConfig,
                 hashToWithdraw(
-                    assetId.split("#")[0],
+                    "0x0000000000000000000000000000000000000000",
                     amount,
                     ethWallet,
                     hash
