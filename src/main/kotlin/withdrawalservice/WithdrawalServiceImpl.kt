@@ -2,17 +2,20 @@ package withdrawalservice
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
+import com.squareup.moshi.Moshi
 import config.EthereumPasswords
 import io.reactivex.Observable
 import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
+import notary.endpoint.eth.AmountType
+import notary.endpoint.eth.BigIntegerMoshiAdapter
+import notary.endpoint.eth.EthNotaryResponse
+import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
 import provider.EthTokensProvider
 import provider.EthTokensProviderImpl
-import notary.endpoint.eth.AmountType
 import sidechain.SideChainEvent
 import sidechain.eth.util.extractVRS
-import sidechain.eth.util.hashToWithdraw
-import sidechain.eth.util.signUserData
+import sidechain.eth.util.findInTokens
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
 import java.math.BigInteger
@@ -87,23 +90,12 @@ class WithdrawalServiceImpl(
                 val hash = event.hash
                 val amount = event.amount
                 val coins = tokensProvider.getTokens().get().toMutableMap()
-                coins["0x0000000000000000000000000000000000000000"] = "ether"
-
                 if (!event.asset.contains("#ethereum")) {
                     throw Exception("Incorrect asset name in Iroha event: " + event.asset)
                 }
                 val asset = event.asset.replace("#ethereum", "")
 
-                var coinAddress = ""
-                for (coin in coins) {
-                    if (coin.value == asset) {
-                        coinAddress = coin.key
-                        break
-                    }
-                }
-                if (coinAddress == "") {
-                    throw Exception("Not supported token type")
-                }
+                val coinAddress = findInTokens(asset, coins)
 
                 val address = event.description
                 val vv = ArrayList<BigInteger>()
@@ -111,19 +103,41 @@ class WithdrawalServiceImpl(
                 val ss = ArrayList<ByteArray>()
 
                 notaryPeerListProvider.getPeerList().forEach { peer ->
-                    val res = khttp.get("$peer/eth/$hash")
+                    val res: khttp.responses.Response
+                    try {
+                        res = khttp.get("$peer/eth/$hash")
+                    } catch (e: Exception) {
+                        logger.warn { "Exception was thrown while refund server request: server $peer" }
+                        logger.warn { e.localizedMessage }
+                        return@forEach
+                    }
+                    if (res.statusCode != 200) {
+                        logger.warn { "Error happened while refund server request: server $peer, error ${res.statusCode}" }
+                        return@forEach
+                    }
 
-                    // TODO: replace with valid peer requests
-                    val signature =
-                        signUserData(
-                            withdrawalServiceConfig.ethereum,
-                            withdrawalServicePasswords,
-                            hashToWithdraw(coinAddress, amount, address, hash)
-                        )
-                    val vrs = extractVRS(signature)
-                    vv.add(vrs.v)
-                    rr.add(vrs.r)
-                    ss.add(vrs.s)
+                    val moshi = Moshi
+                        .Builder()
+                        .add(EthNotaryResponseMoshiAdapter())
+                        .add(BigInteger::class.java, BigIntegerMoshiAdapter())
+                        .build()!!
+                    val ethNotaryAdapter = moshi.adapter(EthNotaryResponse::class.java)!!
+                    val response = ethNotaryAdapter.fromJson(res.jsonObject.toString())
+
+                    when (response) {
+                        is EthNotaryResponse.Error -> {
+                            logger.warn { "EthNotaryResponse.Error: ${response.reason}" }
+                            return@forEach
+                        }
+
+                        is EthNotaryResponse.Successful -> {
+                            val signature = response.ethSignature
+                            val vrs = extractVRS(signature)
+                            vv.add(vrs.v)
+                            rr.add(vrs.r)
+                            ss.add(vrs.s)
+                        }
+                    }
                 }
                 RollbackApproval(coinAddress, amount, address, hash, rr, ss, vv, relayAddress)
             }
