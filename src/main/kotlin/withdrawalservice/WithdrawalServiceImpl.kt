@@ -102,7 +102,7 @@ class WithdrawalServiceImpl(
                 val ss = ArrayList<ByteArray>()
 
                 notaryPeerListProvider.getPeerList().forEach { peer ->
-                    logger.info { "query $peer for proof" }
+                    logger.info { "Query $peer for proof" }
 
                     val res: khttp.responses.Response
                     try {
