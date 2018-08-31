@@ -49,6 +49,7 @@ data class RollbackApproval(
  */
 class WithdrawalServiceImpl(
     val withdrawalServiceConfig: WithdrawalServiceConfig,
+    withdrawalServicePasswords: EthereumPasswords,
     val keypair: Keypair,
     val irohaNetwork: IrohaNetwork,
     private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
