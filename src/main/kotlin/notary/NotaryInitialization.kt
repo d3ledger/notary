@@ -11,6 +11,7 @@ import mu.KLogging
 import notary.endpoint.RefundServerEndpoint
 import notary.endpoint.ServerInitializationBundle
 import notary.endpoint.eth.EthRefundStrategyImpl
+import okhttp3.OkHttpClient
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
 import provider.EthRelayProvider
@@ -18,6 +19,7 @@ import provider.EthTokensProvider
 import sidechain.SideChainEvent
 import sidechain.eth.EthChainHandler
 import sidechain.eth.EthChainListener
+import sidechain.eth.util.BasicAuthenticator
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.consumer.IrohaNetwork
@@ -59,7 +61,10 @@ class NotaryInitialization(
     private fun initEthChain(): Result<Observable<SideChainEvent.EthereumEvent>, Exception> {
         logger.info { "Init Eth chain" }
 
-        val web3 = Web3j.build(HttpService(notaryConfig.ethereum.url))
+        val builder = OkHttpClient().newBuilder()
+        builder.authenticator(BasicAuthenticator(passwordsConfig))
+        val web3 = Web3j.build(HttpService(notaryConfig.ethereum.url, builder.build(), false))
+
         /** List of all observable wallets */
         val ethHandler = EthChainHandler(web3, ethRelayProvider, ethTokensProvider)
         return EthChainListener(

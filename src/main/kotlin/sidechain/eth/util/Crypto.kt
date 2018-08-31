@@ -1,8 +1,10 @@
 package sidechain.eth.util
 
+import com.sun.net.httpserver.BasicAuthenticator
 import config.EthereumConfig
 import config.EthereumPasswords
 import notary.endpoint.eth.AmountType
+import okhttp3.OkHttpClient
 import org.web3j.crypto.Hash
 import org.web3j.protocol.admin.Admin
 import org.web3j.protocol.http.HttpService
@@ -19,7 +21,9 @@ fun signUserData(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPass
     // TODO luckychess 26.06.2018 D3-100 find a way to produce correct signatures locally
     val deployHelper = DeployHelper(ethereumConfig, ethereumPasswords)
 
-    val admin = Admin.build(HttpService(ethereumConfig.url))
+    val builder = OkHttpClient().newBuilder()
+    builder.authenticator(BasicAuthenticator(ethereumPasswords))
+    val admin = Admin.build(HttpService(ethereumConfig.url, builder.build(), false))
     admin.personalUnlockAccount(deployHelper.credentials.address, ethereumPasswords.credentialsPassword).send()
     // TODO: signalize about error if unlock fails
 

@@ -31,6 +31,8 @@ interface EthereumConfig {
  */
 interface EthereumPasswords {
     val credentialsPassword: String
+    val nodeLogin: String
+    val nodePassword: String
 }
 
 /**
