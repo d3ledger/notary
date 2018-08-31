@@ -26,7 +26,7 @@ class WithdrawalServiceInitialization(
     init {
         logger.info {
             """Start withdrawal service initialization with configs:
-iroha: ${withdrawalConfig.iroha.hostname}:${withdrawalConfig.iroha.port}"""
+                |iroha: ${withdrawalConfig.iroha.hostname}:${withdrawalConfig.iroha.port}""".trimMargin()
         }
     }
 
@@ -60,7 +60,7 @@ iroha: ${withdrawalConfig.iroha.hostname}:${withdrawalConfig.iroha.port}"""
     private fun initWithdrawalService(inputEvents: Observable<SideChainEvent.IrohaEvent>): WithdrawalService {
         logger.info { "Init Withdrawal Service" }
 
-        return WithdrawalServiceImpl(withdrawalConfig, withdrawalEthereumPasswords, irohaKeypair, irohaNetwork, inputEvents)
+        return WithdrawalServiceImpl(withdrawalConfig, irohaKeypair, irohaNetwork, inputEvents)
     }
 
     private fun initEthConsumer(withdrawalService: WithdrawalService): Result<Unit, Exception> {
@@ -73,10 +73,10 @@ iroha: ${withdrawalConfig.iroha.hostname}:${withdrawalConfig.iroha.port}"""
                     it.map {
                         ethConsumer.consume(it)
                     }.failure {
-                        logger.error { it }
+                        logger.error("WithdrawalServiceOutputEvent", it)
                     }
                 }, {
-                    logger.error { it }
+                    logger.error("Withdrawal observable error", it)
                 })
             Unit
         }
