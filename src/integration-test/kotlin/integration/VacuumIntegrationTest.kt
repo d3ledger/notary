@@ -7,6 +7,7 @@ import integration.helper.IntegrationHelperUtil
 import kotlinx.coroutines.experimental.async
 import mu.KLogging
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import sidechain.iroha.IrohaInitialization
 import vacuum.RelayVacuumConfig
@@ -17,18 +18,10 @@ import java.math.BigInteger
  */
 class VacuumIntegrationTest {
 
-    init {
-        IrohaInitialization.loadIrohaLibrary()
-            .failure { ex ->
-                println(ex)
-                System.exit(1)
-            }
-    }
+    private val integrationHelper = IntegrationHelperUtil()
 
     /** Configurations for tests */
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
-
-    private val integrationHelper = IntegrationHelperUtil()
 
     /**
      * Test US-001 Vacuum of ETH
@@ -37,6 +30,7 @@ class VacuumIntegrationTest {
      * @when vacuum is invoked
      * @then all ETH assets from deployed relay contracts transferred to master contract
      */
+    @Disabled
     @Test
     fun testVacuum() {
         deployFewTokens()

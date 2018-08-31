@@ -6,10 +6,10 @@ import kotlinx.coroutines.experimental.async
 import notary.endpoint.eth.BigIntegerMoshiAdapter
 import notary.endpoint.eth.EthNotaryResponse
 import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
-import notary.main
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import sidechain.eth.util.DeployHelper
+import org.junit.jupiter.api.TestInstance
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
 import java.math.BigInteger
@@ -17,13 +17,20 @@ import java.math.BigInteger
 /**
  * Class for Ethereum sidechain infrastructure deployment and communication.
  */
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class WithdrawalIntegrationTest {
 
     /** Integration tests util */
     private val integrationHelper = IntegrationHelperUtil()
 
-    /** Iroha transaction creator */
-    private val creator = integrationHelper.testConfig.iroha.creator
+    /** Test Notary configuration */
+    private val notaryConfig = integrationHelper.createNotaryConfig()
+
+    init {
+        async {
+            notary.executeNotary(notaryConfig)
+        }
+    }
 
 
     /** Ethereum private key **/
@@ -41,25 +48,21 @@ class WithdrawalIntegrationTest {
      */
     @Test
     fun testRefund() {
-        async {
-            main(arrayOf())
-        }
-
         val masterAccount = integrationHelper.testConfig.notaryIrohaAccount
         val amount = "64203"
         val assetId = "ether#ethereum"
         val ethWallet = "eth_wallet"
 
-        // add assets to user
-        integrationHelper.addIrohaAssetTo(creator, assetId, amount)
-
-        integrationHelper.setWhitelist(creator, listOf("0x123", ethWallet))
+        // create
+        val client = integrationHelper.registerClient()
+        integrationHelper.addIrohaAssetTo(client, assetId, amount)
+        integrationHelper.setWhitelist(client, listOf("0x123", ethWallet))
 
         // transfer assets from user to notary master account
         val hash = integrationHelper.transferAssetIrohaFromClient(
-            creator,
+            client,
             integrationHelper.irohaKeyPair,
-            creator,
+            client,
             masterAccount,
             assetId,
             ethWallet,
@@ -67,7 +70,8 @@ class WithdrawalIntegrationTest {
         )
 
         // query
-        val res = khttp.get("http://127.0.0.1:8080/eth/$hash")
+        val res =
+            khttp.get("http://127.0.0.1:${notaryConfig.refund.port}/${notaryConfig.refund.endpointEthereum}/$hash")
 
         val moshi = Moshi
             .Builder()
@@ -82,14 +86,13 @@ class WithdrawalIntegrationTest {
 
         assertEquals(amount, response.ethRefund.amount)
         assertEquals(ethWallet, response.ethRefund.address)
-        assertEquals("ether", response.ethRefund.assetId)
-
+        assertEquals("0x0000000000000000000000000000000000000000", response.ethRefund.assetId)
 
         assertEquals(
             signUserData(
                 keypair,
                 hashToWithdraw(
-                    assetId.split("#")[0],
+                    "0x0000000000000000000000000000000000000000",
                     amount,
                     ethWallet,
                     hash

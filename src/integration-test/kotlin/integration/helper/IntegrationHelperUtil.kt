@@ -3,15 +3,17 @@ package integration.helper
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.success
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
-import config.*
+import config.EthereumPasswords
+import config.IrohaConfig
+import config.TestConfig
+import config.loadConfigs
 import contract.Master
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.QueryServiceGrpc
 import jp.co.soramitsu.iroha.*
 import mu.KLogging
 import notary.NotaryConfig
+import notary.RefundConfig
 import org.junit.jupiter.api.fail
 import org.web3j.protocol.core.DefaultBlockParameterName
 import provider.EthFreeRelayProvider
@@ -123,78 +125,59 @@ class IntegrationHelperUtil {
     /** Test configuration for Iroha */
     private fun createIrohaConfig(): IrohaConfig {
         return object : IrohaConfig {
-            override val hostname: String
-                get() = withdrawalConfig.iroha.hostname
-            override val port: Int
-                get() = withdrawalConfig.iroha.port
-            override val creator: String
-                get() = registrationAccount
-            override val pubkeyPath: String
-                get() = withdrawalConfig.iroha.pubkeyPath
-            override val privkeyPath: String
-                get() = withdrawalConfig.iroha.privkeyPath
+            override val hostname = withdrawalConfig.iroha.hostname
+            override val port = withdrawalConfig.iroha.port
+            override val creator = registrationAccount
+            override val pubkeyPath = withdrawalConfig.iroha.pubkeyPath
+            override val privkeyPath = withdrawalConfig.iroha.privkeyPath
+        }
+    }
+
+    /**
+     * Test configuration for refund endpoint
+     * Create unique port for refund for every call
+     */
+    fun createRefundConfig(): RefundConfig {
+        return object : RefundConfig {
+            override val endpointEthereum = notaryConfig.refund.endpointEthereum
+            override val port = generateNewPort()
         }
     }
 
     /** Test configuration of Notary with runtime dependencies */
-    private fun createNotaryConfig(): NotaryConfig {
-        return mock {
-            on { registrationServiceIrohaAccount } doReturn registrationAccount
-            on { tokenStorageAccount } doReturn tokenStorageAccount
-            on { whitelistSetter } doReturn testConfig.whitelistSetter
-            on { refund } doReturn notaryConfig.refund
-            on { iroha } doReturn notaryConfig.iroha
-            on { ethereum } doReturn notaryConfig.ethereum
-            on { bitcoin } doReturn notaryConfig.bitcoin
+    fun createNotaryConfig(): NotaryConfig {
+        val outerTokenStorageAccount = tokenStorageAccount
+        return object : NotaryConfig {
+            override val registrationServiceIrohaAccount = registrationAccount
+            override val tokenStorageAccount = outerTokenStorageAccount
+            override val whitelistSetter = testConfig.whitelistSetter
+            override val refund = createRefundConfig()
+            override val iroha = notaryConfig.iroha
+            override val ethereum = notaryConfig.ethereum
+            override val bitcoin = notaryConfig.bitcoin
         }
     }
 
     /** Test configuration of Withdrawal service with runtime dependencies */
-    private fun createWithdrawalConfig(): WithdrawalServiceConfig {
+    fun createWithdrawalConfig(): WithdrawalServiceConfig {
         val outerTokenStorageAccount = tokenStorageAccount
         return object : WithdrawalServiceConfig {
-            override val notaryIrohaAccount: String
-                get() = withdrawalConfig.notaryIrohaAccount
-            override val tokenStorageAccount: String
-                get() = outerTokenStorageAccount
-            override val registrationIrohaAccount: String
-                get() = registrationAccount
-            override val iroha: IrohaConfig
-                get() = createIrohaConfig()
-            override val ethereum: EthereumConfig
-                get() = withdrawalConfig.ethereum
+            override val notaryIrohaAccount = withdrawalConfig.notaryIrohaAccount
+            override val tokenStorageAccount = outerTokenStorageAccount
+            override val registrationIrohaAccount = registrationAccount
+            override val iroha = createIrohaConfig()
+            override val ethereum = withdrawalConfig.ethereum
         }
     }
 
     /** Test configuration of Registration with runtime dependencies */
-    private fun createRegistrationConfig(): RegistrationConfig {
-        return mock {
-            on { port } doReturn registrationConfig.port
-            on { relayRegistrationIrohaAccount } doReturn registrationAccount
-            on { notaryIrohaAccount } doReturn registrationConfig.notaryIrohaAccount
-            on { iroha } doReturn createIrohaConfig()
+    fun createRegistrationConfig(): RegistrationConfig {
+        return object : RegistrationConfig {
+            override val port = generateNewPort()
+            override val relayRegistrationIrohaAccount = registrationAccount
+            override val notaryIrohaAccount = registrationConfig.notaryIrohaAccount
+            override val iroha = createIrohaConfig()
         }
-    }
-
-    /**
-     * Run Notary service instance with integration test environment
-     */
-    fun runNotary() {
-        notary.executeNotary(createNotaryConfig())
-    }
-
-    /**
-     * Run Withdrawal service instance with integration test environment
-     */
-    fun runWithdrawal() {
-        withdrawalservice.executeWithdrawal(createWithdrawalConfig(), passwordConfig)
-    }
-
-    /**
-     * Run Registration service instance with integration test environment
-     */
-    fun runRegistration() {
-        registration.executeRegistration(createRegistrationConfig())
     }
 
     /**
@@ -221,6 +204,7 @@ class IntegrationHelperUtil {
      * @return token name in iroha and address of ERC20 smart contract
      */
     fun deployERC20Token(tokenName: String): String {
+        logger.info { "create $tokenName ERC20 token" }
         val tokenAddress = deployHelper.deployERC20TokenSmartContract().contractAddress
         ModelUtil.createAsset(irohaConsumer, testConfig.iroha.creator, tokenName, "ethereum", 0)
         addERC20Token(tokenName, tokenAddress)
@@ -266,18 +250,9 @@ class IntegrationHelperUtil {
      * Deploys ETH master contract
      */
     private fun deployMasterEth(): Master {
-        ethTokensProvider.getTokens()
-            .fold(
-                { tokens ->
-                    val master = deployHelper.deployMasterSmartContract()
-                    for (token in tokens) {
-                        master.addToken(token.key).send()
-                        logger.info { "add token ${token.key} to master" }
-                    }
-                    master.addPeer(notaryEthAddress).send()
-                    return master
-                },
-                { ex -> throw ex })
+        val master = deployHelper.deployMasterSmartContract()
+        master.addPeer(notaryEthAddress).send()
+        return master
     }
 
     /**
@@ -285,18 +260,18 @@ class IntegrationHelperUtil {
      */
     fun deployRelays(relaysToDeploy: Int) {
         relayRegistration.deploy(relaysToDeploy, masterContract.contractAddress, registrationAccount)
-        logger.info("relays were deployed")
+        logger.info("relays were deployed by $registrationAccount")
         Thread.sleep(10_000)
     }
 
     /**
-     * Registers first free relay contract in Iroha with given name and public key
+     * Registers first free relay contract in Iroha to the client with given [name] and public key
      */
-    fun registerRelay(name: String): String {
+    fun registerClient(name: String): String {
         val keypair = ModelCrypto().generateKeypair()
         registrationStrategy.register(name, keypair.publicKey().hex())
             .fold({ registeredEthWallet ->
-                logger.info("registered eth wallet $registeredEthWallet")
+                logger.info("registered client $name with relay $registeredEthWallet")
                 return registeredEthWallet
             },
                 { ex -> throw RuntimeException("$name was not registered", ex) })
@@ -306,8 +281,7 @@ class IntegrationHelperUtil {
      * Registers first free relay contract in Iroha with random name and public key
      */
     fun registerRandomRelay(): String {
-
-        val ethWallet = registerRelay(String.getRandomString(9))
+        val ethWallet = registerClient(String.getRandomString(9))
         Thread.sleep(10_000)
         return ethWallet
     }
@@ -472,10 +446,11 @@ class IntegrationHelperUtil {
      * Send HTTP POST request to registration service to register user
      * @param name - user name
      * @param pubkey - user public key
+     * @param port - port of registration service
      */
-    fun sendRegistrationRequest(name: String, pubkey: PublicKey): khttp.responses.Response {
+    fun sendRegistrationRequest(name: String, pubkey: PublicKey, port: Int): khttp.responses.Response {
         return khttp.post(
-            "http://127.0.0.1:${registrationConfig.port}/users",
+            "http://127.0.0.1:${port}/users",
             data = mapOf("name" to name, "pubkey" to pubkey.hex())
         )
 
@@ -484,5 +459,10 @@ class IntegrationHelperUtil {
     /**
      * Logger
      */
-    companion object : KLogging()
+    companion object : KLogging() {
+        private var internalNotaryPort = 20000
+        fun generateNewPort(): Int {
+            return internalNotaryPort++
+        }
+    }
 }

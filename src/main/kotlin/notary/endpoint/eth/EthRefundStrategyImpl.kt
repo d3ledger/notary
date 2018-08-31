@@ -9,6 +9,8 @@ import config.IrohaConfig
 import iroha.protocol.TransactionOuterClass.Transaction
 import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
+import provider.EthTokensProvider
+import sidechain.eth.util.findInTokens
 import org.web3j.crypto.ECKeyPair
 import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.hashToWithdraw
@@ -28,7 +30,8 @@ class EthRefundStrategyImpl(
     val ethereumConfig: EthereumConfig,
     val ethereumPasswords: EthereumPasswords,
     private val keypair: Keypair,
-    private val whitelistSetter: String
+    private val whitelistSetter: String,
+    private val tokensProvider: EthTokensProvider
 ) : EthRefundStrategy {
 
     private var ecKeyPair: ECKeyPair = DeployHelper(ethereumConfig, ethereumPasswords).credentials.ecKeyPair
@@ -85,6 +88,9 @@ class EthRefundStrategyImpl(
 
                     val amount = commands.transferAsset.amount
                     val token = commands.transferAsset.assetId.dropLastWhile { it != '#' }.dropLast(1)
+                    val coins = tokensProvider.getTokens().get().toMutableMap()
+                    val coinAddress = findInTokens(token, coins)
+
                     val destEthAddress = commands.transferAsset.description
 
                     val srcAccountId = commands.transferAsset.srcAccountId
@@ -99,7 +105,7 @@ class EthRefundStrategyImpl(
                             { throw it }
                         )
 
-                    EthRefund(destEthAddress, token, amount, request.irohaTx)
+                    EthRefund(destEthAddress, coinAddress, amount, request.irohaTx)
                 }
                 else -> {
                     logger.error { "Transaction doesn't contain expected commands." }
@@ -156,6 +162,4 @@ class EthRefundStrategyImpl(
      * Logger
      */
     companion object : KLogging()
-
-
 }
