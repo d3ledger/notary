@@ -106,7 +106,6 @@ class DepositIntegrationTest {
      * @when "fromAddress" transfers 51 coin to "relayWallet"
      * @then Associated Iroha account balance is increased on 51 coin
      */
-
     @Test
     fun depositOfERC20() {
         val (tokenName, tokenAddress) = integrationHelper.deployRandomERC20Token()
@@ -131,7 +130,6 @@ class DepositIntegrationTest {
      * @when "fromAddress" transfers 0 tokens to "relayWallet" and then "fromAddress" transfers 51 coin to "relayWallet"
      * @then Associated Iroha account balance is increased on 51 coin
      */
-
     @Test
     fun depositZeroOfERC20() {
         val (tokenName, tokenAddress) = integrationHelper.deployRandomERC20Token()
