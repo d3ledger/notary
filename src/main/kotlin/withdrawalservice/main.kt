@@ -13,9 +13,9 @@ import sidechain.iroha.IrohaInitialization
  * Main entry point of Withdrawal Service app
  */
 fun main(args: Array<String>) {
-    val withdrawalConfig = loadConfigs("withdrawal", WithdrawalServiceConfig::class.java, "/withdrawal.properties")
+    val withdrawalConfig = loadConfigs("withdrawal", WithdrawalServiceConfig::class.java, "/eth/withdrawal.properties")
     val passwordConfig =
-        loadConfigs("withdrawal", EthereumPasswords::class.java, "/ethereum_password.properties")
+        loadConfigs("withdrawal", EthereumPasswords::class.java, "/eth/ethereum_password.properties")
     executeWithdrawal(withdrawalConfig, passwordConfig)
 }
 
@@ -24,9 +24,8 @@ fun executeWithdrawal(withdrawalConfig: WithdrawalServiceConfig, passwordConfig:
 
     IrohaInitialization.loadIrohaLibrary()
         .flatMap { WithdrawalServiceInitialization(withdrawalConfig, passwordConfig).init() }
-        .failure {
-            logger.logger.error { it }
+        .failure { ex ->
+            logger.logger.error("cannot run withdrawal service", ex)
             System.exit(1)
         }
-
 }

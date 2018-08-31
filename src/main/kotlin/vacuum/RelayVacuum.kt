@@ -7,8 +7,8 @@ import config.EthereumPasswords
 import contract.Relay
 import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
-import provider.EthRelayProviderIrohaImpl
-import provider.EthTokensProviderImpl
+import provider.eth.EthRelayProviderIrohaImpl
+import provider.eth.EthTokensProviderImpl
 import sidechain.eth.util.DeployHelper
 
 /**

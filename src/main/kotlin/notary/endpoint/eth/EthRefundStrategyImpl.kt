@@ -9,10 +9,10 @@ import config.IrohaConfig
 import iroha.protocol.TransactionOuterClass.Transaction
 import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
-import provider.EthTokensProvider
-import sidechain.eth.util.findInTokens
 import org.web3j.crypto.ECKeyPair
+import provider.eth.EthTokensProvider
 import sidechain.eth.util.DeployHelper
+import sidechain.eth.util.findInTokens
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
 import sidechain.iroha.consumer.IrohaNetwork
@@ -27,8 +27,8 @@ class NotaryException(reason: String) : Exception(reason)
 class EthRefundStrategyImpl(
     val irohaConfig: IrohaConfig,
     val irohaNetwork: IrohaNetwork,
-    val ethereumConfig: EthereumConfig,
-    val ethereumPasswords: EthereumPasswords,
+    ethereumConfig: EthereumConfig,
+    ethereumPasswords: EthereumPasswords,
     private val keypair: Keypair,
     private val whitelistSetter: String,
     private val tokensProvider: EthTokensProvider
@@ -43,7 +43,10 @@ class EthRefundStrategyImpl(
             .flatMap { checkTransaction(it, request) }
             .flatMap { makeRefund(it) }
             .fold({ it },
-                { EthNotaryResponse.Error(it.toString()) })
+                { ex ->
+                    logger.error("cannot perform refund", ex)
+                    EthNotaryResponse.Error(ex.toString())
+                })
     }
 
     /**
@@ -60,7 +63,7 @@ class EthRefundStrategyImpl(
             val commands = appearedTx.payload.reducedPayload.getCommands(0)
 
             when {
-            // rollback case
+                // rollback case
                 appearedTx.payload.reducedPayload.commandsCount == 1 &&
                         commands.hasSetAccountDetail() -> {
 
@@ -79,7 +82,7 @@ class EthRefundStrategyImpl(
 
                     EthRefund(destEthAddress, "mockCoinType", "10", request.irohaTx)
                 }
-            // withdrawal case
+                // withdrawal case
                 (appearedTx.payload.reducedPayload.commandsCount == 1) &&
                         commands.hasTransferAsset() -> {
                     val destAccount = commands.transferAsset.destAccountId
