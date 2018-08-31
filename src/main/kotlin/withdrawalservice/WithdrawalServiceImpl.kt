@@ -14,6 +14,7 @@ import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
 import provider.EthTokensProvider
 import provider.EthTokensProviderImpl
 import sidechain.SideChainEvent
+import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.extractVRS
 import sidechain.eth.util.findInTokens
 import sidechain.iroha.consumer.IrohaNetwork
@@ -48,6 +49,7 @@ data class RollbackApproval(
  */
 class WithdrawalServiceImpl(
     val withdrawalServiceConfig: WithdrawalServiceConfig,
+    withdrawalServicePasswords: EthereumPasswords,
     val keypair: Keypair,
     val irohaNetwork: IrohaNetwork,
     private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
@@ -60,6 +62,10 @@ class WithdrawalServiceImpl(
         withdrawalServiceConfig.tokenStorageAccount
     )
     private val masterAccount = withdrawalServiceConfig.notaryIrohaAccount
+    private val ecKeyPair = DeployHelper(
+        withdrawalServiceConfig.ethereum,
+        withdrawalServicePasswords
+    ).credentials.ecKeyPair
 
     private fun findInAccDetail(acc: String, name: String): Result<String, Exception> {
         return getAccountDetails(

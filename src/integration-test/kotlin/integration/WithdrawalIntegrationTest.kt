@@ -8,6 +8,7 @@ import notary.endpoint.eth.EthNotaryResponse
 import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import sidechain.eth.util.DeployHelper
 import org.junit.jupiter.api.TestInstance
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
@@ -30,6 +31,13 @@ class WithdrawalIntegrationTest {
             notary.executeNotary(notaryConfig)
         }
     }
+
+
+    /** Ethereum private key **/
+    private val keypair = DeployHelper(
+        integrationHelper.testConfig.ethereum,
+        integrationHelper.passwordConfig
+    ).credentials.ecKeyPair
 
     /**
      * Test US-003 Withdrawal of ETH token
@@ -82,8 +90,7 @@ class WithdrawalIntegrationTest {
 
         assertEquals(
             signUserData(
-                integrationHelper.testConfig.ethereum,
-                integrationHelper.passwordConfig,
+                keypair,
                 hashToWithdraw(
                     "0x0000000000000000000000000000000000000000",
                     amount,
