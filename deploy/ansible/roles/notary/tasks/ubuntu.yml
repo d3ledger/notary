@@ -1,0 +1,47 @@
+---
+  - setup:
+
+  - name: Create root folder
+    file:
+      path: /opt/notary
+      state: directory
+    become: yes
+
+  - name: Copy services folders
+    copy:
+      src: "{{ item }}"
+      dest: /opt/notary
+    with_items:
+      - "{{ projectRoot }}/deploy/iroha"
+      - "{{ projectRoot }}/deploy/ethereum"
+    become: yes
+
+  - name: Make iroha entrypoint executable
+    file:
+      path: /opt/notary/iroha/entrypoint.sh
+      mode: 0555
+    become: yes
+
+
+  - name: Copy docker compose
+    copy:
+      src: "{{ projectRoot }}/deploy/docker-compose-full.yml"
+      dest: /opt/notary/docker-compose.yml
+    become: yes
+
+  - name: Shutdown compose
+    docker_service:
+      project_src: /opt/notary
+      state: absent
+    become: yes
+
+  - name: Run compose
+    docker_service:
+      project_src: /opt/notary
+    register: output
+    become: yes
+
+
+  - name: Print
+    debug:
+      var: output

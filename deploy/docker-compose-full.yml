@@ -28,18 +28,14 @@ services:
       - /var/lib/postgresql/data
 
   d3-deploy-relay:
-    build:
-      context: ..
-      dockerfile: deploy-relay.dockerfile
+    image: x3medima17/relay
     container_name: d3-deploy-relay
     depends_on:
       - d3-iroha
       # - d3-eth-node0
 
   d3-registration:
-    build:
-      context: ..
-      dockerfile: registration.dockerfile
+    image: x3medima17/registration
     container_name: d3-registration
     depends_on:
       - d3-iroha
@@ -48,9 +44,7 @@ services:
       - 8083:8083
 
   d3-notary:
-    build:
-      context: ..
-      dockerfile: notary.dockerfile
+    image: x3medima17/notary
     container_name: d3-notary
     depends_on:
       - d3-iroha
@@ -59,17 +53,14 @@ services:
       - 8080:8080
 
   d3-withdrawal:
-    build:
-      context: ..
-      dockerfile: withdrawal.dockerfile
+    image: x3medima17/withdrawal
     container_name: d3-withdrawal
     depends_on:
       - d3-iroha
      # - d3-eth-node0
 
   grpcwebproxy:
-    build:
-      context: grpcwebproxy/
+    image: x3medima17/grpcwebproxy
     container_name: d3-grpcwebproxy
     depends_on:
       - d3-iroha
