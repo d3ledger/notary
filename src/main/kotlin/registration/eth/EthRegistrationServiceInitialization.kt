@@ -2,6 +2,7 @@ package registration.eth
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
+import mu.KLogging
 import provider.eth.EthFreeRelayProvider
 import registration.RegistrationServiceEndpoint
 import sidechain.iroha.consumer.IrohaConsumerImpl
@@ -13,6 +14,13 @@ import sidechain.iroha.util.ModelUtil
  * @param ethRegistrationConfig - configurations of registration service
  */
 class EthRegistrationServiceInitialization(private val ethRegistrationConfig: EthRegistrationConfig) {
+
+    init {
+        logger.info {
+            """Start registration service initialization with configs:
+                |iroha creator: ${ethRegistrationConfig.iroha.creator}""".trimMargin()
+        }
+    }
 
     /**
      * Init Registration Service
@@ -50,5 +58,10 @@ class EthRegistrationServiceInitialization(private val ethRegistrationConfig: Et
             Unit
         }
     }
+
+    /**
+     * Logger
+     */
+    companion object : KLogging()
 
 }
