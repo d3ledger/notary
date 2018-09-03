@@ -1,7 +1,5 @@
 package integration.eth
 
-import config.EthereumPasswords
-import config.loadConfigs
 import integration.helper.IntegrationHelperUtil
 import jp.co.soramitsu.iroha.ModelCrypto
 import kotlinx.coroutines.experimental.async

@@ -26,7 +26,7 @@ class NotaryImpl(
 
     /**
      * Handles primary chain deposit event. Notaries create the ordered bunch of
-     * transactions:{tx1: setAccountDetail, tx2: CreateAsset, tx3: addAssetQuantity, transferAsset}.
+     * transactions: {tx1: setAccountDetail, tx2: addAssetQuantity, transferAsset}.
      * SetAccountDetail insert into notary account information about the transaction (hash) for rollback.
      */
     private fun onPrimaryChainDeposit(
@@ -49,16 +49,6 @@ class NotaryImpl(
                             creator,
                             "last_tx",
                             hash
-                        )
-                    )
-                ),
-                IrohaTransaction(
-                    creator,
-                    arrayListOf(
-                        IrohaCommand.CommandCreateAsset(
-                            asset,
-                            domain,
-                            0
                         )
                     )
                 ),

@@ -12,7 +12,10 @@ import withdrawalservice.WithdrawalServiceConfig
 import java.util.concurrent.atomic.AtomicInteger
 
 class ConfigHelper {
-    private val portCounter = AtomicInteger(2_000)
+
+    /** Port counter, so new port is generated for each run */
+    private val portCounter = AtomicInteger(19_999)
+
     /** Configurations for tests */
     val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
@@ -39,14 +42,13 @@ class ConfigHelper {
         loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/btc/registration.properties")
 
     /** Test configuration for Iroha */
-    fun createIrohaConfig(notaryAccount: String = "notary_red@notary"): IrohaConfig {
+    fun createIrohaConfig(creator: String = testConfig.iroha.creator): IrohaConfig {
         return object : IrohaConfig {
             override val hostname: String
                 get() = testConfig.iroha.hostname
             override val port: Int
                 get() = testConfig.iroha.port
-            override val creator: String
-                get() = notaryAccount
+            override val creator = creator
             override val pubkeyPath: String
                 get() = testConfig.iroha.pubkeyPath
             override val privkeyPath: String
@@ -131,8 +133,7 @@ class ConfigHelper {
                 get() = registrationAccount
             override val notaryIrohaAccount: String
                 get() = testConfig.notaryIrohaAccount
-            override val iroha: IrohaConfig
-                get() = ethRegistrationConfig.iroha
+            override val iroha = createIrohaConfig(creator = registrationAccount)
         }
     }
 

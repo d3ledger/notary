@@ -62,17 +62,6 @@ class NotaryTest {
                         }
 
                         commands = txs[1].commands
-                        assertEquals(1, commands.size)
-                        cmd = commands.first()
-                        if (cmd is IrohaCommand.CommandCreateAsset) {
-                            assertEquals(expectedAssetId, cmd.assetName)
-                            assertEquals("ethereum", cmd.domainId)
-                            assertEquals(0, cmd.precision)
-                        } else {
-                            fail { "Wrong IrohaCommand type" }
-                        }
-
-                        commands = txs[2].commands
                         assertEquals(2, commands.size)
                         cmd = commands[0]
                         if (cmd is IrohaCommand.CommandAddAssetQuantity) {
@@ -104,10 +93,9 @@ class NotaryTest {
     /**
      * @given a custodian has 100 Wei with intention to deposit 100 Wei to Notary
      * @when a custodian transfer 100 Wei to a specified wallet and specifies Iroha wallet to deposit assets
-     * @then an IrohaOrderedBatch is emitted with 3 transactions:
+     * @then an IrohaOrderedBatch is emitted with 2 transactions:
      * 1 - SetAccountDetail with hash
-     * 2 - CreateAsset with "ether" asset name
-     * 3 - AddAssetQuantity with 100 Wei and TransferAsset with 100 Wei to specified account id
+     * 2 - AddAssetQuantity with 100 Wei and TransferAsset with 100 Wei to specified account id
      */
     @Test
     fun depositEthereumTest() {
@@ -144,10 +132,9 @@ class NotaryTest {
     /**
      * @given a custodian has 100 "XOR" ERC20 tokens with intention to deposit 100 "XOR" tokens to Notary
      * @when a custodian transfer 100 "XOR" tokens to a specified wallet and specifies Iroha wallet to deposit assets
-     * @then an IrohaOrderedBatch is emitted with 3 transactions:
+     * @then an IrohaOrderedBatch is emitted with 2 transactions:
      * 1 - SetAccountDetail with hash
-     * 2 - CreateAsset with "XOR" asset name
-     * 3 - AddAssetQuantity with 100 "XOR" and TransferAsset with 100 "XOR" to specified account id
+     * 2 - AddAssetQuantity with 100 "XOR" and TransferAsset with 100 "XOR" to specified account id
      */
     @Test
     fun depositEthereumTokenTest() {
