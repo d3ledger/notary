@@ -19,8 +19,8 @@ class NotaryPeerListProviderImpl : NotaryPeerListProvider {
             withdrawalServiceConfig.iroha,
             keypair,
             irohaNetwork,
-            withdrawalServiceConfig.notaryStorageAccount,
-            withdrawalServiceConfig.detailSetterAccount
+            withdrawalServiceConfig.notaryListStorageAccount,
+            withdrawalServiceConfig.notaryListSetterAccount
         )
 
         return notaries.get().values.toList()
