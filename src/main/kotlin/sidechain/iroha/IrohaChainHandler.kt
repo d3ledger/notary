@@ -20,20 +20,20 @@ class IrohaChainHandler : ChainHandler<iroha.protocol.BlockOuterClass.Block> {
 
         var hash = ""
         return block.payload.transactionsList
-            .map {
-                hash = Blob(hashTransaction(it.toByteArray().toByteVector())).hex()
-                it
+            .map { tx ->
+                hash = Blob(hashTransaction(tx.toByteArray().toByteVector())).hex()
+                tx
             }
-            .flatMap { it.payload.reducedPayload.commandsList }
-            .map {
+            .flatMap { tx -> tx.payload.reducedPayload.commandsList }
+            .map { command ->
                 when {
-                //TODO: create separate ChainHandler impl for withdrawal proof events
-                    it.hasAddPeer() -> listOf(SideChainEvent.IrohaEvent.AddPeer.fromProto(it.addPeer))
-                    it.hasTransferAsset() -> {
-                        logger.info { "transfer iroha event (from: ${it.transferAsset.srcAccountId}, to ${it.transferAsset.destAccountId}, amount: ${it.transferAsset.amount}, asset: ${it.transferAsset.assetId}" }
+                    //TODO: create separate ChainHandler impl for withdrawal proof events
+                    command.hasAddPeer() -> listOf(SideChainEvent.IrohaEvent.AddPeer.fromProto(command.addPeer))
+                    command.hasTransferAsset() -> {
+                        logger.info { "transfer iroha event (from: ${command.transferAsset.srcAccountId}, to ${command.transferAsset.destAccountId}, amount: ${command.transferAsset.amount}, asset: ${command.transferAsset.assetId}" }
                         listOf(
                             SideChainEvent.IrohaEvent.SideChainTransfer.fromProto(
-                                it.transferAsset,
+                                command.transferAsset,
                                 hash
                             )
                         )

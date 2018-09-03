@@ -69,43 +69,28 @@ sealed class SideChainEvent {
                     )
                 }
             }
-
         }
     }
 
     /**
-     * Common class for all interested Ethereum events
+     * Common class for all interested primary blockchain events
      */
-    sealed class EthereumEvent : SideChainEvent() {
+    sealed class PrimaryBlockChainEvent : SideChainEvent() {
 
         /**
-         * Event which raised on a new transfer transaction to Ethereum wallet
+         * Event which occures when custodian deposits some amount of certain asset
          * @param hash transaction hash
          * @param user user name in Iroha
-         * @param amount amount of Ether transfered
-         * @param from - from ethereum address
-         */
-        data class OnEthSidechainDeposit(
-            val hash: String,
-            val user: String,
-            val amount: BigInteger,
-            val from: String
-        ) : EthereumEvent()
-
-        /**
-         * Event which occures when custodian deposits ERC20 token
-         * @param hash transaction hash
-         * @param user user name in Iroha
-         * @param token token name
+         * @param asset asset name
          * @param amount amount of tokens
-         * @param from - from ethereum address
+         * @param from - from primary blockchain address
          */
-        data class OnEthSidechainDepositToken(
+        data class OnPrimaryChainDeposit(
             val hash: String,
             val user: String,
-            val token: String,
+            val asset: String,
             val amount: BigInteger,
             val from: String
-        ) : EthereumEvent()
+        ) : PrimaryBlockChainEvent()
     }
 }

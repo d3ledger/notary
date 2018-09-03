@@ -4,6 +4,7 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import config.IrohaConfig
 import io.reactivex.Observable
+import notary.eth.EthNotaryConfig
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
@@ -14,10 +15,6 @@ import java.math.BigInteger
  * Test business logic of Notary.
  */
 class NotaryTest {
-    /**
-     * Iroha output observable
-     */
-    private val obsIroha = Observable.empty<SideChainEvent.IrohaEvent>()
 
     /** Configuration for Iroha */
     private val irohaConfig = mock<IrohaConfig>() {
@@ -25,7 +22,7 @@ class NotaryTest {
     }
 
     /** Configuration for notary */
-    private val notaryConfig = mock<NotaryConfig>() {
+    private val notaryConfig = mock<EthNotaryConfig>() {
         on { iroha } doReturn irohaConfig
     }
 
@@ -65,17 +62,6 @@ class NotaryTest {
                         }
 
                         commands = txs[1].commands
-                        assertEquals(1, commands.size)
-                        cmd = commands.first()
-                        if (cmd is IrohaCommand.CommandCreateAsset) {
-                            assertEquals(expectedAssetId, cmd.assetName)
-                            assertEquals("ethereum", cmd.domainId)
-                            assertEquals(0, cmd.precision)
-                        } else {
-                            fail { "Wrong IrohaCommand type" }
-                        }
-
-                        commands = txs[2].commands
                         assertEquals(2, commands.size)
                         cmd = commands[0]
                         if (cmd is IrohaCommand.CommandAddAssetQuantity) {
@@ -107,10 +93,9 @@ class NotaryTest {
     /**
      * @given a custodian has 100 Wei with intention to deposit 100 Wei to Notary
      * @when a custodian transfer 100 Wei to a specified wallet and specifies Iroha wallet to deposit assets
-     * @then an IrohaOrderedBatch is emitted with 3 transactions:
+     * @then an IrohaOrderedBatch is emitted with 2 transactions:
      * 1 - SetAccountDetail with hash
-     * 2 - CreateAsset with "ether" asset name
-     * 3 - AddAssetQuantity with 100 Wei and TransferAsset with 100 Wei to specified account id
+     * 2 - AddAssetQuantity with 100 Wei and TransferAsset with 100 Wei to specified account id
      */
     @Test
     fun depositEthereumTest() {
@@ -121,17 +106,17 @@ class NotaryTest {
         val expectedUserId = "from"
         val expectedFrom = "eth_from"
 
-        val custodianIntention = mock<SideChainEvent.EthereumEvent.OnEthSidechainDeposit>() {
+        val custodianIntention = mock<SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit>() {
             on { hash } doReturn expectedHash
             on { user } doReturn expectedUserId
             on { amount } doReturn expectedAmount
             on { from } doReturn expectedFrom
+            on { asset } doReturn expectedAssetId
         }
 
         // source of events from side chains
-        val obsEth = Observable.just<SideChainEvent.EthereumEvent>(custodianIntention)
-
-        val notary = NotaryImpl(notaryConfig, obsEth)
+        val obsEth = Observable.just<SideChainEvent.PrimaryBlockChainEvent>(custodianIntention)
+        val notary = createEthNotary(notaryConfig, obsEth)
         val res = notary.irohaOutput()
         checkEthereumDepositResult(
             expectedAmount.toString(),
@@ -147,10 +132,9 @@ class NotaryTest {
     /**
      * @given a custodian has 100 "XOR" ERC20 tokens with intention to deposit 100 "XOR" tokens to Notary
      * @when a custodian transfer 100 "XOR" tokens to a specified wallet and specifies Iroha wallet to deposit assets
-     * @then an IrohaOrderedBatch is emitted with 3 transactions:
+     * @then an IrohaOrderedBatch is emitted with 2 transactions:
      * 1 - SetAccountDetail with hash
-     * 2 - CreateAsset with "XOR" asset name
-     * 3 - AddAssetQuantity with 100 "XOR" and TransferAsset with 100 "XOR" to specified account id
+     * 2 - AddAssetQuantity with 100 "XOR" and TransferAsset with 100 "XOR" to specified account id
      */
     @Test
     fun depositEthereumTokenTest() {
@@ -161,18 +145,17 @@ class NotaryTest {
         val expectedUserId = "from"
         val expectedFrom = "eth_from"
 
-        val custodianIntention = mock<SideChainEvent.EthereumEvent.OnEthSidechainDepositToken>() {
+        val custodianIntention = mock<SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit>() {
             on { hash } doReturn expectedHash
             on { user } doReturn expectedUserId
-            on { token } doReturn expectedAssetId
+            on { asset } doReturn expectedAssetId
             on { amount } doReturn expectedAmount
             on { from } doReturn expectedFrom
         }
 
         // source of events from side chains
-        val obsEth = Observable.just<SideChainEvent.EthereumEvent>(custodianIntention)
-
-        val notary = NotaryImpl(notaryConfig, obsEth)
+        val obsEth = Observable.just<SideChainEvent.PrimaryBlockChainEvent>(custodianIntention)
+        val notary = createEthNotary(notaryConfig, obsEth)
         val res = notary.irohaOutput()
         checkEthereumDepositResult(
             expectedAmount.toString(),

@@ -66,8 +66,10 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
             while (response.hasNext()) {
                 val res = response.next()
                 if (res.txStatus.name == "STATEFUL_VALIDATION_FAILED") {
-                    logger.error { "Iroha transaction ${hash.hex()} received STATEFUL_VALIDATION_FAILED" }
-                    throw Exception("Iroha transaction ${hash.hex()} received STATEFUL_VALIDATION_FAILED")
+                    val message =
+                        "Iroha transaction ${hash.hex()} received STATEFUL_VALIDATION_FAILED ${res.errorMessage}"
+                    logger.error { message }
+                    throw Exception(message)
                 }
             }
 
