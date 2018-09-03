@@ -27,19 +27,22 @@ interface EthereumConfig {
 }
 
 /**
+ * Bitcoin configurations
+ */
+interface BitcoinConfig {
+    //Path of wallet file
+    val walletPath: String
+    //Path of block storage folder
+    val blockStoragePath: String
+}
+
+/**
  * Ethereum passwords
  */
 interface EthereumPasswords {
     val credentialsPassword: String
     val nodeLogin: String
     val nodePassword: String
-}
-
-/**
- * Bitcoin config
- */
-interface BitcoinConfig {
-    val url: String
 }
 
 /**

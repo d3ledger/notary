@@ -47,10 +47,9 @@ class WithdrawalServiceInitialization(
      */
     private fun initIrohaChain(): Result<Observable<SideChainEvent.IrohaEvent>, Exception> {
         logger.info { "Init Iroha chain listener" }
-
         return IrohaChainListener(irohaHost, irohaPort, irohaCreator, irohaKeypair).getBlockObservable()
             .map { observable ->
-                observable.flatMapIterable { IrohaChainHandler().parseBlock(it) }
+                observable.flatMapIterable { block -> IrohaChainHandler().parseBlock(block) }
             }
     }
 
@@ -76,13 +75,13 @@ class WithdrawalServiceInitialization(
             val ethConsumer = EthConsumer(withdrawalConfig.ethereum, withdrawalEthereumPasswords)
             withdrawalService.output()
                 .subscribe({
-                    it.map {
-                        ethConsumer.consume(it)
-                    }.failure {
-                        logger.error("WithdrawalServiceOutputEvent", it)
+                    it.map { withdrawalEvent ->
+                        ethConsumer.consume(withdrawalEvent)
+                    }.failure { ex ->
+                        logger.error("WithdrawalServiceOutputEvent", ex)
                     }
-                }, {
-                    logger.error("Withdrawal observable error", it)
+                }, { ex ->
+                    logger.error("Withdrawal observable error", ex)
                 })
             Unit
         }

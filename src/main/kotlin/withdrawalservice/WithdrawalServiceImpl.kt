@@ -11,8 +11,9 @@ import notary.endpoint.eth.AmountType
 import notary.endpoint.eth.BigIntegerMoshiAdapter
 import notary.endpoint.eth.EthNotaryResponse
 import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
-import provider.EthTokensProvider
-import provider.EthTokensProviderImpl
+import provider.NotaryPeerListProviderImpl
+import provider.eth.EthTokensProvider
+import provider.eth.EthTokensProviderImpl
 import sidechain.SideChainEvent
 import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.extractVRS
@@ -165,8 +166,6 @@ class WithdrawalServiceImpl(
                     return requestNotary(irohaEvent)
                         .map { WithdrawalServiceOutputEvent.EthRefund(it) }
                 }
-            }
-            else -> {
             }
         }
         return Result.error(Exception("Wrong event type or wrong destination account"))

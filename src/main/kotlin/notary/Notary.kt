@@ -1,5 +1,7 @@
 package notary
 
+import com.github.kittinunf.result.Result
+import notary.IrohaOrderedBatch
 import sidechain.SideChainEvent
 
 /**
@@ -8,13 +10,18 @@ import sidechain.SideChainEvent
 interface Notary {
 
     /**
-     * Calls when Ethereum event is occurred
+     * Called when primary chain event is occurred
      * @return transaction to be commited to Iroha
      */
-    fun onEthEvent(ethInputEvent: SideChainEvent.EthereumEvent): IrohaOrderedBatch
+    fun onPrimaryChainEvent(chainInputEvent: SideChainEvent.PrimaryBlockChainEvent): IrohaOrderedBatch
 
     /**
      * Observable with output for sending to Iroha
      */
     fun irohaOutput(): io.reactivex.Observable<IrohaOrderedBatch>
+
+    /**
+     * Init Iroha consumer
+     */
+    fun initIrohaConsumer(): Result<Unit, Exception>
 }
