@@ -7,6 +7,7 @@ import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
@@ -27,6 +28,7 @@ class IrohaBlockStreamingTest {
      * @when new tx is sent to Iroha
      * @then block arrived to IrohaListener
      */
+    @Disabled
     @Test
     fun irohaStreamingTest() {
         System.loadLibrary("irohajava")
