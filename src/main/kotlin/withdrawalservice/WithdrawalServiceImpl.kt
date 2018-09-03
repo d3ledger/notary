@@ -50,7 +50,6 @@ data class RollbackApproval(
  */
 class WithdrawalServiceImpl(
     val withdrawalServiceConfig: WithdrawalServiceConfig,
-    withdrawalServicePasswords: EthereumPasswords,
     val keypair: Keypair,
     val irohaNetwork: IrohaNetwork,
     private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
@@ -108,9 +107,8 @@ class WithdrawalServiceImpl(
                 val rr = ArrayList<ByteArray>()
                 val ss = ArrayList<ByteArray>()
 
-                notaryPeerListProvider.getPeerList().forEach { peer ->
+                notaryPeerListProvider.getPeerList(withdrawalServiceConfig, keypair, irohaNetwork).forEach { peer ->
                     logger.info { "Query $peer for proof" }
-
                     val res: khttp.responses.Response
                     try {
                         res = khttp.get("$peer/eth/$hash")
@@ -146,6 +144,9 @@ class WithdrawalServiceImpl(
                             ss.add(vrs.s)
                         }
                     }
+                }
+                if (vv.size == 0) {
+                    throw Exception("Not a single valid response was received from any refund server")
                 }
                 RollbackApproval(coinAddress, amount, address, hash, rr, ss, vv, relayAddress)
             }
