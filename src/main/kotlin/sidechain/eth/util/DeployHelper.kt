@@ -6,6 +6,7 @@ import contract.BasicCoin
 import contract.Master
 import contract.Relay
 import mu.KLogging
+import okhttp3.*
 import org.web3j.crypto.RawTransaction
 import org.web3j.crypto.TransactionEncoder
 import org.web3j.crypto.WalletUtils
@@ -16,6 +17,17 @@ import org.web3j.utils.Numeric
 import java.math.BigInteger
 
 /**
+ * Authenticator class for basic access authentication
+ * @param ethereumPasswords config with Ethereum node credentials
+ */
+class BasicAuthenticator(private val ethereumPasswords: EthereumPasswords) : Authenticator {
+    override fun authenticate(route: Route, response: Response): Request {
+        val credential = Credentials.basic(ethereumPasswords.nodeLogin, ethereumPasswords.nodePassword)
+        return response.request().newBuilder().header("Authorization", credential).build()
+    }
+}
+
+/**
  * Helper class for contracts deploying
  * @param ethereumConfig config with Ethereum network parameters
  * @param ethereumPasswords config with Ethereum passwords
@@ -23,10 +35,15 @@ import java.math.BigInteger
  */
 class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPasswords) {
 
-    /** web3 service instance to communicate with Ethereum network */
-    val web3 = Web3j.build(
-        HttpService(ethereumConfig.url)
-    )
+    val url: String = ethereumConfig.url
+    val web3: Web3j
+
+    init {
+        val builder = OkHttpClient().newBuilder()
+        builder.authenticator(BasicAuthenticator(ethereumPasswords))
+        web3 = Web3j.build(HttpService(ethereumConfig.url, builder.build(), false))
+
+    }
 
     /** credentials of ethereum user */
     val credentials by lazy {
