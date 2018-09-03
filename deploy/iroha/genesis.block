@@ -365,7 +365,7 @@
                 "setAccountDetail": {
                   "accountId": "notaries@notary",
                   "key": "some_notary",
-                  "value": "http://localhost:20001"
+                  "value": "http://localhost:20000"
                 }
               },
               {

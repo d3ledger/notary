@@ -62,10 +62,6 @@ class WithdrawalServiceImpl(
         withdrawalServiceConfig.tokenStorageAccount
     )
     private val masterAccount = withdrawalServiceConfig.notaryIrohaAccount
-    private val ecKeyPair = DeployHelper(
-        withdrawalServiceConfig.ethereum,
-        withdrawalServicePasswords
-    ).credentials.ecKeyPair
 
     private fun findInAccDetail(acc: String, name: String): Result<String, Exception> {
         return getAccountDetails(

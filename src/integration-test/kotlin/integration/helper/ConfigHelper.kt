@@ -114,6 +114,10 @@ class ConfigHelper {
         return object : WithdrawalServiceConfig {
             override val notaryIrohaAccount: String
                 get() = withdrawalConfig.notaryIrohaAccount
+            override val notaryStorageAccount: String
+                get() = withdrawalConfig.notaryStorageAccount
+            override val detailSetterAccount: String
+                get() = withdrawalConfig.detailSetterAccount
             override val tokenStorageAccount: String
                 get() = outerTokenStorageAccount
             override val registrationIrohaAccount: String

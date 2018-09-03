@@ -3,6 +3,7 @@ package provider
 import jp.co.soramitsu.iroha.Keypair
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
+import withdrawalservice.WithdrawalServiceConfig
 
 /**
  * Provides with list of all notaries peers in the system
