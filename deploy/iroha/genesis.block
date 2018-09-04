@@ -110,7 +110,9 @@
                     "can_add_peer",
                     "can_set_detail",
                     "can_get_blocks",
-                    "can_get_domain_accounts"
+                    "can_get_domain_accounts",
+                    "can_set_quorum",
+                    "can_add_signatory"
                   ]
                 }
               },
