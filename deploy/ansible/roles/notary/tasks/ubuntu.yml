@@ -38,6 +38,8 @@
   - name: Run compose
     docker_service:
       project_src: /opt/notary
+      pull: yes
+      recreate: always
     register: output
     become: yes
 
