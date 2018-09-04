@@ -59,13 +59,7 @@ class WithdrawalServiceInitialization(
     private fun initWithdrawalService(inputEvents: Observable<SideChainEvent.IrohaEvent>): WithdrawalService {
         logger.info { "Init Withdrawal Service" }
 
-        return WithdrawalServiceImpl(
-            withdrawalConfig,
-            withdrawalEthereumPasswords,
-            irohaKeypair,
-            irohaNetwork,
-            inputEvents
-        )
+        return WithdrawalServiceImpl(withdrawalConfig,  irohaKeypair, irohaNetwork, inputEvents)
     }
 
     private fun initEthConsumer(withdrawalService: WithdrawalService): Result<Unit, Exception> {
