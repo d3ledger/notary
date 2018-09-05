@@ -91,7 +91,6 @@ fabric.properties
 # Ethereum passwords config
 src/main/resources/ethereum_password.properties
 src/main/resources/eth/ethereum_password.properties
-src/integration-test/resources/eth/ethereum_password.properties
 
 # Artifacts of parity node
 deploy/ethereum/cache
