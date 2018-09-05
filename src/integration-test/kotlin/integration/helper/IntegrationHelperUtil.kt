@@ -7,9 +7,11 @@ import contract.Master
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.QueryServiceGrpc
 import jp.co.soramitsu.iroha.*
+import kotlinx.coroutines.experimental.async
 import mu.KLogging
 import notary.btc.BtcNotaryConfig
 import notary.eth.EthNotaryConfig
+import notary.eth.executeNotary
 import org.junit.jupiter.api.fail
 import org.web3j.protocol.core.DefaultBlockParameterName
 import provider.eth.EthFreeRelayProvider
@@ -67,6 +69,12 @@ class IntegrationHelperUtil {
 
     /** Account that used to store tokens*/
     val tokenStorageAccount by lazy { createTesterAccount() }
+
+    /** Account that used to store list of notaries */
+    val notaryListStorageAccount by lazy { createTesterAccount() }
+
+    /** Account that used to set list of notaries */
+    val notaryListSetterAccount by lazy { createTesterAccount() }
 
     /** New master ETH master contract*/
     val masterContract by lazy {
@@ -132,7 +140,9 @@ class IntegrationHelperUtil {
     fun createWithdrawalConfig(): WithdrawalServiceConfig {
         return configHelper.createWithdrawalConfig(
             registrationAccount,
-            tokenStorageAccount
+            tokenStorageAccount,
+            notaryListStorageAccount,
+            notaryListSetterAccount
         )
     }
 
@@ -248,8 +258,9 @@ class IntegrationHelperUtil {
     /**
      * Registers first free relay contract in Iroha to the client with given [name] and public key
      */
-    fun registerClient(name: String): String {
-        val keypair = ModelCrypto().generateKeypair()
+    fun registerClient(name: String, keypair: Keypair = ModelCrypto().generateKeypair()): String {
+        deployRelays(1)
+
         ethRegistrationStrategy.register(name, keypair.publicKey().hex())
             .fold({ registeredEthWallet ->
                 logger.info("registered client $name with relay $registeredEthWallet")
@@ -430,6 +441,19 @@ class IntegrationHelperUtil {
     }
 
     /**
+     * Add notary to notary list provider
+     */
+    fun addNotary(name: String, address: String) {
+        ModelUtil.setAccountDetail(
+            irohaConsumer,
+            notaryListSetterAccount,
+            notaryListStorageAccount,
+            name,
+            address
+        )
+    }
+
+    /**
      * Transfer asset in iroha with custom creator
      * @param creator - iroha transaction creator
      * @param kp - keypair
@@ -477,6 +501,17 @@ class IntegrationHelperUtil {
             data = mapOf("name" to name, "pubkey" to pubkey.hex())
         )
 
+    }
+
+    fun runEthNotary(ethNotaryConfig: EthNotaryConfig = createEthNotaryConfig()) {
+        async {
+            executeNotary(ethNotaryConfig)
+        }
+        val name = String.getRandomString(9)
+        val address = "http://localhost:${ethNotaryConfig.refund.port}"
+        addNotary(name, address)
+
+        logger.info { "Notary $name is started on $address" }
     }
 
     /**

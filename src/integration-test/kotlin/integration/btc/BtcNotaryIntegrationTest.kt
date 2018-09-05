@@ -2,6 +2,7 @@ package integration.btc
 
 import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import util.getRandomString
@@ -20,6 +21,7 @@ class BtcNotaryIntegrationTest {
      * @when 1 btc was sent to new account
      * @then balance of new account is increased by 1 btc(or 100.000.000 sat)
      */
+    @Disabled
     @Test
     fun testDeposit() {
         notary.btc.executeNotary(integrationHelper.createBtcNotaryConfig())

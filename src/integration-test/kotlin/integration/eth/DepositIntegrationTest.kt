@@ -20,17 +20,12 @@ class DepositIntegrationTest {
     /** Utility functions for integration tests */
     private val integrationHelper = IntegrationHelperUtil()
 
-    /** Testing notrary configuration */
-    private val notaryConfig = integrationHelper.createEthNotaryConfig()
-
     /** Ethereum assetId in Iroha */
     private val etherAssetId = "ether#ethereum"
 
     init {
         // run notary
-        async {
-            notary.eth.executeNotary(notaryConfig)
-        }
+        integrationHelper.runEthNotary()
         Thread.sleep(3_000)
     }
 
