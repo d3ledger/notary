@@ -5,7 +5,7 @@ services:
     image: hyperledger/iroha:develop
     container_name: d3-iroha
     ports:
-      - 50051:50051
+      - 0.0.0.0:50051:50051
     depends_on:
       - d3-iroha-postgres
     tty: true
@@ -36,7 +36,7 @@ services:
     environment:
       - NODE=0
     ports:
-      - 8545:8545
+      - 0.0.0.0:8545:8545
     entrypoint:
       - node
       - ./build/cli.node.js

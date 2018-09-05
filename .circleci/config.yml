@@ -53,4 +53,8 @@ jobs:
       # run tests!
       - run: ./gradlew test --info
 
-      - run: ./gradlew integrationTest -Pprofile=deploy --info
+      - run:
+          name: Run integration tests
+          command: |
+            sleep 15
+            ./gradlew integrationTest -Pprofile=deploy --info
