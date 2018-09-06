@@ -20,6 +20,11 @@ class AccountHelper(private val keyPair: Keypair) {
     val registrationAccount by lazy {
         createTesterAccount("registration", "registration_service")
     }
+    /** Account that used to store registered clients in mst fashion.*/
+    val mstRegistrationAccount by lazy {
+        createTesterAccount("mst_registration", "registration_service")
+    }
+
     /** Account that used to store tokens*/
     val tokenStorageAccount by lazy { createTesterAccount("tokens", "token_service") }
 

@@ -1,8 +1,6 @@
 package integration.helper
 
-import com.github.kittinunf.result.failure
-import com.github.kittinunf.result.flatMap
-import com.github.kittinunf.result.success
+import com.github.kittinunf.result.*
 import config.TestConfig
 import config.loadConfigs
 import contract.Master
@@ -13,8 +11,12 @@ import kotlinx.coroutines.experimental.runBlocking
 import mu.KLogging
 import notary.eth.EthNotaryConfig
 import notary.eth.executeNotary
+import org.bitcoinj.core.Address
+import org.bitcoinj.wallet.Wallet
 import org.junit.jupiter.api.fail
 import org.web3j.protocol.core.DefaultBlockParameterName
+import provider.btc.BtcAddressesProvider
+import provider.btc.BtcTakenAddressesProvider
 import provider.eth.EthFreeRelayProvider
 import provider.eth.EthRelayProviderIrohaImpl
 import provider.eth.EthTokenInfo
@@ -29,6 +31,7 @@ import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
+import java.io.File
 import java.math.BigInteger
 
 /**
@@ -57,7 +60,6 @@ class IntegrationHelperUtil {
 
     /** Ethereum utils */
     private val deployHelper by lazy { DeployHelper(configHelper.testConfig.ethereum, configHelper.ethPasswordConfig) }
-
 
 
     private val irohaNetwork by lazy {
@@ -96,7 +98,7 @@ class IntegrationHelperUtil {
         )
     }
 
-    /** Provider of ETH wallets created by mstRegistrationAccount*/
+    /** Provider of ETH wallets created by registrationAccount*/
     private val ethRelayProvider by lazy {
         EthRelayProviderIrohaImpl(
             configHelper.testConfig.iroha,
@@ -116,11 +118,26 @@ class IntegrationHelperUtil {
     }
 
     private val btcRegistrationStrategy by lazy {
+        val btcAddressesProvider =
+            BtcAddressesProvider(
+                testConfig.iroha,
+                irohaKeyPair,
+                accountHelper.mstRegistrationAccount,
+                accountHelper.notaryAccount
+            )
+        val btcTakenAddressesProvider =
+            BtcTakenAddressesProvider(
+                testConfig.iroha,
+                irohaKeyPair,
+                accountHelper.registrationAccount,
+                accountHelper.notaryAccount
+            )
         BtcRegistrationStrategyImpl(
+            btcAddressesProvider,
+            btcTakenAddressesProvider,
             irohaConsumer,
             accountHelper.notaryAccount,
-            accountHelper.registrationAccount,
-            configHelper.testConfig.bitcoin.walletPath
+            accountHelper.registrationAccount
         )
     }
 
@@ -128,13 +145,28 @@ class IntegrationHelperUtil {
         RelayRegistration(configHelper.createRelayRegistrationConfig(), configHelper.ethPasswordConfig)
     }
 
+    fun preGenBtcAddress(): Result<Address, Exception> {
+        val walletFile = File(configHelper.btcRegistrationConfig.btcWalletPath)
+        val wallet = Wallet.loadFromFile(walletFile)
+        val address = wallet.freshReceiveAddress()
+        wallet.saveToFile(walletFile)
+        return ModelUtil.setAccountDetail(
+            irohaConsumer,
+            accountHelper.mstRegistrationAccount,
+            accountHelper.notaryAccount,
+            address.toBase58(),
+            "free"
+        ).map { address }
+    }
+
     fun registerBtcAddress(irohaAccountName: String): String {
         val keypair = ModelCrypto().generateKeypair()
-        btcRegistrationStrategy.register(irohaAccountName, keypair.publicKey().hex())
-            .fold({ btcAddress ->
-                logger.info { "newly registered btc address $btcAddress" }
-                return btcAddress
-            }, { ex -> throw ex })
+        preGenBtcAddress().fold({
+            btcRegistrationStrategy.register(irohaAccountName, keypair.publicKey().hex())
+                .fold({ btcAddress ->
+                    return btcAddress
+                }, { ex -> throw ex })
+        }, { ex -> throw ex })
     }
 
     /**
