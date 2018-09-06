@@ -82,7 +82,7 @@ class NotaryImpl(
                 chainInputEvent.hash,
                 chainInputEvent.user,
                 chainInputEvent.asset,
-                chainInputEvent.amount.toString(),
+                chainInputEvent.amount,
                 chainInputEvent.from
             )
         }

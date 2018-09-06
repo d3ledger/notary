@@ -89,7 +89,7 @@ sealed class SideChainEvent {
             val hash: String,
             val user: String,
             val asset: String,
-            val amount: BigInteger,
+            val amount: String,
             val from: String
         ) : PrimaryBlockChainEvent()
     }

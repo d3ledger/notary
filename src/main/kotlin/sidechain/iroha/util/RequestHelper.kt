@@ -15,6 +15,33 @@ import sidechain.iroha.consumer.IrohaNetwork
 import java.math.BigInteger
 
 /**
+ * Get asset precision
+ *
+ * @param irohaConfig - Iroha configuration parameters
+ * @param keypair - iroha keypair
+ * @param irohaNetwork - iroha network layer
+ * @param assetId asset id in Iroha
+ */
+fun getAssetPrecision(
+    irohaConfig: IrohaConfig,
+    keypair: Keypair,
+    irohaNetwork: IrohaNetwork,
+    assetId: String
+): Result<Int, Exception> {
+    val uquery = ModelQueryBuilder().creatorAccountId(irohaConfig.creator)
+        .queryCounter(BigInteger.valueOf(1))
+        .createdTime(ModelUtil.getCurrentTime())
+        .getAssetInfo(assetId)
+        .build()
+
+    return ModelUtil.prepareQuery(uquery, keypair)
+        .flatMap { query -> irohaNetwork.sendQuery(query) }
+        .map { queryResponse ->
+            queryResponse.assetResponse.asset.precision
+        }
+}
+
+/**
  * Retrieves account details from Iroha
  * @param irohaConfig - Iroha configuration parameters
  * @param keypair - iroha keypair

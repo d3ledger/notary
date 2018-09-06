@@ -8,6 +8,7 @@ import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil.setAccountDetail
 import sidechain.iroha.util.getAccountDetails
+import sidechain.iroha.util.getAssetPrecision
 
 /**
  * Implementation of [EthTokensProvider] with Iroha storage.
@@ -26,24 +27,37 @@ class EthTokensProviderImpl(
     private val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
     private val irohaConsumer = IrohaConsumerImpl(irohaConfig)
 
-    override fun getTokens(): Result<Map<String, String>, Exception> {
-        val tokens = getAccountDetails(
+    override fun getTokens(): Result<Map<String, EthTokenInfo>, Exception> {
+        return getAccountDetails(
             irohaConfig,
             keypair,
             irohaNetwork,
             notaryIrohaAccount,
             tokenStorageAccount
         )
-        return tokens
+            .map {
+                it.mapValues { (_, name) ->
+                    getAssetPrecision(
+                        irohaConfig,
+                        keypair,
+                        irohaNetwork,
+                        "$name#ethereum"
+                    )
+                        .fold(
+                            { EthTokenInfo(name, it) },
+                            { throw it }
+                        )
+                }
+            }
     }
 
-    override fun addToken(ethWallet: String, tokenName: String): Result<Unit, Exception> {
+    override fun addToken(ethWallet: String, tokenInfo: EthTokenInfo): Result<Unit, Exception> {
         return setAccountDetail(
             irohaConsumer,
             tokenStorageAccount,
             notaryIrohaAccount,
             ethWallet,
-            tokenName
+            tokenInfo.name
         ).map { Unit }
     }
 }

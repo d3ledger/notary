@@ -99,7 +99,7 @@ class NotaryTest {
      */
     @Test
     fun depositEthereumTest() {
-        val expectedAmount = BigInteger.valueOf(100)
+        val expectedAmount = "100"
         val expectedAssetId = "ether"
         val expectedCreatorId = "iroha_creator"
         val expectedHash = "hash"
@@ -119,7 +119,7 @@ class NotaryTest {
         val notary = createEthNotary(notaryConfig, obsEth)
         val res = notary.irohaOutput()
         checkEthereumDepositResult(
-            expectedAmount.toString(),
+            expectedAmount,
             expectedAssetId,
             expectedCreatorId,
             expectedHash,
@@ -138,7 +138,7 @@ class NotaryTest {
      */
     @Test
     fun depositEthereumTokenTest() {
-        val expectedAmount = BigInteger.valueOf(100)
+        val expectedAmount = "100"
         val expectedAssetId = "xor"
         val expectedCreatorId = "iroha_creator"
         val expectedHash = "hash"
@@ -158,7 +158,7 @@ class NotaryTest {
         val notary = createEthNotary(notaryConfig, obsEth)
         val res = notary.irohaOutput()
         checkEthereumDepositResult(
-            expectedAmount.toString(),
+            expectedAmount,
             expectedAssetId,
             expectedCreatorId,
             expectedHash,
