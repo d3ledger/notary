@@ -8,7 +8,9 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Hash
+import org.web3j.crypto.Keys
 import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.exceptions.TransactionException
 import org.web3j.utils.Numeric.hexStringToByteArray
@@ -22,7 +24,6 @@ import java.math.BigInteger
  * Class for Ethereum sidechain infrastructure deployment and communication.
  */
 class ContractsTest {
-
     private val configHelper = ConfigHelper()
     private val testConfig = configHelper.testConfig
     private val passwordConfig = configHelper.ethPasswordConfig
@@ -36,10 +37,31 @@ class ContractsTest {
 
     private var addPeerCalls: Int = 0
 
+    val etherAddress = "0x0000000000000000000000000000000000000000"
+    val defaultIrohaHash = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))
+    val defaultByteHash = hexStringToByteArray(defaultIrohaHash.slice(2 until defaultIrohaHash.length))
+
     // ganache-cli ether custodian
     private val accMain = "0x6826d84158e516f631bbf14586a9be7e255b2d23"
     // some ganache-cli account
     private val accGreen = "0x82e0b6cc1ea0d0b91f5fc86328b8e613bdaf72e8"
+
+    data class sigsData(val vv: ArrayList<BigInteger>, val rr: ArrayList<ByteArray>, val ss: ArrayList<ByteArray>)
+
+    private fun prepareSignatures(amount: Int, keypairs: List<ECKeyPair>, toSign: String): sigsData {
+        val vv = ArrayList<BigInteger>()
+        val rr = ArrayList<ByteArray>()
+        val ss = ArrayList<ByteArray>()
+
+        for (i in 0 until amount) {
+            val signature = signUserData(keypairs[i], toSign)
+            val vrs = extractVRS(signature)
+            vv.add(vrs.v)
+            rr.add(vrs.r)
+            ss.add(vrs.s)
+        }
+        return sigsData(vv, rr, ss)
+    }
 
     private fun sendAddPeer(address: String) {
         ++addPeerCalls
@@ -62,44 +84,71 @@ class ContractsTest {
         assertEquals(amount, token.balanceOf(master.contractAddress).send())
     }
 
+    private fun withdraw(amount: BigInteger) {
+        val tokenAddress = token.contractAddress
+        val to = accGreen
+
+        val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, defaultIrohaHash)
+        val sigs = prepareSignatures(1, listOf(keypair), finalHash)
+
+        master.withdraw(
+            tokenAddress,
+            amount,
+            to,
+            defaultByteHash,
+            sigs.vv,
+            sigs.rr,
+            sigs.ss
+        ).send()
+    }
+
     private fun withdraw(
         amount: BigInteger,
-        irohaHash: String = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345))),
-        tokenAddress: String = token.contractAddress,
-        to: String = accGreen,
-        fromMaster: Boolean = true
+        tokenAddress: String,
+        to: String
     ) {
-        val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, irohaHash)
-        val signature = signUserData(keypair, finalHash)
-        val vrs = extractVRS(signature)
+        val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, defaultIrohaHash)
+        val sigs = prepareSignatures(1, listOf(keypair), finalHash)
 
-        val vv = ArrayList<BigInteger>()
-        vv.add(vrs.v)
-        val rr = ArrayList<ByteArray>()
-        rr.add(vrs.r)
-        val ss = ArrayList<ByteArray>()
-        ss.add(vrs.s)
+        master.withdraw(
+            tokenAddress,
+            amount,
+            to,
+            defaultByteHash,
+            sigs.vv,
+            sigs.rr,
+            sigs.ss
+        ).send()
+    }
 
-        val byteHash = hexStringToByteArray(irohaHash.slice(2 until irohaHash.length))
+    private fun withdraw(
+        amount: BigInteger,
+        tokenAddress: String,
+        to: String,
+        fromMaster: Boolean
+    ) {
+        val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, defaultIrohaHash)
+        val sigs = prepareSignatures(1, listOf(keypair), finalHash)
+
         if (fromMaster) {
             master.withdraw(
                 tokenAddress,
                 amount,
                 to,
-                byteHash,
-                vv,
-                rr,
-                ss
+                defaultByteHash,
+                sigs.vv,
+                sigs.rr,
+                sigs.ss
             ).send()
         } else {
             relay.withdraw(
                 tokenAddress,
                 amount,
                 to,
-                byteHash,
-                vv,
-                rr,
-                ss
+                defaultByteHash,
+                sigs.vv,
+                sigs.rr,
+                sigs.ss
             ).send()
         }
     }
@@ -173,8 +222,8 @@ class ContractsTest {
         Assertions.assertThrows(TransactionException::class.java) {
             withdraw(
                 BigInteger.valueOf(10000),
-                tokenAddress = "0x0000000000000000000000000000000000000000",
-                to = accGreen
+                etherAddress,
+                accGreen
             )
         }
     }
@@ -206,8 +255,8 @@ class ContractsTest {
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
         withdraw(
             BigInteger.valueOf(1000),
-            tokenAddress = "0x0000000000000000000000000000000000000000",
-            to = accGreen
+            etherAddress,
+            accGreen
         )
         assertEquals(
             BigInteger.valueOf(4000),
@@ -232,8 +281,8 @@ class ContractsTest {
         sendAddPeer(accMain)
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
         withdraw(
-            BigInteger.valueOf(1000), tokenAddress = "0x0000000000000000000000000000000000000000",
-            fromMaster = false, to = accGreen
+            BigInteger.valueOf(1000), etherAddress,
+            accGreen, false
         )
         assertEquals(
             BigInteger.valueOf(4000),
@@ -258,8 +307,8 @@ class ContractsTest {
         sendAddPeer(accMain)
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
         withdraw(
-            BigInteger.valueOf(1000), tokenAddress = "0x0000000000000000000000000000000000000000",
-            fromMaster = false, to = relay.contractAddress
+            BigInteger.valueOf(1000), etherAddress,
+            relay.contractAddress, false
         )
         assertEquals(
             BigInteger.valueOf(4000),
@@ -295,31 +344,21 @@ class ContractsTest {
         transferTokensToMaster(BigInteger.valueOf(5))
 
         val amount = BigInteger.valueOf(1)
-        val irohaHash = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))
-        val finalHash = hashToWithdraw(token.contractAddress, amount.toString(), accGreen, irohaHash)
+        val finalHash = hashToWithdraw(token.contractAddress, amount.toString(), accGreen, defaultIrohaHash)
         val keypair = DeployHelper(testConfig.ethereum, passwordConfig).credentials.ecKeyPair
-        val signature = signUserData(keypair, finalHash)
-        val vrs = extractVRS(signature)
 
-        val vv = ArrayList<BigInteger>()
-        vv.add(vrs.v)
-        val rr = ArrayList<ByteArray>()
-        rr.add(vrs.r)
-        val ss = ArrayList<ByteArray>()
-        ss.add(vrs.s)
-        rr.add(vrs.s)
-
-        val byteHash = hexStringToByteArray(irohaHash.slice(2 until irohaHash.length))
+        val sigs = prepareSignatures(1, listOf(keypair), finalHash)
+        sigs.rr.add(sigs.rr.first())
 
         Assertions.assertThrows(TransactionException::class.java) {
             master.withdraw(
                 token.contractAddress,
                 amount,
                 accGreen,
-                byteHash,
-                vv,
-                rr,
-                ss
+                defaultByteHash,
+                sigs.vv,
+                sigs.rr,
+                sigs.ss
             ).send()
         }
     }
@@ -337,32 +376,48 @@ class ContractsTest {
         transferTokensToMaster(BigInteger.valueOf(5))
 
         val amount = BigInteger.valueOf(1)
-        val irohaHash = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))
-        val finalHash = hashToWithdraw(token.contractAddress, amount.toString(), accGreen, irohaHash)
-        val signature = signUserData(keypair, finalHash)
-        val vrs = extractVRS(signature)
-
-        val vv = ArrayList<BigInteger>()
-        vv.add(vrs.v)
-        vv.add(vrs.v)
-        val rr = ArrayList<ByteArray>()
-        rr.add(vrs.r)
-        rr.add(vrs.r)
-        val ss = ArrayList<ByteArray>()
-        ss.add(vrs.s)
-        ss.add(vrs.s)
-
-        val byteHash = hexStringToByteArray(irohaHash.slice(2 until irohaHash.length))
+        val finalHash = hashToWithdraw(token.contractAddress, amount.toString(), accGreen, defaultIrohaHash)
+        val sigs = prepareSignatures(2, listOf(keypair, keypair), finalHash)
 
         Assertions.assertThrows(TransactionException::class.java) {
             master.withdraw(
                 token.contractAddress,
                 amount,
                 accGreen,
-                byteHash,
-                vv,
-                rr,
-                ss
+                defaultByteHash,
+                sigs.vv,
+                sigs.rr,
+                sigs.ss
+            ).send()
+        }
+    }
+
+    /**
+     * @given deployed master contract
+     * @when one peer added to master, 5 tokens transferred to master,
+     * request to withdraw 1 token is sent to master with two valid signatures:
+     * one from added peer and another one from some unknown peer
+     * @then call to withdraw fails
+     * //TODO: withdraw should pass successfully until amount of duplicated and other invalid signatures <= f
+     */
+    @Test
+    fun wrongPeerSignature() {
+        sendAddPeer(accMain)
+        transferTokensToMaster(BigInteger.valueOf(5))
+
+        val amount = BigInteger.valueOf(1)
+        val finalHash = hashToWithdraw(token.contractAddress, amount.toString(), accGreen, defaultIrohaHash)
+        val sigs = prepareSignatures(2, listOf(keypair, Keys.createEcKeyPair()), finalHash)
+
+        Assertions.assertThrows(TransactionException::class.java) {
+            master.withdraw(
+                token.contractAddress,
+                amount,
+                accGreen,
+                defaultByteHash,
+                sigs.vv,
+                sigs.rr,
+                sigs.ss
             ).send()
         }
     }
@@ -379,32 +434,20 @@ class ContractsTest {
         transferTokensToMaster(BigInteger.valueOf(5))
 
         val amount = BigInteger.valueOf(1)
-        val irohaHash = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))
-        val finalHash = hashToWithdraw(token.contractAddress, amount.toString(), accGreen, irohaHash)
-        val signature = signUserData(keypair, finalHash)
-        val vrs = extractVRS(signature)
+        val finalHash = hashToWithdraw(token.contractAddress, amount.toString(), accGreen, defaultIrohaHash)
 
-        // let's corrupt first byte of s
-        vrs.s[0] = vrs.s[0].inc()
-
-        val vv = ArrayList<BigInteger>()
-        vv.add(vrs.v)
-        val rr = ArrayList<ByteArray>()
-        rr.add(vrs.r)
-        val ss = ArrayList<ByteArray>()
-        ss.add(vrs.s)
-
-        val byteHash = hexStringToByteArray(irohaHash.slice(2 until irohaHash.length))
+        val sigs = prepareSignatures(1, listOf(keypair), finalHash)
+        sigs.ss.first()[0] = sigs.ss.first()[0].inc()
 
         Assertions.assertThrows(TransactionException::class.java) {
             master.withdraw(
                 token.contractAddress,
                 amount,
                 accGreen,
-                byteHash,
-                vv,
-                rr,
-                ss
+                defaultByteHash,
+                sigs.vv,
+                sigs.rr,
+                sigs.ss
             ).send()
         }
     }
@@ -490,7 +533,7 @@ class ContractsTest {
             BigInteger.valueOf(100_000),
             deployHelper.web3.ethGetBalance(relay.contractAddress, DefaultBlockParameterName.LATEST).send().balance
         )
-        relay.sendToMaster("0x0000000000000000000000000000000000000000").send()
+        relay.sendToMaster(etherAddress).send()
         assertEquals(
             BigInteger.valueOf(100_000),
             deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
@@ -530,5 +573,294 @@ class ContractsTest {
         assertEquals(BigInteger.valueOf(0), token.balanceOf(master.contractAddress).send())
         assertEquals(BigInteger.valueOf(987_654), token.balanceOf(relay.contractAddress).send())
         Assertions.assertThrows(TransactionException::class.java) { relay.sendToMaster(token.contractAddress).send() }
+    }
+
+    /**
+     * @given deployed master contract
+     * @when 4 different peers are added to master, 5000 Wei is transferred to master,
+     * request to withdraw 1000 Wei is sent to master with 4 signatures from added peers
+     * @then withdraw call succeeded
+     */
+    @Test
+    fun validSignatures4of4() {
+        val sigCount = 4
+        val amountToSend = 1000
+        val initialBalance =
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+        deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
+
+        val finalHash =
+            hashToWithdraw(
+                etherAddress,
+                amountToSend.toString(),
+                accGreen,
+                defaultIrohaHash
+            )
+
+        val keypairs = ArrayList<ECKeyPair>()
+        for (i in 0 until sigCount) {
+            val keypair = Keys.createEcKeyPair()
+            keypairs.add(keypair)
+            sendAddPeer("0x" + Keys.getAddress(keypair))
+        }
+        val sigs = prepareSignatures(sigCount, keypairs, finalHash)
+
+        master.withdraw(
+            etherAddress,
+            BigInteger.valueOf(amountToSend.toLong()),
+            accGreen,
+            defaultByteHash,
+            sigs.vv,
+            sigs.rr,
+            sigs.ss
+        ).send()
+
+        assertEquals(
+            BigInteger.valueOf(4000),
+            deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+        )
+        assertEquals(
+            initialBalance + BigInteger.valueOf(1000),
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+        )
+    }
+
+    /**
+     * @given deployed master contract
+     * @when 4 different peers are added to master, 5000 Wei is transferred to master,
+     * request to withdraw 1000 Wei is sent to master with 3 signatures from added peers
+     * @then withdraw call succeeded
+     */
+    @Test
+    fun validSignatures3of4() {
+        val sigCount = 4
+        val realSigCount = 3
+        val amountToSend = 1000
+        val tokenAddress = etherAddress
+        val initialBalance =
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+        deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
+
+        val finalHash =
+            hashToWithdraw(
+                tokenAddress,
+                amountToSend.toString(),
+                accGreen,
+                defaultIrohaHash
+            )
+
+        val keypairs = ArrayList<ECKeyPair>()
+        for (i in 0 until sigCount) {
+            val keypair = Keys.createEcKeyPair()
+            keypairs.add(keypair)
+            sendAddPeer("0x" + Keys.getAddress(keypair))
+        }
+        val sigs = prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
+
+        master.withdraw(
+            tokenAddress,
+            BigInteger.valueOf(amountToSend.toLong()),
+            accGreen,
+            defaultByteHash,
+            sigs.vv,
+            sigs.rr,
+            sigs.ss
+        ).send()
+
+        assertEquals(
+            BigInteger.valueOf(4000),
+            deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+        )
+        assertEquals(
+            initialBalance + BigInteger.valueOf(1000),
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+        )
+    }
+
+    /**
+     * @given deployed master contract
+     * @when 5 different peers are added to master, 5000 Wei is transferred to master,
+     * request to withdraw 1000 Wei is sent to master with 3 signatures from added peers
+     * @then withdraw call failed
+     */
+    @Test
+    fun validSignatures3of5() {
+        val sigCount = 5
+        val realSigCount = 3
+        val amountToSend = 1000
+        val tokenAddress = etherAddress
+
+        val finalHash =
+            hashToWithdraw(
+                tokenAddress,
+                amountToSend.toString(),
+                accGreen,
+                defaultIrohaHash
+            )
+
+        val keypairs = ArrayList<ECKeyPair>()
+        for (i in 0 until sigCount) {
+            val keypair = Keys.createEcKeyPair()
+            keypairs.add(keypair)
+            sendAddPeer("0x" + Keys.getAddress(keypair))
+        }
+        val sigs = prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
+
+        Assertions.assertThrows(TransactionException::class.java) {
+            master.withdraw(
+                tokenAddress,
+                BigInteger.valueOf(amountToSend.toLong()),
+                accGreen,
+                defaultByteHash,
+                sigs.vv,
+                sigs.rr,
+                sigs.ss
+            ).send()
+        }
+    }
+
+    /**
+     * @given deployed master contract
+     * @when 100 different peers are added to master, 5000 Wei is transferred to master,
+     * request to withdraw 1000 Wei is sent to master with 100 signatures from added peers
+     * @then withdraw call succeeded
+     */
+    @Test
+    fun validSignatures100of100() {
+        val sigCount = 100
+        val amountToSend = 1000
+        val tokenAddress = etherAddress
+        val initialBalance =
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+        deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
+
+        val finalHash =
+            hashToWithdraw(
+                tokenAddress,
+                amountToSend.toString(),
+                accGreen,
+                defaultIrohaHash
+            )
+
+        val keypairs = ArrayList<ECKeyPair>()
+        for (i in 0 until sigCount) {
+            val keypair = Keys.createEcKeyPair()
+            keypairs.add(keypair)
+            sendAddPeer("0x" + Keys.getAddress(keypair))
+        }
+        val sigs = prepareSignatures(sigCount, keypairs, finalHash)
+
+        master.withdraw(
+            tokenAddress,
+            BigInteger.valueOf(amountToSend.toLong()),
+            accGreen,
+            defaultByteHash,
+            sigs.vv,
+            sigs.rr,
+            sigs.ss
+        ).send()
+
+        assertEquals(
+            BigInteger.valueOf(4000),
+            deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+        )
+        assertEquals(
+            initialBalance + BigInteger.valueOf(1000),
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+        )
+    }
+
+    /**
+     * @given deployed master contract
+     * @when 100 different peers are added to master, 5000 Wei is transferred to master,
+     * request to withdraw 1000 Wei is sent to master with 67 signatures from added peers
+     * @then withdraw call succeeded
+     */
+    @Test
+    fun validSignatures67of100() {
+        val sigCount = 100
+        val realSigCount = 67
+        val amountToSend = 1000
+        val tokenAddress = etherAddress
+        val initialBalance =
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+        deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
+
+        val finalHash =
+            hashToWithdraw(
+                tokenAddress,
+                amountToSend.toString(),
+                accGreen,
+                defaultIrohaHash
+            )
+
+        val keypairs = ArrayList<ECKeyPair>()
+        for (i in 0 until sigCount) {
+            val keypair = Keys.createEcKeyPair()
+            keypairs.add(keypair)
+            sendAddPeer("0x" + Keys.getAddress(keypair))
+        }
+        val sigs = prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
+
+        master.withdraw(
+            tokenAddress,
+            BigInteger.valueOf(amountToSend.toLong()),
+            accGreen,
+            defaultByteHash,
+            sigs.vv,
+            sigs.rr,
+            sigs.ss
+        ).send()
+
+        assertEquals(
+            BigInteger.valueOf(4000),
+            deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+        )
+        assertEquals(
+            initialBalance + BigInteger.valueOf(1000),
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+        )
+    }
+
+    /**
+     * @given deployed master contract
+     * @when 100 different peers are added to master, 5000 Wei is transferred to master,
+     * request to withdraw 1000 Wei is sent to master with 66 signatures from added peers
+     * @then withdraw call failed
+     */
+    @Test
+    fun validSignatures66of100() {
+        val sigCount = 100
+        val realSigCount = 66
+        val amountToSend = 1000
+        val tokenAddress = etherAddress
+
+        val finalHash =
+            hashToWithdraw(
+                tokenAddress,
+                amountToSend.toString(),
+                accGreen,
+                defaultIrohaHash
+            )
+
+        val keypairs = ArrayList<ECKeyPair>()
+        for (i in 0 until sigCount) {
+            val keypair = Keys.createEcKeyPair()
+            keypairs.add(keypair)
+            sendAddPeer("0x" + Keys.getAddress(keypair))
+        }
+        val sigs = prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
+
+        Assertions.assertThrows(TransactionException::class.java) {
+            master.withdraw(
+                tokenAddress,
+                BigInteger.valueOf(amountToSend.toLong()),
+                accGreen,
+                defaultByteHash,
+                sigs.vv,
+                sigs.rr,
+                sigs.ss
+            ).send()
+        }
     }
 }
