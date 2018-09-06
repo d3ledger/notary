@@ -28,9 +28,9 @@ services:
     volumes:
       - /var/lib/postgresql/data
 
-  d3-deploy-relay:
-    image: x3medima17/relay
-    container_name: d3-deploy-relay
+  d3-eth-relay:
+    image: x3medima17/eth-relay
+    container_name: d3-eth-relay
     depends_on:
       - d3-iroha
       # - d3-eth-node0
