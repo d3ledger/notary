@@ -1,5 +1,7 @@
 ---
-  - setup:
+  - name: print dir
+    debug:
+      var: inventory_hostname
 
   - name: Create root folder
     file:
@@ -7,14 +9,44 @@
       state: directory
     become: yes
 
-  - name: Copy services folders
+  - name: Create iroha folder
+    file:
+      path: /opt/notary/iroha
+      state: directory
+    become: yes
+
+  - name: Create iroha keys folder
+    file:
+      path: /opt/notary/iroha/keys
+      state: directory
+    become: yes
+
+
+  - name: Copy ethereum folder
+    copy:
+      src: "{{ projectRoot }}/deploy/ethereum"
+      dest: /opt/notary
+    become: yes
+
+  - name: Copy iroha private key
+    copy:
+      src: "{{ projectRoot }}/deploy/ansible/roles/iroha/{{ inventory_hostname }}.priv"
+      dest: /opt/notary/iroha/keys/node0.priv
+
+  - name: Copy iroha public key
+    copy:
+      src: "{{ projectRoot }}/deploy/ansible/roles/iroha/{{ inventory_hostname }}.pub"
+      dest: /opt/notary/iroha/keys/node0.pub
+
+  - name: Copy other iroha files
     copy:
       src: "{{ item }}"
-      dest: /opt/notary
+      dest: /opt/notary/iroha
     with_items:
-      - "{{ projectRoot }}/deploy/iroha"
-      - "{{ projectRoot }}/deploy/ethereum"
-    become: yes
+      - "{{ projectRoot }}/deploy/iroha/entrypoint.sh"
+      - "{{ projectRoot }}/deploy/iroha/config.docker"
+      - "{{ projectRoot }}/deploy/ansible/roles/iroha/genesis.block"
+
 
   - name: Make iroha entrypoint executable
     file:

@@ -6,6 +6,7 @@ services:
     container_name: d3-iroha
     ports:
       - 50051:50051
+      - 10001:10001
     depends_on:
       - d3-iroha-postgres
     tty: true

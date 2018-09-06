@@ -1,2 +1,3 @@
 [ubuntu]
 node0 ansible_host=149.28.231.169 ansible_user=root
+

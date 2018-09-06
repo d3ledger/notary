@@ -6,5 +6,6 @@
         raw: test -e /usr/bin/python || (apt -y update && apt install -y python)
         changed_when: False
     roles:
-      - { role: docker }
+#      - { role: iroha }
+#      - { role: docker }
       - { role: notary }
