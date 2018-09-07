@@ -12,9 +12,6 @@ import withdrawalservice.WithdrawalServiceConfig
 import java.util.concurrent.atomic.AtomicInteger
 
 class ConfigHelper(private val accountHelper: AccountHelper) {
-    /** Port counter, so new port is generated for each run */
-    private val portCounter = AtomicInteger(19_999)
-
     /** Configurations for tests */
     val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
@@ -158,5 +155,10 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
             /** Ethereum configurations */
             override val ethereum = testConfig.ethereum
         }
+    }
+
+    companion object {
+        /** Port counter, so new port is generated for each run */
+        private val portCounter = AtomicInteger(19_999)
     }
 }
