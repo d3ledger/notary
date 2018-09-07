@@ -45,7 +45,7 @@ class EthTokensProviderTest {
                 { tokens ->
                     assertFalse(tokens.isEmpty())
                     (1..tokensToAdd).forEach { i ->
-                        assertEquals("$i", tokens.get("0x$i"))
+                        assertEquals("$i", tokens.get("0x$i")!!.name)
                     }
                 },
                 { ex -> fail("Cannot get tokens", ex) })
@@ -67,6 +67,6 @@ class EthTokensProviderTest {
             .failure { ex -> fail("Cannot add token", ex) }
         val tokens = ethTokensProvider.getTokens().get()
         assertEquals(initialNumberOfTokens + 1, tokens.size)
-        assertEquals(newTokenName, tokens.get(newEthWallet))
+        assertEquals(newTokenName, tokens.get(newEthWallet)!!.name)
     }
 }

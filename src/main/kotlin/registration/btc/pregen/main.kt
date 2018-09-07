@@ -1,6 +1,6 @@
-@file:JvmName("BtcPkPreGenerationMain")
+@file:JvmName("BtcPreGenerationMain")
 
-package registration.btc.key
+package registration.btc.pregen
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
@@ -10,14 +10,18 @@ import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.util.ModelUtil
 
 fun main(args: Array<String>) {
-    val logger = KLogging()
     val btcPkPreGenConfig =
-        loadConfigs("btc-pk-pregen", BtcPkPreGenConfig::class.java, "/btc/pub_key_pregeneration.properties")
+        loadConfigs("btc-pregen", BtcPreGenConfig::class.java, "/btc/pregeneration.properties")
+    executePreGeneration(btcPkPreGenConfig)
+}
+
+fun executePreGeneration(btcPkPreGenConfig: BtcPreGenConfig) {
+    val logger = KLogging()
     IrohaInitialization.loadIrohaLibrary()
         .flatMap { ModelUtil.loadKeypair(btcPkPreGenConfig.iroha.pubkeyPath, btcPkPreGenConfig.iroha.privkeyPath) }
-        .flatMap { keyPair -> BtcPkPreGenInitialization(keyPair, btcPkPreGenConfig).init() }
+        .flatMap { keyPair -> BtcPreGenInitialization(keyPair, btcPkPreGenConfig).init() }
         .failure { ex ->
-            logger.logger.error("cannot run public key pregeneration", ex)
+            logger.logger.error("cannot run btc address pre generation", ex)
             System.exit(1)
         }
 }

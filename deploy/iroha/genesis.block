@@ -17,6 +17,7 @@
                 "createRole": {
                   "roleName": "notary",
                   "permissions": [
+                    "can_get_all_acc_ast",
                     "can_get_all_accounts",
                     "can_create_asset",
                     "can_add_asset_qty",
@@ -52,7 +53,8 @@
                     "can_set_detail",
                     "can_get_domain_accounts",
                     "can_get_all_txs",
-                    "can_get_blocks"
+                    "can_get_blocks",
+                    "can_set_quorum"
                   ]
                 }
               },
@@ -142,6 +144,12 @@
               },
               {
                 "createDomain": {
+                  "domainId": "btcSession",
+                  "defaultRole": "none"
+                }
+              },
+              {
+                "createDomain": {
                   "domainId": "ethereum",
                   "defaultRole": "none"
                 }
@@ -207,6 +215,26 @@
               {
                 "appendRole": {
                   "accountId": "btc_registration_service_red@notary",
+                  "roleName": "registration_service"
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "mst_btc_registration_service_red",
+                  "domainId": "notary",
+                  "publicKey": "iJ9riB4zG+IUh9t33PMsX409XoBm540v6sQjn+kdQW8=",
+
+                }
+              },
+              {
+                "setAccountQuorum":{
+                  "accountId":"mst_btc_registration_service_red@notary",
+                  "quorum":1
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "mst_btc_registration_service_red@notary",
                   "roleName": "registration_service"
                 }
               },

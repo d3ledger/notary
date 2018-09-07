@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import util.getRandomString
 import java.math.BigDecimal
-import java.math.BigInteger
 
 
 class BtcNotaryIntegrationTest {
@@ -25,6 +24,7 @@ class BtcNotaryIntegrationTest {
     @Disabled
     @Test
     fun testDeposit() {
+        integrationHelper.generateBtcBlocks()
         notary.btc.executeNotary(integrationHelper.configHelper.createBtcNotaryConfig())
         val randomName = String.getRandomString(9)
         val testClient = "$randomName@notary"
@@ -34,10 +34,10 @@ class BtcNotaryIntegrationTest {
         if (!integrationHelper.sendBtc(btcAddress, btcAmount)) {
             fail { "failed to send btc" }
         }
-        Thread.sleep(20_000)
+        Thread.sleep(30_000)
         val newBalance = integrationHelper.getIrohaAccountBalance(testClient, btcAsset)
         assertEquals(
-            BigDecimal(initialBalance).add(BigDecimal.valueOf(btcToSat(btcAmount))),
+            BigDecimal(initialBalance).add(BigDecimal.valueOf(btcToSat(btcAmount))).toString(),
             newBalance
         )
     }
@@ -45,5 +45,4 @@ class BtcNotaryIntegrationTest {
     private fun btcToSat(btc: Int): Long {
         return btc * 100_000_000L
     }
-
 }

@@ -15,6 +15,7 @@ import kotlin.test.assertEquals
 /**
  * Integration tests for withdrawal service.
  */
+
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class WithdrawalPipelineIntegrationTest {
 

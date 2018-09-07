@@ -42,14 +42,14 @@ class BtcRegistrationIntegrationTest {
         val btcAddressesProvider = BtcAddressesProvider(
             config.iroha,
             integrationHelper.irohaKeyPair,
-            config.notaryIrohaAccount
+            config.mstRegistrationAccount
+
         )
         btcAddressesProvider.getAddresses().fold({ addresses ->
             assertEquals("$userName@notary", addresses[registeredBtcAddress])
-        }, { ex -> fail(ex) })
+        }, { ex -> fail("cannot get addresses", ex) })
         assertEquals(BigInteger.ZERO, integrationHelper.getIrohaAccountBalance("$userName@notary", "btc#bitcoin"))
         val wallet = Wallet.loadFromFile(File(config.btcWalletPath))
         assertNotNull(wallet.issuedReceiveAddresses.find { address -> address.toBase58() == registeredBtcAddress })
     }
-
 }
