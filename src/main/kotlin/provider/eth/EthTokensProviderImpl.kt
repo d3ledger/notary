@@ -42,11 +42,10 @@ class EthTokensProviderImpl(
                         keypair,
                         irohaNetwork,
                         "$name#ethereum"
+                    ).fold(
+                        { EthTokenInfo(name, it) },
+                        { throw it }
                     )
-                        .fold(
-                            { EthTokenInfo(name, it) },
-                            { throw it }
-                        )
                 }
             }
     }
