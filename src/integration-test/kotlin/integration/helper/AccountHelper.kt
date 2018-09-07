@@ -9,6 +9,7 @@ import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 
+//Class that handles all the accounts in integration tests.
 class AccountHelper(private val keyPair: Keypair) {
 
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
@@ -29,7 +30,7 @@ class AccountHelper(private val keyPair: Keypair) {
     val notaryListStorageAccount by lazy { createTesterAccount("notary_storage", "notary_holder") }
 
     /** Notary account*/
-    val notaryAccount by lazy { createTesterAccount("notary") }
+    val notaryAccount by lazy { createTesterAccount("notary", "notary") }
 
     /**
      * Creates randomly named tester account in Iroha
@@ -51,7 +52,6 @@ class AccountHelper(private val keyPair: Keypair) {
         }, { ex ->
             throw ex
         })
-
     }
 
     /**
