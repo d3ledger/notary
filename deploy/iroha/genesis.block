@@ -112,7 +112,9 @@
                     "can_get_blocks",
                     "can_get_domain_accounts",
                     "can_set_quorum",
-                    "can_add_signatory"
+                    "can_add_signatory",
+                    "can_create_account",
+                    "can_get_all_txs"
                   ]
                 }
               },

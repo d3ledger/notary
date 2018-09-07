@@ -1,9 +1,11 @@
 package integration.eth
 
+import config.EthereumPasswords
+import config.TestConfig
+import config.loadConfigs
 import contract.BasicCoin
 import contract.Master
 import contract.Relay
-import integration.helper.ConfigHelper
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -24,10 +26,9 @@ import java.math.BigInteger
  * Class for Ethereum sidechain infrastructure deployment and communication.
  */
 class ContractsTest {
-    private val configHelper = ConfigHelper()
-    private val testConfig = configHelper.testConfig
-    private val passwordConfig = configHelper.ethPasswordConfig
 
+    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
+    private val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/eth/ethereum_password.properties")
     private val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
     private val keypair = deployHelper.credentials.ecKeyPair
 

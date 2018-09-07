@@ -10,7 +10,6 @@ import sidechain.SideChainEvent
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.util.ModelUtil
-import java.util.concurrent.Executors
 
 /**
  * Implementation of [Notary] business logic
@@ -134,5 +133,3 @@ class NotaryImpl(
      */
     companion object : KLogging()
 }
-
-

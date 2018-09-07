@@ -3,7 +3,6 @@ package withdrawalservice
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import com.squareup.moshi.Moshi
-import config.EthereumPasswords
 import io.reactivex.Observable
 import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
@@ -15,7 +14,6 @@ import provider.NotaryPeerListProviderImpl
 import provider.eth.EthTokensProvider
 import provider.eth.EthTokensProviderImpl
 import sidechain.SideChainEvent
-import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.extractVRS
 import sidechain.eth.util.findInTokens
 import sidechain.iroha.consumer.IrohaNetwork

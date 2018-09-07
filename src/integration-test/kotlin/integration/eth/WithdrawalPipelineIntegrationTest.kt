@@ -22,16 +22,16 @@ class WithdrawalPipelineIntegrationTest {
     private val integrationHelper = IntegrationHelperUtil()
 
     /** Test Notary configuration */
-    private val notaryConfig = integrationHelper.createEthNotaryConfig()
+    private val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig()
 
     /** Refund endpoint address */
     private val refundAddress = "http://localhost:${notaryConfig.refund.port}"
 
     /** Test Registration configuration */
-    private val registrationConfig = integrationHelper.createEthRegistrationConfig()
+    private val registrationConfig = integrationHelper.configHelper.createEthRegistrationConfig()
 
     /** Test Withdrawal configuration */
-    private val withdrawalServiceConfig = integrationHelper.createWithdrawalConfig()
+    private val withdrawalServiceConfig = integrationHelper.configHelper.createWithdrawalConfig()
 
     /** Ethereum password configs */
     private val passwordConfig = integrationHelper.configHelper.ethPasswordConfig

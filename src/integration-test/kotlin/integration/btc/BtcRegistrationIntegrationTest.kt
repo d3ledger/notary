@@ -28,7 +28,7 @@ class BtcRegistrationIntegrationTest {
     @Disabled
     @Test
     fun testRegistration() {
-        val config = integrationHelper.createBtcRegistrationConfig()
+        val config = integrationHelper.configHelper.createBtcRegistrationConfig()
         executeRegistration(config)
         Thread.sleep(10_000)
         val keypair = ModelCrypto().generateKeypair()
@@ -51,6 +51,5 @@ class BtcRegistrationIntegrationTest {
         val wallet = Wallet.loadFromFile(File(config.btcWalletPath))
         assertNotNull(wallet.issuedReceiveAddresses.find { address -> address.toBase58() == registeredBtcAddress })
     }
-
 
 }

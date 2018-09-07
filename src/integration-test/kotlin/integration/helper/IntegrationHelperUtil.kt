@@ -3,13 +3,14 @@ package integration.helper
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.success
+import config.TestConfig
+import config.loadConfigs
 import contract.Master
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.QueryServiceGrpc
 import jp.co.soramitsu.iroha.*
 import kotlinx.coroutines.experimental.async
 import mu.KLogging
-import notary.btc.BtcNotaryConfig
 import notary.eth.EthNotaryConfig
 import notary.eth.executeNotary
 import org.junit.jupiter.api.fail
@@ -18,9 +19,7 @@ import provider.eth.EthFreeRelayProvider
 import provider.eth.EthRelayProviderIrohaImpl
 import provider.eth.EthTokenInfo
 import provider.eth.EthTokensProviderImpl
-import registration.btc.BtcRegistrationConfig
 import registration.btc.BtcRegistrationStrategyImpl
-import registration.eth.EthRegistrationConfig
 import registration.eth.EthRegistrationStrategyImpl
 import registration.eth.relay.RelayRegistration
 import sidechain.eth.util.DeployHelper
@@ -29,8 +28,6 @@ import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
-import vacuum.RelayVacuumConfig
-import withdrawalservice.WithdrawalServiceConfig
 import java.math.BigInteger
 
 /**
@@ -46,36 +43,30 @@ class IntegrationHelperUtil {
             }
     }
 
-    val configHelper = ConfigHelper()
-
-    /** Ethereum utils */
-    private val deployHelper = DeployHelper(configHelper.testConfig.ethereum, configHelper.ethPasswordConfig)
+    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
     /** Iroha keypair */
     val irohaKeyPair =
-        ModelUtil.loadKeypair(configHelper.testConfig.iroha.pubkeyPath, configHelper.testConfig.iroha.privkeyPath).get()
+        ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
 
-    private val irohaNetwork =
+
+    val accountHelper by lazy { AccountHelper(irohaKeyPair) }
+
+    val configHelper by lazy { ConfigHelper(accountHelper) }
+
+    /** Ethereum utils */
+    private val deployHelper by lazy { DeployHelper(configHelper.testConfig.ethereum, configHelper.ethPasswordConfig) }
+
+
+    private val irohaNetwork by lazy {
         IrohaNetworkImpl(configHelper.testConfig.iroha.hostname, configHelper.testConfig.iroha.port)
+    }
 
-    private val irohaConsumer = IrohaConsumerImpl(configHelper.testConfig.iroha)
+    private val irohaConsumer by lazy { IrohaConsumerImpl(configHelper.testConfig.iroha) }
 
     /** Notary ethereum address that is used in master smart contract to verify proof provided by notary */
     private val notaryEthAddress = "0x6826d84158e516f631bbf14586a9be7e255b2d23"
 
-    /** Account that used to store registered clients.*/
-    val registrationAccount by lazy {
-        createTesterAccount()
-    }
-
-    /** Account that used to store tokens*/
-    val tokenStorageAccount by lazy { createTesterAccount() }
-
-    /** Account that used to store list of notaries */
-    val notaryListStorageAccount by lazy { createTesterAccount() }
-
-    /** Account that used to set list of notaries */
-    val notaryListSetterAccount by lazy { createTesterAccount() }
 
     /** New master ETH master contract*/
     val masterContract by lazy {
@@ -89,8 +80,8 @@ class IntegrationHelperUtil {
         EthTokensProviderImpl(
             configHelper.testConfig.iroha,
             irohaKeyPair,
-            configHelper.testConfig.notaryIrohaAccount,
-            tokenStorageAccount
+            accountHelper.notaryAccount,
+            accountHelper.tokenStorageAccount
         )
     }
 
@@ -99,15 +90,18 @@ class IntegrationHelperUtil {
         EthFreeRelayProvider(
             configHelper.testConfig.iroha,
             irohaKeyPair,
-            configHelper.testConfig.notaryIrohaAccount,
-            registrationAccount
+            accountHelper.notaryAccount,
+            accountHelper.registrationAccount
         )
     }
 
-    /** Provider of ETH wallets created by registrationAccount*/
+    /** Provider of ETH wallets created by mstRegistrationAccount*/
     private val ethRelayProvider by lazy {
         EthRelayProviderIrohaImpl(
-            configHelper.testConfig.iroha, irohaKeyPair, configHelper.testConfig.notaryIrohaAccount, registrationAccount
+            configHelper.testConfig.iroha,
+            irohaKeyPair,
+            accountHelper.notaryAccount,
+            accountHelper.registrationAccount
         )
     }
 
@@ -115,52 +109,22 @@ class IntegrationHelperUtil {
         EthRegistrationStrategyImpl(
             ethFreeRelayProvider,
             irohaConsumer,
-            configHelper.testConfig.notaryIrohaAccount,
-            registrationAccount
+            accountHelper.notaryAccount,
+            accountHelper.registrationAccount
         )
     }
+
     private val btcRegistrationStrategy by lazy {
         BtcRegistrationStrategyImpl(
             irohaConsumer,
-            configHelper.testConfig.notaryIrohaAccount,
-            registrationAccount,
+            accountHelper.notaryAccount,
+            accountHelper.registrationAccount,
             configHelper.testConfig.bitcoin.walletPath
         )
     }
 
-    private val relayRegistration =
-        RelayRegistration(configHelper.relayRegistrationConfig, configHelper.ethPasswordConfig)
-
-    fun createEthNotaryConfig(): EthNotaryConfig {
-        return configHelper.createEthNotaryConfig(registrationAccount, tokenStorageAccount)
-    }
-
-    /**
-     * Run Withdrawal service instance with integration test environment
-     */
-    fun createWithdrawalConfig(): WithdrawalServiceConfig {
-        return configHelper.createWithdrawalConfig(
-            registrationAccount,
-            tokenStorageAccount,
-            notaryListStorageAccount,
-            notaryListSetterAccount
-        )
-    }
-
-    fun createEthRegistrationConfig(): EthRegistrationConfig {
-        return configHelper.createEthRegistrationConfig(registrationAccount)
-    }
-
-    fun createRelayVacuumConfig(): RelayVacuumConfig {
-        return configHelper.createRelayVacuumConfig(registrationAccount, tokenStorageAccount)
-    }
-
-    fun createBtcRegistrationConfig(): BtcRegistrationConfig {
-        return configHelper.createBtcRegistrationConfig(registrationAccount)
-    }
-
-    fun createBtcNotaryConfig(): BtcNotaryConfig {
-        return configHelper.createBtcNotaryConfig(registrationAccount)
+    private val relayRegistration by lazy {
+        RelayRegistration(configHelper.createRelayRegistrationConfig(), configHelper.ethPasswordConfig)
     }
 
     fun registerBtcAddress(irohaAccountName: String): String {
@@ -198,7 +162,7 @@ class IntegrationHelperUtil {
     fun deployERC20Token(tokenName: String): String {
         logger.info { "create $tokenName ERC20 token" }
         val tokenAddress = deployHelper.deployERC20TokenSmartContract().contractAddress
-        ModelUtil.createAsset(irohaConsumer, configHelper.testConfig.iroha.creator, tokenName, "ethereum", 0)
+        ModelUtil.createAsset(irohaConsumer, accountHelper.notaryAccount, tokenName, "ethereum", 0)
         addERC20Token(tokenName, tokenAddress)
         masterContract.addToken(tokenAddress).send()
         return tokenAddress
@@ -220,8 +184,10 @@ class IntegrationHelperUtil {
      * @param amount - amount to transfer
      * @param toAddress - destination address
      */
-    fun sendERC20Token(contractAddress: String, amount: BigInteger, toAddress: String) =
+    fun sendERC20Token(contractAddress: String, amount: BigInteger, toAddress: String) {
+        logger.info { "send ERC20 $contractAddress $amount to $toAddress" }
         deployHelper.sendERC20(contractAddress, toAddress, amount)
+    }
 
     /**
      * Get [whoAddress] balance of ERC20 tokens with [contractAddress]
@@ -251,8 +217,8 @@ class IntegrationHelperUtil {
      * Deploys relay contracts in Ethereum network
      */
     fun deployRelays(relaysToDeploy: Int) {
-        relayRegistration.deploy(relaysToDeploy, masterContract.contractAddress, registrationAccount)
-        logger.info("relays were deployed by $registrationAccount")
+        relayRegistration.deploy(relaysToDeploy, masterContract.contractAddress, accountHelper.registrationAccount)
+        logger.info("relays were deployed by ${accountHelper.registrationAccount}")
         Thread.sleep(10_000)
     }
 
@@ -282,7 +248,10 @@ class IntegrationHelperUtil {
     /**
      * Send ETH with given amount to ethPublicKey
      */
-    fun sendEth(amount: BigInteger, to: String) = deployHelper.sendEthereum(amount, to)
+    fun sendEth(amount: BigInteger, to: String) {
+        logger.info { "send $amount Wei to $to " }
+        deployHelper.sendEthereum(amount, to)
+    }
 
     fun getAccountDetails(accountDetailHolder: String, accountDetailSetter: String): Map<String, String> {
         return sidechain.iroha.util.getAccountDetails(
@@ -307,7 +276,7 @@ class IntegrationHelperUtil {
      * @param amount - amount to add
      */
     fun addIrohaAssetTo(accountId: String, assetId: String, amount: String) {
-        val creator = configHelper.testConfig.iroha.creator
+        val creator = accountHelper.notaryAccount
 
         ModelUtil.addAssetIroha(irohaConsumer, creator, assetId, amount)
         if (creator != accountId)
@@ -325,7 +294,7 @@ class IntegrationHelperUtil {
         val queryCounter: Long = 1
 
         val uquery = ModelQueryBuilder()
-            .creatorAccountId(configHelper.testConfig.iroha.creator)
+            .creatorAccountId(accountHelper.notaryAccount)
             .queryCounter(BigInteger.valueOf(queryCounter))
             .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
             .getAccountAssets(accountId)
@@ -367,14 +336,14 @@ class IntegrationHelperUtil {
      */
     fun sendBtc(address: String, amount: Int): Boolean {
         return runCommand("bitcoin-cli -regtest sendtoaddress $address $amount")
-                && generateBtcBlocks()
+                && generateBtcBlocks(6)
     }
 
     /**
      * Creates 100 more blocks in bitcoin blockchain. May be used as transaction confirmation mechanism.
      */
-    private fun generateBtcBlocks(): Boolean {
-        return runCommand("bitcoin-cli -regtest generate 100")
+    fun generateBtcBlocks(blocks: Int = 100): Boolean {
+        return runCommand("bitcoin-cli -regtest generate $blocks")
     }
 
     /**
@@ -387,41 +356,25 @@ class IntegrationHelperUtil {
         return pr.exitValue() == 0
     }
 
-    /**
-     * Creates randomly named tester account in Iroha
-     */
-    private fun createTesterAccount(): String {
-        val name = String.getRandomString(9)
-        val domain = "notary"
-        val creator = configHelper.testConfig.iroha.creator
-        irohaConsumer.sendAndCheck(
-            ModelTransactionBuilder()
-                .creatorAccountId(creator)
-                .createdTime(ModelUtil.getCurrentTime())
-                .createAccount(name, domain, irohaKeyPair.publicKey())
-                .appendRole("$name@$domain", "tester")
-                .build()
-        )
-        logger.info("account $name@notary was created")
-        return "$name@notary"
-    }
 
     /**
      * Register client
      */
     fun registerClient(): String {
-        val name = String.getRandomString(9)
+        val name = "client_${String.getRandomString(9)}"
         val domain = "notary"
-        val creator = configHelper.testConfig.iroha.creator
+        val creator = accountHelper.registrationAccount
         irohaConsumer.sendAndCheck(
             ModelTransactionBuilder()
                 .creatorAccountId(creator)
                 .createdTime(ModelUtil.getCurrentTime())
                 .createAccount(name, domain, irohaKeyPair.publicKey())
                 .build()
-        )
-        logger.info("client account $name@notary was created")
-        return "$name@notary"
+        ).fold({
+            logger.info("client account $name@$domain was created")
+            return "$name@notary"
+        }, { ex -> throw Exception("cannot create client", ex) })
+
     }
 
     /**
@@ -447,8 +400,8 @@ class IntegrationHelperUtil {
     fun addNotary(name: String, address: String) {
         ModelUtil.setAccountDetail(
             irohaConsumer,
-            notaryListSetterAccount,
-            notaryListStorageAccount,
+            accountHelper.notaryListSetterAccount,
+            accountHelper.notaryListStorageAccount,
             name,
             address
         )
@@ -501,10 +454,12 @@ class IntegrationHelperUtil {
             "http://127.0.0.1:${port}/users",
             data = mapOf("name" to name, "pubkey" to pubkey.hex())
         )
-
     }
 
-    fun runEthNotary(ethNotaryConfig: EthNotaryConfig = createEthNotaryConfig()) {
+    /*
+        Runs Ethereum notary process
+     */
+    fun runEthNotary(ethNotaryConfig: EthNotaryConfig = configHelper.createEthNotaryConfig()) {
         async {
             executeNotary(ethNotaryConfig)
         }
@@ -519,4 +474,5 @@ class IntegrationHelperUtil {
      * Logger
      */
     companion object : KLogging()
+
 }

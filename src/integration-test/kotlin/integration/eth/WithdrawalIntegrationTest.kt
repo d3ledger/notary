@@ -2,7 +2,6 @@ package integration.eth
 
 import com.squareup.moshi.Moshi
 import integration.helper.IntegrationHelperUtil
-import kotlinx.coroutines.experimental.async
 import notary.endpoint.eth.BigIntegerMoshiAdapter
 import notary.endpoint.eth.EthNotaryResponse
 import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
@@ -24,7 +23,7 @@ class WithdrawalIntegrationTest {
     private val integrationHelper = IntegrationHelperUtil()
 
     /** Test Notary configuration */
-    private val notaryConfig = integrationHelper.createEthNotaryConfig()
+    private val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig()
 
     init {
         integrationHelper.runEthNotary(notaryConfig)
@@ -45,7 +44,7 @@ class WithdrawalIntegrationTest {
      */
     @Test
     fun testRefund() {
-        val masterAccount = integrationHelper.configHelper.testConfig.notaryIrohaAccount
+        val masterAccount = integrationHelper.accountHelper.notaryAccount
         val amount = "64203"
         val assetId = "ether#ethereum"
         val ethWallet = "eth_wallet"
