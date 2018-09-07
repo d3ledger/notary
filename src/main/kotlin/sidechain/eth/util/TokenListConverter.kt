@@ -1,9 +1,13 @@
 package sidechain.eth.util
 
-fun findInTokens(tokenToFind: String, tokens: MutableMap<String, String>): String {
-    tokens["0x0000000000000000000000000000000000000000"] = "ether"
+import provider.eth.EthTokenInfo
+
+val ETH_PRECISION = 18
+
+fun findInTokens(tokenToFind: String, tokens: MutableMap<String, EthTokenInfo>): String {
+    tokens["0x0000000000000000000000000000000000000000"] = EthTokenInfo("ether", ETH_PRECISION)
     for (coin in tokens) {
-        if (coin.value == tokenToFind) {
+        if (coin.value.name == tokenToFind) {
             return coin.key
         }
     }

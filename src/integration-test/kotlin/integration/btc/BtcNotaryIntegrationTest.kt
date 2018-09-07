@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import util.getRandomString
+import java.math.BigDecimal
 import java.math.BigInteger
 
 
@@ -36,7 +37,7 @@ class BtcNotaryIntegrationTest {
         Thread.sleep(20_000)
         val newBalance = integrationHelper.getIrohaAccountBalance(testClient, btcAsset)
         assertEquals(
-            initialBalance.add(BigInteger.valueOf(btcToSat(btcAmount))),
+            BigDecimal(initialBalance).add(BigDecimal.valueOf(btcToSat(btcAmount))),
             newBalance
         )
     }

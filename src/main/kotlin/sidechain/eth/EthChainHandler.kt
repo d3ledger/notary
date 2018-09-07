@@ -6,9 +6,12 @@ import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.methods.response.EthBlock
 import org.web3j.protocol.core.methods.response.Transaction
 import provider.eth.EthRelayProvider
+import provider.eth.EthTokenInfo
 import provider.eth.EthTokensProvider
 import sidechain.ChainHandler
 import sidechain.SideChainEvent
+import sidechain.eth.util.ETH_PRECISION
+import java.math.BigDecimal
 import java.math.BigInteger
 
 /**
@@ -33,7 +36,7 @@ class EthChainHandler(
     private fun handleErc20(
         tx: Transaction,
         wallets: Map<String, String>,
-        tokens: Map<String, String>
+        tokens: Map<String, EthTokenInfo>
     ): List<SideChainEvent.PrimaryBlockChainEvent> {
         logger.info { "handle ERC20 tx ${tx.hash}" }
 
@@ -68,8 +71,8 @@ class EthChainHandler(
                     tx.hash,
                     wallets[to]!!,
                     // all non-existent keys were filtered out in parseBlock
-                    tokens[tx.to]!!,
-                    amount,
+                    tokens[tx.to]!!.name,
+                    BigDecimal(amount, tokens[tx.to]!!.precision).toString(),
                     from
                 )
             }
@@ -93,7 +96,7 @@ class EthChainHandler(
                     // all non-existent keys were filtered out in parseBlock
                     wallets[tx.to]!!,
                     "ether",
-                    tx.value,
+                    BigDecimal(tx.value, ETH_PRECISION).toString(),
                     tx.from
                 )
             )

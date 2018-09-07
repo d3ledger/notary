@@ -24,7 +24,7 @@ class ReceivedCoinsListener(
                 tx.hashAsString,
                 irohaAccount,
                 BTC_ASSET_NAME,
-                BigInteger.valueOf(newBalance.getValue() - prevBalance.getValue()),
+                BigInteger.valueOf(newBalance.getValue() - prevBalance.getValue()).toString(),
                 ""
             )
             emitter.onNext(event)

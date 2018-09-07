@@ -16,6 +16,7 @@ import org.junit.jupiter.api.fail
 import org.web3j.protocol.core.DefaultBlockParameterName
 import provider.eth.EthFreeRelayProvider
 import provider.eth.EthRelayProviderIrohaImpl
+import provider.eth.EthTokenInfo
 import provider.eth.EthTokensProviderImpl
 import registration.btc.BtcRegistrationConfig
 import registration.btc.BtcRegistrationStrategyImpl
@@ -209,7 +210,7 @@ class IntegrationHelperUtil {
      * @param tokenAddress - token ERC20 smart contract address
      */
     private fun addERC20Token(tokenName: String, tokenAddress: String) {
-        ethTokensProvider.addToken(tokenAddress, tokenName)
+        ethTokensProvider.addToken(tokenAddress, EthTokenInfo(tokenName, 0))
             .success { logger.info { "token $tokenAddress was deployed" } }
     }
 
@@ -320,7 +321,7 @@ class IntegrationHelperUtil {
      * @param assetId - asset in Iroha
      * @return balance of account asset
      */
-    fun getIrohaAccountBalance(accountId: String, assetId: String): BigInteger {
+    fun getIrohaAccountBalance(accountId: String, assetId: String): String {
         val queryCounter: Long = 1
 
         val uquery = ModelQueryBuilder()
@@ -350,10 +351,10 @@ class IntegrationHelperUtil {
                     val assets = queryResponse.accountAssetsResponse.accountAssetsList
                     for (asset in assets) {
                         if (assetId == asset.assetId)
-                            return BigInteger(asset.balance)
+                            return asset.balance
                     }
 
-                    BigInteger.ZERO
+                    "0"
                 },
                 { ex ->
                     fail("Exception while converting byte array to protobuf", ex)

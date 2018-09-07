@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
+import provider.eth.EthTokenInfo
 import provider.eth.EthTokensProviderImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
@@ -43,7 +44,7 @@ class EthTokensProviderTest {
     fun testGetTokens() {
         val tokensToAdd = 5
         (1..tokensToAdd).forEach { i ->
-            ethTokensProvider.addToken("0x$i", "$i")
+            ethTokensProvider.addToken("0x$i", EthTokenInfo("$i", 0))
         }
         ethTokensProvider.getTokens()
             .fold(
@@ -68,7 +69,8 @@ class EthTokensProviderTest {
         val initialNumberOfTokens = ethTokensProvider.getTokens().get().size
         val newEthWallet = String.getRandomString(9)
         val newTokenName = "abc"
-        ethTokensProvider.addToken(newEthWallet, newTokenName).failure { ex -> fail("Cannot add token", ex) }
+        ethTokensProvider.addToken(newEthWallet, EthTokenInfo(newTokenName, 0))
+            .failure { ex -> fail("Cannot add token", ex) }
         val tokens = ethTokensProvider.getTokens().get()
         assertEquals(initialNumberOfTokens + 1, tokens.size)
         assertEquals(newTokenName, tokens.get(newEthWallet))
