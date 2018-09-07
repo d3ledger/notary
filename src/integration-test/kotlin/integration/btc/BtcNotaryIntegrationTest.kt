@@ -24,7 +24,7 @@ class BtcNotaryIntegrationTest {
     @Disabled
     @Test
     fun testDeposit() {
-        notary.btc.executeNotary(integrationHelper.createBtcNotaryConfig())
+        notary.btc.executeNotary(integrationHelper.configHelper.createBtcNotaryConfig())
         val randomName = String.getRandomString(9)
         val testClient = "$randomName@notary"
         val btcAddress = integrationHelper.registerBtcAddress(randomName)

@@ -1,7 +1,6 @@
 package integration.eth
 
 import integration.helper.IntegrationHelperUtil
-import kotlinx.coroutines.experimental.async
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -32,9 +31,11 @@ class DepositIntegrationTest {
     private val clientIrohaAccountId = "$clientIrohaAccount@notary"
 
     /** Ethereum address to transfer to */
-    private val relayWallet by lazy {
+    private val relayWallet = registerRelay()
+
+    private fun registerRelay(): String {
         integrationHelper.deployRelays(1)
-        integrationHelper.registerClient(clientIrohaAccount)
+        return integrationHelper.registerClient(clientIrohaAccount)
     }
 
     /**

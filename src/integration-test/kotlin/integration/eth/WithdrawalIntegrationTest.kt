@@ -24,7 +24,7 @@ class WithdrawalIntegrationTest {
     private val integrationHelper = IntegrationHelperUtil()
 
     /** Test Notary configuration */
-    private val notaryConfig = integrationHelper.createEthNotaryConfig()
+    private val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig()
 
     init {
         integrationHelper.runEthNotary(notaryConfig)
@@ -45,7 +45,7 @@ class WithdrawalIntegrationTest {
      */
     @Test
     fun testRefund() {
-        val masterAccount = integrationHelper.configHelper.testConfig.notaryIrohaAccount
+        val masterAccount = integrationHelper.accountHelper.notaryAccount
         val amount = "64203"
         val assetId = "ether#ethereum"
         val ethWallet = "eth_wallet"

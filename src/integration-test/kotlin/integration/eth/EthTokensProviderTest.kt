@@ -18,17 +18,12 @@ class EthTokensProviderTest {
 
     private val testConfig = integrationHelper.configHelper.testConfig
 
-    /** Iroha keypair */
-    private val irohaKeyPair = ModelUtil.loadKeypair(
-        testConfig.iroha.pubkeyPath,
-        testConfig.iroha.privkeyPath
-    ).get()
 
     private val ethTokensProvider = EthTokensProviderImpl(
         testConfig.iroha,
-        irohaKeyPair,
+        integrationHelper.irohaKeyPair,
         testConfig.notaryIrohaAccount,
-        integrationHelper.tokenStorageAccount
+        integrationHelper.accountHelper.tokenStorageAccount
     )
 
     /**
