@@ -6,6 +6,7 @@ import integration.helper.IntegrationHelperUtil
 import kotlinx.coroutines.experimental.async
 import org.bitcoinj.wallet.Wallet
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import provider.TriggerProvider
@@ -26,6 +27,7 @@ class BtcPkPreGenIntegrationTest {
      * @when special trigger account is triggered
      * @then new public key is added to session account
      */
+    @Disabled
     @Test
     fun testGenerateKey() {
         async { main(emptyArray()) }

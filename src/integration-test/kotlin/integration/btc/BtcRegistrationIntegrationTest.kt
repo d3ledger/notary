@@ -5,6 +5,7 @@ import jp.co.soramitsu.iroha.ModelCrypto
 import org.bitcoinj.wallet.Wallet
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import provider.btc.BtcAddressesProvider
@@ -24,6 +25,7 @@ class BtcRegistrationIntegrationTest {
      * @when client name is passed to registration service
      * @then client has btc address in related Iroha account details and btc address is watched by wallet
      */
+    @Disabled
     @Test
     fun testRegistration() {
         val config = integrationHelper.createBtcRegistrationConfig()

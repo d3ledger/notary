@@ -13,9 +13,6 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class ConfigHelper {
 
-    /** Port counter, so new port is generated for each run */
-    private val portCounter = AtomicInteger(19_999)
-
     /** Configurations for tests */
     val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
@@ -94,38 +91,30 @@ class ConfigHelper {
     /** Test configuration of Notary with runtime dependencies */
     fun createEthNotaryConfig(registrationAccount: String, tokenStorageAccount: String): EthNotaryConfig {
         return object : EthNotaryConfig {
-            override val registrationServiceIrohaAccount: String
-                get() = registrationAccount
-            override val tokenStorageAccount: String
-                get() = tokenStorageAccount
-            override val whitelistSetter: String
-                get() = testConfig.whitelistSetter
+            override val registrationServiceIrohaAccount = registrationAccount
+            override val tokenStorageAccount = tokenStorageAccount
+            override val whitelistSetter = testConfig.whitelistSetter
             override val refund = createRefundConfig()
-            override val iroha: IrohaConfig
-                get() = ethNotaryConfig.iroha
-            override val ethereum: EthereumConfig
-                get() = ethNotaryConfig.ethereum
+            override val iroha = ethNotaryConfig.iroha
+            override val ethereum = ethNotaryConfig.ethereum
         }
     }
 
     /** Test configuration of Withdrawal service with runtime dependencies */
-    fun createWithdrawalConfig(registrationAccount: String, tokenStorageAccount: String): WithdrawalServiceConfig {
-        val outerTokenStorageAccount = tokenStorageAccount
+    fun createWithdrawalConfig(
+        registrationAccount: String,
+        newTokenStorageAccount: String,
+        newNotaryListStorageAccount: String,
+        newNotaryListSetterAccount: String
+    ): WithdrawalServiceConfig {
         return object : WithdrawalServiceConfig {
-            override val notaryIrohaAccount: String
-                get() = withdrawalConfig.notaryIrohaAccount
-            override val notaryListStorageAccount: String
-                get() = withdrawalConfig.notaryListStorageAccount
-            override val notaryListSetterAccount: String
-                get() = withdrawalConfig.notaryListSetterAccount
-            override val tokenStorageAccount: String
-                get() = outerTokenStorageAccount
-            override val registrationIrohaAccount: String
-                get() = registrationAccount
-            override val iroha: IrohaConfig
-                get() = withdrawalConfig.iroha
-            override val ethereum: EthereumConfig
-                get() = withdrawalConfig.ethereum
+            override val notaryIrohaAccount = withdrawalConfig.notaryIrohaAccount
+            override val tokenStorageAccount = newTokenStorageAccount
+            override val notaryListStorageAccount = newNotaryListStorageAccount
+            override val notaryListSetterAccount = newNotaryListSetterAccount
+            override val registrationIrohaAccount = registrationAccount
+            override val iroha = withdrawalConfig.iroha
+            override val ethereum = withdrawalConfig.ethereum
         }
     }
 
@@ -133,10 +122,8 @@ class ConfigHelper {
     fun createEthRegistrationConfig(registrationAccount: String): EthRegistrationConfig {
         return object : EthRegistrationConfig {
             override val port = portCounter.incrementAndGet()
-            override val relayRegistrationIrohaAccount: String
-                get() = registrationAccount
-            override val notaryIrohaAccount: String
-                get() = testConfig.notaryIrohaAccount
+            override val relayRegistrationIrohaAccount = registrationAccount
+            override val notaryIrohaAccount = testConfig.notaryIrohaAccount
             override val iroha = createIrohaConfig(creator = registrationAccount)
         }
     }
@@ -156,5 +143,11 @@ class ConfigHelper {
             /** Ethereum configurations */
             override val ethereum = testConfig.ethereum
         }
+    }
+
+    companion object {
+
+        /** Port counter, so new port is generated for each run */
+        private val portCounter = AtomicInteger(19_999)
     }
 }
