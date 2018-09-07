@@ -1,4 +1,4 @@
-FROM x3medima17/gradle
+FROM gradle
 
 ADD --chown=gradle:gradle . /build/
 RUN gradle -b /build/build.gradle assemble
