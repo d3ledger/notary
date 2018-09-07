@@ -2,7 +2,6 @@ package integration.eth
 
 import com.squareup.moshi.Moshi
 import integration.helper.IntegrationHelperUtil
-import kotlinx.coroutines.experimental.async
 import notary.endpoint.eth.BigIntegerMoshiAdapter
 import notary.endpoint.eth.EthNotaryResponse
 import notary.endpoint.eth.EthNotaryResponseMoshiAdapter

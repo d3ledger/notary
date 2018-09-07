@@ -54,7 +54,6 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
     }
 
     /** Test configuration for Iroha */
-
     fun createIrohaConfig(creatorAccount: String = accountHelper.notaryAccount): IrohaConfig {
         return object : IrohaConfig {
             override val hostname: String
