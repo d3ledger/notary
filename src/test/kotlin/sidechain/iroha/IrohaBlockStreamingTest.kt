@@ -4,10 +4,10 @@ import com.github.kittinunf.result.map
 import config.TestConfig
 import config.loadConfigs
 import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
@@ -23,21 +23,25 @@ class IrohaBlockStreamingTest {
     /** Test configurations */
     val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
+    val creator = testConfig.iroha.creator
+
+
+    val keypair by lazy {
+        ModelUtil.loadKeypair(
+            testConfig.iroha.pubkeyPath,
+            testConfig.iroha.privkeyPath
+        ).get()
+    }
+
     /**
      * @given Iroha running
      * @when new tx is sent to Iroha
      * @then block arrived to IrohaListener
      */
-    @Disabled
+//    @Disabled
     @Test
     fun irohaStreamingTest() {
         System.loadLibrary("irohajava")
-
-        val creator = testConfig.iroha.creator
-        val keypair = ModelUtil.loadKeypair(
-            testConfig.iroha.pubkeyPath,
-            testConfig.iroha.privkeyPath
-        ).get()
 
 
         var cmds = listOf<iroha.protocol.Commands.Command>()
@@ -47,8 +51,8 @@ class IrohaBlockStreamingTest {
             testConfig.iroha.port,
             creator, keypair
         ).getBlockObservable()
-            .map {
-                it.map { block ->
+            .map { obs ->
+                obs.map { block ->
                     cmds = block.payload.transactionsList
                         .flatMap {
                             it.payload.reducedPayload.commandsList
@@ -71,5 +75,43 @@ class IrohaBlockStreamingTest {
         assertEquals(creator, cmds.first().setAccountDetail.accountId)
         assertEquals("test", cmds.first().setAccountDetail.key)
         assertEquals("test", cmds.first().setAccountDetail.value)
+    }
+
+    @Test
+    fun irohaGetBlockTest() {
+        System.loadLibrary("irohajava")
+
+        val listener = IrohaChainListener(
+            testConfig.iroha.hostname,
+            testConfig.iroha.port,
+            creator, keypair
+        )
+
+        val block = async {
+            listener.getBlock()
+
+        }
+
+        val utx = getModelTransactionBuilder()
+            .creatorAccountId(creator)
+            .createdTime(getCurrentTime())
+            .setAccountDetail(creator, "test", "test")
+            .build()
+
+        IrohaConsumerImpl(testConfig.iroha).sendAndCheck(utx)
+
+        runBlocking {
+            val bl = block.await()
+            val cmds = bl.payload.transactionsList
+                .flatMap {
+                    it.payload.reducedPayload.commandsList
+                }
+            assertEquals(1, cmds.size)
+            assertEquals(creator, cmds.first().setAccountDetail.accountId)
+            assertEquals("test", cmds.first().setAccountDetail.key)
+            assertEquals("test", cmds.first().setAccountDetail.value)
+        }
+
+
     }
 }
