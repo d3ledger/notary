@@ -10,6 +10,7 @@ import io.grpc.ManagedChannelBuilder
 import iroha.protocol.QueryServiceGrpc
 import jp.co.soramitsu.iroha.*
 import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.runBlocking
 import mu.KLogging
 import notary.eth.EthNotaryConfig
 import notary.eth.executeNotary
@@ -23,6 +24,7 @@ import registration.btc.BtcRegistrationStrategyImpl
 import registration.eth.EthRegistrationStrategyImpl
 import registration.eth.relay.RelayRegistration
 import sidechain.eth.util.DeployHelper
+import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
@@ -243,6 +245,28 @@ class IntegrationHelperUtil {
         return ethWallet
     }
 
+    /**
+     * Waits for exactly one iroha block
+     */
+    fun waitIrohaBlock() {
+        val creator = testConfig.iroha.creator
+        val keypair by lazy {
+            ModelUtil.loadKeypair(
+                testConfig.iroha.pubkeyPath,
+                testConfig.iroha.privkeyPath
+            ).get()
+        }
+
+        val listner = IrohaChainListener(
+            testConfig.iroha.hostname,
+            testConfig.iroha.port,
+            creator, keypair
+        )
+        runBlocking {
+            listner.getBlock()
+        }
+
+    }
     /**
      * Send ETH with given amount to ethPublicKey
      */
