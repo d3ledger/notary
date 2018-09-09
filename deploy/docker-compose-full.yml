@@ -29,14 +29,14 @@ services:
       - /var/lib/postgresql/data
 
   d3-eth-relay:
-    image: x3medima17/eth-relay
+    image: nexus.iroha.tech:19002/d3-deploy/eth-relay
     container_name: d3-eth-relay
     depends_on:
       - d3-iroha
       # - d3-eth-node0
 
   d3-registration:
-    image: x3medima17/registration
+    image: nexus.iroha.tech:19002/d3-deploy/registration
     container_name: d3-registration
     depends_on:
       - d3-iroha
@@ -45,7 +45,7 @@ services:
       - 8083:8083
 
   d3-notary:
-    image: x3medima17/notary
+    image: nexus.iroha.tech:19002/d3-deploy/notary
     container_name: d3-notary
     depends_on:
       - d3-iroha
@@ -54,14 +54,14 @@ services:
       - 8080:8080
 
   d3-withdrawal:
-    image: x3medima17/withdrawal
+    image: nexus.iroha.tech:19002/d3-deploy/withdrawal
     container_name: d3-withdrawal
     depends_on:
       - d3-iroha
      # - d3-eth-node0
 
   grpcwebproxy:
-    image: x3medima17/grpcwebproxy
+    image: nexus.iroha.tech:19002/d3-deploy/grpcwebproxy
     container_name: d3-grpcwebproxy
     depends_on:
       - d3-iroha

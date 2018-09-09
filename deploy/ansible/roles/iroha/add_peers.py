@@ -3,7 +3,6 @@ import base64
 import csv
 import json
 import sys
-from pprint import pprint
 
 '''
 host;port;priv_key_b64_encoded;pub_key_b64_encoded
@@ -37,7 +36,11 @@ def parse_peers(peers_csv_fp):
 
 def genesis_add_peers(peers_list, genesis_block_fp):
     genesis_dict = json.loads(open(genesis_block_fp, "r").read())
-    pprint(genesis_dict)
+    genesis_dict['payload']['transactions'][0]['payload']['reducedPayload']['commands'] = filter(
+        lambda c: not c.get('addPeer'),
+        genesis_dict['payload']['transactions'][0]['payload']['reducedPayload']['commands'])
+
+    # genesis_dict['payload']['transactions'][0]['payload']['reducedPayload']['commands'] = list(genesis_dict['payload']['transactions'][0]['payload']['reducedPayload']['commands'])
     for p in peers_list:
         p_add_command = {
             "addPeer": {"peer": {"address": "%s:%s" % (p.host, '10001'), "peerKey": hex_to_b64(p.pub_key)}}}

@@ -1,32 +1,25 @@
 ---
-  - name: print dir
-    debug:
-      var: inventory_hostname
 
   - name: Create root folder
     file:
       path: /opt/notary
       state: directory
-    become: yes
 
   - name: Create iroha folder
     file:
       path: /opt/notary/iroha
       state: directory
-    become: yes
 
   - name: Create iroha keys folder
     file:
       path: /opt/notary/iroha/keys
       state: directory
-    become: yes
 
 
   - name: Copy ethereum folder
     copy:
       src: "{{ projectRoot }}/deploy/ethereum"
       dest: /opt/notary
-    become: yes
 
   - name: Copy iroha private key
     copy:
@@ -51,31 +44,21 @@
   - name: Make iroha entrypoint executable
     file:
       path: /opt/notary/iroha/entrypoint.sh
-      mode: 0555
-    become: yes
+      mode: 0755
 
 
   - name: Copy docker compose
     copy:
       src: "{{ projectRoot }}/deploy/docker-compose-full.yml"
       dest: /opt/notary/docker-compose.yml
-    become: yes
 
   - name: Shutdown compose
     docker_service:
       project_src: /opt/notary
       state: absent
-    become: yes
 
   - name: Run compose
     docker_service:
       project_src: /opt/notary
       pull: yes
       recreate: always
-    register: output
-    become: yes
-
-
-  - name: Print
-    debug:
-      var: output
