@@ -3,7 +3,7 @@ package provider.eth
 import com.github.kittinunf.result.Result
 
 /** Information about token - token [name] and [precision] */
-data class EthTokenInfo(val name: String, val precision: Int)
+data class EthTokenInfo(val name: String, val precision: Short)
 
 /** Interface of an instance that provides with ethereum ERC20 token white list. */
 interface EthTokensProvider {

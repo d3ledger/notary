@@ -2,7 +2,7 @@ package sidechain.eth.util
 
 import provider.eth.EthTokenInfo
 
-val ETH_PRECISION = 18
+val ETH_PRECISION: Short = 18
 
 fun findInTokens(tokenToFind: String, tokens: MutableMap<String, EthTokenInfo>): String {
     tokens["0x0000000000000000000000000000000000000000"] = EthTokenInfo("ether", ETH_PRECISION)

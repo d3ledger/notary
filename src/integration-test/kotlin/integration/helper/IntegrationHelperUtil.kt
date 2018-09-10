@@ -76,7 +76,7 @@ class IntegrationHelperUtil {
     }
 
     /** Provider that is used to store/fetch tokens*/
-    private val ethTokensProvider by lazy {
+    val ethTokensProvider by lazy {
         EthTokensProviderImpl(
             configHelper.testConfig.iroha,
             irohaKeyPair,
@@ -149,7 +149,7 @@ class IntegrationHelperUtil {
      */
     fun deployRandomERC20Token(): Pair<String, String> {
         val tokenName = String.getRandomString(5)
-        return Pair(tokenName, deployERC20Token(tokenName))
+        return Pair(tokenName, deployERC20Token(tokenName, 0))
     }
 
     /**
@@ -159,11 +159,10 @@ class IntegrationHelperUtil {
      * - add to master contract
      * @return token name in iroha and address of ERC20 smart contract
      */
-    fun deployERC20Token(tokenName: String): String {
-        logger.info { "create $tokenName ERC20 token" }
+    fun deployERC20Token(name: String, precision: Short): String {
+        logger.info { "create $name ERC20 token" }
         val tokenAddress = deployHelper.deployERC20TokenSmartContract().contractAddress
-        ModelUtil.createAsset(irohaConsumer, accountHelper.notaryAccount, tokenName, "ethereum", 0)
-        addERC20Token(tokenName, tokenAddress)
+        addERC20Token(tokenAddress, name, precision)
         masterContract.addToken(tokenAddress).send()
         return tokenAddress
     }
@@ -173,9 +172,10 @@ class IntegrationHelperUtil {
      * @param tokenName - user defined token name
      * @param tokenAddress - token ERC20 smart contract address
      */
-    private fun addERC20Token(tokenName: String, tokenAddress: String) {
+    fun addERC20Token(tokenAddress: String, tokenName: String, precision: Short) {
+        ModelUtil.createAsset(irohaConsumer, accountHelper.notaryAccount, tokenName, "ethereum", precision)
         ethTokensProvider.addToken(tokenAddress, EthTokenInfo(tokenName, 0))
-            .success { logger.info { "token $tokenAddress was deployed" } }
+            .success { logger.info { "token $tokenAddress was added" } }
     }
 
     /**
