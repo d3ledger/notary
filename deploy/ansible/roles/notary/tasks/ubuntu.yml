@@ -1,0 +1,55 @@
+---
+
+  - name: Create iroha keys folder
+    file:
+      path: /opt/notary/iroha/keys
+      state: directory
+      recurse: yes
+
+
+  - name: Copy ethereum folder
+    copy:
+      src: "{{ projectRoot }}/deploy/ethereum"
+      dest: /opt/notary
+
+  - name: Copy iroha private key
+    copy:
+      src: "{{ projectRoot }}/deploy/ansible/roles/iroha/{{ inventory_hostname }}.priv"
+      dest: /opt/notary/iroha/keys/node0.priv
+
+  - name: Copy iroha public key
+    copy:
+      src: "{{ projectRoot }}/deploy/ansible/roles/iroha/{{ inventory_hostname }}.pub"
+      dest: /opt/notary/iroha/keys/node0.pub
+
+  - name: Copy other iroha files
+    copy:
+      src: "{{ item }}"
+      dest: /opt/notary/iroha
+    with_items:
+      - "{{ projectRoot }}/deploy/iroha/entrypoint.sh"
+      - "{{ projectRoot }}/deploy/iroha/config.docker"
+      - "{{ projectRoot }}/deploy/ansible/roles/iroha/genesis.block"
+
+
+  - name: Make iroha entrypoint executable
+    file:
+      path: /opt/notary/iroha/entrypoint.sh
+      mode: 0755
+
+
+  - name: Copy docker compose
+    copy:
+      src: "{{ projectRoot }}/deploy/docker-compose-full.yml"
+      dest: /opt/notary/docker-compose.yml
+
+  - name: Shutdown compose
+    docker_service:
+      project_src: /opt/notary
+      state: absent
+
+  - name: Run compose
+    docker_service:
+      project_src: /opt/notary
+      pull: yes
+      recreate: always
