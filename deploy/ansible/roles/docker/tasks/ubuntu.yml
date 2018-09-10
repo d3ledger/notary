@@ -8,7 +8,6 @@
       - docker
       - docker-engine
       - docker.io
-    become: yes
 
   - name: Install packages
     apt: pkg={{ item }} state=installed update_cache=yes
@@ -19,23 +18,19 @@
       - software-properties-common
       - python-setuptools
       - python-pip
-    become: yes
 
   - name: Add GPG key
     shell: 'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -'
-    become: yes
 
 
   - name: Add repository
     shell: 'add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"'
-    become: yes
 
   - name: Install docker
     apt: 
       name: docker-ce={{ dockerVersion }}
       state: present
       update_cache: yes
-    become: yes
 
 # purge if anything installed to resolve conflicts
   - name: remove existing python modules
@@ -46,7 +41,6 @@
       - docker
       - docker-py
       - docker-compose
-    become: yes
 
   - name: install docker python modules
     pip:
@@ -55,17 +49,14 @@
     with_items:
       - docker
       - docker-compose
-    become: yes
 
   - name: download docker-compose bin
     raw: curl -L https://github.com/docker/compose/releases/download/{{ dockerComposeVersion }}/docker-compose-`uname -s`-`uname -m` -o {{ execPath }}/docker-compose
-    become: yes
 
   - name: make docker-compose executable
     file:
       path: "{{ execPath }}/docker-compose"
       mode: "a+x"
-    become: yes
 
   - name: Log into private registry and force re-authorization
     docker_login:
