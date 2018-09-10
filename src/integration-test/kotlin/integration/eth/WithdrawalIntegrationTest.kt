@@ -9,8 +9,10 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import sidechain.eth.util.DeployHelper
+import sidechain.eth.util.ETH_PRECISION
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
+import java.math.BigDecimal
 import java.math.BigInteger
 
 /**
@@ -46,12 +48,13 @@ class WithdrawalIntegrationTest {
     fun testRefund() {
         val masterAccount = integrationHelper.accountHelper.notaryAccount
         val amount = "64203"
+        val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(ETH_PRECISION.toInt()).toPlainString()
         val assetId = "ether#ethereum"
         val ethWallet = "eth_wallet"
 
         // create
         val client = integrationHelper.registerClient()
-        integrationHelper.addIrohaAssetTo(client, assetId, amount)
+        integrationHelper.addIrohaAssetTo(client, assetId, decimalAmount)
         integrationHelper.setWhitelist(client, listOf("0x123", ethWallet))
 
         // transfer assets from user to notary master account
@@ -80,7 +83,7 @@ class WithdrawalIntegrationTest {
         assert(response is EthNotaryResponse.Successful)
         response as EthNotaryResponse.Successful
 
-        assertEquals(amount, response.ethRefund.amount)
+        assertEquals(decimalAmount, response.ethRefund.amount)
         assertEquals(ethWallet, response.ethRefund.address)
         assertEquals("0x0000000000000000000000000000000000000000", response.ethRefund.assetId)
 
@@ -89,7 +92,7 @@ class WithdrawalIntegrationTest {
                 keypair,
                 hashToWithdraw(
                     "0x0000000000000000000000000000000000000000",
-                    amount,
+                    decimalAmount,
                     ethWallet,
                     hash
                 )

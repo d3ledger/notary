@@ -459,12 +459,12 @@ class IntegrationHelperUtil {
         Runs Ethereum notary process
      */
     fun runEthNotary(ethNotaryConfig: EthNotaryConfig = configHelper.createEthNotaryConfig()) {
-        async {
-            executeNotary(ethNotaryConfig)
-        }
         val name = String.getRandomString(9)
         val address = "http://localhost:${ethNotaryConfig.refund.port}"
         addNotary(name, address)
+        async {
+            executeNotary(ethNotaryConfig)
+        }
 
         logger.info { "Notary $name is started on $address" }
     }
