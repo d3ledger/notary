@@ -1,28 +1,32 @@
 package provider
 
+import config.IrohaConfig
 import jp.co.soramitsu.iroha.Keypair
-import sidechain.iroha.consumer.IrohaNetwork
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.getAccountDetails
-import withdrawalservice.WithdrawalServiceConfig
 
 /**
  * Provides with list of all notaries peers in the system
  */
-class NotaryPeerListProviderImpl : NotaryPeerListProvider {
+class NotaryPeerListProviderImpl(
+    private val iroha: IrohaConfig,
+    private val keypair: Keypair,
+    private val notaryListStorageAccount: String,
+    private val notaryListSetterAccount: String
+) : NotaryPeerListProvider {
+
+    private val irohaNetwork = IrohaNetworkImpl(iroha.hostname, iroha.port)
 
     override fun getPeerList(
-        withdrawalServiceConfig: WithdrawalServiceConfig,
-        keypair: Keypair,
-        irohaNetwork: IrohaNetwork
     ): List<PeerAddress> {
-        val notaries = getAccountDetails(
-            withdrawalServiceConfig.iroha,
+        return getAccountDetails(
+            iroha,
             keypair,
             irohaNetwork,
-            withdrawalServiceConfig.notaryListStorageAccount,
-            withdrawalServiceConfig.notaryListSetterAccount
-        )
-
-        return notaries.get().values.toList()
+            notaryListStorageAccount,
+            notaryListSetterAccount
+        ).fold(
+            { notaries -> notaries.values.toList() },
+            { ex -> throw ex })
     }
 }

@@ -23,7 +23,7 @@ fun executeNotary(notaryConfig: BtcNotaryConfig) {
             val btcAddressesProvider = BtcAddressesProvider(
                 notaryConfig.iroha,
                 keypair,
-                notaryConfig.notaryIrohaAccount
+                notaryConfig.mstRegistrationAccount
             )
             BtcNotaryInitialization(notaryConfig, btcAddressesProvider).init()
         }
