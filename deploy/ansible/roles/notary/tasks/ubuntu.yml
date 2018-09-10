@@ -1,19 +1,10 @@
 ---
 
-  - name: Create root folder
-    file:
-      path: /opt/notary
-      state: directory
-
-  - name: Create iroha folder
-    file:
-      path: /opt/notary/iroha
-      state: directory
-
   - name: Create iroha keys folder
     file:
       path: /opt/notary/iroha/keys
       state: directory
+      recurse: yes
 
 
   - name: Copy ethereum folder
