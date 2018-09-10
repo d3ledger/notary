@@ -9,7 +9,6 @@ import contract.Master
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.QueryServiceGrpc
 import jp.co.soramitsu.iroha.*
-import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
 import mu.KLogging
 import notary.eth.EthNotaryConfig
@@ -482,9 +481,8 @@ class IntegrationHelperUtil {
         Runs Ethereum notary process
      */
     fun runEthNotary(ethNotaryConfig: EthNotaryConfig = configHelper.createEthNotaryConfig()) {
-        async {
-            executeNotary(ethNotaryConfig)
-        }
+        executeNotary(ethNotaryConfig)
+
         val name = String.getRandomString(9)
         val address = "http://localhost:${ethNotaryConfig.refund.port}"
         addNotary(name, address)

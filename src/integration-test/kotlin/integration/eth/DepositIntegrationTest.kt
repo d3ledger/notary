@@ -24,7 +24,6 @@ class DepositIntegrationTest {
     init {
         // run notary
         integrationHelper.runEthNotary()
-        Thread.sleep(3_000)
     }
 
     /** Iroha client account */
@@ -138,7 +137,6 @@ class DepositIntegrationTest {
 
         // send 0 ERC20
         integrationHelper.sendERC20Token(tokenAddress, zeroAmount, relayWallet)
-//        integrationHelper.waitIrohaBlock()
 
         Assertions.assertEquals(initialAmount, integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId))
 
