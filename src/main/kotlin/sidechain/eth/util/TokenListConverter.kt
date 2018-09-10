@@ -13,3 +13,13 @@ fun findInTokens(tokenToFind: String, tokens: MutableMap<String, EthTokenInfo>):
     }
     throw Exception("Not supported token type")
 }
+
+fun getPrecision(token: String, tokens: MutableMap<String, EthTokenInfo>): Short {
+    tokens["0x0000000000000000000000000000000000000000"] = EthTokenInfo("ether", ETH_PRECISION)
+    for (coin in tokens) {
+        if (coin.value.name == token) {
+            return coin.value.precision
+        }
+    }
+    throw Exception("Not supported token type")
+}

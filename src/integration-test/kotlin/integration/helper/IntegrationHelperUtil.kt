@@ -146,9 +146,8 @@ class IntegrationHelperUtil {
      * Deploys randomly named ERC20 token
      * @return pair (tokenName, tokenAddress)
      */
-    fun deployRandomERC20Token(): Pair<EthTokenInfo, String> {
+    fun deployRandomERC20Token(precision: Short = 0): Pair<EthTokenInfo, String> {
         val name = String.getRandomString(5)
-        val precision = Random().nextInt(18).toShort()
         return Pair(EthTokenInfo(name, precision), deployERC20Token(name, precision))
     }
 

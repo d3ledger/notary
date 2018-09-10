@@ -16,8 +16,10 @@ import provider.eth.EthTokensProviderImpl
 import sidechain.SideChainEvent
 import sidechain.eth.util.extractVRS
 import sidechain.eth.util.findInTokens
+import sidechain.eth.util.getPrecision
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
+import java.math.BigDecimal
 import java.math.BigInteger
 
 /**
@@ -98,7 +100,7 @@ class WithdrawalServiceImpl(
                     throw Exception("Incorrect asset name in Iroha event: " + event.asset)
                 }
                 val asset = event.asset.replace("#ethereum", "")
-
+                val precision = getPrecision(asset, coins)
                 val coinAddress = findInTokens(asset, coins)
 
                 val address = event.description
@@ -147,7 +149,11 @@ class WithdrawalServiceImpl(
                 if (vv.size == 0) {
                     throw Exception("Not a single valid response was received from any refund server")
                 }
-                RollbackApproval(coinAddress, amount, address, hash, rr, ss, vv, relayAddress)
+
+                val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(precision.toInt()).toPlainString()
+
+
+                RollbackApproval(coinAddress, decimalAmount, address, hash, rr, ss, vv, relayAddress)
             }
     }
 
