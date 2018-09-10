@@ -1,4 +1,4 @@
-package sidechain.iroha
+package integration.iroha
 
 import com.github.kittinunf.result.map
 import config.TestConfig
@@ -8,7 +8,10 @@ import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.ModelUtil.getCurrentTime
@@ -18,6 +21,7 @@ import java.util.concurrent.TimeUnit
 /**
  * Note: Requires Iroha is running.
  */
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class IrohaBlockStreamingTest {
 
     /** Test configurations */
@@ -25,12 +29,16 @@ class IrohaBlockStreamingTest {
 
     val creator = testConfig.iroha.creator
 
-
     val keypair by lazy {
         ModelUtil.loadKeypair(
             testConfig.iroha.pubkeyPath,
             testConfig.iroha.privkeyPath
         ).get()
+    }
+
+    @BeforeAll
+    fun setUp() {
+        System.loadLibrary("irohajava")
     }
 
     /**
@@ -41,9 +49,6 @@ class IrohaBlockStreamingTest {
 //    @Disabled
     @Test
     fun irohaStreamingTest() {
-        System.loadLibrary("irohajava")
-
-
         var cmds = listOf<iroha.protocol.Commands.Command>()
 
         IrohaChainListener(
@@ -77,10 +82,13 @@ class IrohaBlockStreamingTest {
         assertEquals("test", cmds.first().setAccountDetail.value)
     }
 
+    /**
+     * @given Iroha running
+     * @when new tx is sent to Iroha
+     * @then block arrived to IrohaListener and returned as coroutine
+     */
     @Test
     fun irohaGetBlockTest() {
-        System.loadLibrary("irohajava")
-
         val listener = IrohaChainListener(
             testConfig.iroha.hostname,
             testConfig.iroha.port,
@@ -89,7 +97,6 @@ class IrohaBlockStreamingTest {
 
         val block = async {
             listener.getBlock()
-
         }
 
         val utx = getModelTransactionBuilder()
@@ -111,7 +118,5 @@ class IrohaBlockStreamingTest {
             assertEquals("test", cmds.first().setAccountDetail.key)
             assertEquals("test", cmds.first().setAccountDetail.value)
         }
-
-
     }
 }
