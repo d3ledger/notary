@@ -46,7 +46,6 @@ class IrohaBlockStreamingTest {
      * @when new tx is sent to Iroha
      * @then block arrived to IrohaListener
      */
-//    @Disabled
     @Test
     fun irohaStreamingTest() {
         var cmds = listOf<iroha.protocol.Commands.Command>()
