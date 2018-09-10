@@ -5,7 +5,7 @@ import json
 import sys
 
 '''
-host;port;priv_key_b64_encoded;pub_key_b64_encoded
+host;port;priv_key_hex_encoded;pub_key_hex_encoded
 '''
 
 
@@ -40,7 +40,6 @@ def genesis_add_peers(peers_list, genesis_block_fp):
         lambda c: not c.get('addPeer'),
         genesis_dict['payload']['transactions'][0]['payload']['reducedPayload']['commands'])
 
-    # genesis_dict['payload']['transactions'][0]['payload']['reducedPayload']['commands'] = list(genesis_dict['payload']['transactions'][0]['payload']['reducedPayload']['commands'])
     for p in peers_list:
         p_add_command = {
             "addPeer": {"peer": {"address": "%s:%s" % (p.host, '10001'), "peerKey": hex_to_b64(p.pub_key)}}}
@@ -48,7 +47,6 @@ def genesis_add_peers(peers_list, genesis_block_fp):
 
     with open(genesis_block_fp, 'w') as genesis_json:
         json.dump(genesis_dict, genesis_json, sort_keys=True, indent=4)
-        # genesis_json.truncate()
 
 
 def hex_to_b64(hex_string):
