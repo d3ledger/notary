@@ -62,7 +62,3 @@
     register: stdout
     run_once: yes
     become: no
-
-
-
-
