@@ -29,6 +29,7 @@ import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import java.math.BigInteger
+import java.util.*
 
 /**
  * Utility class that makes testing more comfortable.
@@ -145,9 +146,10 @@ class IntegrationHelperUtil {
      * Deploys randomly named ERC20 token
      * @return pair (tokenName, tokenAddress)
      */
-    fun deployRandomERC20Token(): Pair<String, String> {
-        val tokenName = String.getRandomString(5)
-        return Pair(tokenName, deployERC20Token(tokenName, 0))
+    fun deployRandomERC20Token(): Pair<EthTokenInfo, String> {
+        val name = String.getRandomString(5)
+        val precision = Random().nextInt(18).toShort()
+        return Pair(EthTokenInfo(name, precision), deployERC20Token(name, precision))
     }
 
     /**
@@ -173,7 +175,7 @@ class IntegrationHelperUtil {
     fun addERC20Token(tokenAddress: String, tokenName: String, precision: Short) {
         ModelUtil.createAsset(irohaConsumer, accountHelper.notaryAccount, tokenName, "ethereum", precision)
         ethTokensProvider.addToken(tokenAddress, EthTokenInfo(tokenName, 0))
-            .success { logger.info { "token $tokenAddress was added" } }
+            .success { logger.info { "token $tokenName was added" } }
     }
 
     /**
