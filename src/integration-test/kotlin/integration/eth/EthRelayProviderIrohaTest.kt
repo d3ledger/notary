@@ -61,6 +61,7 @@ class EthRelayProviderIrohaTest {
 
         val irohaOutput = IrohaTransaction(
             creator,
+            ModelUtil.getCurrentTime(),
             entries.map {
                 // Set ethereum wallet as occupied by user id
                 IrohaCommand.CommandSetAccountDetail(

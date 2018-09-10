@@ -35,6 +35,7 @@ class EthChainHandler(
      */
     private fun handleErc20(
         tx: Transaction,
+        time: BigInteger,
         wallets: Map<String, String>,
         tokens: Map<String, EthTokenInfo>
     ): List<SideChainEvent.PrimaryBlockChainEvent> {
@@ -69,10 +70,11 @@ class EthChainHandler(
 
                 SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
                     tx.hash,
+                    time,
                     wallets[to]!!,
                     // all non-existent keys were filtered out in parseBlock
                     tokens[tx.to]!!.name,
-                    BigDecimal(amount, tokens[tx.to]!!.precision).toString(),
+                    BigDecimal(amount, tokens[tx.to]!!.precision.toInt()).toString(),
                     from
                 )
             }
@@ -85,6 +87,7 @@ class EthChainHandler(
      */
     private fun handleEther(
         tx: Transaction,
+        time: BigInteger,
         wallets: Map<String, String>
     ): List<SideChainEvent.PrimaryBlockChainEvent> {
         logger.info { "handle Ethereum tx ${tx.hash}" }
@@ -93,10 +96,11 @@ class EthChainHandler(
             listOf(
                 SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
                     tx.hash,
+                    time,
                     // all non-existent keys were filtered out in parseBlock
                     wallets[tx.to]!!,
                     "ether",
-                    BigDecimal(tx.value, ETH_PRECISION).toString(),
+                    BigDecimal(tx.value, ETH_PRECISION.toInt()).toString(),
                     tx.from
                 )
             )
@@ -117,13 +121,14 @@ class EthChainHandler(
             ethTokensProvider.getTokens()
         }.fold(
             { (wallets, tokens) ->
+                val time = block.block.timestamp
                 block.block.transactions
                     .map { it.get() as Transaction }
                     .flatMap {
                         if (wallets.containsKey(it.to))
-                            handleEther(it, wallets)
+                            handleEther(it, time, wallets)
                         else if (tokens.containsKey(it.to))
-                            handleErc20(it, wallets, tokens)
+                            handleErc20(it, time, wallets, tokens)
                         else
                             listOf()
                     }

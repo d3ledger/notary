@@ -7,6 +7,7 @@ import notary.IrohaCommand
 import notary.IrohaTransaction
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.consumer.IrohaConverterImpl
+import sidechain.iroha.util.ModelUtil.getCurrentTime
 
 class IrohaAccountCreator(
     private val irohaConsumer: IrohaConsumer,
@@ -34,6 +35,7 @@ class IrohaAccountCreator(
             val domain = "notary"
             IrohaTransaction(
                 creator,
+                getCurrentTime(),
                 arrayListOf(
                     // Create account
                     IrohaCommand.CommandCreateAccount(

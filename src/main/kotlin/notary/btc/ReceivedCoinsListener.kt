@@ -22,6 +22,7 @@ class ReceivedCoinsListener(
         irohaAccounts.forEach { irohaAccount ->
             val event = SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
                 tx.hashAsString,
+                BigInteger.valueOf(tx.lockTime),
                 irohaAccount,
                 BTC_ASSET_NAME,
                 BigInteger.valueOf(newBalance.getValue() - prevBalance.getValue()).toString(),

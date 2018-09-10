@@ -73,6 +73,7 @@ class IrohaBatchTest {
             listOf(
                 IrohaTransaction(
                     tester,
+                    ModelUtil.getCurrentTime(),
                     listOf(
                         IrohaCommand.CommandCreateAccount(
                             user,
@@ -83,6 +84,7 @@ class IrohaBatchTest {
                 ),
                 IrohaTransaction(
                     tester,
+                    ModelUtil.getCurrentTime(),
                     listOf(
                         IrohaCommand.CommandSetAccountDetail(
                             "$user@notary",
@@ -93,6 +95,7 @@ class IrohaBatchTest {
                 ),
                 IrohaTransaction(
                     tester,
+                    ModelUtil.getCurrentTime(),
                     listOf(
                         IrohaCommand.CommandCreateAsset(
                             asset_name,
@@ -247,6 +250,7 @@ class IrohaBatchTest {
             listOf(
                 IrohaTransaction(
                     tester,
+                    ModelUtil.getCurrentTime(),
                     listOf(
                         IrohaCommand.CommandCreateAccount(
                             user,
@@ -257,6 +261,7 @@ class IrohaBatchTest {
                 ),
                 IrohaTransaction(
                     tester,
+                    ModelUtil.getCurrentTime(),
                     listOf(
                         IrohaCommand.CommandSetAccountDetail(
                             "$user@notary",
@@ -267,6 +272,7 @@ class IrohaBatchTest {
                 ),
                 IrohaTransaction(
                     tester,
+                    ModelUtil.getCurrentTime(),
                     listOf(
                         IrohaCommand.CommandCreateAsset(
                             asset_name,
@@ -288,6 +294,7 @@ class IrohaBatchTest {
                 ),
                 IrohaTransaction(
                     tester,
+                    ModelUtil.getCurrentTime(),
                     listOf(
                         IrohaCommand.CommandTransferAsset(
                             tester,

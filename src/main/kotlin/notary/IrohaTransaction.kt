@@ -1,12 +1,16 @@
 package notary
 
+import java.math.BigInteger
+
 /**
  * Class represents [Notary] intention to [sidechain.iroha.consumer.IrohaConsumer] to add transaction
  * @param creator account id of transaction creator
+ * @param createdTime - time of transaction creation
  * @param commands commands to be sent to Iroha
  */
 data class IrohaTransaction(
     val creator: String,
+    val createdTime: BigInteger,
     val commands: List<IrohaCommand>
 )
 

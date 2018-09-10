@@ -10,6 +10,7 @@ import sidechain.SideChainEvent
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.util.ModelUtil
+import java.math.BigInteger
 
 /**
  * Implementation of [Notary] business logic
@@ -30,6 +31,7 @@ class NotaryImpl(
      */
     private fun onPrimaryChainDeposit(
         hash: String,
+        time: BigInteger,
         account: String,
         asset: String,
         amount: String,
@@ -42,6 +44,7 @@ class NotaryImpl(
             arrayListOf(
                 IrohaTransaction(
                     creator,
+                    time,
                     arrayListOf(
                         // insert into Iroha account information for rollback
                         IrohaCommand.CommandSetAccountDetail(
@@ -53,6 +56,7 @@ class NotaryImpl(
                 ),
                 IrohaTransaction(
                     creator,
+                    time,
                     arrayListOf(
                         IrohaCommand.CommandAddAssetQuantity(
                             "$asset#$domain",
@@ -79,6 +83,7 @@ class NotaryImpl(
         return when (chainInputEvent) {
             is SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit -> onPrimaryChainDeposit(
                 chainInputEvent.hash,
+                chainInputEvent.time,
                 chainInputEvent.user,
                 chainInputEvent.asset,
                 chainInputEvent.amount,
