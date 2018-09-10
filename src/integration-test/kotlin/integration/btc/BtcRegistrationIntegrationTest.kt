@@ -5,6 +5,7 @@ import jp.co.soramitsu.iroha.ModelCrypto
 import org.bitcoinj.wallet.Wallet
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import provider.btc.BtcAddressesProvider
@@ -24,9 +25,10 @@ class BtcRegistrationIntegrationTest {
      * @when client name is passed to registration service
      * @then client has btc address in related Iroha account details and btc address is watched by wallet
      */
+    @Disabled
     @Test
     fun testRegistration() {
-        val config = integrationHelper.createBtcRegistrationConfig()
+        val config = integrationHelper.configHelper.createBtcRegistrationConfig()
         executeRegistration(config)
         Thread.sleep(10_000)
         val keypair = ModelCrypto().generateKeypair()
@@ -40,15 +42,14 @@ class BtcRegistrationIntegrationTest {
         val btcAddressesProvider = BtcAddressesProvider(
             config.iroha,
             integrationHelper.irohaKeyPair,
-            config.notaryIrohaAccount
+            config.mstRegistrationAccount
+
         )
         btcAddressesProvider.getAddresses().fold({ addresses ->
             assertEquals("$userName@notary", addresses[registeredBtcAddress])
-        }, { ex -> fail(ex) })
+        }, { ex -> fail("cannot get addresses", ex) })
         assertEquals(BigInteger.ZERO, integrationHelper.getIrohaAccountBalance("$userName@notary", "btc#bitcoin"))
         val wallet = Wallet.loadFromFile(File(config.btcWalletPath))
         assertNotNull(wallet.issuedReceiveAddresses.find { address -> address.toBase58() == registeredBtcAddress })
     }
-
-
 }

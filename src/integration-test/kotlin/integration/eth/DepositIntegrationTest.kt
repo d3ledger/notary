@@ -1,12 +1,12 @@
 package integration.eth
 
-
 import integration.helper.IntegrationHelperUtil
-import kotlinx.coroutines.experimental.async
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import sidechain.eth.util.ETH_PRECISION
 import util.getRandomString
+import java.math.BigDecimal
 import java.math.BigInteger
 
 const val WAIT_IROHA_MILLIS = 30_000L
@@ -16,21 +16,15 @@ const val WAIT_IROHA_MILLIS = 30_000L
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DepositIntegrationTest {
-
     /** Utility functions for integration tests */
     private val integrationHelper = IntegrationHelperUtil()
-
-    /** Testing notrary configuration */
-    private val notaryConfig = integrationHelper.createEthNotaryConfig()
 
     /** Ethereum assetId in Iroha */
     private val etherAssetId = "ether#ethereum"
 
     init {
         // run notary
-        async {
-            notary.eth.executeNotary(notaryConfig)
-        }
+        integrationHelper.runEthNotary()
         Thread.sleep(3_000)
     }
 
@@ -39,9 +33,11 @@ class DepositIntegrationTest {
     private val clientIrohaAccountId = "$clientIrohaAccount@notary"
 
     /** Ethereum address to transfer to */
-    private val relayWallet by lazy {
+    private val relayWallet = registerRelay()
+
+    private fun registerRelay(): String {
         integrationHelper.deployRelays(1)
-        integrationHelper.registerClient(clientIrohaAccount)
+        return integrationHelper.registerClient(clientIrohaAccount)
     }
 
     /**
@@ -59,9 +55,10 @@ class DepositIntegrationTest {
         // send ETH
         integrationHelper.sendEth(amount, relayWallet)
         Thread.sleep(WAIT_IROHA_MILLIS)
+
         Assertions.assertEquals(
-            initialAmount + amount,
-            integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId)
+            BigDecimal(amount, ETH_PRECISION).add(BigDecimal(initialAmount)),
+            BigDecimal(integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId))
         )
     }
 
@@ -94,8 +91,8 @@ class DepositIntegrationTest {
         Thread.sleep(WAIT_IROHA_MILLIS)
 
         Assertions.assertEquals(
-            initialAmount + amount,
-            integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId)
+            BigDecimal(amount, ETH_PRECISION).add(BigDecimal(initialAmount)),
+            BigDecimal(integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId))
         )
     }
 
@@ -118,8 +115,8 @@ class DepositIntegrationTest {
         integrationHelper.sendERC20Token(tokenAddress, amount, relayWallet)
         Thread.sleep(WAIT_IROHA_MILLIS)
         Assertions.assertEquals(
-            initialAmount + amount,
-            integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId)
+            BigDecimal(amount).add(BigDecimal(initialAmount)),
+            BigDecimal(integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId))
         )
     }
 
@@ -149,8 +146,8 @@ class DepositIntegrationTest {
         integrationHelper.sendERC20Token(tokenAddress, amount, relayWallet)
         Thread.sleep(WAIT_IROHA_MILLIS)
         Assertions.assertEquals(
-            initialAmount + amount,
-            integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId)
+            BigDecimal(amount).add(BigDecimal(initialAmount)),
+            BigDecimal(integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId))
         )
     }
 }

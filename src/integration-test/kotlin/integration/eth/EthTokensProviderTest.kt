@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
+import provider.eth.EthTokenInfo
 import provider.eth.EthTokensProviderImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
@@ -14,22 +15,16 @@ import util.getRandomString
  * Test Iroha Ethereum ERC20 tokens provider
  */
 class EthTokensProviderTest {
-
     private val integrationHelper = IntegrationHelperUtil()
 
     private val testConfig = integrationHelper.configHelper.testConfig
 
-    /** Iroha keypair */
-    private val irohaKeyPair = ModelUtil.loadKeypair(
-        testConfig.iroha.pubkeyPath,
-        testConfig.iroha.privkeyPath
-    ).get()
 
     private val ethTokensProvider = EthTokensProviderImpl(
         testConfig.iroha,
-        irohaKeyPair,
+        integrationHelper.irohaKeyPair,
         testConfig.notaryIrohaAccount,
-        integrationHelper.tokenStorageAccount
+        integrationHelper.accountHelper.tokenStorageAccount
     )
 
     /**
@@ -43,14 +38,14 @@ class EthTokensProviderTest {
     fun testGetTokens() {
         val tokensToAdd = 5
         (1..tokensToAdd).forEach { i ->
-            ethTokensProvider.addToken("0x$i", "$i")
+            ethTokensProvider.addToken("0x$i", EthTokenInfo("$i", 0))
         }
         ethTokensProvider.getTokens()
             .fold(
                 { tokens ->
                     assertFalse(tokens.isEmpty())
                     (1..tokensToAdd).forEach { i ->
-                        assertEquals("$i", tokens.get("0x$i"))
+                        assertEquals("$i", tokens.get("0x$i")!!.name)
                     }
                 },
                 { ex -> fail("Cannot get tokens", ex) })
@@ -68,9 +63,10 @@ class EthTokensProviderTest {
         val initialNumberOfTokens = ethTokensProvider.getTokens().get().size
         val newEthWallet = String.getRandomString(9)
         val newTokenName = "abc"
-        ethTokensProvider.addToken(newEthWallet, newTokenName).failure { ex -> fail("Cannot add token", ex) }
+        ethTokensProvider.addToken(newEthWallet, EthTokenInfo(newTokenName, 0))
+            .failure { ex -> fail("Cannot add token", ex) }
         val tokens = ethTokensProvider.getTokens().get()
         assertEquals(initialNumberOfTokens + 1, tokens.size)
-        assertEquals(newTokenName, tokens.get(newEthWallet))
+        assertEquals(newTokenName, tokens.get(newEthWallet)!!.name)
     }
 }

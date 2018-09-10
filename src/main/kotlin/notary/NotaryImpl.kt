@@ -82,7 +82,7 @@ class NotaryImpl(
                 chainInputEvent.hash,
                 chainInputEvent.user,
                 chainInputEvent.asset,
-                chainInputEvent.amount.toString(),
+                chainInputEvent.amount,
                 chainInputEvent.from
             )
         }
@@ -109,7 +109,7 @@ class NotaryImpl(
                 // Init Iroha Consumer pipeline
                 irohaOutput()
                     // convert from Notary model to Iroha model
-                    .subscribeOn(Schedulers.io())
+                    .subscribeOn(Schedulers.from(Executors.newSingleThreadExecutor()))
                     .subscribe(
                         // send to Iroha network layer
                         { batch ->
@@ -134,5 +134,3 @@ class NotaryImpl(
      */
     companion object : KLogging()
 }
-
-

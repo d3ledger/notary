@@ -1,9 +1,11 @@
 package integration.eth
 
 import integration.helper.IntegrationHelperUtil
+import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelCrypto
 import kotlinx.coroutines.experimental.async
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import util.getRandomString
@@ -13,6 +15,7 @@ import kotlin.test.assertEquals
 /**
  * Integration tests for withdrawal service.
  */
+
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class WithdrawalPipelineIntegrationTest {
 
@@ -20,16 +23,16 @@ class WithdrawalPipelineIntegrationTest {
     private val integrationHelper = IntegrationHelperUtil()
 
     /** Test Notary configuration */
-    private val notaryConfig = integrationHelper.createEthNotaryConfig()
+    private val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig()
 
     /** Refund endpoint address */
     private val refundAddress = "http://localhost:${notaryConfig.refund.port}"
 
     /** Test Registration configuration */
-    private val registrationConfig = integrationHelper.createEthRegistrationConfig()
+    private val registrationConfig = integrationHelper.configHelper.createEthRegistrationConfig()
 
     /** Test Withdrawal configuration */
-    private val withdrawalServiceConfig = integrationHelper.createWithdrawalConfig()
+    private val withdrawalServiceConfig = integrationHelper.configHelper.createWithdrawalConfig()
 
     /** Ethereum password configs */
     private val passwordConfig = integrationHelper.configHelper.ethPasswordConfig
@@ -41,9 +44,7 @@ class WithdrawalPipelineIntegrationTest {
     private val notaryAccount = notaryConfig.iroha.creator
 
     init {
-        async {
-            notary.eth.executeNotary(notaryConfig)
-        }
+        integrationHelper.runEthNotary(notaryConfig)
         async {
             registration.eth.executeRegistration(registrationConfig)
         }
@@ -51,6 +52,18 @@ class WithdrawalPipelineIntegrationTest {
             withdrawalservice.executeWithdrawal(withdrawalServiceConfig, passwordConfig)
         }
         Thread.sleep(3_000)
+    }
+
+    lateinit var clientName: String
+    lateinit var clientId: String
+    lateinit var keypair: Keypair
+
+    @BeforeEach
+    fun setup() {
+        // generate client name and key
+        clientName = String.getRandomString(9)
+        clientId = "$clientName@notary"
+        keypair = ModelCrypto().generateKeypair()
     }
 
     /**
@@ -61,11 +74,6 @@ class WithdrawalPipelineIntegrationTest {
      */
     @Test
     fun testFullWithdrawalPipeline() {
-        // generate client name and key
-        val name = String.getRandomString(9)
-        val clientId = "$name@notary"
-        val keypair = ModelCrypto().generateKeypair()
-
         // deploy free relay
         integrationHelper.deployRelays(1)
 
@@ -73,7 +81,7 @@ class WithdrawalPipelineIntegrationTest {
         integrationHelper.sendEth(BigInteger.valueOf(125), integrationHelper.masterContract.contractAddress)
 
         // register client
-        val res = integrationHelper.sendRegistrationRequest(name, keypair.publicKey(), registrationConfig.port)
+        val res = integrationHelper.sendRegistrationRequest(clientName, keypair.publicKey(), registrationConfig.port)
         Assertions.assertEquals(200, res.statusCode)
 
         integrationHelper.setWhitelist(clientId, listOf(toAddress))
@@ -112,10 +120,6 @@ class WithdrawalPipelineIntegrationTest {
      */
     @Test
     fun testFullWithdrawalPipelineErc20() {
-        val name = String.getRandomString(9)
-        val fullName = "$name@notary"
-        val keypair = ModelCrypto().generateKeypair()
-
         // deploy free relay
         integrationHelper.deployRelays(1)
 
@@ -133,21 +137,21 @@ class WithdrawalPipelineIntegrationTest {
         val assetId = "$assetName#$domain"
 
         // register client
-        val res = integrationHelper.sendRegistrationRequest(name, keypair.publicKey(), registrationConfig.port)
+        val res = integrationHelper.sendRegistrationRequest(clientName, keypair.publicKey(), registrationConfig.port)
         Assertions.assertEquals(200, res.statusCode)
 
-        integrationHelper.setWhitelist(fullName, listOf(toAddress))
+        integrationHelper.setWhitelist(clientId, listOf(toAddress))
 
         val initialBalance = integrationHelper.getERC20TokenBalance(tokenAddress, toAddress)
 
         // add assets to user
-        integrationHelper.addIrohaAssetTo(fullName, assetId, amount)
+        integrationHelper.addIrohaAssetTo(clientId, assetId, amount)
 
         // transfer assets from user to notary master account
         integrationHelper.transferAssetIrohaFromClient(
-            fullName,
+            clientId,
             keypair,
-            fullName,
+            clientId,
             notaryAccount,
             assetId,
             toAddress,
@@ -169,9 +173,7 @@ class WithdrawalPipelineIntegrationTest {
      */
     @Test
     fun testWithdrawInWhitelist() {
-        // create client
-        val clientId = integrationHelper.registerClient()
-        val clientKeypair = integrationHelper.irohaKeyPair
+        integrationHelper.registerClient(clientName, keypair)
 
         integrationHelper.setWhitelist(clientId, listOf(toAddress, "0xSOME_ANOTHER_ETH_ADDRESS"))
 
@@ -184,7 +186,7 @@ class WithdrawalPipelineIntegrationTest {
         // make transfer to notaryAccount to initiate withdrawal
         val hash = integrationHelper.transferAssetIrohaFromClient(
             clientId,
-            clientKeypair,
+            keypair,
             clientId,
             notaryAccount,
             assetId,
@@ -206,11 +208,9 @@ class WithdrawalPipelineIntegrationTest {
      */
     @Test
     fun testWithdrawEmptyWhitelist() {
-        val withdrawalEthAddress = "some_address"
+        integrationHelper.registerClient(clientName, keypair)
 
-        // create client
-        val clientId = integrationHelper.registerClient()
-        val clientKeypair = integrationHelper.irohaKeyPair
+        val withdrawalEthAddress = "some_address"
 
         val amount = "125"
         val assetId = "ether#ethereum"
@@ -221,7 +221,7 @@ class WithdrawalPipelineIntegrationTest {
         // make transfer trx
         val hash = integrationHelper.transferAssetIrohaFromClient(
             clientId,
-            clientKeypair,
+            keypair,
             clientId,
             notaryAccount,
             assetId,
@@ -242,13 +242,10 @@ class WithdrawalPipelineIntegrationTest {
      */
     @Test
     fun testWithdrawNotInWhitelist() {
-        val withdrawalEthAddress = "some_address"
-
-        // create client
-        val clientId = integrationHelper.registerClient()
-        val clientKeypair = integrationHelper.irohaKeyPair
-
+        integrationHelper.registerClient(clientName, keypair)
         integrationHelper.setWhitelist(clientId, listOf("0xANOTHER_ETH_ADDRESS"))
+
+        val withdrawalEthAddress = "some_address"
 
         val amount = "125"
         val assetId = "ether#ethereum"
@@ -259,7 +256,7 @@ class WithdrawalPipelineIntegrationTest {
         // make transfer trx
         val hash = integrationHelper.transferAssetIrohaFromClient(
             clientId,
-            clientKeypair,
+            keypair,
             clientId,
             notaryAccount,
             assetId,

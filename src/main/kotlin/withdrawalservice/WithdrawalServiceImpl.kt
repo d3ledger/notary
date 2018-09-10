@@ -3,7 +3,6 @@ package withdrawalservice
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import com.squareup.moshi.Moshi
-import config.EthereumPasswords
 import io.reactivex.Observable
 import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
@@ -15,7 +14,6 @@ import provider.NotaryPeerListProviderImpl
 import provider.eth.EthTokensProvider
 import provider.eth.EthTokensProviderImpl
 import sidechain.SideChainEvent
-import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.extractVRS
 import sidechain.eth.util.findInTokens
 import sidechain.iroha.consumer.IrohaNetwork
@@ -54,7 +52,12 @@ class WithdrawalServiceImpl(
     val irohaNetwork: IrohaNetwork,
     private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
 ) : WithdrawalService {
-    private val notaryPeerListProvider = NotaryPeerListProviderImpl()
+    private val notaryPeerListProvider = NotaryPeerListProviderImpl(
+        withdrawalServiceConfig.iroha,
+        keypair,
+        withdrawalServiceConfig.notaryListStorageAccount,
+        withdrawalServiceConfig.notaryListSetterAccount
+    )
     private val tokensProvider: EthTokensProvider = EthTokensProviderImpl(
         withdrawalServiceConfig.iroha,
         keypair,
@@ -103,7 +106,7 @@ class WithdrawalServiceImpl(
                 val rr = ArrayList<ByteArray>()
                 val ss = ArrayList<ByteArray>()
 
-                notaryPeerListProvider.getPeerList(withdrawalServiceConfig, keypair, irohaNetwork).forEach { peer ->
+                notaryPeerListProvider.getPeerList().forEach { peer ->
                     logger.info { "Query $peer for proof" }
                     val res: khttp.responses.Response
                     try {

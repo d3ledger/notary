@@ -17,6 +17,7 @@
                 "createRole": {
                   "roleName": "notary",
                   "permissions": [
+                    "can_get_all_acc_ast",
                     "can_get_all_accounts",
                     "can_create_asset",
                     "can_add_asset_qty",
@@ -52,7 +53,8 @@
                     "can_set_detail",
                     "can_get_domain_accounts",
                     "can_get_all_txs",
-                    "can_get_blocks"
+                    "can_get_blocks",
+                    "can_set_quorum"
                   ]
                 }
               },
@@ -112,7 +114,9 @@
                     "can_get_blocks",
                     "can_get_domain_accounts",
                     "can_set_quorum",
-                    "can_add_signatory"
+                    "can_add_signatory",
+                    "can_create_account",
+                    "can_get_all_txs"
                   ]
                 }
               },
@@ -140,6 +144,12 @@
               },
               {
                 "createDomain": {
+                  "domainId": "btcSession",
+                  "defaultRole": "none"
+                }
+              },
+              {
+                "createDomain": {
                   "domainId": "ethereum",
                   "defaultRole": "none"
                 }
@@ -148,7 +158,7 @@
                 "createAsset": {
                   "assetName": "ether",
                   "domainId": "ethereum",
-                  "precision": 0
+                  "precision": 18
                 }
               },
               {
@@ -205,6 +215,26 @@
               {
                 "appendRole": {
                   "accountId": "btc_registration_service_red@notary",
+                  "roleName": "registration_service"
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "mst_btc_registration_service_red",
+                  "domainId": "notary",
+                  "publicKey": "iJ9riB4zG+IUh9t33PMsX409XoBm540v6sQjn+kdQW8=",
+
+                }
+              },
+              {
+                "setAccountQuorum":{
+                  "accountId":"mst_btc_registration_service_red@notary",
+                  "quorum":1
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "mst_btc_registration_service_red@notary",
                   "roleName": "registration_service"
                 }
               },
@@ -288,10 +318,24 @@
                 }
               },
               {
+                "createAsset": {
+                  "assetName": "omg",
+                  "domainId": "ethereum",
+                  "precision": 18
+                }
+              },
+              {
                 "setAccountDetail": {
                   "accountId": "notary_red@notary",
                   "key": "0x0d8775f648430679a709e98d2b0cb6250d2887ef",
                   "value": "bat"
+                }
+              },
+              {
+                "createAsset": {
+                  "assetName": "bat",
+                  "domainId": "ethereum",
+                  "precision": 18
                 }
               },
               {
@@ -302,10 +346,24 @@
                 }
               },
               {
+                "createAsset": {
+                  "assetName": "rep",
+                  "domainId": "ethereum",
+                  "precision": 18
+                }
+              },
+              {
                 "setAccountDetail": {
                   "accountId": "notary_red@notary",
                   "key": "0xcb97e65f07da24d46bcdd078ebebd7c6e6e3d750",
                   "value": "btm"
+                }
+              },
+              {
+                "createAsset": {
+                  "assetName": "btm",
+                  "domainId": "ethereum",
+                  "precision": 8
                 }
               },
               {
@@ -316,10 +374,24 @@
                 }
               },
               {
+                "createAsset": {
+                  "assetName": "eos",
+                  "domainId": "ethereum",
+                  "precision": 18
+                }
+              },
+              {
                 "setAccountDetail": {
                   "accountId": "notary_red@notary",
                   "key": "0xa74476443119a942de498590fe1f2454d7d4ac0d",
                   "value": "gnt"
+                }
+              },
+              {
+                "createAsset": {
+                  "assetName": "gnt",
+                  "domainId": "ethereum",
+                  "precision": 18
                 }
               },
               {
@@ -330,10 +402,24 @@
                 }
               },
               {
+                "createAsset": {
+                  "assetName": "dgd",
+                  "domainId": "ethereum",
+                  "precision": 0
+                }
+              },
+              {
                 "setAccountDetail": {
                   "accountId": "notary_red@notary",
                   "key": "0xb63b606ac810a52cca15e44bb630fd42d8d1d83d",
                   "value": "mco"
+                }
+              },
+              {
+                "createAsset": {
+                  "assetName": "mco",
+                  "domainId": "ethereum",
+                  "precision": 8
                 }
               },
               {
@@ -344,10 +430,24 @@
                 }
               },
               {
+                "createAsset": {
+                  "assetName": "salt",
+                  "domainId": "ethereum",
+                  "precision": 8
+                }
+              },
+              {
                 "setAccountDetail": {
                   "accountId": "notary_red@notary",
                   "key": "0x888666ca69e0f178ded6d75b5726cee99a87d698",
                   "value": "icn"
+                }
+              },
+              {
+                "createAsset": {
+                  "assetName": "icn",
+                  "domainId": "ethereum",
+                  "precision": 18
                 }
               },
               {
