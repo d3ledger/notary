@@ -1,36 +1,11 @@
 ---
   - hosts: all
-    gather_facts: yes
+    gather_facts: no
     pre_tasks:
 
       - name: install python 2  # python installation (ansible hosts gather_facts requirement)
         raw: test -e /usr/bin/python || (apt -y update && apt install -y python)
         changed_when: False
-
-      - name: Allocate swap
-        command: fallocate -l 1G /mnt/1GB.swap
-        when: ansible_swaptotal_mb < 1000
-
-      - name: Create swap space
-        command: dd if=/dev/zero of=/mnt/1GB.swap bs=1024 count=1048576
-        when: ansible_swaptotal_mb < 1000
-
-      - name: Make swap
-        command: mkswap /mnt/1GB.swap
-        when: ansible_swaptotal_mb < 1000
-
-      - name: Add to fstab
-        action: lineinfile dest=/etc/fstab regexp="extraswap" line="/mnt/1GB.swap none swap sw 0 0" state=present
-        when: ansible_swaptotal_mb < 1000
-
-
-      - name: Turn swap on
-        command: swapon -a
-        when: ansible_swaptotal_mb < 1000
-
-      - name: Set swapiness
-        shell: echo 0 | sudo tee /proc/sys/vm/swappiness
-        when: ansible_swaptotal_mb < 1000
 
     roles:
       - { role: iroha }
