@@ -49,6 +49,10 @@ class EthChainListener(
         }
     }
 
+    override suspend fun getBlock(): EthBlock {
+        throw TODO("Implement eth get block with coroutines");
+    }
+
     /**
      * Logger
      */

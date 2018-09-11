@@ -1,7 +1,6 @@
-package integration
+package integration.iroha
 
 import config.loadConfigs
-import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.iroha.Blob
 import jp.co.soramitsu.iroha.ModelCrypto
 import jp.co.soramitsu.iroha.ModelQueryBuilder
@@ -14,7 +13,6 @@ import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
 import notary.eth.EthNotaryConfig
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import sidechain.iroha.IrohaChainListener
@@ -60,7 +58,6 @@ class IrohaBatchTest {
      * @when All transactions are valid and sent as a batch
      * @then They all are accepted and committed in the same block
      */
-    @Disabled
     @Test
     fun allValidBatchTest() {
 
@@ -124,19 +121,17 @@ class IrohaBatchTest {
         )
         val lst = IrohaConverterImpl().convert(batch)
         val hashes = lst.map { it.hash().hex() }
-        var blockHashes: List<String>? = null
 
-        IrohaChainListener(
+        val listener = IrohaChainListener(
             testConfig.iroha.hostname,
             testConfig.iroha.port,
             tester, keypair
-        ).getBlockObservable().get().map { block ->
-            val txs = block.payload.transactionsList
-
-            blockHashes = txs.map {
+        )
+        val blockHashes = async {
+            listener.getBlock().payload.transactionsList.map {
                 Blob(iroha.hashTransaction(it.toByteArray().toByteVector())).hex()
             }
-        }.subscribeOn(Schedulers.io()).subscribe()
+        }
 
 
         val successHash = irohaConsumer.sendAndCheck(lst).get()
@@ -223,13 +218,10 @@ class IrohaBatchTest {
         assertEquals(tester_amount.toInt(), 73)
         assertEquals(u1_amount.toInt(), 27)
 
-        val scope = async {
-            while (blockHashes == null);
-            assertEquals(hashes, blockHashes)
-
-        }
         runBlocking {
-            withTimeout(10, TimeUnit.SECONDS) { scope.await() }
+            withTimeout(10, TimeUnit.SECONDS) {
+                assertEquals(hashes, blockHashes.await())
+            }
         }
     }
 
@@ -238,7 +230,6 @@ class IrohaBatchTest {
      * @when Not all transactions are valid and sent as a batch
      * @then Only valid are accepted and committed in the same block
      */
-    @Disabled
     @Test
     fun notAllValidBatchTest() {
         val user = randomString()
@@ -315,19 +306,18 @@ class IrohaBatchTest {
         val lst = IrohaConverterImpl().convert(batch)
         val hashes = lst.map { it.hash().hex() }
         val expectedHashes = hashes.subList(0, hashes.size - 1)
-        var blockHashes: List<String>? = null
 
-        IrohaChainListener(
+
+        val listener = IrohaChainListener(
             testConfig.iroha.hostname,
             testConfig.iroha.port,
             tester, keypair
-        ).getBlockObservable().get().map { block ->
-            val txs = block.payload.transactionsList
-
-            blockHashes = txs.map {
+        )
+        val blockHashes = async {
+            listener.getBlock().payload.transactionsList.map {
                 Blob(iroha.hashTransaction(it.toByteArray().toByteVector())).hex()
             }
-        }.subscribeOn(Schedulers.io()).subscribe()
+        }
 
 
         val successHash = irohaConsumer.sendAndCheck(lst).get()
@@ -414,13 +404,10 @@ class IrohaBatchTest {
         assertEquals(tester_amount.toInt(), 73)
         assertEquals(u1_amount.toInt(), 27)
 
-        val scope = async {
-            while (blockHashes == null);
-            assertEquals(expectedHashes, blockHashes)
-
-        }
         runBlocking {
-            withTimeout(10, TimeUnit.SECONDS) { scope.await() }
+            withTimeout(10, TimeUnit.SECONDS) {
+                assertEquals(expectedHashes, blockHashes.await())
+            }
         }
     }
 }

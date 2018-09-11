@@ -12,4 +12,9 @@ interface ChainListener<Block> {
      */
     fun getBlockObservable(): Result<io.reactivex.Observable<Block>, Exception>
 
+    /**
+     * @return a block that was committed into network
+     */
+    suspend fun getBlock(): Block;
+
 }
