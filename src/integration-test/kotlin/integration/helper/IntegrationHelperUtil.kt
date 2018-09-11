@@ -247,25 +247,27 @@ class IntegrationHelperUtil {
     /**
      * Waits for exactly one iroha block
      */
-    fun waitIrohaBlock() {
+    fun waitOneIrohaBlock() {
         val creator = testConfig.iroha.creator
-        val keypair by lazy {
+        val keypair =
             ModelUtil.loadKeypair(
                 testConfig.iroha.pubkeyPath,
                 testConfig.iroha.privkeyPath
             ).get()
-        }
+
 
         val listner = IrohaChainListener(
             testConfig.iroha.hostname,
             testConfig.iroha.port,
             creator, keypair
         )
+
         runBlocking {
             listner.getBlock()
         }
 
     }
+
     /**
      * Send ETH with given amount to ethPublicKey
      */

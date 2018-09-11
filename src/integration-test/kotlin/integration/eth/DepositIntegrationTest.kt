@@ -53,7 +53,7 @@ class DepositIntegrationTest {
         val amount = BigInteger.valueOf(1_234_000_000_000)
         // send ETH
         integrationHelper.sendEth(amount, relayWallet)
-        integrationHelper.waitIrohaBlock()
+        integrationHelper.waitOneIrohaBlock()
 
         Assertions.assertEquals(
             BigDecimal(amount, ETH_PRECISION).add(BigDecimal(initialAmount)),
@@ -86,7 +86,7 @@ class DepositIntegrationTest {
 
         // Send again 1234000000000 Ethereum network
         integrationHelper.sendEth(amount, relayWallet)
-        integrationHelper.waitIrohaBlock()
+        integrationHelper.waitOneIrohaBlock()
 
         Assertions.assertEquals(
             BigDecimal(amount, ETH_PRECISION).add(BigDecimal(initialAmount)),
@@ -111,7 +111,7 @@ class DepositIntegrationTest {
 
         // send ETH
         integrationHelper.sendERC20Token(tokenAddress, amount, relayWallet)
-        integrationHelper.waitIrohaBlock()
+        integrationHelper.waitOneIrohaBlock()
 
         Assertions.assertEquals(
             BigDecimal(amount).add(BigDecimal(initialAmount)),
@@ -142,7 +142,7 @@ class DepositIntegrationTest {
 
         // Send again
         integrationHelper.sendERC20Token(tokenAddress, amount, relayWallet)
-        integrationHelper.waitIrohaBlock()
+        integrationHelper.waitOneIrohaBlock()
 
         Assertions.assertEquals(
             BigDecimal(amount).add(BigDecimal(initialAmount)),
