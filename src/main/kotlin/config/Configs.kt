@@ -34,6 +34,8 @@ interface BitcoinConfig {
     val walletPath: String
     //Path of block storage folder
     val blockStoragePath: String
+    //Depth of transactions in BTC blockchain
+    val confidenceLevel: Int
 }
 
 /**

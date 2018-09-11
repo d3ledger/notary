@@ -7,5 +7,5 @@ import config.IrohaConfig
 interface BtcNotaryConfig {
     val iroha: IrohaConfig
     val bitcoin: BitcoinConfig
-    val notaryIrohaAccount:String
+    val mstRegistrationAccount: String
 }

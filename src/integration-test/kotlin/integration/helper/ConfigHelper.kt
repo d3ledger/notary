@@ -5,13 +5,16 @@ import notary.btc.BtcNotaryConfig
 import notary.eth.EthNotaryConfig
 import notary.eth.RefundConfig
 import registration.btc.BtcRegistrationConfig
+import registration.btc.pregen.BtcPreGenConfig
 import registration.eth.EthRegistrationConfig
 import registration.eth.relay.RelayRegistrationConfig
 import vacuum.RelayVacuumConfig
 import withdrawalservice.WithdrawalServiceConfig
 import java.util.concurrent.atomic.AtomicInteger
 
+//Class that handles all the configuration objects.
 class ConfigHelper(private val accountHelper: AccountHelper) {
+
     /** Configurations for tests */
     val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
@@ -37,7 +40,32 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
     val btcRegistrationConfig =
         loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/btc/registration.properties")
 
+    val btcPkPreGenConfig =
+        loadConfigs("btc-pregen", BtcPreGenConfig::class.java, "/btc/pregeneration.properties")
 
+    //Creates config for BTC multisig addresses generation
+    fun createBtcPreGenConfig(): BtcPreGenConfig {
+        return object : BtcPreGenConfig {
+            override val notaryListStorageAccount: String
+                get() = accountHelper.notaryListStorageAccount
+            override val notaryListSetterAccount: String
+                get() = accountHelper.notaryListSetterAccount
+            override val mstRegistrationAccount: String
+                get() = accountHelper.registrationAccount
+            override val pubKeyTriggerAccount: String
+                get() = btcPkPreGenConfig.pubKeyTriggerAccount
+            override val notaryAccount: String
+                get() = accountHelper.notaryAccount
+            override val iroha: IrohaConfig
+                get() = createIrohaConfig()
+            override val btcWalletFilePath: String
+                get() = btcPkPreGenConfig.btcWalletFilePath
+            override val registrationAccount: String
+                get() = accountHelper.registrationAccount
+        }
+    }
+
+    //Creates config for ETH relays registration
     fun createRelayRegistrationConfig(): RelayRegistrationConfig {
         return object : RelayRegistrationConfig {
             override val number: Int
@@ -82,8 +110,8 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
 
     fun createBtcNotaryConfig(): BtcNotaryConfig {
         return object : BtcNotaryConfig {
-            override val notaryIrohaAccount: String
-                get() = accountHelper.notaryAccount
+            override val mstRegistrationAccount: String
+                get() = accountHelper.registrationAccount
             override val iroha: IrohaConfig
                 get() = createIrohaConfig()
             override val bitcoin: BitcoinConfig
@@ -93,10 +121,12 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
 
     fun createBtcRegistrationConfig(): BtcRegistrationConfig {
         return object : BtcRegistrationConfig {
-            override val notaryIrohaAccount: String
-                get() = accountHelper.notaryAccount
+            override val mstRegistrationAccount: String
+                get() = accountHelper.registrationAccount
             override val port: Int
                 get() = btcRegistrationConfig.port
+            override val registrationAccount: String
+                get() = accountHelper.registrationAccount
             override val iroha: IrohaConfig
                 get() = createIrohaConfig()
             override val btcWalletPath: String
@@ -117,7 +147,8 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
     }
 
     /** Test configuration of Withdrawal service with runtime dependencies */
-    fun createWithdrawalConfig(): WithdrawalServiceConfig {
+    fun createWithdrawalConfig(
+    ): WithdrawalServiceConfig {
         return object : WithdrawalServiceConfig {
             override val notaryIrohaAccount = accountHelper.notaryAccount
             override val tokenStorageAccount = accountHelper.tokenStorageAccount

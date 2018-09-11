@@ -29,7 +29,7 @@ class BtcNotaryInitialization(
             val walletFile = File(btcNotaryConfig.bitcoin.walletPath)
             Wallet.loadFromFile(walletFile)
         }.map { wallet ->
-            getBtcEvents(wallet)
+            getBtcEvents(wallet, btcNotaryConfig.bitcoin.confidenceLevel)
         }.map { btcEvents ->
             val notary = createBtcNotary(btcNotaryConfig, btcEvents)
             notary.initIrohaConsumer().failure { ex -> throw ex }
@@ -40,7 +40,7 @@ class BtcNotaryInitialization(
     /**
      * Returns observable object full of given wallet deposit events
      */
-    private fun getBtcEvents(wallet: Wallet): Observable<SideChainEvent.PrimaryBlockChainEvent> {
+    private fun getBtcEvents(wallet: Wallet, confidenceLevel: Int): Observable<SideChainEvent.PrimaryBlockChainEvent> {
         logger.info { "current wallet $wallet" }
         // TODO - D3-320 - dolgopolov.work - Test mode is on. Move to real network or make it configurable
         val networkParams = RegTestParams.get()
@@ -52,7 +52,8 @@ class BtcNotaryInitialization(
         peerGroup.startAsync()
         peerGroup.downloadBlockChain()
         return Observable.create<SideChainEvent.PrimaryBlockChainEvent> { emitter ->
-            wallet.addCoinsReceivedEventListener(ReceivedCoinsListener(btcAddressesProvider, emitter))
+            wallet.addCoinsReceivedEventListener(ReceivedCoinsListener(btcAddressesProvider, confidenceLevel, emitter))
+
         }
     }
 

@@ -10,6 +10,7 @@ import sidechain.SideChainEvent
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.util.ModelUtil
+import java.util.concurrent.Executors
 import java.math.BigInteger
 
 /**
@@ -113,7 +114,7 @@ class NotaryImpl(
                 // Init Iroha Consumer pipeline
                 irohaOutput()
                     // convert from Notary model to Iroha model
-                    .subscribeOn(Schedulers.io())
+                    .subscribeOn(Schedulers.from(Executors.newSingleThreadExecutor()))
                     .subscribe(
                         // send to Iroha network layer
                         { batch ->
