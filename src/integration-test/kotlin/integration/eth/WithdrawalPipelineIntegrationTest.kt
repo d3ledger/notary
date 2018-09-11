@@ -8,14 +8,15 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import sidechain.eth.util.ETH_PRECISION
 import util.getRandomString
+import java.math.BigDecimal
 import java.math.BigInteger
 import kotlin.test.assertEquals
 
 /**
  * Integration tests for withdrawal service.
  */
-
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class WithdrawalPipelineIntegrationTest {
 
@@ -74,25 +75,25 @@ class WithdrawalPipelineIntegrationTest {
      */
     @Test
     fun testFullWithdrawalPipeline() {
+        val amount = BigInteger.valueOf(1251400000000)
+
         // deploy free relay
         integrationHelper.deployRelays(1)
 
         // make sure master has enough assets
-        integrationHelper.sendEth(BigInteger.valueOf(125), integrationHelper.masterContract.contractAddress)
+        integrationHelper.sendEth(amount, integrationHelper.masterContract.contractAddress)
 
         // register client
         val res = integrationHelper.sendRegistrationRequest(clientName, keypair.publicKey(), registrationConfig.port)
         Assertions.assertEquals(200, res.statusCode)
 
-        integrationHelper.setWhitelist(clientId, listOf(toAddress))
-
         val initialBalance = integrationHelper.getEthBalance(toAddress)
 
-        val amount = "125"
+        val decimalAmount = BigDecimal(amount, ETH_PRECISION.toInt()).toPlainString()
         val assetId = "ether#ethereum"
 
         // add assets to user
-        integrationHelper.addIrohaAssetTo(clientId, assetId, amount)
+        integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
 
         // transfer assets from user to notary master account
         integrationHelper.transferAssetIrohaFromClient(
@@ -102,12 +103,12 @@ class WithdrawalPipelineIntegrationTest {
             notaryAccount,
             assetId,
             toAddress,
-            amount
+            decimalAmount
         )
         Thread.sleep(15_000)
 
         Assertions.assertEquals(
-            initialBalance + BigInteger.valueOf(amount.toLong()),
+            initialBalance.add(amount),
             integrationHelper.getEthBalance(toAddress)
         )
     }
@@ -120,11 +121,13 @@ class WithdrawalPipelineIntegrationTest {
      */
     @Test
     fun testFullWithdrawalPipelineErc20() {
+        val precision: Short = 2
+
         // deploy free relay
         integrationHelper.deployRelays(1)
 
         // create ERC20 token and transfer to master
-        val (assetName, tokenAddress) = integrationHelper.deployRandomERC20Token()
+        val (assetInfo, tokenAddress) = integrationHelper.deployRandomERC20Token(precision)
 
         integrationHelper.sendERC20Token(
             tokenAddress,
@@ -132,9 +135,9 @@ class WithdrawalPipelineIntegrationTest {
             integrationHelper.masterContract.contractAddress
         )
 
-        val amount = "125"
+        val amount = "1.25"
         val domain = "ethereum"
-        val assetId = "$assetName#$domain"
+        val assetId = "${assetInfo.name}#$domain"
 
         // register client
         val res = integrationHelper.sendRegistrationRequest(clientName, keypair.publicKey(), registrationConfig.port)
@@ -160,7 +163,7 @@ class WithdrawalPipelineIntegrationTest {
         Thread.sleep(15_000)
 
         Assertions.assertEquals(
-            initialBalance + BigInteger.valueOf(amount.toLong()),
+            initialBalance.add(BigDecimal(amount).scaleByPowerOfTen(precision.toInt()).toBigInteger()),
             integrationHelper.getERC20TokenBalance(tokenAddress, toAddress)
         )
     }
