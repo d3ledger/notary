@@ -41,7 +41,8 @@
                 "createRole": {
                   "roleName": "token_service",
                   "permissions": [
-                    "can_set_detail"
+                    "can_set_detail",
+                    "can_create_asset"
                   ]
                 }
               },
@@ -308,146 +309,6 @@
                 "appendRole": {
                   "accountId": "whitelist_setter@notary",
                   "roleName": "whitelist_setter"
-                }
-              },
-              {
-                "setAccountDetail": {
-                  "accountId": "notary_red@notary",
-                  "key": "0xd26114cd6ee289accf82350c8d8487fedb8a0c07",
-                  "value": "omg"
-                }
-              },
-              {
-                "createAsset": {
-                  "assetName": "omg",
-                  "domainId": "ethereum",
-                  "precision": 18
-                }
-              },
-              {
-                "setAccountDetail": {
-                  "accountId": "notary_red@notary",
-                  "key": "0x0d8775f648430679a709e98d2b0cb6250d2887ef",
-                  "value": "bat"
-                }
-              },
-              {
-                "createAsset": {
-                  "assetName": "bat",
-                  "domainId": "ethereum",
-                  "precision": 18
-                }
-              },
-              {
-                "setAccountDetail": {
-                  "accountId": "notary_red@notary",
-                  "key": "0x1985365e9f78359a9b6ad760e32412f4a445e862",
-                  "value": "rep"
-                }
-              },
-              {
-                "createAsset": {
-                  "assetName": "rep",
-                  "domainId": "ethereum",
-                  "precision": 18
-                }
-              },
-              {
-                "setAccountDetail": {
-                  "accountId": "notary_red@notary",
-                  "key": "0xcb97e65f07da24d46bcdd078ebebd7c6e6e3d750",
-                  "value": "btm"
-                }
-              },
-              {
-                "createAsset": {
-                  "assetName": "btm",
-                  "domainId": "ethereum",
-                  "precision": 8
-                }
-              },
-              {
-                "setAccountDetail": {
-                  "accountId": "notary_red@notary",
-                  "key": "0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0",
-                  "value": "eos"
-                }
-              },
-              {
-                "createAsset": {
-                  "assetName": "eos",
-                  "domainId": "ethereum",
-                  "precision": 18
-                }
-              },
-              {
-                "setAccountDetail": {
-                  "accountId": "notary_red@notary",
-                  "key": "0xa74476443119a942de498590fe1f2454d7d4ac0d",
-                  "value": "gnt"
-                }
-              },
-              {
-                "createAsset": {
-                  "assetName": "gnt",
-                  "domainId": "ethereum",
-                  "precision": 18
-                }
-              },
-              {
-                "setAccountDetail": {
-                  "accountId": "notary_red@notary",
-                  "key": "0xe0b7927c4af23765cb51314a0e0521a9645f0e2a",
-                  "value": "dgd"
-                }
-              },
-              {
-                "createAsset": {
-                  "assetName": "dgd",
-                  "domainId": "ethereum",
-                  "precision": 0
-                }
-              },
-              {
-                "setAccountDetail": {
-                  "accountId": "notary_red@notary",
-                  "key": "0xb63b606ac810a52cca15e44bb630fd42d8d1d83d",
-                  "value": "mco"
-                }
-              },
-              {
-                "createAsset": {
-                  "assetName": "mco",
-                  "domainId": "ethereum",
-                  "precision": 8
-                }
-              },
-              {
-                "setAccountDetail": {
-                  "accountId": "notary_red@notary",
-                  "key": "0x4156d3342d5c385a87d264f90653733592000581",
-                  "value": "salt"
-                }
-              },
-              {
-                "createAsset": {
-                  "assetName": "salt",
-                  "domainId": "ethereum",
-                  "precision": 8
-                }
-              },
-              {
-                "setAccountDetail": {
-                  "accountId": "notary_red@notary",
-                  "key": "0x888666ca69e0f178ded6d75b5726cee99a87d698",
-                  "value": "icn"
-                }
-              },
-              {
-                "createAsset": {
-                  "assetName": "icn",
-                  "domainId": "ethereum",
-                  "precision": 18
                 }
               },
               {
