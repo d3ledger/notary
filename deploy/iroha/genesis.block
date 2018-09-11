@@ -78,7 +78,8 @@
                   "roleName": "withdrawal",
                   "permissions": [
                     "can_get_domain_accounts",
-                    "can_get_blocks"
+                    "can_get_blocks",
+                    "can_read_assets"
                   ]
                 }
               },
@@ -86,7 +87,8 @@
                 "createRole": {
                   "roleName": "vacuumer",
                   "permissions": [
-                    "can_get_domain_accounts"
+                    "can_get_domain_accounts",
+                    "can_read_assets"
                   ]
                 }
               },
