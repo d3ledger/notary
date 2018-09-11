@@ -29,14 +29,18 @@ services:
       - /var/lib/postgresql/data
 
   d3-eth-relay:
-    image: nexus.iroha.tech:19002/d3-deploy/eth-relay
+    build:
+      context: ..
+      dockerfile: eth-relay.dockerfile
     container_name: d3-eth-relay
     depends_on:
       - d3-iroha
       # - d3-eth-node0
 
   d3-registration:
-    image: nexus.iroha.tech:19002/d3-deploy/registration
+    build:
+      context: ..
+      dockerfile: registration.dockerfile
     container_name: d3-registration
     depends_on:
       - d3-iroha
@@ -45,7 +49,9 @@ services:
       - 8083:8083
 
   d3-notary:
-    image: nexus.iroha.tech:19002/d3-deploy/notary
+    build:
+      context: ..
+      dockerfile: notary.dockerfile
     container_name: d3-notary
     depends_on:
       - d3-iroha
@@ -54,14 +60,17 @@ services:
       - 8080:8080
 
   d3-withdrawal:
-    image: nexus.iroha.tech:19002/d3-deploy/withdrawal
+    build:
+      context: ..
+      dockerfile: withdrawal.dockerfile
     container_name: d3-withdrawal
     depends_on:
       - d3-iroha
      # - d3-eth-node0
 
   grpcwebproxy:
-    image: nexus.iroha.tech:19002/d3-deploy/grpcwebproxy
+    build:
+      context: grpcwebproxy/
     container_name: d3-grpcwebproxy
     depends_on:
       - d3-iroha
