@@ -1,0 +1,81 @@
+package integration.eth
+
+import com.google.gson.Gson
+import integration.helper.IntegrationHelperUtil
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.fail
+import provider.eth.EthTokenInfo
+import provider.eth.EthTokensProviderImpl
+import token.executeTokenRegistration
+import util.getRandomString
+import java.io.File
+
+/**
+ * Requires Iroha is running
+ */
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class ERC20TokenRegistrationTest {
+    private val integrationHelper = IntegrationHelperUtil()
+    private val tokensFilePath = "tokens-for-test.json"
+    private val tokenRegistrationConfig =
+        integrationHelper.configHelper.createERC20TokenRegistrationConfig(tokensFilePath)
+
+    private val ethTokensProvider = EthTokensProviderImpl(
+        tokenRegistrationConfig.iroha,
+        integrationHelper.irohaKeyPair,
+        tokenRegistrationConfig.notaryIrohaAccount,
+        tokenRegistrationConfig.tokenStorageAccount
+    )
+
+    @AfterAll
+    fun clearFile() {
+        File(tokensFilePath).delete()
+    }
+
+    /**
+     * Test US-001 ERC20 tokens registration
+     * Note: Iroha must be deployed to pass the test.
+     * @given Iroha network is running and json file full ERC20 tokens exists
+     * @when ERC20 tokens registration completes
+     * @then all the tokens from file are registered in Iroha
+     */
+    @Test
+    fun testTokenRegistration() {
+        val tokens = createRandomTokens()
+        createTokensFile(tokens, tokensFilePath)
+        executeTokenRegistration(tokenRegistrationConfig)
+        ethTokensProvider.getTokens().fold({ tokensFromProvider ->
+            assertEquals(
+                tokens,
+                tokensFromProvider
+            )
+        }, { ex -> fail("cannot fetch tokens", ex) })
+    }
+
+    //Creates json file full of ERC20 tokens
+    private fun createTokensFile(tokens: Map<String, EthTokenInfo>, tokensFilePath: String) {
+        val tokensJson = Gson().toJson(tokens)
+        val tokeFile = File(tokensFilePath)
+        tokeFile.createNewFile()
+        tokeFile.printWriter().use { out ->
+            out.println(tokensJson)
+        }
+    }
+
+    //Creates randomly generated tokens as a map (token address -> token info)
+    private fun createRandomTokens(): Map<String, EthTokenInfo> {
+        val tokensToCreate = 10
+        val defaultPrecision = 15
+        val tokens = HashMap<String, EthTokenInfo>()
+        for (i in 1..tokensToCreate) {
+            val tokenName = String.getRandomString(9)
+            val tokenInfo = EthTokenInfo(tokenName, defaultPrecision)
+            val tokenAddress = String.getRandomString(16)
+            tokens.put(tokenAddress, tokenInfo)
+        }
+        return tokens
+    }
+}
