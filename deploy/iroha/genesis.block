@@ -469,8 +469,22 @@
               {
                 "setAccountDetail": {
                   "accountId": "notaries@notary",
-                  "key": "some_notary",
-                  "value": "http://d3-notary:8080"
+                  "key": "notary1",
+                  "value": "http://d3-notary1:8080"
+                }
+              },
+              {
+                "setAccountDetail": {
+                  "accountId": "notaries@notary",
+                  "key": "notary2",
+                  "value": "http://d3-notary2:8080"
+                }
+              },
+              {
+                "setAccountDetail": {
+                  "accountId": "notaries@notary",
+                  "key": "notary3",
+                  "value": "http://d3-notary3:8080"
                 }
               },
               {
