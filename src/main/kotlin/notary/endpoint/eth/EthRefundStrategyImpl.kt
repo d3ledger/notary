@@ -11,13 +11,11 @@ import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
 import org.web3j.crypto.ECKeyPair
 import provider.eth.EthTokensProvider
-import sidechain.eth.util.DeployHelper
-import sidechain.eth.util.findInTokens
-import sidechain.eth.util.hashToWithdraw
-import sidechain.eth.util.signUserData
+import sidechain.eth.util.*
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountDetails
+import java.math.BigDecimal
 
 class NotaryException(reason: String) : Exception(reason)
 
@@ -63,7 +61,7 @@ class EthRefundStrategyImpl(
             val commands = appearedTx.payload.reducedPayload.getCommands(0)
 
             when {
-                // rollback case
+            // rollback case
                 appearedTx.payload.reducedPayload.commandsCount == 1 &&
                         commands.hasSetAccountDetail() -> {
 
@@ -82,7 +80,7 @@ class EthRefundStrategyImpl(
 
                     EthRefund(destEthAddress, "mockCoinType", "10", request.irohaTx)
                 }
-                // withdrawal case
+            // withdrawal case
                 (appearedTx.payload.reducedPayload.commandsCount == 1) &&
                         commands.hasTransferAsset() -> {
                     val destAccount = commands.transferAsset.destAccountId
@@ -93,6 +91,7 @@ class EthRefundStrategyImpl(
                     val token = commands.transferAsset.assetId.dropLastWhile { it != '#' }.dropLast(1)
                     val coins = tokensProvider.getTokens().get().toMutableMap()
                     val coinAddress = findInTokens(token, coins)
+                    val precision = getPrecision(token, coins)
 
                     val destEthAddress = commands.transferAsset.description
 
@@ -108,7 +107,9 @@ class EthRefundStrategyImpl(
                             { throw it }
                         )
 
-                    EthRefund(destEthAddress, coinAddress, amount, request.irohaTx)
+                    val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(precision.toInt()).toPlainString()
+
+                    EthRefund(destEthAddress, coinAddress, decimalAmount, request.irohaTx)
                 }
                 else -> {
                     logger.error { "Transaction doesn't contain expected commands." }

@@ -27,7 +27,7 @@ fun getAssetPrecision(
     keypair: Keypair,
     irohaNetwork: IrohaNetwork,
     assetId: String
-): Result<Int, Exception> {
+): Result<Short, Exception> {
     val uquery = ModelQueryBuilder().creatorAccountId(irohaConfig.creator)
         .queryCounter(BigInteger.valueOf(1))
         .createdTime(ModelUtil.getCurrentTime())
@@ -41,8 +41,7 @@ fun getAssetPrecision(
             if (!queryResponse.hasField(fieldDescriptor)) {
                 throw IllegalStateException("Query response error: ${queryResponse.errorResponse}")
             }
-
-            queryResponse.assetResponse.asset.precision
+            queryResponse.assetResponse.asset.precision.toShort()
         }
 }
 
