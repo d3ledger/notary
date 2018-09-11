@@ -4,6 +4,7 @@ import com.github.kittinunf.result.map
 import config.TestConfig
 import config.loadConfigs
 import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -54,8 +55,8 @@ class IrohaBlockStreamingTest {
             testConfig.iroha.port,
             creator, keypair
         ).getBlockObservable()
-            .map {
-                it.map { block ->
+            .map { obs ->
+                obs.map { block ->
                     cmds = block.payload.transactionsList
                         .flatMap {
                             it.payload.reducedPayload.commandsList
