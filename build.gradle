@@ -9,7 +9,7 @@ buildscript {
     configurations.maybeCreate("pitest")
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.3'
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.6'
         classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.3.0'
         pitest 'org.pitest:pitest-junit5-plugin:0.3'
     }
@@ -37,10 +37,10 @@ repositories {
 
 dependencies {
     // protobuf
-    compile 'com.google.protobuf:protobuf-java:3.5.0'
-    compile 'io.grpc:grpc-netty:1.8.0'
-    compile 'io.grpc:grpc-protobuf:1.8.0'
-    compile 'io.grpc:grpc-stub:1.8.0'
+    compile 'com.google.protobuf:protobuf-java:3.6.1'
+    compile 'io.grpc:grpc-netty:1.14.0'
+    compile 'io.grpc:grpc-protobuf:1.14.0'
+    compile 'io.grpc:grpc-stub:1.14.0'
 
     // ------------------| Src dependencies |------------------
 
@@ -67,7 +67,7 @@ dependencies {
     compile fileTree(dir: iroha_bindings_dir, include: '*.jar')
 
     // Eth library
-    compile 'org.web3j:core:3.4.0'
+    compile 'org.web3j:core:3.5.0'
 
     // Waves library
     compile 'com.wavesplatform:wavesj:0.4'
@@ -188,11 +188,11 @@ run {
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:3.5.0"
+        artifact = "com.google.protobuf:protoc:3.6.1"
     }
     plugins {
         grpc {
-            artifact = 'io.grpc:protoc-gen-grpc-java:1.8.0'
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.14.0'
         }
     }
     generateProtoTasks {
