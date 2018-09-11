@@ -1,7 +1,6 @@
 package integration.iroha
 
 import config.loadConfigs
-import enums.Domain
 import jp.co.soramitsu.iroha.Blob
 import jp.co.soramitsu.iroha.ModelCrypto
 import jp.co.soramitsu.iroha.ModelQueryBuilder
@@ -31,7 +30,7 @@ class IrohaBatchTest {
         loadConfigs("test", EthNotaryConfig::class.java)
     }
 
-    private val tester = "test@${Domain.NOTARY.value}"
+    private val tester = "test@notary"
 
     private val keypair by lazy {
         ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
@@ -76,7 +75,7 @@ class IrohaBatchTest {
                     listOf(
                         IrohaCommand.CommandCreateAccount(
                             user,
-                            Domain.NOTARY.value,
+                            "notary",
                             ModelCrypto().generateKeypair().publicKey().hex()
                         )
                     )
@@ -87,7 +86,7 @@ class IrohaBatchTest {
                     1,
                     listOf(
                         IrohaCommand.CommandSetAccountDetail(
-                            "$user@${Domain.NOTARY.value}",
+                            "$user@notary",
                             "key",
                             "value"
                         )
@@ -100,17 +99,17 @@ class IrohaBatchTest {
                     listOf(
                         IrohaCommand.CommandCreateAsset(
                             asset_name,
-                            Domain.NOTARY.value,
+                            "notary",
                             0
                         ),
                         IrohaCommand.CommandAddAssetQuantity(
-                            "$asset_name#${Domain.NOTARY.value}",
+                            "$asset_name#notary",
                             "100"
                         ),
                         IrohaCommand.CommandTransferAsset(
                             tester,
-                            "$user@${Domain.NOTARY.value}",
-                            "$asset_name#${Domain.NOTARY.value}",
+                            "$user@notary",
+                            "$asset_name#notary",
                             "desc",
                             "27"
                         )
@@ -145,7 +144,7 @@ class IrohaBatchTest {
             .creatorAccountId(tester)
             .queryCounter(counter)
             .createdTime(ModelUtil.getCurrentTime())
-            .getAccount("$user@${Domain.NOTARY.value}")
+            .getAccount("$user@notary")
             .build()
 
         val account = ModelUtil.prepareQuery(uquery, keypair)
@@ -163,7 +162,7 @@ class IrohaBatchTest {
             .creatorAccountId(tester)
             .queryCounter(counter)
             .createdTime(ModelUtil.getCurrentTime())
-            .getAssetInfo("$asset_name#${Domain.NOTARY.value}")
+            .getAssetInfo("$asset_name#notary")
             .build()
 
         val asset = ModelUtil.prepareQuery(uquery, keypair)
@@ -200,7 +199,7 @@ class IrohaBatchTest {
             .creatorAccountId(tester)
             .queryCounter(counter)
             .createdTime(ModelUtil.getCurrentTime())
-            .getAccountAssets("$user@${Domain.NOTARY.value}")
+            .getAccountAssets("$user@notary")
             .build()
 
         val u1_amount = ModelUtil.prepareQuery(uquery, keypair)
@@ -216,9 +215,9 @@ class IrohaBatchTest {
 
 
         assertEquals(hashes, successHash)
-        assertEquals(account.accountId, "$user@${Domain.NOTARY.value}")
-        assertEquals(account.jsonData, "{\"test@${Domain.NOTARY.value}\": {\"key\": \"value\"}}")
-        assertEquals(asset.assetId, "$asset_name#${Domain.NOTARY.value}")
+        assertEquals(account.accountId, "$user@notary")
+        assertEquals(account.jsonData, "{\"test@notary\": {\"key\": \"value\"}}")
+        assertEquals(asset.assetId, "$asset_name#notary")
         assertEquals(tester_amount.toInt(), 73)
         assertEquals(u1_amount.toInt(), 27)
 
@@ -250,7 +249,7 @@ class IrohaBatchTest {
                     listOf(
                         IrohaCommand.CommandCreateAccount(
                             user,
-                            "${Domain.NOTARY.value}",
+                            "notary",
                             ModelCrypto().generateKeypair().publicKey().hex()
                         )
                     )
@@ -261,7 +260,7 @@ class IrohaBatchTest {
                     1,
                     listOf(
                         IrohaCommand.CommandSetAccountDetail(
-                            "$user@${Domain.NOTARY.value}",
+                            "$user@notary",
                             "key",
                             "value"
                         )
@@ -274,17 +273,17 @@ class IrohaBatchTest {
                     listOf(
                         IrohaCommand.CommandCreateAsset(
                             asset_name,
-                            Domain.NOTARY.value,
+                            "notary",
                             0
                         ),
                         IrohaCommand.CommandAddAssetQuantity(
-                            "$asset_name#${Domain.NOTARY.value}",
+                            "$asset_name#notary",
                             "100"
                         ),
                         IrohaCommand.CommandTransferAsset(
                             tester,
-                            "$user@${Domain.NOTARY.value}",
-                            "$asset_name#${Domain.NOTARY.value}",
+                            "$user@notary",
+                            "$asset_name#notary",
                             "desc",
                             "27"
                         )
@@ -297,8 +296,8 @@ class IrohaBatchTest {
                     listOf(
                         IrohaCommand.CommandTransferAsset(
                             tester,
-                            "$user@${Domain.NOTARY.value}",
-                            "$asset_name#${Domain.NOTARY.value}",
+                            "$user@notary",
+                            "$asset_name#notary",
                             "",
                             "1234"
                         )
@@ -335,7 +334,7 @@ class IrohaBatchTest {
             .creatorAccountId(tester)
             .queryCounter(counter)
             .createdTime(ModelUtil.getCurrentTime())
-            .getAccount("$user@${Domain.NOTARY.value}")
+            .getAccount("$user@notary")
             .build()
 
         val account = ModelUtil.prepareQuery(uquery, keypair)
@@ -353,7 +352,7 @@ class IrohaBatchTest {
             .creatorAccountId(tester)
             .queryCounter(counter)
             .createdTime(ModelUtil.getCurrentTime())
-            .getAssetInfo("$asset_name#${Domain.NOTARY.value}")
+            .getAssetInfo("$asset_name#notary")
             .build()
 
         val asset = ModelUtil.prepareQuery(uquery, keypair)
@@ -390,7 +389,7 @@ class IrohaBatchTest {
             .creatorAccountId(tester)
             .queryCounter(counter)
             .createdTime(ModelUtil.getCurrentTime())
-            .getAccountAssets("$user@${Domain.NOTARY.value}")
+            .getAccountAssets("$user@notary")
             .build()
 
         val u1_amount = ModelUtil.prepareQuery(uquery, keypair)
@@ -406,9 +405,9 @@ class IrohaBatchTest {
 
 
         assertEquals(expectedHashes, successHash)
-        assertEquals(account.accountId, "$user@${Domain.NOTARY.value}")
-        assertEquals(account.jsonData, "{\"test@${Domain.NOTARY.value}\": {\"key\": \"value\"}}")
-        assertEquals(asset.assetId, "$asset_name#${Domain.NOTARY.value}")
+        assertEquals(account.accountId, "$user@notary")
+        assertEquals(account.jsonData, "{\"test@notary\": {\"key\": \"value\"}}")
+        assertEquals(asset.assetId, "$asset_name#notary")
         assertEquals(tester_amount.toInt(), 73)
         assertEquals(u1_amount.toInt(), 27)
 

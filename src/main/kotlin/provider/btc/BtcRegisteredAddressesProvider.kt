@@ -6,7 +6,8 @@ import jp.co.soramitsu.iroha.Keypair
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.getAccountDetails
 
-class BtcTakenAddressesProvider(
+//Class that provides all registered BTC addresses
+class BtcRegisteredAddressesProvider(
     private val irohaConfig: IrohaConfig,
     private val keypair: Keypair,
     private val registrationAccount: String,
@@ -14,7 +15,11 @@ class BtcTakenAddressesProvider(
 ) {
     private val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
 
-    fun getTakenAddresses(): Result<Map<String, String>, Exception> {
+    /**
+     * Get all registered btc addresses
+     * @return map full of registered btc addresses (btc address -> iroha account name)
+     */
+    fun getRegisteredAddresses(): Result<Map<String, String>, Exception> {
         return getAccountDetails(
             irohaConfig,
             keypair,

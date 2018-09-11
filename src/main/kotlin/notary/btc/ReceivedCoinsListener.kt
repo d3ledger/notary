@@ -7,7 +7,7 @@ import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.TransactionConfidence
 import org.bitcoinj.wallet.Wallet
 import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener
-import provider.btc.BtcTakenAddressesProvider
+import provider.btc.BtcRegisteredAddressesProvider
 import sidechain.SideChainEvent
 import java.math.BigInteger
 import java.util.concurrent.atomic.AtomicBoolean
@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 private const val BTC_ASSET_NAME = "btc"
 
 class ReceivedCoinsListener(
-    private val btcTakenAddressesProvider: BtcTakenAddressesProvider,
+    private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
     private val confidenceLevel: Int,
     private val emitter: ObservableEmitter<SideChainEvent.PrimaryBlockChainEvent>
 ) : WalletCoinsReceivedEventListener {
@@ -26,7 +26,7 @@ class ReceivedCoinsListener(
     }
 
     private fun handleTx(tx: Transaction) {
-        btcTakenAddressesProvider.getTakenAddresses().fold({ addresses ->
+        btcRegisteredAddressesProvider.getRegisteredAddresses().fold({ addresses ->
             tx.outputs.forEach { output ->
                 val btcAddress = output.scriptPubKey.getToAddress(output.params).toBase58()
                 val irohaAccount = addresses[btcAddress]

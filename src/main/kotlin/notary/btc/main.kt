@@ -6,7 +6,7 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import config.loadConfigs
 import mu.KLogging
-import provider.btc.BtcTakenAddressesProvider
+import provider.btc.BtcRegisteredAddressesProvider
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.util.ModelUtil
 
@@ -22,7 +22,7 @@ fun executeNotary(notaryConfig: BtcNotaryConfig) {
     IrohaInitialization.loadIrohaLibrary()
         .flatMap { ModelUtil.loadKeypair(notaryConfig.iroha.pubkeyPath, notaryConfig.iroha.privkeyPath) }
         .flatMap { keypair ->
-            val btcTakenAddressesProvider = BtcTakenAddressesProvider(
+            val btcTakenAddressesProvider = BtcRegisteredAddressesProvider(
                 notaryConfig.iroha,
                 keypair,
                 notaryConfig.registrationAccount,

@@ -13,7 +13,6 @@ interface BtcRegistrationConfig {
     val registrationAccount: String
 
     /** Iroha account for btc account register in MST fashion*/
-
     val mstRegistrationAccount: String
 
     /** Iroha configuration */

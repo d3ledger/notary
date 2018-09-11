@@ -18,6 +18,7 @@ class BtcSessionProvider(
     private val keypair: Keypair
 ) {
     private val irohaConsumer = IrohaConsumerImpl(irohaConfig)
+
     /**
      * Creates a special session account for notaries public key storage
      *
@@ -39,6 +40,8 @@ class BtcSessionProvider(
         }.flatMap { irohaTx ->
             val utx = IrohaConverterImpl().convert(irohaTx)
             irohaConsumer.sendAndCheck(utx)
+
         }
     }
+
 }

@@ -123,6 +123,7 @@ class EthChainHandler(
      */
     override fun parseBlock(block: EthBlock): List<SideChainEvent.PrimaryBlockChainEvent> {
         logger.info { "Eth chain handler for block ${block.block.number}" }
+
         return ethRelayProvider.getRelays().fanout {
             ethTokensProvider.getTokens()
         }.fold(

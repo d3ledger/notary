@@ -211,8 +211,7 @@
                   "accountId": "eth_registration_service_red@notary",
                   "roleName": "relay_deployer"
                 }
-              },
-              {
+              },{
                 "createAccount": {
                   "accountName": "btc_registration_service_red",
                   "domainId": "notary",

@@ -16,7 +16,7 @@ import org.bitcoinj.wallet.Wallet
 import org.junit.jupiter.api.fail
 import org.web3j.protocol.core.DefaultBlockParameterName
 import provider.btc.BtcAddressesProvider
-import provider.btc.BtcTakenAddressesProvider
+import provider.btc.BtcRegisteredAddressesProvider
 import provider.eth.EthFreeRelayProvider
 import provider.eth.EthRelayProviderIrohaImpl
 import provider.eth.EthTokenInfo
@@ -53,14 +53,12 @@ class IntegrationHelperUtil {
     val irohaKeyPair =
         ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
 
-
     val accountHelper by lazy { AccountHelper(irohaKeyPair) }
 
     val configHelper by lazy { ConfigHelper(accountHelper) }
 
     /** Ethereum utils */
     private val deployHelper by lazy { DeployHelper(configHelper.testConfig.ethereum, configHelper.ethPasswordConfig) }
-
 
     private val irohaNetwork by lazy {
         IrohaNetworkImpl(configHelper.testConfig.iroha.hostname, configHelper.testConfig.iroha.port)
@@ -126,7 +124,7 @@ class IntegrationHelperUtil {
                 accountHelper.notaryAccount
             )
         val btcTakenAddressesProvider =
-            BtcTakenAddressesProvider(
+            BtcRegisteredAddressesProvider(
                 testConfig.iroha,
                 irohaKeyPair,
                 accountHelper.registrationAccount,
@@ -145,6 +143,7 @@ class IntegrationHelperUtil {
         RelayRegistration(configHelper.createRelayRegistrationConfig(), configHelper.ethPasswordConfig)
     }
 
+    //Pre generates one BTC address that can be registered later
     fun preGenBtcAddress(): Result<Address, Exception> {
         val walletFile = File(configHelper.btcRegistrationConfig.btcWalletPath)
         val wallet = Wallet.loadFromFile(walletFile)
@@ -323,17 +322,6 @@ class IntegrationHelperUtil {
             accountDetailHolder,
             accountDetailSetter
         ).get()
-    }
-
-    fun registerNotary(notaryName: String, notaryPort: Int) {
-        ModelUtil.setAccountDetail(
-            irohaConsumer,
-            accountHelper.notaryListSetterAccount,
-            accountHelper.notaryListStorageAccount,
-            notaryName,
-            "http://localhost:$notaryPort"
-        ).fold({ logger.info { "notary $notaryName was registered" } },
-            { ex -> logger.error("cannot register notary", ex) })
     }
 
     /**
@@ -525,7 +513,6 @@ class IntegrationHelperUtil {
     fun sendRegistrationRequest(name: String, pubkey: PublicKey, port: Int): khttp.responses.Response {
         return khttp.post(
             "http://127.0.0.1:${port}/users",
-
             data = mapOf("name" to name, "pubkey" to pubkey.hex())
         )
     }

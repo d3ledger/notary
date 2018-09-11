@@ -1,7 +1,6 @@
 package integration.eth
 
 import com.github.kittinunf.result.failure
-import enums.Domain
 import integration.helper.IntegrationHelperUtil
 import notary.IrohaCommand
 import notary.IrohaTransaction
@@ -45,7 +44,7 @@ class EthRelayProviderIrohaTest {
      */
     @Test
     fun storageTest() {
-        val domain = Domain.NOTARY.value
+        val domain = "notary"
 
         val entries = mapOf(
             "0x281055afc982d96fab65b3a49cac8b878184cb16" to "user1@$domain",

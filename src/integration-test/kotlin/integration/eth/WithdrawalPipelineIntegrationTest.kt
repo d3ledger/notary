@@ -52,7 +52,6 @@ class WithdrawalPipelineIntegrationTest {
         async {
             withdrawalservice.executeWithdrawal(withdrawalServiceConfig, passwordConfig)
         }
-        integrationHelper.registerNotary("test", 20000)
         Thread.sleep(3_000)
     }
 

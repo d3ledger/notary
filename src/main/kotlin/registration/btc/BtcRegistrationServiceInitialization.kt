@@ -5,7 +5,7 @@ import com.github.kittinunf.result.map
 import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
 import provider.btc.BtcAddressesProvider
-import provider.btc.BtcTakenAddressesProvider
+import provider.btc.BtcRegisteredAddressesProvider
 import registration.RegistrationServiceEndpoint
 import sidechain.iroha.consumer.IrohaConsumerImpl
 
@@ -28,7 +28,7 @@ class BtcRegistrationServiceInitialization(
                     btcRegistrationConfig.iroha.creator
                 )
             val btcTakenAddressesProvider =
-                BtcTakenAddressesProvider(
+                BtcRegisteredAddressesProvider(
                     btcRegistrationConfig.iroha,
                     keyPair,
                     btcRegistrationConfig.registrationAccount,
