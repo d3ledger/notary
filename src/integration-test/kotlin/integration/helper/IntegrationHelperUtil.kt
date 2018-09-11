@@ -9,7 +9,7 @@ import contract.Master
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.QueryServiceGrpc
 import jp.co.soramitsu.iroha.*
-import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.runBlocking
 import mu.KLogging
 import notary.eth.EthNotaryConfig
 import notary.eth.executeNotary
@@ -23,6 +23,7 @@ import registration.btc.BtcRegistrationStrategyImpl
 import registration.eth.EthRegistrationStrategyImpl
 import registration.eth.relay.RelayRegistration
 import sidechain.eth.util.DeployHelper
+import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
@@ -245,6 +246,30 @@ class IntegrationHelperUtil {
     }
 
     /**
+     * Waits for exactly one iroha block
+     */
+    fun waitOneIrohaBlock() {
+        val creator = testConfig.iroha.creator
+        val keypair =
+            ModelUtil.loadKeypair(
+                testConfig.iroha.pubkeyPath,
+                testConfig.iroha.privkeyPath
+            ).get()
+
+
+        val listner = IrohaChainListener(
+            testConfig.iroha.hostname,
+            testConfig.iroha.port,
+            creator, keypair
+        )
+
+        runBlocking {
+            listner.getBlock()
+        }
+
+    }
+
+    /**
      * Send ETH with given amount to ethPublicKey
      */
     fun sendEth(amount: BigInteger, to: String) {
@@ -459,12 +484,11 @@ class IntegrationHelperUtil {
         Runs Ethereum notary process
      */
     fun runEthNotary(ethNotaryConfig: EthNotaryConfig = configHelper.createEthNotaryConfig()) {
+        executeNotary(ethNotaryConfig)
+
         val name = String.getRandomString(9)
         val address = "http://localhost:${ethNotaryConfig.refund.port}"
         addNotary(name, address)
-        async {
-            executeNotary(ethNotaryConfig)
-        }
 
         logger.info { "Notary $name is started on $address" }
     }
