@@ -44,40 +44,45 @@ class EthChainHandler(
         // get receipt that contains data about solidity function execution
         val receipt = web3.ethGetTransactionReceipt(tx.hash).send()
 
-        return receipt.transactionReceipt.get().logs
-            .filter {
-                // filter out transfer
-                // the first topic is a hashed representation of a transfer signature call (the scary string)
-                val to = "0x" + it.topics[2].drop(26).toLowerCase()
-                it.topics[0] == "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef" &&
-                        wallets.containsKey(to)
-            }
-            .filter {
-                // check if amount > 0
-                if (BigInteger(it.data.drop(2), 16).compareTo(BigInteger.ZERO) > 0) {
-                    true
-                } else {
-                    logger.warn { "Transaction ${tx.hash} from Ethereum with 0 ERC20 amount" }
-                    false
+        // if tx is committed successfully
+        if (receipt.transactionReceipt.get().isStatusOK) {
+            return receipt.transactionReceipt.get().logs
+                .filter {
+                    // filter out transfer
+                    // the first topic is a hashed representation of a transfer signature call (the scary string)
+                    val to = "0x" + it.topics[2].drop(26).toLowerCase()
+                    it.topics[0] == "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef" &&
+                            wallets.containsKey(to)
                 }
-            }
-            .map {
-                // second and third topics are addresses from and to
-                val from = "0x" + it.topics[1].drop(26).toLowerCase()
-                val to = "0x" + it.topics[2].drop(26).toLowerCase()
-                // amount of transfer is stored in data
-                val amount = BigInteger(it.data.drop(2), 16)
+                .filter {
+                    // check if amount > 0
+                    if (BigInteger(it.data.drop(2), 16).compareTo(BigInteger.ZERO) > 0) {
+                        true
+                    } else {
+                        logger.warn { "Transaction ${tx.hash} from Ethereum with 0 ERC20 amount" }
+                        false
+                    }
+                }
+                .map {
+                    // second and third topics are addresses from and to
+                    val from = "0x" + it.topics[1].drop(26).toLowerCase()
+                    val to = "0x" + it.topics[2].drop(26).toLowerCase()
+                    // amount of transfer is stored in data
+                    val amount = BigInteger(it.data.drop(2), 16)
 
-                SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
-                    tx.hash,
-                    time,
-                    wallets[to]!!,
-                    // all non-existent keys were filtered out in parseBlock
-                    tokens[tx.to]!!.name,
-                    BigDecimal(amount, tokens[tx.to]!!.precision.toInt()).toPlainString(),
-                    from
-                )
-            }
+                    SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
+                        tx.hash,
+                        time,
+                        wallets[to]!!,
+                        // all non-existent keys were filtered out in parseBlock
+                        tokens[tx.to]!!.name,
+                        BigDecimal(amount, tokens[tx.to]!!.precision.toInt()).toPlainString(),
+                        from
+                    )
+                }
+        } else {
+            return listOf()
+        }
     }
 
     /**
@@ -92,7 +97,10 @@ class EthChainHandler(
     ): List<SideChainEvent.PrimaryBlockChainEvent> {
         logger.info { "handle Ethereum tx ${tx.hash}" }
 
-        return if (tx.value.compareTo(BigInteger.ZERO) > 0) {
+        val receipt = web3.ethGetTransactionReceipt(tx.hash).send()
+
+        // if tx amount > 0 and is committed successfully
+        return if ((tx.value.compareTo(BigInteger.ZERO) > 0) && (receipt.transactionReceipt.get().isStatusOK)) {
             listOf(
                 SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
                     tx.hash,
