@@ -25,18 +25,20 @@ class ReceivedCoinsListener(
     }
 
     private fun handleTx(tx: Transaction) {
-            btcAddressesProvider.getAddresses().fold({ addresses ->tx.outputs.forEach { output ->
-        val btcAddress = output.scriptPubKey.getToAddress(output.params).toBase58()
+        btcAddressesProvider.getAddresses().fold({ addresses ->
+            tx.outputs.forEach { output ->
+                val btcAddress = output.scriptPubKey.getToAddress(output.params).toBase58()
                 val irohaAccount = addresses[btcAddress]
-                if ( irohaAccount != null) {
-            val event = SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
-                tx.hashAsString,
-                BigInteger.valueOf(tx.lockTime),irohaAccount,
-                BTC_ASSET_NAME,
-                BigInteger.valueOf(output.value.value).toString(),
-                ""
-            )
-            emitter.onNext(event)}
+                if (irohaAccount != null) {
+                    val event = SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
+                        tx.hashAsString,
+                        BigInteger.valueOf(tx.lockTime), irohaAccount,
+                        BTC_ASSET_NAME,
+                        BigInteger.valueOf(output.value.value).toString(),
+                        ""
+                    )
+                    emitter.onNext(event)
+                }
             }
 
         }, { ex ->
