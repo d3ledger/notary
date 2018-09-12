@@ -35,6 +35,7 @@ class EthChainHandler(
      */
     private fun handleErc20(
         tx: Transaction,
+        time: BigInteger,
         wallets: Map<String, String>,
         tokens: Map<String, EthTokenInfo>
     ): List<SideChainEvent.PrimaryBlockChainEvent> {
@@ -69,6 +70,7 @@ class EthChainHandler(
 
                 SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
                     tx.hash,
+                    time,
                     wallets[to]!!,
                     // all non-existent keys were filtered out in parseBlock
                     tokens[tx.to]!!.name,
@@ -85,6 +87,7 @@ class EthChainHandler(
      */
     private fun handleEther(
         tx: Transaction,
+        time: BigInteger,
         wallets: Map<String, String>
     ): List<SideChainEvent.PrimaryBlockChainEvent> {
         logger.info { "handle Ethereum tx ${tx.hash}" }
@@ -93,6 +96,7 @@ class EthChainHandler(
             listOf(
                 SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
                     tx.hash,
+                    time,
                     // all non-existent keys were filtered out in parseBlock
                     wallets[tx.to]!!,
                     "ether",
@@ -117,13 +121,15 @@ class EthChainHandler(
             ethTokensProvider.getTokens()
         }.fold(
             { (wallets, tokens) ->
+                // Eth time in seconds, convert ot milliseconds
+                val time = block.block.timestamp.multiply(BigInteger.valueOf(1000))
                 block.block.transactions
                     .map { it.get() as Transaction }
                     .flatMap {
                         if (wallets.containsKey(it.to))
-                            handleEther(it, wallets)
+                            handleEther(it, time, wallets)
                         else if (tokens.containsKey(it.to))
-                            handleErc20(it, wallets, tokens)
+                            handleErc20(it, time, wallets, tokens)
                         else
                             listOf()
                     }

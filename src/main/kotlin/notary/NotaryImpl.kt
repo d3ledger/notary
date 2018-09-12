@@ -6,10 +6,12 @@ import config.IrohaConfig
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import mu.KLogging
+import provider.NotaryPeerListProviderImpl
 import sidechain.SideChainEvent
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.util.ModelUtil
+import java.math.BigInteger
 import java.util.concurrent.Executors
 
 /**
@@ -18,8 +20,19 @@ import java.util.concurrent.Executors
 class NotaryImpl(
     private val irohaConfig: IrohaConfig,
     private val primaryChainEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>,
-    private val domain: String
+    private val domain: String,
+    notaryListStorageAccount: String,
+    notaryListSetterAccount: String
 ) : Notary {
+
+    val keypair = ModelUtil.loadKeypair(irohaConfig.pubkeyPath, irohaConfig.privkeyPath).get()
+
+    private val peerListProvider = NotaryPeerListProviderImpl(
+        irohaConfig,
+        keypair,
+        notaryListStorageAccount,
+        notaryListSetterAccount
+    )
 
     /** Notary account in Iroha */
     private val creator = irohaConfig.creator
@@ -31,18 +44,23 @@ class NotaryImpl(
      */
     private fun onPrimaryChainDeposit(
         hash: String,
+        time: BigInteger,
         account: String,
         asset: String,
         amount: String,
         from: String
     ): IrohaOrderedBatch {
 
-        logger.info { "transfer $asset event: hash($hash) user($account) asset($asset) value ($amount)" }
+        logger.info { "transfer $asset event: hash($hash) time($time) user($account) asset($asset) value ($amount)" }
+
+        val quorum = peerListProvider.getPeerList().size
 
         return IrohaOrderedBatch(
             arrayListOf(
                 IrohaTransaction(
                     creator,
+                    time,
+                    quorum,
                     arrayListOf(
                         // insert into Iroha account information for rollback
                         IrohaCommand.CommandSetAccountDetail(
@@ -54,6 +72,8 @@ class NotaryImpl(
                 ),
                 IrohaTransaction(
                     creator,
+                    time,
+                    quorum,
                     arrayListOf(
                         IrohaCommand.CommandAddAssetQuantity(
                             "$asset#$domain",
@@ -80,6 +100,7 @@ class NotaryImpl(
         return when (chainInputEvent) {
             is SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit -> onPrimaryChainDeposit(
                 chainInputEvent.hash,
+                chainInputEvent.time,
                 chainInputEvent.user,
                 chainInputEvent.asset,
                 chainInputEvent.amount,

@@ -61,7 +61,8 @@ class IrohaConverterImpl {
     private fun buildModelTransactionBuilder(transaction: IrohaTransaction): ModelTransactionBuilder {
         return ModelTransactionBuilder()
             .creatorAccountId(transaction.creator)
-            .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
+            .createdTime(transaction.createdTime)
+            .quorum(transaction.quorum)
     }
 
     private fun appendCommands(
