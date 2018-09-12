@@ -8,6 +8,6 @@ docker build -t nexus.iroha.tech:19002/d3-deploy/withdrawal -f withdrawal.docker
 
 
 docker push nexus.iroha.tech:19002/d3-deploy/eth-relay
-docker push nexus.iroha.tech:19002/d3-deploy/registration &
-docker push nexus.iroha.tech:19002/d3-deploy/notary &
+docker push nexus.iroha.tech:19002/d3-deploy/registration
+docker push nexus.iroha.tech:19002/d3-deploy/notary
 docker push nexus.iroha.tech:19002/d3-deploy/withdrawal
