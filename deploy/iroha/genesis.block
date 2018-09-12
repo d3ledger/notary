@@ -470,21 +470,21 @@
                 "setAccountDetail": {
                   "accountId": "notaries@notary",
                   "key": "notary1",
-                  "value": "http://d3-notary1:8080"
+                  "value": "http://d3-notary:8087"
                 }
               },
               {
                 "setAccountDetail": {
                   "accountId": "notaries@notary",
                   "key": "notary2",
-                  "value": "http://d3-notary2:8080"
+                  "value": "http://d3-notary:8088"
                 }
               },
               {
                 "setAccountDetail": {
                   "accountId": "notaries@notary",
                   "key": "notary3",
-                  "value": "http://d3-notary3:8080"
+                  "value": "http://d3-notary:8089"
                 }
               },
               {
@@ -492,6 +492,24 @@
                   "accountName": "pregen_btc_pk_trigger",
                   "domainId": "notary",
                   "publicKey": "iJ9riB4zG+IUh9t33PMsX409XoBm540v6sQjn+kdQW8="
+                }
+              },
+              {
+                "addSignatory": {
+                  "accountId": "notary_red@notary",
+                  "publicKey": "cW/lBfafGFEaGwg5Faqf9z7zbmaIGZ85WXUNs4uPS/w="
+                }
+              },
+              {
+                "addSignatory": {
+                  "accountId": "notary_red@notary",
+                  "publicKey": "0E2icbV/5jQmrh3Jf2lSEEA3QR/PTztzncIX9F5fyZs="
+                }
+              },
+              {
+                "setAccountQuorum": {
+                  "accountId": "notary_red@notary",
+                  "quorum": 3
                 }
               }
             ],
