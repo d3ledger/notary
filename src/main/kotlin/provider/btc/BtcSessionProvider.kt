@@ -8,6 +8,7 @@ import notary.IrohaCommand
 import notary.IrohaTransaction
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
+import sidechain.iroha.util.ModelUtil
 
 
 // Class for creating session accounts. Theses accounts are used to store BTC public keys.
@@ -28,6 +29,8 @@ class BtcSessionProvider(
         return Result.of {
             IrohaTransaction(
                 registrationAccount,
+                ModelUtil.getCurrentTime(),
+                1,
                 arrayListOf(
                     IrohaCommand.CommandCreateAccount(
                         sessionId, "btcSession", keypair.publicKey().hex()

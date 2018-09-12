@@ -87,6 +87,7 @@ sealed class SideChainEvent {
          */
         data class OnPrimaryChainDeposit(
             val hash: String,
+            val time: BigInteger,
             val user: String,
             val asset: String,
             val amount: String,
