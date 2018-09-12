@@ -486,21 +486,21 @@
                 "setAccountDetail": {
                   "accountId": "notaries@notary",
                   "key": "notary1",
-                  "value": "http://d3-notary:8087"
+                  "value": "http://10.211.38.9:8080"
                 }
               },
               {
                 "setAccountDetail": {
                   "accountId": "notaries@notary",
                   "key": "notary2",
-                  "value": "http://d3-notary:8088"
+                  "value": "http://10.211.38.5:8080"
                 }
               },
               {
                 "setAccountDetail": {
                   "accountId": "notaries@notary",
                   "key": "notary3",
-                  "value": "http://d3-notary:8089"
+                  "value": "http://10.211.38.24:8080"
                 }
               },
               {
