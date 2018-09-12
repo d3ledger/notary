@@ -8,8 +8,24 @@
               {
                 "addPeer": {
                   "peer": {
-                    "address": "localhost:10001",
-                    "peerKey": "0E2icbV/5jQmrh3Jf2lSEEA3QR/PTztzncIX9F5fyZs="
+                    "address": "10.211.38.9:10001",
+                    "peerKey": "XpFghFDrziIQkrpxewaTsm6AAJKUsgXo4711JGbFfe4="
+                  }
+                }
+              },
+              {
+                "addPeer": {
+                  "peer": {
+                    "address": "10.211.38.5:10001",
+                    "peerKey": "du9VB62oLHExAZpSc0Yrjon9FOpAq5SZ9lN9eYVolpI="
+                  }
+                }
+              },
+              {
+                "addPeer": {
+                  "peer": {
+                    "address": "10.211.38.24:10001",
+                    "peerKey": "iJSxp4PIFgpNRpeewNDsR5958DCHJmZdRSuOAZiH8x8="
                   }
                 }
               },
