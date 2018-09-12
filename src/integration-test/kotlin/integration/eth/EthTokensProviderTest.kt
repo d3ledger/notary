@@ -1,14 +1,11 @@
 package integration.eth
 
-import com.github.kittinunf.result.failure
 import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import provider.eth.EthTokenInfo
-import provider.eth.EthTokensProviderImpl
-import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 
 /**
@@ -17,15 +14,7 @@ import util.getRandomString
 class EthTokensProviderTest {
     private val integrationHelper = IntegrationHelperUtil()
 
-    private val testConfig = integrationHelper.configHelper.testConfig
-
-
-    private val ethTokensProvider = EthTokensProviderImpl(
-        testConfig.iroha,
-        integrationHelper.irohaKeyPair,
-        testConfig.notaryIrohaAccount,
-        integrationHelper.accountHelper.tokenStorageAccount
-    )
+    private val ethTokensProvider = integrationHelper.ethTokensProvider
 
     /**
      * Test US-001 Listing all the tokens from tokensProvider
@@ -36,16 +25,20 @@ class EthTokensProviderTest {
      */
     @Test
     fun testGetTokens() {
-        val tokensToAdd = 5
+        val tokensToAdd = 3
+        val expectedTokens = mutableMapOf<String, EthTokenInfo>()
         (1..tokensToAdd).forEach { i ->
-            ethTokensProvider.addToken("0x$i", EthTokenInfo("$i", 0))
+            val ethWallet = "0x$i"
+            val tokenInfo = EthTokenInfo(String.getRandomString(9), i.toShort())
+            expectedTokens[ethWallet] = tokenInfo
+            integrationHelper.addERC20Token(ethWallet, tokenInfo.name, tokenInfo.precision)
         }
         ethTokensProvider.getTokens()
             .fold(
                 { tokens ->
                     assertFalse(tokens.isEmpty())
-                    (1..tokensToAdd).forEach { i ->
-                        assertEquals("$i", tokens.get("0x$i")!!.name)
+                    expectedTokens.forEach { (expectedEthWallet, expectedTokenInfo) ->
+                        assertEquals(expectedTokenInfo, tokens.get(expectedEthWallet))
                     }
                 },
                 { ex -> fail("Cannot get tokens", ex) })
@@ -61,12 +54,13 @@ class EthTokensProviderTest {
     @Test
     fun testAddToken() {
         val initialNumberOfTokens = ethTokensProvider.getTokens().get().size
-        val newEthWallet = String.getRandomString(9)
-        val newTokenName = "abc"
-        ethTokensProvider.addToken(newEthWallet, EthTokenInfo(newTokenName, 0))
-            .failure { ex -> fail("Cannot add token", ex) }
+        val ethWallet = String.getRandomString(9)
+        val tokenInfo = EthTokenInfo(String.getRandomString(9), 5)
+
+        integrationHelper.addERC20Token(ethWallet, tokenInfo.name, tokenInfo.precision)
+
         val tokens = ethTokensProvider.getTokens().get()
         assertEquals(initialNumberOfTokens + 1, tokens.size)
-        assertEquals(newTokenName, tokens.get(newEthWallet)!!.name)
+        assertEquals(tokenInfo, tokens.get(ethWallet))
     }
 }
