@@ -30,6 +30,7 @@ class BtcSessionProvider(
             IrohaTransaction(
                 registrationAccount,
                 ModelUtil.getCurrentTime(),
+                1,
                 arrayListOf(
                     IrohaCommand.CommandCreateAccount(
                         sessionId, "btcSession", keypair.publicKey().hex()

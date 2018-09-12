@@ -36,6 +36,7 @@ class IrohaAccountCreator(
             IrohaTransaction(
                 creator,
                 getCurrentTime(),
+                1,
                 arrayListOf(
                     // Create account
                     IrohaCommand.CommandCreateAccount(

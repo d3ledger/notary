@@ -9,12 +9,24 @@ fun createEthNotary(
     ethNotaryConfig: EthNotaryConfig,
     ethEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>
 ): NotaryImpl {
-    return NotaryImpl(ethNotaryConfig.iroha, ethEvents, "ethereum")
+    return NotaryImpl(
+        ethNotaryConfig.iroha,
+        ethEvents,
+        "ethereum",
+        ethNotaryConfig.notaryListStorageAccount,
+        ethNotaryConfig.notaryListSetterAccount
+    )
 }
 
 fun createBtcNotary(
     btcNotaryConfig: BtcNotaryConfig,
     btcEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>
 ): NotaryImpl {
-    return NotaryImpl(btcNotaryConfig.iroha, btcEvents, "bitcoin")
+    return NotaryImpl(
+        btcNotaryConfig.iroha,
+        btcEvents,
+        "bitcoin",
+        btcNotaryConfig.notaryListStorageAccount,
+        btcNotaryConfig.notaryListSetterAccount
+    )
 }

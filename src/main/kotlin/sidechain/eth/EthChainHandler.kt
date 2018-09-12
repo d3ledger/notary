@@ -121,7 +121,8 @@ class EthChainHandler(
             ethTokensProvider.getTokens()
         }.fold(
             { (wallets, tokens) ->
-                val time = block.block.timestamp
+                // Eth time in seconds, convert ot milliseconds
+                val time = block.block.timestamp.multiply(BigInteger.valueOf(1000))
                 block.block.transactions
                     .map { it.get() as Transaction }
                     .flatMap {
