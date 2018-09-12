@@ -134,6 +134,8 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
                 get() = createIrohaConfig()
             override val bitcoin: BitcoinConfig
                 get() = btcNotaryConfig.bitcoin
+            override val notaryListStorageAccount = accountHelper.notaryListStorageAccount
+            override val notaryListSetterAccount = accountHelper.notaryListSetterAccount
         }
     }
 
@@ -157,6 +159,8 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
         return object : EthNotaryConfig {
             override val registrationServiceIrohaAccount = accountHelper.registrationAccount
             override val tokenStorageAccount = accountHelper.tokenStorageAccount
+            override val notaryListStorageAccount = accountHelper.notaryListStorageAccount
+            override val notaryListSetterAccount = accountHelper.notaryListSetterAccount
             override val whitelistSetter = testConfig.whitelistSetter
             override val refund = createRefundConfig()
             override val iroha = createIrohaConfig()
