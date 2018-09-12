@@ -9,7 +9,7 @@
                 "addPeer": {
                   "peer": {
                     "address": "10.211.38.9:10001",
-                    "peerKey": "XpFghFDrziIQkrpxewaTsm6AAJKUsgXo4711JGbFfe4="
+                    "peerKey": "LQRSrNIYcUcuyRYGMwjT3QMXDSmRnmftyj2SRi1Z54M="
                   }
                 }
               },
@@ -17,7 +17,7 @@
                 "addPeer": {
                   "peer": {
                     "address": "10.211.38.5:10001",
-                    "peerKey": "du9VB62oLHExAZpSc0Yrjon9FOpAq5SZ9lN9eYVolpI="
+                    "peerKey": "JpGQgR3He/VsA0Sv5lPyqEsRFvxeDGyCFCTcn11Y2l4="
                   }
                 }
               },
@@ -25,7 +25,7 @@
                 "addPeer": {
                   "peer": {
                     "address": "10.211.38.24:10001",
-                    "peerKey": "iJSxp4PIFgpNRpeewNDsR5958DCHJmZdRSuOAZiH8x8="
+                    "peerKey": "rgVjjIxFmBVJhJbfEozdlciJMsIcAWSdQvc8ge2JbnM="
                   }
                 }
               },
@@ -197,7 +197,7 @@
                 "createAccount": {
                   "accountName": "notary_red",
                   "domainId": "notary",
-                  "publicKey": "iJ9riB4zG+IUh9t33PMsX409XoBm540v6sQjn+kdQW8="
+                  "publicKey": "XpFghFDrziIQkrpxewaTsm6AAJKUsgXo4711JGbFfe4="
                 }
               },
               {
@@ -513,13 +513,13 @@
               {
                 "addSignatory": {
                   "accountId": "notary_red@notary",
-                  "publicKey": "cW/lBfafGFEaGwg5Faqf9z7zbmaIGZ85WXUNs4uPS/w="
+                  "publicKey": "du9VB62oLHExAZpSc0Yrjon9FOpAq5SZ9lN9eYVolpI="
                 }
               },
               {
                 "addSignatory": {
                   "accountId": "notary_red@notary",
-                  "publicKey": "0E2icbV/5jQmrh3Jf2lSEEA3QR/PTztzncIX9F5fyZs="
+                  "publicKey": "iJSxp4PIFgpNRpeewNDsR5958DCHJmZdRSuOAZiH8x8="
                 }
               },
               {
