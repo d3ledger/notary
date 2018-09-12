@@ -486,7 +486,7 @@
                 "setAccountDetail": {
                   "accountId": "notaries@notary",
                   "key": "notary1",
-                  "value": "http://10.211.38.9:8080"
+                  "value": "http://10.211.38.24:8087"
                 }
               },
               {
