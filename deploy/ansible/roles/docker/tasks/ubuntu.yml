@@ -64,3 +64,13 @@
       username: d3-deploy
       password: "{{ docker_password }}"
       reauthorize: yes
+
+  - name: remove all docker containers
+    shell: docker rm -f $(docker ps -a -q)
+
+
+  - name: remove all docker images
+    shell: 'docker rmi -f $(docker images -q)'
+
+  - name: Prune volumes
+    shell: 'docker volume prune -f'
