@@ -10,6 +10,7 @@ pipeline {
       agent { label 'master' }
       steps {
         script {
+          checkout scm
           // need this for develop->master PR cases
           // CHANGE_BRANCH is not defined if this is a branch build
           try {
@@ -27,7 +28,7 @@ pipeline {
       agent { label 'x86_64' }
       steps {
         script {
-            def scmVars = checkout scm
+            checkout scm
             writeFile file: ".env", text: "SUBNET=-${GIT_COMMIT}-${BUILD_NUMBER}"
             sh(returnStdout: true, script: "docker-compose -f deploy/docker-compose-dev.yaml up --build -d")
             iC = docker.image("openjdk:8-jdk")
