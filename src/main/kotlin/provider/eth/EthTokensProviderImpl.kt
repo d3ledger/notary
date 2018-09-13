@@ -5,15 +5,14 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.IrohaConfig
 import jp.co.soramitsu.iroha.Keypair
+import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import mu.KLogging
-import notary.IrohaCommand
-import notary.IrohaTransaction
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil.setAccountDetail
 import sidechain.iroha.util.getAccountDetails
 import sidechain.iroha.util.getAssetPrecision
+import java.math.BigInteger
 
 /**
  * Implementation of [EthTokensProvider] with Iroha storage.
@@ -76,27 +75,16 @@ class EthTokensProviderImpl(
     override fun registerTokens(tokens: Map<String, EthTokenInfo>): Result<Unit, Exception> {
         logger.info { "tokens registration $tokens" }
         return Result.of {
-            //2 commands per token:create asset and set detail
-            val commands = ArrayList<IrohaCommand>(tokens.size * 2)
+            var utx = ModelTransactionBuilder()
+                .creatorAccountId(tokenStorageAccount)
+                .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
             tokens.forEach { ethWallet, ethTokenInfo ->
-                commands.add(
-                    IrohaCommand.CommandCreateAsset(
-                        ethTokenInfo.name,
-                        "ethereum",
-                        ethTokenInfo.precision.toShort()
-                    )
-                )
-                commands.add(
-                    IrohaCommand.CommandSetAccountDetail(
-                        notaryIrohaAccount,
-                        ethWallet,
-                        ethTokenInfo.name
-                    )
-                )
+                utx = utx.createAsset(ethTokenInfo.name, "ethereum", ethTokenInfo.precision.toShort())
+                utx = utx.setAccountDetail(notaryIrohaAccount, ethWallet, ethTokenInfo.name)
             }
-            IrohaTransaction(tokenStorageAccount, commands)
-        }.flatMap { irohaTx ->
-            val utx = IrohaConverterImpl().convert(irohaTx)
+
+            utx.build()
+        }.flatMap { utx ->
             irohaConsumer.sendAndCheck(utx)
         }.map { Unit }
     }

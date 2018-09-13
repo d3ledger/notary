@@ -37,6 +37,11 @@ fun getAssetPrecision(
     return ModelUtil.prepareQuery(uquery, keypair)
         .flatMap { query -> irohaNetwork.sendQuery(query) }
         .map { queryResponse ->
+            val fieldDescriptor = queryResponse.descriptorForType.findFieldByName("asset_response")
+            if (!queryResponse.hasField(fieldDescriptor)) {
+                throw IllegalStateException("Query response error: ${queryResponse.errorResponse}")
+            }
+
             queryResponse.assetResponse.asset.precision
         }
 }

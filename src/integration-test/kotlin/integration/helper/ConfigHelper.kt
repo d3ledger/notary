@@ -51,7 +51,7 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
     fun createERC20TokenRegistrationConfig(tokensFilePath_: String): ERC20TokenRegistrationConfig {
         return object : ERC20TokenRegistrationConfig {
             override val iroha: IrohaConfig
-                get() = ethRegistrationConfig.iroha
+                get() = createIrohaConfig()
             override val tokensFilePath: String
                 get() = tokensFilePath_
             override val notaryIrohaAccount: String
