@@ -25,10 +25,7 @@ class EthRelayProviderIrohaImpl(
 
     init {
         logger.info {
-            """Init relay provider:
-            |notary account: $accountDetailHolder
-            |registration account: $accountDetailSetter
-            """.trimMargin()
+            "Init relay provider: notary account: $accountDetailHolder registration account: $accountDetailSetter"
         }
     }
 
