@@ -26,8 +26,10 @@ pipeline {
       agent { label 'x86_64' }
       steps {
         script {
-            iC = docker.image('openjdk:8-jdk')
-            iC.inside('-e JVM_OPTS="-Xmx3200m" -e TERM="dumb"') {
+            writeFile file: ".env", text: "SUBNET=-${env.GIT_COMMIT}-${BUILD_NUMBER}"
+            sh(returnStdout: true, script: "docker-compose -f deploy/docker-compose-dev.yaml up --build -d")
+            iC = docker.image("openjdk:8-jdk")
+            iC.inside("--network='d3-${env.GIT_COMMIT}-${BUILD_NUMBER}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
               sh(script: "./gradlew dependencies")
               sh(script: "./gradlew test --info")
               sh(script: "./gradlew compileIntegrationTestKotlin --info")
@@ -36,6 +38,7 @@ pipeline {
       }
       post {
         cleanup {
+          sh(script: "docker-compose -f deploy/docker-compose-dev.yaml down")
           cleanWs()
         }
       }
