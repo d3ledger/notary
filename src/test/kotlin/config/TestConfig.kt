@@ -11,4 +11,7 @@ interface TestConfig {
     val ethereum: EthereumConfig
     val iroha: IrohaConfig
     val bitcoin: BitcoinConfig
+    val credentialsPassword: String
+    val nodeLogin: String
+    val nodePassword: String
 }

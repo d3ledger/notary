@@ -4,8 +4,8 @@ package notary.eth
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
-import config.EthereumPasswords
 import config.loadConfigs
+import config.loadEthPasswords
 import mu.KLogging
 import provider.eth.EthRelayProviderIrohaImpl
 import provider.eth.EthTokensProviderImpl
@@ -17,13 +17,12 @@ import sidechain.iroha.util.ModelUtil
  */
 fun main(args: Array<String>) {
     val notaryConfig = loadConfigs("eth-notary", EthNotaryConfig::class.java, "/eth/notary.properties")
-    executeNotary(notaryConfig)
+    executeNotary(notaryConfig, args)
 }
 
-fun executeNotary(notaryConfig: EthNotaryConfig) {
+fun executeNotary(notaryConfig: EthNotaryConfig, args: Array<String> = emptyArray()) {
     val logger = KLogging()
-    val passwordConfig =
-        loadConfigs("eth-notary", EthereumPasswords::class.java, "/eth/ethereum_password.properties")
+    val passwordConfig = loadEthPasswords("eth-notary", "/eth/ethereum_password.properties", args)
 
     IrohaInitialization.loadIrohaLibrary()
         .flatMap { ModelUtil.loadKeypair(notaryConfig.iroha.pubkeyPath, notaryConfig.iroha.privkeyPath) }

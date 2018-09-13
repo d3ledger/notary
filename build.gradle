@@ -24,6 +24,7 @@ apply plugin: 'com.google.protobuf'
 apply plugin: 'application'
 apply plugin: "jacoco"
 apply plugin: 'info.solidsoft.pitest'
+//TODO do we really need this?
 mainClassName = 'notary.NotaryImpl'
 
 sourceCompatibility = 1.8
@@ -104,16 +105,16 @@ dependencies {
     // ------------------| Test dependencies |------------------
 
     // unit tests
-    compile "org.junit.jupiter:junit-jupiter-api:5.2.0"
-
     testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
     testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
-    // TODO @muratovv: rework with testCompile when mocks go out from production code
-    compile 'org.mockito:mockito-inline:2.18.3'
-    compile('com.nhaarman:mockito-kotlin:1.5.0') {
+    testCompile 'org.mockito:mockito-inline:2.18.3'
+    testCompile('com.nhaarman:mockito-kotlin:1.5.0') {
         exclude group: 'org.jetbrains.kotlin'
         exclude group: 'org.mockito'
     }
+
+    // for setting env variables in tests
+    testCompile group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.18.0'
 
 }
 
@@ -137,8 +138,6 @@ sourceSets {
             // iroha bindings
             srcDirs += "build/generated/source/proto/main/java"
             srcDirs += "build/generated/source/proto/main/grpc"
-
-            srcDirs += "src/test"
         }
     }
     integrationTest {
@@ -254,6 +253,21 @@ static def getCurrentOs() {
     }
 }
 
+//Forms a list of ETH passwords from command line arguments
+def getEthPasswordsArgs() {
+    List<String> args = new ArrayList<>()
+    if (project.hasProperty("credentialsPassword")) {
+        args.add(project.property("credentialsPassword").toString())
+    }
+    if (project.hasProperty("nodeLogin")) {
+        args.add(project.property("nodeLogin").toString())
+    }
+    if (project.hasProperty("nodePassword")) {
+        args.add(project.property("nodePassword").toString())
+    }
+    return args
+}
+
 task retrieveIrohaBindings(type: Exec) {
     description = 'Downloads Iroha binding for specific platform'
 
@@ -282,6 +296,7 @@ task runEthNotary(type: JavaExec) {
     main = 'notary.eth.EthNotaryMain'
     classpath = sourceSets.main.runtimeClasspath
 
+    args getEthPasswordsArgs()
     systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
     environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
 }
@@ -314,6 +329,7 @@ task runEthRegistration(type: JavaExec) {
     main = 'registration.eth.EthRegistrationMain'
     classpath = sourceSets.main.runtimeClasspath
 
+    args getEthPasswordsArgs()
     systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
     environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
 }
@@ -330,6 +346,7 @@ task runDeployRelay(type: JavaExec) {
     main = 'registration.eth.relay.DeployRelayMain'
     classpath = sourceSets.main.runtimeClasspath
 
+    args getEthPasswordsArgs()
     systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
     environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
 }
@@ -338,6 +355,7 @@ task runVacuumRelay(type: JavaExec) {
     main = 'vacuum.VacuumRelayMain'
     classpath = sourceSets.main.runtimeClasspath
 
+    args getEthPasswordsArgs()
     systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
     environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
 }
@@ -346,6 +364,7 @@ task runWithdrawal(type: JavaExec) {
     main = 'withdrawalservice.WithdrawalServiceMain'
     classpath = sourceSets.main.runtimeClasspath
 
+    args getEthPasswordsArgs()
     systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
     environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
 }
