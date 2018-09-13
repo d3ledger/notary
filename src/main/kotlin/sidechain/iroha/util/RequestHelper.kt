@@ -41,7 +41,6 @@ fun getAssetPrecision(
             if (!queryResponse.hasField(fieldDescriptor)) {
                 throw IllegalStateException("Query response error: ${queryResponse.errorResponse}")
             }
-
             queryResponse.assetResponse.asset.precision.toShort()
         }
 }
