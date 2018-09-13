@@ -7,8 +7,8 @@ interface ERC20TokenRegistrationConfig {
     val iroha: IrohaConfig
     //Path to file full of tokens in json format
     val tokensFilePath: String
-    //Notary account
-    val notaryIrohaAccount: String
-    //Account that sets tokens in notary account
+    //Account that stores tokens
     val tokenStorageAccount: String
+    //Account that sets tokens in tokenStorageAccount
+    val tokenSetterAccount: String
 }
