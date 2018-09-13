@@ -24,15 +24,15 @@ class ERC20TokenRegistration(
     private val ethTokensProvider = EthTokensProviderImpl(
         tokenRegistrationConfig.iroha,
         irohaKeypair,
-        tokenRegistrationConfig.notaryIrohaAccount,
-        tokenRegistrationConfig.tokenStorageAccount
+        tokenRegistrationConfig.tokenStorageAccount,
+        tokenRegistrationConfig.tokenSetterAccount
     )
 
     //Initiates process of ERC20 tokens registration
     fun init(): Result<Unit, Exception> {
         //It takes file full of tokens to be registered and registers it in Iroha
         return readTokensFromFile(tokenRegistrationConfig.tokensFilePath)
-            .flatMap { tokensToRegister -> ethTokensProvider.registerTokens(tokensToRegister) }
+            .flatMap { tokensToRegister -> ethTokensProvider.addTokens(tokensToRegister) }
     }
 
     /**
@@ -65,8 +65,8 @@ class ERC20TokenRegistration(
         FileInputStream(file).use { fis ->
             BufferedReader(InputStreamReader(fis)).use { reader ->
                 while (true) {
-                    val sCurrentLine = reader.readLine() ?: break
-                    content.append(lineBreak).append(sCurrentLine)
+                    val currentLine = reader.readLine() ?: break
+                    content.append(lineBreak).append(currentLine)
                     lineBreak = "\n"
                 }
             }

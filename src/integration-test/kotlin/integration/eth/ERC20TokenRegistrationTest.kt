@@ -26,8 +26,8 @@ class ERC20TokenRegistrationTest {
     private val ethTokensProvider = EthTokensProviderImpl(
         tokenRegistrationConfig.iroha,
         integrationHelper.irohaKeyPair,
-        tokenRegistrationConfig.notaryIrohaAccount,
-        tokenRegistrationConfig.tokenStorageAccount
+        tokenRegistrationConfig.tokenStorageAccount,
+        tokenRegistrationConfig.tokenSetterAccount
     )
 
     @AfterAll
@@ -72,7 +72,7 @@ class ERC20TokenRegistrationTest {
         val tokens = HashMap<String, EthTokenInfo>()
         for (i in 1..tokensToCreate) {
             val tokenName = String.getRandomString(9)
-            val tokenInfo = EthTokenInfo(tokenName, defaultPrecision)
+            val tokenInfo = EthTokenInfo(tokenName, defaultPrecision.toShort())
             val tokenAddress = String.getRandomString(16)
             tokens.put(tokenAddress, tokenInfo)
         }

@@ -43,24 +43,4 @@ class EthTokensProviderTest {
                 },
                 { ex -> fail("Cannot get tokens", ex) })
     }
-
-    /**
-     * Test US-002 Adding tokens using tokensProvider
-     * Note: Iroha must be deployed to pass the test.
-     * @given Iroha network is running
-     * @when tokensProvider adds a token
-     * @then tokens list must contain previously added token and also its size must be increased by one
-     */
-    @Test
-    fun testAddToken() {
-        val initialNumberOfTokens = ethTokensProvider.getTokens().get().size
-        val ethWallet = String.getRandomString(9)
-        val tokenInfo = EthTokenInfo(String.getRandomString(9), 5)
-
-        integrationHelper.addERC20Token(ethWallet, tokenInfo.name, tokenInfo.precision)
-
-        val tokens = ethTokensProvider.getTokens().get()
-        assertEquals(initialNumberOfTokens + 1, tokens.size)
-        assertEquals(tokenInfo, tokens.get(ethWallet))
-    }
 }
