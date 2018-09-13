@@ -36,6 +36,8 @@ pipeline {
               sh(script: "./gradlew dependencies")
               sh(script: "./gradlew test --info")
               sh(script: "./gradlew compileIntegrationTestKotlin --info")
+              sh(script: "gradle -b /build/build.gradle assemble")
+              sh(script: "gradle -b /build/build.gradle runDeployRelay -Pprofile=deploy")
             }
         }
       }
