@@ -12,7 +12,7 @@ services:
     ports:
       - 50051:50051
     depends_on:
-      - d3-iroha-postgres${SUBNET}
+      - d3-iroha-postgres
     tty: true
     environment:
       - KEY=keys/node0
