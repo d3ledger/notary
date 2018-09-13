@@ -1,10 +1,15 @@
 package provider.eth
 
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.IrohaConfig
 import jp.co.soramitsu.iroha.Keypair
+import mu.KLogging
+import notary.IrohaCommand
+import notary.IrohaTransaction
 import sidechain.iroha.consumer.IrohaConsumerImpl
+import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil.setAccountDetail
 import sidechain.iroha.util.getAccountDetails
@@ -24,6 +29,7 @@ class EthTokensProviderImpl(
     private val notaryIrohaAccount: String,
     private val tokenStorageAccount: String
 ) : EthTokensProvider {
+
     private val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
     private val irohaConsumer = IrohaConsumerImpl(irohaConfig)
 
@@ -43,8 +49,10 @@ class EthTokensProviderImpl(
                         irohaNetwork,
                         "$name#ethereum"
                     ).fold(
-                        { EthTokenInfo(name, it) },
-                        { throw it }
+                        { precision ->
+                            EthTokenInfo(name, precision)
+                        },
+                        { ex -> throw ex }
                     )
                 }
             }
@@ -59,4 +67,42 @@ class EthTokensProviderImpl(
             tokenInfo.name
         ).map { Unit }
     }
+
+    /**
+     * Registers all given ERC20 tokens in Iroha
+     * @param tokens - map of tokens (address->token info)
+     * @return Result of operation
+     */
+    override fun registerTokens(tokens: Map<String, EthTokenInfo>): Result<Unit, Exception> {
+        logger.info { "tokens registration $tokens" }
+        return Result.of {
+            //2 commands per token:create asset and set detail
+            val commands = ArrayList<IrohaCommand>(tokens.size * 2)
+            tokens.forEach { ethWallet, ethTokenInfo ->
+                commands.add(
+                    IrohaCommand.CommandCreateAsset(
+                        ethTokenInfo.name,
+                        "ethereum",
+                        ethTokenInfo.precision.toShort()
+                    )
+                )
+                commands.add(
+                    IrohaCommand.CommandSetAccountDetail(
+                        notaryIrohaAccount,
+                        ethWallet,
+                        ethTokenInfo.name
+                    )
+                )
+            }
+            IrohaTransaction(tokenStorageAccount, commands)
+        }.flatMap { irohaTx ->
+            val utx = IrohaConverterImpl().convert(irohaTx)
+            irohaConsumer.sendAndCheck(utx)
+        }.map { Unit }
+    }
+
+    /**
+     * Logger
+     */
+    companion object : KLogging()
 }

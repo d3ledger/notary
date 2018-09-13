@@ -13,4 +13,7 @@ interface EthTokensProvider {
 
     /** Adds new token to token list*/
     fun addToken(ethWallet: String, tokenInfo: EthTokenInfo): Result<Unit, Exception>
+
+    /** Registers all given tokens in Iroha*/
+    fun registerTokens(tokens: Map<String, EthTokenInfo>): Result<Unit, Exception>
 }
