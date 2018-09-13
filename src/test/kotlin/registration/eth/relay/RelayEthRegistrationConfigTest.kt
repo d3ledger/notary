@@ -26,7 +26,7 @@ class RelayEthRegistrationConfigTest {
         assertEquals("deploy/iroha/keys/admin@notary.pub", relayRegistrationConfig.iroha.pubkeyPath)
         assertEquals("deploy/iroha/keys/admin@notary.priv", relayRegistrationConfig.iroha.privkeyPath)
 
-        assertEquals("http://51.15.84.132:8545", relayRegistrationConfig.ethereum.url)
+        assertEquals("http://d3-eth-node0:8545", relayRegistrationConfig.ethereum.url)
         assertEquals("deploy/ethereum/keys/ropsten.key", relayRegistrationConfig.ethereum.credentialsPath)
         assertEquals(1, relayRegistrationConfig.ethereum.gasPrice)
         assertEquals(1999999, relayRegistrationConfig.ethereum.gasLimit)
