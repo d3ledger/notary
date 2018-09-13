@@ -1,5 +1,6 @@
 pipeline {
   options {
+    skipDefaultCheckout()
     buildDiscarder(logRotator(numToKeepStr: '20'))
     timestamps()
   }
