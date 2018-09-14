@@ -43,9 +43,7 @@
                   "roleName": "token_service",
                   "permissions": [
                     "can_set_detail",
-                    "can_create_asset",
-                    "can_read_assets",
-                    "can_get_domain_accounts"
+                    "can_create_asset"
                   ]
                 }
               },

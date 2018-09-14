@@ -60,7 +60,7 @@ class EthTokensProviderImpl(
      * @return Result of operation
      */
     override fun addTokens(tokens: Map<String, EthTokenInfo>): Result<Unit, Exception> {
-        logger.info { "tokens registration $tokens" }
+        logger.info { "ERC20 tokens to register $tokens" }
         return ModelUtil.registerERC20Tokens(tokens, irohaConfig.creator, notaryIrohaAccount, irohaConsumer)
             .map { Unit }
     }

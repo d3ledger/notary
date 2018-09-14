@@ -5,6 +5,7 @@ import com.github.kittinunf.result.flatMap
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import jp.co.soramitsu.iroha.Keypair
+import mu.KLogging
 import provider.eth.EthTokenInfo
 import provider.eth.EthTokensProviderImpl
 import java.io.BufferedReader
@@ -32,7 +33,13 @@ class ERC20TokenRegistration(
     fun init(): Result<Unit, Exception> {
         //It takes file full of tokens to be registered and registers it in Iroha
         return readTokensFromFile(tokenRegistrationConfig.tokensFilePath)
-            .flatMap { tokensToRegister -> ethTokensProvider.addTokens(tokensToRegister) }
+            .flatMap { tokensToRegister ->
+                if (tokensToRegister.isEmpty()) {
+                    Result.of { logger.warn { "No ERC20 tokens to register" } }
+                } else {
+                    ethTokensProvider.addTokens(tokensToRegister)
+                }
+            }
     }
 
     /**
@@ -73,4 +80,9 @@ class ERC20TokenRegistration(
         }
         return content.toString()
     }
+
+    /**
+     * Logger
+     */
+    companion object : KLogging()
 }
