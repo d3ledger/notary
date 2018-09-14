@@ -112,7 +112,7 @@ object ModelUtil {
                     String(java.nio.file.Files.readAllBytes(Paths.get(privkeyPath)))
                 )
             } catch (e: IOException) {
-                throw Exception("Unable to read Iroha key files.", e)
+                throw Exception("Unable to read Iroha key files", e)
             }
         }
     }

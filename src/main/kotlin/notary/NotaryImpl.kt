@@ -51,7 +51,7 @@ class NotaryImpl(
         from: String
     ): IrohaOrderedBatch {
 
-        logger.info { "transfer $asset event: hash($hash) time($time) user($account) asset($asset) value ($amount)" }
+        logger.info { "Transfer $asset event: hash($hash) time($time) user($account) asset($asset) value ($amount)" }
 
         val quorum = peerListProvider.getPeerList().size
 
@@ -96,7 +96,7 @@ class NotaryImpl(
      * Handle primary chain event
      */
     override fun onPrimaryChainEvent(chainInputEvent: SideChainEvent.PrimaryBlockChainEvent): IrohaOrderedBatch {
-        logger.info { "Notary performs primary chain event" }
+        logger.info { "Notary performs primary chain event $chainInputEvent" }
         return when (chainInputEvent) {
             is SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit -> onPrimaryChainDeposit(
                 chainInputEvent.hash,
@@ -121,6 +121,7 @@ class NotaryImpl(
     /**
      * Init Iroha consumer
      */
+    //TODO ask someone how to refactor these logs
     override fun initIrohaConsumer(): Result<Unit, Exception> {
         logger.info { "Init Iroha consumer" }
         return ModelUtil.loadKeypair(irohaConfig.pubkeyPath, irohaConfig.privkeyPath)

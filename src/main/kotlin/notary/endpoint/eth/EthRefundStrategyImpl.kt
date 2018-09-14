@@ -35,14 +35,14 @@ class EthRefundStrategyImpl(
     private var ecKeyPair: ECKeyPair = DeployHelper(ethereumConfig, ethereumPasswords).credentials.ecKeyPair
 
     override fun performRefund(request: EthRefundRequest): EthNotaryResponse {
-        logger.info("check tx ${request.irohaTx} for refund")
+        logger.info("Check tx ${request.irohaTx} for refund")
 
         return ModelUtil.getTransaction(irohaNetwork, irohaConfig.creator, keypair, request.irohaTx)
             .flatMap { checkTransaction(it, request) }
             .flatMap { makeRefund(it) }
             .fold({ it },
                 { ex ->
-                    logger.error("cannot perform refund", ex)
+                    logger.error("Cannot perform refund", ex)
                     EthNotaryResponse.Error(ex.toString())
                 })
     }
@@ -61,7 +61,7 @@ class EthRefundStrategyImpl(
             val commands = appearedTx.payload.reducedPayload.getCommands(0)
 
             when {
-            // rollback case
+                // rollback case
                 appearedTx.payload.reducedPayload.commandsCount == 1 &&
                         commands.hasSetAccountDetail() -> {
 
@@ -80,7 +80,7 @@ class EthRefundStrategyImpl(
 
                     EthRefund(destEthAddress, "mockCoinType", "10", request.irohaTx)
                 }
-            // withdrawal case
+                // withdrawal case
                 (appearedTx.payload.reducedPayload.commandsCount == 1) &&
                         commands.hasTransferAsset() -> {
                     val destAccount = commands.transferAsset.destAccountId
@@ -99,9 +99,11 @@ class EthRefundStrategyImpl(
                     checkWithdrawalAddress(srcAccountId, destEthAddress)
                         .fold(
                             {
+                                //TODO pls name it. This is very confusing
                                 if (!it) {
-                                    logger.warn { "$destEthAddress not in whitelist" }
-                                    throw NotaryException("$destEthAddress not in whitelist")
+                                    val errorMsg = "$destEthAddress not in whitelist"
+                                    logger.error { errorMsg }
+                                    throw NotaryException(errorMsg)
                                 }
                             },
                             { throw it }
@@ -112,8 +114,9 @@ class EthRefundStrategyImpl(
                     EthRefund(destEthAddress, coinAddress, decimalAmount, request.irohaTx)
                 }
                 else -> {
-                    logger.error { "Transaction doesn't contain expected commands." }
-                    throw NotaryException("Transaction doesn't contain expected commands.")
+                    val errorMsg = "Transaction doesn't contain expected commands."
+                    logger.error { errorMsg }
+                    throw NotaryException(errorMsg)
                 }
             }
         }

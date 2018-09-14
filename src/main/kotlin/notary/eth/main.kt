@@ -12,6 +12,8 @@ import provider.eth.EthTokensProviderImpl
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.util.ModelUtil
 
+private val logger = KLogging().logger
+
 /**
  * Application entry point
  */
@@ -21,9 +23,8 @@ fun main(args: Array<String>) {
 }
 
 fun executeNotary(notaryConfig: EthNotaryConfig, args: Array<String> = emptyArray()) {
-    val logger = KLogging()
+    logger.info { "Run ETH notary" }
     val passwordConfig = loadEthPasswords("eth-notary", "/eth/ethereum_password.properties", args)
-
     IrohaInitialization.loadIrohaLibrary()
         .flatMap { ModelUtil.loadKeypair(notaryConfig.iroha.pubkeyPath, notaryConfig.iroha.privkeyPath) }
         .flatMap { keypair ->
@@ -48,7 +49,7 @@ fun executeNotary(notaryConfig: EthNotaryConfig, args: Array<String> = emptyArra
             ).init()
         }
         .failure { ex ->
-            logger.logger.error("cannot run eth notary", ex)
+            logger.error("Cannot run eth notary", ex)
             System.exit(1)
         }
 }
