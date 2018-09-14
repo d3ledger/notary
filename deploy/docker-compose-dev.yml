@@ -47,5 +47,19 @@ services:
       - -h
       - 0.0.0.0
 
+  grpcwebproxy:
+    build:
+      context: grpcwebproxy/
+    container_name: d3-grpcwebproxy
+    depends_on:
+      - d3-iroha
+    ports:
+      - 8081:8080
+      - 8443:8443
+    entrypoint:
+      - grpcwebproxy
+      - --backend_addr=d3-iroha:50051
+      - --run_tls_server=false
+
 volumes:
   iroha_block_store:
