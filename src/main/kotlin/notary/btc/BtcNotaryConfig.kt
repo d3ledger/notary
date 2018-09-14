@@ -9,8 +9,6 @@ interface BtcNotaryConfig {
 
     val bitcoin: BitcoinConfig
 
-    val mstRegistrationAccount: String
-
     /** Iroha account to store notary peer list  */
     val notaryListStorageAccount: String
 

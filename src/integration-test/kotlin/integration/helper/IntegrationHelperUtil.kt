@@ -143,7 +143,13 @@ class IntegrationHelperUtil {
         RelayRegistration(configHelper.createRelayRegistrationConfig(), configHelper.ethPasswordConfig)
     }
 
-    //Pre generates one BTC address that can be registered later
+    /**
+     * Pregenerates one BTC address that can be registered later
+     * Query Iroha account balance
+     * @param accountId - account in Iroha
+     * @param assetId - asset in Iroha
+     * @return randomly generated BTC address
+     */
     fun preGenBtcAddress(): Result<Address, Exception> {
         val walletFile = File(configHelper.btcRegistrationConfig.btcWalletPath)
         val wallet = Wallet.loadFromFile(walletFile)
@@ -158,6 +164,12 @@ class IntegrationHelperUtil {
         ).map { address }
     }
 
+    /**
+     * Registers BTC client
+     * Query Iroha account balance
+     * @param irohaAccountName - client account in Iroha
+     * @return btc address related to client
+     */
     fun registerBtcAddress(irohaAccountName: String): String {
         val keypair = ModelCrypto().generateKeypair()
         preGenBtcAddress().fold({
