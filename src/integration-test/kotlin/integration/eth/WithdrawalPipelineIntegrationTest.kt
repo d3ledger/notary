@@ -4,6 +4,7 @@ import integration.helper.IntegrationHelperUtil
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelCrypto
 import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.launch
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -46,10 +47,10 @@ class WithdrawalPipelineIntegrationTest {
 
     init {
         integrationHelper.runEthNotary(notaryConfig)
-        async {
+        launch {
             registration.eth.executeRegistration(registrationConfig)
         }
-        async {
+        launch {
             withdrawalservice.executeWithdrawal(withdrawalServiceConfig, passwordConfig)
         }
         Thread.sleep(3_000)
@@ -213,7 +214,7 @@ class WithdrawalPipelineIntegrationTest {
     fun testWithdrawEmptyWhitelist() {
         integrationHelper.registerClient(clientName, keypair)
 
-        val withdrawalEthAddress = "some_address"
+        val withdrawalEthAddress = "0xAAABBBCCC"
 
         val amount = "125"
         val assetId = "ether#ethereum"
@@ -248,7 +249,7 @@ class WithdrawalPipelineIntegrationTest {
         integrationHelper.registerClient(clientName, keypair)
         integrationHelper.setWhitelist(clientId, listOf("0xANOTHER_ETH_ADDRESS"))
 
-        val withdrawalEthAddress = "some_address"
+        val withdrawalEthAddress = "0xAAABBBCCC"
 
         val amount = "125"
         val assetId = "ether#ethereum"
