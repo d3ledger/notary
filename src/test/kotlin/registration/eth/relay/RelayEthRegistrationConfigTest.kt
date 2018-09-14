@@ -20,7 +20,7 @@ class RelayEthRegistrationConfigTest {
         assertEquals("notary_red@notary", relayRegistrationConfig.notaryIrohaAccount)
         assertEquals("0x57dd50c6b4ec7a33ee3bb5056bf38856e181684c", relayRegistrationConfig.ethMasterWallet)
 
-        assertEquals("localhost", relayRegistrationConfig.iroha.hostname)
+        assertEquals("d3-iroha", relayRegistrationConfig.iroha.hostname)
         assertEquals(50051, relayRegistrationConfig.iroha.port)
         assertEquals("eth_registration_service_red@notary", relayRegistrationConfig.iroha.creator)
         assertEquals("deploy/iroha/keys/admin@notary.pub", relayRegistrationConfig.iroha.pubkeyPath)
