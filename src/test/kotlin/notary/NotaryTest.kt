@@ -31,6 +31,16 @@ class NotaryTest {
         on { notaryListSetterAccount } doReturn "notary_setter"
     }
 
+    init {
+        try {
+            println("Iroha path=${System.getProperty("java.library.path")}")
+            System.loadLibrary("irohajava")
+        } catch (e: UnsatisfiedLinkError) {
+            System.err.println("Native code library failed to load. \n$e")
+            System.exit(1)
+        }
+    }
+
     /**
      * Check transactions in ordered batch emitted on deposit event.
      * @param expectedAmount amount of assets to deposit
