@@ -21,7 +21,8 @@ class EthChainListener(
 ) : ChainListener<EthBlock> {
 
     init {
-        logger.info { "Init EthChainListener with confirmation period: $confirmationPeriod"
+        logger.info {
+            "Init EthChainListener with confirmation period $confirmationPeriod"
         }
     }
 

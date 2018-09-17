@@ -10,13 +10,15 @@ import provider.btc.BtcAddressesProvider
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.util.ModelUtil
 
+private val logger = KLogging().logger
+
 fun main(args: Array<String>) {
     val notaryConfig = loadConfigs("btc-notary", BtcNotaryConfig::class.java, "/btc/notary.properties")
     executeNotary(notaryConfig)
 }
 
 fun executeNotary(notaryConfig: BtcNotaryConfig) {
-    val logger = KLogging()
+    logger.info { "Run BTC notary" }
     IrohaInitialization.loadIrohaLibrary()
         .flatMap { ModelUtil.loadKeypair(notaryConfig.iroha.pubkeyPath, notaryConfig.iroha.privkeyPath) }
         .flatMap { keypair ->
@@ -28,7 +30,7 @@ fun executeNotary(notaryConfig: BtcNotaryConfig) {
             BtcNotaryInitialization(notaryConfig, btcAddressesProvider).init()
         }
         .failure { ex ->
-            logger.logger.error("cannot run btc notary", ex)
+            logger.error("Cannot run btc notary", ex)
             System.exit(1)
         }
 }

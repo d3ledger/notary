@@ -3,6 +3,7 @@ package registration
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
+import mu.KLogging
 import notary.IrohaCommand
 import notary.IrohaTransaction
 import sidechain.iroha.consumer.IrohaConsumer
@@ -60,7 +61,13 @@ class IrohaAccountCreator(
             val utx = IrohaConverterImpl().convert(irohaTx)
             irohaConsumer.sendAndCheck(utx)
         }.map {
+            logger.info { "New account $userName was created" }
             address
         }
     }
+
+    /**
+     * Logger
+     */
+    companion object : KLogging()
 }

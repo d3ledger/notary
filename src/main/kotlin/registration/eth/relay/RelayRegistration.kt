@@ -64,8 +64,8 @@ class RelayRegistration(
             (1..relaysToDeploy).forEach {
                 val relayWallet = deployRelaySmartContract(ethMasterWallet)
                 registerRelayIroha(relayWallet, creator).fold(
-                    { logger.info("relay was deployed") },
-                    { ex -> logger.error("cannot deploy relay", ex) })
+                    { logger.info("Relay $relayWallet was deployed") },
+                    { ex -> logger.error("Cannot deploy relay $relayWallet", ex) })
             }
         }
     }

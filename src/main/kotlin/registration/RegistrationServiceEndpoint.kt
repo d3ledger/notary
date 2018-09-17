@@ -48,8 +48,9 @@ class RegistrationServiceEndpoint(
     }
 
     private fun responseError(code: HttpStatusCode, reason: String): Response {
-        logger.warn { "Response has been failed. $reason" }
-        return Response(code, "Response has been failed. $reason")
+        val errorMsg = "Response has been failed. $reason"
+        logger.error { errorMsg }
+        return Response(code, errorMsg)
     }
 
     private fun onPostRegistration(name: String?, pubkey: String?): Response {
@@ -61,10 +62,12 @@ class RegistrationServiceEndpoint(
             return responseError(HttpStatusCode.BadRequest, "Parameter \"pubkey\" is not specified.")
 
         registrationStrategy.register(name, pubkey).fold(
-            { ethWallet ->
-                return Response(HttpStatusCode.OK, ethWallet)
+            { address ->
+                logger.info { "Client $name was successfully registered with address $address" }
+                return Response(HttpStatusCode.OK, address)
             },
             { ex ->
+                logger.error("Cannot register client $name", ex)
                 // TODO - D3-121 - a.chernyshov - distinguish correct status code response (500 - server internal error)
                 return responseError(HttpStatusCode.BadRequest, ex.toString())
             })

@@ -10,6 +10,8 @@ import config.loadEthPasswords
 import mu.KLogging
 import sidechain.iroha.IrohaInitialization
 
+private val logger = KLogging().logger
+
 /**
  * Main entry point of Withdrawal Service app
  */
@@ -20,12 +22,11 @@ fun main(args: Array<String>) {
 }
 
 fun executeWithdrawal(withdrawalConfig: WithdrawalServiceConfig, passwordConfig: EthereumPasswords) {
-    val logger = KLogging()
-
+    logger.info { "Run withdrawal service" }
     IrohaInitialization.loadIrohaLibrary()
         .flatMap { WithdrawalServiceInitialization(withdrawalConfig, passwordConfig).init() }
         .failure { ex ->
-            logger.logger.error("cannot run withdrawal service", ex)
+            logger.error("Cannot run withdrawal service", ex)
             System.exit(1)
         }
 }

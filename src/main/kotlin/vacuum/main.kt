@@ -11,7 +11,7 @@ import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.util.ModelUtil
 
 private const val RELAY_VACUUM_PREFIX = "relay-vacuum"
-
+private val logger = KLogging().logger
 /**
  * Entry point for moving all currency from relay contracts to master contract
  */
@@ -21,13 +21,13 @@ fun main(args: Array<String>) {
 }
 
 fun executeVacuum(relayVacuumConfig: RelayVacuumConfig, args: Array<String> = emptyArray()) {
-    val logger = KLogging()
+    logger.info { "Run relay vacuum" }
     val passwordConfig = loadEthPasswords(RELAY_VACUUM_PREFIX, "/eth/ethereum_password.properties", args)
     IrohaInitialization.loadIrohaLibrary()
         .flatMap { ModelUtil.loadKeypair(relayVacuumConfig.iroha.pubkeyPath, relayVacuumConfig.iroha.privkeyPath) }
         .flatMap { keypair -> RelayVacuum(relayVacuumConfig, passwordConfig, keypair).vacuum() }
         .failure { ex ->
-            logger.logger.error("cannot run vacuum", ex)
+            logger.error("Cannot run vacuum", ex)
             System.exit(1)
         }
 }
