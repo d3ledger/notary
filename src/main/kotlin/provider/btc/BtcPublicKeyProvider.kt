@@ -34,7 +34,7 @@ class BtcPublicKeyProvider(
     /**
      * Creates public key and sets it into session account details
      * @param sessionAccountName - name of session account
-     * @return Result of operation
+     * @return new public key created by notary
      */
     fun createKey(sessionAccountName: String): Result<String, Exception> {
         val key = wallet.freshReceiveKey()
