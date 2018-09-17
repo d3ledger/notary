@@ -39,6 +39,12 @@ class DepositIntegrationTest {
         return integrationHelper.registerClient(clientIrohaAccount)
     }
 
+    /** Path to public key of 2nd instance of notary */
+    private val pubkeyPath = "deploy/iroha/keys/notary2@notary.pub"
+
+    /** Path to private key of 2nd instance of notary */
+    private val privkeyPath = "deploy/iroha/keys/notary2@notary.priv"
+
 
     /**
      * Test US-001 Deposit of ETH
@@ -162,8 +168,6 @@ class DepositIntegrationTest {
      */
     @Test
     fun depositMultisig() {
-        val pubkeyPath = "deploy/iroha/keys/notary2@notary.pub"
-        val privkeyPath = "deploy/iroha/keys/notary2@notary.priv"
         val irohaConfig =
             integrationHelper.configHelper.createIrohaConfig(pubkeyPath = pubkeyPath, privkeyPath = privkeyPath)
         val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig(irohaConfig)
@@ -201,8 +205,6 @@ class DepositIntegrationTest {
         val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId)
         val amount = BigInteger.valueOf(51)
 
-        val pubkeyPath = "deploy/iroha/keys/notary2@notary.pub"
-        val privkeyPath = "deploy/iroha/keys/notary2@notary.priv"
         val irohaConfig =
             integrationHelper.configHelper.createIrohaConfig(pubkeyPath = pubkeyPath, privkeyPath = privkeyPath)
         val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig(irohaConfig)
@@ -212,7 +214,6 @@ class DepositIntegrationTest {
         integrationHelper.accountHelper.addNotarySignatory(keypair)
 
         integrationHelper.runEthNotary(notaryConfig)
-
 
         // send ETH
         integrationHelper.sendERC20Token(tokenAddress, amount, relayWallet)
