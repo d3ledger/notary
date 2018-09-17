@@ -24,8 +24,6 @@ apply plugin: 'com.google.protobuf'
 apply plugin: 'application'
 apply plugin: "jacoco"
 apply plugin: 'info.solidsoft.pitest'
-//TODO do we really need this?
-mainClassName = 'notary.NotaryImpl'
 
 sourceCompatibility = 1.8
 
