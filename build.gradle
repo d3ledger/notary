@@ -74,6 +74,7 @@ dependencies {
 
     // logging
     compile 'org.slf4j:slf4j-simple:1.7.25'
+    compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.8.0-beta2'
     compile 'io.github.microutils:kotlin-logging:1.4.9'
 
     // CLI arguments
