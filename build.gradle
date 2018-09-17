@@ -222,6 +222,7 @@ task buildEthereumContracts(type: Exec) {
 }
 
 task buildEthereumContractsBindings(type: Exec) {
+    println "BUILD ETH BINDINGS!!!"
 
     String contract_path = projectDir.toString().concat("/deploy/ethereum/contract")
     String bin_path = contract_path.concat("/bin")

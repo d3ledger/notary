@@ -63,6 +63,7 @@ class AccountHelper(private val keyPair: Keypair) {
     fun addNotarySignatory(keypair: Keypair) {
         irohaConsumer.sendAndCheck(
             ModelTransactionBuilder()
+                .creatorAccountId(notaryAccount)
                 .createdTime(ModelUtil.getCurrentTime())
                 .addSignatory(notaryAccount, keypair.publicKey())
                 .setAccountQuorum(notaryAccount, notaryKeys.size + 1)
