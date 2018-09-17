@@ -32,6 +32,9 @@ class AccountHelper(private val keyPair: Keypair) {
     /** Notary account*/
     val notaryAccount by lazy { createTesterAccount("eth_notary", "notary") }
 
+    /** Notary keys */
+    val notaryKeys = mutableListOf(keyPair)
+
     /**
      * Creates randomly named tester account in Iroha
      */
@@ -49,6 +52,24 @@ class AccountHelper(private val keyPair: Keypair) {
         ).fold({
             logger.info("account $name@$domain was created")
             return "$name@$domain"
+        }, { ex ->
+            throw ex
+        })
+    }
+
+    /**
+     * Add signatory with [keypair] to notary
+     */
+    fun addNotarySignatory(keypair: Keypair) {
+        irohaConsumer.sendAndCheck(
+            ModelTransactionBuilder()
+                .createdTime(ModelUtil.getCurrentTime())
+                .addSignatory(notaryAccount, keypair.publicKey())
+                .setAccountQuorum(notaryAccount, notaryKeys.size + 1)
+                .build()
+        ).fold({
+            notaryKeys.add(keypair)
+            logger.info("added signatory to account $notaryAccount")
         }, { ex ->
             throw ex
         })

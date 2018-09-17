@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import sidechain.eth.util.ETH_PRECISION
+import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -149,4 +150,31 @@ class DepositIntegrationTest {
             BigDecimal(integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId))
         )
     }
+
+    @Test
+    fun depositMultisig() {
+        val pubkeyPath = "deploy/iroha/keys/notary2@notary.pub"
+        val privkeyPath = "deploy/iroha/keys/notary2@notary.priv"
+        val irohaConfig =
+            integrationHelper.configHelper.createIrohaConfig(pubkeyPath = pubkeyPath, privkeyPath = privkeyPath)
+        val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig(irohaConfig)
+
+        val keypair = ModelUtil.loadKeypair(pubkeyPath, privkeyPath).get()
+
+        integrationHelper.accountHelper.addNotarySignatory(keypair)
+
+        integrationHelper.runEthNotary(notaryConfig)
+
+        val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId)
+        val amount = BigInteger.valueOf(1_234_000_000_000)
+        // send ETH
+        integrationHelper.sendEth(amount, relayWallet)
+        integrationHelper.waitOneIrohaBlock()
+
+        Assertions.assertEquals(
+            BigDecimal(amount, ETH_PRECISION.toInt()).add(BigDecimal(initialAmount)),
+            BigDecimal(integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId))
+        )
+    }
+
 }
