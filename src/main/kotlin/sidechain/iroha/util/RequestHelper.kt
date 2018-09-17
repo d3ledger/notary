@@ -10,7 +10,6 @@ import iroha.protocol.QryResponses
 import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelQueryBuilder
-import notary.endpoint.eth.NotaryException
 import sidechain.iroha.consumer.IrohaNetwork
 import java.math.BigInteger
 
@@ -37,11 +36,7 @@ fun getAssetPrecision(
     return ModelUtil.prepareQuery(uquery, keypair)
         .flatMap { query -> irohaNetwork.sendQuery(query) }
         .map { queryResponse ->
-            val fieldDescriptor = queryResponse.descriptorForType.findFieldByName("asset_response")
-            if (!queryResponse.hasField(fieldDescriptor)) {
-                throw IllegalStateException("Query response error: ${queryResponse.errorResponse}")
-            }
-
+            validateResponse(queryResponse, "asset_response")
             queryResponse.assetResponse.asset.precision.toShort()
         }
 }
@@ -71,10 +66,7 @@ fun getAccountDetails(
     return ModelUtil.prepareQuery(uquery, keypair)
         .flatMap { query -> irohaNetwork.sendQuery(query) }
         .map { queryResponse ->
-            val fieldDescriptor = queryResponse.descriptorForType.findFieldByName("account_response")
-            if (!queryResponse.hasField(fieldDescriptor)) {
-                throw IllegalStateException("Query response error: ${queryResponse.errorResponse}")
-            }
+            validateResponse(queryResponse, "account_response")
 
             val account = queryResponse.accountResponse.account
             val stringBuilder = StringBuilder(account.jsonData)
@@ -94,14 +86,23 @@ fun getAccountDetails(
  */
 fun getFirstTransaction(queryResponse: QryResponses.QueryResponse): Result<TransactionOuterClass.Transaction, Exception> {
     return Result.of {
-        val fieldDescriptor = queryResponse.descriptorForType.findFieldByName("transactions_response")
-
-        if (!queryResponse.hasField(fieldDescriptor)) {
-            throw NotaryException("Query response error ${queryResponse.errorResponse}")
-        } else if (queryResponse.transactionsResponse.transactionsCount == 0)
+        validateResponse(queryResponse, "transactions_response")
+        if (queryResponse.transactionsResponse.transactionsCount == 0)
             throw Exception("There is no transactions.")
 
         // return transaction
         queryResponse.transactionsResponse.transactionsList[0]
+    }
+}
+
+/**
+ * Throws exception, if fieldName is not present
+ * @param queryResponse - query response on getTransactions
+ * @param fieldName - field name to validate
+ */
+private fun validateResponse(queryResponse: QryResponses.QueryResponse, fieldName: String) {
+    val fieldDescriptor = queryResponse.descriptorForType.findFieldByName(fieldName)
+    if (!queryResponse.hasField(fieldDescriptor)) {
+        throw IllegalStateException("Query response error: ${queryResponse.errorResponse}")
     }
 }

@@ -69,7 +69,6 @@ class EthChainHandler(
                     val to = "0x" + it.topics[2].drop(26).toLowerCase()
                     // amount of transfer is stored in data
                     val amount = BigInteger(it.data.drop(2), 16)
-
                     SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
                         tx.hash,
                         time,
