@@ -4,27 +4,27 @@ package notary.eth
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
-import config.EthereumPasswords
 import config.loadConfigs
+import config.loadEthPasswords
 import mu.KLogging
 import provider.eth.EthRelayProviderIrohaImpl
 import provider.eth.EthTokensProviderImpl
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.util.ModelUtil
 
+private val logger = KLogging().logger
+
 /**
  * Application entry point
  */
 fun main(args: Array<String>) {
     val notaryConfig = loadConfigs("eth-notary", EthNotaryConfig::class.java, "/eth/notary.properties")
-    executeNotary(notaryConfig)
+    executeNotary(notaryConfig, args)
 }
 
-fun executeNotary(notaryConfig: EthNotaryConfig) {
-    val logger = KLogging()
-    val passwordConfig =
-        loadConfigs("eth-notary", EthereumPasswords::class.java, "/eth/ethereum_password.properties")
-
+fun executeNotary(notaryConfig: EthNotaryConfig, args: Array<String> = emptyArray()) {
+    logger.info { "Run ETH notary" }
+    val passwordConfig = loadEthPasswords("eth-notary", "/eth/ethereum_password.properties", args)
     IrohaInitialization.loadIrohaLibrary()
         .flatMap { ModelUtil.loadKeypair(notaryConfig.iroha.pubkeyPath, notaryConfig.iroha.privkeyPath) }
         .flatMap { keypair ->
@@ -49,7 +49,7 @@ fun executeNotary(notaryConfig: EthNotaryConfig) {
             ).init()
         }
         .failure { ex ->
-            logger.logger.error("cannot run eth notary", ex)
+            logger.error("Cannot run eth notary", ex)
             System.exit(1)
         }
 }

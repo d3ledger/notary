@@ -61,13 +61,15 @@ class RelayVacuum(
      */
     fun vacuum(): Result<Unit, Exception> {
         return ethTokensProvider.getTokens().flatMap { providedTokens ->
+            logger.info { "Provided tokens $providedTokens" }
             getAllRelays().map { relays ->
+                logger.info { "Relays to vacuum ${relays.map { relay -> relay.contractAddress }}" }
                 relays.forEach { relay ->
                     relay.sendToMaster(ethTokenAddress).send()
-                    logger.info("${relay.contractAddress} sendToMaster $ethTokenAddress")
-                    providedTokens.keys.forEach { providedToken ->
-                        logger.info("${relay.contractAddress} sendToMaster $providedToken")
-                        relay.sendToMaster(providedToken).send()
+                    logger.info("${relay.contractAddress} send to master eth $ethTokenAddress")
+                    providedTokens.forEach { providedToken ->
+                        logger.info("${relay.contractAddress} send to master ${providedToken.value.name} ${providedToken.key}")
+                        relay.sendToMaster(providedToken.key).send()
                     }
                 }
             }

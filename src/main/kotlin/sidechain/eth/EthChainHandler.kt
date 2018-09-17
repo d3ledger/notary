@@ -39,7 +39,7 @@ class EthChainHandler(
         wallets: Map<String, String>,
         tokens: Map<String, EthTokenInfo>
     ): List<SideChainEvent.PrimaryBlockChainEvent> {
-        logger.info { "handle ERC20 tx ${tx.hash}" }
+        logger.info { "Handle ERC20 tx ${tx.hash}" }
 
         // get receipt that contains data about solidity function execution
         val receipt = web3.ethGetTransactionReceipt(tx.hash).send()
@@ -69,7 +69,6 @@ class EthChainHandler(
                     val to = "0x" + it.topics[2].drop(26).toLowerCase()
                     // amount of transfer is stored in data
                     val amount = BigInteger(it.data.drop(2), 16)
-
                     SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
                         tx.hash,
                         time,
@@ -95,7 +94,7 @@ class EthChainHandler(
         time: BigInteger,
         wallets: Map<String, String>
     ): List<SideChainEvent.PrimaryBlockChainEvent> {
-        logger.info { "handle Ethereum tx ${tx.hash}" }
+        logger.info { "Handle Ethereum tx ${tx.hash}" }
 
         val receipt = web3.ethGetTransactionReceipt(tx.hash).send()
 
@@ -142,7 +141,7 @@ class EthChainHandler(
                             listOf()
                     }
             }, { ex ->
-                logger.error("cannot parse block", ex)
+                logger.error("Cannot parse block", ex)
                 listOf()
             }
         )

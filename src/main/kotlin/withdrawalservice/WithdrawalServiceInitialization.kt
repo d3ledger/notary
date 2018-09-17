@@ -23,13 +23,6 @@ class WithdrawalServiceInitialization(
     private val withdrawalEthereumPasswords: EthereumPasswords
 ) {
 
-    init {
-        logger.info {
-            """Start withdrawal service initialization with configs:
-                |iroha: ${withdrawalConfig.iroha.hostname}:${withdrawalConfig.iroha.port}""".trimMargin()
-        }
-    }
-
     private val irohaCreator = withdrawalConfig.iroha.creator
     private val irohaKeypair =
         ModelUtil.loadKeypair(
@@ -59,11 +52,11 @@ class WithdrawalServiceInitialization(
     private fun initWithdrawalService(inputEvents: Observable<SideChainEvent.IrohaEvent>): WithdrawalService {
         logger.info { "Init Withdrawal Service" }
 
-        return WithdrawalServiceImpl(withdrawalConfig,  irohaKeypair, irohaNetwork, inputEvents)
+        return WithdrawalServiceImpl(withdrawalConfig, irohaKeypair, irohaNetwork, inputEvents)
     }
 
     private fun initEthConsumer(withdrawalService: WithdrawalService): Result<Unit, Exception> {
-        logger.info { "Init Ether consumer" }
+        logger.info { "Init Ether withdrawal consumer" }
 
         return Result.of {
             val ethConsumer = EthConsumer(withdrawalConfig.ethereum, withdrawalEthereumPasswords)
@@ -72,7 +65,7 @@ class WithdrawalServiceInitialization(
                     it.map { withdrawalEvent ->
                         ethConsumer.consume(withdrawalEvent)
                     }.failure { ex ->
-                        logger.error("WithdrawalServiceOutputEvent", ex)
+                        logger.error("Cannot consume withdrawal event", ex)
                     }
                 }, { ex ->
                     logger.error("Withdrawal observable error", ex)
@@ -82,8 +75,9 @@ class WithdrawalServiceInitialization(
     }
 
     fun init(): Result<Unit, Exception> {
-        logger.info { "Withdrawal Service initialization" }
-
+        logger.info {
+            "Start withdrawal service init with iroha at ${withdrawalConfig.iroha.hostname}:${withdrawalConfig.iroha.port}"
+        }
         return initIrohaChain()
             .map { initWithdrawalService(it) }
             .flatMap { initEthConsumer(it) }

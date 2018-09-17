@@ -13,22 +13,19 @@ import sidechain.iroha.util.getAccountDetails
  *
  * @param irohaConfig - Iroha configuration
  * @param keypair - Iroha keypair to query
- * @param accountDetailHolder - account that contains details
- * @param accountDetailSetter - account that has set details
+ * @param notaryAccount - account that contains details
+ * @param registrationAccount - account that has set details
  */
 class EthRelayProviderIrohaImpl(
     private val irohaConfig: IrohaConfig,
     private val keypair: Keypair,
-    private val accountDetailHolder: String,
-    private val accountDetailSetter: String
+    private val notaryAccount: String,
+    private val registrationAccount: String
 ) : EthRelayProvider {
 
     init {
         logger.info {
-            """Init relay provider:
-            |notary account: $accountDetailHolder
-            |registration account: $accountDetailSetter
-            """.trimMargin()
+            "Init relay provider with notary account '$notaryAccount' and registration account '$registrationAccount'"
         }
     }
 
@@ -43,8 +40,8 @@ class EthRelayProviderIrohaImpl(
             irohaConfig,
             keypair,
             irohaNetwork,
-            accountDetailHolder,
-            accountDetailSetter
+            notaryAccount,
+            registrationAccount
         ).map { relays ->
             relays.filterValues { it != "free" }
         }

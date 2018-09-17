@@ -8,6 +8,7 @@ import registration.btc.BtcRegistrationConfig
 import registration.btc.pregen.BtcPreGenConfig
 import registration.eth.EthRegistrationConfig
 import registration.eth.relay.RelayRegistrationConfig
+import token.ERC20TokenRegistrationConfig
 import vacuum.RelayVacuumConfig
 import withdrawalservice.WithdrawalServiceConfig
 import java.util.concurrent.atomic.AtomicInteger
@@ -19,7 +20,7 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
     val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
     /** Ethereum password configs */
-    val ethPasswordConfig = loadConfigs("test", EthereumPasswords::class.java, "/eth/ethereum_password.properties")
+    val ethPasswordConfig = loadEthPasswords("test", "/eth/ethereum_password.properties")
 
     /** Configuration for notary instance */
     val ethNotaryConfig = loadConfigs("eth-notary", EthNotaryConfig::class.java, "/eth/notary.properties")
@@ -42,6 +43,23 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
 
     val btcPkPreGenConfig =
         loadConfigs("btc-pregen", BtcPreGenConfig::class.java, "/btc/pregeneration.properties")
+
+    val ethTokenRegistrationConfig =
+        loadConfigs("token-registration", ERC20TokenRegistrationConfig::class.java, "/eth/token_registration.properties")
+
+    //Creates config for ERC20 tokens registration
+    fun createERC20TokenRegistrationConfig(tokensFilePath_: String): ERC20TokenRegistrationConfig {
+        return object : ERC20TokenRegistrationConfig {
+            override val iroha: IrohaConfig
+                get() = createIrohaConfig(accountHelper.tokenStorageAccount)
+            override val tokensFilePath: String
+                get() = tokensFilePath_
+            override val tokenStorageAccount: String
+                get() = accountHelper.notaryAccount
+            override val tokenSetterAccount: String
+                get() = accountHelper.tokenStorageAccount
+        }
+    }
 
     //Creates config for BTC multisig addresses generation
     fun createBtcPreGenConfig(): BtcPreGenConfig {

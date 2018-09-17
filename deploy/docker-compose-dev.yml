@@ -1,11 +1,14 @@
-version: '3'
+version: '3.5'
+
+networks:
+  d3-notary:
+    name: d3${SUBNET}
+    attachable: true
 
 services:
   d3-iroha:
     image: hyperledger/iroha:develop
-    container_name: d3-iroha
-    ports:
-      - 50051:50051
+    container_name: d3-iroha${SUBNET}
     depends_on:
       - d3-iroha-postgres
     tty: true
@@ -16,27 +19,27 @@ services:
     volumes:
       - iroha_block_store:/tmp/block_store
       - ./iroha:/opt/iroha_data
+    networks:
+      - d3-notary
 
   d3-iroha-postgres:
     image: postgres:9.5
-    container_name: d3-iroha-postgres
+    container_name: d3-iroha-postgres${SUBNET}
     environment:
       - POSTGRES_PASSWORD=mysecretpassword
-    expose:
-      - 5432
     volumes:
       - /var/lib/postgresql/data
+    networks:
+      - d3-notary
 
   # ethereum
   d3-eth-node0:
     image: trufflesuite/ganache-cli:latest
-    container_name: d3-eth-node0
+    container_name: d3-eth-node0${SUBNET}
     volumes:
       - ./ethereum:/eth
     environment:
       - NODE=0
-    ports:
-      - 8545:8545
     entrypoint:
       - node
       - ./build/cli.node.js
@@ -46,6 +49,8 @@ services:
       - --secure
       - -h
       - 0.0.0.0
+    networks:
+      - d3-notary
 
 volumes:
   iroha_block_store:

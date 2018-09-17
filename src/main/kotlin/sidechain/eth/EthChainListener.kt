@@ -22,9 +22,7 @@ class EthChainListener(
 
     init {
         logger.info {
-            """Init EthChainListener:
-                |confirmation period: $confirmationPeriod
-            """.trimMargin()
+            "Init EthChainListener with confirmation period $confirmationPeriod"
         }
     }
 

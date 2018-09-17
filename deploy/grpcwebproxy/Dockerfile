@@ -35,9 +35,6 @@ COPY --from=gobin ["/go/bin/grpcwebproxy", "/bin/"]
 COPY --from=gobin ["/go/src/github.com/improbable-eng/grpc-web/misc/localhost.*", "/misc/"]
 COPY --from=certs ["/etc/ssl/*", "/etc/ssl/"]
 
-# Advertise ports 8080 and 8443.
-EXPOSE 8080 8443
-
 # Start the `grpcwebproxy` binary as the main process.
 ENTRYPOINT ["/bin/grpcwebproxy"]
 

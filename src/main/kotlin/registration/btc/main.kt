@@ -8,6 +8,8 @@ import config.loadConfigs
 import mu.KLogging
 import sidechain.iroha.IrohaInitialization
 
+private val logger = KLogging().logger
+
 /**
  * Entry point for Registration Service
  */
@@ -18,11 +20,11 @@ fun main(args: Array<String>) {
 }
 
 fun executeRegistration(registrationConfig: BtcRegistrationConfig) {
-    val logger = KLogging()
+    logger.info { "Run BTC client registration" }
     IrohaInitialization.loadIrohaLibrary()
         .flatMap { BtcRegistrationServiceInitialization(registrationConfig).init() }
         .failure { ex ->
-            logger.logger.error("cannot run btc registration", ex)
+            logger.error("Cannot run btc registration", ex)
             System.exit(1)
         }
 }

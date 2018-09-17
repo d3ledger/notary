@@ -8,6 +8,8 @@ import config.loadConfigs
 import mu.KLogging
 import sidechain.iroha.IrohaInitialization
 
+private val logger = KLogging().logger
+
 /**
  * Entry point for Registration Service
  */
@@ -18,12 +20,11 @@ fun main(args: Array<String>) {
 }
 
 fun executeRegistration(ethRegistrationConfig: EthRegistrationConfig) {
-    val logger = KLogging()
-
+    logger.info { "Run ETH registration service" }
     IrohaInitialization.loadIrohaLibrary()
         .flatMap { EthRegistrationServiceInitialization(ethRegistrationConfig).init() }
         .failure { ex ->
-            logger.logger.error("cannot run eth registration", ex)
+            logger.error("cannot run eth registration", ex)
             System.exit(1)
         }
 }
