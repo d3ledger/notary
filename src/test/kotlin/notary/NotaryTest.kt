@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import sidechain.SideChainEvent
-import java.math.BigInteger
 
 /**
  * Test business logic of Notary.
@@ -54,7 +53,7 @@ class NotaryTest {
                 when (it) {
                     is IrohaOrderedBatch -> {
                         val txs = it.transactions
-                        assertEquals(3, txs.size)
+                        assertEquals(2, txs.size)
 
                         var commands = txs[0].commands
                         assertEquals(1, commands.size)
