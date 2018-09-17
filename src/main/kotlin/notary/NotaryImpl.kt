@@ -121,7 +121,6 @@ class NotaryImpl(
     /**
      * Init Iroha consumer
      */
-    //TODO ask someone how to refactor these logs
     override fun initIrohaConsumer(): Result<Unit, Exception> {
         logger.info { "Init Iroha consumer" }
         return ModelUtil.loadKeypair(irohaConfig.pubkeyPath, irohaConfig.privkeyPath)
@@ -138,8 +137,8 @@ class NotaryImpl(
                             val lst = IrohaConverterImpl().convert(batch)
                             irohaConsumer.sendAndCheck(lst)
                                 .fold(
-                                    { logger.info { "send to Iroha success" } },
-                                    { ex -> logger.error("send failure", ex) }
+                                    { logger.info { "Send to Iroha success" } },
+                                    { ex -> logger.error("Send failure", ex) }
                                 )
                         },
                         // on error

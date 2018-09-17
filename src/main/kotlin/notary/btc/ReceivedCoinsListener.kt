@@ -21,7 +21,7 @@ class ReceivedCoinsListener(
 ) : WalletCoinsReceivedEventListener {
 
     override fun onCoinsReceived(wallet: Wallet, tx: Transaction, prevBalance: Coin, newBalance: Coin) {
-        logger.info { "BTC coin was received" }
+        logger.info { "BTC coin was received, but it's not confirmed yet. Tx: ${tx.hashAsString}" }
         tx.confidence.addEventListener(ConfirmedTxListener(confidenceLevel, tx, ::handleTx))
     }
 
@@ -39,7 +39,7 @@ class ReceivedCoinsListener(
                         BigInteger.valueOf(output.value.value).toString(),
                         ""
                     )
-                    logger.info { "BTC deposit event(tx ${tx.hashAsString}) was created. Related client is $irohaAccount." }
+                    logger.info { "BTC deposit event(tx ${tx.hashAsString}, amount ${output.value.value}) was created. Related client is $irohaAccount. " }
                     emitter.onNext(event)
                 }
             }

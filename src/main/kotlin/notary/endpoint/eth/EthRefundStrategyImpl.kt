@@ -98,9 +98,8 @@ class EthRefundStrategyImpl(
                     val srcAccountId = commands.transferAsset.srcAccountId
                     checkWithdrawalAddress(srcAccountId, destEthAddress)
                         .fold(
-                            {
-                                //TODO pls name it. This is very confusing
-                                if (!it) {
+                            { isWhitelisted ->
+                                if (!isWhitelisted) {
                                     val errorMsg = "$destEthAddress not in whitelist"
                                     logger.error { errorMsg }
                                     throw NotaryException(errorMsg)
