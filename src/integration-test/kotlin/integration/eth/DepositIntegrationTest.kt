@@ -10,7 +10,6 @@ import util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
 
-
 /**
  * Integration tests for deposit case.
  */
