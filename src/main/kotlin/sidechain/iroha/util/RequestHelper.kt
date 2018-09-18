@@ -67,7 +67,6 @@ fun getAccountDetails(
         .flatMap { query -> irohaNetwork.sendQuery(query) }
         .map { queryResponse ->
             validateResponse(queryResponse, "account_response")
-
             val account = queryResponse.accountResponse.account
             val stringBuilder = StringBuilder(account.jsonData)
             val json: JsonObject = Parser().parse(stringBuilder) as JsonObject

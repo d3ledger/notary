@@ -22,13 +22,13 @@ class IrohaAccountCreator(
      * - CreateAccount with client name
      * - SetAccountDetail on client account with assigned relay wallet from notary pool of free relay addresses
      * - SetAccountDetail on notary node account to mark relay address in pool as assigned to the particular user
-     * @param address - address/wallet
+     * @param currencyAddress - address of crypto currency wallet
      * @param userName - client userName in Iroha
      * @param pubkey - client's public key
      * @return address associated with userName
      */
     fun create(
-        address: String,
+        currencyAddress: String,
         userName: String,
         pubkey: String
     ): Result<String, Exception> {
@@ -47,12 +47,12 @@ class IrohaAccountCreator(
                     IrohaCommand.CommandSetAccountDetail(
                         "$userName@$domain",
                         addressName,
-                        address
+                        currencyAddress
                     ),
                     // Set wallet/address as occupied by user id
                     IrohaCommand.CommandSetAccountDetail(
                         notaryIrohaAccount,
-                        address,
+                        currencyAddress,
                         "$userName@$domain"
                     )
                 )
@@ -62,7 +62,7 @@ class IrohaAccountCreator(
             irohaConsumer.sendAndCheck(utx)
         }.map {
             logger.info { "New account $userName was created" }
-            address
+            currencyAddress
         }
     }
 

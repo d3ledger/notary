@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import sidechain.SideChainEvent
-import java.math.BigInteger
 
 /**
  * Test business logic of Notary.
@@ -30,6 +29,16 @@ class NotaryTest {
         on { iroha } doReturn irohaConfig
         on { notaryListStorageAccount } doReturn "notary_storage"
         on { notaryListSetterAccount } doReturn "notary_setter"
+    }
+
+    init {
+        try {
+            println("Iroha path=${System.getProperty("java.library.path")}")
+            System.loadLibrary("irohajava")
+        } catch (e: UnsatisfiedLinkError) {
+            System.err.println("Native code library failed to load. \n$e")
+            System.exit(1)
+        }
     }
 
     /**
@@ -54,7 +63,7 @@ class NotaryTest {
                 when (it) {
                     is IrohaOrderedBatch -> {
                         val txs = it.transactions
-                        assertEquals(3, txs.size)
+                        assertEquals(2, txs.size)
 
                         var commands = txs[0].commands
                         assertEquals(1, commands.size)

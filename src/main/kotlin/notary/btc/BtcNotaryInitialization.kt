@@ -12,13 +12,13 @@ import org.bitcoinj.core.PeerGroup
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.store.LevelDBBlockStore
 import org.bitcoinj.wallet.Wallet
-import provider.btc.BtcAddressesProvider
+import provider.btc.BtcRegisteredAddressesProvider
 import sidechain.SideChainEvent
 import java.io.File
 
 class BtcNotaryInitialization(
     private val btcNotaryConfig: BtcNotaryConfig,
-    private val btcAddressesProvider: BtcAddressesProvider
+    private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider
 ) {
     /**
      * Init notary
@@ -52,8 +52,13 @@ class BtcNotaryInitialization(
         peerGroup.startAsync()
         peerGroup.downloadBlockChain()
         return Observable.create<SideChainEvent.PrimaryBlockChainEvent> { emitter ->
-            wallet.addCoinsReceivedEventListener(ReceivedCoinsListener(btcAddressesProvider, confidenceLevel, emitter))
-
+            wallet.addCoinsReceivedEventListener(
+                ReceivedCoinsListener(
+                    btcRegisteredAddressesProvider,
+                    confidenceLevel,
+                    emitter
+                )
+            )
         }
     }
 
