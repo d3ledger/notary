@@ -33,8 +33,9 @@ class ReceivedCoinsListener(
                 if (irohaAccount != null) {
                     val event = SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
                         tx.hashAsString,
-                        // TODO make sure time is correct (and write test)
-                        BigInteger.valueOf(tx.lockTime), irohaAccount,
+                        // TODO find out how to take time from Bitcoin
+                        BigInteger.valueOf(System.currentTimeMillis()),
+                        irohaAccount,
                         BTC_ASSET_NAME,
                         BigInteger.valueOf(output.value.value).toString(),
                         ""
