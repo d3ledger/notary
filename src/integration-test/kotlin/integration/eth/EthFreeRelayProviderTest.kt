@@ -19,12 +19,6 @@ class EthFreeRelayProviderTest {
 
     val testConfig = integrationHelper.configHelper.testConfig
 
-    /** Iroha keypair */
-    val keypair: Keypair =
-        loadKeypair(
-            testConfig.iroha.pubkeyPath,
-            testConfig.iroha.privkeyPath
-        ).get()
 
     /** Iroha consumer */
     val irohaConsumer = IrohaConsumerImpl(testConfig.iroha)
@@ -47,7 +41,7 @@ class EthFreeRelayProviderTest {
         val freeWalletsProvider =
             EthFreeRelayProvider(
                 testConfig.iroha,
-                keypair,
+                integrationHelper.irohaKeyPair,
                 testConfig.notaryIrohaAccount,
                 creator
             )
@@ -66,7 +60,7 @@ class EthFreeRelayProviderTest {
         val wrongMasterAccount = "wrong@account"
 
         val freeWalletsProvider =
-            EthFreeRelayProvider(testConfig.iroha, keypair, creator, wrongMasterAccount)
+            EthFreeRelayProvider(testConfig.iroha, integrationHelper.irohaKeyPair, creator, wrongMasterAccount)
         freeWalletsProvider.getRelay()
             .success { fail { "should return Exception" } }
     }

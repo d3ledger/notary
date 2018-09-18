@@ -128,7 +128,7 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
 
     fun createBtcNotaryConfig(): BtcNotaryConfig {
         return object : BtcNotaryConfig {
-            override val mstRegistrationAccount: String
+            override val registrationAccount: String
                 get() = accountHelper.registrationAccount
             override val iroha: IrohaConfig
                 get() = createIrohaConfig()
@@ -142,7 +142,7 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
     fun createBtcRegistrationConfig(): BtcRegistrationConfig {
         return object : BtcRegistrationConfig {
             override val mstRegistrationAccount: String
-                get() = accountHelper.registrationAccount
+                get() = accountHelper.mstRegistrationAccount
             override val port: Int
                 get() = btcRegistrationConfig.port
             override val registrationAccount: String

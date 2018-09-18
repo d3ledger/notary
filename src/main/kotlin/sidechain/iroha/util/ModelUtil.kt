@@ -239,6 +239,34 @@ object ModelUtil {
     }
 
     /**
+     * Send SetAccountDetail to Iroha
+     * @param irohaConsumer - iroha network layer
+     * @param creator - transaction creator
+     * @param accountId - account to set details
+     * @param key - key of detail
+     * @param value - value of detail
+     * @param quorum - quorum
+     * @return hex representation of transaction hash
+     */
+    fun setAccountDetail(
+        irohaConsumer: IrohaConsumer,
+        creator: String,
+        accountId: String,
+        key: String,
+        value: String,
+        quorum: Int
+    ): Result<String, Exception> {
+        val tx = ModelTransactionBuilder()
+            .creatorAccountId(creator)
+            .createdTime(getCurrentTime())
+            .setAccountDetail(accountId, key, value)
+            .setAccountQuorum(creator, quorum)
+            .build()
+        return irohaConsumer.sendAndCheck(tx)
+    }
+
+
+    /**
      * Send createAsset to Iroha
      * @param irohaConsumer - iroha network layer
      * @param creator - transaction creator

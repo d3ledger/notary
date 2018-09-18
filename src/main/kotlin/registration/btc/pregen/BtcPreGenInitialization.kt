@@ -64,6 +64,7 @@ class BtcPreGenInitialization(
     private fun initIrohaObservable(irohaObservable: Observable<BlockOuterClass.Block>) {
         irohaObservable.subscribe { block ->
             getSetDetailCommands(block).forEach { command ->
+
                 if (command.setAccountDetail.accountId == btcPreGenConfig.pubKeyTriggerAccount) {
                     //add new public key to session account, if trigger account was changed
                     val sessionAccountName = command.setAccountDetail.key
