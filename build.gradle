@@ -36,7 +36,7 @@ repositories {
 
 dependencies {
     // protobuf
-    compile 'com.google.protobuf:protobuf-java:3.6.1'
+    compile 'com.google.protobuf:protobuf-java:3.5.1'
     compile 'io.grpc:grpc-netty:1.14.0'
     compile 'io.grpc:grpc-protobuf:1.14.0'
     compile 'io.grpc:grpc-stub:1.14.0'
@@ -186,7 +186,7 @@ run {
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:3.6.1"
+        artifact = "com.google.protobuf:protoc:3.5.1"
     }
     plugins {
         grpc {
