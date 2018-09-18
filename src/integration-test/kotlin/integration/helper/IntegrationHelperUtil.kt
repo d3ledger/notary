@@ -81,8 +81,8 @@ class IntegrationHelperUtil {
         EthTokensProviderImpl(
             configHelper.testConfig.iroha,
             irohaKeyPair,
-            accountHelper.notaryAccount,
-            accountHelper.tokenStorageAccount
+            accountHelper.tokenStorageAccount,
+            accountHelper.tokenSetterAccount
         )
     }
 
@@ -217,11 +217,15 @@ class IntegrationHelperUtil {
      * @param tokenAddress - token ERC20 smart contract address
      */
     fun addERC20Token(tokenAddress: String, tokenName: String, precision: Short) {
-        ModelUtil.createAsset(irohaConsumer, accountHelper.notaryAccount, tokenName, "ethereum", precision)
+        println("start addERC20Token")
+        println("accountHelper.tokenSetterAccount ${accountHelper.tokenSetterAccount}")
+        println("accountHelper.tokenStorageAccount ${accountHelper.tokenStorageAccount}")
+
+        ModelUtil.createAsset(irohaConsumer, accountHelper.tokenSetterAccount, tokenName, "ethereum", precision)
         ModelUtil.setAccountDetail(
             irohaConsumer,
+            accountHelper.tokenSetterAccount,
             accountHelper.tokenStorageAccount,
-            accountHelper.notaryAccount,
             tokenAddress,
             tokenName
         ).success { logger.info { "token $tokenName was added" } }

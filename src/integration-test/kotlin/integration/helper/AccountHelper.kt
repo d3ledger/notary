@@ -16,6 +16,12 @@ class AccountHelper(private val keyPair: Keypair) {
 
     private val irohaConsumer by lazy { IrohaConsumerImpl(testConfig.iroha) }
 
+    /** Notary account*/
+    val notaryAccount by lazy { createTesterAccount("eth_notary", "notary") }
+
+    /** Notary keys */
+    val notaryKeys = mutableListOf(keyPair)
+
     /** Account that used to store registered clients.*/
     val registrationAccount by lazy {
         createTesterAccount("eth_registration", "registration_service")
@@ -25,20 +31,17 @@ class AccountHelper(private val keyPair: Keypair) {
         createTesterAccount("mst_registration", "registration_service")
     }
 
-    /** Account that used to store tokens*/
-    val tokenStorageAccount by lazy { createTesterAccount("eth_tokens", "token_service") }
+    /** Account that used to store tokens */
+    val tokenStorageAccount = notaryAccount
+
+    /** Account that sets tokens */
+    val tokenSetterAccount by lazy { createTesterAccount("eth_tokens", "token_service") }
 
     // TODO - D3-348 - dolgopolov.work change to suitable role name
     /** Account that used to store peers*/
     val notaryListSetterAccount by lazy { createTesterAccount("eth_notary_setter", "token_service") }
 
     val notaryListStorageAccount by lazy { createTesterAccount("eth_notary_storage", "notary_holder") }
-
-    /** Notary account*/
-    val notaryAccount by lazy { createTesterAccount("eth_notary", "notary") }
-
-    /** Notary keys */
-    val notaryKeys = mutableListOf(keyPair)
 
     /**
      * Creates randomly named tester account in Iroha
