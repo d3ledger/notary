@@ -158,7 +158,8 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
     fun createEthNotaryConfig(): EthNotaryConfig {
         return object : EthNotaryConfig {
             override val registrationServiceIrohaAccount = accountHelper.registrationAccount
-            override val tokenStorageAccount = accountHelper.tokenStorageAccount
+            override val tokenStorageAccount = accountHelper.notaryAccount
+            override val tokenSetterAccount = accountHelper.tokenStorageAccount
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount
             override val notaryListSetterAccount = accountHelper.notaryListSetterAccount
             override val whitelistSetter = testConfig.whitelistSetter

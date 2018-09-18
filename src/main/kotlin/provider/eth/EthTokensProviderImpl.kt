@@ -16,19 +16,19 @@ import sidechain.iroha.util.getAssetPrecision
  *
  * @param irohaConfig - Iroha configuration
  * @param keypair - Iroha keypair to query
- * @param notaryIrohaAccount - tokenStorageAccount that contains details
- * @param tokenStorageAccount - tokenSetterAccount that holds tokens in tokenStorageAccount account
+ * @param tokenStorageAccount - tokenStorageAccount that contains details
+ * @param tokenSetterAccount - tokenSetterAccount that holds tokens in tokenStorageAccount account
  */
 class EthTokensProviderImpl(
     private val irohaConfig: IrohaConfig,
     private val keypair: Keypair,
-    private val notaryIrohaAccount: String,
-    private val tokenStorageAccount: String
+    private val tokenStorageAccount: String,
+    private val tokenSetterAccount: String
 ) : EthTokensProvider {
 
     init {
         EthRelayProviderIrohaImpl.logger.info {
-            "Init token provider with notary account '$notaryIrohaAccount' and token storage account '$tokenStorageAccount'"
+            "Init token provider, sotrage: '$tokenStorageAccount', setter: '$tokenSetterAccount'"
         }
     }
 
@@ -40,8 +40,8 @@ class EthTokensProviderImpl(
             irohaConfig,
             keypair,
             irohaNetwork,
-            notaryIrohaAccount,
-            tokenStorageAccount
+            tokenStorageAccount,
+            tokenSetterAccount
         )
             .map {
                 it.mapValues { (_, name) ->
@@ -67,7 +67,7 @@ class EthTokensProviderImpl(
      */
     override fun addTokens(tokens: Map<String, EthTokenInfo>): Result<Unit, Exception> {
         logger.info { "ERC20 tokens to register $tokens" }
-        return ModelUtil.registerERC20Tokens(tokens, irohaConfig.creator, notaryIrohaAccount, irohaConsumer)
+        return ModelUtil.registerERC20Tokens(tokens, tokenStorageAccount, tokenSetterAccount, irohaConsumer)
             .map { Unit }
     }
 
