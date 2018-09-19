@@ -1,7 +1,7 @@
 package integration.btc
 
 import integration.helper.IntegrationHelperUtil
-import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.launch
 import mu.KLogging
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Utils
