@@ -37,8 +37,8 @@ fun executeNotary(notaryConfig: EthNotaryConfig, args: Array<String> = emptyArra
             val ethTokensProvider = EthTokensProviderImpl(
                 notaryConfig.iroha,
                 keypair,
-                notaryConfig.iroha.creator,
-                notaryConfig.tokenStorageAccount
+                notaryConfig.tokenStorageAccount,
+                notaryConfig.tokenSetterAccount
             )
             EthNotaryInitialization(
                 keypair,

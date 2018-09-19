@@ -11,20 +11,15 @@ import java.math.BigDecimal
 import java.math.BigInteger
 
 /**
- * Integration tests for deposit case.
+ * Integration tests with multiple notaries for deposit case.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class DepositIntegrationTest {
+class DepositmultiIntegrationTest {
     /** Utility functions for integration tests */
     private val integrationHelper = IntegrationHelperUtil()
 
     /** Ethereum assetId in Iroha */
     private val etherAssetId = "ether#ethereum"
-
-    init {
-        // run notary
-        integrationHelper.runEthNotary()
-    }
 
     /** Iroha client account */
     private val clientIrohaAccount = String.getRandomString(9)
@@ -44,53 +39,37 @@ class DepositIntegrationTest {
     /** Path to private key of 2nd instance of notary */
     private val privkeyPath = "deploy/iroha/keys/notary2@notary.priv"
 
+    init {
+        // run notary
+        integrationHelper.runEthNotary()
 
-    /**
-     * Test US-001 Deposit of ETH
-     * Note: Ethereum and Iroha must be deployed to pass the test.
-     * @given Ethereum and Iroha networks running and two ethereum wallets and "fromAddress" with at least
-     * 1234000000000 Wei and notary running and user registered with ethereum relayWallet
-     * @when "fromAddress" transfers 1234000000000 Wei to "relayWallet"
-     * @then Associated Iroha account balance is increased on 1234000000000 Wei
-     */
-    @Test
-    fun depositOfETH() {
-        val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId)
-        val amount = BigInteger.valueOf(1_234_000_000_000)
-        // send ETH
-        integrationHelper.sendEth(amount, relayWallet)
-        integrationHelper.waitOneIrohaBlock()
+        // create 2nd notray config
+        val irohaConfig =
+            integrationHelper.configHelper.createIrohaConfig(pubkeyPath = pubkeyPath, privkeyPath = privkeyPath)
+        val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig(irohaConfig)
 
-        Assertions.assertEquals(
-            BigDecimal(amount, ETH_PRECISION.toInt()).add(BigDecimal(initialAmount)),
-            BigDecimal(integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId))
-        )
+        val keypair = ModelUtil.loadKeypair(pubkeyPath, privkeyPath).get()
+
+        integrationHelper.accountHelper.addNotarySignatory(keypair)
+
+        // run 2nd instance of notary
+        integrationHelper.runEthNotary(notaryConfig)
     }
 
     /**
-     * Test US-001 Deposit of ETH
+     * Test US-001 Deposit of ETH with multiple notaries
      * Note: Ethereum and Iroha must be deployed to pass the test.
      * @given Ethereum and Iroha networks running and two ethereum wallets and "fromAddress" with at least
-     * 1234000000000 Wei and notary running
+     * 1234000000000 Wei and 2 instances of notary running
      * @when "fromAddress" transfers 0 Wei to "relayWallet" and then "fromAddress" transfers 1234000000000 Wei
      * to "relayWallet"
      * @then Associated Iroha account balance is increased on 1234000000000 Wei
      */
     @Test
-    fun depositZeroETH() {
+    fun depositMultisig() {
         val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId)
-        val zeroAmount = BigInteger.ZERO
         val amount = BigInteger.valueOf(1_234_000_000_000)
-
-        // send 0 ETH
-        integrationHelper.sendEth(zeroAmount, relayWallet)
-
-        Assertions.assertEquals(
-            initialAmount,
-            integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId)
-        )
-
-        // Send again 1234000000000 Ethereum network
+        // send ETH
         integrationHelper.sendEth(amount, relayWallet)
         integrationHelper.waitOneIrohaBlock()
 
@@ -101,52 +80,21 @@ class DepositIntegrationTest {
     }
 
     /**
-     * Test US-002 Deposit of ETH
+     * Test US-002 Deposit of ETH token with multiple notaries
      * Note: Ethereum and Iroha must be deployed to pass the test.
      * @given Ethereum and Iroha networks running and two ethereum wallets and "fromAddress" with at least 51 coin
-     * (51 coin) and notary running
-     * @when "fromAddress" transfers 51 coin to "relayWallet"
+     * (51 coin) and 2 notaries running
+     * @when "fromAddress" transfers 0 tokens to "relayWallet" and then "fromAddress" transfers 51 coin to "relayWallet"
      * @then Associated Iroha account balance is increased on 51 coin
      */
     @Test
-    fun depositOfERC20() {
+    fun depositMultisigERC20() {
         val (tokenInfo, tokenAddress) = integrationHelper.deployRandomERC20Token(2)
         val assetId = "${tokenInfo.name}#ethereum"
         val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId)
         val amount = BigInteger.valueOf(51)
 
         // send ETH
-        integrationHelper.sendERC20Token(tokenAddress, amount, relayWallet)
-        integrationHelper.waitOneIrohaBlock()
-
-        Assertions.assertEquals(
-            BigDecimal(amount, tokenInfo.precision.toInt()).add(BigDecimal(initialAmount)),
-            BigDecimal(integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId))
-        )
-    }
-
-    /**
-     * Test US-002 Deposit of ETH
-     * Note: Ethereum and Iroha must be deployed to pass the test.
-     * @given Ethereum and Iroha networks running and two ethereum wallets and "fromAddress" with at least 51 coin
-     * (51 coin) and notary running
-     * @when "fromAddress" transfers 0 tokens to "relayWallet" and then "fromAddress" transfers 51 coin to "relayWallet"
-     * @then Associated Iroha account balance is increased on 51 coin
-     */
-    @Test
-    fun depositZeroOfERC20() {
-        val (tokenInfo, tokenAddress) = integrationHelper.deployRandomERC20Token(2)
-        val assetId = "${tokenInfo.name}#ethereum"
-        val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId)
-        val zeroAmount = BigInteger.ZERO
-        val amount = BigInteger.valueOf(51)
-
-        // send 0 ERC20
-        integrationHelper.sendERC20Token(tokenAddress, zeroAmount, relayWallet)
-
-        Assertions.assertEquals(initialAmount, integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId))
-
-        // Send again
         integrationHelper.sendERC20Token(tokenAddress, amount, relayWallet)
         integrationHelper.waitOneIrohaBlock()
 
