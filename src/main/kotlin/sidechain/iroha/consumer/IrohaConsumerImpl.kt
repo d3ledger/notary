@@ -9,9 +9,10 @@ import sidechain.iroha.util.ModelUtil
 
 /**
  * Endpoint of Iroha to write transactions
+ * @param creator - Iroha transactions creator
  * @param irohaConfig Iroha configurations
  */
-class IrohaConsumerImpl(irohaConfig: IrohaConfig) : IrohaConsumer {
+class IrohaConsumerImpl(override val creator: String, irohaConfig: IrohaConfig) : IrohaConsumer {
 
     val keypair = ModelUtil.loadKeypair(irohaConfig.pubkeyPath, irohaConfig.privkeyPath).get()
 

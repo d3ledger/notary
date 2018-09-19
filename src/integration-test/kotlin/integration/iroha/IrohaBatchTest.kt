@@ -64,7 +64,7 @@ class IrohaBatchTest {
         val user = randomString()
         val asset_name = randomString()
 
-        val irohaConsumer = IrohaConsumerImpl(testConfig.iroha)
+        val irohaConsumer = IrohaConsumerImpl(testConfig.iroha.creator, testConfig.iroha)
 
         val txList =
             listOf(
@@ -238,7 +238,7 @@ class IrohaBatchTest {
         val user = randomString()
         val asset_name = randomString()
 
-        val irohaConsumer = IrohaConsumerImpl(testConfig.iroha)
+        val irohaConsumer = IrohaConsumerImpl(testConfig.iroha.creator, testConfig.iroha)
 
         val txList =
             listOf(

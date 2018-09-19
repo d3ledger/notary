@@ -32,8 +32,7 @@ fun executeTrigger(btcPkPreGenConfig: BtcPreGenConfig) {
         .flatMap { keypair ->
             val triggerProvider = TriggerProvider(
                 btcPkPreGenConfig.iroha,
-                btcPkPreGenConfig.pubKeyTriggerAccount,
-                btcPkPreGenConfig.registrationAccount
+                btcPkPreGenConfig.pubKeyTriggerAccount
             )
             val btcKeyGenSessionProvider = BtcSessionProvider(
                 btcPkPreGenConfig.iroha,

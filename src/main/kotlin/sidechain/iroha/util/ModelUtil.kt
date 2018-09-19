@@ -217,7 +217,6 @@ object ModelUtil {
     /**
      * Send SetAccountDetail to Iroha
      * @param irohaConsumer - iroha network layer
-     * @param creator - transaction creator
      * @param accountId - account to set details
      * @param key - key of detail
      * @param value - value of detail
@@ -225,13 +224,12 @@ object ModelUtil {
      */
     fun setAccountDetail(
         irohaConsumer: IrohaConsumer,
-        creator: String,
         accountId: String,
         key: String,
         value: String
     ): Result<String, Exception> {
         val tx = ModelTransactionBuilder()
-            .creatorAccountId(creator)
+            .creatorAccountId(irohaConsumer.creator)
             .createdTime(getCurrentTime())
             .setAccountDetail(accountId, key, value)
             .build()
@@ -241,7 +239,6 @@ object ModelUtil {
     /**
      * Send SetAccountDetail to Iroha
      * @param irohaConsumer - iroha network layer
-     * @param creator - transaction creator
      * @param accountId - account to set details
      * @param key - key of detail
      * @param value - value of detail
@@ -250,17 +247,16 @@ object ModelUtil {
      */
     fun setAccountDetail(
         irohaConsumer: IrohaConsumer,
-        creator: String,
         accountId: String,
         key: String,
         value: String,
         quorum: Int
     ): Result<String, Exception> {
         val tx = ModelTransactionBuilder()
-            .creatorAccountId(creator)
+            .creatorAccountId(irohaConsumer.creator)
             .createdTime(getCurrentTime())
             .setAccountDetail(accountId, key, value)
-            .setAccountQuorum(creator, quorum)
+            .setAccountQuorum(irohaConsumer.creator, quorum)
             .build()
         return irohaConsumer.sendAndCheck(tx)
     }
@@ -269,7 +265,6 @@ object ModelUtil {
     /**
      * Send createAsset to Iroha
      * @param irohaConsumer - iroha network layer
-     * @param creator - transaction creator
      * @param assetName - asset name in iroha
      * @param domainId - domain id
      * @param precision - precision of asset
@@ -277,14 +272,13 @@ object ModelUtil {
      */
     fun createAsset(
         irohaConsumer: IrohaConsumer,
-        creator: String,
         assetName: String,
         domainId: String,
         precision: Short
     ): Result<String, Exception> {
         return irohaConsumer.sendAndCheck(
             ModelTransactionBuilder()
-                .creatorAccountId(creator)
+                .creatorAccountId(irohaConsumer.creator)
                 .createdTime(getCurrentTime())
                 .createAsset(assetName, domainId, precision)
                 .build()
@@ -294,20 +288,18 @@ object ModelUtil {
     /**
      * Add asset in iroha
      * @param irohaConsumer - iroha network layer
-     * @param creator - transaction creator
      * @param assetId - asset name in Iroha
      * @param amount - amount to add
      * @return hex representation of transaction hash
      */
     fun addAssetIroha(
         irohaConsumer: IrohaConsumer,
-        creator: String,
         assetId: String,
         amount: String
     ): Result<String, Exception> {
         return irohaConsumer.sendAndCheck(
             ModelTransactionBuilder()
-                .creatorAccountId(creator)
+                .creatorAccountId(irohaConsumer.creator)
                 .createdTime(getCurrentTime())
                 .addAssetQuantity(assetId, amount)
                 .build()
@@ -317,7 +309,6 @@ object ModelUtil {
     /**
      * Transfer asset in iroha
      * @param irohaConsumer - iroha network layer
-     * @param creator - transaction creator
      * @param srcAccountId - source account
      * @param destAccountId - destination account
      * @param assetId - asset id in Iroha
@@ -327,7 +318,6 @@ object ModelUtil {
      */
     fun transferAssetIroha(
         irohaConsumer: IrohaConsumer,
-        creator: String,
         srcAccountId: String,
         destAccountId: String,
         assetId: String,
@@ -336,7 +326,7 @@ object ModelUtil {
     ): Result<String, Exception> {
         return irohaConsumer.sendAndCheck(
             ModelTransactionBuilder()
-                .creatorAccountId(creator)
+                .creatorAccountId(irohaConsumer.creator)
                 .createdTime(getCurrentTime())
                 .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
                 .build()
@@ -359,7 +349,7 @@ object ModelUtil {
     ): Result<String, Exception> {
         return Result.of {
             var utx = ModelTransactionBuilder()
-                .creatorAccountId(tokenSetterAccount)
+                .creatorAccountId(irohaConsumer.creator)
                 .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
             tokens.forEach { ethWallet, ethTokenInfo ->
                 utx = utx.createAsset(ethTokenInfo.name, "ethereum", ethTokenInfo.precision)
@@ -372,16 +362,18 @@ object ModelUtil {
         }
     }
 
+    /**
+     * Create new Iroha account with [accountName].
+     */
     fun createAccount(
         irohaConsumer: IrohaConsumer,
         irohaKeyPair: Keypair,
-        creator: String,
         accountName: String
     ): Result<String, Exception> {
         val domain = "notary"
         return irohaConsumer.sendAndCheck(
             ModelTransactionBuilder()
-                .creatorAccountId(creator)
+                .creatorAccountId(irohaConsumer.creator)
                 .createdTime(ModelUtil.getCurrentTime())
                 .createAccount(accountName, domain, irohaKeyPair.publicKey())
                 .build()
