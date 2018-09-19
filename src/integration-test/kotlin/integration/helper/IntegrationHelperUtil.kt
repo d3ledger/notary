@@ -217,10 +217,6 @@ class IntegrationHelperUtil {
      * @param tokenAddress - token ERC20 smart contract address
      */
     fun addERC20Token(tokenAddress: String, tokenName: String, precision: Short) {
-        println("start addERC20Token")
-        println("accountHelper.tokenSetterAccount ${accountHelper.tokenSetterAccount}")
-        println("accountHelper.tokenStorageAccount ${accountHelper.tokenStorageAccount}")
-
         ModelUtil.createAsset(irohaConsumer, accountHelper.tokenSetterAccount, tokenName, "ethereum", precision)
         ModelUtil.setAccountDetail(
             irohaConsumer,
