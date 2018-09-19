@@ -11,6 +11,8 @@ services:
     container_name: d3-iroha${SUBNET}
     depends_on:
       - d3-iroha-postgres
+    ports:
+      - 50051:50051
     tty: true
     environment:
       - KEY=keys/node0
@@ -38,6 +40,8 @@ services:
     container_name: d3-eth-node0${SUBNET}
     volumes:
       - ./ethereum:/eth
+    ports:
+      - 8545:8545
     environment:
       - NODE=0
     entrypoint:
@@ -51,6 +55,20 @@ services:
       - 0.0.0.0
     networks:
       - d3-notary
+
+  grpcwebproxy:
+    build:
+      context: grpcwebproxy/
+    container_name: d3-grpcwebproxy
+    depends_on:
+      - d3-iroha
+    ports:
+      - 8081:8080
+      - 8443:8443
+    entrypoint:
+      - grpcwebproxy
+      - --backend_addr=d3-iroha:50051
+      - --run_tls_server=false
 
 volumes:
   iroha_block_store:

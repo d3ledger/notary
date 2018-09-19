@@ -12,7 +12,7 @@ class EthConsumer(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPas
     private val deployHelper = DeployHelper(ethereumConfig, ethereumPasswords)
 
     fun consume(event: WithdrawalServiceOutputEvent) {
-        logger.info { "consumed eth event" }
+        logger.info { "Consumed eth event $event" }
         if (event is WithdrawalServiceOutputEvent.EthRefund) {
             logger.info {
                 "Got proof:\n" +

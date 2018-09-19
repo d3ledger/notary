@@ -34,9 +34,9 @@ class BtcPublicKeyProvider(
     /**
      * Creates public key and sets it into session account details
      * @param sessionAccountName - name of session account
-     * @return Result of operation
+     * @return new public key created by notary
      */
-    fun createKey(sessionAccountName: String): Result<Unit, Exception> {
+    fun createKey(sessionAccountName: String): Result<String, Exception> {
         val key = wallet.freshReceiveKey()
         val pubKey = key.publicKeyAsHex
         return ModelUtil.setAccountDetail(
@@ -46,13 +46,13 @@ class BtcPublicKeyProvider(
             String.getRandomId(),
             pubKey
         ).map {
-            logger.info { "new pub key $pubKey was created" }
             wallet.saveToFile(walletFile)
+            pubKey
         }
     }
 
     /**
-     * Creates multi signature address if enough public keys are provided
+     * Creates multisignature address if enough public keys are provided
      * @param notaryKeys - public keys of notaries
      * @return Result of operation
      */
@@ -60,7 +60,7 @@ class BtcPublicKeyProvider(
         return Result.of {
             val peers = notaryPeerListProvider.getPeerList().size
             if (peers == 0) {
-                throw IllegalStateException("no peers to create btc multi signature address")
+                throw IllegalStateException("No peers to create btc multisignature address")
             } else if (notaryKeys.size == peers && hasMyKey(notaryKeys)) {
                 val threshold = getThreshold(peers)
                 val msAddress = createMsAddress(notaryKeys, threshold)
@@ -71,7 +71,10 @@ class BtcPublicKeyProvider(
                     notaryAccount,
                     msAddress.toBase58(),
                     "free"
-                ).fold({ wallet.saveToFile(walletFile) }, { ex -> throw ex })
+                ).fold({
+                    wallet.saveToFile(walletFile)
+                    logger.info { "New BTC multisignature address $msAddress was created " }
+                }, { ex -> throw ex })
             }
         }
     }
@@ -89,7 +92,7 @@ class BtcPublicKeyProvider(
     }
 
     /**
-     * Creates multi signature address
+     * Creates multisignature address
      * @param notaryKeys - public keys of notaries
      * @return created address
      */

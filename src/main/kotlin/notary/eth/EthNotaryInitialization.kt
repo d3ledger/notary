@@ -90,7 +90,7 @@ class EthNotaryInitialization(
      * Init refund notary.endpoint
      */
     private fun initRefund() {
-        logger.info { "Init Refund notary.endpoint" }
+        logger.info { "Init Refund endpoint" }
         RefundServerEndpoint(
             ServerInitializationBundle(ethNotaryConfig.refund.port, ethNotaryConfig.refund.endpointEthereum),
             EthRefundStrategyImpl(

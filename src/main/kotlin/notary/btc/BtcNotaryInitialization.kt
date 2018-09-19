@@ -12,13 +12,13 @@ import org.bitcoinj.core.PeerGroup
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.store.LevelDBBlockStore
 import org.bitcoinj.wallet.Wallet
-import provider.btc.BtcAddressesProvider
+import provider.btc.BtcRegisteredAddressesProvider
 import sidechain.SideChainEvent
 import java.io.File
 
 class BtcNotaryInitialization(
     private val btcNotaryConfig: BtcNotaryConfig,
-    private val btcAddressesProvider: BtcAddressesProvider
+    private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider
 ) {
     /**
      * Init notary
@@ -41,7 +41,7 @@ class BtcNotaryInitialization(
      * Returns observable object full of given wallet deposit events
      */
     private fun getBtcEvents(wallet: Wallet, confidenceLevel: Int): Observable<SideChainEvent.PrimaryBlockChainEvent> {
-        logger.info { "current wallet $wallet" }
+        logger.info { "Current BTC wallet $wallet" }
         // TODO - D3-320 - dolgopolov.work - Test mode is on. Move to real network or make it configurable
         val networkParams = RegTestParams.get()
         val levelDbFolder = File(btcNotaryConfig.bitcoin.blockStoragePath)
@@ -52,8 +52,13 @@ class BtcNotaryInitialization(
         peerGroup.startAsync()
         peerGroup.downloadBlockChain()
         return Observable.create<SideChainEvent.PrimaryBlockChainEvent> { emitter ->
-            wallet.addCoinsReceivedEventListener(ReceivedCoinsListener(btcAddressesProvider, confidenceLevel, emitter))
-
+            wallet.addCoinsReceivedEventListener(
+                ReceivedCoinsListener(
+                    btcRegisteredAddressesProvider,
+                    confidenceLevel,
+                    emitter
+                )
+            )
         }
     }
 

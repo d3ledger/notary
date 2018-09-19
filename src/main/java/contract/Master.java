@@ -78,31 +78,31 @@ public class Master extends Contract {
 
     public RemoteCall<TransactionReceipt> withdraw(String token_address, BigInteger amount, String to, byte[] tx_hash, List<BigInteger> v, List<byte[]> r, List<byte[]> s) {
         final Function function = new Function(
-                FUNC_WITHDRAW, 
+                FUNC_WITHDRAW,
                 Arrays.<Type>asList(new Address(token_address),
-                new Uint256(amount),
-                new Address(to),
-                new Bytes32(tx_hash),
-                new DynamicArray<org.web3j.abi.datatypes.generated.Uint8>(
-                        org.web3j.abi.Utils.typeMap(v, org.web3j.abi.datatypes.generated.Uint8.class)), 
-                new DynamicArray<Bytes32>(
-                        org.web3j.abi.Utils.typeMap(r, Bytes32.class)),
-                new DynamicArray<Bytes32>(
-                        org.web3j.abi.Utils.typeMap(s, Bytes32.class))),
+                        new Uint256(amount),
+                        new Address(to),
+                        new Bytes32(tx_hash),
+                        new DynamicArray<org.web3j.abi.datatypes.generated.Uint8>(
+                                org.web3j.abi.Utils.typeMap(v, org.web3j.abi.datatypes.generated.Uint8.class)),
+                        new DynamicArray<Bytes32>(
+                                org.web3j.abi.Utils.typeMap(r, Bytes32.class)),
+                        new DynamicArray<Bytes32>(
+                                org.web3j.abi.Utils.typeMap(s, Bytes32.class))),
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
     public RemoteCall<TransactionReceipt> addPeer(String new_address) {
         final Function function = new Function(
-                FUNC_ADDPEER, 
+                FUNC_ADDPEER,
                 Arrays.<Type>asList(new Address(new_address)),
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
     public RemoteCall<Boolean> checkTokenAddress(String token_address) {
-        final Function function = new Function(FUNC_CHECKTOKENADDRESS, 
+        final Function function = new Function(FUNC_CHECKTOKENADDRESS,
                 Arrays.<Type>asList(new Address(token_address)),
                 Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
         return executeRemoteCallSingleValueReturn(function, Boolean.class);
@@ -125,7 +125,7 @@ public class Master extends Contract {
 
     public RemoteCall<TransactionReceipt> addToken(String new_token) {
         final Function function = new Function(
-                FUNC_ADDTOKEN, 
+                FUNC_ADDTOKEN,
                 Arrays.<Type>asList(new Address(new_token)),
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);

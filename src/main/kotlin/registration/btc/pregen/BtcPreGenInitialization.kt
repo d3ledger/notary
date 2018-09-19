@@ -68,16 +68,16 @@ class BtcPreGenInitialization(
                 if (command.setAccountDetail.accountId == btcPreGenConfig.pubKeyTriggerAccount) {
                     //add new public key to session account, if trigger account was changed
                     val sessionAccountName = command.setAccountDetail.key
-                    onGenerateKey(sessionAccountName).failure { ex -> logger.error("cannot generate pregen", ex) }
+                    onGenerateKey(sessionAccountName).fold(
+                        { pubKey -> logger.info { "New public key $pubKey for BTC multisignature address was created" } },
+                        { ex -> logger.error("Cannot generate public key for BTC multisignature address", ex) })
                 } else if (command.setAccountDetail.accountId.endsWith("btcSession")) {
-                    //create multi signature address, if we have enough keys in session account
-                    onGenerateMultiSigAddress(command.setAccountDetail.accountId).fold(
-                        { logger.info { "new multi signature address was created" } },
-                        { ex ->
-                            logger.error(
-                                "cannot generate multi signature address", ex
-                            )
-                        })
+                    //create multisignature address, if we have enough keys in session account
+                    onGenerateMultiSigAddress(command.setAccountDetail.accountId).failure { ex ->
+                        logger.error(
+                            "Cannot generate multi signature address", ex
+                        )
+                    }
                 }
             }
         }
@@ -88,7 +88,7 @@ class BtcPreGenInitialization(
             .filter { command -> command.hasSetAccountDetail() }
     }
 
-    private fun onGenerateKey(sessionAccountName: String): Result<Unit, Exception> {
+    private fun onGenerateKey(sessionAccountName: String): Result<String, Exception> {
         return btcPublicKeyProvider.createKey(sessionAccountName)
     }
 

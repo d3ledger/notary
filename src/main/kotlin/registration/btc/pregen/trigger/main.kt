@@ -14,8 +14,10 @@ import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.util.ModelUtil
 import util.getRandomId
 
+private val logger = KLogging().logger
+
 /*
-This function is used to start BTC multi signature addresses pregeneration
+This function is used to start BTC multisignature addresses pregeneration
  */
 fun main(args: Array<String>) {
     val btcPkPreGenConfig =
@@ -24,7 +26,7 @@ fun main(args: Array<String>) {
 }
 
 fun executeTrigger(btcPkPreGenConfig: BtcPreGenConfig) {
-    val logger = KLogging()
+    logger.info { "Run BTC multisignature address pregeneration trigger" }
     IrohaInitialization.loadIrohaLibrary()
         .flatMap { ModelUtil.loadKeypair(btcPkPreGenConfig.iroha.pubkeyPath, btcPkPreGenConfig.iroha.privkeyPath) }
         .flatMap { keypair ->
@@ -42,7 +44,7 @@ fun executeTrigger(btcPkPreGenConfig: BtcPreGenConfig) {
             btcKeyGenSessionProvider.createPubKeyCreationSession(sessionAccountName)
                 .map { triggerProvider.trigger(sessionAccountName) }
         }.failure { ex ->
-            logger.logger.error("cannot trigger btc address pre generation", ex)
+            logger.error("Cannot trigger btc address pregeneration", ex)
             System.exit(1)
         }
 }

@@ -17,6 +17,9 @@ interface EthNotaryConfig {
     /** Iroha account that stores tokens */
     val tokenStorageAccount: String
 
+    /** Iroha account sets tokens */
+    val tokenSetterAccount: String
+
     /** Iroha account that set whitelist for client */
     val whitelistSetter: String
 

@@ -112,7 +112,7 @@ object ModelUtil {
                     String(java.nio.file.Files.readAllBytes(Paths.get(privkeyPath)))
                 )
             } catch (e: IOException) {
-                throw Exception("Unable to read Iroha key files.", e)
+                throw Exception("Unable to read Iroha key files", e)
             }
         }
     }
@@ -239,6 +239,34 @@ object ModelUtil {
     }
 
     /**
+     * Send SetAccountDetail to Iroha
+     * @param irohaConsumer - iroha network layer
+     * @param creator - transaction creator
+     * @param accountId - account to set details
+     * @param key - key of detail
+     * @param value - value of detail
+     * @param quorum - quorum
+     * @return hex representation of transaction hash
+     */
+    fun setAccountDetail(
+        irohaConsumer: IrohaConsumer,
+        creator: String,
+        accountId: String,
+        key: String,
+        value: String,
+        quorum: Int
+    ): Result<String, Exception> {
+        val tx = ModelTransactionBuilder()
+            .creatorAccountId(creator)
+            .createdTime(getCurrentTime())
+            .setAccountDetail(accountId, key, value)
+            .setAccountQuorum(creator, quorum)
+            .build()
+        return irohaConsumer.sendAndCheck(tx)
+    }
+
+
+    /**
      * Send createAsset to Iroha
      * @param irohaConsumer - iroha network layer
      * @param creator - transaction creator
@@ -318,15 +346,15 @@ object ModelUtil {
     /**
      * Registers ERC20 tokens in Iroha
      * @param tokens - map of tokens to register(address->token info
-     * @param tokenSetterAccount - account that creates tokens
      * @param tokenStorageAccount - account that holds tokens
+     * @param tokenSetterAccount - account that creates tokens
      * @param irohaConsumer - iroha network layer
      * @return hex representation of transaction hash
      */
     fun registerERC20Tokens(
         tokens: Map<String, EthTokenInfo>,
-        tokenSetterAccount: String,
         tokenStorageAccount: String,
+        tokenSetterAccount: String,
         irohaConsumer: IrohaConsumer
     ): Result<String, Exception> {
         return Result.of {

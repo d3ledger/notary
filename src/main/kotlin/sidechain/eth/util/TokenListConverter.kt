@@ -11,7 +11,7 @@ fun findInTokens(tokenToFind: String, tokens: MutableMap<String, EthTokenInfo>):
             return coin.key
         }
     }
-    throw Exception("Not supported token type")
+    throw Exception("Not supported token $tokenToFind")
 }
 
 fun getPrecision(token: String, tokens: MutableMap<String, EthTokenInfo>): Short {
@@ -21,5 +21,5 @@ fun getPrecision(token: String, tokens: MutableMap<String, EthTokenInfo>): Short
             return coin.value.precision
         }
     }
-    throw Exception("Not supported token type")
+    throw Exception("Not supported token $token")
 }

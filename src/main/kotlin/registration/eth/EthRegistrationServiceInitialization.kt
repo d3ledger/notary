@@ -15,17 +15,13 @@ import sidechain.iroha.util.ModelUtil
  */
 class EthRegistrationServiceInitialization(private val ethRegistrationConfig: EthRegistrationConfig) {
 
-    init {
-        logger.info {
-            """Start registration service initialization with configs:
-                |iroha creator: ${ethRegistrationConfig.iroha.creator}""".trimMargin()
-        }
-    }
-
     /**
      * Init Registration Service
      */
     fun init(): Result<Unit, Exception> {
+        logger.info {
+            "Start registration service init with iroha creator: ${ethRegistrationConfig.iroha.creator}"
+        }
         return Result.of {
             ModelUtil.loadKeypair(
                 ethRegistrationConfig.iroha.pubkeyPath,

@@ -32,7 +32,7 @@ class RefundServerEndpoint(
     private val ethNotaryAdapter = moshi.adapter(EthNotaryResponse::class.java)!!
 
     init {
-        logger.info { "start refund server on port ${serverBundle.port}" }
+        logger.info { "Start refund server on port ${serverBundle.port}" }
 
         val server = embeddedServer(Netty, port = serverBundle.port) {
             install(CORS)
@@ -42,7 +42,7 @@ class RefundServerEndpoint(
             }
             routing {
                 get(serverBundle.ethRefund + "/{tx_hash}") {
-                    logger.info { "EthRefund invoked with parameters:${call.parameters}" }
+                    logger.info { "Eth refund invoked with parameters:${call.parameters}" }
                     val response = onCallEthRefund(call.parameters["tx_hash"])
                     call.respondText(response.message, status = response.code)
                 }

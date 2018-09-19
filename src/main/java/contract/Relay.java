@@ -69,24 +69,24 @@ public class Relay extends Contract {
 
     public RemoteCall<TransactionReceipt> withdraw(String token_address, BigInteger amount, String to, byte[] tx_hash, List<BigInteger> v, List<byte[]> r, List<byte[]> s) {
         final Function function = new Function(
-                FUNC_WITHDRAW, 
+                FUNC_WITHDRAW,
                 Arrays.<Type>asList(new Address(token_address),
-                new Uint256(amount),
-                new Address(to),
-                new Bytes32(tx_hash),
+                        new Uint256(amount),
+                        new Address(to),
+                        new Bytes32(tx_hash),
                 new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.generated.Uint8>(
-                        org.web3j.abi.Utils.typeMap(v, org.web3j.abi.datatypes.generated.Uint8.class)), 
-                new org.web3j.abi.datatypes.DynamicArray<Bytes32>(
-                        org.web3j.abi.Utils.typeMap(r, Bytes32.class)),
-                new org.web3j.abi.datatypes.DynamicArray<Bytes32>(
-                        org.web3j.abi.Utils.typeMap(s, Bytes32.class))),
+                        org.web3j.abi.Utils.typeMap(v, org.web3j.abi.datatypes.generated.Uint8.class)),
+                        new org.web3j.abi.datatypes.DynamicArray<Bytes32>(
+                                org.web3j.abi.Utils.typeMap(r, Bytes32.class)),
+                        new org.web3j.abi.datatypes.DynamicArray<Bytes32>(
+                                org.web3j.abi.Utils.typeMap(s, Bytes32.class))),
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
     public RemoteCall<TransactionReceipt> sendToMaster(String token_address) {
         final Function function = new Function(
-                FUNC_SENDTOMASTER, 
+                FUNC_SENDTOMASTER,
                 Arrays.<Type>asList(new Address(token_address)),
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
