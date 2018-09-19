@@ -33,8 +33,12 @@ class ReceivedCoinsListener(
                 if (irohaAccount != null) {
                     val event = SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
                         tx.hashAsString,
-                        // TODO make sure time is correct (and write test)
-                        BigInteger.valueOf(tx.lockTime), irohaAccount,
+                        //tx.updateTime is time a transaction was noticed: broadcast time or time it was added to blockchain.
+                        //We take this value after transaction being confirmed several times,
+                        //meaning that it must be time a transaction was added to blockchain.
+                        //But I'm not sure is it safe to use it.
+                        BigInteger.valueOf(tx.updateTime.time),
+                        irohaAccount,
                         BTC_ASSET_NAME,
                         BigInteger.valueOf(output.value.value).toString(),
                         ""
