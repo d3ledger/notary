@@ -87,6 +87,10 @@ class ContractsTest {
         assertEquals(amount, token.balanceOf(master.contractAddress).send())
     }
 
+    /**
+     * Withdraw assets
+     * @param amount how much to withdraw
+     */
     private fun withdraw(amount: BigInteger) {
         val tokenAddress = token.contractAddress
         val to = accGreen
@@ -105,6 +109,12 @@ class ContractsTest {
         ).send()
     }
 
+    /**
+     * Withdraw assets
+     * @param amount how much to withdraw
+     * @param tokenAddress list of addresses allowed to withdraw
+     * @param to destination address
+     */
     private fun withdraw(
         amount: BigInteger,
         tokenAddress: String,
@@ -124,6 +134,13 @@ class ContractsTest {
         ).send()
     }
 
+    /**
+     * Withdraw assets
+     * @param amount how much to withdraw
+     * @param tokenAddress list of addresses allowed to withdraw
+     * @param to destination address
+     * @param fromMaster true if withdraw should proceeded from master contract
+     */
     private fun withdraw(
         amount: BigInteger,
         tokenAddress: String,
@@ -143,7 +160,7 @@ class ContractsTest {
                 sigs.ss
             ).send()
         } else {
-            addOneWhiteList(relay.contractAddress, listOf(to))
+            addWhiteListToRelayRegistry(relay.contractAddress, listOf(to))
             relay.withdraw(
                 tokenAddress,
                 amount,
@@ -156,7 +173,12 @@ class ContractsTest {
         }
     }
 
-    private fun addOneWhiteList(
+    /**
+     * Save white list in the contract
+     * @param relayAddress relay contract address
+     * @param whiteList list of addresses allowed to withdraw
+     */
+    private fun addWhiteListToRelayRegistry(
         relayAddress: String,
         whiteList: List<String>
     ) {
@@ -202,7 +224,7 @@ class ContractsTest {
         sendAddPeer(accMain)
         master.addToken(token.contractAddress).send()
         transferTokensToMaster(BigInteger.valueOf(5))
-        addOneWhiteList(Keys.getAddress(keypair), listOf(accGreen))
+        addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
         withdraw(BigInteger.valueOf(1))
         assertEquals(BigInteger.valueOf(4), token.balanceOf(master.contractAddress).send())
     }
@@ -265,7 +287,7 @@ class ContractsTest {
             deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         sendAddPeer(accMain)
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
-        addOneWhiteList(Keys.getAddress(keypair), listOf(accGreen))
+        addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
         withdraw(
             BigInteger.valueOf(1000),
             etherAddress,
@@ -476,7 +498,7 @@ class ContractsTest {
     fun usedHashTest() {
         sendAddPeer(accMain)
         master.addToken(token.contractAddress).send()
-        addOneWhiteList(Keys.getAddress(keypair), listOf(accGreen))
+        addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
         transferTokensToMaster(BigInteger.valueOf(5))
         withdraw(BigInteger.valueOf(1))
         assertEquals(BigInteger.valueOf(4), token.balanceOf(master.contractAddress).send())
@@ -620,7 +642,7 @@ class ContractsTest {
         }
         val sigs = prepareSignatures(sigCount, keypairs, finalHash)
 
-        addOneWhiteList(Keys.getAddress(keypair), listOf(accGreen))
+        addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
 
         master.withdraw(
             etherAddress,
@@ -674,7 +696,7 @@ class ContractsTest {
         }
         val sigs = prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
 
-        addOneWhiteList(Keys.getAddress(keypair), listOf(accGreen))
+        addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
 
         master.withdraw(
             tokenAddress,
@@ -769,7 +791,7 @@ class ContractsTest {
         }
         val sigs = prepareSignatures(sigCount, keypairs, finalHash)
 
-        addOneWhiteList(Keys.getAddress(keypair), listOf(accGreen))
+        addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
 
         master.withdraw(
             tokenAddress,
@@ -823,7 +845,7 @@ class ContractsTest {
         }
         val sigs = prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
 
-        addOneWhiteList(Keys.getAddress(keypair), listOf(accGreen))
+        addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
 
         master.withdraw(
             tokenAddress,
@@ -894,9 +916,9 @@ class ContractsTest {
      */
     @Test
     fun addSameWhiteListTwice() {
-        addOneWhiteList(Keys.getAddress(keypair), listOf(accGreen)) // first call
+        addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen)) // first call
         Assertions.assertThrows(TransactionException::class.java) {
-            addOneWhiteList(
+            addWhiteListToRelayRegistry(
                 Keys.getAddress(keypair),
                 listOf(accGreen)
             )
@@ -910,8 +932,8 @@ class ContractsTest {
      */
     @Test
     fun addWhiteListAndCheckAddress() {
-        addOneWhiteList(Keys.getAddress(keypair), listOf(accGreen))
-        Assertions.assertTrue(true == relayRegistry.isWhiteListed(Keys.getAddress(keypair), accGreen).send())
+        addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
+        Assertions.assertTrue(relayRegistry.isWhiteListed(Keys.getAddress(keypair), accGreen).send())
     }
 
     /**
@@ -943,7 +965,7 @@ class ContractsTest {
         }
         val sigs = prepareSignatures(sigCount, keypairs, finalHash)
 
-        addOneWhiteList(Keys.getAddress(keypair), listOf(accGreen))
+        addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
 
         master.withdraw(
             etherAddress,
@@ -981,7 +1003,7 @@ class ContractsTest {
 
         val addressList: List<String> = whiteList.toList()
 
-        addOneWhiteList(Keys.getAddress(keypair), addressList)
+        addWhiteListToRelayRegistry(Keys.getAddress(keypair), addressList)
         assertEquals(whiteListSize, relayRegistry.getWhiteListByRelay(Keys.getAddress(keypair)).send().size)
     }
 
@@ -993,7 +1015,7 @@ class ContractsTest {
     @Test
     fun addSameAddressInWhiteListTwice() {
         Assertions.assertThrows(TransactionException::class.java) {
-            addOneWhiteList(
+            addWhiteListToRelayRegistry(
                 Keys.getAddress(keypair),
                 listOf(accGreen, accGreen)
             )
