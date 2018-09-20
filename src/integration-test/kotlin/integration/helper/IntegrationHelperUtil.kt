@@ -53,8 +53,6 @@ class IntegrationHelperUtil {
     val irohaKeyPair =
         ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
 
-    val irohaTestAccount = testConfig.iroha.creator
-
     val accountHelper by lazy { AccountHelper(irohaKeyPair) }
 
     val configHelper by lazy { ConfigHelper(accountHelper) }
@@ -219,10 +217,6 @@ class IntegrationHelperUtil {
      * @param tokenAddress - token ERC20 smart contract address
      */
     fun addERC20Token(tokenAddress: String, tokenName: String, precision: Short) {
-        println("start addERC20Token")
-        println("accountHelper.tokenSetterAccount ${accountHelper.tokenSetterAccount}")
-        println("accountHelper.tokenStorageAccount ${accountHelper.tokenStorageAccount}")
-
         ModelUtil.createAsset(irohaConsumer, accountHelper.tokenSetterAccount, tokenName, "ethereum", precision)
         ModelUtil.setAccountDetail(
             irohaConsumer,
@@ -358,9 +352,9 @@ class IntegrationHelperUtil {
     fun addIrohaAssetTo(
         accountId: String,
         assetId: String,
-        amount: String,
-        creator: String = testConfig.iroha.creator
+        amount: String
     ) {
+        val creator = testConfig.iroha.creator
         ModelUtil.addAssetIroha(irohaConsumer, creator, assetId, amount)
         if (creator != accountId)
             ModelUtil.transferAssetIroha(irohaConsumer, creator, creator, accountId, assetId, "", amount)

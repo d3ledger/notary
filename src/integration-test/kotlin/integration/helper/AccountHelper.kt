@@ -24,7 +24,7 @@ class AccountHelper(private val keyPair: Keypair) {
 
     /** Account that used to store registered clients.*/
     val registrationAccount by lazy {
-        createTesterAccount("eth_registration", "registration_service")
+        createTesterAccount("registration", "registration_service")
     }
     /** Account that used to store registered clients in mst fashion.*/
     val mstRegistrationAccount by lazy {
@@ -39,9 +39,9 @@ class AccountHelper(private val keyPair: Keypair) {
 
     // TODO - D3-348 - dolgopolov.work change to suitable role name
     /** Account that used to store peers*/
-    val notaryListSetterAccount by lazy { createTesterAccount("eth_notary_setter", "token_service") }
+    val notaryListSetterAccount by lazy { createTesterAccount("notary_setter", "token_service") }
 
-    val notaryListStorageAccount by lazy { createTesterAccount("eth_notary_storage", "notary_holder") }
+    val notaryListStorageAccount by lazy { createTesterAccount("notary_storage", "notary_holder") }
     /**
      * Creates randomly named tester account in Iroha
      */
