@@ -1,0 +1,13 @@
+version: '3.5'
+
+services:
+  d3-iroha:
+    ports:
+      - 50051:50051
+  d3-eth-node0:
+    ports:
+      - 8545:8545
+  grpcwebproxy:
+    ports:
+      - 8081:8080
+      - 8443:8443
