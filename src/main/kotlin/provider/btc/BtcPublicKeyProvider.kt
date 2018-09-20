@@ -19,12 +19,8 @@ import java.io.File
 /**
  *  Bitcoin keys provider
  *  @param wallet - bitcoinJ wallet class
- *  @param walletFile - file where to safe wallet
+ *  @param walletFile - file where to save wallet
  *  @param irohaConfig - configutation to start Iroha client
- *  @param btcSessionCreatorCredentials - Account to generate and put session keys
- *  @param btcAddressSetterCredentials - registration account, that puts multisignature key to storage account
- *  @param btcAddressStorageAccount - account to store generated multisig keys
- *  @param sessionDomain - domain of sessions
  *  @param notaryPeerListProvider - class to query all current notaries
  */
 class BtcPublicKeyProvider(
