@@ -5,6 +5,7 @@ import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import provider.eth.EthTokenInfo
@@ -61,6 +62,7 @@ class ERC20TokenRegistrationTest {
      * @when ERC20 tokens registration completes
      * @then no tokens are registered in Iroha
      */
+    @Disabled
     @Test
     fun testTokenRegistrationEmptyTokenFile() {
         createTokensFile(HashMap(), tokensFilePath)

@@ -18,7 +18,9 @@ import org.junit.jupiter.api.fail
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
+import sidechain.iroha.util.getAccountAsset
 import sidechain.iroha.util.toByteVector
 import util.getRandomString
 import java.math.BigInteger
@@ -37,6 +39,8 @@ class IrohaBatchTest {
     }
 
     private val counter = BigInteger.ONE
+
+    private val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
 
     private val channel by lazy {
         ModelUtil.getChannel(testConfig.iroha.hostname, testConfig.iroha.port)
@@ -366,24 +370,7 @@ class IrohaBatchTest {
                 }
             )
 
-        uquery = ModelQueryBuilder()
-            .creatorAccountId(tester)
-            .queryCounter(counter)
-            .createdTime(ModelUtil.getCurrentTime())
-            .getAccountAssets(tester)
-            .build()
-
-        val tester_amount = ModelUtil.prepareQuery(uquery, keypair)
-            .fold(
-                { protoQuery ->
-                    val queryResponse = queryStub.find(protoQuery)
-                    queryResponse.accountAssetsResponse.accountAssetsList.first().balance
-                },
-                {
-                    fail { "Exception while converting byte array to protobuf:" + it.message }
-                }
-            )
-
+        val tester_amount = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester).get()
 
         uquery = ModelQueryBuilder()
             .creatorAccountId(tester)

@@ -27,7 +27,8 @@ fun getAssetPrecision(
     irohaNetwork: IrohaNetwork,
     assetId: String
 ): Result<Short, Exception> {
-    val uquery = ModelQueryBuilder().creatorAccountId(irohaConfig.creator)
+    val uquery = ModelQueryBuilder()
+        .creatorAccountId(irohaConfig.creator)
         .queryCounter(BigInteger.valueOf(1))
         .createdTime(ModelUtil.getCurrentTime())
         .getAssetInfo(assetId)
@@ -38,6 +39,35 @@ fun getAssetPrecision(
         .map { queryResponse ->
             validateResponse(queryResponse, "asset_response")
             queryResponse.assetResponse.asset.precision.toShort()
+        }
+}
+
+/**
+ * Get first asset balance
+ *
+ * @param irohaConfig - Iroha configuration parameters
+ * @param keypair - iroha keypair
+ * @param irohaNetwork - iroha network layer
+ * @param accountId - iroha account
+ */
+fun getAccountAsset(
+    irohaConfig: IrohaConfig,
+    keypair: Keypair,
+    irohaNetwork: IrohaNetwork,
+    accountId: String
+): Result<String, Exception> {
+    val uquery = ModelQueryBuilder()
+        .creatorAccountId(irohaConfig.creator)
+        .queryCounter(BigInteger.valueOf(1))
+        .createdTime(ModelUtil.getCurrentTime())
+        .getAccountAssets(accountId)
+        .build()
+
+    return ModelUtil.prepareQuery(uquery, keypair)
+        .flatMap { query -> irohaNetwork.sendQuery(query) }
+        .map { queryResponse ->
+            validateResponse(queryResponse, "asset_response")
+            queryResponse.accountAssetsResponse.accountAssetsList.first().balance
         }
 }
 
