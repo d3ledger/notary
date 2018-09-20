@@ -26,6 +26,11 @@ import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 
 class IrohaBatchTest {
+    init {
+        Thread.sleep(10_000)
+        System.loadLibrary("irohajava")
+    }
+
     val testConfig by lazy {
         loadConfigs("test", EthNotaryConfig::class.java)
     }
@@ -46,11 +51,6 @@ class IrohaBatchTest {
 
     private val queryStub by lazy {
         ModelUtil.getQueryStub(channel)
-    }
-
-    @BeforeEach
-    fun load() {
-        System.loadLibrary("irohajava")
     }
 
     private fun randomString() = String.getRandomString(10)
