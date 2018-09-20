@@ -30,6 +30,7 @@ pipeline {
         script {
             def scmVars = checkout scm
             writeFile file: ".env", text: "SUBNET=-${scmVars.CHANGE_ID}-${scmVars.GIT_COMMIT}-${BUILD_NUMBER}"
+            sh "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml pull"
             sh(returnStdout: true, script: "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml up --build -d")
             iC = docker.image("openjdk:8-jdk")
             iC.inside("--network='d3-${scmVars.GIT_COMMIT}-${BUILD_NUMBER}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
