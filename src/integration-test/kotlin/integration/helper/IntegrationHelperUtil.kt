@@ -347,10 +347,14 @@ class IntegrationHelperUtil {
      * @param accountId - destination account
      * @param assetId - asset to add
      * @param amount - amount to add
+     * @param creator - transaction creator
      */
-    fun addIrohaAssetTo(accountId: String, assetId: String, amount: String) {
-        val creator = accountHelper.notaryAccount
-
+    fun addIrohaAssetTo(
+        accountId: String,
+        assetId: String,
+        amount: String
+    ) {
+        val creator = testConfig.iroha.creator
         ModelUtil.addAssetIroha(irohaConsumer, creator, assetId, amount)
         if (creator != accountId)
             ModelUtil.transferAssetIroha(irohaConsumer, creator, creator, accountId, assetId, "", amount)
