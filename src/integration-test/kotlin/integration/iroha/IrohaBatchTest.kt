@@ -3,7 +3,6 @@ package integration.iroha
 import config.loadConfigs
 import jp.co.soramitsu.iroha.Blob
 import jp.co.soramitsu.iroha.ModelCrypto
-import jp.co.soramitsu.iroha.ModelQueryBuilder
 import jp.co.soramitsu.iroha.iroha
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
@@ -12,22 +11,21 @@ import notary.IrohaCommand
 import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
 import notary.eth.EthNotaryConfig
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.fail
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
-import sidechain.iroha.util.*
+import sidechain.iroha.util.ModelUtil
+import sidechain.iroha.util.getAccountAsset
+import sidechain.iroha.util.getAccountData
+import sidechain.iroha.util.toByteVector
 import util.getRandomString
-import java.math.BigInteger
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 
 class IrohaBatchTest {
     init {
-        Thread.sleep(10_000)
         System.loadLibrary("irohajava")
     }
 
@@ -40,8 +38,6 @@ class IrohaBatchTest {
     private val keypair by lazy {
         ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
     }
-
-    private val counter = BigInteger.ONE
 
     private val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
 
@@ -258,6 +254,15 @@ class IrohaBatchTest {
         }
 
         val successHash = irohaConsumer.sendAndCheck(lst).get()
+
+        getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester)
+            .fold({
+                println("!!!Success getAccountAsset: $it")
+            },
+                {
+                    println("!!!Fail getAccountAsset: $it")
+                }
+            )
 
         val accountJson = getAccountData(testConfig.iroha, keypair, irohaNetwork, "$user@notary").get().toJsonString()
 
