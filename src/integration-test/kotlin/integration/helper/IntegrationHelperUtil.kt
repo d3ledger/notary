@@ -53,6 +53,8 @@ class IntegrationHelperUtil {
     val irohaKeyPair =
         ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
 
+    val irohaTestAccount = testConfig.iroha.creator
+
     val accountHelper by lazy { AccountHelper(irohaKeyPair) }
 
     val configHelper by lazy { ConfigHelper(accountHelper) }
@@ -351,10 +353,14 @@ class IntegrationHelperUtil {
      * @param accountId - destination account
      * @param assetId - asset to add
      * @param amount - amount to add
+     * @param creator - transaction creator
      */
-    fun addIrohaAssetTo(accountId: String, assetId: String, amount: String) {
-        val creator = accountHelper.notaryAccount
-
+    fun addIrohaAssetTo(
+        accountId: String,
+        assetId: String,
+        amount: String,
+        creator: String = testConfig.iroha.creator
+    ) {
         ModelUtil.addAssetIroha(irohaConsumer, creator, assetId, amount)
         if (creator != accountId)
             ModelUtil.transferAssetIroha(irohaConsumer, creator, creator, accountId, assetId, "", amount)
