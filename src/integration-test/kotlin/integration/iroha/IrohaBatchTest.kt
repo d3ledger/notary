@@ -255,14 +255,14 @@ class IrohaBatchTest {
 
         val successHash = irohaConsumer.sendAndCheck(lst).get()
 
-        getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester)
-            .fold({
-                println("!!!Success getAccountAsset: $it")
-            },
-                {
-                    println("!!!Fail getAccountAsset: $it")
-                }
-            )
+//        getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester)
+//            .fold({
+//                println("!!!Success getAccountAsset: $it")
+//            },
+//                {
+//                    println("!!!Fail getAccountAsset: $it")
+//                }
+//            )
 
         val accountJson = getAccountData(testConfig.iroha, keypair, irohaNetwork, "$user@notary").get().toJsonString()
 
@@ -270,10 +270,10 @@ class IrohaBatchTest {
 
         val u1_amount = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, "$user@notary").get()
 
-//        assertEquals(expectedHashes, successHash)
-//        assertEquals("{\"test@notary\":{\"key\":\"value\"}}", accountJson)
-//        assertEquals(tester_amount.toInt(), 73)
-//        assertEquals(u1_amount.toInt(), 27)
+        assertEquals(expectedHashes, successHash)
+        assertEquals("{\"test@notary\":{\"key\":\"value\"}}", accountJson)
+        assertEquals(tester_amount.toInt(), 73)
+        assertEquals(u1_amount.toInt(), 27)
 
         runBlocking {
             withTimeout(10, TimeUnit.SECONDS) {
