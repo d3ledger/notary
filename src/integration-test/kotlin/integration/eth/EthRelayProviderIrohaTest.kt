@@ -5,6 +5,7 @@ import integration.helper.IntegrationHelperUtil
 import notary.IrohaCommand
 import notary.IrohaTransaction
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
@@ -42,6 +43,7 @@ class EthRelayProviderIrohaTest {
      * @when getRelays() is called
      * @then not free wallets are returned in a map
      */
+    @Disabled
     @Test
     fun storageTest() {
         val domain = "notary"
@@ -95,6 +97,7 @@ class EthRelayProviderIrohaTest {
      * @when getRelays() is called
      * @then empty map is returned
      */
+    @Disabled
     @Test
     fun testEmptyStorage() {
         EthRelayProviderIrohaImpl(testConfig.iroha, keypair, detailSetter, detailHolder).getRelays()

@@ -3,6 +3,7 @@ package integration.eth
 import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import provider.eth.EthTokenInfo
@@ -23,6 +24,7 @@ class EthTokensProviderTest {
      * @when tokensProvider lists all the tokens
      * @then returned list must contain all previously added tokens
      */
+    @Disabled
     @Test
     fun testGetTokens() {
         val tokensToAdd = 3

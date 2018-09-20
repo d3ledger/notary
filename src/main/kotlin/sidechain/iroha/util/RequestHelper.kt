@@ -66,7 +66,7 @@ fun getAccountAsset(
     return ModelUtil.prepareQuery(uquery, keypair)
         .flatMap { query -> irohaNetwork.sendQuery(query) }
         .map { queryResponse ->
-            validateResponse(queryResponse, "asset_response")
+            validateResponse(queryResponse, "account_assets_response")
             queryResponse.accountAssetsResponse.accountAssetsList.first().balance
         }
 }
