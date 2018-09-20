@@ -76,9 +76,9 @@ class ContractsTest {
         assertEquals(2, addPeer.logs.size)
         assertEquals("0x" + String.format("%064x", addPeerCalls), addPeer.logs[0].data)
         assertEquals(
-                "0x" + "0".repeat(24) +
-                        address.slice(2 until address.length),
-                addPeer.logs[1].data
+            "0x" + "0".repeat(24) +
+                    address.slice(2 until address.length),
+            addPeer.logs[1].data
         )
     }
 
@@ -95,25 +95,45 @@ class ContractsTest {
         val sigs = prepareSignatures(1, listOf(keypair), finalHash)
 
         master.withdraw(
-                tokenAddress,
-                amount,
-                to,
-                defaultByteHash,
-                sigs.vv,
-                sigs.rr,
-                sigs.ss
+            tokenAddress,
+            amount,
+            to,
+            defaultByteHash,
+            sigs.vv,
+            sigs.rr,
+            sigs.ss
         ).send()
     }
 
     private fun withdraw(
-            amount: BigInteger,
-            tokenAddress: String,
-            to: String
+        amount: BigInteger,
+        tokenAddress: String,
+        to: String
     ) {
         val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, defaultIrohaHash)
         val sigs = prepareSignatures(1, listOf(keypair), finalHash)
 
         master.withdraw(
+            tokenAddress,
+            amount,
+            to,
+            defaultByteHash,
+            sigs.vv,
+            sigs.rr,
+            sigs.ss
+        ).send()
+    }
+
+    private fun withdraw(
+        amount: BigInteger,
+        tokenAddress: String,
+        to: String,
+        fromMaster: Boolean
+    ) {
+        val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, defaultIrohaHash)
+        val sigs = prepareSignatures(1, listOf(keypair), finalHash)
+        if (fromMaster) {
+            master.withdraw(
                 tokenAddress,
                 amount,
                 to,
@@ -121,44 +141,24 @@ class ContractsTest {
                 sigs.vv,
                 sigs.rr,
                 sigs.ss
-        ).send()
-    }
-
-    private fun withdraw(
-            amount: BigInteger,
-            tokenAddress: String,
-            to: String,
-            fromMaster: Boolean
-    ) {
-        val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, defaultIrohaHash)
-        val sigs = prepareSignatures(1, listOf(keypair), finalHash)
-        if (fromMaster) {
-            master.withdraw(
-                    tokenAddress,
-                    amount,
-                    to,
-                    defaultByteHash,
-                    sigs.vv,
-                    sigs.rr,
-                    sigs.ss
             ).send()
         } else {
             addOneWhiteList(relay.contractAddress, listOf(to))
             relay.withdraw(
-                    tokenAddress,
-                    amount,
-                    to,
-                    defaultByteHash,
-                    sigs.vv,
-                    sigs.rr,
-                    sigs.ss
+                tokenAddress,
+                amount,
+                to,
+                defaultByteHash,
+                sigs.vv,
+                sigs.rr,
+                sigs.ss
             ).send()
         }
     }
 
     private fun addOneWhiteList(
-            relayAddress: String,
-            whiteList: List<String>
+        relayAddress: String,
+        whiteList: List<String>
     ) {
         relayRegistry.addNewRelayAddress(relayAddress, whiteList).send()
     }
@@ -180,14 +180,14 @@ class ContractsTest {
     @Test
     fun canAcceptEther() {
         val initialBalance =
-                deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+            deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
         deployHelper.sendEthereum(BigInteger.valueOf(300_000_000), master.contractAddress)
         assertEquals(
-                initialBalance + BigInteger.valueOf(300_000_000),
-                deployHelper.web3.ethGetBalance(
-                        master.contractAddress,
-                        DefaultBlockParameterName.LATEST
-                ).send().balance
+            initialBalance + BigInteger.valueOf(300_000_000),
+            deployHelper.web3.ethGetBalance(
+                master.contractAddress,
+                DefaultBlockParameterName.LATEST
+            ).send().balance
         )
     }
 
@@ -233,9 +233,9 @@ class ContractsTest {
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
         Assertions.assertThrows(TransactionException::class.java) {
             withdraw(
-                    BigInteger.valueOf(10000),
-                    etherAddress,
-                    accGreen
+                BigInteger.valueOf(10000),
+                etherAddress,
+                accGreen
             )
         }
     }
@@ -262,22 +262,22 @@ class ContractsTest {
     @Test
     fun singleCorrectSignatureEtherTestMaster() {
         val initialBalance =
-                deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         sendAddPeer(accMain)
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
         addOneWhiteList(Keys.getAddress(keypair), listOf(accGreen))
         withdraw(
-                BigInteger.valueOf(1000),
-                etherAddress,
-                accGreen
+            BigInteger.valueOf(1000),
+            etherAddress,
+            accGreen
         )
         assertEquals(
-                BigInteger.valueOf(4000),
-                deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+            BigInteger.valueOf(4000),
+            deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
         )
         assertEquals(
-                initialBalance + BigInteger.valueOf(1000),
-                deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+            initialBalance + BigInteger.valueOf(1000),
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         )
     }
 
@@ -290,20 +290,20 @@ class ContractsTest {
     @Test
     fun singleCorrectSignatureEtherTestRelay() {
         val initialBalance =
-                deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         sendAddPeer(accMain)
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
         withdraw(
-                BigInteger.valueOf(1000), etherAddress,
-                accGreen, false
+            BigInteger.valueOf(1000), etherAddress,
+            accGreen, false
         )
         assertEquals(
-                BigInteger.valueOf(4000),
-                deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+            BigInteger.valueOf(4000),
+            deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
         )
         assertEquals(
-                initialBalance + BigInteger.valueOf(1000),
-                deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+            initialBalance + BigInteger.valueOf(1000),
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         )
     }
 
@@ -316,21 +316,21 @@ class ContractsTest {
     @Test
     fun singleCorrectSignatureEtherTestRelayToRelay() {
         val initialBalance =
-                deployHelper.web3.ethGetBalance(relay.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+            deployHelper.web3.ethGetBalance(relay.contractAddress, DefaultBlockParameterName.LATEST).send().balance
         sendAddPeer(accMain)
 
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
         withdraw(
-                BigInteger.valueOf(1000), etherAddress,
-                relay.contractAddress, false
+            BigInteger.valueOf(1000), etherAddress,
+            relay.contractAddress, false
         )
         assertEquals(
-                BigInteger.valueOf(4000),
-                deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+            BigInteger.valueOf(4000),
+            deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
         )
         assertEquals(
-                initialBalance + BigInteger.valueOf(1000),
-                deployHelper.web3.ethGetBalance(relay.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+            initialBalance + BigInteger.valueOf(1000),
+            deployHelper.web3.ethGetBalance(relay.contractAddress, DefaultBlockParameterName.LATEST).send().balance
         )
     }
 
@@ -366,13 +366,13 @@ class ContractsTest {
 
         Assertions.assertThrows(TransactionException::class.java) {
             master.withdraw(
-                    token.contractAddress,
-                    amount,
-                    accGreen,
-                    defaultByteHash,
-                    sigs.vv,
-                    sigs.rr,
-                    sigs.ss
+                token.contractAddress,
+                amount,
+                accGreen,
+                defaultByteHash,
+                sigs.vv,
+                sigs.rr,
+                sigs.ss
             ).send()
         }
     }
@@ -395,13 +395,13 @@ class ContractsTest {
 
         Assertions.assertThrows(TransactionException::class.java) {
             master.withdraw(
-                    token.contractAddress,
-                    amount,
-                    accGreen,
-                    defaultByteHash,
-                    sigs.vv,
-                    sigs.rr,
-                    sigs.ss
+                token.contractAddress,
+                amount,
+                accGreen,
+                defaultByteHash,
+                sigs.vv,
+                sigs.rr,
+                sigs.ss
             ).send()
         }
     }
@@ -425,13 +425,13 @@ class ContractsTest {
 
         Assertions.assertThrows(TransactionException::class.java) {
             master.withdraw(
-                    token.contractAddress,
-                    amount,
-                    accGreen,
-                    defaultByteHash,
-                    sigs.vv,
-                    sigs.rr,
-                    sigs.ss
+                token.contractAddress,
+                amount,
+                accGreen,
+                defaultByteHash,
+                sigs.vv,
+                sigs.rr,
+                sigs.ss
             ).send()
         }
     }
@@ -455,13 +455,13 @@ class ContractsTest {
 
         Assertions.assertThrows(TransactionException::class.java) {
             master.withdraw(
-                    token.contractAddress,
-                    amount,
-                    accGreen,
-                    defaultByteHash,
-                    sigs.vv,
-                    sigs.rr,
-                    sigs.ss
+                token.contractAddress,
+                amount,
+                accGreen,
+                defaultByteHash,
+                sigs.vv,
+                sigs.rr,
+                sigs.ss
             ).send()
         }
     }
@@ -541,21 +541,21 @@ class ContractsTest {
     fun vacuumEtherTest() {
         deployHelper.sendEthereum(BigInteger.valueOf(100_000), relay.contractAddress)
         assertEquals(
-                BigInteger.valueOf(0),
-                deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+            BigInteger.valueOf(0),
+            deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
         )
         assertEquals(
-                BigInteger.valueOf(100_000),
-                deployHelper.web3.ethGetBalance(relay.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+            BigInteger.valueOf(100_000),
+            deployHelper.web3.ethGetBalance(relay.contractAddress, DefaultBlockParameterName.LATEST).send().balance
         )
         relay.sendToMaster(etherAddress).send()
         assertEquals(
-                BigInteger.valueOf(100_000),
-                deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+            BigInteger.valueOf(100_000),
+            deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
         )
         assertEquals(
-                BigInteger.valueOf(0),
-                deployHelper.web3.ethGetBalance(relay.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+            BigInteger.valueOf(0),
+            deployHelper.web3.ethGetBalance(relay.contractAddress, DefaultBlockParameterName.LATEST).send().balance
         )
     }
 
@@ -601,16 +601,16 @@ class ContractsTest {
         val sigCount = 4
         val amountToSend = 1000
         val initialBalance =
-                deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
 
         val finalHash =
-                hashToWithdraw(
-                        etherAddress,
-                        amountToSend.toString(),
-                        accGreen,
-                        defaultIrohaHash
-                )
+            hashToWithdraw(
+                etherAddress,
+                amountToSend.toString(),
+                accGreen,
+                defaultIrohaHash
+            )
 
         val keypairs = ArrayList<ECKeyPair>()
         for (i in 0 until sigCount) {
@@ -623,22 +623,22 @@ class ContractsTest {
         addOneWhiteList(Keys.getAddress(keypair), listOf(accGreen))
 
         master.withdraw(
-                etherAddress,
-                BigInteger.valueOf(amountToSend.toLong()),
-                accGreen,
-                defaultByteHash,
-                sigs.vv,
-                sigs.rr,
-                sigs.ss
+            etherAddress,
+            BigInteger.valueOf(amountToSend.toLong()),
+            accGreen,
+            defaultByteHash,
+            sigs.vv,
+            sigs.rr,
+            sigs.ss
         ).send()
 
         assertEquals(
-                BigInteger.valueOf(4000),
-                deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+            BigInteger.valueOf(4000),
+            deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
         )
         assertEquals(
-                initialBalance + BigInteger.valueOf(1000),
-                deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+            initialBalance + BigInteger.valueOf(1000),
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         )
     }
 
@@ -655,16 +655,16 @@ class ContractsTest {
         val amountToSend = 1000
         val tokenAddress = etherAddress
         val initialBalance =
-                deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
 
         val finalHash =
-                hashToWithdraw(
-                        tokenAddress,
-                        amountToSend.toString(),
-                        accGreen,
-                        defaultIrohaHash
-                )
+            hashToWithdraw(
+                tokenAddress,
+                amountToSend.toString(),
+                accGreen,
+                defaultIrohaHash
+            )
 
         val keypairs = ArrayList<ECKeyPair>()
         for (i in 0 until sigCount) {
@@ -677,22 +677,22 @@ class ContractsTest {
         addOneWhiteList(Keys.getAddress(keypair), listOf(accGreen))
 
         master.withdraw(
-                tokenAddress,
-                BigInteger.valueOf(amountToSend.toLong()),
-                accGreen,
-                defaultByteHash,
-                sigs.vv,
-                sigs.rr,
-                sigs.ss
+            tokenAddress,
+            BigInteger.valueOf(amountToSend.toLong()),
+            accGreen,
+            defaultByteHash,
+            sigs.vv,
+            sigs.rr,
+            sigs.ss
         ).send()
 
         assertEquals(
-                BigInteger.valueOf(4000),
-                deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+            BigInteger.valueOf(4000),
+            deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
         )
         assertEquals(
-                initialBalance + BigInteger.valueOf(1000),
-                deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+            initialBalance + BigInteger.valueOf(1000),
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         )
     }
 
@@ -710,12 +710,12 @@ class ContractsTest {
         val tokenAddress = etherAddress
 
         val finalHash =
-                hashToWithdraw(
-                        tokenAddress,
-                        amountToSend.toString(),
-                        accGreen,
-                        defaultIrohaHash
-                )
+            hashToWithdraw(
+                tokenAddress,
+                amountToSend.toString(),
+                accGreen,
+                defaultIrohaHash
+            )
 
         val keypairs = ArrayList<ECKeyPair>()
         for (i in 0 until sigCount) {
@@ -727,13 +727,13 @@ class ContractsTest {
 
         Assertions.assertThrows(TransactionException::class.java) {
             master.withdraw(
-                    tokenAddress,
-                    BigInteger.valueOf(amountToSend.toLong()),
-                    accGreen,
-                    defaultByteHash,
-                    sigs.vv,
-                    sigs.rr,
-                    sigs.ss
+                tokenAddress,
+                BigInteger.valueOf(amountToSend.toLong()),
+                accGreen,
+                defaultByteHash,
+                sigs.vv,
+                sigs.rr,
+                sigs.ss
             ).send()
         }
     }
@@ -750,16 +750,16 @@ class ContractsTest {
         val amountToSend = 1000
         val tokenAddress = etherAddress
         val initialBalance =
-                deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
 
         val finalHash =
-                hashToWithdraw(
-                        tokenAddress,
-                        amountToSend.toString(),
-                        accGreen,
-                        defaultIrohaHash
-                )
+            hashToWithdraw(
+                tokenAddress,
+                amountToSend.toString(),
+                accGreen,
+                defaultIrohaHash
+            )
 
         val keypairs = ArrayList<ECKeyPair>()
         for (i in 0 until sigCount) {
@@ -772,22 +772,22 @@ class ContractsTest {
         addOneWhiteList(Keys.getAddress(keypair), listOf(accGreen))
 
         master.withdraw(
-                tokenAddress,
-                BigInteger.valueOf(amountToSend.toLong()),
-                accGreen,
-                defaultByteHash,
-                sigs.vv,
-                sigs.rr,
-                sigs.ss
+            tokenAddress,
+            BigInteger.valueOf(amountToSend.toLong()),
+            accGreen,
+            defaultByteHash,
+            sigs.vv,
+            sigs.rr,
+            sigs.ss
         ).send()
 
         assertEquals(
-                BigInteger.valueOf(4000),
-                deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+            BigInteger.valueOf(4000),
+            deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
         )
         assertEquals(
-                initialBalance + BigInteger.valueOf(1000),
-                deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+            initialBalance + BigInteger.valueOf(1000),
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         )
     }
 
@@ -804,16 +804,16 @@ class ContractsTest {
         val amountToSend = 1000
         val tokenAddress = etherAddress
         val initialBalance =
-                deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
 
         val finalHash =
-                hashToWithdraw(
-                        tokenAddress,
-                        amountToSend.toString(),
-                        accGreen,
-                        defaultIrohaHash
-                )
+            hashToWithdraw(
+                tokenAddress,
+                amountToSend.toString(),
+                accGreen,
+                defaultIrohaHash
+            )
 
         val keypairs = ArrayList<ECKeyPair>()
         for (i in 0 until sigCount) {
@@ -826,22 +826,22 @@ class ContractsTest {
         addOneWhiteList(Keys.getAddress(keypair), listOf(accGreen))
 
         master.withdraw(
-                tokenAddress,
-                BigInteger.valueOf(amountToSend.toLong()),
-                accGreen,
-                defaultByteHash,
-                sigs.vv,
-                sigs.rr,
-                sigs.ss
+            tokenAddress,
+            BigInteger.valueOf(amountToSend.toLong()),
+            accGreen,
+            defaultByteHash,
+            sigs.vv,
+            sigs.rr,
+            sigs.ss
         ).send()
 
         assertEquals(
-                BigInteger.valueOf(4000),
-                deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+            BigInteger.valueOf(4000),
+            deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
         )
         assertEquals(
-                initialBalance + BigInteger.valueOf(1000),
-                deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+            initialBalance + BigInteger.valueOf(1000),
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         )
     }
 
@@ -859,12 +859,12 @@ class ContractsTest {
         val tokenAddress = etherAddress
 
         val finalHash =
-                hashToWithdraw(
-                        tokenAddress,
-                        amountToSend.toString(),
-                        accGreen,
-                        defaultIrohaHash
-                )
+            hashToWithdraw(
+                tokenAddress,
+                amountToSend.toString(),
+                accGreen,
+                defaultIrohaHash
+            )
 
         val keypairs = ArrayList<ECKeyPair>()
         for (i in 0 until sigCount) {
@@ -876,13 +876,13 @@ class ContractsTest {
 
         Assertions.assertThrows(TransactionException::class.java) {
             master.withdraw(
-                    tokenAddress,
-                    BigInteger.valueOf(amountToSend.toLong()),
-                    accGreen,
-                    defaultByteHash,
-                    sigs.vv,
-                    sigs.rr,
-                    sigs.ss
+                tokenAddress,
+                BigInteger.valueOf(amountToSend.toLong()),
+                accGreen,
+                defaultByteHash,
+                sigs.vv,
+                sigs.rr,
+                sigs.ss
             ).send()
         }
     }
@@ -896,8 +896,10 @@ class ContractsTest {
     fun addSameWhiteListTwice() {
         addOneWhiteList(Keys.getAddress(keypair), listOf(accGreen)) // first call
         Assertions.assertThrows(TransactionException::class.java) {
-            addOneWhiteList(Keys.getAddress(keypair),
-                    listOf(accGreen))
+            addOneWhiteList(
+                Keys.getAddress(keypair),
+                listOf(accGreen)
+            )
         } // second call
     }
 
@@ -922,16 +924,16 @@ class ContractsTest {
         val sigCount = 4
         val amountToSend = 1000
         val initialBalance =
-                deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
 
         val finalHash =
-                hashToWithdraw(
-                        etherAddress,
-                        amountToSend.toString(),
-                        accGreen,
-                        defaultIrohaHash
-                )
+            hashToWithdraw(
+                etherAddress,
+                amountToSend.toString(),
+                accGreen,
+                defaultIrohaHash
+            )
 
         val keypairs = ArrayList<ECKeyPair>()
         for (i in 0 until sigCount) {
@@ -944,22 +946,22 @@ class ContractsTest {
         addOneWhiteList(Keys.getAddress(keypair), listOf(accGreen))
 
         master.withdraw(
-                etherAddress,
-                BigInteger.valueOf(amountToSend.toLong()),
-                accGreen,
-                defaultByteHash,
-                sigs.vv,
-                sigs.rr,
-                sigs.ss
+            etherAddress,
+            BigInteger.valueOf(amountToSend.toLong()),
+            accGreen,
+            defaultByteHash,
+            sigs.vv,
+            sigs.rr,
+            sigs.ss
         ).send()
 
         assertEquals(
-                BigInteger.valueOf(4000),
-                deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+            BigInteger.valueOf(4000),
+            deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
         )
         assertEquals(
-                initialBalance + BigInteger.valueOf(1000),
-                deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+            initialBalance + BigInteger.valueOf(1000),
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         )
     }
 
@@ -990,7 +992,12 @@ class ContractsTest {
      */
     @Test
     fun addSameAddressInWhiteListTwice() {
-        Assertions.assertThrows(TransactionException::class.java) { addOneWhiteList(Keys.getAddress(keypair), listOf(accGreen, accGreen)) }
+        Assertions.assertThrows(TransactionException::class.java) {
+            addOneWhiteList(
+                Keys.getAddress(keypair),
+                listOf(accGreen, accGreen)
+            )
+        }
     }
 
     /**
@@ -1003,16 +1010,16 @@ class ContractsTest {
         val sigCount = 4
         val amountToSend = 1000
         val initialBalance =
-                deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
 
         val finalHash =
-                hashToWithdraw(
-                        etherAddress,
-                        amountToSend.toString(),
-                        accGreen,
-                        defaultIrohaHash
-                )
+            hashToWithdraw(
+                etherAddress,
+                amountToSend.toString(),
+                accGreen,
+                defaultIrohaHash
+            )
 
         val keypairs = ArrayList<ECKeyPair>()
         for (i in 0 until sigCount) {
@@ -1023,22 +1030,22 @@ class ContractsTest {
         val sigs = prepareSignatures(sigCount, keypairs, finalHash)
 
         master.withdraw(
-                etherAddress,
-                BigInteger.valueOf(amountToSend.toLong()),
-                accGreen,
-                defaultByteHash,
-                sigs.vv,
-                sigs.rr,
-                sigs.ss
+            etherAddress,
+            BigInteger.valueOf(amountToSend.toLong()),
+            accGreen,
+            defaultByteHash,
+            sigs.vv,
+            sigs.rr,
+            sigs.ss
         ).send()
 
         assertEquals(
-                BigInteger.valueOf(4000),
-                deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+            BigInteger.valueOf(4000),
+            deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
         )
         assertEquals(
-                initialBalance + BigInteger.valueOf(1000),
-                deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+            initialBalance + BigInteger.valueOf(1000),
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         )
     }
 

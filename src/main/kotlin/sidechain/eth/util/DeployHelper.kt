@@ -65,18 +65,18 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
     fun sendEthereum(amount: BigInteger, to: String) {
         // get the next available nonce
         val ethGetTransactionCount = web3.ethGetTransactionCount(
-                credentials.address, DefaultBlockParameterName.LATEST
+            credentials.address, DefaultBlockParameterName.LATEST
         ).send()
         val nonce = ethGetTransactionCount.transactionCount
 
         // create our transaction
         val rawTransaction = RawTransaction.createTransaction(
-                nonce,
-                gasPrice,
-                gasLimit,
-                to,
-                amount,
-                ""
+            nonce,
+            gasPrice,
+            gasLimit,
+            to,
+            amount,
+            ""
         )
 
         // sign & send our transaction
@@ -109,10 +109,10 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      */
     fun deployRelayRegistrySmartContract(): RelayRegistry {
         return contract.RelayRegistry.deploy(
-                web3,
-                credentials,
-                gasPrice,
-                gasLimit
+            web3,
+            credentials,
+            gasPrice,
+            gasLimit
         ).send()
     }
 
@@ -122,11 +122,11 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      */
     fun deployMasterSmartContract(relayRegistry: String): Master {
         val master = contract.Master.deploy(
-                web3,
-                credentials,
-                gasPrice,
-                gasLimit,
-                relayRegistry
+            web3,
+            credentials,
+            gasPrice,
+            gasLimit,
+            relayRegistry
         ).send()
         logger.info { "Master smart contract ${master.contractAddress} was deployed" }
         return master
