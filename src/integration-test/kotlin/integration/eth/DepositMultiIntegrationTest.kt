@@ -2,7 +2,6 @@ package integration.eth
 
 import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import sidechain.eth.util.ETH_PRECISION
@@ -66,7 +65,6 @@ class DepositmultiIntegrationTest {
      * to "relayWallet"
      * @then Associated Iroha account balance is increased on 1234000000000 Wei
      */
-    @Disabled
     @Test
     fun depositMultisig() {
         val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId)

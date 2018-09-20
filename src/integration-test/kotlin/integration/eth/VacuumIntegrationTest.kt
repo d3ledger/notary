@@ -3,7 +3,6 @@ package integration.eth
 import integration.helper.IntegrationHelperUtil
 import mu.KLogging
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.math.BigInteger
 
@@ -21,7 +20,6 @@ class VacuumIntegrationTest {
      * @when vacuum is invoked
      * @then all ETH assets from deployed relay contracts transferred to master contract
      */
-    @Disabled
     @Test
     fun testVacuum() {
         deployFewTokens()

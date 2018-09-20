@@ -180,43 +180,9 @@ class IrohaBatchTest {
                 }
             )
 
-        uquery = ModelQueryBuilder()
-            .creatorAccountId(tester)
-            .queryCounter(counter)
-            .createdTime(ModelUtil.getCurrentTime())
-            .getAccountAssets(tester)
-            .build()
+        val tester_amount = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester).get()
 
-        val tester_amount = ModelUtil.prepareQuery(uquery, keypair)
-            .fold(
-                { protoQuery ->
-                    val queryResponse = queryStub.find(protoQuery)
-                    queryResponse.accountAssetsResponse.accountAssetsList.first().balance
-                },
-                {
-                    fail { "Exception while converting byte array to protobuf:" + it.message }
-                }
-            )
-
-
-        uquery = ModelQueryBuilder()
-            .creatorAccountId(tester)
-            .queryCounter(counter)
-            .createdTime(ModelUtil.getCurrentTime())
-            .getAccountAssets("$user@notary")
-            .build()
-
-        val u1_amount = ModelUtil.prepareQuery(uquery, keypair)
-            .fold(
-                { protoQuery ->
-                    val queryResponse = queryStub.find(protoQuery)
-                    queryResponse.accountAssetsResponse.accountAssetsList.first().balance
-                },
-                {
-                    fail { "Exception while converting byte array to protobuf:" + it.message }
-                }
-            )
-
+        val u1_amount = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, "$user@notary").get()
 
         assertEquals(hashes, successHash)
         assertEquals(account.accountId, "$user@notary")

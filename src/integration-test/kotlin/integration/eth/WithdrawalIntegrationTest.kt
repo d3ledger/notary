@@ -6,7 +6,6 @@ import notary.endpoint.eth.BigIntegerMoshiAdapter
 import notary.endpoint.eth.EthNotaryResponse
 import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import sidechain.eth.util.DeployHelper
@@ -45,7 +44,6 @@ class WithdrawalIntegrationTest {
      * @when withdrawal service queries notary
      * @then notary replies with refund information and signature
      */
-    @Disabled
     @Test
     fun testRefund() {
         val masterAccount = integrationHelper.accountHelper.notaryAccount

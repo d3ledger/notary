@@ -2,11 +2,9 @@ package integration.eth
 
 import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import sidechain.eth.util.ETH_PRECISION
-import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -54,7 +52,6 @@ class DepositIntegrationTest {
      * @when "fromAddress" transfers 1234000000000 Wei to "relayWallet"
      * @then Associated Iroha account balance is increased on 1234000000000 Wei
      */
-    @Disabled
     @Test
     fun depositOfETH() {
         val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId)
@@ -78,7 +75,6 @@ class DepositIntegrationTest {
      * to "relayWallet"
      * @then Associated Iroha account balance is increased on 1234000000000 Wei
      */
-    @Disabled
     @Test
     fun depositZeroETH() {
         val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId)
@@ -111,7 +107,6 @@ class DepositIntegrationTest {
      * @when "fromAddress" transfers 51 coin to "relayWallet"
      * @then Associated Iroha account balance is increased on 51 coin
      */
-    @Disabled
     @Test
     fun depositOfERC20() {
         val (tokenInfo, tokenAddress) = integrationHelper.deployRandomERC20Token(2)
@@ -137,7 +132,6 @@ class DepositIntegrationTest {
      * @when "fromAddress" transfers 0 tokens to "relayWallet" and then "fromAddress" transfers 51 coin to "relayWallet"
      * @then Associated Iroha account balance is increased on 51 coin
      */
-    @Disabled
     @Test
     fun depositZeroOfERC20() {
         val (tokenInfo, tokenAddress) = integrationHelper.deployRandomERC20Token(2)

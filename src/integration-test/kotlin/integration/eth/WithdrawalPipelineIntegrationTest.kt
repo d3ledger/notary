@@ -3,9 +3,11 @@ package integration.eth
 import integration.helper.IntegrationHelperUtil
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelCrypto
-import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import sidechain.eth.util.ETH_PRECISION
 import util.getRandomString
 import java.math.BigDecimal
@@ -71,7 +73,6 @@ class WithdrawalPipelineIntegrationTest {
      * @when user transfers 125 Wei to Iroha master account
      * @then balance of user's wallet in Ethereum increased by 125 Wei
      */
-    @Disabled
     @Test
     fun testFullWithdrawalPipeline() {
         val amount = BigInteger.valueOf(1251400000000)
@@ -118,7 +119,6 @@ class WithdrawalPipelineIntegrationTest {
      * @when user transfers 125 OMG to Iroha master account
      * @then balance of user's wallet in Ethereum increased by 125 OMG
      */
-    @Disabled
     @Test
     fun testFullWithdrawalPipelineErc20() {
         val precision: Short = 2
@@ -174,7 +174,6 @@ class WithdrawalPipelineIntegrationTest {
      * @when client initiates withdrawal
      * @then notary approves the withdrawal
      */
-    @Disabled
     @Test
     fun testWithdrawInWhitelist() {
         integrationHelper.registerClient(clientName, keypair)
@@ -210,7 +209,6 @@ class WithdrawalPipelineIntegrationTest {
      * @when client initiates withdrawal
      * @then withdrawal is allowed by notary
      */
-    @Disabled
     @Test
     fun testWithdrawEmptyWhitelist() {
         integrationHelper.registerClient(clientName, keypair)
@@ -245,7 +243,6 @@ class WithdrawalPipelineIntegrationTest {
      * @when client initiates withdrawal
      * @then withdrawal is disallowed by notary
      */
-    @Disabled
     @Test
     fun testWithdrawNotInWhitelist() {
         integrationHelper.registerClient(clientName, keypair)
