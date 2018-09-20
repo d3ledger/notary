@@ -325,7 +325,6 @@ class IntegrationHelperUtil {
      */
     fun registerRandomRelay(): String {
         val ethWallet = registerClient(String.getRandomString(9))
-        Thread.sleep(10_000)
         return ethWallet
     }
 
