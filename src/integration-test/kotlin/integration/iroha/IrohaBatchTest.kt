@@ -25,7 +25,9 @@ import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 
 class IrohaBatchTest {
+
     init {
+        Thread.sleep(30_000)
         System.loadLibrary("irohajava")
     }
 
@@ -40,14 +42,6 @@ class IrohaBatchTest {
     }
 
     private val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
-
-    private val channel by lazy {
-        ModelUtil.getChannel(testConfig.iroha.hostname, testConfig.iroha.port)
-    }
-
-    private val queryStub by lazy {
-        ModelUtil.getQueryStub(channel)
-    }
 
     private fun randomString() = String.getRandomString(10)
 
@@ -133,7 +127,6 @@ class IrohaBatchTest {
                 Blob(iroha.hashTransaction(it.toByteArray().toByteVector())).hex()
             }
         }
-
 
         val successHash = irohaConsumer.sendAndCheck(lst).get()
 
@@ -241,11 +234,11 @@ class IrohaBatchTest {
         val hashes = lst.map { it.hash().hex() }
         val expectedHashes = hashes.subList(0, hashes.size - 1)
 
-
         val listener = IrohaChainListener(
             testConfig.iroha.hostname,
             testConfig.iroha.port,
-            tester, keypair
+            tester,
+            keypair
         )
         val blockHashes = async {
             listener.getBlock().payload.transactionsList.map {
