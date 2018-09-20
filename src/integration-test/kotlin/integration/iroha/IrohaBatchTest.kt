@@ -19,9 +19,7 @@ import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
-import sidechain.iroha.util.ModelUtil
-import sidechain.iroha.util.getAccountAsset
-import sidechain.iroha.util.toByteVector
+import sidechain.iroha.util.*
 import util.getRandomString
 import java.math.BigInteger
 import java.util.concurrent.TimeUnit
@@ -143,51 +141,14 @@ class IrohaBatchTest {
 
         val successHash = irohaConsumer.sendAndCheck(lst).get()
 
-
-        var uquery = ModelQueryBuilder()
-            .creatorAccountId(tester)
-            .queryCounter(counter)
-            .createdTime(ModelUtil.getCurrentTime())
-            .getAccount("$user@notary")
-            .build()
-
-        val account = ModelUtil.prepareQuery(uquery, keypair)
-            .fold(
-                { protoQuery ->
-                    val queryResponse = queryStub.find(protoQuery)
-                    queryResponse.accountResponse.account
-                },
-                {
-                    fail { "Exception while converting byte array to protobuf:" + it.message }
-                }
-            )
-
-        uquery = ModelQueryBuilder()
-            .creatorAccountId(tester)
-            .queryCounter(counter)
-            .createdTime(ModelUtil.getCurrentTime())
-            .getAssetInfo("$asset_name#notary")
-            .build()
-
-        val asset = ModelUtil.prepareQuery(uquery, keypair)
-            .fold(
-                { protoQuery ->
-                    val queryResponse = queryStub.find(protoQuery)
-                    queryResponse.assetResponse.asset
-                },
-                {
-                    fail { "Exception while converting byte array to protobuf:" + it.message }
-                }
-            )
+        val accountJson = getAccountData(testConfig.iroha, keypair, irohaNetwork, "$user@notary").get().toJsonString()
 
         val tester_amount = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester).get()
 
         val u1_amount = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, "$user@notary").get()
 
         assertEquals(hashes, successHash)
-        assertEquals(account.accountId, "$user@notary")
-        assertEquals(account.jsonData, "{\"test@notary\": {\"key\": \"value\"}}")
-        assertEquals(asset.assetId, "$asset_name#notary")
+        assertEquals("{\"test@notary\":{\"key\":\"value\"}}", accountJson)
         assertEquals(tester_amount.toInt(), 73)
         assertEquals(u1_amount.toInt(), 27)
 
@@ -296,54 +257,16 @@ class IrohaBatchTest {
             }
         }
 
-
         val successHash = irohaConsumer.sendAndCheck(lst).get()
 
-
-        var uquery = ModelQueryBuilder()
-            .creatorAccountId(tester)
-            .queryCounter(counter)
-            .createdTime(ModelUtil.getCurrentTime())
-            .getAccount("$user@notary")
-            .build()
-
-        val account = ModelUtil.prepareQuery(uquery, keypair)
-            .fold(
-                { protoQuery ->
-                    val queryResponse = queryStub.find(protoQuery)
-                    queryResponse.accountResponse.account
-                },
-                {
-                    fail { "Exception while converting byte array to protobuf:" + it.message }
-                }
-            )
-
-        uquery = ModelQueryBuilder()
-            .creatorAccountId(tester)
-            .queryCounter(counter)
-            .createdTime(ModelUtil.getCurrentTime())
-            .getAssetInfo("$asset_name#notary")
-            .build()
-
-        val asset = ModelUtil.prepareQuery(uquery, keypair)
-            .fold(
-                { protoQuery ->
-                    val queryResponse = queryStub.find(protoQuery)
-                    queryResponse.assetResponse.asset
-                },
-                {
-                    fail { "Exception while converting byte array to protobuf:" + it.message }
-                }
-            )
+        val accountJson = getAccountData(testConfig.iroha, keypair, irohaNetwork, "$user@notary").get().toJsonString()
 
         val tester_amount = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester).get()
 
         val u1_amount = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, "$user@notary").get()
 
         assertEquals(expectedHashes, successHash)
-        assertEquals(account.accountId, "$user@notary")
-        assertEquals(account.jsonData, "{\"test@notary\": {\"key\": \"value\"}}")
-        assertEquals(asset.assetId, "$asset_name#notary")
+        assertEquals("{\"test@notary\":{\"key\":\"value\"}}", accountJson)
         assertEquals(tester_amount.toInt(), 73)
         assertEquals(u1_amount.toInt(), 27)
 
