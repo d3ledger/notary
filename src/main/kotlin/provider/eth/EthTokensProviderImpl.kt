@@ -27,9 +27,7 @@ class EthTokensProviderImpl(
 ) : EthTokensProvider {
 
     init {
-        EthRelayProviderIrohaImpl.logger.info {
-            "Init token provider, sotrage: '$tokenStorageAccount', setter: '$tokenSetterAccount'"
-        }
+        logger.info { "Init token provider, sotrage: '$tokenStorageAccount', setter: '$tokenSetterAccount'" }
     }
 
     private val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)

@@ -337,14 +337,12 @@ object ModelUtil {
      * Registers ERC20 tokens in Iroha
      * @param tokens - map of tokens to register(address->token info
      * @param tokenStorageAccount - account that holds tokens
-     * @param tokenSetterAccount - account that creates tokens
      * @param irohaConsumer - iroha network layer
      * @return hex representation of transaction hash
      */
     fun registerERC20Tokens(
         tokens: Map<String, EthTokenInfo>,
         tokenStorageAccount: String,
-        tokenSetterAccount: String,
         irohaConsumer: IrohaConsumer
     ): Result<String, Exception> {
         return Result.of {

@@ -73,7 +73,7 @@ class IntegrationHelperUtil {
 
     private val tokenProviderIrohaConsumer by lazy {
         IrohaConsumerImpl(
-            accountHelper.tokenStorageAccount,
+            accountHelper.tokenSetterAccount,
             configHelper.testConfig.iroha
         )
     }
@@ -178,9 +178,6 @@ class IntegrationHelperUtil {
 
     /**
      * Pregenerates one BTC address that can be registered later
-     * Query Iroha account balance
-     * @param accountId - account in Iroha
-     * @param assetId - asset in Iroha
      * @return randomly generated BTC address
      */
     fun preGenBtcAddress(): Result<Address, Exception> {
@@ -198,7 +195,6 @@ class IntegrationHelperUtil {
 
     /**
      * Registers BTC client
-     * Query Iroha account balance
      * @param irohaAccountName - client account in Iroha
      * @return btc address related to client
      */
@@ -252,10 +248,12 @@ class IntegrationHelperUtil {
         ModelUtil.createAsset(irohaConsumer, tokenName, "ethereum", precision)
         ModelUtil.setAccountDetail(
             tokenProviderIrohaConsumer,
-            accountHelper.notaryAccount,
+            accountHelper.tokenStorageAccount,
             tokenAddress,
             tokenName
-        ).success { logger.info { "token $tokenName was added" } }
+        ).success {
+            logger.info { "token $tokenName was added to ${accountHelper.tokenStorageAccount} by ${tokenProviderIrohaConsumer.creator}" }
+        }
     }
 
     /**
