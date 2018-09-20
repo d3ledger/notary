@@ -42,7 +42,6 @@ class AccountHelper(private val keyPair: Keypair) {
     val notaryListSetterAccount by lazy { createTesterAccount("eth_notary_setter", "token_service") }
 
     val notaryListStorageAccount by lazy { createTesterAccount("eth_notary_storage", "notary_holder") }
-
     /**
      * Creates randomly named tester account in Iroha
      */
