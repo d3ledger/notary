@@ -296,8 +296,14 @@ class IntegrationHelperUtil {
      */
     fun deployRelays(relaysToDeploy: Int) {
         relayRegistration.deploy(relaysToDeploy, masterContract.contractAddress)
-        logger.info("relays were deployed by ${accountHelper.registrationAccount}")
-        Thread.sleep(10_000)
+            .fold(
+                {
+                    logger.info("Relays were deployed by ${accountHelper.registrationAccount}")
+                },
+                {
+                    logger.error { "Relays were not deployed: $it" }
+                }
+            )
     }
 
     /**
