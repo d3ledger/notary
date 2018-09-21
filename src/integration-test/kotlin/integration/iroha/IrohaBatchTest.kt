@@ -7,6 +7,7 @@ import jp.co.soramitsu.iroha.iroha
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
 import kotlinx.coroutines.experimental.withTimeout
+import mu.KLogging
 import notary.IrohaCommand
 import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
@@ -128,6 +129,11 @@ class IrohaBatchTest {
             }
         }
 
+        logger.info { "start sleep" }
+        Thread.sleep(15_000)
+        logger.info { "end sleep" }
+
+
         val successHash = irohaConsumer.sendAndCheck(lst).get()
 
         val accountJson = getAccountData(testConfig.iroha, keypair, irohaNetwork, "$user@notary").get().toJsonString()
@@ -135,6 +141,9 @@ class IrohaBatchTest {
         val tester_amount = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester).get()
 
         val u1_amount = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, "$user@notary").get()
+
+        logger.info { "${tester} amount $tester_amount" }
+        logger.info { "$$user@notary amount $u1_amount" }
 
         assertEquals(hashes, successHash)
         assertEquals("{\"test@notary\":{\"key\":\"value\"}}", accountJson)
@@ -248,7 +257,10 @@ class IrohaBatchTest {
 
         val successHash = irohaConsumer.sendAndCheck(lst).get()
 
-        Thread.sleep(3_000)
+        logger.info { "start sleep" }
+        Thread.sleep(15_000)
+        logger.info { "end sleep" }
+
 
 //        getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester)
 //            .fold({
@@ -265,6 +277,9 @@ class IrohaBatchTest {
 
         val u1_amount = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, "$user@notary").get()
 
+        logger.info { "${tester} amount $tester_amount" }
+        logger.info { "$$user@notary amount $u1_amount" }
+
         assertEquals(expectedHashes, successHash)
         assertEquals("{\"test@notary\":{\"key\":\"value\"}}", accountJson)
         assertEquals(tester_amount.toInt(), 73)
@@ -276,5 +291,8 @@ class IrohaBatchTest {
             }
         }
     }
+
+    companion object : KLogging()
+
 }
 
