@@ -248,6 +248,8 @@ class IrohaBatchTest {
 
         val successHash = irohaConsumer.sendAndCheck(lst).get()
 
+        Thread.sleep(3_000)
+
 //        getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester)
 //            .fold({
 //                println("!!!Success getAccountAsset: $it")
