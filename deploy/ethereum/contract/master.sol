@@ -34,7 +34,6 @@ contract Master {
      * Constructor. Sets contract owner to contract creator.
      */
     constructor(address relayRegistry) public {
-        require(relayRegistry != (0x0));
         owner_ = msg.sender;
         relay_registry_address_ = relayRegistry;
         relay_registry_instance_ = IRelayRegistry(relay_registry_address_);

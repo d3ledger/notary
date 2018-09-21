@@ -112,6 +112,28 @@ class ContractsTest {
     /**
      * Withdraw assets
      * @param amount how much to withdraw
+     * @param to account address
+     */
+    private fun withdraw(to: String, amount: BigInteger) {
+        val tokenAddress = token.contractAddress
+
+        val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, defaultIrohaHash)
+        val sigs = prepareSignatures(1, listOf(keypair), finalHash)
+
+        master.withdraw(
+            tokenAddress,
+            amount,
+            to,
+            defaultByteHash,
+            sigs.vv,
+            sigs.rr,
+            sigs.ss
+        ).send()
+    }
+
+    /**
+     * Withdraw assets
+     * @param amount how much to withdraw
      * @param tokenAddress list of addresses allowed to withdraw
      * @param to destination address
      */
@@ -1015,6 +1037,23 @@ class ContractsTest {
             initialBalance + BigInteger.valueOf(1000),
             deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         )
+    }
+
+    /**
+     * @given relay registry and master contract
+     * @when try to withdraw to address which is not in whitelist
+     * @then should throws exception
+     */
+    @Test
+    fun withdrawToAddressAbsentInWhiteList() {
+        addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
+        Assertions.assertThrows(TransactionException::class.java) {
+            withdraw(
+                "0x1", //wrong address
+                BigInteger.valueOf(4000)
+            )
+        }
+
     }
 
 }
