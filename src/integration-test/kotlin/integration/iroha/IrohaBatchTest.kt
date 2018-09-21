@@ -129,12 +129,13 @@ class IrohaBatchTest {
             }
         }
 
+        val successHash = irohaConsumer.sendAndCheck(lst).get()
+
         logger.info { "start sleep" }
         Thread.sleep(15_000)
         logger.info { "end sleep" }
 
-
-        val successHash = irohaConsumer.sendAndCheck(lst).get()
+        logger.info { "query" }
 
         val accountJson = getAccountData(testConfig.iroha, keypair, irohaNetwork, "$user@notary").get().toJsonString()
 
@@ -260,6 +261,8 @@ class IrohaBatchTest {
         logger.info { "start sleep" }
         Thread.sleep(15_000)
         logger.info { "end sleep" }
+
+        logger.info { "query" }
 
 
 //        getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester)
