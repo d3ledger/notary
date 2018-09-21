@@ -11,7 +11,7 @@ interface IRelayRegistry {
      * @param whiteList with allowed addresses
      * @return true if data was stored
      */
-    function addNewRelayAddress(address relay, address[] whiteList) external returns (bool);
+    function addNewRelayAddress(address relay, address[] whiteList) external;
 
     /**
      * Check if some address is in the whitelist

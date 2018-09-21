@@ -937,64 +937,14 @@ class ContractsTest {
     }
 
     /**
-     * @given deployed relay registry, master contract, relay contract and white list
-     * @when relay call withdraw
-     * @then withdraw is successful
-     */
-    @Test
-    fun addWhiteListAndWithdraw() {
-        val sigCount = 4
-        val amountToSend = 1000
-        val initialBalance =
-            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
-        deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
-
-        val finalHash =
-            hashToWithdraw(
-                etherAddress,
-                amountToSend.toString(),
-                accGreen,
-                defaultIrohaHash
-            )
-
-        val keypairs = ArrayList<ECKeyPair>()
-        for (i in 0 until sigCount) {
-            val keypair = Keys.createEcKeyPair()
-            keypairs.add(keypair)
-            sendAddPeer("0x" + Keys.getAddress(keypair))
-        }
-        val sigs = prepareSignatures(sigCount, keypairs, finalHash)
-
-        addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
-
-        master.withdraw(
-            etherAddress,
-            BigInteger.valueOf(amountToSend.toLong()),
-            accGreen,
-            defaultByteHash,
-            sigs.vv,
-            sigs.rr,
-            sigs.ss
-        ).send()
-
-        assertEquals(
-            BigInteger.valueOf(4000),
-            deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
-        )
-        assertEquals(
-            initialBalance + BigInteger.valueOf(1000),
-            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
-        )
-    }
-
-    /**
      * @given relay registry contract
      * @when add list of 100 addresses
      * @then all addresses should be stored successful
      */
     @Test
-    fun addOneHundredAddressesInWhiteList() {
+    fun addOneHundredAddressesInWhiteListAndCheckThem() {
         val whiteListSize = 100
+        var equalAddressesSize = 0
         val whiteList = mutableListOf<String>()
         for (i in 0 until whiteListSize) {
             val keypair = Keys.createEcKeyPair()
@@ -1004,22 +954,18 @@ class ContractsTest {
         val addressList: List<String> = whiteList.toList()
 
         addWhiteListToRelayRegistry(Keys.getAddress(keypair), addressList)
-        assertEquals(whiteListSize, relayRegistry.getWhiteListByRelay(Keys.getAddress(keypair)).send().size)
-    }
 
-    /**
-     * @given relay registry contract
-     * @when add same address twice
-     * @then should be thrown
-     */
-    @Test
-    fun addSameAddressInWhiteListTwice() {
-        Assertions.assertThrows(TransactionException::class.java) {
-            addWhiteListToRelayRegistry(
-                Keys.getAddress(keypair),
-                listOf(accGreen, accGreen)
-            )
+        for (i in 0 until addressList.size) {
+            if (relayRegistry.isWhiteListed(
+                    Keys.getAddress(keypair),
+                    addressList[i]
+                ).send()
+            ) {
+                equalAddressesSize++
+            }
         }
+
+        assertEquals(equalAddressesSize, relayRegistry.getWhiteListByRelay(Keys.getAddress(keypair)).send().size)
     }
 
     /**

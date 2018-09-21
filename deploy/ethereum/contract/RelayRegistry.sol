@@ -8,7 +8,6 @@ contract RelayRegistry is IRelayRegistry {
     address private owner_;
 
     mapping(address => address[]) private _relayWhiteList;
-    mapping(address => bool) private _whiteList;
 
     constructor () public {
         owner_ = msg.sender;
@@ -17,26 +16,13 @@ contract RelayRegistry is IRelayRegistry {
     /**
      * Store relay address and appropriate whitelist of addresses
      * @param relay contract address
-     * @param newWhiteList white list
-     * @return true if data was stored
+     * @param whiteList white list
      */
-    function addNewRelayAddress(address relay, address[] newWhiteList) external returns (bool) {
+    function addNewRelayAddress(address relay, address[] whiteList) external {
         require(msg.sender == owner_);
-        require(newWhiteList.length <= 100);
-        require(relay != address(0));
         require(_relayWhiteList[relay].length == 0);
-
-        for (uint i = 0; i < newWhiteList.length; i++) {
-            require(newWhiteList[i] != (0x0));
-            require(_whiteList[newWhiteList[i]] == false);
-            _whiteList[newWhiteList[i]] = true;
-            emit newWhiteListed(newWhiteList[i]);
-        }
-
-        _relayWhiteList[relay] = newWhiteList;
-
-        emit AddNewRelay(relay, newWhiteList);
-        return true;
+        _relayWhiteList[relay] = whiteList;
+        emit AddNewRelay(relay, whiteList);
     }
 
     /**
@@ -50,7 +36,11 @@ contract RelayRegistry is IRelayRegistry {
             return true;
         }
         if (_relayWhiteList[relay].length > 0) {
-            return _whiteList[who];
+            for (uint i = 0; i < _relayWhiteList[relay].length; i++) {
+                if (who == _relayWhiteList[relay][i]) {
+                    return true;
+                }
+            }
         }
         return false;
     }
