@@ -45,7 +45,7 @@ class DepositmultiIntegrationTest {
 
         // create 2nd notray config
         val irohaConfig =
-            integrationHelper.configHelper.createIrohaConfig(pubkeyPath = pubkeyPath, privkeyPath = privkeyPath)
+            integrationHelper.configHelper.createIrohaConfig()
         val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig(irohaConfig)
 
         val keypair = ModelUtil.loadKeypair(pubkeyPath, privkeyPath).get()

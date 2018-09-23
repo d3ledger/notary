@@ -1,6 +1,7 @@
 package integration.iroha
 
 import config.loadConfigs
+import integration.helper.IntegrationHelperUtil
 import jp.co.soramitsu.iroha.Blob
 import jp.co.soramitsu.iroha.ModelCrypto
 import jp.co.soramitsu.iroha.ModelQueryBuilder
@@ -30,11 +31,10 @@ class IrohaBatchTest {
         loadConfigs("test", EthNotaryConfig::class.java)
     }
 
-    private val tester = "test@notary"
+    private val testCredential = IntegrationHelperUtil().testCredential
 
-    private val keypair by lazy {
-        ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
-    }
+    private val keypair = testCredential.keyPair
+    private val tester = testCredential.accountId
 
     private val counter = BigInteger.ONE
 
@@ -64,7 +64,7 @@ class IrohaBatchTest {
         val user = randomString()
         val asset_name = randomString()
 
-        val irohaConsumer = IrohaConsumerImpl(testConfig.iroha.creator, testConfig.iroha)
+        val irohaConsumer = IrohaConsumerImpl(testCredential, testConfig.iroha)
 
         val txList =
             listOf(
@@ -128,7 +128,7 @@ class IrohaBatchTest {
         val listener = IrohaChainListener(
             testConfig.iroha.hostname,
             testConfig.iroha.port,
-            tester, keypair
+            testCredential
         )
         val blockHashes = async {
             listener.getBlock().payload.transactionsList.map {
@@ -238,7 +238,7 @@ class IrohaBatchTest {
         val user = randomString()
         val asset_name = randomString()
 
-        val irohaConsumer = IrohaConsumerImpl(testConfig.iroha.creator, testConfig.iroha)
+        val irohaConsumer = IrohaConsumerImpl(testCredential, testConfig.iroha)
 
         val txList =
             listOf(
@@ -318,7 +318,7 @@ class IrohaBatchTest {
         val listener = IrohaChainListener(
             testConfig.iroha.hostname,
             testConfig.iroha.port,
-            tester, keypair
+            testCredential
         )
         val blockHashes = async {
             listener.getBlock().payload.transactionsList.map {

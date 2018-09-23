@@ -6,6 +6,7 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import config.loadConfigs
 import config.loadEthPasswords
+import model.IrohaCredential
 import mu.KLogging
 import provider.eth.EthRelayProviderIrohaImpl
 import provider.eth.EthTokensProviderImpl
@@ -25,23 +26,28 @@ fun main(args: Array<String>) {
 fun executeNotary(notaryConfig: EthNotaryConfig, args: Array<String> = emptyArray()) {
     logger.info { "Run ETH notary" }
     val passwordConfig = loadEthPasswords("eth-notary", "/eth/ethereum_password.properties", args)
+    val credential = IrohaCredential(
+        notaryConfig.notaryCredential.accountId,
+        ModelUtil.loadKeypair(notaryConfig.notaryCredential.pubkeyPath, notaryConfig.notaryCredential.privkeyPath).get()
+    )
+
+
     IrohaInitialization.loadIrohaLibrary()
-        .flatMap { ModelUtil.loadKeypair(notaryConfig.iroha.pubkeyPath, notaryConfig.iroha.privkeyPath) }
-        .flatMap { keypair ->
+        .flatMap {
             val ethRelayProvider = EthRelayProviderIrohaImpl(
                 notaryConfig.iroha,
-                keypair,
-                notaryConfig.iroha.creator,
+                credential,
+                credential.accountId,
                 notaryConfig.registrationServiceIrohaAccount
             )
             val ethTokensProvider = EthTokensProviderImpl(
                 notaryConfig.iroha,
-                keypair,
+                credential,
                 notaryConfig.tokenStorageAccount,
                 notaryConfig.tokenSetterAccount
             )
             EthNotaryInitialization(
-                keypair,
+                credential,
                 notaryConfig,
                 passwordConfig,
                 ethRelayProvider,

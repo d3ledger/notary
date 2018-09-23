@@ -2,6 +2,7 @@ package provider
 
 import config.IrohaConfig
 import jp.co.soramitsu.iroha.Keypair
+import model.IrohaCredential
 import mu.KLogging
 import provider.eth.EthRelayProviderIrohaImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
@@ -12,7 +13,7 @@ import sidechain.iroha.util.getAccountDetails
  */
 class NotaryPeerListProviderImpl(
     private val iroha: IrohaConfig,
-    private val keypair: Keypair,
+    private val credential: IrohaCredential,
     private val notaryListStorageAccount: String,
     private val notaryListSetterAccount: String
 ) : NotaryPeerListProvider {
@@ -29,8 +30,7 @@ class NotaryPeerListProviderImpl(
     override fun getPeerList(
     ): List<PeerAddress> {
         return getAccountDetails(
-            iroha,
-            keypair,
+            credential,
             irohaNetwork,
             notaryListStorageAccount,
             notaryListSetterAccount

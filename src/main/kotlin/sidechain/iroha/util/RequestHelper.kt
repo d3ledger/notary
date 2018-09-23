@@ -5,11 +5,10 @@ import com.beust.klaxon.Parser
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import config.IrohaConfig
 import iroha.protocol.QryResponses
 import iroha.protocol.TransactionOuterClass
-import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelQueryBuilder
+import model.IrohaCredential
 import sidechain.iroha.consumer.IrohaNetwork
 import java.math.BigInteger
 
@@ -22,18 +21,17 @@ import java.math.BigInteger
  * @param assetId asset id in Iroha
  */
 fun getAssetPrecision(
-    irohaConfig: IrohaConfig,
-    keypair: Keypair,
+    credential: IrohaCredential,
     irohaNetwork: IrohaNetwork,
     assetId: String
 ): Result<Short, Exception> {
-    val uquery = ModelQueryBuilder().creatorAccountId(irohaConfig.creator)
+    val uquery = ModelQueryBuilder().creatorAccountId(credential.accountId)
         .queryCounter(BigInteger.valueOf(1))
         .createdTime(ModelUtil.getCurrentTime())
         .getAssetInfo(assetId)
         .build()
 
-    return ModelUtil.prepareQuery(uquery, keypair)
+    return ModelUtil.prepareQuery(uquery, credential.keyPair)
         .flatMap { query -> irohaNetwork.sendQuery(query) }
         .map { queryResponse ->
             validateResponse(queryResponse, "asset_response")
@@ -51,19 +49,18 @@ fun getAssetPrecision(
  * @return Map with account details
  */
 fun getAccountDetails(
-    irohaConfig: IrohaConfig,
-    keypair: Keypair,
+    credential: IrohaCredential,
     irohaNetwork: IrohaNetwork,
     acc: String,
     detailSetterAccount: String
 ): Result<Map<String, String>, Exception> {
-    val uquery = ModelQueryBuilder().creatorAccountId(irohaConfig.creator)
+    val uquery = ModelQueryBuilder().creatorAccountId(credential.accountId)
         .queryCounter(BigInteger.valueOf(1))
         .createdTime(ModelUtil.getCurrentTime())
         .getAccount(acc)
         .build()
 
-    return ModelUtil.prepareQuery(uquery, keypair)
+    return ModelUtil.prepareQuery(uquery, credential.keyPair)
         .flatMap { query -> irohaNetwork.sendQuery(query) }
         .map { queryResponse ->
             validateResponse(queryResponse, "account_response")

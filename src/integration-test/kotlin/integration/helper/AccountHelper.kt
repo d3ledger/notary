@@ -4,23 +4,30 @@ import config.TestConfig
 import config.loadConfigs
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
+import model.IrohaCredential
 import mu.KLogging
+import org.junit.Test
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 
 //Class that handles all the accounts in integration tests.
-class AccountHelper(private val keyPair: Keypair) {
+class AccountHelper() {
 
-    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
+    val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
-    private val irohaConsumer by lazy { IrohaConsumerImpl(testConfig.iroha.creator, testConfig.iroha) }
+    private val testCredential = IrohaCredential(
+        testConfig.testCredential.accountId,
+        ModelUtil.loadKeypair(testConfig.testCredential.pubkeyPath, testConfig.testCredential.privkeyPath).get()
+    )
+
+    private val irohaConsumer by lazy { IrohaConsumerImpl(testCredential, testConfig.iroha) }
 
     /** Notary account*/
     val notaryAccount by lazy { createTesterAccount("eth_notary", "notary") }
 
     /** Notary keys */
-    val notaryKeys = mutableListOf(keyPair)
+    val notaryKeys = mutableListOf(testCredential.keyPair)
 
     /** Account that used to store registered clients.*/
     val registrationAccount by lazy {
@@ -43,23 +50,26 @@ class AccountHelper(private val keyPair: Keypair) {
 
     val notaryListStorageAccount by lazy { createTesterAccount("notary_storage", "notary_holder") }
 
+
+
     /**
      * Creates randomly named tester account in Iroha
      */
-    private fun createTesterAccount(prefix: String, roleName: String = "tester"): String {
+    private fun createTesterAccount(prefix: String, roleName: String = "tester"): IrohaCredential {
         val name = prefix + "_${String.getRandomString(9)}"
         val domain = "notary"
-        val creator = testConfig.iroha.creator
+        // TODO - Bulat - generate new keys for account?
+        val creator = testCredential.accountId
         irohaConsumer.sendAndCheck(
             ModelTransactionBuilder()
                 .creatorAccountId(creator)
                 .createdTime(ModelUtil.getCurrentTime())
-                .createAccount(name, domain, keyPair.publicKey())
+                .createAccount(name, domain, testCredential.keyPair.publicKey())
                 .appendRole("$name@$domain", roleName)
                 .build()
         ).fold({
             logger.info("account $name@$domain was created")
-            return "$name@$domain"
+            return IrohaCredential("$name@$domain", testCredential.keyPair)
         }, { ex ->
             throw ex
         })
@@ -71,10 +81,10 @@ class AccountHelper(private val keyPair: Keypair) {
     fun addNotarySignatory(keypair: Keypair) {
         irohaConsumer.sendAndCheck(
             ModelTransactionBuilder()
-                .creatorAccountId(notaryAccount)
+                .creatorAccountId(notaryAccount.accountId)
                 .createdTime(ModelUtil.getCurrentTime())
-                .addSignatory(notaryAccount, keypair.publicKey())
-                .setAccountQuorum(notaryAccount, notaryKeys.size + 1)
+                .addSignatory(notaryAccount.accountId, keypair.publicKey())
+                .setAccountQuorum(notaryAccount.accountId, notaryKeys.size + 1)
                 .build()
         ).fold({
             notaryKeys.add(keypair)

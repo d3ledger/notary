@@ -4,6 +4,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import config.IrohaConfig
 import jp.co.soramitsu.iroha.Keypair
+import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.getAccountDetails
@@ -18,7 +19,7 @@ import sidechain.iroha.util.getAccountDetails
  */
 class EthRelayProviderIrohaImpl(
     private val irohaConfig: IrohaConfig,
-    private val keypair: Keypair,
+    private val credential: IrohaCredential,
     private val notaryAccount: String,
     private val registrationAccount: String
 ) : EthRelayProvider {
@@ -37,8 +38,7 @@ class EthRelayProviderIrohaImpl(
      */
     override fun getRelays(): Result<Map<String, String>, Exception> {
         return getAccountDetails(
-            irohaConfig,
-            keypair,
+            credential,
             irohaNetwork,
             notaryAccount,
             registrationAccount

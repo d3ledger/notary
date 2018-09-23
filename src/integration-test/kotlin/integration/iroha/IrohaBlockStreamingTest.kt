@@ -3,6 +3,7 @@ package integration.iroha
 import com.github.kittinunf.result.map
 import config.TestConfig
 import config.loadConfigs
+import integration.helper.IntegrationHelperUtil
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.delay
@@ -27,14 +28,10 @@ class IrohaBlockStreamingTest {
     /** Test configurations */
     val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
-    val creator = testConfig.iroha.creator
+    val testCredential = IntegrationHelperUtil().testCredential
+    val creator = testCredential.accountId
 
-    val keypair by lazy {
-        ModelUtil.loadKeypair(
-            testConfig.iroha.pubkeyPath,
-            testConfig.iroha.privkeyPath
-        ).get()
-    }
+    val keypair = testCredential.keyPair
 
     @BeforeAll
     fun setUp() {
@@ -53,7 +50,7 @@ class IrohaBlockStreamingTest {
         IrohaChainListener(
             testConfig.iroha.hostname,
             testConfig.iroha.port,
-            creator, keypair
+            testCredential
         ).getBlockObservable()
             .map { obs ->
                 obs.map { block ->
@@ -70,7 +67,7 @@ class IrohaBlockStreamingTest {
             .setAccountDetail(creator, "test", "test")
             .build()
 
-        IrohaConsumerImpl(testConfig.iroha.creator, testConfig.iroha).sendAndCheck(utx)
+        IrohaConsumerImpl(testCredential, testConfig.iroha).sendAndCheck(utx)
         runBlocking {
             delay(5000, TimeUnit.MILLISECONDS)
         }
@@ -91,7 +88,7 @@ class IrohaBlockStreamingTest {
         val listener = IrohaChainListener(
             testConfig.iroha.hostname,
             testConfig.iroha.port,
-            creator, keypair
+            testCredential
         )
 
         val block = async {
@@ -104,7 +101,7 @@ class IrohaBlockStreamingTest {
             .setAccountDetail(creator, "test", "test")
             .build()
 
-        IrohaConsumerImpl(testConfig.iroha.creator, testConfig.iroha).sendAndCheck(utx)
+        IrohaConsumerImpl(testCredential, testConfig.iroha).sendAndCheck(utx)
 
         runBlocking {
             val bl = block.await()

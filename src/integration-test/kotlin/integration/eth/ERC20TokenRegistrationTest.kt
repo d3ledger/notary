@@ -24,9 +24,9 @@ class ERC20TokenRegistrationTest {
 
     private val ethTokensProvider = EthTokensProviderImpl(
         integrationHelper.configHelper.createIrohaConfig(),
-        integrationHelper.irohaKeyPair,
+        integrationHelper.accountHelper.tokenSetterAccount,
         tokenRegistrationConfig.tokenStorageAccount,
-        tokenRegistrationConfig.tokenSetterAccount
+        integrationHelper.accountHelper.tokenSetterAccount.accountId
     )
 
     @AfterEach

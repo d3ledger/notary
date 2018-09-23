@@ -43,7 +43,7 @@ class WithdrawalPipelineIntegrationTest {
     private val toAddress = integrationHelper.configHelper.testConfig.ethTestAccount
 
     /** Notary account in Iroha */
-    private val notaryAccount = notaryConfig.iroha.creator
+    private val notaryAccount = integrationHelper.accountHelper.notaryAccount.accountId
 
     init {
         integrationHelper.runEthNotary(notaryConfig)

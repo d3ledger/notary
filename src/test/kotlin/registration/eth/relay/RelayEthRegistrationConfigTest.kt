@@ -22,9 +22,7 @@ class RelayEthRegistrationConfigTest {
 
         assertEquals("d3-iroha", relayRegistrationConfig.iroha.hostname)
         assertEquals(50051, relayRegistrationConfig.iroha.port)
-        assertEquals("eth_registration_service_red@notary", relayRegistrationConfig.iroha.creator)
-        assertEquals("deploy/iroha/keys/admin@notary.pub", relayRegistrationConfig.iroha.pubkeyPath)
-        assertEquals("deploy/iroha/keys/admin@notary.priv", relayRegistrationConfig.iroha.privkeyPath)
+
 
         assertEquals("http://d3-eth-node0:8545", relayRegistrationConfig.ethereum.url)
         assertEquals("deploy/ethereum/keys/ropsten.key", relayRegistrationConfig.ethereum.credentialsPath)

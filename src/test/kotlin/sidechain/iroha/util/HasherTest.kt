@@ -19,12 +19,12 @@ class HasherTest {
     }
 
     /** Test configurations */
-    val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
+    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
     /** Test keypair */
-    val keypair = ModelUtil.loadKeypair(
-        testConfig.iroha.pubkeyPath,
-        testConfig.iroha.privkeyPath
+    private val keypair = ModelUtil.loadKeypair(
+        testConfig.testCredential.pubkeyPath,
+        testConfig.testCredential.privkeyPath
     ).get()
 
     /**
@@ -36,7 +36,7 @@ class HasherTest {
     fun testTransferAssetHash() {
 
         val tx = ModelTransactionBuilder()
-            .creatorAccountId("creator@test")
+            .creatorAccountId(testConfig.testCredential.accountId)
             .createdTime(ModelUtil.getCurrentTime())
             .quorum(1)
             .transferAsset("from@test", "to@test", "coin#test", "descr", "123")

@@ -3,6 +3,7 @@ package notary
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import config.IrohaConfig
+import config.IrohaCredentialConfig
 import io.reactivex.Observable
 import notary.eth.EthNotaryConfig
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -17,11 +18,14 @@ class NotaryTest {
 
     /** Configuration for Iroha */
     private val irohaConfig = mock<IrohaConfig>() {
-        on { creator } doReturn "iroha_creator"
-        on { pubkeyPath } doReturn "deploy/iroha/keys/admin@notary.pub"
-        on { privkeyPath } doReturn "deploy/iroha/keys/admin@notary.priv"
         on { port } doReturn 8080
         on { hostname } doReturn "localhost"
+    }
+
+    private val credentialConfig = mock<IrohaCredentialConfig>(){
+        on {privkeyPath} doReturn "deploy/iroha/keys/admin@notary.priv"
+        on {pubkeyPath} doReturn "deploy/iroha/keys/admin@notary.pub"
+        on {accountId} doReturn "notary_red@notary"
     }
 
     /** Configuration for notary */
@@ -29,6 +33,7 @@ class NotaryTest {
         on { iroha } doReturn irohaConfig
         on { notaryListStorageAccount } doReturn "notary_storage"
         on { notaryListSetterAccount } doReturn "notary_setter"
+        on {notaryCredential} doReturn credentialConfig
     }
 
     init {

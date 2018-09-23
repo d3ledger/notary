@@ -46,7 +46,7 @@ class WithdrawalIntegrationTest {
      */
     @Test
     fun testRefund() {
-        val masterAccount = integrationHelper.accountHelper.notaryAccount
+        val masterAccount = integrationHelper.accountHelper.notaryAccount.accountId
         val amount = "64203"
         val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(ETH_PRECISION.toInt()).toPlainString()
         val assetId = "ether#ethereum"
@@ -60,7 +60,7 @@ class WithdrawalIntegrationTest {
         // transfer assets from user to notary master account
         val hash = integrationHelper.transferAssetIrohaFromClient(
             client,
-            integrationHelper.irohaKeyPair,
+            integrationHelper.testCredential.keyPair,
             client,
             masterAccount,
             assetId,
