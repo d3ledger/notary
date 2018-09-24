@@ -54,7 +54,8 @@ fun getAccountAsset(
     irohaConfig: IrohaConfig,
     keypair: Keypair,
     irohaNetwork: IrohaNetwork,
-    accountId: String
+    accountId: String,
+    assetId: String
 ): Result<String, Exception> {
     val uquery = ModelQueryBuilder()
         .creatorAccountId(irohaConfig.creator)
@@ -67,7 +68,9 @@ fun getAccountAsset(
         .flatMap { query -> irohaNetwork.sendQuery(query) }
         .map { queryResponse ->
             validateResponse(queryResponse, "account_assets_response")
-            queryResponse.accountAssetsResponse.accountAssetsList.first().balance
+
+            queryResponse.accountAssetsResponse.accountAssetsList
+                .find { it.assetId == assetId }!!.balance
         }
 }
 

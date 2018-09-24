@@ -110,7 +110,6 @@ class IrohaBatchTest {
 
             )
 
-
         val batch = IrohaOrderedBatch(
             txList
         )
@@ -124,7 +123,6 @@ class IrohaBatchTest {
         )
         val blockHashes = async {
             val block = listener.getBlock()
-            println("async get block: ${block.payload}")
             block.payload.transactionsList.map {
                 Blob(iroha.hashTransaction(it.toByteArray().toByteVector())).hex()
             }
@@ -132,20 +130,10 @@ class IrohaBatchTest {
 
         val successHash = irohaConsumer.sendAndCheck(lst).get()
 
-        logger.info { "start sleep" }
-        Thread.sleep(15_000)
-        logger.info { "end sleep" }
-
-        logger.info { "query" }
-
         val accountJson = getAccountData(testConfig.iroha, keypair, irohaNetwork, "$user@notary").get().toJsonString()
-
-        val tester_amount = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester).get()
-
-        val u1_amount = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, "$user@notary").get()
-
-        logger.info { "${tester} amount $tester_amount" }
-        logger.info { "$$user@notary amount $u1_amount" }
+        val tester_amount = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester, "$asset_name#notary").get()
+        val u1_amount =
+            getAccountAsset(testConfig.iroha, keypair, irohaNetwork, "$user@notary", "$asset_name#notary").get()
 
         assertEquals(hashes, successHash)
         assertEquals("{\"test@notary\":{\"key\":\"value\"}}", accountJson)
@@ -237,7 +225,6 @@ class IrohaBatchTest {
 
             )
 
-
         val batch = IrohaOrderedBatch(
             txList
         )
@@ -253,39 +240,16 @@ class IrohaBatchTest {
         )
         val blockHashes = async {
             val block = listener.getBlock()
-            println("async get block: ${block.payload}")
             block.payload.transactionsList.map {
                 Blob(iroha.hashTransaction(it.toByteArray().toByteVector())).hex()
             }
         }
 
         val successHash = irohaConsumer.sendAndCheck(lst).get()
-
-        logger.info { "start sleep" }
-        Thread.sleep(15_000)
-        logger.info { "end sleep" }
-
-        logger.info { "query" }
-
-
-//        getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester)
-//            .fold({
-//                println("!!!Success getAccountAsset: $it")
-//            },
-//                {
-//                    println("!!!Fail getAccountAsset: $it")
-//                }
-//            )
-
-
         val accountJson = getAccountData(testConfig.iroha, keypair, irohaNetwork, "$user@notary").get().toJsonString()
-
-        val tester_amount = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester).get()
-
-        val u1_amount = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, "$user@notary").get()
-
-        logger.info { "${tester} amount $tester_amount" }
-        logger.info { "$$user@notary amount $u1_amount" }
+        val tester_amount = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester, "$asset_name#notary").get()
+        val u1_amount =
+            getAccountAsset(testConfig.iroha, keypair, irohaNetwork, "$user@notary", "$asset_name#notary").get()
 
         assertEquals(expectedHashes, successHash)
         assertEquals("{\"test@notary\":{\"key\":\"value\"}}", accountJson)
