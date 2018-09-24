@@ -274,6 +274,7 @@ class IrohaBatchTest {
 //                }
 //            )
 
+
         val accountJson = getAccountData(testConfig.iroha, keypair, irohaNetwork, "$user@notary").get().toJsonString()
 
         val tester_amount = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester).get()
