@@ -28,7 +28,6 @@ import kotlin.test.assertEquals
 class IrohaBatchTest {
 
     init {
-        Thread.sleep(30_000)
         System.loadLibrary("irohajava")
     }
 
