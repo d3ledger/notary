@@ -140,6 +140,13 @@ class IrohaBatchTest {
         assertEquals(73, tester_amount.toInt())
         assertEquals(27, u1_amount.toInt())
 
+        /////
+        val tester_amount11 = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester).get()
+        val u1_amount11 = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, "$user@notary").get()
+        logger.info { "again ${tester} amount $tester_amount11" }
+        logger.info { "again $$user@notary amount $u1_amount11" }
+        /////
+
         runBlocking {
             withTimeout(10, TimeUnit.SECONDS) {
                 assertEquals(hashes, blockHashes.await())
@@ -250,6 +257,13 @@ class IrohaBatchTest {
         val tester_amount = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester, "$asset_name#notary").get()
         val u1_amount =
             getAccountAsset(testConfig.iroha, keypair, irohaNetwork, "$user@notary", "$asset_name#notary").get()
+
+        /////
+        val tester_amount11 = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester).get()
+        val u1_amount11 = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, "$user@notary").get()
+        logger.info { "again ${tester} amount $tester_amount11" }
+        logger.info { "again $$user@notary amount $u1_amount11" }
+        /////
 
         assertEquals(expectedHashes, successHash)
         assertEquals("{\"test@notary\":{\"key\":\"value\"}}", accountJson)
