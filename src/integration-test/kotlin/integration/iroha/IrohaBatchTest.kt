@@ -147,8 +147,8 @@ class IrohaBatchTest {
 
         assertEquals(hashes, successHash)
         assertEquals("{\"test@notary\":{\"key\":\"value\"}}", accountJson)
-        assertEquals(tester_amount.toInt(), 73)
-        assertEquals(u1_amount.toInt(), 27)
+        assertEquals(73, tester_amount.toInt())
+        assertEquals(27, u1_amount.toInt())
 
         runBlocking {
             withTimeout(10, TimeUnit.SECONDS) {
@@ -285,8 +285,8 @@ class IrohaBatchTest {
 
         assertEquals(expectedHashes, successHash)
         assertEquals("{\"test@notary\":{\"key\":\"value\"}}", accountJson)
-        assertEquals(tester_amount.toInt(), 73)
-        assertEquals(u1_amount.toInt(), 27)
+        assertEquals(73, tester_amount.toInt())
+        assertEquals(27, u1_amount.toInt())
 
         runBlocking {
             withTimeout(10, TimeUnit.SECONDS) {
