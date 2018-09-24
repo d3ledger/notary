@@ -1,7 +1,7 @@
 package notary
 
 import io.reactivex.Observable
-import notary.btc.BtcNotaryConfig
+import notary.btc.config.BtcNotaryConfig
 import notary.eth.EthNotaryConfig
 import sidechain.SideChainEvent
 

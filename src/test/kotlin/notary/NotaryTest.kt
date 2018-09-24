@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import sidechain.SideChainEvent
+import java.math.BigInteger
 
 /**
  * Test business logic of Notary.
@@ -121,13 +122,14 @@ class NotaryTest {
         val expectedUserId = "from"
         val expectedFrom = "eth_from"
 
-        val custodianIntention = mock<SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit>() {
-            on { hash } doReturn expectedHash
-            on { user } doReturn expectedUserId
-            on { amount } doReturn expectedAmount
-            on { from } doReturn expectedFrom
-            on { asset } doReturn expectedAssetId
-        }
+        val custodianIntention = SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
+            expectedHash,
+            BigInteger.ONE,
+            expectedUserId,
+            expectedAssetId,
+            expectedAmount,
+            expectedFrom
+        )
 
         // source of events from side chains
         val obsEth = Observable.just<SideChainEvent.PrimaryBlockChainEvent>(custodianIntention)
@@ -159,14 +161,14 @@ class NotaryTest {
         val expectedHash = "hash"
         val expectedUserId = "from"
         val expectedFrom = "eth_from"
-
-        val custodianIntention = mock<SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit>() {
-            on { hash } doReturn expectedHash
-            on { user } doReturn expectedUserId
-            on { asset } doReturn expectedAssetId
-            on { amount } doReturn expectedAmount
-            on { from } doReturn expectedFrom
-        }
+        val custodianIntention = SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
+            expectedHash,
+            BigInteger.ONE,
+            expectedUserId,
+            expectedAssetId,
+            expectedAmount,
+            expectedFrom
+        )
 
         // source of events from side chains
         val obsEth = Observable.just<SideChainEvent.PrimaryBlockChainEvent>(custodianIntention)
