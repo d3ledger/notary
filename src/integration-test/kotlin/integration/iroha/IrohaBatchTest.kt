@@ -134,6 +134,7 @@ class IrohaBatchTest {
 
         logger.info { "start sleep" }
 //        Thread.sleep(15_000)
+
         logger.info { "end sleep" }
 
         logger.info { "query" }
