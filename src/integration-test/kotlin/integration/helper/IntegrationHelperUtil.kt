@@ -301,7 +301,7 @@ class IntegrationHelperUtil {
                     logger.info("Relays were deployed by ${accountHelper.registrationAccount}")
                 },
                 {
-                    logger.error { "Relays were not deployed: $it" }
+                    logger.error("Relays were not deployed.", it)
                 }
             )
     }
