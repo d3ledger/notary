@@ -133,8 +133,7 @@ class IrohaBatchTest {
         val successHash = irohaConsumer.sendAndCheck(lst).get()
 
         logger.info { "start sleep" }
-//        Thread.sleep(15_000)
-
+        Thread.sleep(15_000)
         logger.info { "end sleep" }
 
         logger.info { "query" }
@@ -263,7 +262,7 @@ class IrohaBatchTest {
         val successHash = irohaConsumer.sendAndCheck(lst).get()
 
         logger.info { "start sleep" }
-//        Thread.sleep(15_000)
+        Thread.sleep(15_000)
         logger.info { "end sleep" }
 
         logger.info { "query" }
