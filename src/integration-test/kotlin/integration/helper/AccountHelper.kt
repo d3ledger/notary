@@ -1,5 +1,6 @@
 package integration.helper
 
+import config.IrohaCredentialConfig
 import config.TestConfig
 import config.loadConfigs
 import jp.co.soramitsu.iroha.Keypair
@@ -51,6 +52,17 @@ class AccountHelper() {
     val notaryListStorageAccount by lazy { createTesterAccount("notary_storage", "notary_holder") }
 
 
+
+    fun createCredentialConfig(credetial: IrohaCredential): IrohaCredentialConfig {
+        return object:IrohaCredentialConfig{
+            override val pubkeyPath: String
+                get() =  testConfig.testCredential.pubkeyPath
+            override val privkeyPath: String
+                get() = testConfig.testCredential.privkeyPath
+            override val accountId: String
+                get() = credetial.accountId
+        }
+    }
 
     /**
      * Creates randomly named tester account in Iroha

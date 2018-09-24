@@ -46,7 +46,11 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
         loadConfigs("btc-pregen", BtcPreGenConfig::class.java, "/btc/pregeneration.properties")
 
     val ethTokenRegistrationConfig =
-        loadConfigs("token-registration", ERC20TokenRegistrationConfig::class.java, "/eth/token_registration.properties")
+        loadConfigs(
+            "token-registration",
+            ERC20TokenRegistrationConfig::class.java,
+            "/eth/token_registration.properties"
+        )
 
     fun getTestCredentialConfig(): IrohaCredentialConfig {
         return testConfig.testCredential
@@ -62,7 +66,7 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
             override val tokenStorageAccount: String
                 get() = accountHelper.notaryAccount.accountId
             override val tokenCreatorAccount: IrohaCredentialConfig
-                get() =  getTestCredentialConfig()
+                get() = accountHelper.createCredentialConfig(accountHelper.tokenSetterAccount)
         }
     }
 
@@ -74,7 +78,7 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
             override val notaryListSetterAccount: String
                 get() = accountHelper.notaryListSetterAccount.accountId
             override val mstRegistrationAccount: IrohaCredentialConfig
-                get() =  getTestCredentialConfig()
+                get() = accountHelper.createCredentialConfig(accountHelper.mstRegistrationAccount)
             override val pubKeyTriggerAccount: String
                 get() = btcPkPreGenConfig.pubKeyTriggerAccount
             override val notaryAccount: String
@@ -84,7 +88,7 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
             override val btcWalletFilePath: String
                 get() = btcPkPreGenConfig.btcWalletFilePath
             override val registrationAccount: IrohaCredentialConfig
-                get() = getTestCredentialConfig()
+                get() = accountHelper.createCredentialConfig(accountHelper.registrationAccount)
         }
     }
 
@@ -101,7 +105,7 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
             override val ethereum: EthereumConfig
                 get() = relayRegistrationConfig.ethereum
             override val relayRegistrationCredential: IrohaCredentialConfig
-                get() = getTestCredentialConfig()
+                get() = relayRegistrationConfig.relayRegistrationCredential
         }
     }
 
@@ -135,7 +139,7 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
                 get() = btcNotaryConfig.bitcoin
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
             override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
-            override val notaryCredential = getTestCredentialConfig()
+            override val notaryCredential = accountHelper.createCredentialConfig(accountHelper.notaryAccount)
         }
     }
 
@@ -146,7 +150,7 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
             override val port: Int
                 get() = btcRegistrationConfig.port
             override val registrationCredential: IrohaCredentialConfig
-                get() =  getTestCredentialConfig()
+                get() = btcRegistrationConfig.registrationCredential
             override val iroha: IrohaConfig
                 get() = createIrohaConfig()
             override val btcWalletPath: String
@@ -163,7 +167,7 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
             override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
             override val whitelistSetter = testConfig.whitelistSetter
-            override val notaryCredential =  getTestCredentialConfig()
+            override val notaryCredential = accountHelper.createCredentialConfig(accountHelper.notaryAccount)
             override val refund = createRefundConfig()
             override val iroha = irohaConfig
             override val ethereum = ethNotaryConfig.ethereum
@@ -179,7 +183,7 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
             override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
             override val registrationIrohaAccount = accountHelper.registrationAccount.accountId
-            override val withdrawalCredential =  getTestCredentialConfig()
+            override val withdrawalCredential = withdrawalConfig.withdrawalCredential
             override val iroha = createIrohaConfig()
             override val ethereum = withdrawalConfig.ethereum
         }
@@ -192,7 +196,8 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
             override val relayRegistrationIrohaAccount = accountHelper.registrationAccount.accountId
             override val notaryIrohaAccount = accountHelper.notaryAccount.accountId
             override val iroha = createIrohaConfig()
-            override val registrationCredential = getTestCredentialConfig()
+            override val registrationCredential =
+                accountHelper.createCredentialConfig(accountHelper.registrationAccount)
         }
     }
 
