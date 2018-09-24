@@ -267,8 +267,10 @@ class IntegrationHelperUtil {
      */
     fun deployRelays(relaysToDeploy: Int) {
         relayRegistration.deploy(relaysToDeploy, masterContract.contractAddress, accountHelper.registrationAccount)
-        logger.info("relays were deployed by ${accountHelper.registrationAccount}")
-        Thread.sleep(10_000)
+            .fold({
+                logger.info("relays were deployed by ${accountHelper.registrationAccount}")
+                Thread.sleep(10_000)
+            }, { ex -> throw ex })
     }
 
     /**
