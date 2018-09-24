@@ -36,7 +36,7 @@ class EthRegistrationServiceInitialization(private val ethRegistrationConfig: Et
                         credential,
                         ethRegistrationConfig.notaryIrohaAccount,
                         ethRegistrationConfig.relayRegistrationIrohaAccount
-                    ), IrohaConsumerImpl(credential, ethRegistrationConfig.iroha.creator, ethRegistrationConfig.iroha)
+                    ), IrohaConsumerImpl(credential, ethRegistrationConfig.iroha)
                 )
             }
             .map { (ethFreeRelayProvider, irohaConsumer) ->
