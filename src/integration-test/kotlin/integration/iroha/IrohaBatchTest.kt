@@ -123,7 +123,9 @@ class IrohaBatchTest {
             tester, keypair
         )
         val blockHashes = async {
-            listener.getBlock().payload.transactionsList.map {
+            val block = listener.getBlock()
+            println("async get block: ${block.payload}")
+            block.payload.transactionsList.map {
                 Blob(iroha.hashTransaction(it.toByteArray().toByteVector())).hex()
             }
         }
@@ -250,7 +252,9 @@ class IrohaBatchTest {
             keypair
         )
         val blockHashes = async {
-            listener.getBlock().payload.transactionsList.map {
+            val block = listener.getBlock()
+            println("async get block: ${block.payload}")
+            block.payload.transactionsList.map {
                 Blob(iroha.hashTransaction(it.toByteArray().toByteVector())).hex()
             }
         }

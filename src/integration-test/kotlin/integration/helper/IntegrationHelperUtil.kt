@@ -347,7 +347,8 @@ class IntegrationHelperUtil {
         )
 
         runBlocking {
-            listner.getBlock()
+            //            listner.getBlock()
+            println(listner.getBlock().payload)
         }
 
     }
