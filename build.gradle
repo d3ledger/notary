@@ -1,6 +1,7 @@
 buildscript {
     ext.kotlin_version = '1.2.50'
     ext.ktor_version = '0.9.2'
+    ext.spring_boot_version = '1.5.4.RELEASE'
 
     repositories {
         mavenCentral()
@@ -11,6 +12,8 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.6'
         classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.3.0'
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:$spring_boot_version"
+        classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
         pitest 'org.pitest:pitest-junit5-plugin:0.3'
     }
 }
@@ -24,6 +27,8 @@ apply plugin: 'com.google.protobuf'
 apply plugin: 'application'
 apply plugin: "jacoco"
 apply plugin: 'info.solidsoft.pitest'
+apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
+apply plugin: 'org.springframework.boot'
 
 sourceCompatibility = 1.8
 
@@ -72,12 +77,27 @@ dependencies {
     compile 'com.wavesplatform:wavesj:0.4'
 
     // logging
-    compile 'org.slf4j:slf4j-simple:1.7.25'
-    compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.8.0-beta2'
     compile 'io.github.microutils:kotlin-logging:1.4.9'
 
     // CLI arguments
     compile group: 'com.xenomachina', name: 'kotlin-argparser', version: '2.0.6'
+
+    //Spring-boot
+    compile('org.springframework.boot:spring-boot-starter') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
+    compile("org.springframework.boot:spring-boot-starter-web") {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+        exclude group: 'org.hibernate'
+    }
+
+    compile 'org.springframework.boot:spring-boot-starter-jetty'
+
+    compile 'org.springframework.boot:spring-boot-starter-log4j2'
+    compile('org.springframework.boot:spring-boot-starter-actuator') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
 
     // Kyber
     // TODO @muratovv: add lib
@@ -106,7 +126,8 @@ dependencies {
     // unit tests
     testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
     testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
-    testCompile 'org.mockito:mockito-inline:2.18.3'
+    // https://mvnrepository.com/artifact/org.mockito/mockito-all
+    testCompile group: 'org.mockito', name: 'mockito-all', version: '2.0.2-beta'
     testCompile('com.nhaarman:mockito-kotlin:1.5.0') {
         exclude group: 'org.jetbrains.kotlin'
         exclude group: 'org.mockito'

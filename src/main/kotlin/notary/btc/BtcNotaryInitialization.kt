@@ -5,6 +5,8 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import io.reactivex.Observable
 import mu.KLogging
+import notary.btc.config.BtcNotaryConfig
+import notary.btc.listener.ReceivedCoinsListener
 import notary.createBtcNotary
 import org.bitcoinj.core.BlockChain
 import org.bitcoinj.core.Context
@@ -12,14 +14,18 @@ import org.bitcoinj.core.PeerGroup
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.store.LevelDBBlockStore
 import org.bitcoinj.wallet.Wallet
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 import provider.btc.BtcRegisteredAddressesProvider
 import sidechain.SideChainEvent
 import java.io.File
 
+@Component
 class BtcNotaryInitialization(
-    private val btcNotaryConfig: BtcNotaryConfig,
-    private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider
+    @Autowired private val btcNotaryConfig: BtcNotaryConfig,
+    @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider
 ) {
+
     /**
      * Init notary
      */

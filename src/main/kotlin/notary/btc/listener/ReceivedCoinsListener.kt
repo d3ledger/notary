@@ -1,4 +1,4 @@
-package notary.btc
+package notary.btc.listener
 
 import io.reactivex.ObservableEmitter
 import mu.KLogging

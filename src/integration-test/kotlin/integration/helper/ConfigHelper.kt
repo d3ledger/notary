@@ -1,7 +1,7 @@
 package integration.helper
 
 import config.*
-import notary.btc.BtcNotaryConfig
+import notary.btc.config.BtcNotaryConfig
 import notary.eth.EthNotaryConfig
 import notary.eth.RefundConfig
 import registration.btc.BtcRegistrationConfig
@@ -131,6 +131,8 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
 
     fun createBtcNotaryConfig(): BtcNotaryConfig {
         return object : BtcNotaryConfig {
+            override val healthCheckPort: Int
+                get() = btcNotaryConfig.healthCheckPort
             override val registrationAccount: String
                 get() = accountHelper.registrationAccount
             override val iroha: IrohaConfig
