@@ -73,8 +73,6 @@ class WithdrawalPipelineIntegrationTest {
     fun dropDown() {
         registrationService.cancel()
         withdrawalService.cancel()
-        println("reg stopped ${registrationService.isActive}")
-        println("with stopped ${withdrawalService.isActive}")
     }
 
     /**
