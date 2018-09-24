@@ -157,11 +157,6 @@ class IrohaBatchTest {
                 assertEquals(hashes, blockHashes.await())
             }
         }
-
-        val tester_amount11 = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester).get()
-        val u1_amount11 = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, "$user@notary").get()
-        logger.info { "again ${tester} amount $tester_amount11" }
-        logger.info { "again $$user@notary amount $u1_amount11" }
     }
 
     /**
@@ -302,12 +297,6 @@ class IrohaBatchTest {
                 assertEquals(expectedHashes, blockHashes.await())
             }
         }
-
-
-        val tester_amount11 = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester).get()
-        val u1_amount11 = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, "$user@notary").get()
-        logger.info { "again ${tester} amount $tester_amount11" }
-        logger.info { "again $$user@notary amount $u1_amount11" }
     }
 
     companion object : KLogging()
