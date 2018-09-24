@@ -14,7 +14,7 @@ class AccountHelper(private val keyPair: Keypair) {
 
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
-    private val irohaConsumer by lazy { IrohaConsumerImpl(testConfig.iroha) }
+    private val irohaConsumer by lazy { IrohaConsumerImpl(testConfig.iroha.creator, testConfig.iroha) }
 
     /** Notary account*/
     val notaryAccount by lazy { createTesterAccount("eth_notary", "notary") }

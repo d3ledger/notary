@@ -27,6 +27,5 @@ class KtorUsageTest {
             }
         }
         server.start(wait = false)
-//        Thread.sleep(15_000)
     }
 }
