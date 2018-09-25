@@ -44,8 +44,8 @@ pipeline {
               }
               sh "./gradlew dependencies"
               sh "./gradlew test --info"
-              //sh "./gradlew compileIntegrationTestKotlin --info"
-              //sh "./gradlew integrationTest --info"
+              sh "./gradlew compileIntegrationTestKotlin --info"
+              sh "./gradlew integrationTest --info"
               junit 'build/test-results/test/*.xml'
             }
         }
