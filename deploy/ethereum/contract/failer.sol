@@ -10,4 +10,11 @@ contract Failer {
     function() external payable {
         revert("eth transfer revert");
     }
+
+    /**
+     * Fake ERC-20 transfer function. Always fails.
+     */
+    function transfer(address, uint256) external pure {
+        revert("ERC-20 transfer revert");
+    }
 }
