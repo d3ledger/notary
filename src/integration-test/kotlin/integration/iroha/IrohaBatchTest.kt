@@ -236,8 +236,7 @@ class IrohaBatchTest {
         )
 
         val blockHashes = async {
-            val block = listener.getBlock()
-            block.payload.transactionsList.map {
+            listener.getBlock().payload.transactionsList.map {
                 Blob(iroha.hashTransaction(it.toByteArray().toByteVector())).hex()
             }
         }
@@ -260,8 +259,5 @@ class IrohaBatchTest {
             }
         }
     }
-
-    companion object : KLogging()
-
 }
 

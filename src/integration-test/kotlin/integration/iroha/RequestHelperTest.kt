@@ -10,7 +10,9 @@ import sidechain.iroha.util.getAccountAsset
 import kotlin.test.assertEquals
 
 /**
- * Note: Requires Iroha is running.
+ * Test helper class for Iroha queries
+ *
+ * Note: Requires Iroha running.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RequestHelperTest {
