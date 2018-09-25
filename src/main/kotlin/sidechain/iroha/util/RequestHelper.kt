@@ -43,12 +43,14 @@ fun getAssetPrecision(
 }
 
 /**
- * Get first asset balance
+ * Get asset balance
  *
  * @param irohaConfig - Iroha configuration parameters
  * @param keypair - iroha keypair
  * @param irohaNetwork - iroha network layer
  * @param accountId - iroha account
+ *
+ * @return asset account balance if asset is found, otherwise "0"
  */
 fun getAccountAsset(
     irohaConfig: IrohaConfig,
@@ -69,8 +71,10 @@ fun getAccountAsset(
         .map { queryResponse ->
             validateResponse(queryResponse, "account_assets_response")
 
-            queryResponse.accountAssetsResponse.accountAssetsList
-                .find { it.assetId == assetId }!!.balance
+            val accountAsset = queryResponse.accountAssetsResponse.accountAssetsList
+                .find { it.assetId == assetId }
+
+            accountAsset?.balance ?: "0"
         }
 }
 
