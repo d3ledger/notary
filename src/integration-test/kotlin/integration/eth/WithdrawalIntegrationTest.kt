@@ -94,7 +94,8 @@ class WithdrawalIntegrationTest {
                     "0x0000000000000000000000000000000000000000",
                     decimalAmount,
                     ethWallet,
-                    hash
+                    hash,
+                    ""
                 )
             ), response.ethSignature
         )

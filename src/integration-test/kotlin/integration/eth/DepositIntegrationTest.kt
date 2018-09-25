@@ -35,7 +35,7 @@ class DepositIntegrationTest {
 
     private fun registerRelay(): String {
         integrationHelper.deployRelays(1)
-        return integrationHelper.registerClient(clientIrohaAccount)
+        return integrationHelper.registerClient(clientIrohaAccount, listOf())
     }
 
     /** Path to public key of 2nd instance of notary */

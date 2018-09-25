@@ -117,6 +117,8 @@ class IntegrationHelperUtil {
     private val ethRegistrationStrategy by lazy {
         EthRegistrationStrategyImpl(
             ethFreeRelayProvider,
+            configHelper.ethRegistrationConfig,
+            configHelper.ethPasswordConfig,
             irohaConsumer,
             accountHelper.notaryAccount,
             accountHelper.registrationAccount
@@ -181,7 +183,8 @@ class IntegrationHelperUtil {
     fun registerBtcAddress(irohaAccountName: String): String {
         val keypair = ModelCrypto().generateKeypair()
         preGenBtcAddress().fold({
-            btcRegistrationStrategy.register(irohaAccountName, keypair.publicKey().hex())
+            // TODO: remove whiteList stub
+            btcRegistrationStrategy.register(irohaAccountName, emptyList(),keypair.publicKey().hex())
                 .fold({ btcAddress ->
                     return btcAddress
                 }, { ex -> throw ex })
@@ -290,10 +293,13 @@ class IntegrationHelperUtil {
     /**
      * Registers first free relay contract in Iroha to the client with given [name] and public key
      */
-    fun registerClient(name: String, keypair: Keypair = ModelCrypto().generateKeypair()): String {
+    fun registerClient(
+        name: String,
+        whitelist: List<String>,
+        keypair: Keypair = ModelCrypto().generateKeypair()
+    ): String {
         deployRelays(1)
-
-        ethRegistrationStrategy.register(name, keypair.publicKey().hex())
+        ethRegistrationStrategy.register(name, whitelist, keypair.publicKey().hex())
             .fold({ registeredEthWallet ->
                 logger.info("registered client $name with relay $registeredEthWallet")
                 return registeredEthWallet
@@ -305,7 +311,7 @@ class IntegrationHelperUtil {
      * Registers first free relay contract in Iroha with random name and public key
      */
     fun registerRandomRelay(): String {
-        val ethWallet = registerClient(String.getRandomString(9))
+        val ethWallet = registerClient(String.getRandomString(9), listOf(""))
         Thread.sleep(10_000)
         return ethWallet
     }

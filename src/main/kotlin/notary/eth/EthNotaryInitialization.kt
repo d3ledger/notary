@@ -94,12 +94,10 @@ class EthNotaryInitialization(
         RefundServerEndpoint(
             ServerInitializationBundle(ethNotaryConfig.refund.port, ethNotaryConfig.refund.endpointEthereum),
             EthRefundStrategyImpl(
-                ethNotaryConfig.iroha,
+                ethNotaryConfig,
                 irohaNetwork,
-                ethNotaryConfig.ethereum,
                 passwordsConfig,
                 irohaKeyPair,
-                ethNotaryConfig.whitelistSetter,
                 ethTokensProvider
             )
         )

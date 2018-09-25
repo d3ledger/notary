@@ -108,12 +108,14 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      * @return master smart contract object
      */
     fun deployRelayRegistrySmartContract(): RelayRegistry {
-        return contract.RelayRegistry.deploy(
+        val relayRegistry = contract.RelayRegistry.deploy(
             web3,
             credentials,
             gasPrice,
             gasLimit
         ).send()
+        logger.info { "Relay Registry smart contract ${relayRegistry.contractAddress} was deployed" }
+        return relayRegistry
     }
 
     /**

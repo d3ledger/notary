@@ -9,7 +9,9 @@ import config.IrohaConfig
 import iroha.protocol.TransactionOuterClass.Transaction
 import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
+import notary.eth.EthNotaryConfig
 import org.web3j.crypto.ECKeyPair
+import provider.eth.EthRelayProviderIrohaImpl
 import provider.eth.EthTokensProvider
 import sidechain.eth.util.*
 import sidechain.iroha.consumer.IrohaNetwork
@@ -23,21 +25,25 @@ class NotaryException(reason: String) : Exception(reason)
  * Class performs effective implementation of refund strategy for Ethereum
  */
 class EthRefundStrategyImpl(
-    val irohaConfig: IrohaConfig,
-    val irohaNetwork: IrohaNetwork,
-    ethereumConfig: EthereumConfig,
+    private val notaryConfig: EthNotaryConfig,
+    private val irohaNetwork: IrohaNetwork,
     ethereumPasswords: EthereumPasswords,
     private val keypair: Keypair,
-    private val whitelistSetter: String,
     private val tokensProvider: EthTokensProvider
 ) : EthRefundStrategy {
 
-    private var ecKeyPair: ECKeyPair = DeployHelper(ethereumConfig, ethereumPasswords).credentials.ecKeyPair
+    val relayProvider = EthRelayProviderIrohaImpl(
+        notaryConfig.iroha,
+     keypair,
+     notaryConfig.iroha.creator,
+        notaryConfig.registrationServiceIrohaAccount)
+
+    private var ecKeyPair: ECKeyPair = DeployHelper(notaryConfig.ethereum, ethereumPasswords).credentials.ecKeyPair
 
     override fun performRefund(request: EthRefundRequest): EthNotaryResponse {
         logger.info("Check tx ${request.irohaTx} for refund")
 
-        return ModelUtil.getTransaction(irohaNetwork, irohaConfig.creator, keypair, request.irohaTx)
+        return ModelUtil.getTransaction(irohaNetwork, notaryConfig.iroha.creator, keypair, request.irohaTx)
             .flatMap { checkTransaction(it, request) }
             .flatMap { makeRefund(it) }
             .fold({ it },
@@ -78,13 +84,19 @@ class EthRefundStrategyImpl(
                     val destEthAddress = ""
                     logger.info { "Rollback case ($key, $value)" }
 
-                    EthRefund(destEthAddress, "mockCoinType", "10", request.irohaTx)
+                    val relayAddress = relayProvider.getRelays().get().filter {
+                        it.value == commands.transferAsset.srcAccountId
+                    }.keys.first()
+
+                    println(relayAddress)
+
+                    EthRefund(destEthAddress, "mockCoinType", "10", request.irohaTx, relayAddress)
                 }
                 // withdrawal case
                 (appearedTx.payload.reducedPayload.commandsCount == 1) &&
                         commands.hasTransferAsset() -> {
                     val destAccount = commands.transferAsset.destAccountId
-                    if (destAccount != irohaConfig.creator)
+                    if (destAccount != notaryConfig.iroha.creator)
                         throw NotaryException("Refund - check transaction. Destination account is wrong '$destAccount'")
 
                     val amount = commands.transferAsset.amount
@@ -108,9 +120,14 @@ class EthRefundStrategyImpl(
                             { throw it }
                         )
 
+                    val relayAddress = relayProvider.getRelays().get().filter {
+                        it.value == commands.transferAsset.srcAccountId
+                    }.keys.first()
+                    println("From Iroha $relayAddress")
+                    println("EthDestAcc $destEthAddress")
                     val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(precision.toInt()).toPlainString()
 
-                    EthRefund(destEthAddress, coinAddress, decimalAmount, request.irohaTx)
+                    EthRefund(destEthAddress, coinAddress, decimalAmount, request.irohaTx, relayAddress)
                 }
                 else -> {
                     val errorMsg = "Transaction doesn't contain expected commands."
@@ -127,14 +144,15 @@ class EthRefundStrategyImpl(
      * @return signed refund or error
      */
     private fun makeRefund(ethRefund: EthRefund): Result<EthNotaryResponse, Exception> {
-        logger.info { "Make refund. Address: ${ethRefund.address}, amount: ${ethRefund.amount} ${ethRefund.assetId}, hash: ${ethRefund.irohaTxHash}" }
+        logger.info { "Make refund. Address: ${ethRefund.address}, relay: ${ethRefund.relayAddress}, amount: ${ethRefund.amount} ${ethRefund.assetId}, hash: ${ethRefund.irohaTxHash}" }
         return Result.of {
             val finalHash =
                 hashToWithdraw(
                     ethRefund.assetId,
                     ethRefund.amount,
                     ethRefund.address,
-                    ethRefund.irohaTxHash
+                    ethRefund.irohaTxHash,
+                    ethRefund.relayAddress
                 )
             val signature = signUserData(ecKeyPair, finalHash)
             EthNotaryResponse.Successful(signature, ethRefund)
@@ -149,11 +167,11 @@ class EthRefundStrategyImpl(
      */
     private fun checkWithdrawalAddress(srcAccountId: String, address: String): Result<Boolean, Exception> {
         return getAccountDetails(
-            irohaConfig,
+            notaryConfig.iroha,
             keypair,
             irohaNetwork,
             srcAccountId,
-            whitelistSetter
+            notaryConfig.whitelistSetter
         ).map { details ->
             val whitelist = details["eth_whitelist"]
 

@@ -3,7 +3,6 @@ package integration.eth
 import integration.helper.IntegrationHelperUtil
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelCrypto
-import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -48,7 +47,7 @@ class WithdrawalPipelineIntegrationTest {
     init {
         integrationHelper.runEthNotary(notaryConfig)
         launch {
-            registration.eth.executeRegistration(registrationConfig)
+            registration.eth.executeRegistration(registrationConfig, passwordConfig)
         }
         launch {
             withdrawalservice.executeWithdrawal(withdrawalServiceConfig, passwordConfig)
@@ -177,7 +176,7 @@ class WithdrawalPipelineIntegrationTest {
      */
     @Test
     fun testWithdrawInWhitelist() {
-        integrationHelper.registerClient(clientName, keypair)
+        integrationHelper.registerClient(clientName, emptyList(),keypair)
 
         integrationHelper.setWhitelist(clientId, listOf(toAddress, "0xSOME_ANOTHER_ETH_ADDRESS"))
 
@@ -212,7 +211,7 @@ class WithdrawalPipelineIntegrationTest {
      */
     @Test
     fun testWithdrawEmptyWhitelist() {
-        integrationHelper.registerClient(clientName, keypair)
+        integrationHelper.registerClient(clientName, emptyList(),keypair)
 
         val withdrawalEthAddress = "0xAAABBBCCC"
 
@@ -246,7 +245,7 @@ class WithdrawalPipelineIntegrationTest {
      */
     @Test
     fun testWithdrawNotInWhitelist() {
-        integrationHelper.registerClient(clientName, keypair)
+        integrationHelper.registerClient(clientName, emptyList(),keypair)
         integrationHelper.setWhitelist(clientId, listOf("0xANOTHER_ETH_ADDRESS"))
 
         val withdrawalEthAddress = "0xAAABBBCCC"

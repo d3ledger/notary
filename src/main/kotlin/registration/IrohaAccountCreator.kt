@@ -5,6 +5,7 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import mu.KLogging
 import notary.IrohaCommand
+import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.consumer.IrohaConverterImpl
@@ -29,31 +30,49 @@ class IrohaAccountCreator(
      */
     fun create(
         currencyAddress: String,
+        whitelist: String,
         userName: String,
         pubkey: String
     ): Result<String, Exception> {
         return Result.of {
             val domain = "notary"
-            IrohaTransaction(
-                creator,
-                getCurrentTime(),
-                1,
-                arrayListOf(
-                    // Create account
-                    IrohaCommand.CommandCreateAccount(
-                        userName, domain, pubkey
+            IrohaOrderedBatch(
+                listOf(
+                    IrohaTransaction(
+                        creator,
+                        getCurrentTime(),
+                        1,
+                        arrayListOf(
+                            // Create account
+                            IrohaCommand.CommandCreateAccount(
+                                userName, domain, pubkey
+                            ),
+                            // Set user wallet/address in account detail
+                            IrohaCommand.CommandSetAccountDetail(
+                                "$userName@$domain",
+                                addressName,
+                                currencyAddress
+                            ),
+                            // Set wallet/address as occupied by user id
+                            IrohaCommand.CommandSetAccountDetail(
+                                notaryIrohaAccount,
+                                currencyAddress,
+                                "$userName@$domain"
+                            )
+                        )
                     ),
-                    // Set user wallet/address in account detail
-                    IrohaCommand.CommandSetAccountDetail(
-                        "$userName@$domain",
-                        addressName,
-                        currencyAddress
-                    ),
-                    // Set wallet/address as occupied by user id
-                    IrohaCommand.CommandSetAccountDetail(
-                        notaryIrohaAccount,
-                        currencyAddress,
-                        "$userName@$domain"
+                    IrohaTransaction(
+                        creator,
+                        getCurrentTime(),
+                        1,
+                        arrayListOf(
+                            //set whitelist
+                            IrohaCommand.CommandSetAccountDetail(
+                                "$userName@$domain",
+                                "eth_whitelist",
+                                whitelist
+                            )
+                        )
                     )
                 )
             )

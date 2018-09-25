@@ -185,6 +185,8 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
     /** Test configuration of Registration with runtime dependencies */
     fun createEthRegistrationConfig(): EthRegistrationConfig {
         return object : EthRegistrationConfig {
+            override val ethRelayRegistryAddress = ethRegistrationConfig.ethRelayRegistryAddress
+            override val ethereum = ethRegistrationConfig.ethereum
             override val port = portCounter.incrementAndGet()
             override val relayRegistrationIrohaAccount = accountHelper.registrationAccount
             override val notaryIrohaAccount = accountHelper.notaryAccount

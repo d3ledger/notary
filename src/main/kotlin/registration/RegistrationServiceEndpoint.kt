@@ -35,11 +35,12 @@ class RegistrationServiceEndpoint(
                 post("/users") {
                     val parameters = call.receiveParameters()
                     val name = parameters["name"]
+                    val whitelist = parameters["whitelist"].toString().split(",")
                     val pubkey = parameters["pubkey"]
 
-                    logger.info { "Registration invoked with parameters (name = \"$name\", pubkey = \"$pubkey\"" }
+                    logger.info { "Registration invoked with parameters (name = \"$name\", whitelist = \"$whitelist\", pubkey = \"$pubkey\"" }
 
-                    val response = onPostRegistration(name, pubkey)
+                    val response = onPostRegistration(name, whitelist, pubkey)
                     call.respondText(response.message, status = response.code)
                 }
             }
@@ -53,15 +54,20 @@ class RegistrationServiceEndpoint(
         return Response(code, errorMsg)
     }
 
-    private fun onPostRegistration(name: String?, pubkey: String?): Response {
-        if (name == null && pubkey == null) {
-            return responseError(HttpStatusCode.BadRequest, "Parameters \"name\" and \"pubkey\" are not specified.")
+    private fun onPostRegistration(name: String?, whitelist: List<String>?, pubkey: String?): Response {
+        if (name == null && whitelist == null && pubkey == null) {
+            return responseError(
+                HttpStatusCode.BadRequest,
+                "Parameters \"name\", \"whitelist\" and \"pubkey\" are not specified."
+            )
         } else if (name == null)
             return responseError(HttpStatusCode.BadRequest, "Parameter \"name\" is not specified.")
+        else if (whitelist == null)
+            return responseError(HttpStatusCode.BadRequest, "Parameter \"whitelist\" is not specified.")
         else if (pubkey == null)
             return responseError(HttpStatusCode.BadRequest, "Parameter \"pubkey\" is not specified.")
 
-        registrationStrategy.register(name, pubkey).fold(
+        registrationStrategy.register(name, whitelist, pubkey).fold(
             { address ->
                 logger.info { "Client $name was successfully registered with address $address" }
                 return Response(HttpStatusCode.OK, address)

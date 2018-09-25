@@ -4,7 +4,9 @@ package registration.eth
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
+import config.EthereumPasswords
 import config.loadConfigs
+import config.loadEthPasswords
 import mu.KLogging
 import sidechain.iroha.IrohaInitialization
 
@@ -16,13 +18,15 @@ private val logger = KLogging().logger
 fun main(args: Array<String>) {
     val registrationConfig =
         loadConfigs("eth-registration", EthRegistrationConfig::class.java, "/eth/registration.properties")
-    executeRegistration(registrationConfig)
+    val passwordConfig = loadEthPasswords("eth-notary", "/eth/ethereum_password.properties", args)
+
+    executeRegistration(registrationConfig, passwordConfig)
 }
 
-fun executeRegistration(ethRegistrationConfig: EthRegistrationConfig) {
+fun executeRegistration(ethRegistrationConfig: EthRegistrationConfig, passwordConfig: EthereumPasswords) {
     logger.info { "Run ETH registration service" }
     IrohaInitialization.loadIrohaLibrary()
-        .flatMap { EthRegistrationServiceInitialization(ethRegistrationConfig).init() }
+        .flatMap { EthRegistrationServiceInitialization(ethRegistrationConfig, passwordConfig).init() }
         .failure { ex ->
             logger.error("cannot run eth registration", ex)
             System.exit(1)
