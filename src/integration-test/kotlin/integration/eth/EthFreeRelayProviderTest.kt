@@ -3,13 +3,11 @@ package integration.eth
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.success
 import integration.helper.IntegrationHelperUtil
-import jp.co.soramitsu.iroha.Keypair
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import provider.eth.EthFreeRelayProvider
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.util.ModelUtil.loadKeypair
 import sidechain.iroha.util.ModelUtil.setAccountDetail
 
 class EthFreeRelayProviderTest {
