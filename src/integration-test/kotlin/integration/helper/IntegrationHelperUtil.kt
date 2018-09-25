@@ -61,9 +61,6 @@ class IntegrationHelperUtil {
 
     val configHelper by lazy { ConfigHelper(accountHelper) }
 
-    val eth_notary by lazy {configHelper.ethNotaryConfig.notaryCredential.accountId}
-    val btc_notary by lazy {configHelper.btcNotaryConfig.notaryCredential.accountId}
-
     /** Ethereum utils */
     private val deployHelper by lazy { DeployHelper(configHelper.testConfig.ethereum, configHelper.ethPasswordConfig) }
 

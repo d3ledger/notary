@@ -1,11 +1,9 @@
 package integration.iroha
 
-import config.TestConfig
-import config.loadConfigs
+import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import sidechain.iroha.consumer.IrohaNetworkImpl
-import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountAsset
 import kotlin.test.assertEquals
 
@@ -21,17 +19,12 @@ class RequestHelperTest {
         System.loadLibrary("irohajava")
     }
 
-    /** Test configurations */
-    val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
+    val helper = IntegrationHelperUtil()
+    val credential = helper.testCredential
+    val irohaConfig = helper.configHelper.createIrohaConfig()
 
-    val creator = testConfig.iroha.creator
 
-    private val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
-
-    val keypair = ModelUtil.loadKeypair(
-        testConfig.iroha.pubkeyPath,
-        testConfig.iroha.privkeyPath
-    ).get()
+    private val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
 
     /**
      * @given Iroha running
@@ -40,10 +33,10 @@ class RequestHelperTest {
      */
     @Test
     fun getNonexistentAccountAssetTest() {
-        val accountId = testConfig.iroha.creator
+        val accountId = credential.accountId
         val assetId = "nonexist#nonexist"
 
-        assertEquals("0", getAccountAsset(testConfig.iroha, keypair, irohaNetwork, accountId, assetId).get())
+        assertEquals("0", getAccountAsset(credential, irohaNetwork, accountId, assetId).get())
     }
 
 }
