@@ -40,7 +40,7 @@ class WithdrawalIntegrationTest {
     /**
      * Test US-003 Withdrawal of ETH token
      * Note: Iroha must be deployed to pass the test.
-     * @given Iroha networks running and user has sent 64203 Wei to master
+     * @given Iroha networks running and user has sent 64203 Ether to master
      * @when withdrawal service queries notary
      * @then notary replies with refund information and signature
      */
