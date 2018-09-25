@@ -4,9 +4,10 @@ import com.github.kittinunf.result.*
 import config.TestConfig
 import config.loadConfigs
 import contract.Master
-import io.grpc.ManagedChannelBuilder
-import iroha.protocol.QueryServiceGrpc
-import jp.co.soramitsu.iroha.*
+import jp.co.soramitsu.iroha.Keypair
+import jp.co.soramitsu.iroha.ModelCrypto
+import jp.co.soramitsu.iroha.ModelTransactionBuilder
+import jp.co.soramitsu.iroha.PublicKey
 import kotlinx.coroutines.experimental.runBlocking
 import model.IrohaCredential
 import mu.KLogging
@@ -31,6 +32,7 @@ import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
+import sidechain.iroha.util.getAccountAsset
 import util.getRandomString
 import java.io.File
 import java.math.BigInteger
@@ -337,14 +339,14 @@ class IntegrationHelperUtil {
      */
     fun waitOneIrohaBlock() {
 
-        val listner = IrohaChainListener(
+        val listener = IrohaChainListener(
             testConfig.iroha.hostname,
             testConfig.iroha.port,
             testCredential
         )
 
         runBlocking {
-            listner.getBlock()
+            listener.getBlock()
         }
 
     }
@@ -392,44 +394,12 @@ class IntegrationHelperUtil {
      * @return balance of account asset
      */
     fun getIrohaAccountBalance(accountId: String, assetId: String): String {
-        val queryCounter: Long = 1
-
-        val uquery = ModelQueryBuilder()
-            .creatorAccountId(accountHelper.notaryAccount.accountId)
-            .queryCounter(BigInteger.valueOf(queryCounter))
-            .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
-            .getAccountAssets(accountId)
-            .build()
-
-        return ModelUtil.prepareQuery(uquery, accountHelper.notaryAccount.keyPair)
-            .fold(
-                { protoQuery ->
-                    val channel =
-                        ManagedChannelBuilder.forAddress(
-                            configHelper.testConfig.iroha.hostname,
-                            configHelper.testConfig.iroha.port
-                        )
-                            .usePlaintext(true)
-                            .build()
-                    val queryStub = QueryServiceGrpc.newBlockingStub(channel)
-                    val queryResponse = queryStub.find(protoQuery)
-
-                    val fieldDescriptor = queryResponse.descriptorForType.findFieldByName("account_assets_response")
-                    if (!queryResponse.hasField(fieldDescriptor)) {
-                        fail { "Query response error ${queryResponse.errorResponse}" }
-                    }
-                    val assets = queryResponse.accountAssetsResponse.accountAssetsList
-                    for (asset in assets) {
-                        if (assetId == asset.assetId)
-                            return asset.balance
-                    }
-
-                    "0"
-                },
-                { ex ->
-                    fail("Exception while converting byte array to protobuf", ex)
-                }
-            )
+        return getAccountAsset(
+            testCredential,
+            irohaNetwork,
+            accountId,
+            assetId
+        ).get()
     }
 
     /**
@@ -535,12 +505,7 @@ class IntegrationHelperUtil {
             .build()
         val hash = utx.hash()
         return ModelUtil.prepareTransaction(utx, kp)
-            .flatMap {
-                IrohaNetworkImpl(
-                    configHelper.testConfig.iroha.hostname,
-                    configHelper.testConfig.iroha.port
-                ).sendAndCheck(it, hash)
-            }
+            .flatMap { tx -> irohaNetwork.sendAndCheck(tx, hash) }
             .get()
     }
 
@@ -557,8 +522,8 @@ class IntegrationHelperUtil {
         )
     }
 
-    /*
-        Runs Ethereum notary process
+    /**
+     * Run Ethereum notary process
      */
     fun runEthNotary(ethNotaryConfig: EthNotaryConfig = configHelper.createEthNotaryConfig()) {
         executeNotary(ethNotaryConfig)
