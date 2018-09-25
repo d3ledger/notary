@@ -342,14 +342,14 @@ class IntegrationHelperUtil {
             ).get()
 
 
-        val listner = IrohaChainListener(
+        val listener = IrohaChainListener(
             testConfig.iroha.hostname,
             testConfig.iroha.port,
             creator, keypair
         )
 
         runBlocking {
-            listner.getBlock()
+            listener.getBlock()
         }
 
     }
@@ -525,8 +525,8 @@ class IntegrationHelperUtil {
         )
     }
 
-    /*
-        Runs Ethereum notary process
+    /**
+     * Run Ethereum notary process
      */
     fun runEthNotary(ethNotaryConfig: EthNotaryConfig = configHelper.createEthNotaryConfig()) {
         executeNotary(ethNotaryConfig)

@@ -110,9 +110,7 @@ class IrohaBatchTest {
 
             )
 
-        val batch = IrohaOrderedBatch(
-            txList
-        )
+        val batch = IrohaOrderedBatch(txList)
         val lst = IrohaConverterImpl().convert(batch)
         val hashes = lst.map { it.hash().hex() }
 
@@ -121,9 +119,9 @@ class IrohaBatchTest {
             testConfig.iroha.port,
             tester, keypair
         )
+
         val blockHashes = async {
-            val block = listener.getBlock()
-            block.payload.transactionsList.map {
+            listener.getBlock().payload.transactionsList.map {
                 Blob(iroha.hashTransaction(it.toByteArray().toByteVector())).hex()
             }
         }
@@ -225,9 +223,7 @@ class IrohaBatchTest {
 
             )
 
-        val batch = IrohaOrderedBatch(
-            txList
-        )
+        val batch = IrohaOrderedBatch(txList)
         val lst = IrohaConverterImpl().convert(batch)
         val hashes = lst.map { it.hash().hex() }
         val expectedHashes = hashes.subList(0, hashes.size - 1)
@@ -238,6 +234,7 @@ class IrohaBatchTest {
             tester,
             keypair
         )
+
         val blockHashes = async {
             val block = listener.getBlock()
             block.payload.transactionsList.map {
@@ -246,6 +243,7 @@ class IrohaBatchTest {
         }
 
         val successHash = irohaConsumer.sendAndCheck(lst).get()
+
         val accountJson = getAccountData(testConfig.iroha, keypair, irohaNetwork, "$user@notary").get().toJsonString()
         val tester_amount = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester, "$asset_name#notary").get()
         val u1_amount =
