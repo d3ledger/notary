@@ -162,7 +162,7 @@ class WithdrawalServiceImpl(
      * @param irohaEvent - iroha event
      * @return withdrawal service output event or exception
      */
-    override fun onIrohaEvent(irohaEvent: SideChainEvent.IrohaEvent): Result<WithdrawalServiceOutputEvent, Exception> {
+    override fun onIrohaEvent(irohaEvent: SideChainEvent.IrohaEvent): Result<List<WithdrawalServiceOutputEvent>, Exception> {
         when (irohaEvent) {
             is SideChainEvent.IrohaEvent.SideChainTransfer -> {
                 logger.info { "Iroha transfer event to ${irohaEvent.dstAccount}" }
@@ -170,8 +170,10 @@ class WithdrawalServiceImpl(
                 if (irohaEvent.dstAccount == withdrawalServiceConfig.notaryIrohaAccount) {
                     logger.info { "Withdrawal event" }
                     return requestNotary(irohaEvent)
-                        .map { WithdrawalServiceOutputEvent.EthRefund(it) }
+                        .map { listOf(WithdrawalServiceOutputEvent.EthRefund(it)) }
                 }
+
+                return Result.of { emptyList<WithdrawalServiceOutputEvent>() }
             }
         }
         return Result.error(Exception("Wrong event type or wrong destination account"))
@@ -180,7 +182,7 @@ class WithdrawalServiceImpl(
     /**
      * Relay events to consumer
      */
-    override fun output(): Observable<Result<WithdrawalServiceOutputEvent, Exception>> {
+    override fun output(): Observable<Result<List<WithdrawalServiceOutputEvent>, Exception>> {
         return irohaHandler
             .map {
                 onIrohaEvent(it)
