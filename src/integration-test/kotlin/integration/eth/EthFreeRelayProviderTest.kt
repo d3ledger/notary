@@ -3,13 +3,11 @@ package integration.eth
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.success
 import integration.helper.IntegrationHelperUtil
-import jp.co.soramitsu.iroha.Keypair
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import provider.eth.EthFreeRelayProvider
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.util.ModelUtil.loadKeypair
 import sidechain.iroha.util.ModelUtil.setAccountDetail
 
 class EthFreeRelayProviderTest {
@@ -21,7 +19,7 @@ class EthFreeRelayProviderTest {
 
 
     /** Iroha consumer */
-    val irohaConsumer = IrohaConsumerImpl(testConfig.iroha)
+    val irohaConsumer = IrohaConsumerImpl(testConfig.iroha.creator, testConfig.iroha)
 
     /** Iroha transaction creator */
     val creator = testConfig.iroha.creator
@@ -35,7 +33,7 @@ class EthFreeRelayProviderTest {
     fun getFreeWallet() {
         val ethFreeWallet = "eth_free_wallet_stub"
 
-        setAccountDetail(irohaConsumer, creator, testConfig.notaryIrohaAccount, ethFreeWallet, "free")
+        setAccountDetail(irohaConsumer, testConfig.notaryIrohaAccount, ethFreeWallet, "free")
             .failure { fail(it) }
 
         val freeWalletsProvider =

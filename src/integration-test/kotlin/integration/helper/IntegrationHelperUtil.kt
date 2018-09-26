@@ -5,9 +5,10 @@ import config.TestConfig
 import config.loadConfigs
 import contract.Master
 import contract.RelayRegistry
-import io.grpc.ManagedChannelBuilder
-import iroha.protocol.QueryServiceGrpc
-import jp.co.soramitsu.iroha.*
+import jp.co.soramitsu.iroha.Keypair
+import jp.co.soramitsu.iroha.ModelCrypto
+import jp.co.soramitsu.iroha.ModelTransactionBuilder
+import jp.co.soramitsu.iroha.PublicKey
 import kotlinx.coroutines.experimental.runBlocking
 import mu.KLogging
 import notary.eth.EthNotaryConfig
@@ -31,6 +32,7 @@ import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
+import sidechain.iroha.util.getAccountAsset
 import util.getRandomString
 import java.io.File
 import java.math.BigInteger
@@ -65,7 +67,40 @@ class IntegrationHelperUtil {
         IrohaNetworkImpl(configHelper.testConfig.iroha.hostname, configHelper.testConfig.iroha.port)
     }
 
-    private val irohaConsumer by lazy { IrohaConsumerImpl(configHelper.testConfig.iroha) }
+    private val irohaConsumer by lazy {
+        IrohaConsumerImpl(
+            configHelper.testConfig.iroha.creator,
+            configHelper.testConfig.iroha
+        )
+    }
+
+    private val tokenProviderIrohaConsumer by lazy {
+        IrohaConsumerImpl(
+            accountHelper.tokenSetterAccount,
+            configHelper.testConfig.iroha
+        )
+    }
+
+    private val whiteListIrohaConsumer by lazy {
+        IrohaConsumerImpl(
+            configHelper.testConfig.whitelistSetter,
+            configHelper.testConfig.iroha
+        )
+    }
+
+    private val notaryListIrohaConsumer by lazy {
+        IrohaConsumerImpl(
+            accountHelper.notaryListSetterAccount,
+            configHelper.testConfig.iroha
+        )
+    }
+
+    private val mstRegistrationIrohaConsumer by lazy {
+        IrohaConsumerImpl(
+            accountHelper.mstRegistrationAccount,
+            configHelper.testConfig.iroha
+        )
+    }
 
     /** Notary ethereum address that is used in master smart contract to verify proof provided by notary */
     private val notaryEthAddress = "0x6826d84158e516f631bbf14586a9be7e255b2d23"
@@ -155,9 +190,6 @@ class IntegrationHelperUtil {
 
     /**
      * Pregenerates one BTC address that can be registered later
-     * Query Iroha account balance
-     * @param accountId - account in Iroha
-     * @param assetId - asset in Iroha
      * @return randomly generated BTC address
      */
     fun preGenBtcAddress(): Result<Address, Exception> {
@@ -166,8 +198,7 @@ class IntegrationHelperUtil {
         val address = wallet.freshReceiveAddress()
         wallet.saveToFile(walletFile)
         return ModelUtil.setAccountDetail(
-            irohaConsumer,
-            accountHelper.mstRegistrationAccount,
+            mstRegistrationIrohaConsumer,
             accountHelper.notaryAccount,
             address.toBase58(),
             "free"
@@ -176,7 +207,6 @@ class IntegrationHelperUtil {
 
     /**
      * Registers BTC client
-     * Query Iroha account balance
      * @param irohaAccountName - client account in Iroha
      * @return btc address related to client
      */
@@ -228,14 +258,15 @@ class IntegrationHelperUtil {
      * @param tokenAddress - token ERC20 smart contract address
      */
     fun addERC20Token(tokenAddress: String, tokenName: String, precision: Short) {
-        ModelUtil.createAsset(irohaConsumer, accountHelper.tokenSetterAccount, tokenName, "ethereum", precision)
+        ModelUtil.createAsset(irohaConsumer, tokenName, "ethereum", precision)
         ModelUtil.setAccountDetail(
-            irohaConsumer,
-            accountHelper.tokenSetterAccount,
+            tokenProviderIrohaConsumer,
             accountHelper.tokenStorageAccount,
             tokenAddress,
             tokenName
-        ).success { logger.info { "token $tokenName was added" } }
+        ).success {
+            logger.info { "token $tokenName was added to ${accountHelper.tokenStorageAccount} by ${tokenProviderIrohaConsumer.creator}" }
+        }
     }
 
     /**
@@ -285,9 +316,15 @@ class IntegrationHelperUtil {
      * Deploys relay contracts in Ethereum network
      */
     fun deployRelays(relaysToDeploy: Int) {
-        relayRegistration.deploy(relaysToDeploy, masterContract.contractAddress, accountHelper.registrationAccount)
-        logger.info("relays were deployed by ${accountHelper.registrationAccount}")
-        Thread.sleep(10_000)
+        relayRegistration.deploy(relaysToDeploy, masterContract.contractAddress)
+            .fold(
+                {
+                    logger.info("Relays were deployed by ${accountHelper.registrationAccount}")
+                },
+                {
+                    logger.error("Relays were not deployed.", it)
+                }
+            )
     }
 
     /**
@@ -312,7 +349,6 @@ class IntegrationHelperUtil {
      */
     fun registerRandomRelay(): String {
         val ethWallet = registerClient(String.getRandomString(9), listOf(""))
-        Thread.sleep(10_000)
         return ethWallet
     }
 
@@ -328,14 +364,14 @@ class IntegrationHelperUtil {
             ).get()
 
 
-        val listner = IrohaChainListener(
+        val listener = IrohaChainListener(
             testConfig.iroha.hostname,
             testConfig.iroha.port,
             creator, keypair
         )
 
         runBlocking {
-            listner.getBlock()
+            listener.getBlock()
         }
 
     }
@@ -369,17 +405,11 @@ class IntegrationHelperUtil {
      * @param accountId - destination account
      * @param assetId - asset to add
      * @param amount - amount to add
-     * @param creator - transaction creator
      */
-    fun addIrohaAssetTo(
-        accountId: String,
-        assetId: String,
-        amount: String
-    ) {
-        val creator = testConfig.iroha.creator
-        ModelUtil.addAssetIroha(irohaConsumer, creator, assetId, amount)
-        if (creator != accountId)
-            ModelUtil.transferAssetIroha(irohaConsumer, creator, creator, accountId, assetId, "", amount)
+    fun addIrohaAssetTo(accountId: String, assetId: String, amount: String) {
+        ModelUtil.addAssetIroha(irohaConsumer, assetId, amount)
+        if (irohaConsumer.creator != accountId)
+            ModelUtil.transferAssetIroha(irohaConsumer, irohaConsumer.creator, accountId, assetId, "", amount)
     }
 
     /**
@@ -390,44 +420,13 @@ class IntegrationHelperUtil {
      * @return balance of account asset
      */
     fun getIrohaAccountBalance(accountId: String, assetId: String): String {
-        val queryCounter: Long = 1
-
-        val uquery = ModelQueryBuilder()
-            .creatorAccountId(accountHelper.notaryAccount)
-            .queryCounter(BigInteger.valueOf(queryCounter))
-            .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
-            .getAccountAssets(accountId)
-            .build()
-
-        return ModelUtil.prepareQuery(uquery, irohaKeyPair)
-            .fold(
-                { protoQuery ->
-                    val channel =
-                        ManagedChannelBuilder.forAddress(
-                            configHelper.testConfig.iroha.hostname,
-                            configHelper.testConfig.iroha.port
-                        )
-                            .usePlaintext(true)
-                            .build()
-                    val queryStub = QueryServiceGrpc.newBlockingStub(channel)
-                    val queryResponse = queryStub.find(protoQuery)
-
-                    val fieldDescriptor = queryResponse.descriptorForType.findFieldByName("account_assets_response")
-                    if (!queryResponse.hasField(fieldDescriptor)) {
-                        fail { "Query response error ${queryResponse.errorResponse}" }
-                    }
-                    val assets = queryResponse.accountAssetsResponse.accountAssetsList
-                    for (asset in assets) {
-                        if (assetId == asset.assetId)
-                            return asset.balance
-                    }
-
-                    "0"
-                },
-                { ex ->
-                    fail("Exception while converting byte array to protobuf", ex)
-                }
-            )
+        return getAccountAsset(
+            testConfig.iroha,
+            irohaKeyPair,
+            irohaNetwork,
+            accountId,
+            assetId
+        ).get()
     }
 
     /**
@@ -485,8 +484,7 @@ class IntegrationHelperUtil {
         val text = addresses.joinToString()
 
         ModelUtil.setAccountDetail(
-            irohaConsumer,
-            configHelper.testConfig.whitelistSetter,
+            whiteListIrohaConsumer,
             clientAccount,
             "eth_whitelist",
             text
@@ -498,8 +496,7 @@ class IntegrationHelperUtil {
      */
     fun addNotary(name: String, address: String) {
         ModelUtil.setAccountDetail(
-            irohaConsumer,
-            accountHelper.notaryListSetterAccount,
+            notaryListIrohaConsumer,
             accountHelper.notaryListStorageAccount,
             name,
             address
@@ -533,12 +530,7 @@ class IntegrationHelperUtil {
             .build()
         val hash = utx.hash()
         return ModelUtil.prepareTransaction(utx, kp)
-            .flatMap {
-                IrohaNetworkImpl(
-                    configHelper.testConfig.iroha.hostname,
-                    configHelper.testConfig.iroha.port
-                ).sendAndCheck(it, hash)
-            }
+            .flatMap { tx -> irohaNetwork.sendAndCheck(tx, hash) }
             .get()
     }
 
@@ -555,8 +547,8 @@ class IntegrationHelperUtil {
         )
     }
 
-    /*
-        Runs Ethereum notary process
+    /**
+     * Run Ethereum notary process
      */
     fun runEthNotary(ethNotaryConfig: EthNotaryConfig = configHelper.createEthNotaryConfig()) {
         executeNotary(ethNotaryConfig)

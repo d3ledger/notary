@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import sidechain.eth.util.ETH_PRECISION
-import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger

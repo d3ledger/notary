@@ -96,8 +96,7 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
                 get() = relayRegistrationConfig.ethMasterWallet
             override val notaryIrohaAccount: String
                 get() = accountHelper.notaryAccount
-            override val iroha: IrohaConfig
-                get() = createIrohaConfig()
+            override val iroha = createIrohaConfig(accountHelper.registrationAccount)
             override val ethereum: EthereumConfig
                 get() = relayRegistrationConfig.ethereum
         }

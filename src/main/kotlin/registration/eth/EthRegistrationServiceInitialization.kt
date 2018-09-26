@@ -38,7 +38,7 @@ class EthRegistrationServiceInitialization(
                             keyPair,
                             ethRegistrationConfig.notaryIrohaAccount,
                             ethRegistrationConfig.relayRegistrationIrohaAccount
-                        ), IrohaConsumerImpl(ethRegistrationConfig.iroha)
+                        ), IrohaConsumerImpl(ethRegistrationConfig.iroha.creator, ethRegistrationConfig.iroha)
                     )
                 }
                 .map { (ethFreeRelayProvider, irohaConsumer) ->

@@ -19,10 +19,7 @@ class RelayRegistration(
     private val deployHelper = DeployHelper(relayRegistrationConfig.ethereum, relayRegistrationEthereumPasswords)
 
     /** Iroha endpoint */
-    private val irohaConsumer = IrohaConsumerImpl(relayRegistrationConfig.iroha)
-
-    /** Iroha transaction creator */
-    private val creator = relayRegistrationConfig.iroha.creator
+    private val irohaConsumer = IrohaConsumerImpl(relayRegistrationConfig.iroha.creator, relayRegistrationConfig.iroha)
 
     private val notaryIrohaAccount = relayRegistrationConfig.notaryIrohaAccount
 
@@ -40,30 +37,27 @@ class RelayRegistration(
     /**
      * Registers relay in Iroha.
      * @param wallet - ethereum wallet to record into Iroha
-     * @param creator - relay creator
      * @return Result with string representation of hash or possible failure
      */
-    fun registerRelayIroha(wallet: String, creator: String): Result<String, Exception> {
-        return ModelUtil.setAccountDetail(irohaConsumer, creator, notaryIrohaAccount, wallet, "free")
+    fun registerRelayIroha(wallet: String): Result<String, Exception> {
+        return ModelUtil.setAccountDetail(irohaConsumer, notaryIrohaAccount, wallet, "free")
     }
 
     fun deploy(): Result<Unit, Exception> {
         return deploy(
             relayRegistrationConfig.number,
-            relayRegistrationConfig.ethMasterWallet,
-            creator
+            relayRegistrationConfig.ethMasterWallet
         )
     }
 
     fun deploy(
         relaysToDeploy: Int,
-        ethMasterWallet: String,
-        creator: String
+        ethMasterWallet: String
     ): Result<Unit, Exception> {
         return Result.of {
             (1..relaysToDeploy).forEach {
                 val relayWallet = deployRelaySmartContract(ethMasterWallet)
-                registerRelayIroha(relayWallet, creator).fold(
+                registerRelayIroha(relayWallet).fold(
                     { logger.info("Relay $relayWallet was deployed") },
                     { ex -> logger.error("Cannot deploy relay $relayWallet", ex) })
             }

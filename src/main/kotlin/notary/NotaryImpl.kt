@@ -125,7 +125,7 @@ class NotaryImpl(
         logger.info { "Init Iroha consumer" }
         return ModelUtil.loadKeypair(irohaConfig.pubkeyPath, irohaConfig.privkeyPath)
             .map { keyPair ->
-                val irohaConsumer = IrohaConsumerImpl(irohaConfig)
+                val irohaConsumer = IrohaConsumerImpl(irohaConfig.creator, irohaConfig)
 
                 // Init Iroha Consumer pipeline
                 irohaOutput()
