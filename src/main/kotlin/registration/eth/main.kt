@@ -5,6 +5,7 @@ package registration.eth
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import config.loadConfigs
+import kotlinx.coroutines.experimental.launch
 import mu.KLogging
 import sidechain.iroha.IrohaInitialization
 
@@ -27,4 +28,6 @@ fun executeRegistration(ethRegistrationConfig: EthRegistrationConfig) {
             logger.error("cannot run eth registration", ex)
             System.exit(1)
         }
+
+    val b = launch { }
 }
