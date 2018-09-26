@@ -46,11 +46,13 @@ pipeline {
               sh "./gradlew test --info"
               sh "./gradlew compileIntegrationTestKotlin --info"
               sh "./gradlew integrationTest --info"
-              junit 'build/test-results/test/*.xml'
             }
         }
       }
       post {
+        always {
+          junit 'build/test-results/test/*.xml'
+        }
         cleanup {
           sh "mkdir build-logs"
           sh """
