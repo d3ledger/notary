@@ -56,12 +56,11 @@ class RegistrationServiceEndpoint(
 
     private fun onPostRegistration(name: String?, whitelist: List<String>?, pubkey: String?): Response {
         // TODO - D3-121 - a.chernyshov - distinguish correct status code response (500 - server internal error)
-        val reason = ""
-        when {
-            name == null -> reason.plus("Parameter \"name\" is not specified. ")
-            whitelist == null -> reason.plus("Parameter \"whitelist\" is not specified. ")
-            pubkey == null -> reason.plus("Parameter \"pubkey\" is not specified.")
-        }
+        var reason = ""
+        if (name == null)  reason = reason.plus("Parameter \"name\" is not specified. ")
+        if (whitelist == null) reason = reason.plus("Parameter \"whitelist\" is not specified. ")
+        if (pubkey == null) reason = reason.plus("Parameter \"pubkey\" is not specified.")
+
         if (name == null || whitelist == null || pubkey == null) {
             return responseError(HttpStatusCode.BadRequest, reason)
         } else {
