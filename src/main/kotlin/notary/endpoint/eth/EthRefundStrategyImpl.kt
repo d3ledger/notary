@@ -88,8 +88,6 @@ class EthRefundStrategyImpl(
                         it.value == commands.transferAsset.srcAccountId
                     }.keys.first()
 
-                    println(relayAddress)
-
                     EthRefund(destEthAddress, "mockCoinType", "10", request.irohaTx, relayAddress)
                 }
                 // withdrawal case
@@ -123,10 +121,7 @@ class EthRefundStrategyImpl(
                     val relayAddress = relayProvider.getRelays().get().filter {
                         it.value == commands.transferAsset.srcAccountId
                     }.keys.first()
-                    println("From Iroha $relayAddress")
-                    println("EthDestAcc $destEthAddress")
                     val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(precision.toInt()).toPlainString()
-
                     EthRefund(destEthAddress, coinAddress, decimalAmount, request.irohaTx, relayAddress)
                 }
                 else -> {

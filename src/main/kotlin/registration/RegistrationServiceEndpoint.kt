@@ -55,28 +55,28 @@ class RegistrationServiceEndpoint(
     }
 
     private fun onPostRegistration(name: String?, whitelist: List<String>?, pubkey: String?): Response {
-        if (name == null && whitelist == null && pubkey == null) {
-            return responseError(
-                HttpStatusCode.BadRequest,
-                "Parameters \"name\", \"whitelist\" and \"pubkey\" are not specified."
-            )
-        } else if (name == null)
-            return responseError(HttpStatusCode.BadRequest, "Parameter \"name\" is not specified.")
-        else if (whitelist == null)
-            return responseError(HttpStatusCode.BadRequest, "Parameter \"whitelist\" is not specified.")
-        else if (pubkey == null)
-            return responseError(HttpStatusCode.BadRequest, "Parameter \"pubkey\" is not specified.")
+        // TODO - D3-121 - a.chernyshov - distinguish correct status code response (500 - server internal error)
+        val reason = ""
+        when {
+            name == null -> reason.plus("Parameter \"name\" is not specified. ")
+            whitelist == null -> reason.plus("Parameter \"whitelist\" is not specified. ")
+            pubkey == null -> reason.plus("Parameter \"pubkey\" is not specified.")
+        }
+        if (name == null || whitelist == null || pubkey == null) {
+            return responseError(HttpStatusCode.BadRequest, reason)
+        } else {
+            registrationStrategy.register(name, whitelist, pubkey).fold(
+                { address ->
+                    logger.info { "Client $name was successfully registered with address $address" }
+                    return Response(HttpStatusCode.OK, address)
+                },
+                { ex ->
+                    logger.error("Cannot register client $name", ex)
+                    // TODO - D3-121 - a.chernyshov - distinguish correct status code response (500 - server internal error)
+                    return responseError(HttpStatusCode.BadRequest, ex.toString())
+                })
 
-        registrationStrategy.register(name, whitelist, pubkey).fold(
-            { address ->
-                logger.info { "Client $name was successfully registered with address $address" }
-                return Response(HttpStatusCode.OK, address)
-            },
-            { ex ->
-                logger.error("Cannot register client $name", ex)
-                // TODO - D3-121 - a.chernyshov - distinguish correct status code response (500 - server internal error)
-                return responseError(HttpStatusCode.BadRequest, ex.toString())
-            })
+        }
     }
 
     /**

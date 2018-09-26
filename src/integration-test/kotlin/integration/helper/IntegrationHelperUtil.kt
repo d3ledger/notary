@@ -213,7 +213,6 @@ class IntegrationHelperUtil {
     fun registerBtcAddress(irohaAccountName: String): String {
         val keypair = ModelCrypto().generateKeypair()
         preGenBtcAddress().fold({
-            // TODO: remove whiteList stub
             btcRegistrationStrategy.register(irohaAccountName, emptyList(),keypair.publicKey().hex())
                 .fold({ btcAddress ->
                     return btcAddress

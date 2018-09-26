@@ -36,6 +36,7 @@ class IrohaAccountCreator(
     ): Result<String, Exception> {
         return Result.of {
             val domain = "notary"
+            // TODO: implement https://soramitsu.atlassian.net/browse/D3-415
             IrohaOrderedBatch(
                 listOf(
                     IrohaTransaction(
