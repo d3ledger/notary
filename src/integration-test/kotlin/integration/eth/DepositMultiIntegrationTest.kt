@@ -14,7 +14,7 @@ import java.math.BigInteger
  * Integration tests with multiple notaries for deposit case.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class DepositmultiIntegrationTest {
+class DepositMultiIntegrationTest {
     /** Utility functions for integration tests */
     private val integrationHelper = IntegrationHelperUtil()
 

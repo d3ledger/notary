@@ -17,7 +17,7 @@ class BtcSessionProvider(
     private val registrationAccount: String,
     private val keypair: Keypair
 ) {
-    private val irohaConsumer = IrohaConsumerImpl(irohaConfig)
+    private val irohaConsumer = IrohaConsumerImpl(irohaConfig.creator, irohaConfig)
 
     /**
      * Creates a special session account for notaries public key storage

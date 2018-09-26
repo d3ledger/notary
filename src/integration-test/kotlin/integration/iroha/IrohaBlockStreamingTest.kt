@@ -70,7 +70,7 @@ class IrohaBlockStreamingTest {
             .setAccountDetail(creator, "test", "test")
             .build()
 
-        IrohaConsumerImpl(testConfig.iroha).sendAndCheck(utx)
+        IrohaConsumerImpl(testConfig.iroha.creator, testConfig.iroha).sendAndCheck(utx)
         runBlocking {
             delay(5000, TimeUnit.MILLISECONDS)
         }
@@ -104,7 +104,7 @@ class IrohaBlockStreamingTest {
             .setAccountDetail(creator, "test", "test")
             .build()
 
-        IrohaConsumerImpl(testConfig.iroha).sendAndCheck(utx)
+        IrohaConsumerImpl(testConfig.iroha.creator, testConfig.iroha).sendAndCheck(utx)
 
         runBlocking {
             val bl = block.await()

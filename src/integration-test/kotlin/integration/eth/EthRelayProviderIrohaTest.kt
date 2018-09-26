@@ -75,7 +75,7 @@ class EthRelayProviderIrohaTest {
 
         val tx = IrohaConverterImpl().convert(irohaOutput)
 
-        IrohaConsumerImpl(testConfig.iroha).sendAndCheck(tx)
+        IrohaConsumerImpl(testConfig.iroha.creator, testConfig.iroha).sendAndCheck(tx)
             .failure { ex -> fail(ex) }
 
         EthRelayProviderIrohaImpl(

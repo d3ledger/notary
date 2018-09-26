@@ -45,7 +45,11 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
         loadConfigs("btc-pregen", BtcPreGenConfig::class.java, "/btc/pregeneration.properties")
 
     val ethTokenRegistrationConfig =
-        loadConfigs("token-registration", ERC20TokenRegistrationConfig::class.java, "/eth/token_registration.properties")
+        loadConfigs(
+            "token-registration",
+            ERC20TokenRegistrationConfig::class.java,
+            "/eth/token_registration.properties"
+        )
 
     //Creates config for ERC20 tokens registration
     fun createERC20TokenRegistrationConfig(tokensFilePath_: String): ERC20TokenRegistrationConfig {
@@ -92,8 +96,7 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
                 get() = relayRegistrationConfig.ethMasterWallet
             override val notaryIrohaAccount: String
                 get() = accountHelper.notaryAccount
-            override val iroha: IrohaConfig
-                get() = createIrohaConfig()
+            override val iroha = createIrohaConfig(accountHelper.registrationAccount)
             override val ethereum: EthereumConfig
                 get() = relayRegistrationConfig.ethereum
         }
@@ -154,7 +157,10 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
     }
 
     /** Test configuration of Notary with runtime dependencies */
-    fun createEthNotaryConfig(irohaConfig: IrohaConfig = createIrohaConfig()): EthNotaryConfig {
+    fun createEthNotaryConfig(
+        irohaConfig: IrohaConfig = createIrohaConfig(),
+        ethereumConfig: EthereumConfig = ethNotaryConfig.ethereum
+    ): EthNotaryConfig {
         return object : EthNotaryConfig {
             override val registrationServiceIrohaAccount = accountHelper.registrationAccount
             override val tokenStorageAccount = accountHelper.tokenStorageAccount
@@ -164,7 +170,7 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
             override val whitelistSetter = testConfig.whitelistSetter
             override val refund = createRefundConfig()
             override val iroha = irohaConfig
-            override val ethereum = ethNotaryConfig.ethereum
+            override val ethereum = ethereumConfig
         }
     }
 
@@ -206,6 +212,21 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
 
             /** Ethereum configurations */
             override val ethereum = testConfig.ethereum
+        }
+    }
+
+    /**
+     * Creates new Ethereum config with given credentials path
+     * @param credentialsPath path to Ethereum credentials file (.key)
+     * @return EthereumConfig object
+     */
+    fun createEthereumConfig(credentialsPath: String = ethNotaryConfig.ethereum.credentialsPath): EthereumConfig {
+        return object : EthereumConfig {
+            override val confirmationPeriod = ethNotaryConfig.ethereum.confirmationPeriod
+            override val credentialsPath = credentialsPath
+            override val gasLimit = ethNotaryConfig.ethereum.gasLimit
+            override val gasPrice = ethNotaryConfig.ethereum.gasPrice
+            override val url = ethNotaryConfig.ethereum.url
         }
     }
 

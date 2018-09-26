@@ -101,6 +101,7 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
         hashes: List<Hash>
     ): Result<List<String>, Exception> {
         send(batch)
+
         val results = hashes.map { checkTransactionStatus(it) }.filter { it.component1() != null }.map { it.get() }
         return Result.of { results }
     }
