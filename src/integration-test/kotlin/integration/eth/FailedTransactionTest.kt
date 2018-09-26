@@ -31,7 +31,7 @@ class FailedTransactionTest {
         val clientAccount = String.getRandomString(9)
         integrationHelper.registerClientWithoutRelay(clientAccount)
         integrationHelper.sendEth(BigInteger.valueOf(1), failerAddress)
-        Thread.sleep(15_000)
+        integrationHelper.waitOneEtherBlock()
         assertEquals(BigInteger.ZERO, integrationHelper.getEthBalance(failerAddress))
         val irohaBalance = integrationHelper.getIrohaAccountBalance("$clientAccount@notary", "ether#ethereum")
         assertEquals(BigDecimal.ZERO, BigDecimal(irohaBalance))
@@ -62,7 +62,7 @@ class FailedTransactionTest {
         } catch (e: TransactionException) {
         }
 
-        Thread.sleep(15_000)
+        integrationHelper.waitOneEtherBlock()
 
         // actually this test passes even without transaction status check
         // it's probably impossible to get some money deposit to iroha

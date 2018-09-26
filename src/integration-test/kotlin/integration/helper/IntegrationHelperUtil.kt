@@ -26,6 +26,7 @@ import provider.eth.EthTokensProviderImpl
 import registration.btc.BtcRegistrationStrategyImpl
 import registration.eth.EthRegistrationStrategyImpl
 import registration.eth.relay.RelayRegistration
+import sidechain.eth.EthChainListener
 import sidechain.eth.util.DeployHelper
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.IrohaInitialization
@@ -337,7 +338,7 @@ class IntegrationHelperUtil {
      * @param address Ethereum address to register
      */
     fun registerRelayByAddress(address: String) {
-        relayRegistration.registerRelayIroha(address, accountHelper.registrationAccount)
+        relayRegistration.registerRelayIroha(address)
         Thread.sleep(10_000)
     }
 
@@ -391,6 +392,17 @@ class IntegrationHelperUtil {
             listener.getBlock()
         }
 
+    }
+
+    /**
+     * Waits for exactly one Ethereum block
+     */
+    fun waitOneEtherBlock() {
+        val listener = EthChainListener(
+            deployHelper.web3,
+            BigInteger.valueOf(testConfig.ethereum.confirmationPeriod)
+        )
+        runBlocking { listener.getBlock() }
     }
 
     /**
