@@ -75,6 +75,13 @@ class IntegrationHelperUtil {
         )
     }
 
+    private val registrationConsumer by lazy {
+        IrohaConsumerImpl(
+            accountHelper.registrationAccount,
+            configHelper.testConfig.iroha
+        )
+    }
+
     private val tokenProviderIrohaConsumer by lazy {
         IrohaConsumerImpl(
             accountHelper.tokenSetterAccount,
@@ -127,7 +134,7 @@ class IntegrationHelperUtil {
     private val ethFreeRelayProvider by lazy {
         EthFreeRelayProvider(
             configHelper.testConfig.iroha,
-            testCredential,
+            accountHelper.registrationAccount,
             accountHelper.notaryAccount.accountId,
             accountHelper.registrationAccount.accountId
         )
@@ -137,7 +144,7 @@ class IntegrationHelperUtil {
     private val ethRelayProvider by lazy {
         EthRelayProviderIrohaImpl(
             configHelper.testConfig.iroha,
-            testCredential,
+            accountHelper.registrationAccount,
             accountHelper.notaryAccount.accountId,
             accountHelper.registrationAccount.accountId
         )
@@ -146,7 +153,7 @@ class IntegrationHelperUtil {
     private val ethRegistrationStrategy by lazy {
         EthRegistrationStrategyImpl(
             ethFreeRelayProvider,
-            irohaConsumer,
+            registrationConsumer,
             accountHelper.notaryAccount.accountId
         )
     }
@@ -175,8 +182,10 @@ class IntegrationHelperUtil {
     }
 
     private val relayRegistration by lazy {
-        RelayRegistration(configHelper.createRelayRegistrationConfig(),
-            accountHelper.registrationAccount, configHelper.ethPasswordConfig)
+        RelayRegistration(
+            configHelper.createRelayRegistrationConfig(),
+            accountHelper.registrationAccount, configHelper.ethPasswordConfig
+        )
     }
 
     /**
