@@ -15,6 +15,7 @@ import notary.endpoint.eth.EthRefundStrategyImpl
 import okhttp3.OkHttpClient
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
+import provider.NotaryPeerListProviderImpl
 import provider.eth.EthRelayProvider
 import provider.eth.EthTokensProvider
 import sidechain.SideChainEvent
@@ -83,7 +84,15 @@ class EthNotaryInitialization(
         ethEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>
     ): Notary {
         logger.info { "Init Notary notary" }
-        return createEthNotary(ethNotaryConfig, ethEvents)
+
+        val peerListProvider = NotaryPeerListProviderImpl(
+            ethNotaryConfig.iroha,
+            irohaKeyPair,
+            ethNotaryConfig.notaryListStorageAccount,
+            ethNotaryConfig.notaryListSetterAccount
+        )
+
+        return createEthNotary(ethNotaryConfig, ethEvents, peerListProvider)
     }
 
     /**
