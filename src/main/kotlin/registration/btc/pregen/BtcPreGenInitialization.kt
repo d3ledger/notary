@@ -27,7 +27,6 @@ class BtcPreGenInitialization(
 ) {
     private val walletFile = File(btcPreGenConfig.btcWalletFilePath)
     private val wallet = Wallet.loadFromFile(walletFile)
-    private val irohaConsumer = IrohaConsumerImpl(btcPreGenConfig.iroha)
     private val notaryPeerListProvider = NotaryPeerListProviderImpl(
         btcPreGenConfig.iroha,
         irohaKeypair,
@@ -38,7 +37,7 @@ class BtcPreGenInitialization(
         BtcPublicKeyProvider(
             wallet,
             walletFile,
-            irohaConsumer,
+            btcPreGenConfig.iroha,
             notaryPeerListProvider,
             btcPreGenConfig.registrationAccount,
             btcPreGenConfig.mstRegistrationAccount,
@@ -101,7 +100,7 @@ class BtcPreGenInitialization(
             btcPreGenConfig.registrationAccount
         ).flatMap { details ->
             val notaryKeys = details.values
-            btcPublicKeyProvider.checkAndCreateMsAddress(notaryKeys)
+            btcPublicKeyProvider.checkAndCreateMultiSigAddress(notaryKeys)
         }
     }
 

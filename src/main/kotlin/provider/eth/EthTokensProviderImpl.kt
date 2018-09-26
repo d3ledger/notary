@@ -27,13 +27,11 @@ class EthTokensProviderImpl(
 ) : EthTokensProvider {
 
     init {
-        EthRelayProviderIrohaImpl.logger.info {
-            "Init token provider, sotrage: '$tokenStorageAccount', setter: '$tokenSetterAccount'"
-        }
+        logger.info { "Init token provider, sotrage: '$tokenStorageAccount', setter: '$tokenSetterAccount'" }
     }
 
     private val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
-    private val irohaConsumer = IrohaConsumerImpl(irohaConfig)
+    private val irohaConsumer = IrohaConsumerImpl(irohaConfig.creator, irohaConfig)
 
     override fun getTokens(): Result<Map<String, EthTokenInfo>, Exception> {
         return getAccountDetails(
@@ -67,7 +65,7 @@ class EthTokensProviderImpl(
      */
     override fun addTokens(tokens: Map<String, EthTokenInfo>): Result<Unit, Exception> {
         logger.info { "ERC20 tokens to register $tokens" }
-        return ModelUtil.registerERC20Tokens(tokens, tokenStorageAccount, tokenSetterAccount, irohaConsumer)
+        return ModelUtil.registerERC20Tokens(tokens, tokenStorageAccount, irohaConsumer)
             .map { Unit }
     }
 

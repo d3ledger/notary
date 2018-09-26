@@ -1,7 +1,7 @@
 package integration.btc
 
 import integration.helper.IntegrationHelperUtil
-import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.launch
 import mu.KLogging
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Utils
@@ -31,8 +31,7 @@ class BtcPreGenIntegrationTest {
 
     private val triggerProvider = TriggerProvider(
         btcPkPreGenConfig.iroha,
-        btcPkPreGenConfig.pubKeyTriggerAccount,
-        btcPkPreGenConfig.registrationAccount
+        btcPkPreGenConfig.pubKeyTriggerAccount
     )
     private val btcKeyGenSessionProvider = BtcSessionProvider(
         btcPkPreGenConfig.iroha,
@@ -51,7 +50,7 @@ class BtcPreGenIntegrationTest {
     @Test
     fun testGenerateKey() {
         integrationHelper.addNotary("test_notary", "test_notary_address")
-        async { executePreGeneration(btcPkPreGenConfig) }
+        launch { executePreGeneration(btcPkPreGenConfig) }
         Thread.sleep(WAIT_PREGEN_INIT_MILLIS)
         val sessionAccountName = String.getRandomString(9)
         btcKeyGenSessionProvider.createPubKeyCreationSession(sessionAccountName)

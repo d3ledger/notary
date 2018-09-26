@@ -4,7 +4,6 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import config.IrohaConfig
 import mu.KLogging
-import provider.eth.EthRelayProviderIrohaImpl
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 
@@ -13,16 +12,15 @@ import sidechain.iroha.util.ModelUtil
  */
 class TriggerProvider(
     irohaConfig: IrohaConfig,
-    private val triggeredAccount: String,
-    private val triggerCallerAccount: String
+    private val triggeredAccount: String
 ) {
     init {
         logger.info {
-            "Init trigger provider with triggered account '$triggeredAccount' and trigger caller account '$triggerCallerAccount'"
+            "Init trigger provider with triggered account '$triggeredAccount' and trigger caller account '${irohaConsumer.creator}'"
         }
     }
 
-    private val irohaConsumer = IrohaConsumerImpl(irohaConfig)
+    private val irohaConsumer = IrohaConsumerImpl(irohaConfig.creator, irohaConfig)
 
     /**
      * Triggers triggeredAccount by setting details
@@ -33,12 +31,11 @@ class TriggerProvider(
     fun trigger(payload: String): Result<Unit, Exception> {
         return ModelUtil.setAccountDetail(
             irohaConsumer,
-            triggerCallerAccount,
             triggeredAccount,
             payload,
             ""
         ).map {
-            logger.info { "$triggeredAccount was triggered with payload $payload" }
+            logger.info { "${irohaConsumer.creator} was triggered with payload $payload" }
             Unit
         }
     }

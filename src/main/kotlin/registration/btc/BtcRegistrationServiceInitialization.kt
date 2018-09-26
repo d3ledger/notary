@@ -19,7 +19,7 @@ class BtcRegistrationServiceInitialization(
     fun init(): Result<Unit, Exception> {
         logger.info { "Init BTC client registration service" }
         return Result.of {
-            val irohaConsumer = IrohaConsumerImpl(btcRegistrationConfig.iroha)
+            val irohaConsumer = IrohaConsumerImpl(btcRegistrationConfig.iroha.creator, btcRegistrationConfig.iroha)
             val btcAddressesProvider =
                 BtcAddressesProvider(
                     btcRegistrationConfig.iroha,
