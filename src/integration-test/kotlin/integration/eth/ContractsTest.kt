@@ -6,6 +6,7 @@ import config.loadEthPasswords
 import contract.BasicCoin
 import contract.Master
 import contract.Relay
+import contract.RelayRegistry
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -32,6 +33,7 @@ class ContractsTest {
     private val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
     private val keypair = deployHelper.credentials.ecKeyPair
 
+    private lateinit var relayRegistry: RelayRegistry
     private lateinit var token: BasicCoin
     private lateinit var master: Master
     private lateinit var relay: Relay
@@ -85,6 +87,10 @@ class ContractsTest {
         assertEquals(amount, token.balanceOf(master.contractAddress).send())
     }
 
+    /**
+     * Withdraw assets
+     * @param amount how much to withdraw
+     */
     private fun withdraw(amount: BigInteger) {
         val tokenAddress = token.contractAddress
         val to = accGreen
@@ -103,6 +109,34 @@ class ContractsTest {
         ).send()
     }
 
+    /**
+     * Withdraw assets
+     * @param amount how much to withdraw
+     * @param to account address
+     */
+    private fun withdraw(to: String, amount: BigInteger) {
+        val tokenAddress = token.contractAddress
+
+        val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, defaultIrohaHash)
+        val sigs = prepareSignatures(1, listOf(keypair), finalHash)
+
+        master.withdraw(
+            tokenAddress,
+            amount,
+            to,
+            defaultByteHash,
+            sigs.vv,
+            sigs.rr,
+            sigs.ss
+        ).send()
+    }
+
+    /**
+     * Withdraw assets
+     * @param amount how much to withdraw
+     * @param tokenAddress list of addresses allowed to withdraw
+     * @param to destination address
+     */
     private fun withdraw(
         amount: BigInteger,
         tokenAddress: String,
@@ -122,6 +156,13 @@ class ContractsTest {
         ).send()
     }
 
+    /**
+     * Withdraw assets
+     * @param amount how much to withdraw
+     * @param tokenAddress list of addresses allowed to withdraw
+     * @param to destination address
+     * @param fromMaster true if withdraw should proceeded from master contract
+     */
     private fun withdraw(
         amount: BigInteger,
         tokenAddress: String,
@@ -130,7 +171,6 @@ class ContractsTest {
     ) {
         val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, defaultIrohaHash)
         val sigs = prepareSignatures(1, listOf(keypair), finalHash)
-
         if (fromMaster) {
             master.withdraw(
                 tokenAddress,
@@ -142,6 +182,7 @@ class ContractsTest {
                 sigs.ss
             ).send()
         } else {
+            addWhiteListToRelayRegistry(relay.contractAddress, listOf(to))
             relay.withdraw(
                 tokenAddress,
                 amount,
@@ -154,10 +195,23 @@ class ContractsTest {
         }
     }
 
+    /**
+     * Save white list in the contract
+     * @param relayAddress relay contract address
+     * @param whiteList list of addresses allowed to withdraw
+     */
+    private fun addWhiteListToRelayRegistry(
+        relayAddress: String,
+        whiteList: List<String>
+    ) {
+        relayRegistry.addNewRelayAddress(relayAddress, whiteList).send()
+    }
+
     @BeforeEach
     fun setup() {
         token = deployHelper.deployERC20TokenSmartContract()
-        master = deployHelper.deployMasterSmartContract()
+        relayRegistry = deployHelper.deployRelayRegistrySmartContract()
+        master = deployHelper.deployMasterSmartContract(relayRegistry.contractAddress)
         relay = deployHelper.deployRelaySmartContract(master.contractAddress)
         addPeerCalls = 0
     }
@@ -192,6 +246,7 @@ class ContractsTest {
         sendAddPeer(accMain)
         master.addToken(token.contractAddress).send()
         transferTokensToMaster(BigInteger.valueOf(5))
+        addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
         withdraw(BigInteger.valueOf(1))
         assertEquals(BigInteger.valueOf(4), token.balanceOf(master.contractAddress).send())
     }
@@ -254,6 +309,7 @@ class ContractsTest {
             deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         sendAddPeer(accMain)
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
+        addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
         withdraw(
             BigInteger.valueOf(1000),
             etherAddress,
@@ -306,6 +362,7 @@ class ContractsTest {
         val initialBalance =
             deployHelper.web3.ethGetBalance(relay.contractAddress, DefaultBlockParameterName.LATEST).send().balance
         sendAddPeer(accMain)
+
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
         withdraw(
             BigInteger.valueOf(1000), etherAddress,
@@ -463,6 +520,7 @@ class ContractsTest {
     fun usedHashTest() {
         sendAddPeer(accMain)
         master.addToken(token.contractAddress).send()
+        addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
         transferTokensToMaster(BigInteger.valueOf(5))
         withdraw(BigInteger.valueOf(1))
         assertEquals(BigInteger.valueOf(4), token.balanceOf(master.contractAddress).send())
@@ -606,6 +664,8 @@ class ContractsTest {
         }
         val sigs = prepareSignatures(sigCount, keypairs, finalHash)
 
+        addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
+
         master.withdraw(
             etherAddress,
             BigInteger.valueOf(amountToSend.toLong()),
@@ -657,6 +717,8 @@ class ContractsTest {
             sendAddPeer("0x" + Keys.getAddress(keypair))
         }
         val sigs = prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
+
+        addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
 
         master.withdraw(
             tokenAddress,
@@ -751,6 +813,8 @@ class ContractsTest {
         }
         val sigs = prepareSignatures(sigCount, keypairs, finalHash)
 
+        addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
+
         master.withdraw(
             tokenAddress,
             BigInteger.valueOf(amountToSend.toLong()),
@@ -802,6 +866,8 @@ class ContractsTest {
             sendAddPeer("0x" + Keys.getAddress(keypair))
         }
         val sigs = prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
+
+        addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
 
         master.withdraw(
             tokenAddress,
@@ -864,4 +930,130 @@ class ContractsTest {
             ).send()
         }
     }
+
+    /**
+     * @given deployed relay registry contract
+     * @when add new relay twice
+     * @then second call throws exception
+     */
+    @Test
+    fun addSameWhiteListTwice() {
+        addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen)) // first call
+        Assertions.assertThrows(TransactionException::class.java) {
+            addWhiteListToRelayRegistry(
+                Keys.getAddress(keypair),
+                listOf(accGreen)
+            )
+        } // second call
+    }
+
+    /**
+     * @given deployed relay registry contract
+     * @when add new white list and check address in white list
+     * @then address should be in the list
+     */
+    @Test
+    fun addWhiteListAndCheckAddress() {
+        addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
+        Assertions.assertTrue(relayRegistry.isWhiteListed(Keys.getAddress(keypair), accGreen).send())
+    }
+
+    /**
+     * @given relay registry contract
+     * @when add list of 100 addresses
+     * @then all addresses should be stored successful
+     */
+    @Test
+    fun addOneHundredAddressesInWhiteListAndCheckThem() {
+        val whiteListSize = 100
+        var equalAddressesSize = 0
+        val whiteList = mutableListOf<String>()
+        for (i in 0 until whiteListSize) {
+            val keypair = Keys.createEcKeyPair()
+            whiteList.add(Keys.getAddress(keypair))
+        }
+
+        val addressList: List<String> = whiteList.toList()
+
+        addWhiteListToRelayRegistry(Keys.getAddress(keypair), addressList)
+
+        for (i in 0 until addressList.size) {
+            if (relayRegistry.isWhiteListed(
+                    Keys.getAddress(keypair),
+                    addressList[i]
+                ).send()
+            ) {
+                equalAddressesSize++
+            }
+        }
+
+        assertEquals(equalAddressesSize, relayRegistry.getWhiteListByRelay(Keys.getAddress(keypair)).send().size)
+    }
+
+    /**
+     * @given relay registry contract
+     * @when withdraw from not stored relay
+     * @then should be success
+     */
+    @Test
+    fun withdrawWithNotStoredRelay() {
+        val sigCount = 4
+        val amountToSend = 1000
+        val initialBalance =
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+        deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
+
+        val finalHash =
+            hashToWithdraw(
+                etherAddress,
+                amountToSend.toString(),
+                accGreen,
+                defaultIrohaHash
+            )
+
+        val keypairs = ArrayList<ECKeyPair>()
+        for (i in 0 until sigCount) {
+            val keypair = Keys.createEcKeyPair()
+            keypairs.add(keypair)
+            sendAddPeer("0x" + Keys.getAddress(keypair))
+        }
+        val sigs = prepareSignatures(sigCount, keypairs, finalHash)
+
+        master.withdraw(
+            etherAddress,
+            BigInteger.valueOf(amountToSend.toLong()),
+            accGreen,
+            defaultByteHash,
+            sigs.vv,
+            sigs.rr,
+            sigs.ss
+        ).send()
+
+        assertEquals(
+            BigInteger.valueOf(4000),
+            deployHelper.web3.ethGetBalance(master.contractAddress, DefaultBlockParameterName.LATEST).send().balance
+        )
+        assertEquals(
+            initialBalance + BigInteger.valueOf(1000),
+            deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
+        )
+    }
+
+    /**
+     * @given relay registry and master contract
+     * @when try to withdraw to address which is not in whitelist
+     * @then should throws exception
+     */
+    @Test
+    fun withdrawToAddressAbsentInWhiteList() {
+        addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
+        Assertions.assertThrows(TransactionException::class.java) {
+            withdraw(
+                "0x1", //wrong address
+                BigInteger.valueOf(4000)
+            )
+        }
+
+    }
+
 }

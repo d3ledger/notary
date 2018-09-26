@@ -1,4 +1,6 @@
-pragma solidity 0.4.24;
+pragma solidity 0.4.25;
+
+import "./IRelayRegistry.sol";
 
 /**
  * Subset of ERC-20 token interface
@@ -18,6 +20,9 @@ contract Master {
     mapping(bytes32 => bool) private used_;
     mapping(address => bool) private unique_addresses_;
 
+    address private relay_registry_address_;
+    IRelayRegistry private relay_registry_instance_;
+
     address[] private tokens_;
 
     event address_event(address input);
@@ -28,8 +33,10 @@ contract Master {
     /**
      * Constructor. Sets contract owner to contract creator.
      */
-    constructor() public {
+    constructor(address relayRegistry) public {
         owner_ = msg.sender;
+        relay_registry_address_ = relayRegistry;
+        relay_registry_instance_ = IRelayRegistry(relay_registry_address_);
     }
 
     /**
@@ -101,12 +108,12 @@ contract Master {
             }
             unique_addresses_[addresses[i]] = true;
         }
-        
+
         // restore state for future usages
         for (i = 0; i < addresses.length; ++i) {
             unique_addresses_[addresses[i]] = false;
         }
-        
+
         return isUnique;
     }
 
@@ -142,6 +149,7 @@ contract Master {
      */
     function withdraw(address token_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s) public {
         require(checkTokenAddress(token_address));
+        require(relay_registry_instance_.isWhiteListed(msg.sender, to));
         // TODO luckychess 26.06.2018 D3-101 improve require checks (copy-paste) (use modifiers)
         require(used_[tx_hash] == false);
         require(peers_count_ >= 1);

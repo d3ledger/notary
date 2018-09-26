@@ -5,6 +5,7 @@ import config.EthereumPasswords
 import contract.BasicCoin
 import contract.Master
 import contract.Relay
+import contract.RelayRegistry
 import mu.KLogging
 import okhttp3.*
 import org.web3j.crypto.RawTransaction
@@ -102,15 +103,29 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
     }
 
     /**
-     * Deploy master smart contract
+     * Deploy relay registry smart contract
      * @return master smart contract object
      */
-    fun deployMasterSmartContract(): Master {
-        val master = contract.Master.deploy(
+    fun deployRelayRegistrySmartContract(): RelayRegistry {
+        return contract.RelayRegistry.deploy(
             web3,
             credentials,
             gasPrice,
             gasLimit
+        ).send()
+    }
+
+    /**
+     * Deploy master smart contract
+     * @return master smart contract object
+     */
+    fun deployMasterSmartContract(relayRegistry: String): Master {
+        val master = contract.Master.deploy(
+            web3,
+            credentials,
+            gasPrice,
+            gasLimit,
+            relayRegistry
         ).send()
         logger.info { "Master smart contract ${master.contractAddress} was deployed" }
         return master

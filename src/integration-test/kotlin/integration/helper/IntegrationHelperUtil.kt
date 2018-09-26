@@ -4,6 +4,7 @@ import com.github.kittinunf.result.*
 import config.TestConfig
 import config.loadConfigs
 import contract.Master
+import contract.RelayRegistry
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelCrypto
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
@@ -104,9 +105,16 @@ class IntegrationHelperUtil {
     /** Notary ethereum address that is used in master smart contract to verify proof provided by notary */
     private val notaryEthAddress = "0x6826d84158e516f631bbf14586a9be7e255b2d23"
 
+    val relayRegistryContract by lazy {
+        val contract = deployRelayRegistry()
+        logger.info { "relay registry eth wallet ${contract.contractAddress} was deployed" }
+        contract
+    }
+
+
     /** New master ETH master contract*/
     val masterContract by lazy {
-        val wallet = deployMasterEth()
+        val wallet = deployMasterEth(relayRegistryContract.contractAddress)
         logger.info("master eth wallet ${wallet.contractAddress} was deployed ")
         wallet
     }
@@ -285,10 +293,18 @@ class IntegrationHelperUtil {
     }
 
     /**
+     * Deploys relay registry contract
+     */
+    private fun deployRelayRegistry(): RelayRegistry {
+        val relayRegistry = deployHelper.deployRelayRegistrySmartContract()
+        return relayRegistry
+    }
+
+    /**
      * Deploys ETH master contract
      */
-    private fun deployMasterEth(): Master {
-        val master = deployHelper.deployMasterSmartContract()
+    private fun deployMasterEth(relayRegistry: String): Master {
+        val master = deployHelper.deployMasterSmartContract(relayRegistry)
         master.addPeer(notaryEthAddress).send()
         return master
     }
