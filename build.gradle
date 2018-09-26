@@ -114,6 +114,8 @@ dependencies {
 
     // for setting env variables in tests
     testCompile group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.18.0'
+    // to run both junit4 and junit5 tests
+    testRuntime("org.junit.vintage:junit-vintage-engine:5.2.0")
 
 }
 
