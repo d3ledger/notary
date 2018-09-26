@@ -61,15 +61,19 @@ class WithdrawalServiceInitialization(
         return Result.of {
             val ethConsumer = EthConsumer(withdrawalConfig.ethereum, withdrawalEthereumPasswords)
             withdrawalService.output()
-                .subscribe({
-                    it.map { withdrawalEvent ->
-                        ethConsumer.consume(withdrawalEvent)
-                    }.failure { ex ->
-                        logger.error("Cannot consume withdrawal event", ex)
+                .subscribe(
+                    { res ->
+                        res.map { withdrawalEvents ->
+                            withdrawalEvents.map { event ->
+                                ethConsumer.consume(event)
+                            }
+                        }.failure { ex ->
+                            logger.error("Cannot consume withdrawal event", ex)
+                        }
+                    }, { ex ->
+                        logger.error("Withdrawal observable error", ex)
                     }
-                }, { ex ->
-                    logger.error("Withdrawal observable error", ex)
-                })
+                )
             Unit
         }
     }
