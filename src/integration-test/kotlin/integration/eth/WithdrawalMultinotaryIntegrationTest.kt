@@ -122,7 +122,8 @@ class WithdrawalMultinotaryIntegrationTest {
                     "0x0000000000000000000000000000000000000000",
                     decimalAmount,
                     ethWallet,
-                    hash
+                    hash,
+                    ""
                 )
             ), response1.ethSignature
         )
@@ -147,7 +148,8 @@ class WithdrawalMultinotaryIntegrationTest {
                     "0x0000000000000000000000000000000000000000",
                     decimalAmount,
                     ethWallet,
-                    hash
+                    hash,
+                    ""
                 )
             ), response2.ethSignature
         )
