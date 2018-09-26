@@ -27,12 +27,12 @@ class EthRegistrationStrategyImpl(
     val creator: String
 ) : RegistrationStrategy {
 
-    val credentials = WalletUtils.loadCredentials(
+    private val credentials = WalletUtils.loadCredentials(
         passwordConfig.credentialsPassword,
         ethRegistrationConfig.ethereum.credentialsPath
     )!!
-    val builder = OkHttpClient().newBuilder().authenticator(BasicAuthenticator(passwordConfig))!!
-    val web3 = Web3j.build(HttpService(ethRegistrationConfig.ethereum.url, builder.build(), false))!!
+    private val builder = OkHttpClient().newBuilder().authenticator(BasicAuthenticator(passwordConfig))!!
+    private val web3 = Web3j.build(HttpService(ethRegistrationConfig.ethereum.url, builder.build(), false))!!
 
     private val relayRegistry = RelayRegistry.load(
         ethRegistrationConfig.ethRelayRegistryAddress,
