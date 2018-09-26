@@ -28,7 +28,7 @@ class RelayEthRegistrationConfigTest {
 
         assertEquals("http://d3-eth-node0:8545", relayRegistrationConfig.ethereum.url)
         assertEquals("deploy/ethereum/keys/ropsten.key", relayRegistrationConfig.ethereum.credentialsPath)
-        assertEquals(1, relayRegistrationConfig.ethereum.gasPrice)
+        assertEquals(1000000000, relayRegistrationConfig.ethereum.gasPrice)
         assertEquals(1999999, relayRegistrationConfig.ethereum.gasLimit)
     }
 }
