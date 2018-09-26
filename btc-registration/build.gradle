@@ -1,0 +1,20 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+}
+apply plugin: 'application'
+mainClassName = "registration.btc.BtcRegistrationMain"
+
+dependencies {
+    compile project(":btc")
+}
+
+task runBtcRegistration(type: JavaExec) {
+    main = 'registration.btc.BtcRegistrationMain'
+    classpath = sourceSets.main.runtimeClasspath
+
+    systemProperty 'java.library.path', getIrohaLibPath()
+    environment "LD_LIBRARY_PATH", getIrohaLibPath()
+}

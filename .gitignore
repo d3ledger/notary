@@ -24,6 +24,23 @@ hs_err_pid*
 ### Gradle template
 .gradle
 /build/
+/notary-integration-test/build/
+/notary-integration-test/gradle/
+/notary-integration-test/gradlew
+/btc/build/
+/btc/gradle/
+/btc/gradlew
+/btc-deposit/build/
+/btc-deposit/gradle/
+/btc-deposit/gradlew
+/btc-registration/build/
+/btc-registration/gradle/
+/btc-registration/gradlew
+/btc-pregeneration/build/
+/btc-pregeneration/gradle/
+/btc-pregeneration/gradlew
+
+*gradlew.bat
 
 # Ignore Gradle GUI config
 gradle-app.setting
@@ -101,3 +118,4 @@ deploy/ethereum/keys/test
 
 # Bitcoin wallets, blockchain and etc.
 deploy/bitcoin
+

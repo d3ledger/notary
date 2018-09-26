@@ -42,6 +42,35 @@ fun getAssetPrecision(
         }
 }
 
+
+/**
+ * Get asset info
+ *
+ * @param irohaConfig - Iroha configuration parameters
+ * @param keypair - iroha keypair
+ * @param irohaNetwork - iroha network layer
+ * @param assetId asset id in Iroha
+ */
+fun getAssetInfo(
+    irohaConfig: IrohaConfig,
+    keypair: Keypair,
+    irohaNetwork: IrohaNetwork,
+    assetId: String
+): Result<QryResponses.Asset, Exception> {
+    val uquery = ModelQueryBuilder().creatorAccountId(irohaConfig.creator)
+        .queryCounter(BigInteger.valueOf(1))
+        .createdTime(ModelUtil.getCurrentTime())
+        .getAssetInfo(assetId)
+        .build()
+
+    return ModelUtil.prepareQuery(uquery, keypair)
+        .flatMap { query -> irohaNetwork.sendQuery(query) }
+        .map { queryResponse ->
+            validateResponse(queryResponse, "asset_response")
+            queryResponse.assetResponse.asset
+        }
+}
+
 /**
  * Get asset balance
  *
