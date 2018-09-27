@@ -159,7 +159,12 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
     }
 
     /** Test configuration of Notary with runtime dependencies */
-    fun createEthNotaryConfig(irohaConfig: IrohaConfig = createIrohaConfig()): EthNotaryConfig {
+    fun createEthNotaryConfig(
+        irohaConfig: IrohaConfig = createIrohaConfig(),
+        notaryCredential_: IrohaCredentialConfig = accountHelper.createCredentialConfig(
+            accountHelper.notaryAccount
+        )
+    ): EthNotaryConfig {
         return object : EthNotaryConfig {
             override val registrationServiceIrohaAccount = accountHelper.registrationAccount.accountId
             override val tokenStorageAccount = accountHelper.tokenStorageAccount.accountId
@@ -167,7 +172,7 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
             override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
             override val whitelistSetter = testConfig.whitelistSetter
-            override val notaryCredential = accountHelper.createCredentialConfig(accountHelper.notaryAccount)
+            override val notaryCredential = notaryCredential_
             override val refund = createRefundConfig()
             override val iroha = irohaConfig
             override val ethereum = ethNotaryConfig.ethereum

@@ -1,5 +1,6 @@
 package integration.eth
 
+import config.IrohaCredentialConfig
 import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -34,10 +35,10 @@ class DepositMultiIntegrationTest {
     }
 
     /** Path to public key of 2nd instance of notary */
-    private val pubkeyPath = "deploy/iroha/keys/notary2@notary.pub"
+    private val pubkeyPath2 = "deploy/iroha/keys/notary2@notary.pub"
 
     /** Path to private key of 2nd instance of notary */
-    private val privkeyPath = "deploy/iroha/keys/notary2@notary.priv"
+    private val privkeyPath2 = "deploy/iroha/keys/notary2@notary.priv"
 
     init {
         // run notary
@@ -46,9 +47,19 @@ class DepositMultiIntegrationTest {
         // create 2nd notray config
         val irohaConfig =
             integrationHelper.configHelper.createIrohaConfig()
-        val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig(irohaConfig)
 
-        val keypair = ModelUtil.loadKeypair(pubkeyPath, privkeyPath).get()
+        val notaryCredential2 = object : IrohaCredentialConfig {
+            override val pubkeyPath: String
+                get() = pubkeyPath2
+            override val privkeyPath: String
+                get() = privkeyPath2
+            override val accountId: String
+                get() = integrationHelper.accountHelper.notaryAccount.accountId
+        }
+
+        val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig(irohaConfig, notaryCredential2)
+
+        val keypair = ModelUtil.loadKeypair(pubkeyPath2, privkeyPath2).get()
 
         integrationHelper.accountHelper.addNotarySignatory(keypair)
 
