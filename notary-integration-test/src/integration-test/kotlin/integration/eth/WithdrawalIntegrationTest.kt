@@ -57,9 +57,8 @@ class WithdrawalIntegrationTest {
         // create
         val client = String.getRandomString(9)
         val clientId = "$client@notary"
-        integrationHelper.createClientAccount(client, listOf(ethWallet), integrationHelper.irohaKeyPair)
+        integrationHelper.registerClient(client, listOf(ethWallet), integrationHelper.irohaKeyPair)
         integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
-
         val relay = EthRelayProviderIrohaImpl(integrationHelper.configHelper.testConfig.iroha,
             integrationHelper.irohaKeyPair,
             masterAccount,

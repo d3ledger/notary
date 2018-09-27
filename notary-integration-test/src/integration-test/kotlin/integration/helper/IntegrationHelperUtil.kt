@@ -357,14 +357,13 @@ class IntegrationHelperUtil {
         keypair: Keypair = ModelCrypto().generateKeypair()
     ): String {
         deployRelays(1)
-        return registerClientWithoutRelay(name, keypair)
+        return registerClientWithoutRelay(name, whitelist, keypair)
     }
 
     /**
      * Registers first free relay contract in Iroha to the client with given [name] and public key
      */
-    fun registerClientWithoutRelay(name: String, keypair: Keypair = ModelCrypto().generateKeypair()): String {
-        ethRegistrationStrategy.register(name, keypair.publicKey().hex())
+    fun registerClientWithoutRelay(name: String, whitelist: List<String>, keypair: Keypair = ModelCrypto().generateKeypair()): String {
         ethRegistrationStrategy.register(name, whitelist, keypair.publicKey().hex())
             .fold({ registeredEthWallet ->
                 logger.info("registered client $name with relay $registeredEthWallet")

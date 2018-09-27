@@ -1,6 +1,5 @@
 package integration.eth
 
-import com.github.kittinunf.result.map
 import com.squareup.moshi.Moshi
 import config.loadEthPasswords
 import integration.helper.IntegrationHelperUtil
@@ -18,7 +17,6 @@ import sidechain.eth.util.ETH_PRECISION
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
 import sidechain.iroha.util.ModelUtil
-import sidechain.iroha.util.getAccountDetails
 import util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -85,19 +83,16 @@ class WithdrawalMultinotaryIntegrationTest {
         val ethWallet = "0x1334"
 
         // create
-        val client = integrationHelper.createClientAccount()
-        integrationHelper.addIrohaAssetTo(client, assetId, decimalAmount)
-        integrationHelper.setWhitelist(client, listOf("0x123", ethWallet))
         val client = String.getRandomString(9)
         val clientId = "$client@notary"
         integrationHelper.registerClient(client, listOf(ethWallet), integrationHelper.irohaKeyPair)
         integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
-
-        val relay = EthRelayProviderIrohaImpl(integrationHelper.configHelper.testConfig.iroha,
+        val relay = EthRelayProviderIrohaImpl(
+            integrationHelper.configHelper.testConfig.iroha,
             integrationHelper.irohaKeyPair,
             masterAccount,
             integrationHelper.accountHelper.registrationAccount
-            ).getRelays().get().filter {
+        ).getRelays().get().filter {
             it.value == clientId
         }.keys.first()
 
