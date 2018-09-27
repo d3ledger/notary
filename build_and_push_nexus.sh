@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 rm build/libs/notary-1.0-SNAPSHOT-all.jar || true
-gradle shadowJar -Pprofile=deploy
+gradle shadowJar -Pprofile=testnet
 
 docker build -t nexus.iroha.tech:19002/d3-deploy/eth-relay:testnet -f eth-relay.dockerfile .
 docker build -t nexus.iroha.tech:19002/d3-deploy/registration:testnet  -f registration.dockerfile .
