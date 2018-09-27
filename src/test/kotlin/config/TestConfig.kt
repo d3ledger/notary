@@ -10,7 +10,7 @@ interface TestConfig {
     val ethTestAccount: String
     val ethereum: EthereumConfig
     val iroha: IrohaConfig
-    val testCredential: IrohaCredentialConfig
+    val testCredentialConfig: IrohaCredentialConfig
     val bitcoin: BitcoinConfig
     val credentialsPassword: String
     val nodeLogin: String
