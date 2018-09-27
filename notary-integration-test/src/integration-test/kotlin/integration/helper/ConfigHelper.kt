@@ -164,10 +164,9 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
     /** Test configuration of Notary with runtime dependencies */
     fun createEthNotaryConfig(
         irohaConfig: IrohaConfig = createIrohaConfig(),
+        ethereumConfig: EthereumConfig = ethNotaryConfig.ethereum,
         notaryCredential_: IrohaCredentialConfig = accountHelper.createCredentialConfig(
-            accountHelper.notaryAccount,
-            ethereumConfig: EthereumConfig = ethNotaryConfig.ethereum
-
+            accountHelper.notaryAccount
         )
     ): EthNotaryConfig {
         return object : EthNotaryConfig {

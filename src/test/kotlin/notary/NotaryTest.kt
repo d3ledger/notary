@@ -28,7 +28,7 @@ class NotaryTest {
     private val credentialConfig = mock<IrohaCredentialConfig>(){
         on {privkeyPath} doReturn "deploy/iroha/keys/admin@notary.priv"
         on {pubkeyPath} doReturn "deploy/iroha/keys/admin@notary.pub"
-        on {accountId} doReturn "notary_red@notary"
+        on {accountId} doReturn "creator@iroha"
     }
 
     /** Configuration for notary */
@@ -186,7 +186,7 @@ class NotaryTest {
         val obsEth = Observable.just<SideChainEvent.PrimaryBlockChainEvent>(custodianIntention)
         val notary = createEthNotary(notaryConfig, obsEth, peerListProvider)
         val res = notary.irohaOutput()
-        checkEthereumDepositResult(
+            checkEthereumDepositResult(
             expectedAmount,
             expectedAssetId,
             expectedCreatorId,

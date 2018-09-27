@@ -57,7 +57,11 @@ class DepositMultiIntegrationTest {
                 get() = integrationHelper.accountHelper.notaryAccount.accountId
         }
 
-        val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig(irohaConfig, notaryCredential2)
+        val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig(
+            irohaConfig,
+            integrationHelper.configHelper.ethNotaryConfig.ethereum,
+            notaryCredential2
+        )
 
         val keypair = ModelUtil.loadKeypair(pubkeyPath2, privkeyPath2).get()
 
