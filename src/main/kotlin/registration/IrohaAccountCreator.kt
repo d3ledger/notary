@@ -24,6 +24,7 @@ class IrohaAccountCreator(
      * - SetAccountDetail on client account with assigned relay wallet from notary pool of free relay addresses
      * - SetAccountDetail on notary node account to mark relay address in pool as assigned to the particular user
      * @param currencyAddress - address of crypto currency wallet
+     * @param whitelist - list of addresses allowed to withdraw to
      * @param userName - client userName in Iroha
      * @param pubkey - client's public key
      * @return address associated with userName

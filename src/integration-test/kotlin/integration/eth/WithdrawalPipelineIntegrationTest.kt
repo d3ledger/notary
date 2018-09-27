@@ -6,6 +6,8 @@ import jp.co.soramitsu.iroha.ModelCrypto
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.launch
 import org.junit.jupiter.api.*
+import org.web3j.abi.datatypes.Array
+import registration.eth.EthRegistrationConfig
 import sidechain.eth.util.ETH_PRECISION
 import util.getRandomString
 import java.math.BigDecimal
@@ -28,7 +30,16 @@ class WithdrawalPipelineIntegrationTest {
     private val refundAddress = "http://localhost:${notaryConfig.refund.port}"
 
     /** Test Registration configuration */
-    private val registrationConfig = integrationHelper.configHelper.createEthRegistrationConfig()
+    private val registrationConfig =
+        object : EthRegistrationConfig {
+            val tmp = integrationHelper.configHelper.createEthRegistrationConfig()
+            override val ethRelayRegistryAddress = integrationHelper.relayRegistryContract.contractAddress
+            override val ethereum = tmp.ethereum
+            override val port = tmp.port
+            override val relayRegistrationIrohaAccount = tmp.relayRegistrationIrohaAccount
+            override val notaryIrohaAccount = tmp.notaryIrohaAccount
+            override val iroha = tmp.iroha
+        }
 
     /** Test Withdrawal configuration */
     private val withdrawalServiceConfig = integrationHelper.configHelper.createWithdrawalConfig()
@@ -92,7 +103,12 @@ class WithdrawalPipelineIntegrationTest {
         integrationHelper.sendEth(amount, integrationHelper.masterContract.contractAddress)
 
         // register client
-        val res = integrationHelper.sendRegistrationRequest(clientName, keypair.publicKey(), registrationConfig.port)
+        val res = integrationHelper.sendRegistrationRequest(
+            clientName,
+            listOf(toAddress).toString(),
+            keypair.publicKey(),
+            registrationConfig.port
+        )
         Assertions.assertEquals(200, res.statusCode)
 
         val initialBalance = integrationHelper.getEthBalance(toAddress)
@@ -148,7 +164,12 @@ class WithdrawalPipelineIntegrationTest {
         val assetId = "${assetInfo.name}#$domain"
 
         // register client
-        val res = integrationHelper.sendRegistrationRequest(clientName, keypair.publicKey(), registrationConfig.port)
+        val res = integrationHelper.sendRegistrationRequest(
+            clientName,
+            listOf(toAddress).toString(),
+            keypair.publicKey(),
+            registrationConfig.port
+        )
         Assertions.assertEquals(200, res.statusCode)
 
         integrationHelper.setWhitelist(clientId, listOf(toAddress))
@@ -184,9 +205,8 @@ class WithdrawalPipelineIntegrationTest {
      */
     @Test
     fun testWithdrawInWhitelist() {
-        integrationHelper.registerClient(clientName, emptyList(),keypair)
-
-        integrationHelper.setWhitelist(clientId, listOf(toAddress, "0xSOME_ANOTHER_ETH_ADDRESS"))
+        integrationHelper.registerClient(clientName, listOf(toAddress, "0x123"), keypair)
+        integrationHelper.setWhitelist(clientId, listOf(toAddress, "0x123"))
 
         val amount = "125"
         val assetId = "ether#ethereum"
@@ -219,9 +239,10 @@ class WithdrawalPipelineIntegrationTest {
      */
     @Test
     fun testWithdrawEmptyWhitelist() {
-        integrationHelper.registerClient(clientName, emptyList(),keypair)
+        // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
+        integrationHelper.registerClient(clientName, listOf("0x0"), keypair)
 
-        val withdrawalEthAddress = "0xAAABBBCCC"
+        val withdrawalEthAddress = "0x123"
 
         val amount = "125"
         val assetId = "ether#ethereum"
@@ -253,8 +274,8 @@ class WithdrawalPipelineIntegrationTest {
      */
     @Test
     fun testWithdrawNotInWhitelist() {
-        integrationHelper.registerClient(clientName, emptyList(),keypair)
-        integrationHelper.setWhitelist(clientId, listOf("0xANOTHER_ETH_ADDRESS"))
+        integrationHelper.registerClient(clientName, listOf("0x123"), keypair)
+        integrationHelper.setWhitelist(clientId, listOf("0x123"))
 
         val withdrawalEthAddress = "0xAAABBBCCC"
 

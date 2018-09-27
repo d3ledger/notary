@@ -8,10 +8,12 @@ import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import provider.eth.EthRelayProviderIrohaImpl
 import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.ETH_PRECISION
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
+import util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -50,18 +52,27 @@ class WithdrawalIntegrationTest {
         val amount = "64203"
         val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(ETH_PRECISION.toInt()).toPlainString()
         val assetId = "ether#ethereum"
-        val ethWallet = "eth_wallet"
+        val ethWallet = "0x1334"
 
         // create
-        val client = integrationHelper.registerClient()
-        integrationHelper.addIrohaAssetTo(client, assetId, decimalAmount)
-        integrationHelper.setWhitelist(client, listOf("0x123", ethWallet))
+        val client = String.getRandomString(9)
+        val clientId = "$client@notary"
+        integrationHelper.registerClient(client, listOf(ethWallet), integrationHelper.irohaKeyPair)
+        integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
+
+        val relay = EthRelayProviderIrohaImpl(integrationHelper.configHelper.testConfig.iroha,
+            integrationHelper.irohaKeyPair,
+            masterAccount,
+            integrationHelper.accountHelper.registrationAccount
+        ).getRelays().get().filter {
+            it.value == clientId
+        }.keys.first()
 
         // transfer assets from user to notary master account
         val hash = integrationHelper.transferAssetIrohaFromClient(
-            client,
+            clientId,
             integrationHelper.irohaKeyPair,
-            client,
+            clientId,
             masterAccount,
             assetId,
             ethWallet,
@@ -95,7 +106,7 @@ class WithdrawalIntegrationTest {
                     decimalAmount,
                     ethWallet,
                     hash,
-                    ""
+                    relay
                 )
             ), response.ethSignature
         )

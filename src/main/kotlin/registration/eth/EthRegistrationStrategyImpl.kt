@@ -24,7 +24,8 @@ class EthRegistrationStrategyImpl(
     passwordConfig: EthereumPasswords,
     val irohaConsumer: IrohaConsumer,
     val notaryIrohaAccount: String,
-    val creator: String
+    val creator: String,
+    val ethRelayRegistryAddress: String = ethRegistrationConfig.ethRelayRegistryAddress
 ) : RegistrationStrategy {
 
     private val credentials = WalletUtils.loadCredentials(
@@ -35,7 +36,7 @@ class EthRegistrationStrategyImpl(
     private val web3 = Web3j.build(HttpService(ethRegistrationConfig.ethereum.url, builder.build(), false))!!
 
     private val relayRegistry = RelayRegistry.load(
-        ethRegistrationConfig.ethRelayRegistryAddress,
+        ethRelayRegistryAddress,
         web3,
         credentials,
         BigInteger.valueOf(ethRegistrationConfig.ethereum.gasPrice),

@@ -36,7 +36,7 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
     val btcNotaryConfig = loadConfigs("btc-notary", BtcNotaryConfig::class.java, "/btc/notary.properties")
 
     val relayRegistrationConfig =
-        loadConfigs("test", RelayRegistrationConfig::class.java, "/test.properties")
+        loadConfigs("relay-registration", RelayRegistrationConfig::class.java, "/eth/relay_registration.properties")
 
     val btcRegistrationConfig =
         loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/btc/registration.properties")

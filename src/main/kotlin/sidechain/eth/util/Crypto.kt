@@ -43,7 +43,7 @@ fun hashToWithdraw(tokenAddress: String, amount: AmountType, accountAddress: Str
                 + String.format("%064x", BigInteger(amount)).replace("0x", "")
                 + accountAddress.replace("0x", "")
                 + irohaHash.replace("0x", "")
-                + from.replace("0x","")
+                + from.replace("0x", "")
     )
 }
 

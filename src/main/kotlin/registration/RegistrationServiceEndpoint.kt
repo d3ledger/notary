@@ -57,25 +57,23 @@ class RegistrationServiceEndpoint(
     private fun onPostRegistration(name: String?, whitelist: List<String>?, pubkey: String?): Response {
         // TODO - D3-121 - a.chernyshov - distinguish correct status code response (500 - server internal error)
         var reason = ""
-        if (name == null)  reason = reason.plus("Parameter \"name\" is not specified. ")
+        if (name == null) reason = reason.plus("Parameter \"name\" is not specified. ")
         if (whitelist == null) reason = reason.plus("Parameter \"whitelist\" is not specified. ")
         if (pubkey == null) reason = reason.plus("Parameter \"pubkey\" is not specified.")
 
         if (name == null || whitelist == null || pubkey == null) {
             return responseError(HttpStatusCode.BadRequest, reason)
-        } else {
-            registrationStrategy.register(name, whitelist, pubkey).fold(
-                { address ->
-                    logger.info { "Client $name was successfully registered with address $address" }
-                    return Response(HttpStatusCode.OK, address)
-                },
-                { ex ->
-                    logger.error("Cannot register client $name", ex)
-                    // TODO - D3-121 - a.chernyshov - distinguish correct status code response (500 - server internal error)
-                    return responseError(HttpStatusCode.BadRequest, ex.toString())
-                })
-
         }
+        registrationStrategy.register(name, whitelist, pubkey).fold(
+            { address ->
+                logger.info { "Client $name was successfully registered with address $address" }
+                return Response(HttpStatusCode.OK, address)
+            },
+            { ex ->
+                logger.error("Cannot register client $name", ex)
+                // TODO - D3-121 - a.chernyshov - distinguish correct status code response (500 - server internal error)
+                return responseError(HttpStatusCode.BadRequest, ex.toString())
+            })
     }
 
     /**

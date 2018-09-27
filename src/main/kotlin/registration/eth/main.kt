@@ -18,7 +18,7 @@ private val logger = KLogging().logger
 fun main(args: Array<String>) {
     val registrationConfig =
         loadConfigs("eth-registration", EthRegistrationConfig::class.java, "/eth/registration.properties")
-    val passwordConfig = loadEthPasswords("eth-notary", "/eth/ethereum_password.properties", args)
+    val passwordConfig = loadEthPasswords("eth-registration", "/eth/ethereum_password.properties", args)
 
     executeRegistration(registrationConfig, passwordConfig)
 }

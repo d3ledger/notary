@@ -3,9 +3,7 @@ package notary.endpoint.eth
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import config.EthereumConfig
 import config.EthereumPasswords
-import config.IrohaConfig
 import iroha.protocol.TransactionOuterClass.Transaction
 import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
@@ -34,9 +32,10 @@ class EthRefundStrategyImpl(
 
     val relayProvider = EthRelayProviderIrohaImpl(
         notaryConfig.iroha,
-     keypair,
-     notaryConfig.iroha.creator,
-        notaryConfig.registrationServiceIrohaAccount)
+        keypair,
+        notaryConfig.iroha.creator,
+        notaryConfig.registrationServiceIrohaAccount
+    )
 
     private var ecKeyPair: ECKeyPair = DeployHelper(notaryConfig.ethereum, ethereumPasswords).credentials.ecKeyPair
 
@@ -118,11 +117,18 @@ class EthRefundStrategyImpl(
                             { throw it }
                         )
 
-                    val relayAddress = relayProvider.getRelays().get().filter {
-                        it.value == commands.transferAsset.srcAccountId
-                    }.keys.first()
-                    val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(precision.toInt()).toPlainString()
-                    EthRefund(destEthAddress, coinAddress, decimalAmount, request.irohaTx, relayAddress)
+                    relayProvider.getRelays().fold(
+                        {
+                            val relayAddress = it.filter {
+                                it.value == commands.transferAsset.srcAccountId
+                            }.keys.first()
+                            val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(precision.toInt()).toPlainString()
+                            EthRefund(destEthAddress, coinAddress, decimalAmount, request.irohaTx, relayAddress)
+                        },
+                        {
+                            throw it
+                        }
+                    )
                 }
                 else -> {
                     val errorMsg = "Transaction doesn't contain expected commands."
@@ -139,7 +145,7 @@ class EthRefundStrategyImpl(
      * @return signed refund or error
      */
     private fun makeRefund(ethRefund: EthRefund): Result<EthNotaryResponse, Exception> {
-        logger.info { "Make refund. Address: ${ethRefund.address}, relay: ${ethRefund.relayAddress}, amount: ${ethRefund.amount} ${ethRefund.assetId}, hash: ${ethRefund.irohaTxHash}" }
+        logger.info { "Make refund. Asset address: ${ethRefund.assetId}, amount: ${ethRefund.amount}, to address: ${ethRefund.address}, hash: ${ethRefund.irohaTxHash}, relay: ${ethRefund.relayAddress}" }
         return Result.of {
             val finalHash =
                 hashToWithdraw(
@@ -149,6 +155,7 @@ class EthRefundStrategyImpl(
                     ethRefund.irohaTxHash,
                     ethRefund.relayAddress
                 )
+
             val signature = signUserData(ecKeyPair, finalHash)
             EthNotaryResponse.Successful(signature, ethRefund)
         }
