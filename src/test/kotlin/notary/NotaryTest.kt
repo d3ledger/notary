@@ -127,14 +127,14 @@ class NotaryTest {
         val expectedFrom = "eth_from"
         val expectedTime = BigInteger.TEN
 
-        val custodianIntention = mock<SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit>() {
-            on { hash } doReturn expectedHash
-            on { time } doReturn expectedTime
-            on { user } doReturn expectedUserId
-            on { amount } doReturn expectedAmount
-            on { from } doReturn expectedFrom
-            on { asset } doReturn expectedAssetId
-        }
+        val custodianIntention = SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
+            expectedHash,
+            expectedTime,
+            expectedUserId,
+            expectedAssetId,
+            expectedAmount,
+            expectedFrom
+        )
 
         // source of events from side chains
         val obsEth = Observable.just<SideChainEvent.PrimaryBlockChainEvent>(custodianIntention)
@@ -168,15 +168,14 @@ class NotaryTest {
         val expectedUserId = "from"
         val expectedFrom = "eth_from"
         val expectedTime = BigInteger.TEN
-
-        val custodianIntention = mock<SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit>() {
-            on { hash } doReturn expectedHash
-            on { time } doReturn expectedTime
-            on { user } doReturn expectedUserId
-            on { asset } doReturn expectedAssetId
-            on { amount } doReturn expectedAmount
-            on { from } doReturn expectedFrom
-        }
+        val custodianIntention = SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
+            expectedHash,
+            expectedTime,
+            expectedUserId,
+            expectedAssetId,
+            expectedAmount,
+            expectedFrom
+        )
 
         // source of events from side chains
         val obsEth = Observable.just<SideChainEvent.PrimaryBlockChainEvent>(custodianIntention)
