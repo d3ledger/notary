@@ -17,8 +17,8 @@ class AccountHelper() {
     val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
     private val testCredential = IrohaCredential(
-        testConfig.testCredential.accountId,
-        ModelUtil.loadKeypair(testConfig.testCredential.pubkeyPath, testConfig.testCredential.privkeyPath).get()
+        testConfig.testCredentialConfig.accountId,
+        ModelUtil.loadKeypair(testConfig.testCredentialConfig.pubkeyPath, testConfig.testCredentialConfig.privkeyPath).get()
     )
 
     private val irohaConsumer by lazy { IrohaConsumerImpl(testCredential, testConfig.iroha) }
@@ -53,9 +53,9 @@ class AccountHelper() {
     fun createCredentialConfig(credetial: IrohaCredential): IrohaCredentialConfig {
         return object:IrohaCredentialConfig{
             override val pubkeyPath: String
-                get() =  testConfig.testCredential.pubkeyPath
+                get() =  testConfig.testCredentialConfig.pubkeyPath
             override val privkeyPath: String
-                get() = testConfig.testCredential.privkeyPath
+                get() = testConfig.testCredentialConfig.privkeyPath
             override val accountId: String
                 get() = credetial.accountId
         }

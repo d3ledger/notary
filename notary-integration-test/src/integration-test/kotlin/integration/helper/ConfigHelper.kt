@@ -4,7 +4,6 @@ import config.*
 import integration.TestConfig
 import notary.btc.config.BtcNotaryConfig
 import model.IrohaCredential
-import notary.btc.BtcNotaryConfig
 import notary.eth.EthNotaryConfig
 import notary.eth.RefundConfig
 import registration.btc.BtcRegistrationConfig
@@ -55,7 +54,7 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
         )
 
     fun getTestCredentialConfig(): IrohaCredentialConfig {
-        return testConfig.testCredential
+        return testConfig.testCredentialConfig
     }
 
     //Creates config for ERC20 tokens registration

@@ -90,7 +90,7 @@ class EthNotaryInitialization(
 
         val peerListProvider = NotaryPeerListProviderImpl(
             ethNotaryConfig.iroha,
-            irohaKeyPair,
+            notaryCredential,
             ethNotaryConfig.notaryListStorageAccount,
             ethNotaryConfig.notaryListSetterAccount
         )

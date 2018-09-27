@@ -49,18 +49,17 @@ fun getAssetPrecision(
  * @param assetId asset id in Iroha
  */
 fun getAssetInfo(
-    irohaConfig: IrohaConfig,
-    keypair: Keypair,
+    credential: IrohaCredential,
     irohaNetwork: IrohaNetwork,
     assetId: String
 ): Result<QryResponses.Asset, Exception> {
-    val uquery = ModelQueryBuilder().creatorAccountId(irohaConfig.creator)
+    val uquery = ModelQueryBuilder().creatorAccountId(credential.accountId)
         .queryCounter(BigInteger.valueOf(1))
         .createdTime(ModelUtil.getCurrentTime())
         .getAssetInfo(assetId)
         .build()
 
-    return ModelUtil.prepareQuery(uquery, keypair)
+    return ModelUtil.prepareQuery(uquery, credential.keyPair)
         .flatMap { query -> irohaNetwork.sendQuery(query) }
         .map { queryResponse ->
             validateResponse(queryResponse, "asset_response")

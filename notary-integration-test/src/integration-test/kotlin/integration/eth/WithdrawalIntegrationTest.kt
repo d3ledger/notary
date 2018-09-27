@@ -54,14 +54,14 @@ class WithdrawalIntegrationTest {
 
         // create
         val client = integrationHelper.createClientAccount()
-        integrationHelper.addIrohaAssetTo(client, assetId, decimalAmount)
-        integrationHelper.setWhitelist(client, listOf("0x123", ethWallet))
+        integrationHelper.addIrohaAssetTo(client.accountId, assetId, decimalAmount)
+        integrationHelper.setWhitelist(client.accountId, listOf("0x123", ethWallet))
 
         // transfer assets from user to notary master account
         val hash = integrationHelper.transferAssetIrohaFromClient(
-            client,
-            integrationHelper.testCredential.keyPair,
-            client,
+            client.accountId,
+            client.keyPair,
+            client.accountId,
             masterAccount,
             assetId,
             ethWallet,

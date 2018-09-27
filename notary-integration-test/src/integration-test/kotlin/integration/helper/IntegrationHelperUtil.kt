@@ -58,8 +58,11 @@ class IntegrationHelperUtil {
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
     val testCredential = IrohaCredential(
-        testConfig.testCredential.accountId,
-        ModelUtil.loadKeypair(testConfig.testCredential.pubkeyPath, testConfig.testCredential.privkeyPath).get()
+        testConfig.testCredentialConfig.accountId,
+        ModelUtil.loadKeypair(
+            testConfig.testCredentialConfig.pubkeyPath,
+            testConfig.testCredentialConfig.privkeyPath
+        ).get()
     )
 
     val accountHelper by lazy { AccountHelper() }
@@ -187,8 +190,10 @@ class IntegrationHelperUtil {
     }
 
     private val relayRegistration by lazy {
-        RelayRegistration(configHelper.createRelayRegistrationConfig(),
-            accountHelper.registrationAccount, configHelper.ethPasswordConfig)
+        RelayRegistration(
+            configHelper.createRelayRegistrationConfig(),
+            accountHelper.registrationAccount, configHelper.ethPasswordConfig
+        )
     }
 
     /**
@@ -482,7 +487,7 @@ class IntegrationHelperUtil {
     /**
      * Create account for client
      */
-    fun createClientAccount(): String {
+    fun createClientAccount(): IrohaCredential {
         val name = "client_${String.getRandomString(9)}"
         val domain = "notary"
         val creator = accountHelper.registrationAccount.accountId
@@ -496,7 +501,7 @@ class IntegrationHelperUtil {
                 .build()
         ).fold({
             logger.info("client account $name@$domain was created")
-            return "$name@notary"
+            return IrohaCredential("$name@notary", keyPair)
         }, { ex -> throw Exception("cannot create client", ex) })
 
     }
