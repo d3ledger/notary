@@ -12,14 +12,19 @@ import org.bitcoinj.core.PeerGroup
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.store.LevelDBBlockStore
 import org.bitcoinj.wallet.Wallet
+import provider.NotaryPeerListProviderImpl
 import provider.btc.BtcRegisteredAddressesProvider
 import sidechain.SideChainEvent
+import sidechain.iroha.util.ModelUtil
 import java.io.File
 
 class BtcNotaryInitialization(
     private val btcNotaryConfig: BtcNotaryConfig,
     private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider
 ) {
+
+    val keypair = ModelUtil.loadKeypair(btcNotaryConfig.iroha.pubkeyPath, btcNotaryConfig.iroha.privkeyPath).get()
+
     /**
      * Init notary
      */
@@ -31,7 +36,15 @@ class BtcNotaryInitialization(
         }.map { wallet ->
             getBtcEvents(wallet, btcNotaryConfig.bitcoin.confidenceLevel)
         }.map { btcEvents ->
-            val notary = createBtcNotary(btcNotaryConfig, btcEvents)
+
+            val peerListProvider = NotaryPeerListProviderImpl(
+                btcNotaryConfig.iroha,
+                keypair,
+                btcNotaryConfig.notaryListStorageAccount,
+                btcNotaryConfig.notaryListSetterAccount
+            )
+
+            val notary = createBtcNotary(btcNotaryConfig, btcEvents, peerListProvider)
             notary.initIrohaConsumer().failure { ex -> throw ex }
             Unit
         }
