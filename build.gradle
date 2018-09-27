@@ -379,7 +379,8 @@ task runWithdrawal(type: JavaExec) {
 }
 
 processResources {
-    def profile = (project.hasProperty('profile') ? project.profile : 'develop').toLowerCase()
+
+    def profile = project.profile.toLowerCase()
 
     from('src/main/resources') {
         include "**/**_${profile}.properties"
