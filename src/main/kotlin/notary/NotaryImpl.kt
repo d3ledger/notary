@@ -7,7 +7,7 @@ import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import model.IrohaCredential
 import mu.KLogging
-import provider.NotaryPeerListProviderImpl
+import provider.NotaryPeerListProvider
 import sidechain.SideChainEvent
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
@@ -23,17 +23,9 @@ class NotaryImpl(
     private val notaryCredential: IrohaCredential,
     private val primaryChainEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>,
     private val domain: String,
-    notaryListStorageAccount: String,
-    notaryListSetterAccount: String
+    private val peerListProvider: NotaryPeerListProvider
 ) : Notary {
 
-
-    private val peerListProvider = NotaryPeerListProviderImpl(
-        irohaConfig,
-        notaryCredential,
-        notaryListStorageAccount,
-        notaryListSetterAccount
-    )
 
     /** Notary account in Iroha */
     private val creator = notaryCredential.accountId

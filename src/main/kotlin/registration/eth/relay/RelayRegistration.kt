@@ -38,11 +38,11 @@ class RelayRegistration(
 
     /**
      * Registers relay in Iroha.
-     * @param wallet - ethereum wallet to record into Iroha
+     * @param relayAddress - relay address to record into Iroha
      * @return Result with string representation of hash or possible failure
      */
-    fun registerRelayIroha(wallet: String): Result<String, Exception> {
-        return ModelUtil.setAccountDetail(irohaConsumer, notaryIrohaAccount, wallet, "free")
+    fun registerRelayIroha(relayAddress: String): Result<String, Exception> {
+        return ModelUtil.setAccountDetail(irohaConsumer, notaryIrohaAccount, relayAddress, "free")
     }
 
     fun deploy(): Result<Unit, Exception> {
