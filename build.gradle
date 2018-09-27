@@ -380,7 +380,10 @@ task runWithdrawal(type: JavaExec) {
 
 processResources {
 
+    def profiles = ["local", "testnet", "mainnet"]
     def profile = project.profile.toLowerCase()
+    if(!profiles.contains(profile))
+        throw new IllegalArgumentException("Invalid profile, please use one of " + profiles.toString())
 
     from('src/main/resources') {
         include "**/**_${profile}.properties"
