@@ -47,8 +47,11 @@ class EthChainListener(
         }
     }
 
+    /**
+     * @return a block as soon as it is committed to Ethereum
+     */
     override suspend fun getBlock(): EthBlock {
-        throw TODO("Implement eth get block with coroutines");
+        return getBlockObservable().get().blockingFirst()
     }
 
     /**

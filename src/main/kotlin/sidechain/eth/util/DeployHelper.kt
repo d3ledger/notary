@@ -3,6 +3,7 @@ package sidechain.eth.util
 import config.EthereumConfig
 import config.EthereumPasswords
 import contract.BasicCoin
+import contract.Failer
 import contract.Master
 import contract.Relay
 import contract.RelayRegistry
@@ -148,6 +149,12 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
         ).send()
         logger.info { "Relay smart contract ${replay.contractAddress} was deployed" }
         return replay
+    }
+
+    fun deployFailerContract(): Failer {
+        val failer = Failer.deploy(web3, credentials, gasPrice, gasLimit).send()
+        logger.info { "Failer smart contract ${failer.contractAddress} was deployed" }
+        return failer
     }
 
     /**

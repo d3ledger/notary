@@ -2,32 +2,32 @@ version: '3.5'
 
 networks:
   d3-notary:
-    name: d3${SUBNET}
+    name: d3-${SUBNET}
     attachable: true
 
 services:
   d3-iroha:
-    container_name: d3-iroha${SUBNET}
+    container_name: d3-iroha-${SUBNET}
     expose:
       - 50051
     networks:
       - d3-notary
 
   d3-iroha-postgres:
-    container_name: d3-iroha-postgres${SUBNET}
+    container_name: d3-iroha-postgres-${SUBNET}
     networks:
       - d3-notary
 
   # ethereum
   d3-eth-node0:
-    container_name: d3-eth-node0${SUBNET}
+    container_name: d3-eth-node0-${SUBNET}
     expose:
       - 8545
     networks:
       - d3-notary
 
   grpcwebproxy:
-    container_name: d3-grpcwebproxy${SUBNET}
+    container_name: d3-grpcwebproxy-${SUBNET}
     expose:
       - 8081
       - 8443

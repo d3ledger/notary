@@ -14,11 +14,11 @@ interface WithdrawalService {
     /**
      * Handle Iroha events.
      */
-    fun onIrohaEvent(irohaEvent: SideChainEvent.IrohaEvent): Result<WithdrawalServiceOutputEvent, Exception>
+    fun onIrohaEvent(irohaEvent: SideChainEvent.IrohaEvent): Result<List<WithdrawalServiceOutputEvent>, Exception>
 
     /**
      * Events emitted by [WithdrawalService]
      */
-    fun output(): io.reactivex.Observable<Result<WithdrawalServiceOutputEvent, Exception>>
+    fun output(): io.reactivex.Observable<Result<List<WithdrawalServiceOutputEvent>, Exception>>
 
 }
