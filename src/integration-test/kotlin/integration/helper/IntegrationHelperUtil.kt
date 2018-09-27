@@ -26,6 +26,7 @@ import provider.eth.EthTokensProviderImpl
 import registration.btc.BtcRegistrationStrategyImpl
 import registration.eth.EthRegistrationStrategyImpl
 import registration.eth.relay.RelayRegistration
+import sidechain.eth.EthChainListener
 import sidechain.eth.util.DeployHelper
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.IrohaInitialization
@@ -250,6 +251,14 @@ class IntegrationHelperUtil {
     }
 
     /**
+     * Deploys smart contract which always fails. Use only if you know why do need it.
+     * @return contract address
+     */
+    fun deployFailer(): String {
+        return deployHelper.deployFailerContract().contractAddress
+    }
+
+    /**
      * Add token to Iroha token provider
      * @param tokenName - user defined token name
      * @param tokenAddress - token ERC20 smart contract address
@@ -325,11 +334,26 @@ class IntegrationHelperUtil {
     }
 
     /**
-     * Registers first free relay contract in Iroha to the client with given [name] and public key
+     * Registers relay account in Iroha with given address
+     * @param address Ethereum address to register
+     */
+    fun registerRelayByAddress(address: String) {
+        relayRegistration.registerRelayIroha(address)
+        Thread.sleep(10_000)
+    }
+
+    /**
+     * Deploys relay and registers first free relay contract in Iroha to the client with given [name] and public key
      */
     fun registerClient(name: String, keypair: Keypair = ModelCrypto().generateKeypair()): String {
         deployRelays(1)
+        return registerClientWithoutRelay(name, keypair)
+    }
 
+    /**
+     * Registers first free relay contract in Iroha to the client with given [name] and public key
+     */
+    fun registerClientWithoutRelay(name: String, keypair: Keypair = ModelCrypto().generateKeypair()): String {
         ethRegistrationStrategy.register(name, keypair.publicKey().hex())
             .fold({ registeredEthWallet ->
                 logger.info("registered client $name with relay $registeredEthWallet")
@@ -368,6 +392,17 @@ class IntegrationHelperUtil {
             listener.getBlock()
         }
 
+    }
+
+    /**
+     * Waits for exactly one Ethereum block
+     */
+    fun waitOneEtherBlock() {
+        val listener = EthChainListener(
+            deployHelper.web3,
+            BigInteger.valueOf(testConfig.ethereum.confirmationPeriod)
+        )
+        runBlocking { listener.getBlock() }
     }
 
     /**
@@ -450,9 +485,9 @@ class IntegrationHelperUtil {
 
 
     /**
-     * Register client
+     * Create account for client
      */
-    fun registerClient(): String {
+    fun createClientAccount(): String {
         val name = "client_${String.getRandomString(9)}"
         val domain = "notary"
         val creator = accountHelper.registrationAccount

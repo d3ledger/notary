@@ -81,7 +81,7 @@ class WithdrawalMultinotaryIntegrationTest {
         val ethWallet = "eth_wallet"
 
         // create
-        val client = integrationHelper.registerClient()
+        val client = integrationHelper.createClientAccount()
         integrationHelper.addIrohaAssetTo(client, assetId, decimalAmount)
         integrationHelper.setWhitelist(client, listOf("0x123", ethWallet))
 
