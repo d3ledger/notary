@@ -11,6 +11,7 @@ import org.junit.jupiter.api.fail
 import provider.eth.EthRelayProviderIrohaImpl
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
 /**
@@ -27,6 +28,11 @@ class EthRelayProviderIrohaTest {
 
     /** Iroha account that holds details */
     private val detailHolder = testConfig.notaryIrohaAccount
+
+    val irohaNetwork = IrohaNetworkImpl(
+        testConfig.iroha.hostname,
+        testConfig.iroha.port
+    )
 
     /**
      * @given [detailHolder] has ethereum wallets in details
@@ -70,7 +76,7 @@ class EthRelayProviderIrohaTest {
             .failure { ex -> fail(ex) }
 
         EthRelayProviderIrohaImpl(
-            testConfig.iroha,
+            irohaNetwork,
             integrationHelper.testCredential,
             masterAccount,
             integrationHelper.testCredential.accountId
@@ -89,7 +95,7 @@ class EthRelayProviderIrohaTest {
     @Test
     fun testEmptyStorage() {
         EthRelayProviderIrohaImpl(
-            testConfig.iroha,
+            irohaNetwork,
             integrationHelper.testCredential,
             detailSetter,
             detailHolder

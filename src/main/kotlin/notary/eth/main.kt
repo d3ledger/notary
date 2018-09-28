@@ -12,6 +12,7 @@ import mu.KLogging
 import provider.eth.EthRelayProviderIrohaImpl
 import provider.eth.EthTokensProviderImpl
 import sidechain.iroha.IrohaInitialization
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
 private val logger = KLogging().logger
@@ -37,8 +38,12 @@ fun executeNotary(notaryConfig: EthNotaryConfig, args: Array<String> = emptyArra
         }
         .map { keypair -> IrohaCredential(notaryConfig.notaryCredential.accountId, keypair) }
         .flatMap { credential ->
+            val irohaNetwork = IrohaNetworkImpl(
+                notaryConfig.iroha.hostname,
+                notaryConfig.iroha.port
+            )
             val ethRelayProvider = EthRelayProviderIrohaImpl(
-                notaryConfig.iroha,
+                irohaNetwork,
                 credential,
                 credential.accountId,
                 notaryConfig.registrationServiceIrohaAccount

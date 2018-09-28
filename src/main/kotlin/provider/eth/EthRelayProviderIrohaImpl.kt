@@ -2,11 +2,9 @@ package provider.eth
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import config.IrohaConfig
-import jp.co.soramitsu.iroha.Keypair
 import model.IrohaCredential
 import mu.KLogging
-import sidechain.iroha.consumer.IrohaNetworkImpl
+import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
 
 /**
@@ -18,7 +16,7 @@ import sidechain.iroha.util.getAccountDetails
  * @param registrationAccount - account that has set details
  */
 class EthRelayProviderIrohaImpl(
-    private val irohaConfig: IrohaConfig,
+    private val irohaNetwork: IrohaNetwork,
     private val credential: IrohaCredential,
     private val notaryAccount: String,
     private val registrationAccount: String
@@ -30,7 +28,6 @@ class EthRelayProviderIrohaImpl(
         }
     }
 
-    private val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
     /**
      * Gets all non free relay wallets
      *

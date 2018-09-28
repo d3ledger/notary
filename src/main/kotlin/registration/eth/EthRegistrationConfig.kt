@@ -1,5 +1,6 @@
 package registration.eth
 
+import config.EthereumConfig
 import config.IrohaConfig
 import config.IrohaCredentialConfig
 
@@ -20,4 +21,8 @@ interface EthRegistrationConfig {
 
     /** Iroha configuration */
     val iroha: IrohaConfig
+
+    val ethRelayRegistryAddress: String
+
+    val ethereum: EthereumConfig
 }
