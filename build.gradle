@@ -379,7 +379,6 @@ task runWithdrawal(type: JavaExec) {
 }
 
 processResources {
-
     def profiles = ["local", "testnet", "mainnet"]
     def ignores = ["clean"]
     def task = project.gradle.startParameter.taskNames.first()
@@ -393,6 +392,12 @@ processResources {
             include "**/**_${profile}.properties"
             rename "(.*)_${profile}.properties", '$1.properties'
         }
+
+        from('src/integration_test/resources') {
+            include "**/**_${profile}.properties"
+            rename "(.*)_${profile}.properties", '$1.properties'
+        }
+
     }
 }
 
