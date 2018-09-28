@@ -26,6 +26,14 @@ services:
     networks:
       - d3-notary
 
+  # bitcoin
+  d3-btc-node0:
+    container_name: d3-btc-node0-${SUBNET}
+    expose:
+      - 8332
+    networks:
+      - d3-notary
+
   grpcwebproxy:
     container_name: d3-grpcwebproxy-${SUBNET}
     expose:

@@ -39,7 +39,6 @@ class BtcRegistrationIntegrationTest {
      * @when client name is passed to registration service
      * @then client has btc address in related Iroha account details
      */
-    @Disabled
     @Test
     fun testRegistration() {
         integrationHelper.preGenBtcAddress()
@@ -67,7 +66,6 @@ class BtcRegistrationIntegrationTest {
      * @when client names are passed to registration service
      * @then all the clients have btc address in related Iroha account details
      */
-    @Disabled
     @Test
     fun testRegistrationMultiple() {
         val takenAddresses = HashSet<String>()
@@ -103,7 +101,6 @@ class BtcRegistrationIntegrationTest {
      * @when client name is passed to registration service
      * @then client stays unregistered
      */
-    @Disabled
     @Test
     fun testRegistrationNoFree() {
         val clientsBeforeRegistration = btcTakenAddressesProvider.getRegisteredAddresses().get().size

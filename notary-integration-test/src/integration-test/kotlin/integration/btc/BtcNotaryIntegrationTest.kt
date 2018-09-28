@@ -40,7 +40,6 @@ class BtcNotaryIntegrationTest {
      * @when 1 btc was sent to new account
      * @then balance of new account is increased by 1 btc(or 100.000.000 sat)
      */
-    @Disabled
     @Test
     fun testDeposit() {
         integrationHelper.generateBtcBlocks()

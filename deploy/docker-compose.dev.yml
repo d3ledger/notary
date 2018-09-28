@@ -7,6 +7,9 @@ services:
   d3-eth-node0:
     ports:
       - 8545:8545
+  d3-btc-node0:
+    ports:
+      - 8332:8332
   grpcwebproxy:
     ports:
       - 8081:8080

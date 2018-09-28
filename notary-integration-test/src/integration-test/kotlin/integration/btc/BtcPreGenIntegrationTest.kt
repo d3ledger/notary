@@ -46,7 +46,6 @@ class BtcPreGenIntegrationTest {
      * @when special trigger account is triggered
      * @then new multisig btc address is created
      */
-    @Disabled
     @Test
     fun testGenerateKey() {
         integrationHelper.addNotary("test_notary", "test_notary_address")
