@@ -6,7 +6,6 @@ import jp.co.soramitsu.iroha.ModelCrypto
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.launch
 import org.junit.jupiter.api.*
-import registration.eth.EthRegistrationConfig
 import sidechain.eth.util.ETH_PRECISION
 import util.getRandomString
 import java.math.BigDecimal
@@ -29,17 +28,7 @@ class WithdrawalPipelineIntegrationTest {
     private val refundAddress = "http://localhost:${notaryConfig.refund.port}"
 
     /** Test Registration configuration */
-    private val registrationConfig =
-        object : EthRegistrationConfig {
-            val tmp = integrationHelper.configHelper.createEthRegistrationConfig()
-            override val ethRelayRegistryAddress = integrationHelper.relayRegistryContract.contractAddress
-            override val ethereum = tmp.ethereum
-            override val port = tmp.port
-            override val relayRegistrationIrohaAccount = tmp.relayRegistrationIrohaAccount
-            override val notaryIrohaAccount = tmp.notaryIrohaAccount
-            override val iroha = tmp.iroha
-            override val registrationCredential = tmp.registrationCredential
-        }
+    private val registrationConfig = integrationHelper.configHelper.ethRegistrationConfig
 
     /** Test Withdrawal configuration */
     private val withdrawalServiceConfig = integrationHelper.configHelper.createWithdrawalConfig()

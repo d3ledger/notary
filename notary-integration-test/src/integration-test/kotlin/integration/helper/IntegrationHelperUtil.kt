@@ -2,6 +2,7 @@ package integration.helper
 
 import com.github.kittinunf.result.*
 import config.loadConfigs
+import config.loadEthPasswords
 import contract.Master
 import contract.RelayRegistry
 import integration.TestConfig
@@ -54,6 +55,9 @@ class IntegrationHelperUtil {
 
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
+    /** Ethereum password configs */
+    val ethPasswordConfig = loadEthPasswords("test", "/eth/ethereum_password.properties")
+
     val testCredential = IrohaCredential(
         testConfig.testCredentialConfig.accountId,
         ModelUtil.loadKeypair(
@@ -64,54 +68,56 @@ class IntegrationHelperUtil {
 
     val accountHelper by lazy { AccountHelper() }
 
-    val configHelper by lazy { ConfigHelper(accountHelper) }
+    val configHelper by lazy { ConfigHelper(accountHelper, relayRegistryContract.contractAddress) }
+
+    val ethRegistrationConfig by lazy { configHelper.createEthRegistrationConfig() }
 
     /** Ethereum utils */
-    private val deployHelper by lazy { DeployHelper(configHelper.testConfig.ethereum, configHelper.ethPasswordConfig) }
+    private val deployHelper by lazy { DeployHelper(testConfig.ethereum, ethPasswordConfig) }
 
     private val irohaNetwork by lazy {
-        IrohaNetworkImpl(configHelper.testConfig.iroha.hostname, configHelper.testConfig.iroha.port)
+        IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
     }
 
     private val irohaConsumer by lazy {
         IrohaConsumerImpl(
             testCredential,
-            configHelper.testConfig.iroha
+            testConfig.iroha
         )
     }
 
     private val registrationConsumer by lazy {
         IrohaConsumerImpl(
             accountHelper.registrationAccount,
-            configHelper.testConfig.iroha
+            testConfig.iroha
         )
     }
 
     private val tokenProviderIrohaConsumer by lazy {
         IrohaConsumerImpl(
             accountHelper.tokenSetterAccount,
-            configHelper.testConfig.iroha
+            testConfig.iroha
         )
     }
 
     private val whiteListIrohaConsumer by lazy {
         IrohaConsumerImpl(
-            IrohaCredential(configHelper.testConfig.whitelistSetter, testCredential.keyPair),
-            configHelper.testConfig.iroha
+            IrohaCredential(testConfig.whitelistSetter, testCredential.keyPair),
+            testConfig.iroha
         )
     }
 
     private val notaryListIrohaConsumer by lazy {
         IrohaConsumerImpl(
             accountHelper.notaryListSetterAccount,
-            configHelper.testConfig.iroha
+            testConfig.iroha
         )
     }
 
     private val mstRegistrationIrohaConsumer by lazy {
         IrohaConsumerImpl(
             accountHelper.mstRegistrationAccount,
-            configHelper.testConfig.iroha
+            testConfig.iroha
         )
     }
 
@@ -134,7 +140,7 @@ class IntegrationHelperUtil {
     /** Provider that is used to store/fetch tokens*/
     val ethTokensProvider by lazy {
         EthTokensProviderImpl(
-            configHelper.testConfig.iroha,
+            testConfig.iroha,
             testCredential,
             accountHelper.tokenStorageAccount.accountId,
             accountHelper.tokenSetterAccount.accountId
@@ -144,7 +150,7 @@ class IntegrationHelperUtil {
     /** Provider that is used to get free registered relays*/
     private val ethFreeRelayProvider by lazy {
         EthFreeRelayProvider(
-            configHelper.testConfig.iroha,
+            testConfig.iroha,
             accountHelper.registrationAccount,
             accountHelper.notaryAccount.accountId,
             accountHelper.registrationAccount.accountId
@@ -164,9 +170,9 @@ class IntegrationHelperUtil {
     private val ethRegistrationStrategy by lazy {
         EthRegistrationStrategyImpl(
             ethFreeRelayProvider,
-            configHelper.ethRegistrationConfig,
+            ethRegistrationConfig,
             configHelper.ethPasswordConfig,
-            irohaConsumer,
+            registrationConsumer,
             accountHelper.notaryAccount.accountId
         )
     }

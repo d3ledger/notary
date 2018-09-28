@@ -4,6 +4,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import config.EthereumPasswords
 import contract.RelayRegistry
+import mu.KLogging
 import okhttp3.OkHttpClient
 import org.web3j.crypto.WalletUtils
 import org.web3j.protocol.Web3j
@@ -25,6 +26,10 @@ class EthRegistrationStrategyImpl(
     val irohaConsumer: IrohaConsumer,
     val notaryIrohaAccount: String
 ) : RegistrationStrategy {
+
+    init {
+        logger.info { "Init EthRegistrationStrategyImpl with irohCreator=${irohaConsumer.creator}, notaryIrohaAccount=$notaryIrohaAccount" }
+    }
 
     private val credentials = WalletUtils.loadCredentials(
         passwordConfig.credentialsPassword,
@@ -61,4 +66,8 @@ class EthRegistrationStrategyImpl(
             }
     }
 
+    /**
+     * Logger
+     */
+    companion object : KLogging()
 }
