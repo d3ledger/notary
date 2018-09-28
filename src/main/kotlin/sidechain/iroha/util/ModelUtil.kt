@@ -13,9 +13,9 @@ import iroha.protocol.QueryServiceGrpc
 import iroha.protocol.TransactionOuterClass.Transaction
 import jp.co.soramitsu.iroha.*
 import mu.KLogging
-import provider.eth.EthTokenInfo
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.consumer.IrohaNetwork
+import token.EthTokenInfo
 import java.io.IOException
 import java.math.BigInteger
 import java.nio.file.Files

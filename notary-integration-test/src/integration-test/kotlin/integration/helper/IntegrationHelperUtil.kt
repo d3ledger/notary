@@ -4,14 +4,11 @@ import com.github.kittinunf.result.*
 import config.loadConfigs
 import contract.Master
 import contract.RelayRegistry
+import integration.TestConfig
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelCrypto
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import jp.co.soramitsu.iroha.PublicKey
-import integration.TestConfig
-import io.grpc.ManagedChannelBuilder
-import iroha.protocol.QueryServiceGrpc
-import jp.co.soramitsu.iroha.*
 import kotlinx.coroutines.experimental.runBlocking
 import mu.KLogging
 import notary.eth.EthNotaryConfig
@@ -24,7 +21,6 @@ import provider.btc.BtcAddressesProvider
 import provider.btc.BtcRegisteredAddressesProvider
 import provider.eth.EthFreeRelayProvider
 import provider.eth.EthRelayProviderIrohaImpl
-import provider.eth.EthTokenInfo
 import provider.eth.EthTokensProviderImpl
 import registration.btc.BtcRegistrationStrategyImpl
 import registration.eth.EthRegistrationStrategyImpl
@@ -37,6 +33,7 @@ import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountAsset
+import token.EthTokenInfo
 import util.getRandomString
 import java.io.File
 import java.math.BigInteger

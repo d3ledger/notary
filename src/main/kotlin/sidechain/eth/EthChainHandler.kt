@@ -7,7 +7,6 @@ import org.web3j.protocol.core.methods.response.EthBlock
 import org.web3j.protocol.core.methods.response.Transaction
 import provider.eth.ETH_PRECISION
 import provider.eth.EthRelayProvider
-import provider.eth.EthTokenInfo
 import provider.eth.EthTokensProvider
 import sidechain.ChainHandler
 import sidechain.SideChainEvent
@@ -37,7 +36,7 @@ class EthChainHandler(
         tx: Transaction,
         time: BigInteger,
         wallets: Map<String, String>,
-        tokens: Map<String, EthTokenInfo>
+        tokens: Map<String, String>
     ): List<SideChainEvent.PrimaryBlockChainEvent> {
         logger.info { "Handle ERC20 tx ${tx.hash}" }
 
@@ -64,18 +63,22 @@ class EthChainHandler(
                     }
                 }
                 .map {
+                    // all non-existent keys were filtered out in parseBlock
+                    val tokenName = tokens[tx.to]!!
+                    val precision = ethTokensProvider.getTokenPrecision(tokenName).get().toInt()
+
                     // second and third topics are addresses from and to
                     val from = "0x" + it.topics[1].drop(26).toLowerCase()
                     val to = "0x" + it.topics[2].drop(26).toLowerCase()
                     // amount of transfer is stored in data
                     val amount = BigInteger(it.data.drop(2), 16)
+
                     SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
                         tx.hash,
                         time,
                         wallets[to]!!,
-                        // all non-existent keys were filtered out in parseBlock
-                        tokens[tx.to]!!.name,
-                        BigDecimal(amount, tokens[tx.to]!!.precision.toInt()).toPlainString(),
+                        tokenName,
+                        BigDecimal(amount, precision).toPlainString(),
                         from
                     )
                 }

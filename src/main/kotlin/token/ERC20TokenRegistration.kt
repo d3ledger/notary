@@ -5,9 +5,7 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
-import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
-import provider.eth.EthTokenInfo
 import provider.eth.EthTokensProviderImpl
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
@@ -15,6 +13,9 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStreamReader
+
+/** Information about token - token [name] and [precision] */
+data class EthTokenInfo(val name: String, val precision: Short)
 
 //ERC20 tokens registration class
 class ERC20TokenRegistration(

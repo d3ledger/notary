@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
-import provider.eth.EthTokenInfo
 import util.getRandomString
 
 /**
@@ -26,12 +25,13 @@ class EthTokensProviderTest {
     @Test
     fun testGetTokens() {
         val tokensToAdd = 3
-        val expectedTokens = mutableMapOf<String, EthTokenInfo>()
+        val expectedTokens = mutableMapOf<String, String>()
         (1..tokensToAdd).forEach { i ->
             val ethWallet = "0x$i"
-            val tokenInfo = EthTokenInfo(String.getRandomString(9), i.toShort())
-            expectedTokens[ethWallet] = tokenInfo
-            integrationHelper.addERC20Token(ethWallet, tokenInfo.name, tokenInfo.precision)
+            val tokenName = String.getRandomString(9)
+            val tokenPrecision = i.toShort()
+            expectedTokens[ethWallet] = tokenName
+            integrationHelper.addERC20Token(ethWallet, tokenName, tokenPrecision)
         }
         ethTokensProvider.getTokens()
             .fold(

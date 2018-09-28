@@ -5,15 +5,13 @@ import com.github.kittinunf.result.map
 import config.IrohaConfig
 import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
-import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
-import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountDetails
 import sidechain.iroha.util.getAssetPrecision
 
-val ETH_NAME = "ether"
-val ETH_PRECISION: Short = 18
-val ETH_ADDRESS = "0x0000000000000000000000000000000000000000"
+const val ETH_NAME = "ether"
+const val ETH_PRECISION: Short = 18
+const val ETH_ADDRESS = "0x0000000000000000000000000000000000000000"
 
 /**
  * Implementation of [EthTokensProvider] with Iroha storage.
@@ -36,7 +34,10 @@ class EthTokensProviderImpl(
 
     private val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
 
-    override fun getTokens(): Result<Map<String, EthTokenInfo>, Exception> {
+    /**
+     * Get all tokens. Returns EthreumAddress -> EthTokenInfo
+     */
+    override fun getTokens(): Result<Map<String, String>, Exception> {
         return getAccountDetails(
             irohaConfig,
             keypair,
@@ -44,21 +45,6 @@ class EthTokensProviderImpl(
             tokenStorageAccount,
             tokenSetterAccount
         )
-            .map {
-                it.mapValues { (_, name) ->
-                    getAssetPrecision(
-                        irohaConfig,
-                        keypair,
-                        irohaNetwork,
-                        "$name#ethereum"
-                    ).fold(
-                        { precision ->
-                            EthTokenInfo(name, precision)
-                        },
-                        { ex -> throw ex }
-                    )
-                }
-            }
     }
 
     /**

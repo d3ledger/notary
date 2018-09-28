@@ -7,8 +7,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
-import provider.eth.EthTokenInfo
 import provider.eth.EthTokensProviderImpl
+import token.EthTokenInfo
 import token.executeTokenRegistration
 import util.getRandomString
 import java.io.File
@@ -47,9 +47,12 @@ class ERC20TokenRegistrationTest {
         createTokensFile(tokens, tokensFilePath)
         executeTokenRegistration(tokenRegistrationConfig)
         ethTokensProvider.getTokens().fold({ tokensFromProvider ->
+            val expected = tokensFromProvider.map { (ethAddress, name) ->
+                Pair(ethAddress, EthTokenInfo(name, ethTokensProvider.getTokenPrecision(name).get()))
+            }.sortedBy { it.first }
             assertEquals(
-                tokens,
-                tokensFromProvider
+                tokens.toList().sortedBy { it.first },
+                expected
             )
         }, { ex -> fail("cannot fetch tokens", ex) })
     }
