@@ -92,6 +92,7 @@ fabric.properties
 src/main/resources/ethereum_password.properties
 src/main/resources/eth/ethereum_password.properties
 src/integration-test/resources/eth/ethereum_password.properties
+deploy/ethereum_credentials_testnet.env
 
 # Artifacts of parity node
 deploy/ethereum/cache

@@ -29,20 +29,20 @@ services:
       - /var/lib/postgresql/data
 
   d3-eth-relay:
-    image: nexus.iroha.tech:19002/d3-deploy/eth-relay:testnet
+    image: nexus.iroha.tech:19002/d3-deploy/eth-relay:${PROFILE}
     container_name: d3-eth-relay
     depends_on:
       - d3-iroha
     volumes:
       - ./:/opt/notary/deploy
     environment:
-      - ETH_CREDENTIALS_PASSWORD=TCopMGo9CCZb5qUy4HWL
-      - ETH_NODE_LOGIN=developer
-      - ETH_NODE_PASSWORD=emooyei7chiew3xohb4poo1ith6chahK
+      - ETH_CREDENTIALS_PASSWORD
+      - ETH_NODE_LOGIN
+      - ETH_NODE_PASSWORD
 
 
   d3-registration:
-    image: nexus.iroha.tech:19002/d3-deploy/registration:testnet
+    image: nexus.iroha.tech:19002/d3-deploy/registration:${PROFILE}
     container_name: d3-registration
     depends_on:
       - d3-iroha
@@ -55,7 +55,7 @@ services:
 
 
   d3-notary:
-    image: nexus.iroha.tech:19002/d3-deploy/notary:testnet
+    image: nexus.iroha.tech:19002/d3-deploy/notary:${PROFILE}
     container_name: d3-notary
     depends_on:
       - d3-iroha
@@ -64,22 +64,22 @@ services:
     volumes:
       - ./:/opt/notary/deploy
     environment:
-      - ETH_CREDENTIALS_PASSWORD=TCopMGo9CCZb5qUy4HWL
-      - ETH_NODE_LOGIN=developer
-      - ETH_NODE_PASSWORD=emooyei7chiew3xohb4poo1ith6chahK
+      - ETH_CREDENTIALS_PASSWORD
+      - ETH_NODE_LOGIN
+      - ETH_NODE_PASSWORD
 
 
   d3-withdrawal:
-    image: nexus.iroha.tech:19002/d3-deploy/withdrawal:testnet
+    image: nexus.iroha.tech:19002/d3-deploy/withdrawal:${PROFILE}
     container_name: d3-withdrawal
     depends_on:
       - d3-iroha
     volumes:
       - ./:/opt/notary/deploy
     environment:
-      - ETH_CREDENTIALS_PASSWORD=TCopMGo9CCZb5qUy4HWL
-      - ETH_NODE_LOGIN=developer
-      - ETH_NODE_PASSWORD=emooyei7chiew3xohb4poo1ith6chahK
+      - ETH_CREDENTIALS_PASSWORD
+      - ETH_NODE_LOGIN
+      - ETH_NODE_PASSWORDsou
 
   grpcwebproxy:
     image: nexus.iroha.tech:19002/d3-deploy/grpcwebproxy
