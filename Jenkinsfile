@@ -38,11 +38,12 @@ pipeline {
             sh(returnStdout: true, script: "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml up --build -d")
             iC = docker.image("openjdk:8-jdk")
             iC.inside("--network='d3-${DOCKER_NETWORK}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
+              sh "pwd"
               withCredentials([file(credentialsId: 'ethereum_password.properties', variable: 'ethereum_password')]) {
                   sh "cp \$ethereum_password src/main/resources/eth/ethereum_password.properties"
                   sh "cp \$ethereum_password notary-integration-test/src/integration-test/resources/eth/ethereum_password.properties"
               }
-              withCredentials([file(credentialsId: 'ethereum_password.properties', variable: 'bitcoin_wallet')]) {
+              withCredentials([file(credentialsId: 'test-btc.wallet', variable: 'bitcoin_wallet')]) {
                   sh "cp \$bitcoin_wallet deploy/bitcoin/test-btc.wallet"
               }
               sh "./gradlew dependencies"
