@@ -16,6 +16,7 @@ import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.ETH_PRECISION
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import java.math.BigDecimal
@@ -54,7 +55,8 @@ class WithdrawalMultinotaryIntegrationTest {
 
 
         // create 2nd notary config
-        val ethereumConfig2 = integrationHelper.configHelper.createEthereumConfig("../deploy/ethereum/keys/ganache2.key")
+        val ethereumConfig2 =
+            integrationHelper.configHelper.createEthereumConfig("../deploy/ethereum/keys/ganache2.key")
         val irohaConfig2 =
             integrationHelper.configHelper.createIrohaConfig()
         notaryConfig2 = integrationHelper.configHelper.createEthNotaryConfig(irohaConfig2, ethereumConfig2)
@@ -67,6 +69,11 @@ class WithdrawalMultinotaryIntegrationTest {
         integrationHelper.runEthNotary(notaryConfig2)
     }
 
+    val irohaNetwork = IrohaNetworkImpl(
+        notaryConfig1.iroha.hostname,
+        notaryConfig1.iroha.port
+    )
+
     /**
      * Test US-003 Withdrawal of ETH token
      * Note: Iroha must be deployed to pass the test.
@@ -76,7 +83,7 @@ class WithdrawalMultinotaryIntegrationTest {
      */
     @Test
     fun testRefund() {
-        val masterAccount = integrationHelper.accountHelper.notaryAccount
+        val masterAccount = integrationHelper.accountHelper.notaryAccount.accountId
         val amount = "64203"
         val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(ETH_PRECISION.toInt()).toPlainString()
         val assetId = "ether#ethereum"
@@ -85,13 +92,13 @@ class WithdrawalMultinotaryIntegrationTest {
         // create
         val client = String.getRandomString(9)
         val clientId = "$client@notary"
-        integrationHelper.registerClient(client, listOf(ethWallet), integrationHelper.irohaKeyPair)
+        integrationHelper.registerClient(client, listOf(ethWallet), integrationHelper.testCredential.keyPair)
         integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
         val relay = EthRelayProviderIrohaImpl(
-            integrationHelper.configHelper.testConfig.iroha,
-            integrationHelper.irohaKeyPair,
+            irohaNetwork,
+            integrationHelper.testCredential,
             masterAccount,
-            integrationHelper.accountHelper.registrationAccount
+            integrationHelper.accountHelper.registrationAccount.accountId
         ).getRelays().get().filter {
             it.value == clientId
         }.keys.first()
@@ -99,7 +106,7 @@ class WithdrawalMultinotaryIntegrationTest {
         // transfer assets from user to notary master account
         val hash = integrationHelper.transferAssetIrohaFromClient(
             clientId,
-            integrationHelper.irohaKeyPair,
+            integrationHelper.testCredential.keyPair,
             clientId,
             masterAccount,
             assetId,

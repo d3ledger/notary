@@ -20,8 +20,10 @@ import java.math.BigInteger
  */
 class EthRegistrationStrategyImpl(
     private val ethFreeRelayProvider: EthFreeRelayProvider,
-    irohaConsumer: IrohaConsumer,
-    notaryIrohaAccount: String
+    ethRegistrationConfig: EthRegistrationConfig,
+    passwordConfig: EthereumPasswords,
+    val irohaConsumer: IrohaConsumer,
+    val notaryIrohaAccount: String
 ) : RegistrationStrategy {
 
     private val credentials = WalletUtils.loadCredentials(
@@ -32,14 +34,14 @@ class EthRegistrationStrategyImpl(
     private val web3 = Web3j.build(HttpService(ethRegistrationConfig.ethereum.url, builder.build(), false))!!
 
     private val relayRegistry = RelayRegistry.load(
-        ethRelayRegistryAddress,
+        ethRegistrationConfig.ethRelayRegistryAddress,
         web3,
         credentials,
         BigInteger.valueOf(ethRegistrationConfig.ethereum.gasPrice),
         BigInteger.valueOf(ethRegistrationConfig.ethereum.gasLimit)
     )
 
-    val irohaAccountCreator = IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, creator, "ethereum_wallet")
+    val irohaAccountCreator = IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, "ethereum_wallet")
 
 
     /**

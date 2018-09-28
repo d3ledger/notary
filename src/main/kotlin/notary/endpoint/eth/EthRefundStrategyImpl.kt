@@ -3,6 +3,7 @@ package notary.endpoint.eth
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
+import config.EthereumConfig
 import config.EthereumPasswords
 import iroha.protocol.TransactionOuterClass.Transaction
 import model.IrohaCredential
@@ -23,22 +24,22 @@ class NotaryException(reason: String) : Exception(reason)
  * Class performs effective implementation of refund strategy for Ethereum
  */
 class EthRefundStrategyImpl(
+    private val notaryConfig: EthNotaryConfig,
+    private val irohaNetwork: IrohaNetwork,
     private val credential: IrohaCredential,
-    val irohaNetwork: IrohaNetwork,
     ethereumConfig: EthereumConfig,
     ethereumPasswords: EthereumPasswords,
-    private val whitelistSetter: String,
     private val tokensProvider: EthTokensProvider
 ) : EthRefundStrategy {
 
     val relayProvider = EthRelayProviderIrohaImpl(
-        notaryConfig.iroha,
-        keypair,
-        notaryConfig.iroha.creator,
+        irohaNetwork,
+        credential,
+        credential.accountId,
         notaryConfig.registrationServiceIrohaAccount
     )
 
-    private var ecKeyPair: ECKeyPair = DeployHelper(notaryConfig.ethereum, ethereumPasswords).credentials.ecKeyPair
+    private var ecKeyPair: ECKeyPair = DeployHelper(ethereumConfig, ethereumPasswords).credentials.ecKeyPair
 
     override fun performRefund(request: EthRefundRequest): EthNotaryResponse {
         logger.info("Check tx ${request.irohaTx} for refund")

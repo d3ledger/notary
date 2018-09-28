@@ -6,7 +6,6 @@ import jp.co.soramitsu.iroha.ModelCrypto
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.launch
 import org.junit.jupiter.api.*
-import org.web3j.abi.datatypes.Array
 import registration.eth.EthRegistrationConfig
 import sidechain.eth.util.ETH_PRECISION
 import util.getRandomString
@@ -39,6 +38,7 @@ class WithdrawalPipelineIntegrationTest {
             override val relayRegistrationIrohaAccount = tmp.relayRegistrationIrohaAccount
             override val notaryIrohaAccount = tmp.notaryIrohaAccount
             override val iroha = tmp.iroha
+            override val registrationCredential = tmp.registrationCredential
         }
 
     /** Test Withdrawal configuration */

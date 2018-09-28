@@ -9,10 +9,6 @@ import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelCrypto
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import jp.co.soramitsu.iroha.PublicKey
-import integration.TestConfig
-import io.grpc.ManagedChannelBuilder
-import iroha.protocol.QueryServiceGrpc
-import jp.co.soramitsu.iroha.*
 import kotlinx.coroutines.experimental.runBlocking
 import model.IrohaCredential
 import mu.KLogging
@@ -158,7 +154,7 @@ class IntegrationHelperUtil {
     /** Provider of ETH wallets created by registrationAccount*/
     private val ethRelayProvider by lazy {
         EthRelayProviderIrohaImpl(
-            configHelper.testConfig.iroha,
+            irohaNetwork,
             accountHelper.registrationAccount,
             accountHelper.notaryAccount.accountId,
             accountHelper.registrationAccount.accountId
@@ -171,10 +167,6 @@ class IntegrationHelperUtil {
             configHelper.ethRegistrationConfig,
             configHelper.ethPasswordConfig,
             irohaConsumer,
-            accountHelper.notaryAccount,
-            accountHelper.registrationAccount,
-            relayRegistryContract.contractAddress
-            registrationConsumer,
             accountHelper.notaryAccount.accountId
         )
     }
