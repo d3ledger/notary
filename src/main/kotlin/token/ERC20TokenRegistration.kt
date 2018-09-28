@@ -5,6 +5,7 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
+import model.IrohaCredential
 import mu.KLogging
 import provider.eth.EthTokensProviderImpl
 import sidechain.iroha.consumer.IrohaConsumerImpl
@@ -19,13 +20,14 @@ data class EthTokenInfo(val name: String, val precision: Short)
 
 //ERC20 tokens registration class
 class ERC20TokenRegistration(
-    private val tokenRegistrationConfig: ERC20TokenRegistrationConfig
+    private val tokenRegistrationConfig: ERC20TokenRegistrationConfig,
+    irohaCredential: IrohaCredential
 ) {
 
     //For json serialization/deserialization
     private val moshi = Moshi.Builder().build()
 
-    private val irohaConsumer = IrohaConsumerImpl(tokenRegistrationConfig.iroha.creator, tokenRegistrationConfig.iroha)
+    private val irohaConsumer = IrohaConsumerImpl(irohaCredential, tokenRegistrationConfig.iroha)
 
     //Initiates process of ERC20 tokens registration
     fun init(): Result<Unit, Exception> {

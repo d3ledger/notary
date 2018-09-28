@@ -6,6 +6,7 @@ import com.github.kittinunf.result.map
 import config.EthereumPasswords
 import contract.Relay
 import jp.co.soramitsu.iroha.Keypair
+import model.IrohaCredential
 import mu.KLogging
 import provider.eth.EthRelayProviderIrohaImpl
 import provider.eth.EthTokensProviderImpl
@@ -18,7 +19,7 @@ import sidechain.eth.util.DeployHelper
 class RelayVacuum(
     relayVacuumConfig: RelayVacuumConfig,
     relayVacuumEthereumPasswords: EthereumPasswords,
-    keypair: Keypair
+    credential: IrohaCredential
 ) {
     private val ethTokenAddress = "0x0000000000000000000000000000000000000000"
 
@@ -27,14 +28,14 @@ class RelayVacuum(
 
     private val ethTokensProvider = EthTokensProviderImpl(
         relayVacuumConfig.iroha,
-        keypair,
+        credential,
         relayVacuumConfig.notaryIrohaAccount,
         relayVacuumConfig.tokenStorageAccount
     )
 
     private val ethRelayProvider = EthRelayProviderIrohaImpl(
         relayVacuumConfig.iroha,
-        keypair,
+        credential,
         relayVacuumConfig.notaryIrohaAccount,
         relayVacuumConfig.registrationServiceIrohaAccount
     )

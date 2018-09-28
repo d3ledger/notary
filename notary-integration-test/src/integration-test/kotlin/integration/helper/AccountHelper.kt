@@ -1,26 +1,33 @@
 package integration.helper
 
+import config.IrohaCredentialConfig
 import config.loadConfigs
 import integration.TestConfig
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
+import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 
 //Class that handles all the accounts in integration tests.
-class AccountHelper(private val keyPair: Keypair) {
+class AccountHelper() {
 
-    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
+    val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
-    private val irohaConsumer by lazy { IrohaConsumerImpl(testConfig.iroha.creator, testConfig.iroha) }
+    private val testCredential = IrohaCredential(
+        testConfig.testCredentialConfig.accountId,
+        ModelUtil.loadKeypair(testConfig.testCredentialConfig.pubkeyPath, testConfig.testCredentialConfig.privkeyPath).get()
+    )
+
+    private val irohaConsumer by lazy { IrohaConsumerImpl(testCredential, testConfig.iroha) }
 
     /** Notary account*/
     val notaryAccount by lazy { createTesterAccount("eth_notary", "notary") }
 
     /** Notary keys */
-    val notaryKeys = mutableListOf(keyPair)
+    val notaryKeys = mutableListOf(testCredential.keyPair)
 
     /** Account that used to store registered clients.*/
     val registrationAccount by lazy {
@@ -42,23 +49,36 @@ class AccountHelper(private val keyPair: Keypair) {
     val notaryListSetterAccount by lazy { createTesterAccount("notary_setter", "token_service") }
 
     val notaryListStorageAccount by lazy { createTesterAccount("notary_storage", "notary_holder") }
+
+    fun createCredentialConfig(credetial: IrohaCredential): IrohaCredentialConfig {
+        return object:IrohaCredentialConfig{
+            override val pubkeyPath: String
+                get() =  testConfig.testCredentialConfig.pubkeyPath
+            override val privkeyPath: String
+                get() = testConfig.testCredentialConfig.privkeyPath
+            override val accountId: String
+                get() = credetial.accountId
+        }
+    }
+
     /**
      * Creates randomly named tester account in Iroha
      */
-    private fun createTesterAccount(prefix: String, roleName: String = "tester"): String {
+    private fun createTesterAccount(prefix: String, roleName: String = "tester"): IrohaCredential {
         val name = prefix + "_${String.getRandomString(9)}"
         val domain = "notary"
-        val creator = testConfig.iroha.creator
+        // TODO - Bulat - generate new keys for account?
+        val creator = testCredential.accountId
         irohaConsumer.sendAndCheck(
             ModelTransactionBuilder()
                 .creatorAccountId(creator)
                 .createdTime(ModelUtil.getCurrentTime())
-                .createAccount(name, domain, keyPair.publicKey())
+                .createAccount(name, domain, testCredential.keyPair.publicKey())
                 .appendRole("$name@$domain", roleName)
                 .build()
         ).fold({
             logger.info("account $name@$domain was created")
-            return "$name@$domain"
+            return IrohaCredential("$name@$domain", testCredential.keyPair)
         }, { ex ->
             throw ex
         })
@@ -70,10 +90,10 @@ class AccountHelper(private val keyPair: Keypair) {
     fun addNotarySignatory(keypair: Keypair) {
         irohaConsumer.sendAndCheck(
             ModelTransactionBuilder()
-                .creatorAccountId(notaryAccount)
+                .creatorAccountId(notaryAccount.accountId)
                 .createdTime(ModelUtil.getCurrentTime())
-                .addSignatory(notaryAccount, keypair.publicKey())
-                .setAccountQuorum(notaryAccount, notaryKeys.size + 1)
+                .addSignatory(notaryAccount.accountId, keypair.publicKey())
+                .setAccountQuorum(notaryAccount.accountId, notaryKeys.size + 1)
                 .build()
         ).fold({
             notaryKeys.add(keypair)

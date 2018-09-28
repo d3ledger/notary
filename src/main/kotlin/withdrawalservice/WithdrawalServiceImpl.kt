@@ -5,6 +5,7 @@ import com.github.kittinunf.result.map
 import com.squareup.moshi.Moshi
 import io.reactivex.Observable
 import jp.co.soramitsu.iroha.Keypair
+import model.IrohaCredential
 import mu.KLogging
 import notary.endpoint.eth.AmountType
 import notary.endpoint.eth.BigIntegerMoshiAdapter
@@ -47,20 +48,20 @@ data class RollbackApproval(
  * Implementation of Withdrawal Service
  */
 class WithdrawalServiceImpl(
-    val withdrawalServiceConfig: WithdrawalServiceConfig,
-    val keypair: Keypair,
+    private val withdrawalServiceConfig: WithdrawalServiceConfig,
+    val credential: IrohaCredential,
     val irohaNetwork: IrohaNetwork,
     private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
 ) : WithdrawalService {
     private val notaryPeerListProvider = NotaryPeerListProviderImpl(
         withdrawalServiceConfig.iroha,
-        keypair,
+        credential,
         withdrawalServiceConfig.notaryListStorageAccount,
         withdrawalServiceConfig.notaryListSetterAccount
     )
     private val tokensProvider: EthTokensProvider = EthTokensProviderImpl(
         withdrawalServiceConfig.iroha,
-        keypair,
+        credential,
         withdrawalServiceConfig.tokenStorageAccount,
         withdrawalServiceConfig.tokenSetterAccount
     )
@@ -68,8 +69,7 @@ class WithdrawalServiceImpl(
 
     private fun findInAccDetail(acc: String, name: String): Result<String, Exception> {
         return getAccountDetails(
-            withdrawalServiceConfig.iroha,
-            keypair,
+            credential,
             irohaNetwork,
             acc,
             withdrawalServiceConfig.registrationIrohaAccount

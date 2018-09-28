@@ -5,6 +5,7 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.map
 import io.reactivex.Observable
+import model.IrohaCredential
 import mu.KLogging
 import notary.btc.config.BtcNotaryConfig
 import notary.btc.listener.ReceivedCoinsListener
@@ -28,7 +29,6 @@ class BtcNotaryInitialization(
     @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider
 ) {
 
-    val keypair = ModelUtil.loadKeypair(btcNotaryConfig.iroha.pubkeyPath, btcNotaryConfig.iroha.privkeyPath).get()
 
     /**
      * Init notary
@@ -41,15 +41,19 @@ class BtcNotaryInitialization(
         }.map { wallet ->
             getBtcEvents(wallet, btcNotaryConfig.bitcoin.confidenceLevel)
         }.fanout {
-            ModelUtil.loadKeypair(btcNotaryConfig.iroha.pubkeyPath, btcNotaryConfig.iroha.privkeyPath)
+            ModelUtil.loadKeypair(
+                btcNotaryConfig.notaryCredential.pubkeyPath,
+                btcNotaryConfig.notaryCredential.privkeyPath
+            )
         }.map { (btcEvents, keypair) ->
+            val credential = IrohaCredential(btcNotaryConfig.notaryCredential.accountId, keypair)
             val peerListProvider = NotaryPeerListProviderImpl(
                 btcNotaryConfig.iroha,
-                keypair,
+                credential,
                 btcNotaryConfig.notaryListStorageAccount,
                 btcNotaryConfig.notaryListSetterAccount
             )
-            val notary = createBtcNotary(btcNotaryConfig, btcEvents, peerListProvider)
+            val notary = createBtcNotary(btcNotaryConfig, credential, btcEvents, peerListProvider)
             notary.initIrohaConsumer().failure { ex -> throw ex }
             Unit
         }

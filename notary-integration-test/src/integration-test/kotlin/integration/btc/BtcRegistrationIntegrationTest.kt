@@ -28,9 +28,9 @@ class BtcRegistrationIntegrationTest {
 
     private val btcTakenAddressesProvider = BtcRegisteredAddressesProvider(
         config.iroha,
-        integrationHelper.irohaKeyPair,
-        config.registrationAccount,
-        config.iroha.creator
+        integrationHelper.testCredential,
+        config.registrationCredential.accountId,
+        integrationHelper.testCredential.accountId
     )
 
     /**

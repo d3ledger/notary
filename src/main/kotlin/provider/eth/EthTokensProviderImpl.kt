@@ -3,7 +3,7 @@ package provider.eth
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import config.IrohaConfig
-import jp.co.soramitsu.iroha.Keypair
+import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.getAccountDetails
@@ -17,13 +17,13 @@ const val ETH_ADDRESS = "0x0000000000000000000000000000000000000000"
  * Implementation of [EthTokensProvider] with Iroha storage.
  *
  * @param irohaConfig - Iroha configuration
- * @param keypair - Iroha keypair to query
+ * @param credential - Iroha credential
  * @param tokenStorageAccount - tokenStorageAccount that contains details
  * @param tokenSetterAccount - tokenSetterAccount that holds tokens in tokenStorageAccount account
  */
 class EthTokensProviderImpl(
     private val irohaConfig: IrohaConfig,
-    private val keypair: Keypair,
+    private val credential: IrohaCredential,
     private val tokenStorageAccount: String,
     private val tokenSetterAccount: String
 ) : EthTokensProvider {
@@ -39,8 +39,7 @@ class EthTokensProviderImpl(
      */
     override fun getTokens(): Result<Map<String, String>, Exception> {
         return getAccountDetails(
-            irohaConfig,
-            keypair,
+            credential,
             irohaNetwork,
             tokenStorageAccount,
             tokenSetterAccount
@@ -54,8 +53,7 @@ class EthTokensProviderImpl(
         return if (name == ETH_NAME)
             Result.of { ETH_PRECISION }
         else getAssetPrecision(
-            irohaConfig,
-            keypair,
+            credential,
             irohaNetwork,
             "$name#ethereum"
         )
@@ -68,8 +66,7 @@ class EthTokensProviderImpl(
         return if (name == ETH_NAME)
             Result.of { ETH_ADDRESS }
         else getAccountDetails(
-            irohaConfig,
-            keypair,
+            credential,
             irohaNetwork,
             tokenStorageAccount,
             tokenSetterAccount

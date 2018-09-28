@@ -2,6 +2,7 @@ package notary.btc.config
 
 import config.BitcoinConfig
 import config.IrohaConfig
+import config.IrohaCredentialConfig
 
 /** Configuration of Bitcoin notary */
 interface BtcNotaryConfig {
@@ -11,6 +12,8 @@ interface BtcNotaryConfig {
     val iroha: IrohaConfig
 
     val bitcoin: BitcoinConfig
+
+    val notaryCredential: IrohaCredentialConfig
 
     /** Iroha account to store notary peer list  */
     val notaryListStorageAccount: String

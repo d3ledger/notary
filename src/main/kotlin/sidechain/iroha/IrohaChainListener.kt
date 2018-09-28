@@ -5,6 +5,7 @@ import io.reactivex.Observable
 import io.reactivex.rxkotlin.toObservable
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelBlocksQueryBuilder
+import model.IrohaCredential
 import mu.KLogging
 import sidechain.ChainListener
 import sidechain.iroha.util.ModelUtil
@@ -16,16 +17,15 @@ import java.math.BigInteger
 class IrohaChainListener(
     irohaHost: String,
     irohaPort: Int,
-    val account: String,
-    val keypair: Keypair
+    credential: IrohaCredential
 ) : ChainListener<iroha.protocol.BlockOuterClass.Block> {
     val uquery = ModelBlocksQueryBuilder()
-        .creatorAccountId(account)
+        .creatorAccountId(credential.accountId)
         .createdTime(ModelUtil.getCurrentTime())
         .queryCounter(BigInteger.valueOf(1))
         .build()
 
-    val query = ModelUtil.prepareBlocksQuery(uquery, keypair)
+    val query = ModelUtil.prepareBlocksQuery(uquery, credential.keyPair)
     val stub = ModelUtil.getQueryStub(ModelUtil.getChannel(irohaHost, irohaPort))
 
     /**

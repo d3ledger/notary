@@ -3,9 +3,12 @@
 package token
 
 import com.github.kittinunf.result.flatMap
+import com.github.kittinunf.result.map
 import config.loadConfigs
+import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.IrohaInitialization
+import sidechain.iroha.util.ModelUtil
 
 private val logger = KLogging().logger
 
@@ -25,7 +28,14 @@ fun main(args: Array<String>) {
 fun executeTokenRegistration(tokenRegistrationConfig: ERC20TokenRegistrationConfig) {
     logger.info { "Run ERC20 tokens registration" }
     IrohaInitialization.loadIrohaLibrary()
-        .flatMap { ERC20TokenRegistration(tokenRegistrationConfig).init() }
+        .flatMap {
+            ModelUtil.loadKeypair(
+                tokenRegistrationConfig.irohaCredential.pubkeyPath,
+                tokenRegistrationConfig.irohaCredential.privkeyPath
+            )
+        }
+        .map { keypair -> IrohaCredential(tokenRegistrationConfig.irohaCredential.accountId, keypair) }
+        .flatMap { credentials -> ERC20TokenRegistration(tokenRegistrationConfig, credentials).init() }
         .fold(
             {
                 logger.info { "ERC20 tokens were successfully registered" }
