@@ -5,12 +5,12 @@ import mu.KLogging
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.methods.response.EthBlock
 import org.web3j.protocol.core.methods.response.Transaction
+import provider.eth.ETH_PRECISION
 import provider.eth.EthRelayProvider
 import provider.eth.EthTokenInfo
 import provider.eth.EthTokensProvider
 import sidechain.ChainHandler
 import sidechain.SideChainEvent
-import sidechain.eth.util.ETH_PRECISION
 import java.math.BigDecimal
 import java.math.BigInteger
 

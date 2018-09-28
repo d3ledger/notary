@@ -6,7 +6,7 @@ import jp.co.soramitsu.iroha.ModelCrypto
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.launch
 import org.junit.jupiter.api.*
-import sidechain.eth.util.ETH_PRECISION
+import provider.eth.ETH_PRECISION
 import util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger

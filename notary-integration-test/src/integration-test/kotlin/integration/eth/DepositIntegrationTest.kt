@@ -4,7 +4,7 @@ import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import sidechain.eth.util.ETH_PRECISION
+import provider.eth.ETH_PRECISION
 import util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger

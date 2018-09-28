@@ -11,7 +11,9 @@ import jp.co.soramitsu.iroha.Keypair
 import mu.KLogging
 import org.web3j.crypto.ECKeyPair
 import provider.eth.EthTokensProvider
-import sidechain.eth.util.*
+import sidechain.eth.util.DeployHelper
+import sidechain.eth.util.hashToWithdraw
+import sidechain.eth.util.signUserData
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountDetails
@@ -61,7 +63,7 @@ class EthRefundStrategyImpl(
             val commands = appearedTx.payload.reducedPayload.getCommands(0)
 
             when {
-                // rollback case
+            // rollback case
                 appearedTx.payload.reducedPayload.commandsCount == 1 &&
                         commands.hasSetAccountDetail() -> {
 
@@ -80,7 +82,7 @@ class EthRefundStrategyImpl(
 
                     EthRefund(destEthAddress, "mockCoinType", "10", request.irohaTx)
                 }
-                // withdrawal case
+            // withdrawal case
                 (appearedTx.payload.reducedPayload.commandsCount == 1) &&
                         commands.hasTransferAsset() -> {
                     val destAccount = commands.transferAsset.destAccountId
@@ -89,9 +91,8 @@ class EthRefundStrategyImpl(
 
                     val amount = commands.transferAsset.amount
                     val token = commands.transferAsset.assetId.dropLastWhile { it != '#' }.dropLast(1)
-                    val coins = tokensProvider.getTokens().get().toMutableMap()
-                    val coinAddress = findInTokens(token, coins)
-                    val precision = getPrecision(token, coins)
+                    val coinAddress = tokensProvider.getTokenAddress(token).get()
+                    val precision = tokensProvider.getTokenPrecision(token).get()
 
                     val destEthAddress = commands.transferAsset.description
 

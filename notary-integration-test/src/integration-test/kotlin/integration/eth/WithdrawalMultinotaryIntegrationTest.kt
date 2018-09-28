@@ -11,8 +11,8 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.web3j.crypto.ECKeyPair
+import provider.eth.ETH_PRECISION
 import sidechain.eth.util.DeployHelper
-import sidechain.eth.util.ETH_PRECISION
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
 import sidechain.iroha.util.ModelUtil
@@ -52,7 +52,8 @@ class WithdrawalMultinotaryIntegrationTest {
 
 
         // create 2nd notary config
-        val ethereumConfig2 = integrationHelper.configHelper.createEthereumConfig("../deploy/ethereum/keys/ganache2.key")
+        val ethereumConfig2 =
+            integrationHelper.configHelper.createEthereumConfig("../deploy/ethereum/keys/ganache2.key")
         val irohaConfig2 =
             integrationHelper.configHelper.createIrohaConfig(pubkeyPath = pubkeyPath, privkeyPath = privkeyPath)
         notaryConfig2 = integrationHelper.configHelper.createEthNotaryConfig(irohaConfig2, ethereumConfig2)

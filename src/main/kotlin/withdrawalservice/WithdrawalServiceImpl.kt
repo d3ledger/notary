@@ -15,8 +15,6 @@ import provider.eth.EthTokensProvider
 import provider.eth.EthTokensProviderImpl
 import sidechain.SideChainEvent
 import sidechain.eth.util.extractVRS
-import sidechain.eth.util.findInTokens
-import sidechain.eth.util.getPrecision
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
 import java.math.BigDecimal
@@ -95,13 +93,12 @@ class WithdrawalServiceImpl(
             .map { relayAddress ->
                 val hash = event.hash
                 val amount = event.amount
-                val coins = tokensProvider.getTokens().get().toMutableMap()
                 if (!event.asset.contains("#ethereum")) {
                     throw Exception("Incorrect asset name in Iroha event: " + event.asset)
                 }
                 val asset = event.asset.replace("#ethereum", "")
-                val precision = getPrecision(asset, coins)
-                val coinAddress = findInTokens(asset, coins)
+                val coinAddress = tokensProvider.getTokenAddress(asset).get()
+                val precision = tokensProvider.getTokenPrecision(asset).get()
 
                 val address = event.description
                 val vv = ArrayList<BigInteger>()

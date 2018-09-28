@@ -11,6 +11,10 @@ import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountDetails
 import sidechain.iroha.util.getAssetPrecision
 
+val ETH_NAME = "ether"
+val ETH_PRECISION: Short = 18
+val ETH_ADDRESS = "0x0000000000000000000000000000000000000000"
+
 /**
  * Implementation of [EthTokensProvider] with Iroha storage.
  *
@@ -56,6 +60,39 @@ class EthTokensProviderImpl(
                     )
                 }
             }
+    }
+
+    /**
+     * Get precision of [name] asset in Iroha.
+     */
+    override fun getTokenPrecision(name: String): Result<Short, Exception> {
+        return if (name == ETH_NAME)
+            Result.of { ETH_PRECISION }
+        else getAssetPrecision(
+            irohaConfig,
+            keypair,
+            irohaNetwork,
+            "$name#ethereum"
+        )
+    }
+
+    /**
+     * Get token address of [name] asset. For ether returns 0x0000000000000000000000000000000000000000
+     */
+    override fun getTokenAddress(name: String): Result<String, Exception> {
+        return if (name == ETH_NAME)
+            Result.of { ETH_ADDRESS }
+        else getAccountDetails(
+            irohaConfig,
+            keypair,
+            irohaNetwork,
+            tokenStorageAccount,
+            tokenSetterAccount
+        ).map { tokens ->
+            tokens.filterValues {
+                it == name
+            }.keys.first()
+        }
     }
 
     /**
