@@ -3,16 +3,12 @@ package integration.helper
 import com.github.kittinunf.result.*
 import config.loadConfigs
 import contract.Master
-import contract.Relay
 import contract.RelayRegistry
+import integration.TestConfig
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelCrypto
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import jp.co.soramitsu.iroha.PublicKey
-import integration.TestConfig
-import io.grpc.ManagedChannelBuilder
-import iroha.protocol.QueryServiceGrpc
-import jp.co.soramitsu.iroha.*
 import kotlinx.coroutines.experimental.runBlocking
 import mu.KLogging
 import notary.eth.EthNotaryConfig
@@ -218,7 +214,7 @@ class IntegrationHelperUtil {
     fun registerBtcAddress(irohaAccountName: String): String {
         val keypair = ModelCrypto().generateKeypair()
         preGenBtcAddress().fold({
-            btcRegistrationStrategy.register(irohaAccountName, emptyList(),keypair.publicKey().hex())
+            btcRegistrationStrategy.register(irohaAccountName, emptyList(), keypair.publicKey().hex())
                 .fold({ btcAddress ->
                     return btcAddress
                 }, { ex -> throw ex })
@@ -363,7 +359,11 @@ class IntegrationHelperUtil {
     /**
      * Registers first free relay contract in Iroha to the client with given [name] and public key
      */
-    fun registerClientWithoutRelay(name: String, whitelist: List<String>, keypair: Keypair = ModelCrypto().generateKeypair()): String {
+    fun registerClientWithoutRelay(
+        name: String,
+        whitelist: List<String>,
+        keypair: Keypair = ModelCrypto().generateKeypair()
+    ): String {
         ethRegistrationStrategy.register(name, whitelist, keypair.publicKey().hex())
             .fold({ registeredEthWallet ->
                 logger.info("registered client $name with relay $registeredEthWallet")
@@ -584,7 +584,7 @@ class IntegrationHelperUtil {
     fun sendRegistrationRequest(name: String, whitelist: String, pubkey: PublicKey, port: Int): khttp.responses.Response {
         return khttp.post(
             "http://127.0.0.1:${port}/users",
-            data = mapOf("name" to name, "whitelist" to whitelist.trim('[').trim(']'),"pubkey" to pubkey.hex())
+            data = mapOf("name" to name, "whitelist" to whitelist.trim('[').trim(']'), "pubkey" to pubkey.hex())
         )
     }
 
