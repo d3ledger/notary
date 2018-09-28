@@ -7,7 +7,7 @@ import model.IrohaCredential
 import notary.eth.EthNotaryConfig
 import notary.eth.RefundConfig
 import registration.btc.BtcRegistrationConfig
-import registration.btc.pregen.BtcPreGenConfig
+import pregeneration.btc.config.BtcPreGenConfig
 import registration.eth.EthRegistrationConfig
 import registration.eth.relay.RelayRegistrationConfig
 import token.ERC20TokenRegistrationConfig
@@ -74,6 +74,8 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
     //Creates config for BTC multisig addresses generation
     fun createBtcPreGenConfig(): BtcPreGenConfig {
         return object : BtcPreGenConfig {
+            override val healthCheckPort: Int
+                get() = btcPkPreGenConfig.healthCheckPort
             override val notaryListStorageAccount: String
                 get() = accountHelper.notaryListStorageAccount.accountId
             override val notaryListSetterAccount: String
