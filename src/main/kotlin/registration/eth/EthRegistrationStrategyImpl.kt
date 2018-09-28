@@ -13,10 +13,9 @@ import sidechain.iroha.consumer.IrohaConsumer
 class EthRegistrationStrategyImpl(
     private val ethFreeRelayProvider: EthFreeRelayProvider,
     irohaConsumer: IrohaConsumer,
-    notaryIrohaAccount: String,
-    creator: String
+    notaryIrohaAccount: String
 ) : RegistrationStrategy {
-    private val irohaAccountCreator = IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, creator, "ethereum_wallet")
+    private val irohaAccountCreator = IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, "ethereum_wallet")
     /**
      * Register new notary client
      * @param name - client name

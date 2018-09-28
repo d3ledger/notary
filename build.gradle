@@ -11,6 +11,7 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.6'
         classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.3.0'
+        classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
         pitest 'org.pitest:pitest-junit5-plugin:0.3'
     }
 }
@@ -18,21 +19,30 @@ buildscript {
 group = 'd3'
 version = '1.0-SNAPSHOT'
 
-apply plugin: 'java'
-apply plugin: 'kotlin'
-apply plugin: 'com.google.protobuf'
+
 apply plugin: 'application'
+apply plugin: 'com.google.protobuf'
 apply plugin: "jacoco"
 apply plugin: 'info.solidsoft.pitest'
 
-sourceCompatibility = 1.8
-
-repositories {
-    mavenCentral()
-    // for Ktor
-    jcenter()
-    maven { url = 'https://dl.bintray.com/kotlin/ktor' }
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'kotlin'
+    repositories {
+        mavenCentral()
+        // for Ktor
+        jcenter()
+        maven { url = 'https://dl.bintray.com/kotlin/ktor' }
+    }
 }
+
+subprojects {
+    dependencies {
+        compile project(':')
+    }
+}
+
+sourceCompatibility = 1.8
 
 dependencies {
     // protobuf
@@ -45,13 +55,6 @@ dependencies {
 
     // kotlin related
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-
-    //bitcoin
-    compile 'org.bitcoinj:bitcoinj-core:0.14.7'
-    // https://mvnrepository.com/artifact/org.iq80.leveldb/leveldb
-    compile group: 'org.iq80.leveldb', name: 'leveldb', version: '0.10'
-    // https://mvnrepository.com/artifact/org.fusesource.leveldbjni/leveldbjni
-    compile group: 'org.fusesource.leveldbjni', name: 'leveldbjni-all', version: '1.8'
 
     // rx2
     compile "io.reactivex.rxjava2:rxjava:2.0.0"
@@ -72,9 +75,9 @@ dependencies {
     compile 'com.wavesplatform:wavesj:0.4'
 
     // logging
-    compile 'org.slf4j:slf4j-simple:1.7.25'
-    compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.8.0-beta2'
     compile 'io.github.microutils:kotlin-logging:1.4.9'
+    // https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12
+    compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.8.0-beta2'
 
     // CLI arguments
     compile group: 'com.xenomachina', name: 'kotlin-argparser', version: '2.0.6'
@@ -106,7 +109,8 @@ dependencies {
     // unit tests
     testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
     testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
-    testCompile 'org.mockito:mockito-inline:2.18.3'
+    // https://mvnrepository.com/artifact/org.mockito/mockito-all
+    testCompile group: 'org.mockito', name: 'mockito-all', version: '2.0.2-beta'
     testCompile('com.nhaarman:mockito-kotlin:1.5.0') {
         exclude group: 'org.jetbrains.kotlin'
         exclude group: 'org.mockito'
@@ -119,17 +123,19 @@ dependencies {
 
 }
 
-kotlin {
-    experimental {
-        coroutines "enable"
+allprojects {
+    kotlin {
+        experimental {
+            coroutines "enable"
+        }
     }
-}
 
-compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    compileKotlin {
+        kotlinOptions.jvmTarget = "1.8"
+    }
+    compileTestKotlin {
+        kotlinOptions.jvmTarget = "1.8"
+    }
 }
 
 sourceSets {
@@ -141,47 +147,16 @@ sourceSets {
             srcDirs += "build/generated/source/proto/main/grpc"
         }
     }
-    integrationTest {
-        kotlin {
-            compileClasspath += main.output + test.output
-            runtimeClasspath += main.output + test.output
-            srcDirs += 'src/integration-test/kotlin'
-        }
-        resources.srcDir file('src/integration-test/resources')
+}
+
+allprojects {
+    test {
+        useJUnitPlatform()
+        systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
+        println "Runtime Iroha library path:${systemProperties}"
+        environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
     }
 }
-
-configurations {
-    integrationTestImplementation.extendsFrom testImplementation
-    integrationTestCompile.extendsFrom testCompile
-    integrationTestRuntime.extendsFrom testRuntime
-}
-
-test {
-    useJUnitPlatform()
-    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-    println "Runtime Iroha library path:${systemProperties}"
-    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-}
-
-task integrationTest(type: Test) {
-    group = LifecycleBasePlugin.VERIFICATION_GROUP
-    description = 'Runs the integration tests.'
-
-    testClassesDirs = sourceSets.integrationTest.output.classesDirs
-    classpath = sourceSets.integrationTest.runtimeClasspath
-
-    // Enable JUnit5 tests
-    useJUnitPlatform {
-    }
-
-    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-
-    mustRunAfter test
-}
-check.dependsOn integrationTest
-
 run {
     systemProperty "java.library.path", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
 }
@@ -217,7 +192,6 @@ task buildEthereumContracts(type: Exec) {
     }
 
     commandLine 'sh', '-c', 'solc <path>/*.sol --bin --abi --optimize -o <path>/bin --overwrite'.replace("<path>", contract_path)
-
 
 }
 
@@ -287,6 +261,10 @@ task osInfo {
     }
 }
 
+def getIrohaLibPath(){
+    return Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
+}
+
 retrieveIrohaBindings.dependsOn(osInfo)
 
 // -------------------------| End Iroha bindings |-------------------------
@@ -302,30 +280,6 @@ task runEthNotary(type: JavaExec) {
     environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
 }
 
-task runBtcNotary(type: JavaExec) {
-    main = 'notary.btc.BtcNotaryMain'
-    classpath = sourceSets.main.runtimeClasspath
-
-    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-}
-
-task runBtcPreGen(type: JavaExec) {
-    main = 'registration.btc.pregen.BtcPreGenerationMain'
-    classpath = sourceSets.main.runtimeClasspath
-
-    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-}
-
-task runBtcPreGenTrigger(type: JavaExec) {
-    main = 'registration.btc.pregen.trigger.BtcPreGenerationTriggerMain'
-    classpath = sourceSets.main.runtimeClasspath
-
-    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-}
-
 task runEthRegistration(type: JavaExec) {
     main = 'registration.eth.EthRegistrationMain'
     classpath = sourceSets.main.runtimeClasspath
@@ -337,14 +291,6 @@ task runEthRegistration(type: JavaExec) {
 
 task runERC20TokenRegistration(type: JavaExec) {
     main = 'token.ERC20TokenRegistrationMain'
-    classpath = sourceSets.main.runtimeClasspath
-
-    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-}
-
-task runBtcRegistration(type: JavaExec) {
-    main = 'registration.btc.BtcRegistrationMain'
     classpath = sourceSets.main.runtimeClasspath
 
     systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()

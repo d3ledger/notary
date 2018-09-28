@@ -2,6 +2,7 @@ package withdrawalservice
 
 import config.EthereumConfig
 import config.IrohaConfig
+import config.IrohaCredentialConfig
 
 /** Configuration of withdrawal service */
 interface WithdrawalServiceConfig {
@@ -23,6 +24,8 @@ interface WithdrawalServiceConfig {
 
     /** Notary account in Iroha */
     val registrationIrohaAccount: String
+
+    val withdrawalCredential: IrohaCredentialConfig
 
     /** Iroha configuration */
     val iroha: IrohaConfig

@@ -98,8 +98,14 @@ class EthChainHandler(
 
         val receipt = web3.ethGetTransactionReceipt(tx.hash).send()
 
-        // if tx amount > 0 and is committed successfully
-        return if ((tx.value.compareTo(BigInteger.ZERO) > 0) && (receipt.transactionReceipt.get().isStatusOK)) {
+        return if (!receipt.transactionReceipt.get().isStatusOK) {
+            logger.warn { "Transaction ${tx.hash} from Ethereum has FAIL status" }
+            listOf()
+        } else if (tx.value <= BigInteger.ZERO) {
+            logger.warn { "Transaction ${tx.hash} from Ethereum with 0 ETH amount" }
+            listOf()
+        } else {
+            // if tx amount > 0 and is committed successfully
             listOf(
                 SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
                     tx.hash,
@@ -111,9 +117,6 @@ class EthChainHandler(
                     tx.from
                 )
             )
-        } else {
-            logger.warn { "Transaction ${tx.hash} from Ethereum with 0 ETH amount" }
-            listOf()
         }
     }
 

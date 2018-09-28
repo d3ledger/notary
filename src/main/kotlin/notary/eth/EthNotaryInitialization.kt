@@ -6,8 +6,10 @@ import com.github.kittinunf.result.map
 import config.EthereumPasswords
 import io.reactivex.Observable
 import jp.co.soramitsu.iroha.Keypair
+import model.IrohaCredential
 import mu.KLogging
 import notary.Notary
+import notary.NotaryImpl
 import notary.createEthNotary
 import notary.endpoint.RefundServerEndpoint
 import notary.endpoint.ServerInitializationBundle
@@ -15,6 +17,8 @@ import notary.endpoint.eth.EthRefundStrategyImpl
 import okhttp3.OkHttpClient
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
+import provider.NotaryPeerListProvider
+import provider.NotaryPeerListProviderImpl
 import provider.eth.EthRelayProvider
 import provider.eth.EthTokensProvider
 import sidechain.SideChainEvent
@@ -31,7 +35,7 @@ import java.math.BigInteger
  * @param ethTokensProvider - provides with white list of ethereum ERC20 tokens
  */
 class EthNotaryInitialization(
-    private val irohaKeyPair: Keypair,
+    private val notaryCredential: IrohaCredential,
     private val ethNotaryConfig: EthNotaryConfig,
     private val passwordsConfig: EthereumPasswords,
     private val ethRelayProvider: EthRelayProvider,
@@ -83,7 +87,15 @@ class EthNotaryInitialization(
         ethEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>
     ): Notary {
         logger.info { "Init Notary notary" }
-        return createEthNotary(ethNotaryConfig, ethEvents)
+
+        val peerListProvider = NotaryPeerListProviderImpl(
+            ethNotaryConfig.iroha,
+            notaryCredential,
+            ethNotaryConfig.notaryListStorageAccount,
+            ethNotaryConfig.notaryListSetterAccount
+        )
+
+        return createEthNotary(ethNotaryConfig, ethEvents, peerListProvider)
     }
 
     /**
@@ -94,11 +106,10 @@ class EthNotaryInitialization(
         RefundServerEndpoint(
             ServerInitializationBundle(ethNotaryConfig.refund.port, ethNotaryConfig.refund.endpointEthereum),
             EthRefundStrategyImpl(
-                ethNotaryConfig.iroha,
+                notaryCredential,
                 irohaNetwork,
                 ethNotaryConfig.ethereum,
                 passwordsConfig,
-                irohaKeyPair,
                 ethNotaryConfig.whitelistSetter,
                 ethTokensProvider
             )

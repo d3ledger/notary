@@ -1,0 +1,8 @@
+dependencies {
+    //bitcoin
+    compile 'org.bitcoinj:bitcoinj-core:0.14.7'
+    // https://mvnrepository.com/artifact/org.iq80.leveldb/leveldb
+    compile group: 'org.iq80.leveldb', name: 'leveldb', version: '0.10'
+    // https://mvnrepository.com/artifact/org.fusesource.leveldbjni/leveldbjni
+    compile group: 'org.fusesource.leveldbjni', name: 'leveldbjni-all', version: '1.8'
+}

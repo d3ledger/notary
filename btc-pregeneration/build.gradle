@@ -1,0 +1,29 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+}
+
+apply plugin: 'application'
+mainClassName = "registration.btc.pregen.BtcPreGenerationMain"
+
+dependencies {
+    compile project(":btc")
+}
+
+task runBtcPreGen(type: JavaExec) {
+    main = 'registration.btc.pregen.BtcPreGenerationMain'
+    classpath = sourceSets.main.runtimeClasspath
+
+    systemProperty 'java.library.path', getIrohaLibPath()
+    environment "LD_LIBRARY_PATH", getIrohaLibPath()
+}
+
+task runBtcPreGenTrigger(type: JavaExec) {
+    main = 'registration.btc.pregen.trigger.BtcPreGenerationTriggerMain'
+    classpath = sourceSets.main.runtimeClasspath
+
+    systemProperty 'java.library.path', getIrohaLibPath()
+    environment "LD_LIBRARY_PATH", getIrohaLibPath()
+}
