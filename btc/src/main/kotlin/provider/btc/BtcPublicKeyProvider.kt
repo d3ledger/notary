@@ -3,6 +3,7 @@ package provider.btc
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import config.IrohaConfig
+import model.IrohaCredential
 import mu.KLogging
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.ECKey
@@ -32,15 +33,15 @@ class BtcPublicKeyProvider(
     //Provider that helps us fetching all the peers registered in the network
     private val notaryPeerListProvider: NotaryPeerListProvider,
     //BTC registration account
-    private val btcRegistrationAccount: String,
+    btcRegistrationCredential: IrohaCredential,
     //BTC registration account, that works in MST fashion
-    private val mstBtcRegistrationAccount: String,
+    mstBtcRegistrationCredential: IrohaCredential,
     //Notary account to store BTC addresses
     private val notaryAccount: String
 ) {
 
-    private val sessionConsumer = IrohaConsumerImpl(btcRegistrationAccount, irohaConfig)
-    private val multiSigConsumer = IrohaConsumerImpl(mstBtcRegistrationAccount, irohaConfig)
+    private val sessionConsumer = IrohaConsumerImpl(btcRegistrationCredential, irohaConfig)
+    private val multiSigConsumer = IrohaConsumerImpl(mstBtcRegistrationCredential, irohaConfig)
 
     /**
      * Creates notary public key and sets it into session account details

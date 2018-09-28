@@ -3,12 +3,13 @@ package provider.btc
 import com.github.kittinunf.result.Result
 import config.IrohaConfig
 import jp.co.soramitsu.iroha.Keypair
+import model.IrohaCredential
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.getAccountDetails
 //Class that provides all created BTC addresses
 class BtcAddressesProvider(
     private val irohaConfig: IrohaConfig,
-    private val keypair: Keypair,
+    private val credential: IrohaCredential,
     private val mstRegistrationAccount: String,
     private val notaryAccount: String
 ) {
@@ -19,8 +20,7 @@ class BtcAddressesProvider(
      */
     fun getAddresses(): Result<Map<String, String>, Exception> {
         return getAccountDetails(
-            irohaConfig,
-            keypair,
+            credential,
             irohaNetwork,
             notaryAccount,
             mstRegistrationAccount

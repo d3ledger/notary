@@ -13,9 +13,10 @@ import sidechain.iroha.util.ModelUtil.getCurrentTime
 class IrohaAccountCreator(
     private val irohaConsumer: IrohaConsumer,
     private val notaryIrohaAccount: String,
-    private val creator: String,
     private val addressName: String
 ) {
+
+    private val creator = irohaConsumer.creator
 
     /**
      * Creates new account to Iroha with given address

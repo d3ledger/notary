@@ -6,6 +6,7 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.loadConfigs
+import model.IrohaCredential
 import mu.KLogging
 import provider.TriggerProvider
 import provider.btc.BtcSessionProvider
@@ -28,16 +29,23 @@ fun main(args: Array<String>) {
 fun executeTrigger(btcPkPreGenConfig: BtcPreGenConfig) {
     logger.info { "Run BTC multisignature address pregeneration trigger" }
     IrohaInitialization.loadIrohaLibrary()
-        .flatMap { ModelUtil.loadKeypair(btcPkPreGenConfig.iroha.pubkeyPath, btcPkPreGenConfig.iroha.privkeyPath) }
-        .flatMap { keypair ->
+        .flatMap {
+            ModelUtil.loadKeypair(
+                btcPkPreGenConfig.registrationAccount.pubkeyPath,
+                btcPkPreGenConfig.registrationAccount.privkeyPath
+            )
+        }.map {keypair ->
+            IrohaCredential(btcPkPreGenConfig.registrationAccount.accountId, keypair)
+        }
+        .flatMap { credential ->
             val triggerProvider = TriggerProvider(
                 btcPkPreGenConfig.iroha,
+                credential,
                 btcPkPreGenConfig.pubKeyTriggerAccount
             )
             val btcKeyGenSessionProvider = BtcSessionProvider(
                 btcPkPreGenConfig.iroha,
-                btcPkPreGenConfig.registrationAccount,
-                keypair
+                credential
             )
             val sessionAccountName = String.getRandomId()
             btcKeyGenSessionProvider.createPubKeyCreationSession(sessionAccountName)
