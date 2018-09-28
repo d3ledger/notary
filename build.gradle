@@ -381,15 +381,19 @@ task runWithdrawal(type: JavaExec) {
 processResources {
 
     def profiles = ["local", "testnet", "mainnet"]
-    def profile = project.profile.toLowerCase()
-    if(!profiles.contains(profile))
-        throw new IllegalArgumentException("Invalid profile, please use one of " + profiles.toString())
+    def ignores = ["clean"]
+    def task = project.gradle.startParameter.taskNames.first()
 
-    from('src/main/resources') {
-        include "**/**_${profile}.properties"
-        rename "(.*)_${profile}.properties", '$1.properties'
+    if(!ignores.contains(task)) {
+        def profile = project.profile.toLowerCase()
+        if (!profiles.contains(profile))
+            throw new IllegalArgumentException("Invalid profile, please use one of " + profiles.toString())
+
+        from('src/main/resources') {
+            include "**/**_${profile}.properties"
+            rename "(.*)_${profile}.properties", '$1.properties'
+        }
     }
-
 }
 
 // -------------------------| JaCoCo code coverage |-------------------------
