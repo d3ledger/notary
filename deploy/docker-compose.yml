@@ -49,6 +49,7 @@ services:
     container_name: d3-btc-node0
     volumes:
       - ./bitcoin/bitcoin.conf:/bitcoin/.bitcoin/bitcoin.conf
+      - ./bitcoin/test-btc.wallet:deploy/bitcoin/test-btc.wallet
 
   grpcwebproxy:
     build:

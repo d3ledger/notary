@@ -42,9 +42,12 @@ pipeline {
                   sh "cp \$ethereum_password src/main/resources/eth/ethereum_password.properties"
                   sh "cp \$ethereum_password notary-integration-test/src/integration-test/resources/eth/ethereum_password.properties"
               }
+              withCredentials([file(credentialsId: 'ethereum_password.properties', variable: 'bitcoin_wallet')]) {
+                  sh "cp \$bitcoin_wallet deploy/bitcoin/test-btc.wallet"
+              }
               sh "./gradlew dependencies"
-              sh "./gradlew test --info"
-              sh "./gradlew compileIntegrationTestKotlin --info"
+              // sh "./gradlew test --info"
+              // sh "./gradlew compileIntegrationTestKotlin --info"
               sh "./gradlew integrationTest --info"
             }
         }
