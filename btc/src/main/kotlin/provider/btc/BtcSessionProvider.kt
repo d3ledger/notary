@@ -4,6 +4,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import config.IrohaConfig
 import jp.co.soramitsu.iroha.Keypair
+import model.IrohaCredential
 import notary.IrohaCommand
 import notary.IrohaTransaction
 import sidechain.iroha.consumer.IrohaConsumerImpl
@@ -14,10 +15,9 @@ import sidechain.iroha.util.ModelUtil
 // Class for creating session accounts. Theses accounts are used to store BTC public keys.
 class BtcSessionProvider(
     val irohaConfig: IrohaConfig,
-    private val registrationAccount: String,
-    private val keypair: Keypair
+    private val credential: IrohaCredential
 ) {
-    private val irohaConsumer = IrohaConsumerImpl(irohaConfig.creator, irohaConfig)
+    private val irohaConsumer = IrohaConsumerImpl(credential, irohaConfig)
 
     /**
      * Creates a special session account for notaries public key storage
@@ -28,12 +28,12 @@ class BtcSessionProvider(
     fun createPubKeyCreationSession(sessionId: String): Result<String, Exception> {
         return Result.of {
             IrohaTransaction(
-                registrationAccount,
+                credential.accountId,
                 ModelUtil.getCurrentTime(),
                 1,
                 arrayListOf(
                     IrohaCommand.CommandCreateAccount(
-                        sessionId, "btcSession", keypair.publicKey().hex()
+                        sessionId, "btcSession", credential.keyPair.publicKey().hex()
                     )
                 )
             )

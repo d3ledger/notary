@@ -1,9 +1,9 @@
 package registration.btc.pregen
 
 import config.IrohaConfig
+import config.IrohaCredentialConfig
 
 interface BtcPreGenConfig {
-
     /*
     Account for triggering.
     Triggering this account means starting BTC addresses pregeneration
@@ -19,11 +19,10 @@ interface BtcPreGenConfig {
     val btcWalletFilePath: String
 
     //Account that is used to register BTC addresses
-    val registrationAccount: String
-
+    val registrationAccount: IrohaCredentialConfig
 
     //Account that is used to register BTC addresses in MST fashion
-    val mstRegistrationAccount: String
+    val mstRegistrationAccount: IrohaCredentialConfig
 
     //Account that stores all registered notaries
     val notaryListStorageAccount: String

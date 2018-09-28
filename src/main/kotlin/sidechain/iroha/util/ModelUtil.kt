@@ -12,6 +12,7 @@ import iroha.protocol.Queries.Query
 import iroha.protocol.QueryServiceGrpc
 import iroha.protocol.TransactionOuterClass.Transaction
 import jp.co.soramitsu.iroha.*
+import model.IrohaCredential
 import mu.KLogging
 import provider.eth.EthTokenInfo
 import sidechain.iroha.consumer.IrohaConsumer
@@ -196,20 +197,19 @@ object ModelUtil {
      */
     fun getTransaction(
         irohaNetwork: IrohaNetwork,
-        creator: String,
-        keypair: Keypair,
+        credential: IrohaCredential,
         hash: String
     ): Result<Transaction, Exception> {
         val hashes = HashVector()
         hashes.add(Hash.fromHexString(hash))
 
-        val uquery = ModelQueryBuilder().creatorAccountId(creator)
+        val uquery = ModelQueryBuilder().creatorAccountId(credential.accountId)
             .queryCounter(BigInteger.valueOf(1))
             .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
             .getTransactions(hashes)
             .build()
 
-        return prepareQuery(uquery, keypair)
+        return prepareQuery(uquery, credential.keyPair)
             .flatMap { irohaNetwork.sendQuery(it) }
             .flatMap { getFirstTransaction(it) }
     }

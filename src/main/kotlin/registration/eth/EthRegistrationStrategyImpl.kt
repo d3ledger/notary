@@ -20,12 +20,8 @@ import java.math.BigInteger
  */
 class EthRegistrationStrategyImpl(
     private val ethFreeRelayProvider: EthFreeRelayProvider,
-    ethRegistrationConfig: EthRegistrationConfig,
-    passwordConfig: EthereumPasswords,
-    val irohaConsumer: IrohaConsumer,
-    val notaryIrohaAccount: String,
-    val creator: String,
-    val ethRelayRegistryAddress: String = ethRegistrationConfig.ethRelayRegistryAddress
+    irohaConsumer: IrohaConsumer,
+    notaryIrohaAccount: String
 ) : RegistrationStrategy {
 
     private val credentials = WalletUtils.loadCredentials(
@@ -43,6 +39,7 @@ class EthRegistrationStrategyImpl(
         BigInteger.valueOf(ethRegistrationConfig.ethereum.gasLimit)
     )
 
+    val irohaAccountCreator = IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, creator, "ethereum_wallet")
 
 
     /**
@@ -53,9 +50,6 @@ class EthRegistrationStrategyImpl(
      * @return ethereum wallet has been registered
      */
     override fun register(name: String, whitelist: List<String>, pubkey: String): Result<String, Exception> {
-
-        val irohaAccountCreator = IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, creator, "ethereum_wallet")
-
         return ethFreeRelayProvider.getRelay()
             .flatMap { freeEthWallet ->
                 relayRegistry.addNewRelayAddress(freeEthWallet, whitelist).send()

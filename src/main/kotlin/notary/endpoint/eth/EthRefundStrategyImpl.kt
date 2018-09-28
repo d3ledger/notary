@@ -5,7 +5,7 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.EthereumPasswords
 import iroha.protocol.TransactionOuterClass.Transaction
-import jp.co.soramitsu.iroha.Keypair
+import model.IrohaCredential
 import mu.KLogging
 import notary.eth.EthNotaryConfig
 import org.web3j.crypto.ECKeyPair
@@ -23,10 +23,11 @@ class NotaryException(reason: String) : Exception(reason)
  * Class performs effective implementation of refund strategy for Ethereum
  */
 class EthRefundStrategyImpl(
-    private val notaryConfig: EthNotaryConfig,
-    private val irohaNetwork: IrohaNetwork,
+    private val credential: IrohaCredential,
+    val irohaNetwork: IrohaNetwork,
+    ethereumConfig: EthereumConfig,
     ethereumPasswords: EthereumPasswords,
-    private val keypair: Keypair,
+    private val whitelistSetter: String,
     private val tokensProvider: EthTokensProvider
 ) : EthRefundStrategy {
 
@@ -42,7 +43,7 @@ class EthRefundStrategyImpl(
     override fun performRefund(request: EthRefundRequest): EthNotaryResponse {
         logger.info("Check tx ${request.irohaTx} for refund")
 
-        return ModelUtil.getTransaction(irohaNetwork, notaryConfig.iroha.creator, keypair, request.irohaTx)
+        return ModelUtil.getTransaction(irohaNetwork, credential, request.irohaTx)
             .flatMap { checkTransaction(it, request) }
             .flatMap { makeRefund(it) }
             .fold({ it },
@@ -93,7 +94,8 @@ class EthRefundStrategyImpl(
                 (appearedTx.payload.reducedPayload.commandsCount == 1) &&
                         commands.hasTransferAsset() -> {
                     val destAccount = commands.transferAsset.destAccountId
-                    if (destAccount != notaryConfig.iroha.creator)
+                    // TODO: Bulat change destAccount to withdrawalTrigger account
+                    if (destAccount != credential.accountId)
                         throw NotaryException("Refund - check transaction. Destination account is wrong '$destAccount'")
 
                     val amount = commands.transferAsset.amount
@@ -169,8 +171,7 @@ class EthRefundStrategyImpl(
      */
     private fun checkWithdrawalAddress(srcAccountId: String, address: String): Result<Boolean, Exception> {
         return getAccountDetails(
-            notaryConfig.iroha,
-            keypair,
+            credential,
             irohaNetwork,
             srcAccountId,
             notaryConfig.whitelistSetter

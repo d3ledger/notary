@@ -51,7 +51,7 @@ class WithdrawalPipelineIntegrationTest {
     private val toAddress = integrationHelper.configHelper.testConfig.ethTestAccount
 
     /** Notary account in Iroha */
-    private val notaryAccount = notaryConfig.iroha.creator
+    private val notaryAccount = withdrawalServiceConfig.notaryIrohaAccount
 
     private val registrationService: Job
 
@@ -65,7 +65,7 @@ class WithdrawalPipelineIntegrationTest {
         withdrawalService = launch {
             withdrawalservice.executeWithdrawal(withdrawalServiceConfig, passwordConfig)
         }
-        Thread.sleep(3_000)
+        Thread.sleep(10_000)
     }
 
     lateinit var clientName: String
@@ -112,7 +112,6 @@ class WithdrawalPipelineIntegrationTest {
         Assertions.assertEquals(200, res.statusCode)
 
         val initialBalance = integrationHelper.getEthBalance(toAddress)
-
         val decimalAmount = BigDecimal(amount, ETH_PRECISION.toInt()).toPlainString()
         val assetId = "ether#ethereum"
 

@@ -2,6 +2,7 @@ package registration.eth.relay
 
 import com.github.kittinunf.result.Result
 import config.EthereumPasswords
+import model.IrohaCredential
 import mu.KLogging
 import sidechain.eth.util.DeployHelper
 import sidechain.iroha.consumer.IrohaConsumerImpl
@@ -13,13 +14,14 @@ import sidechain.iroha.util.ModelUtil
  */
 class RelayRegistration(
     private val relayRegistrationConfig: RelayRegistrationConfig,
+    relayCredential: IrohaCredential,
     relayRegistrationEthereumPasswords: EthereumPasswords
 ) {
     /** Ethereum endpoint */
     private val deployHelper = DeployHelper(relayRegistrationConfig.ethereum, relayRegistrationEthereumPasswords)
 
     /** Iroha endpoint */
-    private val irohaConsumer = IrohaConsumerImpl(relayRegistrationConfig.iroha.creator, relayRegistrationConfig.iroha)
+    private val irohaConsumer = IrohaConsumerImpl(relayCredential, relayRegistrationConfig.iroha)
 
     private val notaryIrohaAccount = relayRegistrationConfig.notaryIrohaAccount
 

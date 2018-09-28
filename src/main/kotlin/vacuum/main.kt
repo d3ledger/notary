@@ -4,8 +4,10 @@ package vacuum
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
+import com.github.kittinunf.result.map
 import config.loadConfigs
 import config.loadEthPasswords
+import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.util.ModelUtil
@@ -24,8 +26,14 @@ fun executeVacuum(relayVacuumConfig: RelayVacuumConfig, args: Array<String> = em
     logger.info { "Run relay vacuum" }
     val passwordConfig = loadEthPasswords(RELAY_VACUUM_PREFIX, "/eth/ethereum_password.properties", args)
     IrohaInitialization.loadIrohaLibrary()
-        .flatMap { ModelUtil.loadKeypair(relayVacuumConfig.iroha.pubkeyPath, relayVacuumConfig.iroha.privkeyPath) }
-        .flatMap { keypair -> RelayVacuum(relayVacuumConfig, passwordConfig, keypair).vacuum() }
+        .flatMap {
+            ModelUtil.loadKeypair(
+                relayVacuumConfig.vacuumCredential.pubkeyPath,
+                relayVacuumConfig.vacuumCredential.privkeyPath
+            )
+        }
+        .map { keypair -> IrohaCredential(relayVacuumConfig.vacuumCredential.accountId, keypair) }
+        .flatMap {credential ->  RelayVacuum(relayVacuumConfig, passwordConfig, credential).vacuum() }
         .failure { ex ->
             logger.error("Cannot run vacuum", ex)
             System.exit(1)
