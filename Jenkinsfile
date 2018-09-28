@@ -42,10 +42,10 @@ pipeline {
                   sh "cp \$ethereum_password src/main/resources/eth/ethereum_password.properties"
                   sh "cp \$ethereum_password src/integration-test/resources/eth/ethereum_password.properties"
               }
-              sh "./gradlew dependencies"
-              sh "./gradlew test --info"
-              sh "./gradlew compileIntegrationTestKotlin --info"
-              sh "./gradlew integrationTest --info"
+              sh "./gradlew dependencies -Pprofile=local"
+              sh "./gradlew test --info -Pprofile=local"
+              sh "./gradlew compileIntegrationTestKotlin --info -Pprofile=local"
+              sh "./gradlew integrationTest --info -Pprofile=local"
             }
         }
       }
