@@ -277,7 +277,7 @@ class WithdrawalPipelineIntegrationTest {
         integrationHelper.registerClient(clientName, listOf("0x123"), keypair)
         integrationHelper.setWhitelist(clientId, listOf("0x123"))
 
-        val withdrawalEthAddress = "0xAAABBBCCC"
+        val withdrawalEthAddress = "0x321"
 
         val amount = "125"
         val assetId = "ether#ethereum"
