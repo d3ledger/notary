@@ -16,7 +16,4 @@ interface EthTokensProvider {
 
     /** Return token precision by asset name */
     fun getTokenAddress(name: String): Result<String, Exception>
-
-    /** Adds all given tokens in Iroha*/
-    fun addTokens(tokens: Map<String, EthTokenInfo>): Result<Unit, Exception>
 }

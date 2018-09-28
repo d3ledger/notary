@@ -35,7 +35,6 @@ class EthTokensProviderImpl(
     }
 
     private val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
-    private val irohaConsumer = IrohaConsumerImpl(irohaConfig.creator, irohaConfig)
 
     override fun getTokens(): Result<Map<String, EthTokenInfo>, Exception> {
         return getAccountDetails(
@@ -93,17 +92,6 @@ class EthTokensProviderImpl(
                 it == name
             }.keys.first()
         }
-    }
-
-    /**
-     * Adds all given ERC20 tokens in Iroha
-     * @param tokens - map of tokens (address->token info)
-     * @return Result of operation
-     */
-    override fun addTokens(tokens: Map<String, EthTokenInfo>): Result<Unit, Exception> {
-        logger.info { "ERC20 tokens to register $tokens" }
-        return ModelUtil.registerERC20Tokens(tokens, tokenStorageAccount, irohaConsumer)
-            .map { Unit }
     }
 
     /**
