@@ -5,6 +5,7 @@ import com.github.kittinunf.result.flatMap
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import jp.co.soramitsu.iroha.Keypair
+import model.IrohaCredential
 import mu.KLogging
 import provider.eth.EthTokenInfo
 import provider.eth.EthTokensProviderImpl
@@ -15,7 +16,7 @@ import java.io.InputStreamReader
 
 //ERC20 tokens registration class
 class ERC20TokenRegistration(
-    irohaKeypair: Keypair,
+    credential: IrohaCredential,
     private val tokenRegistrationConfig: ERC20TokenRegistrationConfig
 ) {
 
@@ -24,9 +25,9 @@ class ERC20TokenRegistration(
 
     private val ethTokensProvider = EthTokensProviderImpl(
         tokenRegistrationConfig.iroha,
-        irohaKeypair,
+        credential,
         tokenRegistrationConfig.tokenStorageAccount,
-        tokenRegistrationConfig.tokenSetterAccount
+        tokenRegistrationConfig.tokenCreatorAccount.accountId
     )
 
     //Initiates process of ERC20 tokens registration

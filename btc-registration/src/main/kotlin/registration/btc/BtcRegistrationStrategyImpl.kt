@@ -14,12 +14,11 @@ class BtcRegistrationStrategyImpl(
     private val btcAddressesProvider: BtcAddressesProvider,
     private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
     irohaConsumer: IrohaConsumer,
-    notaryIrohaAccount: String,
-    registrationAccount: String
+    notaryIrohaAccount: String
 ) : RegistrationStrategy {
 
     private val irohaAccountCreator =
-        IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, registrationAccount, "bitcoin")
+        IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, "bitcoin")
     
     /**
      * Registers new Iroha client and associates BTC address to it

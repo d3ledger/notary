@@ -13,6 +13,7 @@ import io.grpc.ManagedChannelBuilder
 import iroha.protocol.QueryServiceGrpc
 import jp.co.soramitsu.iroha.*
 import kotlinx.coroutines.experimental.runBlocking
+import model.IrohaCredential
 import mu.KLogging
 import notary.eth.EthNotaryConfig
 import notary.eth.executeNotary
@@ -43,7 +44,7 @@ import java.math.BigInteger
 
 /**
  * Utility class that makes testing more comfortable.
- * Class lazily creates new master contract in Etherem and master account in Iroha.
+ * Class lazily creates new master contract in Ethereum and master account in Iroha.
  */
 class IntegrationHelperUtil {
 
@@ -56,11 +57,15 @@ class IntegrationHelperUtil {
 
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
-    /** Iroha keypair */
-    val irohaKeyPair =
-        ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
+    val testCredential = IrohaCredential(
+        testConfig.testCredentialConfig.accountId,
+        ModelUtil.loadKeypair(
+            testConfig.testCredentialConfig.pubkeyPath,
+            testConfig.testCredentialConfig.privkeyPath
+        ).get()
+    )
 
-    val accountHelper by lazy { AccountHelper(irohaKeyPair) }
+    val accountHelper by lazy { AccountHelper() }
 
     val configHelper by lazy { ConfigHelper(accountHelper) }
 
@@ -73,7 +78,14 @@ class IntegrationHelperUtil {
 
     private val irohaConsumer by lazy {
         IrohaConsumerImpl(
-            configHelper.testConfig.iroha.creator,
+            testCredential,
+            configHelper.testConfig.iroha
+        )
+    }
+
+    private val registrationConsumer by lazy {
+        IrohaConsumerImpl(
+            accountHelper.registrationAccount,
             configHelper.testConfig.iroha
         )
     }
@@ -87,7 +99,7 @@ class IntegrationHelperUtil {
 
     private val whiteListIrohaConsumer by lazy {
         IrohaConsumerImpl(
-            configHelper.testConfig.whitelistSetter,
+            IrohaCredential(configHelper.testConfig.whitelistSetter, testCredential.keyPair),
             configHelper.testConfig.iroha
         )
     }
@@ -127,9 +139,9 @@ class IntegrationHelperUtil {
     val ethTokensProvider by lazy {
         EthTokensProviderImpl(
             configHelper.testConfig.iroha,
-            irohaKeyPair,
-            accountHelper.tokenStorageAccount,
-            accountHelper.tokenSetterAccount
+            testCredential,
+            accountHelper.tokenStorageAccount.accountId,
+            accountHelper.tokenSetterAccount.accountId
         )
     }
 
@@ -137,9 +149,9 @@ class IntegrationHelperUtil {
     private val ethFreeRelayProvider by lazy {
         EthFreeRelayProvider(
             configHelper.testConfig.iroha,
-            irohaKeyPair,
-            accountHelper.notaryAccount,
-            accountHelper.registrationAccount
+            accountHelper.registrationAccount,
+            accountHelper.notaryAccount.accountId,
+            accountHelper.registrationAccount.accountId
         )
     }
 
@@ -147,18 +159,17 @@ class IntegrationHelperUtil {
     private val ethRelayProvider by lazy {
         EthRelayProviderIrohaImpl(
             configHelper.testConfig.iroha,
-            irohaKeyPair,
-            accountHelper.notaryAccount,
-            accountHelper.registrationAccount
+            accountHelper.registrationAccount,
+            accountHelper.notaryAccount.accountId,
+            accountHelper.registrationAccount.accountId
         )
     }
 
     private val ethRegistrationStrategy by lazy {
         EthRegistrationStrategyImpl(
             ethFreeRelayProvider,
-            irohaConsumer,
-            accountHelper.notaryAccount,
-            accountHelper.registrationAccount
+            registrationConsumer,
+            accountHelper.notaryAccount.accountId
         )
     }
 
@@ -166,28 +177,30 @@ class IntegrationHelperUtil {
         val btcAddressesProvider =
             BtcAddressesProvider(
                 testConfig.iroha,
-                irohaKeyPair,
-                accountHelper.mstRegistrationAccount,
-                accountHelper.notaryAccount
+                testCredential,
+                accountHelper.mstRegistrationAccount.accountId,
+                accountHelper.notaryAccount.accountId
             )
         val btcTakenAddressesProvider =
             BtcRegisteredAddressesProvider(
                 testConfig.iroha,
-                irohaKeyPair,
-                accountHelper.registrationAccount,
-                accountHelper.notaryAccount
+                testCredential,
+                accountHelper.registrationAccount.accountId,
+                accountHelper.notaryAccount.accountId
             )
         BtcRegistrationStrategyImpl(
             btcAddressesProvider,
             btcTakenAddressesProvider,
             irohaConsumer,
-            accountHelper.notaryAccount,
-            accountHelper.registrationAccount
+            accountHelper.notaryAccount.accountId
         )
     }
 
     private val relayRegistration by lazy {
-        RelayRegistration(configHelper.createRelayRegistrationConfig(), configHelper.ethPasswordConfig)
+        RelayRegistration(
+            configHelper.createRelayRegistrationConfig(),
+            accountHelper.registrationAccount, configHelper.ethPasswordConfig
+        )
     }
 
     /**
@@ -201,7 +214,7 @@ class IntegrationHelperUtil {
         wallet.saveToFile(walletFile)
         return ModelUtil.setAccountDetail(
             mstRegistrationIrohaConsumer,
-            accountHelper.notaryAccount,
+            accountHelper.notaryAccount.accountId,
             address.toBase58(),
             "free"
         ).map { address }
@@ -270,7 +283,7 @@ class IntegrationHelperUtil {
         ModelUtil.createAsset(irohaConsumer, tokenName, "ethereum", precision)
         ModelUtil.setAccountDetail(
             tokenProviderIrohaConsumer,
-            accountHelper.tokenStorageAccount,
+            accountHelper.tokenStorageAccount.accountId,
             tokenAddress,
             tokenName
         ).success {
@@ -377,18 +390,11 @@ class IntegrationHelperUtil {
      * Waits for exactly one iroha block
      */
     fun waitOneIrohaBlock() {
-        val creator = testConfig.iroha.creator
-        val keypair =
-            ModelUtil.loadKeypair(
-                testConfig.iroha.pubkeyPath,
-                testConfig.iroha.privkeyPath
-            ).get()
-
 
         val listener = IrohaChainListener(
             testConfig.iroha.hostname,
             testConfig.iroha.port,
-            creator, keypair
+            testCredential
         )
 
         runBlocking {
@@ -418,8 +424,7 @@ class IntegrationHelperUtil {
 
     fun getAccountDetails(accountDetailHolder: String, accountDetailSetter: String): Map<String, String> {
         return sidechain.iroha.util.getAccountDetails(
-            configHelper.testConfig.iroha,
-            irohaKeyPair,
+            testCredential,
             irohaNetwork,
             accountDetailHolder,
             accountDetailSetter
@@ -453,8 +458,7 @@ class IntegrationHelperUtil {
      */
     fun getIrohaAccountBalance(accountId: String, assetId: String): String {
         return getAccountAsset(
-            testConfig.iroha,
-            irohaKeyPair,
+            testCredential,
             irohaNetwork,
             accountId,
             assetId
@@ -490,19 +494,21 @@ class IntegrationHelperUtil {
     /**
      * Create account for client
      */
-    fun createClientAccount(): String {
+    fun createClientAccount(): IrohaCredential {
         val name = "client_${String.getRandomString(9)}"
         val domain = "notary"
-        val creator = accountHelper.registrationAccount
+        val creator = accountHelper.registrationAccount.accountId
+        // TODO: change to other key
+        val keyPair = accountHelper.registrationAccount.keyPair
         irohaConsumer.sendAndCheck(
             ModelTransactionBuilder()
                 .creatorAccountId(creator)
                 .createdTime(ModelUtil.getCurrentTime())
-                .createAccount(name, domain, irohaKeyPair.publicKey())
+                .createAccount(name, domain, keyPair.publicKey())
                 .build()
         ).fold({
             logger.info("client account $name@$domain was created")
-            return "$name@notary"
+            return IrohaCredential("$name@notary", keyPair)
         }, { ex -> throw Exception("cannot create client", ex) })
 
     }
@@ -529,7 +535,7 @@ class IntegrationHelperUtil {
     fun addNotary(name: String, address: String) {
         ModelUtil.setAccountDetail(
             notaryListIrohaConsumer,
-            accountHelper.notaryListStorageAccount,
+            accountHelper.notaryListStorageAccount.accountId,
             name,
             address
         )

@@ -31,12 +31,12 @@ class BtcPreGenIntegrationTest {
 
     private val triggerProvider = TriggerProvider(
         btcPkPreGenConfig.iroha,
+        integrationHelper.testCredential,
         btcPkPreGenConfig.pubKeyTriggerAccount
     )
     private val btcKeyGenSessionProvider = BtcSessionProvider(
         btcPkPreGenConfig.iroha,
-        btcPkPreGenConfig.registrationAccount,
-        integrationHelper.irohaKeyPair
+        integrationHelper.accountHelper.registrationAccount
     )
 
     /**
@@ -61,7 +61,7 @@ class BtcPreGenIntegrationTest {
         val sessionDetails =
             integrationHelper.getAccountDetails(
                 "$sessionAccountName@btcSession",
-                btcPkPreGenConfig.registrationAccount
+                btcPkPreGenConfig.registrationAccount.accountId
             )
         val pubKey = sessionDetails.values.iterator().next()
         assertNotNull(pubKey)
@@ -70,7 +70,7 @@ class BtcPreGenIntegrationTest {
         val notaryAccountDetails =
             integrationHelper.getAccountDetails(
                 btcPkPreGenConfig.notaryAccount,
-                btcPkPreGenConfig.mstRegistrationAccount
+                btcPkPreGenConfig.mstRegistrationAccount.accountId
             )
         val expectedMsAddress = createMstAddress(sessionDetails.values)
         assertEquals("free", notaryAccountDetails.get(expectedMsAddress))

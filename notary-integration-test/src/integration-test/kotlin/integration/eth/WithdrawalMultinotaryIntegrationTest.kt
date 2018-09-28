@@ -54,7 +54,7 @@ class WithdrawalMultinotaryIntegrationTest {
         // create 2nd notary config
         val ethereumConfig2 = integrationHelper.configHelper.createEthereumConfig("../deploy/ethereum/keys/ganache2.key")
         val irohaConfig2 =
-            integrationHelper.configHelper.createIrohaConfig(pubkeyPath = pubkeyPath, privkeyPath = privkeyPath)
+            integrationHelper.configHelper.createIrohaConfig()
         notaryConfig2 = integrationHelper.configHelper.createEthNotaryConfig(irohaConfig2, ethereumConfig2)
 
         keypair2 = DeployHelper(ethereumConfig2, ethereumPasswords).credentials.ecKeyPair
@@ -82,15 +82,15 @@ class WithdrawalMultinotaryIntegrationTest {
 
         // create
         val client = integrationHelper.createClientAccount()
-        integrationHelper.addIrohaAssetTo(client, assetId, decimalAmount)
-        integrationHelper.setWhitelist(client, listOf("0x123", ethWallet))
+        integrationHelper.addIrohaAssetTo(client.accountId, assetId, decimalAmount)
+        integrationHelper.setWhitelist(client.accountId, listOf("0x123", ethWallet))
 
         // transfer assets from user to notary master account
         val hash = integrationHelper.transferAssetIrohaFromClient(
-            client,
-            integrationHelper.irohaKeyPair,
-            client,
-            masterAccount,
+            client.accountId,
+            client.keyPair,
+            client.accountId,
+            masterAccount.accountId,
             assetId,
             ethWallet,
             amount

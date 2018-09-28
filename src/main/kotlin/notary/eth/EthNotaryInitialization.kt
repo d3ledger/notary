@@ -6,6 +6,7 @@ import com.github.kittinunf.result.map
 import config.EthereumPasswords
 import io.reactivex.Observable
 import jp.co.soramitsu.iroha.Keypair
+import model.IrohaCredential
 import mu.KLogging
 import notary.Notary
 import notary.NotaryImpl
@@ -34,7 +35,7 @@ import java.math.BigInteger
  * @param ethTokensProvider - provides with white list of ethereum ERC20 tokens
  */
 class EthNotaryInitialization(
-    private val irohaKeyPair: Keypair,
+    private val notaryCredential: IrohaCredential,
     private val ethNotaryConfig: EthNotaryConfig,
     private val passwordsConfig: EthereumPasswords,
     private val ethRelayProvider: EthRelayProvider,
@@ -89,7 +90,7 @@ class EthNotaryInitialization(
 
         val peerListProvider = NotaryPeerListProviderImpl(
             ethNotaryConfig.iroha,
-            irohaKeyPair,
+            notaryCredential,
             ethNotaryConfig.notaryListStorageAccount,
             ethNotaryConfig.notaryListSetterAccount
         )
@@ -105,11 +106,10 @@ class EthNotaryInitialization(
         RefundServerEndpoint(
             ServerInitializationBundle(ethNotaryConfig.refund.port, ethNotaryConfig.refund.endpointEthereum),
             EthRefundStrategyImpl(
-                ethNotaryConfig.iroha,
+                notaryCredential,
                 irohaNetwork,
                 ethNotaryConfig.ethereum,
                 passwordsConfig,
-                irohaKeyPair,
                 ethNotaryConfig.whitelistSetter,
                 ethTokensProvider
             )

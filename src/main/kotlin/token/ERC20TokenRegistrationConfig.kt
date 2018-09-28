@@ -1,6 +1,7 @@
 package token
 
 import config.IrohaConfig
+import config.IrohaCredentialConfig
 
 interface ERC20TokenRegistrationConfig {
     //Iroha config
@@ -10,5 +11,5 @@ interface ERC20TokenRegistrationConfig {
     //Account that stores tokens
     val tokenStorageAccount: String
     //Account that sets tokens in tokenStorageAccount
-    val tokenSetterAccount: String
+    val tokenCreatorAccount: IrohaCredentialConfig
 }

@@ -20,7 +20,13 @@ private val logger = KLogging().logger
 interface IrohaConfig {
     val hostname: String
     val port: Int
-    val creator: String
+}
+
+/**
+ * Configuration for Iroha credential
+ */
+interface IrohaCredentialConfig {
+    val accountId: String
     val pubkeyPath: String
     val privkeyPath: String
 }

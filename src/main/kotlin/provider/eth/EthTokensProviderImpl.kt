@@ -4,6 +4,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import config.IrohaConfig
 import jp.co.soramitsu.iroha.Keypair
+import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
@@ -21,7 +22,7 @@ import sidechain.iroha.util.getAssetPrecision
  */
 class EthTokensProviderImpl(
     private val irohaConfig: IrohaConfig,
-    private val keypair: Keypair,
+    private val credential: IrohaCredential,
     private val tokenStorageAccount: String,
     private val tokenSetterAccount: String
 ) : EthTokensProvider {
@@ -31,12 +32,11 @@ class EthTokensProviderImpl(
     }
 
     private val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
-    private val irohaConsumer = IrohaConsumerImpl(irohaConfig.creator, irohaConfig)
+    private val irohaConsumer = IrohaConsumerImpl(credential, irohaConfig)
 
     override fun getTokens(): Result<Map<String, EthTokenInfo>, Exception> {
         return getAccountDetails(
-            irohaConfig,
-            keypair,
+            credential,
             irohaNetwork,
             tokenStorageAccount,
             tokenSetterAccount
@@ -44,8 +44,7 @@ class EthTokensProviderImpl(
             .map {
                 it.mapValues { (_, name) ->
                     getAssetPrecision(
-                        irohaConfig,
-                        keypair,
+                        credential,
                         irohaNetwork,
                         "$name#ethereum"
                     ).fold(
