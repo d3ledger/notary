@@ -1,20 +1,7 @@
 pragma solidity 0.4.25;
 
-/**
- * Subset of ERC-20 token interface
- */
-contract ICoin {
-    function transfer(address to, uint256 value) public returns (bool);
-    function balanceOf(address who) public view returns (uint256);
-}
-
-/**
- * Subset of master contract interface
- */
-contract IMaster {
-    function withdraw(address token_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s, address _from) public;
-    function checkTokenAddress(address token) public view returns (bool);
-}
+import "./IMaster.sol";
+import "./ICoin.sol";
 
 /**
  * Provides functionality of relay contract
@@ -74,7 +61,18 @@ contract Relay {
      * @param s array of signatures of tx_hash (s-component)
      * @param _from relay contract address
      */
-    function withdraw(address token_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s, address _from) public {
+    function withdraw(
+        address token_address,
+        uint256 amount,
+        address to,
+        bytes32 tx_hash,
+        uint8[]v,
+        bytes32[]r,
+        bytes32[]s,
+        address _from
+    )
+    public
+    {
         emit address_event(master_address_);
         // trusted call
         master_instance_.withdraw(token_address, amount, to, tx_hash, v, r, s, _from);
