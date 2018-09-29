@@ -465,7 +465,7 @@ class IntegrationHelperUtil {
      * Sends btc to a given address
      */
     fun sendBtc(address: String, amount: Int): Boolean {
-        return runCommand("bitcoin-cli -regtest sendtoaddress $address $amount")
+        return runCommand("bitcoin-cli -rpcconnect=d3-btc-node0 -conf `pwd`/deploy/bitcoin/bitcoin.conf -regtest sendtoaddress $address $amount")
                 && generateBtcBlocks(6)
     }
 
@@ -473,7 +473,7 @@ class IntegrationHelperUtil {
      * Creates 100 more blocks in bitcoin blockchain. May be used as transaction confirmation mechanism.
      */
     fun generateBtcBlocks(blocks: Int = 100): Boolean {
-        return runCommand("bitcoin-cli -regtest generate $blocks")
+        return runCommand("bitcoin-cli -rpcconnect=d3-btc-node0 -conf `pwd`/deploy/bitcoin/bitcoin.conf -regtest generate $blocks")
     }
 
     /**
