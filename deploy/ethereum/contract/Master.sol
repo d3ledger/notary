@@ -142,6 +142,7 @@ contract Master {
     )
     public
     {
+        require(isLockAddPeer);
         require(checkTokenAddress(tokenAddress));
         require(relayRegistryInstance.isWhiteListed(from, to));
         // TODO luckychess 26.06.2018 D3-101 improve require checks (copy-paste) (use modifiers)
