@@ -65,22 +65,26 @@ class EthChainHandler(
                 .map {
                     // all non-existent keys were filtered out in parseBlock
                     val tokenName = tokens[tx.to]!!
-                    val precision = ethTokensProvider.getTokenPrecision(tokenName).get().toInt()
+                    ethTokensProvider.getTokenPrecision(tokenName)
+                        .fold(
+                            { precision ->
+                                // second and third topics are addresses from and to
+                                val from = "0x" + it.topics[1].drop(26).toLowerCase()
+                                val to = "0x" + it.topics[2].drop(26).toLowerCase()
+                                // amount of transfer is stored in data
+                                val amount = BigInteger(it.data.drop(2), 16)
 
-                    // second and third topics are addresses from and to
-                    val from = "0x" + it.topics[1].drop(26).toLowerCase()
-                    val to = "0x" + it.topics[2].drop(26).toLowerCase()
-                    // amount of transfer is stored in data
-                    val amount = BigInteger(it.data.drop(2), 16)
-
-                    SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
-                        tx.hash,
-                        time,
-                        wallets[to]!!,
-                        tokenName,
-                        BigDecimal(amount, precision).toPlainString(),
-                        from
-                    )
+                                SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
+                                    tx.hash,
+                                    time,
+                                    wallets[to]!!,
+                                    tokenName,
+                                    BigDecimal(amount, precision.toInt()).toPlainString(),
+                                    from
+                                )
+                            },
+                            { throw it }
+                        )
                 }
         } else {
             return listOf()
