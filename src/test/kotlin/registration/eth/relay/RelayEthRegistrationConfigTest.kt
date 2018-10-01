@@ -18,7 +18,7 @@ class RelayEthRegistrationConfigTest {
 
         assertEquals(10, relayRegistrationConfig.number)
         assertEquals("notary_red@notary", relayRegistrationConfig.notaryIrohaAccount)
-        assertEquals("0x57dd50c6b4ec7a33ee3bb5056bf38856e181684c", relayRegistrationConfig.ethMasterWallet)
+        assertEquals("0xde2173601b9c44f3ee4af212186902e5986bde5a", relayRegistrationConfig.ethMasterWallet)
 
         assertEquals("d3-iroha", relayRegistrationConfig.iroha.hostname)
         assertEquals(50051, relayRegistrationConfig.iroha.port)
@@ -26,7 +26,7 @@ class RelayEthRegistrationConfigTest {
 
         assertEquals("http://d3-eth-node0:8545", relayRegistrationConfig.ethereum.url)
         assertEquals("deploy/ethereum/keys/ropsten.key", relayRegistrationConfig.ethereum.credentialsPath)
-        assertEquals(1, relayRegistrationConfig.ethereum.gasPrice)
+        assertEquals(1000000000, relayRegistrationConfig.ethereum.gasPrice)
         assertEquals(1999999, relayRegistrationConfig.ethereum.gasLimit)
     }
 }

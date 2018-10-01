@@ -9,9 +9,12 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import provider.eth.ETH_PRECISION
+import provider.eth.EthRelayProviderIrohaImpl
 import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
+import sidechain.iroha.consumer.IrohaNetworkImpl
+import util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -37,6 +40,11 @@ class WithdrawalIntegrationTest {
         integrationHelper.configHelper.ethPasswordConfig
     ).credentials.ecKeyPair
 
+    val irohaNetwork = IrohaNetworkImpl(
+        notaryConfig.iroha.hostname,
+        notaryConfig.iroha.port
+    )
+
     /**
      * Test US-003 Withdrawal of ETH token
      * Note: Iroha must be deployed to pass the test.
@@ -50,18 +58,27 @@ class WithdrawalIntegrationTest {
         val amount = "64203"
         val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(ETH_PRECISION.toInt()).toPlainString()
         val assetId = "ether#ethereum"
-        val ethWallet = "eth_wallet"
+        val ethWallet = "0x1334"
 
         // create
-        val client = integrationHelper.createClientAccount()
-        integrationHelper.addIrohaAssetTo(client.accountId, assetId, decimalAmount)
-        integrationHelper.setWhitelist(client.accountId, listOf("0x123", ethWallet))
+        val client = String.getRandomString(9)
+        val clientId = "$client@notary"
+        integrationHelper.registerClient(client, listOf(ethWallet), integrationHelper.testCredential.keyPair)
+        integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
+        val relay = EthRelayProviderIrohaImpl(
+            irohaNetwork,
+            integrationHelper.testCredential,
+            masterAccount,
+            integrationHelper.accountHelper.registrationAccount.accountId
+        ).getRelays().get().filter {
+            it.value == clientId
+        }.keys.first()
 
         // transfer assets from user to notary master account
         val hash = integrationHelper.transferAssetIrohaFromClient(
-            client.accountId,
-            client.keyPair,
-            client.accountId,
+            clientId,
+            integrationHelper.testCredential.keyPair,
+            clientId,
             masterAccount,
             assetId,
             ethWallet,
@@ -94,7 +111,8 @@ class WithdrawalIntegrationTest {
                     "0x0000000000000000000000000000000000000000",
                     decimalAmount,
                     ethWallet,
-                    hash
+                    hash,
+                    relay
                 )
             ), response.ethSignature
         )

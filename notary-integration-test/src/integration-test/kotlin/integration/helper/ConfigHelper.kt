@@ -15,7 +15,8 @@ import withdrawalservice.WithdrawalServiceConfig
 import java.util.concurrent.atomic.AtomicInteger
 
 //Class that handles all the configuration objects.
-class ConfigHelper(private val accountHelper: AccountHelper) {
+class ConfigHelper(private val accountHelper: AccountHelper,
+                   val relayRegistryContractAddress: String) {
 
     /** Configurations for tests */
     val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
@@ -37,7 +38,7 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
     val btcNotaryConfig = loadConfigs("btc-notary", BtcNotaryConfig::class.java, "/btc/notary.properties")
 
     val relayRegistrationConfig =
-        loadConfigs("test", RelayRegistrationConfig::class.java, "/test.properties")
+        loadConfigs("relay-registration", RelayRegistrationConfig::class.java, "/eth/relay_registration.properties")
 
     val btcRegistrationConfig =
         loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/btc/registration.properties")
@@ -196,6 +197,8 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
     /** Test configuration of Registration with runtime dependencies */
     fun createEthRegistrationConfig(): EthRegistrationConfig {
         return object : EthRegistrationConfig {
+            override val ethRelayRegistryAddress = relayRegistryContractAddress
+            override val ethereum = ethRegistrationConfig.ethereum
             override val port = portCounter.incrementAndGet()
             override val relayRegistrationIrohaAccount = accountHelper.registrationAccount.accountId
             override val notaryIrohaAccount = accountHelper.notaryAccount.accountId

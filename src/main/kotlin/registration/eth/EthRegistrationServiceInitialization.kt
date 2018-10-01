@@ -3,6 +3,7 @@ package registration.eth
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import model.IrohaCredential
+import config.EthereumPasswords
 import mu.KLogging
 import provider.eth.EthFreeRelayProvider
 import registration.RegistrationServiceEndpoint
@@ -14,7 +15,10 @@ import sidechain.iroha.util.ModelUtil
  *
  * @param ethRegistrationConfig - configurations of registration service
  */
-class EthRegistrationServiceInitialization(private val ethRegistrationConfig: EthRegistrationConfig) {
+class EthRegistrationServiceInitialization(
+    private val ethRegistrationConfig: EthRegistrationConfig,
+    private val passwordConfig: EthereumPasswords
+) {
 
     /**
      * Init Registration Service
@@ -42,8 +46,10 @@ class EthRegistrationServiceInitialization(private val ethRegistrationConfig: Et
             .map { (ethFreeRelayProvider, irohaConsumer) ->
                 EthRegistrationStrategyImpl(
                     ethFreeRelayProvider,
-                    irohaConsumer,
-                    ethRegistrationConfig.notaryIrohaAccount
+                    ethRegistrationConfig,
+                        passwordConfig,
+                        irohaConsumer,
+                        ethRegistrationConfig.notaryIrohaAccount
                 )
             }.map { registrationStrategy ->
                 RegistrationServiceEndpoint(

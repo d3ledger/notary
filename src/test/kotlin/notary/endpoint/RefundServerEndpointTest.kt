@@ -9,7 +9,6 @@ import notary.endpoint.eth.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import sidechain.eth.util.DeployHelper
 import java.math.BigInteger
 
 /**
@@ -32,7 +31,7 @@ class RefundServerEndpointTest {
     /** Successful response */
     private val successResponse = EthNotaryResponse.Successful(
         "signature",
-        EthRefund("address", "coin", "10", "irohaTxHash")
+        EthRefund("address", "coin", "10", "irohaTxHash", "")
     )
 
     /** Strategy mock that always returns success */
