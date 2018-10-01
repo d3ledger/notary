@@ -4,8 +4,7 @@ pragma solidity 0.4.25;
  * @title ERC20 interface
  * @dev see https://github.com/ethereum/EIPs/issues/20
  */
-// TODO: rename to IERC20
-interface ICoin {
+interface IERC20 {
     function totalSupply() external view returns (uint256);
 
     function balanceOf(address who) external view returns (uint256);

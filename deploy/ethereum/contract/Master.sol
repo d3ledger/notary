@@ -1,7 +1,7 @@
 pragma solidity 0.4.25;
 
 import "./IRelayRegistry.sol";
-import "./ICoin.sol";
+import "./IERC20.sol";
 
 /**
  * Provides functionality of master contract
@@ -181,7 +181,7 @@ contract Master {
             // untrusted transfer, relies on provided cryptographic proof
             to.transfer(amount);
         } else {
-            ICoin coin = ICoin(tokenAddress);
+            IERC20 coin = IERC20(tokenAddress);
             // untrusted call, relies on token whitelist check
             require(coin.balanceOf(this) >= amount);
             // untrusted call, relies on provided cryptographic proof
