@@ -69,6 +69,7 @@ class ContractsTest {
     private fun sendAddPeer(address: String) {
         ++addPeerCalls
         val addPeer = master.addPeer(address).send()
+        master.disableAddingNewPeers().send()
         // addPeer call produces 2 events
         // first event is amount of peers after new peer was added
         // second one is address of added peer
