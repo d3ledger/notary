@@ -18,6 +18,9 @@ contract Master {
 
     address[] private tokens;
 
+    // TODO: For development purpose only, https://soramitsu.atlassian.net/browse/D3-418
+    bool public isLockAddPeer = false;
+
     event AddressEvent(address input);
     event StringEvent(string input);
     event BytesEvent(bytes32 input);
@@ -30,6 +33,21 @@ contract Master {
         owner = msg.sender;
         relayRegistryAddress = relayRegistry;
         relayRegistryInstance = IRelayRegistry(relayRegistryAddress);
+    }
+
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(isOwner());
+        _;
+    }
+
+    /**
+     * @return true if `msg.sender` is the owner of the contract.
+     */
+    function isOwner() public view returns(bool) {
+        return msg.sender == _owner;
     }
 
     /**
@@ -52,8 +70,9 @@ contract Master {
      * Adds new peer to list of signature verifiers. Can be called only by contract owner.
      * @param new_address address of new peer
      */
-    function addPeer(address newAddress) public {
-        require(msg.sender == owner);
+    function addPeer(address newAddress) public onlyOwner {
+        // TODO: For development purpose only, https://soramitsu.atlassian.net/browse/D3-418
+        require(!isLockAddPeer);
         require(peers[newAddress] == false);
         peers[newAddress] = true;
         ++peersCount;
@@ -62,11 +81,17 @@ contract Master {
     }
 
     /**
+     * Disable adding the new peers
+     */
+    function disableAddingPeers() public onlyOwner {
+        isLockAddPeer == true;
+    }
+
+    /**
      * Adds new token to whitelist. Token should not been already added.
      * @param new_token token to add
      */
-    function addToken(address newToken) public {
-        require(msg.sender == owner);
+    function addToken(address newToken) public onlyOwner {
         uint i;
         for (i = 0; i < tokens.length; ++i) {
             require(tokens[i] != newToken);
