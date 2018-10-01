@@ -28,7 +28,7 @@ class WithdrawalPipelineIntegrationTest {
     private val refundAddress = "http://localhost:${notaryConfig.refund.port}"
 
     /** Test Registration configuration */
-    private val registrationConfig = integrationHelper.configHelper.ethRegistrationConfig
+    private val registrationConfig = integrationHelper.configHelper.createEthRegistrationConfig()
 
     /** Test Withdrawal configuration */
     private val withdrawalServiceConfig = integrationHelper.configHelper.createWithdrawalConfig()

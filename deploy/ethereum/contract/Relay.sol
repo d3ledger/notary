@@ -1,40 +1,27 @@
 pragma solidity 0.4.25;
 
-/**
- * Subset of ERC-20 token interface
- */
-contract ICoin {
-    function transfer(address to, uint256 value) public returns (bool);
-    function balanceOf(address who) public view returns (uint256);
-}
-
-/**
- * Subset of master contract interface
- */
-contract IMaster {
-    function withdraw(address token_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s, address _from) public;
-    function checkTokenAddress(address token) public view returns (bool);
-}
+import "./IMaster.sol";
+import "./ICoin.sol";
 
 /**
  * Provides functionality of relay contract
  */
 contract Relay {
-    address private master_address_;
-    IMaster private master_instance_;
+    address private masterAddress;
+    IMaster private masterInstance;
 
-    event address_event(address input);
-    event string_event(string input);
-    event bytes_event(bytes32 input);
-    event number_event(uint256 input);
+    event AddressEvent(address input);
+    event StringEvent(string input);
+    event BytesEvent(bytes32 input);
+    event NumberEvent(uint256 input);
 
     /**
      * Relay constructor
      * @param master address of master contract
      */
     constructor(address master) public {
-        master_address_ = master;
-        master_instance_ = IMaster(master_address_);
+        masterAddress = master;
+        masterInstance = IMaster(masterAddress);
     }
 
     /**
@@ -42,7 +29,7 @@ contract Relay {
      */
     function() external payable {
         require(msg.data.length == 0);
-        emit address_event(msg.sender);
+        emit AddressEvent(msg.sender);
     }
 
     /**
@@ -51,15 +38,15 @@ contract Relay {
      */
     function sendToMaster(address token_address) public {
         // trusted call
-        require(master_instance_.checkTokenAddress(token_address));
+        require(masterInstance.checkTokenAddress(token_address));
         if (token_address == 0) {
             // trusted transfer
-            master_address_.transfer(address(this).balance);
+            masterAddress.transfer(address(this).balance);
         } else {
             ICoin ic = ICoin(token_address);
             // untrusted call in general but coin addresses are received from trusted master contract
             // which contains and manages whitelist of them
-            ic.transfer(master_address_, ic.balanceOf(address(this)));
+            ic.transfer(masterAddress, ic.balanceOf(address(this)));
         }
     }
 
@@ -72,11 +59,22 @@ contract Relay {
      * @param v array of signatures of tx_hash (v-component)
      * @param r array of signatures of tx_hash (r-component)
      * @param s array of signatures of tx_hash (s-component)
-     * @param _from relay contract address
+     * @param from relay contract address
      */
-    function withdraw(address token_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s, address _from) public {
-        emit address_event(master_address_);
+    function withdraw(
+        address token_address,
+        uint256 amount,
+        address to,
+        bytes32 tx_hash,
+        uint8[] v,
+        bytes32[] r,
+        bytes32[] s,
+        address from
+    )
+    public
+    {
+        emit AddressEvent(masterAddress);
         // trusted call
-        master_instance_.withdraw(token_address, amount, to, tx_hash, v, r, s, _from);
+        masterInstance.withdraw(token_address, amount, to, tx_hash, v, r, s, from);
     }
 }

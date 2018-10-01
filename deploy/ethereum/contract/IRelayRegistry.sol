@@ -32,9 +32,4 @@ interface IRelayRegistry {
         address indexed relayAddress,
         address[] indexed whiteList
     );
-
-    event newWhiteListed (
-        address indexed white
-    );
-
 }
