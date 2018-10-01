@@ -1,6 +1,7 @@
 package withdrawalservice
 
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.map
 import com.squareup.moshi.Moshi
 import io.reactivex.Observable
@@ -16,8 +17,6 @@ import provider.eth.EthTokensProvider
 import provider.eth.EthTokensProviderImpl
 import sidechain.SideChainEvent
 import sidechain.eth.util.extractVRS
-import sidechain.eth.util.findInTokens
-import sidechain.eth.util.getPrecision
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
 import java.math.BigDecimal
@@ -91,17 +90,16 @@ class WithdrawalServiceImpl(
      */
     private fun requestNotary(event: SideChainEvent.IrohaEvent.SideChainTransfer): Result<RollbackApproval, Exception> {
         // description field holds target account address
-        return findInAccDetail(masterAccount, event.srcAccount)
-            .map { relayAddress ->
+        val asset = event.asset.replace("#ethereum", "")
+        return tokensProvider.getTokenAddress(asset)
+            .fanout { tokensProvider.getTokenPrecision(asset) }
+            .fanout { findInAccDetail(masterAccount, event.srcAccount) }
+            .map { (tokenInfo, relayAddress) ->
                 val hash = event.hash
                 val amount = event.amount
-                val coins = tokensProvider.getTokens().get().toMutableMap()
                 if (!event.asset.contains("#ethereum")) {
                     throw Exception("Incorrect asset name in Iroha event: " + event.asset)
                 }
-                val asset = event.asset.replace("#ethereum", "")
-                val precision = getPrecision(asset, coins)
-                val coinAddress = findInTokens(asset, coins)
 
                 val address = event.description
                 val vv = ArrayList<BigInteger>()
@@ -150,9 +148,8 @@ class WithdrawalServiceImpl(
                     throw Exception("Not a single valid response was received from any refund server")
                 }
 
+                val (coinAddress, precision) = tokenInfo
                 val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(precision.toInt()).toPlainString()
-
-
                 RollbackApproval(coinAddress, decimalAmount, address, hash, rr, ss, vv, relayAddress)
             }
     }

@@ -1,6 +1,7 @@
 package notary.endpoint.eth
 
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.EthereumConfig
@@ -12,7 +13,9 @@ import notary.eth.EthNotaryConfig
 import org.web3j.crypto.ECKeyPair
 import provider.eth.EthRelayProviderIrohaImpl
 import provider.eth.EthTokensProvider
-import sidechain.eth.util.*
+import sidechain.eth.util.DeployHelper
+import sidechain.eth.util.hashToWithdraw
+import sidechain.eth.util.signUserData
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountDetails
@@ -68,7 +71,7 @@ class EthRefundStrategyImpl(
             val commands = appearedTx.payload.reducedPayload.getCommands(0)
 
             when {
-                // rollback case
+            // rollback case
                 appearedTx.payload.reducedPayload.commandsCount == 1 &&
                         commands.hasSetAccountDetail() -> {
 
@@ -91,7 +94,7 @@ class EthRefundStrategyImpl(
 
                     EthRefund(destEthAddress, "mockCoinType", "10", request.irohaTx, relayAddress)
                 }
-                // withdrawal case
+            // withdrawal case
                 (appearedTx.payload.reducedPayload.commandsCount == 1) &&
                         commands.hasTransferAsset() -> {
                     val destAccount = commands.transferAsset.destAccountId
@@ -101,37 +104,33 @@ class EthRefundStrategyImpl(
 
                     val amount = commands.transferAsset.amount
                     val token = commands.transferAsset.assetId.dropLastWhile { it != '#' }.dropLast(1)
-                    val coins = tokensProvider.getTokens().get().toMutableMap()
-                    val coinAddress = findInTokens(token, coins)
-                    val precision = getPrecision(token, coins)
-
                     val destEthAddress = commands.transferAsset.description
-
                     val srcAccountId = commands.transferAsset.srcAccountId
+
+                    val tokenInfo = tokensProvider.getTokenAddress(token)
+                        .fanout { tokensProvider.getTokenPrecision(token) }
+
                     checkWithdrawalAddress(srcAccountId, destEthAddress)
-                        .fold(
-                            { isWhitelisted ->
-                                if (!isWhitelisted) {
-                                    val errorMsg = "$destEthAddress not in whitelist"
-                                    logger.error { errorMsg }
-                                    throw NotaryException(errorMsg)
-                                }
+                        .flatMap { isWhitelisted ->
+                            if (!isWhitelisted) {
+                                val errorMsg = "$destEthAddress not in whitelist"
+                                logger.error { errorMsg }
+                                throw NotaryException(errorMsg)
+                            }
+                            relayProvider.getRelays()
+                        }.fanout {
+                            tokenInfo
+                        }.fold(
+                            { (relays, tokenInfo) ->
+                                val relayAddress = relays.filter {
+                                    it.value == commands.transferAsset.srcAccountId
+                                }.keys.first()
+                                val decimalAmount =
+                                    BigDecimal(amount).scaleByPowerOfTen(tokenInfo.second.toInt()).toPlainString()
+                                EthRefund(destEthAddress, tokenInfo.first, decimalAmount, request.irohaTx, relayAddress)
                             },
                             { throw it }
                         )
-
-                    relayProvider.getRelays().fold(
-                        {
-                            val relayAddress = it.filter {
-                                it.value == commands.transferAsset.srcAccountId
-                            }.keys.first()
-                            val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(precision.toInt()).toPlainString()
-                            EthRefund(destEthAddress, coinAddress, decimalAmount, request.irohaTx, relayAddress)
-                        },
-                        {
-                            throw it
-                        }
-                    )
                 }
                 else -> {
                     val errorMsg = "Transaction doesn't contain expected commands."

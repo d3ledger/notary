@@ -8,9 +8,9 @@ import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import provider.eth.ETH_PRECISION
 import provider.eth.EthRelayProviderIrohaImpl
 import sidechain.eth.util.DeployHelper
-import sidechain.eth.util.ETH_PRECISION
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
 import sidechain.iroha.consumer.IrohaNetworkImpl
