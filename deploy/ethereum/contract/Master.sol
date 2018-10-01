@@ -36,6 +36,21 @@ contract Master {
     }
 
     /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(isOwner());
+        _;
+    }
+
+    /**
+     * @return true if `msg.sender` is the owner of the contract.
+     */
+    function isOwner() public view returns(bool) {
+        return msg.sender == owner;
+    }
+
+    /**
      * A special function-like stub to allow ether accepting
      */
     function() external payable {
@@ -53,10 +68,11 @@ contract Master {
 
     /**
      * Adds new peer to list of signature verifiers. Can be called only by contract owner.
-     * @param new_address address of new peer
+     * @param newAddress address of new peer
      */
-    function addPeer(address newAddress) public {
-        require(msg.sender == owner);
+    function addPeer(address newAddress) public onlyOwner {
+        // TODO: For development purpose only, https://soramitsu.atlassian.net/browse/D3-418
+        require(!isLockAddPeer);
         require(peers[newAddress] == false);
         peers[newAddress] = true;
         ++peersCount;
@@ -65,11 +81,17 @@ contract Master {
     }
 
     /**
-     * Adds new token to whitelist. Token should not been already added.
-     * @param new_token token to add
+     * Disable adding the new peers
      */
-    function addToken(address newToken) public {
-        require(msg.sender == owner);
+    function disableAddingNewPeers() public onlyOwner {
+        isLockAddPeer = true;
+    }
+
+    /**
+     * Adds new token to whitelist. Token should not been already added.
+     * @param newToken token to add
+     */
+    function addToken(address newToken) public onlyOwner {
         uint i;
         for (i = 0; i < tokens.length; ++i) {
             require(tokens[i] != newToken);
@@ -79,7 +101,7 @@ contract Master {
 
     /**
      * Checks is given token inside a whitelist or not
-     * @param token_address address of token to check
+     * @param tokenAddress address of token to check
      * @return true if token inside whitelist or false otherwise
      */
     function checkTokenAddress(address tokenAddress) public view returns (bool) {
@@ -99,10 +121,10 @@ contract Master {
 
     /**
      * Withdraws specified amount of ether or one of ERC-20 tokens to provided address
-     * @param token_address address of token to withdraw (0 for ether)
+     * @param tokenAddress address of token to withdraw (0 for ether)
      * @param amount amount of tokens or ether to withdraw
      * @param to target account address
-     * @param tx_hash hash of transaction from Iroha
+     * @param txHash hash of transaction from Iroha
      * @param v array of signatures of tx_hash (v-component)
      * @param r array of signatures of tx_hash (r-component)
      * @param s array of signatures of tx_hash (s-component)
