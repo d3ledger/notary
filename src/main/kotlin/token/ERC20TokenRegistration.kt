@@ -2,33 +2,34 @@ package token
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
+import com.github.kittinunf.result.map
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
-import jp.co.soramitsu.iroha.Keypair
 import model.IrohaCredential
 import mu.KLogging
-import provider.eth.EthTokenInfo
 import provider.eth.EthTokensProviderImpl
+import sidechain.iroha.consumer.IrohaConsumerImpl
+import sidechain.iroha.util.ModelUtil
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStreamReader
 
-//ERC20 tokens registration class
+/** Information about token - token [name] and [precision] */
+data class EthTokenInfo(val name: String, val precision: Short)
+
+/**
+ * ERC20 tokens registration class. [IrohaCredential] is used to sign Iroha txs.
+ */
 class ERC20TokenRegistration(
-    credential: IrohaCredential,
-    private val tokenRegistrationConfig: ERC20TokenRegistrationConfig
+    private val tokenRegistrationConfig: ERC20TokenRegistrationConfig,
+    irohaCredential: IrohaCredential
 ) {
 
     //For json serialization/deserialization
     private val moshi = Moshi.Builder().build()
 
-    private val ethTokensProvider = EthTokensProviderImpl(
-        tokenRegistrationConfig.iroha,
-        credential,
-        tokenRegistrationConfig.tokenStorageAccount,
-        tokenRegistrationConfig.tokenCreatorAccount.accountId
-    )
+    private val irohaConsumer = IrohaConsumerImpl(irohaCredential, tokenRegistrationConfig.iroha)
 
     //Initiates process of ERC20 tokens registration
     fun init(): Result<Unit, Exception> {
@@ -38,7 +39,13 @@ class ERC20TokenRegistration(
                 if (tokensToRegister.isEmpty()) {
                     Result.of { logger.warn { "No ERC20 tokens to register" } }
                 } else {
-                    ethTokensProvider.addTokens(tokensToRegister)
+                    EthTokensProviderImpl.logger.info { "ERC20 tokens to register $tokensToRegister" }
+                    ModelUtil.registerERC20Tokens(
+                        tokensToRegister,
+                        tokenRegistrationConfig.tokenStorageAccount,
+                        irohaConsumer
+                    )
+                        .map { Unit }
                 }
             }
     }

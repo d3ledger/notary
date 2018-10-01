@@ -74,7 +74,7 @@ class RelayVacuum(
                     relay.sendToMaster(ethTokenAddress).send()
                     logger.info("${relay.contractAddress} send to master eth $ethTokenAddress")
                     providedTokens.forEach { providedToken ->
-                        logger.info("${relay.contractAddress} send to master ${providedToken.value.name} ${providedToken.key}")
+                        logger.info("${relay.contractAddress} send to master ${providedToken.value} ${providedToken.key}")
                         relay.sendToMaster(providedToken.key).send()
                     }
                 }

@@ -60,14 +60,10 @@ class ConfigHelper(private val accountHelper: AccountHelper,
     //Creates config for ERC20 tokens registration
     fun createERC20TokenRegistrationConfig(tokensFilePath_: String): ERC20TokenRegistrationConfig {
         return object : ERC20TokenRegistrationConfig {
-            override val iroha: IrohaConfig
-                get() = createIrohaConfig()
-            override val tokensFilePath: String
-                get() = tokensFilePath_
-            override val tokenStorageAccount: String
-                get() = accountHelper.notaryAccount.accountId
-            override val tokenCreatorAccount: IrohaCredentialConfig
-                get() = accountHelper.createCredentialConfig(accountHelper.tokenSetterAccount)
+            override val irohaCredential = ethTokenRegistrationConfig.irohaCredential
+            override val iroha = createIrohaConfig()
+            override val tokensFilePath = tokensFilePath_
+            override val tokenStorageAccount = accountHelper.notaryAccount.accountId
         }
     }
 

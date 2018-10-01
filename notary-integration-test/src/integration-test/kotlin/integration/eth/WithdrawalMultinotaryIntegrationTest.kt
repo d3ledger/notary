@@ -11,9 +11,9 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.web3j.crypto.ECKeyPair
+import provider.eth.ETH_PRECISION
 import provider.eth.EthRelayProviderIrohaImpl
 import sidechain.eth.util.DeployHelper
-import sidechain.eth.util.ETH_PRECISION
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
 import sidechain.iroha.consumer.IrohaNetworkImpl
