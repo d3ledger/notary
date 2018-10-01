@@ -1,6 +1,7 @@
 package notary.endpoint.eth
 
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.EthereumConfig
@@ -103,36 +104,33 @@ class EthRefundStrategyImpl(
 
                     val amount = commands.transferAsset.amount
                     val token = commands.transferAsset.assetId.dropLastWhile { it != '#' }.dropLast(1)
-                    val coinAddress = tokensProvider.getTokenAddress(token).get()
-                    val precision = tokensProvider.getTokenPrecision(token).get()
-
                     val destEthAddress = commands.transferAsset.description
-
                     val srcAccountId = commands.transferAsset.srcAccountId
+
+                    val tokenInfo = tokensProvider.getTokenAddress(token)
+                        .fanout { tokensProvider.getTokenPrecision(token) }
+
                     checkWithdrawalAddress(srcAccountId, destEthAddress)
-                        .fold(
-                            { isWhitelisted ->
-                                if (!isWhitelisted) {
-                                    val errorMsg = "$destEthAddress not in whitelist"
-                                    logger.error { errorMsg }
-                                    throw NotaryException(errorMsg)
-                                }
+                        .flatMap { isWhitelisted ->
+                            if (!isWhitelisted) {
+                                val errorMsg = "$destEthAddress not in whitelist"
+                                logger.error { errorMsg }
+                                throw NotaryException(errorMsg)
+                            }
+                            relayProvider.getRelays()
+                        }.fanout {
+                            tokenInfo
+                        }.fold(
+                            { (relays, tokenInfo) ->
+                                val relayAddress = relays.filter {
+                                    it.value == commands.transferAsset.srcAccountId
+                                }.keys.first()
+                                val decimalAmount =
+                                    BigDecimal(amount).scaleByPowerOfTen(tokenInfo.second.toInt()).toPlainString()
+                                EthRefund(destEthAddress, tokenInfo.first, decimalAmount, request.irohaTx, relayAddress)
                             },
                             { throw it }
                         )
-
-                    relayProvider.getRelays().fold(
-                        {
-                            val relayAddress = it.filter {
-                                it.value == commands.transferAsset.srcAccountId
-                            }.keys.first()
-                            val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(precision.toInt()).toPlainString()
-                            EthRefund(destEthAddress, coinAddress, decimalAmount, request.irohaTx, relayAddress)
-                        },
-                        {
-                            throw it
-                        }
-                    )
                 }
                 else -> {
                     val errorMsg = "Transaction doesn't contain expected commands."

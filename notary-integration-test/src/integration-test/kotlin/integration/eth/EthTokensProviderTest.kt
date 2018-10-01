@@ -60,10 +60,16 @@ class EthTokensProviderTest {
     @Test
     fun getNonexistentTokenn() {
         ethTokensProvider.getTokenPrecision("nonexist")
-            .success { fail("Result returned success while failure is expected.") }
+            .fold(
+                { fail("Result returned success while failure is expected.") },
+                { assertEquals("Query response error: reason: NO_ASSET\n", it.message) }
+            )
 
         ethTokensProvider.getTokenAddress("nonexist")
-            .success { fail("Result returned success while failure is expected.") }
+            .fold(
+                { fail("Result returned success while failure is expected.") },
+                { assertEquals("Collection is empty.", it.message) }
+            )
     }
 
     /**

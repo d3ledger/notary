@@ -77,6 +77,7 @@ class DepositIntegrationTest {
 
         // send 0 ETH
         integrationHelper.sendEth(zeroAmount, relayWallet)
+        integrationHelper.waitOneIrohaBlock()
 
         Assertions.assertEquals(
             initialAmount,
@@ -136,6 +137,7 @@ class DepositIntegrationTest {
 
         // send 0 ERC20
         integrationHelper.sendERC20Token(tokenAddress, zeroAmount, relayWallet)
+        integrationHelper.waitOneIrohaBlock()
 
         Assertions.assertEquals(initialAmount, integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId))
 
