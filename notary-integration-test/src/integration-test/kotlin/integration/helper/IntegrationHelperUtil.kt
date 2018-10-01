@@ -2,16 +2,14 @@ package integration.helper
 
 import com.github.kittinunf.result.*
 import config.loadConfigs
+import config.loadEthPasswords
 import contract.Master
 import contract.RelayRegistry
+import integration.TestConfig
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelCrypto
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import jp.co.soramitsu.iroha.PublicKey
-import integration.TestConfig
-import io.grpc.ManagedChannelBuilder
-import iroha.protocol.QueryServiceGrpc
-import jp.co.soramitsu.iroha.*
 import kotlinx.coroutines.experimental.runBlocking
 import model.IrohaCredential
 import mu.KLogging
@@ -57,6 +55,9 @@ class IntegrationHelperUtil {
 
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
+    /** Ethereum password configs */
+    val ethPasswordConfig = loadEthPasswords("test", "/eth/ethereum_password.properties")
+
     val testCredential = IrohaCredential(
         testConfig.testCredentialConfig.accountId,
         ModelUtil.loadKeypair(
@@ -67,54 +68,56 @@ class IntegrationHelperUtil {
 
     val accountHelper by lazy { AccountHelper() }
 
-    val configHelper by lazy { ConfigHelper(accountHelper) }
+    val configHelper by lazy { ConfigHelper(accountHelper, relayRegistryContract.contractAddress) }
+
+    val ethRegistrationConfig by lazy { configHelper.createEthRegistrationConfig() }
 
     /** Ethereum utils */
-    private val deployHelper by lazy { DeployHelper(configHelper.testConfig.ethereum, configHelper.ethPasswordConfig) }
+    private val deployHelper by lazy { DeployHelper(testConfig.ethereum, ethPasswordConfig) }
 
     private val irohaNetwork by lazy {
-        IrohaNetworkImpl(configHelper.testConfig.iroha.hostname, configHelper.testConfig.iroha.port)
+        IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
     }
 
     private val irohaConsumer by lazy {
         IrohaConsumerImpl(
             testCredential,
-            configHelper.testConfig.iroha
+            testConfig.iroha
         )
     }
 
     private val registrationConsumer by lazy {
         IrohaConsumerImpl(
             accountHelper.registrationAccount,
-            configHelper.testConfig.iroha
+            testConfig.iroha
         )
     }
 
     private val tokenProviderIrohaConsumer by lazy {
         IrohaConsumerImpl(
             accountHelper.tokenSetterAccount,
-            configHelper.testConfig.iroha
+            testConfig.iroha
         )
     }
 
     private val whiteListIrohaConsumer by lazy {
         IrohaConsumerImpl(
-            IrohaCredential(configHelper.testConfig.whitelistSetter, testCredential.keyPair),
-            configHelper.testConfig.iroha
+            IrohaCredential(testConfig.whitelistSetter, testCredential.keyPair),
+            testConfig.iroha
         )
     }
 
     private val notaryListIrohaConsumer by lazy {
         IrohaConsumerImpl(
             accountHelper.notaryListSetterAccount,
-            configHelper.testConfig.iroha
+            testConfig.iroha
         )
     }
 
     private val mstRegistrationIrohaConsumer by lazy {
         IrohaConsumerImpl(
             accountHelper.mstRegistrationAccount,
-            configHelper.testConfig.iroha
+            testConfig.iroha
         )
     }
 
@@ -127,7 +130,6 @@ class IntegrationHelperUtil {
         contract
     }
 
-
     /** New master ETH master contract*/
     val masterContract by lazy {
         val wallet = deployMasterEth(relayRegistryContract.contractAddress)
@@ -138,7 +140,7 @@ class IntegrationHelperUtil {
     /** Provider that is used to store/fetch tokens*/
     val ethTokensProvider by lazy {
         EthTokensProviderImpl(
-            configHelper.testConfig.iroha,
+            testConfig.iroha,
             testCredential,
             accountHelper.tokenStorageAccount.accountId,
             accountHelper.tokenSetterAccount.accountId
@@ -148,7 +150,7 @@ class IntegrationHelperUtil {
     /** Provider that is used to get free registered relays*/
     private val ethFreeRelayProvider by lazy {
         EthFreeRelayProvider(
-            configHelper.testConfig.iroha,
+            testConfig.iroha,
             accountHelper.registrationAccount,
             accountHelper.notaryAccount.accountId,
             accountHelper.registrationAccount.accountId
@@ -158,7 +160,7 @@ class IntegrationHelperUtil {
     /** Provider of ETH wallets created by registrationAccount*/
     private val ethRelayProvider by lazy {
         EthRelayProviderIrohaImpl(
-            configHelper.testConfig.iroha,
+            irohaNetwork,
             accountHelper.registrationAccount,
             accountHelper.notaryAccount.accountId,
             accountHelper.registrationAccount.accountId
@@ -168,6 +170,8 @@ class IntegrationHelperUtil {
     private val ethRegistrationStrategy by lazy {
         EthRegistrationStrategyImpl(
             ethFreeRelayProvider,
+            ethRegistrationConfig,
+            configHelper.ethPasswordConfig,
             registrationConsumer,
             accountHelper.notaryAccount.accountId
         )
@@ -228,7 +232,7 @@ class IntegrationHelperUtil {
     fun registerBtcAddress(irohaAccountName: String): String {
         val keypair = ModelCrypto().generateKeypair()
         preGenBtcAddress().fold({
-            btcRegistrationStrategy.register(irohaAccountName, keypair.publicKey().hex())
+            btcRegistrationStrategy.register(irohaAccountName, emptyList(), keypair.publicKey().hex())
                 .fold({ btcAddress ->
                     return btcAddress
                 }, { ex -> throw ex })
@@ -361,16 +365,24 @@ class IntegrationHelperUtil {
     /**
      * Deploys relay and registers first free relay contract in Iroha to the client with given [name] and public key
      */
-    fun registerClient(name: String, keypair: Keypair = ModelCrypto().generateKeypair()): String {
+    fun registerClient(
+        name: String,
+        whitelist: List<String>,
+        keypair: Keypair = ModelCrypto().generateKeypair()
+    ): String {
         deployRelays(1)
-        return registerClientWithoutRelay(name, keypair)
+        return registerClientWithoutRelay(name, whitelist, keypair)
     }
 
     /**
      * Registers first free relay contract in Iroha to the client with given [name] and public key
      */
-    fun registerClientWithoutRelay(name: String, keypair: Keypair = ModelCrypto().generateKeypair()): String {
-        ethRegistrationStrategy.register(name, keypair.publicKey().hex())
+    fun registerClientWithoutRelay(
+        name: String,
+        whitelist: List<String>,
+        keypair: Keypair = ModelCrypto().generateKeypair()
+    ): String {
+        ethRegistrationStrategy.register(name, whitelist, keypair.publicKey().hex())
             .fold({ registeredEthWallet ->
                 logger.info("registered client $name with relay $registeredEthWallet")
                 return registeredEthWallet
@@ -382,7 +394,8 @@ class IntegrationHelperUtil {
      * Registers first free relay contract in Iroha with random name and public key
      */
     fun registerRandomRelay(): String {
-        val ethWallet = registerClient(String.getRandomString(9))
+        // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
+        val ethWallet = registerClient(String.getRandomString(9), listOf("0x0"))
         return ethWallet
     }
 
@@ -520,6 +533,7 @@ class IntegrationHelperUtil {
      */
     fun setWhitelist(clientAccount: String, addresses: List<String>) {
         val text = addresses.joinToString()
+        logger.info { "Set whitelist $text to $clientAccount by ${whiteListIrohaConsumer.creator}" }
 
         ModelUtil.setAccountDetail(
             whiteListIrohaConsumer,
@@ -578,10 +592,10 @@ class IntegrationHelperUtil {
      * @param pubkey - user public key
      * @param port - port of registration service
      */
-    fun sendRegistrationRequest(name: String, pubkey: PublicKey, port: Int): khttp.responses.Response {
+    fun sendRegistrationRequest(name: String, whitelist: String, pubkey: PublicKey, port: Int): khttp.responses.Response {
         return khttp.post(
             "http://127.0.0.1:${port}/users",
-            data = mapOf("name" to name, "pubkey" to pubkey.hex())
+            data = mapOf("name" to name, "whitelist" to whitelist.trim('[').trim(']'), "pubkey" to pubkey.hex())
         )
     }
 

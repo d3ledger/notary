@@ -146,10 +146,11 @@ contract Master {
      * @param v array of signatures of tx_hash (v-component)
      * @param r array of signatures of tx_hash (r-component)
      * @param s array of signatures of tx_hash (s-component)
+     * @param _from relay contract address
      */
-    function withdraw(address token_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s) public {
+    function withdraw(address token_address, uint256 amount, address to, bytes32 tx_hash, uint8 []v, bytes32 []r, bytes32 []s, address _from) public {
         require(checkTokenAddress(token_address));
-        require(relay_registry_instance_.isWhiteListed(msg.sender, to));
+        require(relay_registry_instance_.isWhiteListed(_from, to));
         // TODO luckychess 26.06.2018 D3-101 improve require checks (copy-paste) (use modifiers)
         require(used_[tx_hash] == false);
         require(peers_count_ >= 1);
@@ -171,7 +172,7 @@ contract Master {
 
         address[] memory recovered_addresses = new address[](s.length);
         for (uint i = 0; i < s.length; ++i) {
-            recovered_addresses[i] = recoverAddress(keccak256(abi.encodePacked(token_address, amount, to, tx_hash)), v[i], r[i], s[i]);
+            recovered_addresses[i] = recoverAddress(keccak256(abi.encodePacked(token_address, amount, to, tx_hash, _from)), v[i], r[i], s[i]);
             // recovered address should be in peers_
             require(peers_[recovered_addresses[i]] == true);
         }
