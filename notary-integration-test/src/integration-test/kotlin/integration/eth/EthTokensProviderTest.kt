@@ -1,10 +1,15 @@
 package integration.eth
 
+import com.github.kittinunf.result.success
 import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
+import provider.eth.ETH_ADDRESS
+import provider.eth.ETH_NAME
+import provider.eth.ETH_PRECISION
+import token.EthTokenInfo
 import util.getRandomString
 
 /**
@@ -25,12 +30,12 @@ class EthTokensProviderTest {
     @Test
     fun testGetTokens() {
         val tokensToAdd = 3
-        val expectedTokens = mutableMapOf<String, String>()
+        val expectedTokens = mutableMapOf<String, EthTokenInfo>()
         (1..tokensToAdd).forEach { i ->
             val ethWallet = "0x$i"
             val tokenName = String.getRandomString(9)
             val tokenPrecision = i.toShort()
-            expectedTokens[ethWallet] = tokenName
+            expectedTokens[ethWallet] = EthTokenInfo(tokenName, tokenPrecision)
             integrationHelper.addERC20Token(ethWallet, tokenName, tokenPrecision)
         }
         ethTokensProvider.getTokens()
@@ -38,9 +43,41 @@ class EthTokensProviderTest {
                 { tokens ->
                     assertFalse(tokens.isEmpty())
                     expectedTokens.forEach { (expectedEthWallet, expectedTokenInfo) ->
-                        assertEquals(expectedTokenInfo, tokens.get(expectedEthWallet))
+                        val (expectedName, expectedPrecision) = expectedTokenInfo
+                        assertEquals(expectedName, tokens.get(expectedEthWallet))
+                        assertEquals(expectedPrecision, ethTokensProvider.getTokenPrecision(expectedName).get())
+                        assertEquals(expectedEthWallet, ethTokensProvider.getTokenAddress(expectedName).get())
                     }
                 },
                 { ex -> fail("Cannot get tokens", ex) })
+    }
+
+    /**
+     * @given Iroha network is running
+     * @when tokenProvider is queried with some nonexistent asset
+     * @then failure result is returned
+     */
+    @Test
+    fun getNonexistentTokenn() {
+        ethTokensProvider.getTokenPrecision("nonexist")
+            .success { fail("Result returned success while failure is expected.") }
+
+        ethTokensProvider.getTokenAddress("nonexist")
+            .success { fail("Result returned success while failure is expected.") }
+    }
+
+    /**
+     * Test predefined asset ethereum.
+     * @given Iroha network is running
+     * @when tokenProvider is queried with "ether"
+     * @then predefined parameters are returned
+     */
+    @Test
+    fun getEthereum() {
+        ethTokensProvider.getTokenPrecision(ETH_NAME)
+            .success { assertEquals(ETH_PRECISION, it) }
+
+        ethTokensProvider.getTokenAddress(ETH_NAME)
+            .success { assertEquals(ETH_ADDRESS, it) }
     }
 }

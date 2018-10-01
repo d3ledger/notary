@@ -35,7 +35,7 @@ class EthTokensProviderImpl(
     private val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
 
     /**
-     * Get all tokens. Returns EthreumAddress -> EthTokenInfo
+     * Get all tokens. Returns EthreumAddress -> TokenName
      */
     override fun getTokens(): Result<Map<String, String>, Exception> {
         return getAccountDetails(
