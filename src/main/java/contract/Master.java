@@ -1,21 +1,9 @@
 package contract;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.Callable;
 import org.web3j.abi.EventEncoder;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.TypeReference;
-import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.Bool;
-import org.web3j.abi.datatypes.DynamicArray;
-import org.web3j.abi.datatypes.Event;
-import org.web3j.abi.datatypes.Function;
-import org.web3j.abi.datatypes.Type;
-import org.web3j.abi.datatypes.Utf8String;
+import org.web3j.abi.datatypes.*;
 import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.Credentials;
@@ -30,6 +18,13 @@ import org.web3j.tx.TransactionManager;
 import rx.Observable;
 import rx.functions.Func1;
 
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.Callable;
+
 /**
  * <p>Auto generated code.
  * <p><strong>Do not modify!</strong>
@@ -40,31 +35,37 @@ import rx.functions.Func1;
  * <p>Generated with web3j version 3.5.0.
  */
 public class Master extends Contract {
-    private static final String BINARY = "608060405234801561001057600080fd5b50604051602080610db483398101604052516000805433600160a060020a0319918216178255600580548216600160a060020a0394851617908190556006805491909416911617909155610d4a90819061006a90396000f30060806040526004361061006c5763ffffffff7c01000000000000000000000000000000000000000000000000000000006000350416632e9b50bd81146100ac5780639f1a156c146100cf578063aa6ca80814610104578063d48bfca714610169578063eea29e3e1461018a575b361561007757600080fd5b6040805133815290517f4fa24eeabbb33428278439846bf665517eaaa99ebda8d54001b32aad49e9df469181900360200190a1005b3480156100b857600080fd5b506100cd600160a060020a036004351661027c565b005b3480156100db57600080fd5b506100f0600160a060020a0360043516610349565b604080519115158252519081900360200190f35b34801561011057600080fd5b506101196103c7565b60408051602080825283518183015283519192839290830191858101910280838360005b8381101561015557818101518382015260200161013d565b505050509050019250505060405180910390f35b34801561017557600080fd5b506100cd600160a060020a0360043516610429565b34801561019657600080fd5b5060408051608435600481810135602081810285810182019096528185526100cd95600160a060020a038435811696602480359760443590931696606435963696919560a49590930192909182919085019084908082843750506040805187358901803560208181028481018201909552818452989b9a998901989297509082019550935083925085019084908082843750506040805187358901803560208181028481018201909552818452989b9a99890198929750908201955093508392508501908490808284375094975050509235600160a060020a031693506104f092505050565b600054600160a060020a0316331461029357600080fd5b600160a060020a03811660009081526001602052604090205460ff16156102b957600080fd5b600160a060020a038116600090815260016020818152604092839020805460ff191683179055600280549092019182905582519182529151600080516020610cff833981519152929181900390910190a160408051600160a060020a038316815290517f4fa24eeabbb33428278439846bf665517eaaa99ebda8d54001b32aad49e9df469181900360200190a150565b60008080600160a060020a038416151561036657600192506103c0565b5060009050805b6007548110156103bc5783600160a060020a031660078281548110151561039057fe5b600091825260209091200154600160a060020a031614156103b457600191506103bc565b60010161036d565b8192505b5050919050565b6060600780548060200260200160405190810160405280929190818152602001828054801561041f57602002820191906000526020600020905b8154600160a060020a03168152600190910190602001808311610401575b5050505050905090565b60008054600160a060020a0316331461044157600080fd5b5060005b6007548110156104905781600160a060020a031660078281548110151561046857fe5b600091825260209091200154600160a060020a0316141561048857600080fd5b600101610445565b50600780546001810182556000919091527fa66cc928b5edb82af9bd49922954155ab7b0942694bea4ce44661d9a8736c68801805473ffffffffffffffffffffffffffffffffffffffff1916600160a060020a0392909216919091179055565b60008060606000806105018d610349565b151561050c57600080fd5b600654604080517fa10cda99000000000000000000000000000000000000000000000000000000008152600160a060020a0389811660048301528e811660248301529151919092169163a10cda999160448083019260209291908290030181600087803b15801561057c57600080fd5b505af1158015610590573d6000803e3d6000fd5b505050506040513d60208110156105a657600080fd5b505115156105b357600080fd5b60008a81526003602052604090205460ff16156105cf57600080fd5b600254600111156105df57600080fd5b87518951146105ed57600080fd5b86518851146105fb57600080fd5b60025487516003600019830104965090869003945084111561061c57600080fd5b60008a815260036020908152604091829020805460ff1916600117905581518e81529151600080516020610cff8339815191529281900390910190a1604080518581529051600080516020610cff8339815191529181900360200190a186516040805191825251600080516020610cff8339815191529181900360200190a186516040519080825280602002602001820160405280156106c6578160200160208202803883390190505b509250600091505b86518210156108a65761082e8d8d8d8d8a6040516020018086600160a060020a0316600160a060020a03166c0100000000000000000000000002815260140185815260200184600160a060020a0316600160a060020a03166c01000000000000000000000000028152601401836000191660001916815260200182600160a060020a0316600160a060020a03166c01000000000000000000000000028152601401955050505050506040516020818303038152906040526040518082805190602001908083835b602083106107b45780518252601f199092019160209182019101610795565b6001836020036101000a03801982511681845116808217855250505050505090500191505060405180910390208a848151811015156107ef57fe5b906020019060200201518a8581518110151561080757fe5b906020019060200201518a8681518110151561081f57fe5b90602001906020020151610a69565b838381518110151561083c57fe5b600160a060020a03909216602092830290910190910152825160019060009085908590811061086757fe5b6020908102909101810151600160a060020a031682528101919091526040016000205460ff16151560011461089b57600080fd5b8160010191506106ce565b6108af83610bec565b15156108ba57600080fd5b600160a060020a038d1615156109145730318c11156108d857600080fd5b604051600160a060020a038c16908d156108fc02908e906000818181858888f1935050505015801561090e573d6000803e3d6000fd5b50610a5a565b50604080517f70a0823100000000000000000000000000000000000000000000000000000000815230600482015290518d918d91600160a060020a038416916370a082319160248083019260209291908290030181600087803b15801561097a57600080fd5b505af115801561098e573d6000803e3d6000fd5b505050506040513d60208110156109a457600080fd5b505110156109b157600080fd5b80600160a060020a031663a9059cbb8c8e6040518363ffffffff167c01000000000000000000000000000000000000000000000000000000000281526004018083600160a060020a0316600160a060020a0316815260200182815260200192505050602060405180830381600087803b158015610a2d57600080fd5b505af1158015610a41573d6000803e3d6000fd5b505050506040513d6020811015610a5757600080fd5b50505b50505050505050505050505050565b604080518581529051600091829182917f648222d6a0d6f71c03a679bd0e65a7d5b2c10f2aa6efc1b3f66fa46854164533919081900360200190a1604080517f19457468657265756d205369676e6564204d6573736167653a0a333200000000602080830191909152603c8083018b905283518084039091018152605c90920192839052815191929182918401908083835b60208310610b1a5780518252601f199092019160209182019101610afb565b51815160209384036101000a600019018019909216911617905260408051929094018290038220600080845283830180875282905260ff8e1684870152606084018d9052608084018c905294519098506001965060a080840196509194601f19820194509281900390910191865af1158015610b9a573d6000803e3d6000fd5b505060408051601f19810151600160a060020a038116825291519193507f4fa24eeabbb33428278439846bf665517eaaa99ebda8d54001b32aad49e9df46925081900360200190a19695505050505050565b60008060015b8351821015610c9757600460008584815181101515610c0d57fe5b6020908102909101810151600160a060020a031682528101919091526040016000205460ff16151560011415610c4557506000610c97565b6001600460008685815181101515610c5957fe5b602090810291909101810151600160a060020a03168252810191909152604001600020805460ff191691151591909117905560019190910190610bf2565b600091505b8351821015610cf7576000600460008685815181101515610cb957fe5b602090810291909101810151600160a060020a03168252810191909152604001600020805460ff191691151591909117905560019190910190610c9c565b9392505050560027f8b624baf37a6fa6509de46e0bfccb6228384271c48bdea3f8eba1aa7d8343a165627a7a72305820d5b470ef2e97b4156875a0a20b71d8f770fa6d82c756a9f88fe2a8561ad0e6080029";
+    private static final String BINARY = "60806040526008805460ff1916905534801561001a57600080fd5b50604051602080610e6383398101604052516000805433600160a060020a0319918216178255600580548216600160a060020a0394851617908190556006805491909416911617909155610def90819061007490396000f30060806040526004361061008d5763ffffffff7c010000000000000000000000000000000000000000000000000000000060003504166324bbce9681146100cd5780632e9b50bd146100f65780638f32d59b146101195780639f1a156c1461012e578063aa6ca8081461014f578063d486885a146101b4578063d48bfca7146101c9578063eea29e3e146101ea575b361561009857600080fd5b6040805133815290517fa0786e1009edc9cbf8898c0299c4518c0d18ec943fa88b2af645b4dd024d7a499181900360200190a1005b3480156100d957600080fd5b506100e26102dc565b604080519115158252519081900360200190f35b34801561010257600080fd5b50610117600160a060020a03600435166102e5565b005b34801561012557600080fd5b506100e26103be565b34801561013a57600080fd5b506100e2600160a060020a03600435166103cf565b34801561015b57600080fd5b5061016461044d565b60408051602080825283518183015283519192839290830191858101910280838360005b838110156101a0578181015183820152602001610188565b505050509050019250505060405180910390f35b3480156101c057600080fd5b506101176104af565b3480156101d557600080fd5b50610117600160a060020a03600435166104d1565b3480156101f657600080fd5b50604080516084356004818101356020818102858101820190965281855261011795600160a060020a038435811696602480359760443590931696606435963696919560a49590930192909182919085019084908082843750506040805187358901803560208181028481018201909552818452989b9a998901989297509082019550935083925085019084908082843750506040805187358901803560208181028481018201909552818452989b9a99890198929750908201955093508392508501908490808284375094975050509235600160a060020a0316935061059592505050565b60085460ff1681565b6102ed6103be565b15156102f857600080fd5b60085460ff161561030857600080fd5b600160a060020a03811660009081526001602052604090205460ff161561032e57600080fd5b600160a060020a038116600090815260016020818152604092839020805460ff191683179055600280549092019182905582519182529151600080516020610da4833981519152929181900390910190a160408051600160a060020a038316815290517fa0786e1009edc9cbf8898c0299c4518c0d18ec943fa88b2af645b4dd024d7a499181900360200190a150565b600054600160a060020a0316331490565b60008080600160a060020a03841615156103ec5760019250610446565b5060009050805b6007548110156104425783600160a060020a031660078281548110151561041657fe5b600091825260209091200154600160a060020a0316141561043a5760019150610442565b6001016103f3565b8192505b5050919050565b606060078054806020026020016040519081016040528092919081815260200182805480156104a557602002820191906000526020600020905b8154600160a060020a03168152600190910190602001808311610487575b5050505050905090565b6104b76103be565b15156104c257600080fd5b6008805460ff19166001179055565b60006104db6103be565b15156104e657600080fd5b5060005b6007548110156105355781600160a060020a031660078281548110151561050d57fe5b600091825260209091200154600160a060020a0316141561052d57600080fd5b6001016104ea565b50600780546001810182556000919091527fa66cc928b5edb82af9bd49922954155ab7b0942694bea4ce44661d9a8736c68801805473ffffffffffffffffffffffffffffffffffffffff1916600160a060020a0392909216919091179055565b60008060606000806105a68d6103cf565b15156105b157600080fd5b600654604080517fa10cda99000000000000000000000000000000000000000000000000000000008152600160a060020a0389811660048301528e811660248301529151919092169163a10cda999160448083019260209291908290030181600087803b15801561062157600080fd5b505af1158015610635573d6000803e3d6000fd5b505050506040513d602081101561064b57600080fd5b5051151561065857600080fd5b60008a81526003602052604090205460ff161561067457600080fd5b6002546001111561068457600080fd5b875189511461069257600080fd5b86518851146106a057600080fd5b6002548751600360001983010496509086900394508411156106c157600080fd5b60008a815260036020908152604091829020805460ff1916600117905581518e81529151600080516020610da48339815191529281900390910190a1604080518581529051600080516020610da48339815191529181900360200190a186516040805191825251600080516020610da48339815191529181900360200190a1865160405190808252806020026020018201604052801561076b578160200160208202803883390190505b509250600091505b865182101561094b576108d38d8d8d8d8a6040516020018086600160a060020a0316600160a060020a03166c0100000000000000000000000002815260140185815260200184600160a060020a0316600160a060020a03166c01000000000000000000000000028152601401836000191660001916815260200182600160a060020a0316600160a060020a03166c01000000000000000000000000028152601401955050505050506040516020818303038152906040526040518082805190602001908083835b602083106108595780518252601f19909201916020918201910161083a565b6001836020036101000a03801982511681845116808217855250505050505090500191505060405180910390208a8481518110151561089457fe5b906020019060200201518a858151811015156108ac57fe5b906020019060200201518a868151811015156108c457fe5b90602001906020020151610b0e565b83838151811015156108e157fe5b600160a060020a03909216602092830290910190910152825160019060009085908590811061090c57fe5b6020908102909101810151600160a060020a031682528101919091526040016000205460ff16151560011461094057600080fd5b816001019150610773565b61095483610c91565b151561095f57600080fd5b600160a060020a038d1615156109b95730318c111561097d57600080fd5b604051600160a060020a038c16908d156108fc02908e906000818181858888f193505050501580156109b3573d6000803e3d6000fd5b50610aff565b50604080517f70a0823100000000000000000000000000000000000000000000000000000000815230600482015290518d918d91600160a060020a038416916370a082319160248083019260209291908290030181600087803b158015610a1f57600080fd5b505af1158015610a33573d6000803e3d6000fd5b505050506040513d6020811015610a4957600080fd5b50511015610a5657600080fd5b80600160a060020a031663a9059cbb8c8e6040518363ffffffff167c01000000000000000000000000000000000000000000000000000000000281526004018083600160a060020a0316600160a060020a0316815260200182815260200192505050602060405180830381600087803b158015610ad257600080fd5b505af1158015610ae6573d6000803e3d6000fd5b505050506040513d6020811015610afc57600080fd5b50505b50505050505050505050505050565b604080518581529051600091829182917ff63569c5f7f35b1da5f0aa7910eae9cb48007b79dfe69fd658efee47b700575e919081900360200190a1604080517f19457468657265756d205369676e6564204d6573736167653a0a333200000000602080830191909152603c8083018b905283518084039091018152605c90920192839052815191929182918401908083835b60208310610bbf5780518252601f199092019160209182019101610ba0565b51815160209384036101000a600019018019909216911617905260408051929094018290038220600080845283830180875282905260ff8e1684870152606084018d9052608084018c905294519098506001965060a080840196509194601f19820194509281900390910191865af1158015610c3f573d6000803e3d6000fd5b505060408051601f19810151600160a060020a038116825291519193507fa0786e1009edc9cbf8898c0299c4518c0d18ec943fa88b2af645b4dd024d7a49925081900360200190a19695505050505050565b60008060015b8351821015610d3c57600460008584815181101515610cb257fe5b6020908102909101810151600160a060020a031682528101919091526040016000205460ff16151560011415610cea57506000610d3c565b6001600460008685815181101515610cfe57fe5b602090810291909101810151600160a060020a03168252810191909152604001600020805460ff191691151591909117905560019190910190610c97565b600091505b8351821015610d9c576000600460008685815181101515610d5e57fe5b602090810291909101810151600160a060020a03168252810191909152604001600020805460ff191691151591909117905560019190910190610d41565b93925050505600e450ead2824f007ba5fe0defff15b2706ac9d12b679c1cea274df5f4dbf7cc47a165627a7a72305820f2f2ee2a1eff4545760c5ccfd526f441f466e4039ab1bbcb9819bf061fd961280029";
+
+    public static final String FUNC_ISLOCKADDPEER = "isLockAddPeer";
 
     public static final String FUNC_ADDPEER = "addPeer";
+
+    public static final String FUNC_ISOWNER = "isOwner";
 
     public static final String FUNC_CHECKTOKENADDRESS = "checkTokenAddress";
 
     public static final String FUNC_GETTOKENS = "getTokens";
 
+    public static final String FUNC_DISABLEADDINGNEWPEERS = "disableAddingNewPeers";
+
     public static final String FUNC_ADDTOKEN = "addToken";
 
     public static final String FUNC_WITHDRAW = "withdraw";
 
-    public static final Event ADDRESS_EVENT_EVENT = new Event("address_event", 
+    public static final Event ADDRESSEVENT_EVENT = new Event("AddressEvent", 
             Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
     ;
 
-    public static final Event STRING_EVENT_EVENT = new Event("string_event", 
+    public static final Event STRINGEVENT_EVENT = new Event("StringEvent", 
             Arrays.<TypeReference<?>>asList(new TypeReference<Utf8String>() {}));
     ;
 
-    public static final Event BYTES_EVENT_EVENT = new Event("bytes_event", 
+    public static final Event BYTESEVENT_EVENT = new Event("BytesEvent", 
             Arrays.<TypeReference<?>>asList(new TypeReference<Bytes32>() {}));
     ;
 
-    public static final Event NUMBER_EVENT_EVENT = new Event("number_event", 
+    public static final Event NUMBEREVENT_EVENT = new Event("NumberEvent", 
             Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
     ;
 
@@ -76,17 +77,31 @@ public class Master extends Contract {
         super(BINARY, contractAddress, web3j, transactionManager, gasPrice, gasLimit);
     }
 
-    public RemoteCall<TransactionReceipt> addPeer(String new_address) {
+    public RemoteCall<Boolean> isLockAddPeer() {
+        final Function function = new Function(FUNC_ISLOCKADDPEER, 
+                Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
+        return executeRemoteCallSingleValueReturn(function, Boolean.class);
+    }
+
+    public RemoteCall<TransactionReceipt> addPeer(String newAddress) {
         final Function function = new Function(
                 FUNC_ADDPEER, 
-                Arrays.<Type>asList(new Address(new_address)),
+                Arrays.<Type>asList(new Address(newAddress)),
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteCall<Boolean> checkTokenAddress(String token_address) {
+    public RemoteCall<Boolean> isOwner() {
+        final Function function = new Function(FUNC_ISOWNER, 
+                Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
+        return executeRemoteCallSingleValueReturn(function, Boolean.class);
+    }
+
+    public RemoteCall<Boolean> checkTokenAddress(String tokenAddress) {
         final Function function = new Function(FUNC_CHECKTOKENADDRESS, 
-                Arrays.<Type>asList(new Address(token_address)),
+                Arrays.<Type>asList(new Address(tokenAddress)),
                 Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
         return executeRemoteCallSingleValueReturn(function, Boolean.class);
     }
@@ -106,28 +121,36 @@ public class Master extends Contract {
                 });
     }
 
-    public RemoteCall<TransactionReceipt> addToken(String new_token) {
+    public RemoteCall<TransactionReceipt> disableAddingNewPeers() {
         final Function function = new Function(
-                FUNC_ADDTOKEN, 
-                Arrays.<Type>asList(new Address(new_token)),
+                FUNC_DISABLEADDINGNEWPEERS, 
+                Arrays.<Type>asList(), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteCall<TransactionReceipt> withdraw(String token_address, BigInteger amount, String to, byte[] tx_hash, List<BigInteger> v, List<byte[]> r, List<byte[]> s, String _from) {
+    public RemoteCall<TransactionReceipt> addToken(String newToken) {
+        final Function function = new Function(
+                FUNC_ADDTOKEN, 
+                Arrays.<Type>asList(new Address(newToken)),
+                Collections.<TypeReference<?>>emptyList());
+        return executeRemoteCallTransaction(function);
+    }
+
+    public RemoteCall<TransactionReceipt> withdraw(String tokenAddress, BigInteger amount, String to, byte[] txHash, List<BigInteger> v, List<byte[]> r, List<byte[]> s, String from) {
         final Function function = new Function(
                 FUNC_WITHDRAW, 
-                Arrays.<Type>asList(new Address(token_address),
+                Arrays.<Type>asList(new Address(tokenAddress),
                 new Uint256(amount),
                 new Address(to),
-                new Bytes32(tx_hash),
+                new Bytes32(txHash),
                 new DynamicArray<org.web3j.abi.datatypes.generated.Uint8>(
                         org.web3j.abi.Utils.typeMap(v, org.web3j.abi.datatypes.generated.Uint8.class)), 
                 new DynamicArray<Bytes32>(
                         org.web3j.abi.Utils.typeMap(r, Bytes32.class)),
                 new DynamicArray<Bytes32>(
                         org.web3j.abi.Utils.typeMap(s, Bytes32.class)),
-                new Address(_from)),
+                new Address(from)),
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
@@ -142,11 +165,11 @@ public class Master extends Contract {
         return deployRemoteCall(Master.class, web3j, transactionManager, gasPrice, gasLimit, BINARY, encodedConstructor);
     }
 
-    public List<Address_eventEventResponse> getAddress_eventEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = extractEventParametersWithLog(ADDRESS_EVENT_EVENT, transactionReceipt);
-        ArrayList<Address_eventEventResponse> responses = new ArrayList<Address_eventEventResponse>(valueList.size());
+    public List<AddressEventEventResponse> getAddressEventEvents(TransactionReceipt transactionReceipt) {
+        List<EventValuesWithLog> valueList = extractEventParametersWithLog(ADDRESSEVENT_EVENT, transactionReceipt);
+        ArrayList<AddressEventEventResponse> responses = new ArrayList<AddressEventEventResponse>(valueList.size());
         for (EventValuesWithLog eventValues : valueList) {
-            Address_eventEventResponse typedResponse = new Address_eventEventResponse();
+            AddressEventEventResponse typedResponse = new AddressEventEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.input = (String) eventValues.getNonIndexedValues().get(0).getValue();
             responses.add(typedResponse);
@@ -154,12 +177,12 @@ public class Master extends Contract {
         return responses;
     }
 
-    public Observable<Address_eventEventResponse> address_eventEventObservable(EthFilter filter) {
-        return web3j.ethLogObservable(filter).map(new Func1<Log, Address_eventEventResponse>() {
+    public Observable<AddressEventEventResponse> addressEventEventObservable(EthFilter filter) {
+        return web3j.ethLogObservable(filter).map(new Func1<Log, AddressEventEventResponse>() {
             @Override
-            public Address_eventEventResponse call(Log log) {
-                EventValuesWithLog eventValues = extractEventParametersWithLog(ADDRESS_EVENT_EVENT, log);
-                Address_eventEventResponse typedResponse = new Address_eventEventResponse();
+            public AddressEventEventResponse call(Log log) {
+                EventValuesWithLog eventValues = extractEventParametersWithLog(ADDRESSEVENT_EVENT, log);
+                AddressEventEventResponse typedResponse = new AddressEventEventResponse();
                 typedResponse.log = log;
                 typedResponse.input = (String) eventValues.getNonIndexedValues().get(0).getValue();
                 return typedResponse;
@@ -167,17 +190,17 @@ public class Master extends Contract {
         });
     }
 
-    public Observable<Address_eventEventResponse> address_eventEventObservable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+    public Observable<AddressEventEventResponse> addressEventEventObservable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
         EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
-        filter.addSingleTopic(EventEncoder.encode(ADDRESS_EVENT_EVENT));
-        return address_eventEventObservable(filter);
+        filter.addSingleTopic(EventEncoder.encode(ADDRESSEVENT_EVENT));
+        return addressEventEventObservable(filter);
     }
 
-    public List<String_eventEventResponse> getString_eventEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = extractEventParametersWithLog(STRING_EVENT_EVENT, transactionReceipt);
-        ArrayList<String_eventEventResponse> responses = new ArrayList<String_eventEventResponse>(valueList.size());
+    public List<StringEventEventResponse> getStringEventEvents(TransactionReceipt transactionReceipt) {
+        List<EventValuesWithLog> valueList = extractEventParametersWithLog(STRINGEVENT_EVENT, transactionReceipt);
+        ArrayList<StringEventEventResponse> responses = new ArrayList<StringEventEventResponse>(valueList.size());
         for (EventValuesWithLog eventValues : valueList) {
-            String_eventEventResponse typedResponse = new String_eventEventResponse();
+            StringEventEventResponse typedResponse = new StringEventEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.input = (String) eventValues.getNonIndexedValues().get(0).getValue();
             responses.add(typedResponse);
@@ -185,12 +208,12 @@ public class Master extends Contract {
         return responses;
     }
 
-    public Observable<String_eventEventResponse> string_eventEventObservable(EthFilter filter) {
-        return web3j.ethLogObservable(filter).map(new Func1<Log, String_eventEventResponse>() {
+    public Observable<StringEventEventResponse> stringEventEventObservable(EthFilter filter) {
+        return web3j.ethLogObservable(filter).map(new Func1<Log, StringEventEventResponse>() {
             @Override
-            public String_eventEventResponse call(Log log) {
-                EventValuesWithLog eventValues = extractEventParametersWithLog(STRING_EVENT_EVENT, log);
-                String_eventEventResponse typedResponse = new String_eventEventResponse();
+            public StringEventEventResponse call(Log log) {
+                EventValuesWithLog eventValues = extractEventParametersWithLog(STRINGEVENT_EVENT, log);
+                StringEventEventResponse typedResponse = new StringEventEventResponse();
                 typedResponse.log = log;
                 typedResponse.input = (String) eventValues.getNonIndexedValues().get(0).getValue();
                 return typedResponse;
@@ -198,17 +221,17 @@ public class Master extends Contract {
         });
     }
 
-    public Observable<String_eventEventResponse> string_eventEventObservable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+    public Observable<StringEventEventResponse> stringEventEventObservable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
         EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
-        filter.addSingleTopic(EventEncoder.encode(STRING_EVENT_EVENT));
-        return string_eventEventObservable(filter);
+        filter.addSingleTopic(EventEncoder.encode(STRINGEVENT_EVENT));
+        return stringEventEventObservable(filter);
     }
 
-    public List<Bytes_eventEventResponse> getBytes_eventEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = extractEventParametersWithLog(BYTES_EVENT_EVENT, transactionReceipt);
-        ArrayList<Bytes_eventEventResponse> responses = new ArrayList<Bytes_eventEventResponse>(valueList.size());
+    public List<BytesEventEventResponse> getBytesEventEvents(TransactionReceipt transactionReceipt) {
+        List<EventValuesWithLog> valueList = extractEventParametersWithLog(BYTESEVENT_EVENT, transactionReceipt);
+        ArrayList<BytesEventEventResponse> responses = new ArrayList<BytesEventEventResponse>(valueList.size());
         for (EventValuesWithLog eventValues : valueList) {
-            Bytes_eventEventResponse typedResponse = new Bytes_eventEventResponse();
+            BytesEventEventResponse typedResponse = new BytesEventEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.input = (byte[]) eventValues.getNonIndexedValues().get(0).getValue();
             responses.add(typedResponse);
@@ -216,12 +239,12 @@ public class Master extends Contract {
         return responses;
     }
 
-    public Observable<Bytes_eventEventResponse> bytes_eventEventObservable(EthFilter filter) {
-        return web3j.ethLogObservable(filter).map(new Func1<Log, Bytes_eventEventResponse>() {
+    public Observable<BytesEventEventResponse> bytesEventEventObservable(EthFilter filter) {
+        return web3j.ethLogObservable(filter).map(new Func1<Log, BytesEventEventResponse>() {
             @Override
-            public Bytes_eventEventResponse call(Log log) {
-                EventValuesWithLog eventValues = extractEventParametersWithLog(BYTES_EVENT_EVENT, log);
-                Bytes_eventEventResponse typedResponse = new Bytes_eventEventResponse();
+            public BytesEventEventResponse call(Log log) {
+                EventValuesWithLog eventValues = extractEventParametersWithLog(BYTESEVENT_EVENT, log);
+                BytesEventEventResponse typedResponse = new BytesEventEventResponse();
                 typedResponse.log = log;
                 typedResponse.input = (byte[]) eventValues.getNonIndexedValues().get(0).getValue();
                 return typedResponse;
@@ -229,17 +252,17 @@ public class Master extends Contract {
         });
     }
 
-    public Observable<Bytes_eventEventResponse> bytes_eventEventObservable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+    public Observable<BytesEventEventResponse> bytesEventEventObservable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
         EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
-        filter.addSingleTopic(EventEncoder.encode(BYTES_EVENT_EVENT));
-        return bytes_eventEventObservable(filter);
+        filter.addSingleTopic(EventEncoder.encode(BYTESEVENT_EVENT));
+        return bytesEventEventObservable(filter);
     }
 
-    public List<Number_eventEventResponse> getNumber_eventEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = extractEventParametersWithLog(NUMBER_EVENT_EVENT, transactionReceipt);
-        ArrayList<Number_eventEventResponse> responses = new ArrayList<Number_eventEventResponse>(valueList.size());
+    public List<NumberEventEventResponse> getNumberEventEvents(TransactionReceipt transactionReceipt) {
+        List<EventValuesWithLog> valueList = extractEventParametersWithLog(NUMBEREVENT_EVENT, transactionReceipt);
+        ArrayList<NumberEventEventResponse> responses = new ArrayList<NumberEventEventResponse>(valueList.size());
         for (EventValuesWithLog eventValues : valueList) {
-            Number_eventEventResponse typedResponse = new Number_eventEventResponse();
+            NumberEventEventResponse typedResponse = new NumberEventEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.input = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
             responses.add(typedResponse);
@@ -247,12 +270,12 @@ public class Master extends Contract {
         return responses;
     }
 
-    public Observable<Number_eventEventResponse> number_eventEventObservable(EthFilter filter) {
-        return web3j.ethLogObservable(filter).map(new Func1<Log, Number_eventEventResponse>() {
+    public Observable<NumberEventEventResponse> numberEventEventObservable(EthFilter filter) {
+        return web3j.ethLogObservable(filter).map(new Func1<Log, NumberEventEventResponse>() {
             @Override
-            public Number_eventEventResponse call(Log log) {
-                EventValuesWithLog eventValues = extractEventParametersWithLog(NUMBER_EVENT_EVENT, log);
-                Number_eventEventResponse typedResponse = new Number_eventEventResponse();
+            public NumberEventEventResponse call(Log log) {
+                EventValuesWithLog eventValues = extractEventParametersWithLog(NUMBEREVENT_EVENT, log);
+                NumberEventEventResponse typedResponse = new NumberEventEventResponse();
                 typedResponse.log = log;
                 typedResponse.input = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
                 return typedResponse;
@@ -260,10 +283,10 @@ public class Master extends Contract {
         });
     }
 
-    public Observable<Number_eventEventResponse> number_eventEventObservable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
+    public Observable<NumberEventEventResponse> numberEventEventObservable(DefaultBlockParameter startBlock, DefaultBlockParameter endBlock) {
         EthFilter filter = new EthFilter(startBlock, endBlock, getContractAddress());
-        filter.addSingleTopic(EventEncoder.encode(NUMBER_EVENT_EVENT));
-        return number_eventEventObservable(filter);
+        filter.addSingleTopic(EventEncoder.encode(NUMBEREVENT_EVENT));
+        return numberEventEventObservable(filter);
     }
 
     public static Master load(String contractAddress, Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
@@ -274,25 +297,25 @@ public class Master extends Contract {
         return new Master(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
     }
 
-    public static class Address_eventEventResponse {
+    public static class AddressEventEventResponse {
         public Log log;
 
         public String input;
     }
 
-    public static class String_eventEventResponse {
+    public static class StringEventEventResponse {
         public Log log;
 
         public String input;
     }
 
-    public static class Bytes_eventEventResponse {
+    public static class BytesEventEventResponse {
         public Log log;
 
         public byte[] input;
     }
 
-    public static class Number_eventEventResponse {
+    public static class NumberEventEventResponse {
         public Log log;
 
         public BigInteger input;
