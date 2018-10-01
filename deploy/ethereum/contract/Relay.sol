@@ -59,7 +59,7 @@ contract Relay {
      * @param v array of signatures of tx_hash (v-component)
      * @param r array of signatures of tx_hash (r-component)
      * @param s array of signatures of tx_hash (s-component)
-     * @param _from relay contract address
+     * @param from relay contract address
      */
     function withdraw(
         address token_address,

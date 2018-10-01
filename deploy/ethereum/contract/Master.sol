@@ -36,21 +36,6 @@ contract Master {
     }
 
     /**
-     * @dev Throws if called by any account other than the owner.
-     */
-    modifier onlyOwner() {
-        require(isOwner());
-        _;
-    }
-
-    /**
-     * @return true if `msg.sender` is the owner of the contract.
-     */
-    function isOwner() public view returns(bool) {
-        return msg.sender == _owner;
-    }
-
-    /**
      * A special function-like stub to allow ether accepting
      */
     function() external payable {
@@ -70,9 +55,8 @@ contract Master {
      * Adds new peer to list of signature verifiers. Can be called only by contract owner.
      * @param new_address address of new peer
      */
-    function addPeer(address newAddress) public onlyOwner {
-        // TODO: For development purpose only, https://soramitsu.atlassian.net/browse/D3-418
-        require(!isLockAddPeer);
+    function addPeer(address newAddress) public {
+        require(msg.sender == owner);
         require(peers[newAddress] == false);
         peers[newAddress] = true;
         ++peersCount;
@@ -81,17 +65,11 @@ contract Master {
     }
 
     /**
-     * Disable adding the new peers
-     */
-    function disableAddingPeers() public onlyOwner {
-        isLockAddPeer == true;
-    }
-
-    /**
      * Adds new token to whitelist. Token should not been already added.
      * @param new_token token to add
      */
-    function addToken(address newToken) public onlyOwner {
+    function addToken(address newToken) public {
+        require(msg.sender == owner);
         uint i;
         for (i = 0; i < tokens.length; ++i) {
             require(tokens[i] != newToken);
@@ -128,7 +106,7 @@ contract Master {
      * @param v array of signatures of tx_hash (v-component)
      * @param r array of signatures of tx_hash (r-component)
      * @param s array of signatures of tx_hash (s-component)
-     * @param _from relay contract address
+     * @param from relay contract address
      */
     function withdraw(
         address tokenAddress,
