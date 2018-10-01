@@ -2,8 +2,10 @@ package config
 
 import com.jdiazcano.cfg4k.loaders.PropertyConfigLoader
 import com.jdiazcano.cfg4k.providers.ProxyConfigProvider
-import com.jdiazcano.cfg4k.sources.ClasspathConfigSource
+import com.jdiazcano.cfg4k.sources.ConfigSource
 import mu.KLogging
+import java.io.File
+import java.io.InputStream
 
 //Environment variable that holds Ethereum credentials password
 const val ETH_CREDENTIALS_PASSWORD_ENV = "ETH_CREDENTIALS_PASSWORD"
@@ -66,12 +68,29 @@ interface EthereumPasswords {
 /**
  * Load configs from Java properties
  */
-fun <T : Any> loadConfigs(prefix: String, type: Class<T>, filename: String = "/defaults.properties"): T {
-    val loader = PropertyConfigLoader(ClasspathConfigSource(filename))
+fun <T : Any> loadConfigs(prefix: String, type: Class<T>, filename: String): T {
+    var profile = System.getenv("PROFILE")
+    if (profile == null) {
+        logger.warn { "No profile set, using default LOCAL profile" }
+        profile = "local"
+    }
+    val (file, extension) = filename.split(".")
+    val pwd = System.getProperty("user.dir")
+    return loadRawConfigs(prefix, type, "$pwd/configs${file}_$profile.$extension")
+}
+
+class Stream(private val stream: InputStream) : ConfigSource {
+    override fun read(): InputStream {
+        return stream;
+    }
+}
+
+fun <T : Any> loadRawConfigs(prefix: String, type: Class<T>, filename: String): T {
+    val stream = Stream(File(filename).inputStream())
+    val loader = PropertyConfigLoader(stream)
     val provider = ProxyConfigProvider(loader)
     return provider.bind(prefix, type)
 }
-
 /**
  * Loads ETH passwords. Lookup priority: command line args>environment variables>property file
  */

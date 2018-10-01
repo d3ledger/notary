@@ -25,10 +25,10 @@ class WithdrawalMultinotaryIntegrationTest {
     private val integrationHelper = IntegrationHelperUtil()
 
     /** Path to public key of 2nd instance of notary */
-    private val pubkeyPath = "../deploy/iroha/keys/notary2@notary.pub"
+    private val pubkeyPath = "deploy/iroha/keys/notary2@notary.pub"
 
     /** Path to private key of 2nd instance of notary */
-    private val privkeyPath = "../deploy/iroha/keys/notary2@notary.priv"
+    private val privkeyPath = "deploy/iroha/keys/notary2@notary.priv"
 
     private val notaryConfig1: EthNotaryConfig
 
@@ -42,7 +42,7 @@ class WithdrawalMultinotaryIntegrationTest {
 
     init {
         // create 1st notary config
-        val ethereumConfig1 = integrationHelper.configHelper.createEthereumConfig("../deploy/ethereum/keys/ganache.key")
+        val ethereumConfig1 = integrationHelper.configHelper.createEthereumConfig("deploy/ethereum/keys/ganache.key")
 
         keypair1 = DeployHelper(ethereumConfig1, ethereumPasswords).credentials.ecKeyPair
 
@@ -52,7 +52,7 @@ class WithdrawalMultinotaryIntegrationTest {
 
 
         // create 2nd notary config
-        val ethereumConfig2 = integrationHelper.configHelper.createEthereumConfig("../deploy/ethereum/keys/ganache2.key")
+        val ethereumConfig2 = integrationHelper.configHelper.createEthereumConfig("deploy/ethereum/keys/ganache2.key")
         val irohaConfig2 =
             integrationHelper.configHelper.createIrohaConfig()
         notaryConfig2 = integrationHelper.configHelper.createEthNotaryConfig(irohaConfig2, ethereumConfig2)

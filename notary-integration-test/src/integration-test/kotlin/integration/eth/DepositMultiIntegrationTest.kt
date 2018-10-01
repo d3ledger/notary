@@ -35,10 +35,10 @@ class DepositMultiIntegrationTest {
     }
 
     /** Path to public key of 2nd instance of notary */
-    private val pubkeyPath2 = "../deploy/iroha/keys/notary2@notary.pub"
+    private val pubkeyPath2 = "deploy/iroha/keys/notary2@notary.pub"
 
     /** Path to private key of 2nd instance of notary */
-    private val privkeyPath2 = "../deploy/iroha/keys/notary2@notary.priv"
+    private val privkeyPath2 = "deploy/iroha/keys/notary2@notary.priv"
 
     init {
         // run notary

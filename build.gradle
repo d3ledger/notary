@@ -151,6 +151,7 @@ sourceSets {
 
 allprojects {
     test {
+        setWorkingDir("$rootDir/")
         useJUnitPlatform()
         systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
         println "Runtime Iroha library path:${systemProperties}"
@@ -325,12 +326,22 @@ task runWithdrawal(type: JavaExec) {
 }
 
 processResources {
-    def profiles = ["local", "testnet", "mainnet"]
-    def ignores = ["clean"]
-    def task = project.gradle.startParameter.taskNames.first()
+    if (project.gradle.startParameter.taskNames.empty)
+        return
 
-    if(!ignores.contains(task)) {
-        def profile = project.profile.toLowerCase()
+    def task = project.gradle.startParameter.taskNames.first()
+    def profiles = ["local", "testnet", "mainnet"]
+    def tasks = ["runEthNotary",
+                 "runEthRegistration",
+                 "runERC20TokenRegistration",
+                 "runDeployRelay",
+                 "runVacuumRelay",
+                 "runWithdrawal"
+    ]
+
+    if (tasks.contains(task)) {
+        profile = project.profile.toLowerCase()
+
         if (!profiles.contains(profile))
             throw new IllegalArgumentException("Invalid profile, please use one of " + profiles.toString())
 

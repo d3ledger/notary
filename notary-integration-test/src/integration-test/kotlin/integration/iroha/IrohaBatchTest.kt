@@ -32,7 +32,7 @@ class IrohaBatchTest {
     }
 
     val testConfig by lazy {
-        loadConfigs("test", EthNotaryConfig::class.java)
+        loadConfigs("test", EthNotaryConfig::class.java, "/test.properties")
     }
 
     private val testCredential = IntegrationHelperUtil().testCredential
