@@ -8,7 +8,7 @@ import com.github.kittinunf.result.Result
 interface RegistrationStrategy {
 
     /**
-     * Register new client
+     * Register new client with whitelist
      */
-    fun register(name: String, pubkey: String): Result<String, Exception>
+    fun register(name: String, whitelist: List<String>, pubkey: String): Result<String, Exception>
 }

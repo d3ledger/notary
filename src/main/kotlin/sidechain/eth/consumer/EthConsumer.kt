@@ -38,7 +38,8 @@ class EthConsumer(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPas
                 Numeric.hexStringToByteArray(event.proof.irohaHash),
                 event.proof.v,
                 event.proof.r,
-                event.proof.s
+                event.proof.s,
+                relay.contractAddress
             ).sendAsync()
         }
     }

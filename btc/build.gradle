@@ -1,0 +1,43 @@
+buildscript {
+    ext.spring_boot_version = '1.5.4.RELEASE'
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        //Spring-boot
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:$spring_boot_version"
+    }
+}
+
+apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
+apply plugin: 'org.springframework.boot'
+
+dependencies {
+    //bitcoin
+    compile 'org.bitcoinj:bitcoinj-core:0.14.7'
+    // https://mvnrepository.com/artifact/org.iq80.leveldb/leveldb
+    compile group: 'org.iq80.leveldb', name: 'leveldb', version: '0.10'
+    // https://mvnrepository.com/artifact/org.fusesource.leveldbjni/leveldbjni
+    compile group: 'org.fusesource.leveldbjni', name: 'leveldbjni-all', version: '1.8'
+
+    //Spring-boot
+    compile('org.springframework.boot:spring-boot-starter') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
+    compile("org.springframework.boot:spring-boot-starter-web") {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+        exclude group: 'org.hibernate'
+    }
+
+    compile 'org.springframework.boot:spring-boot-starter-jetty'
+
+    compile('org.springframework.boot:spring-boot-starter-actuator') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
+
+    // https://mvnrepository.com/artifact/commons-logging/commons-logging
+    compile group: 'commons-logging', name: 'commons-logging', version: '1.2'
+}
+

@@ -1,4 +1,7 @@
 pipeline {
+  environment {
+    DOCKER_NETWORK = ''
+  }
   options {
     skipDefaultCheckout()
     buildDiscarder(logRotator(numToKeepStr: '20'))
@@ -25,29 +28,40 @@ pipeline {
       }
     }
     stage('Tests') {
-      agent { label 'x86_64' }
+      agent { label 'd3-build-agent' }
       steps {
         script {
             def scmVars = checkout scm
-            writeFile file: ".env", text: "SUBNET=-${scmVars.CHANGE_ID}-${scmVars.GIT_COMMIT}-${BUILD_NUMBER}"
+            DOCKER_NETWORK = "${scmVars.CHANGE_ID}-${scmVars.GIT_COMMIT}-${BUILD_NUMBER}"
+            writeFile file: ".env", text: "SUBNET=${DOCKER_NETWORK}"
             sh "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml pull"
             sh(returnStdout: true, script: "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml up --build -d")
             iC = docker.image("openjdk:8-jdk")
-            iC.inside("--network='d3-${scmVars.CHANGE_ID}-${scmVars.GIT_COMMIT}-${BUILD_NUMBER}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
+            iC.inside("--network='d3-${DOCKER_NETWORK}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
               withCredentials([file(credentialsId: 'ethereum_password.properties', variable: 'ethereum_password')]) {
-                  sh "cp \$ethereum_password src/main/resources/eth/ethereum_password.properties"
-                  sh "cp \$ethereum_password src/integration-test/resources/eth/ethereum_password.properties"
+                  sh "cp \$ethereum_password configs/eth/ethereum_password_local.properties"
+                  sh "cp \$ethereum_password configs/eth/ethereum_password_local.properties"
               }
-              sh(script: "./gradlew dependencies")
-              sh(script: "./gradlew test --info")
-              sh(script: "./gradlew compileIntegrationTestKotlin --info")
-              sh(script: "./gradlew integrationTest --info")
+              sh "./gradlew dependencies"
+              sh "./gradlew test --info"
+              sh "./gradlew compileIntegrationTestKotlin --info"
+              sh "./gradlew integrationTest --info"
             }
         }
       }
       post {
+        always {
+          junit 'build/test-results/**/*.xml'
+        }
         cleanup {
-          sh(script: "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml down")
+          sh "mkdir build-logs"
+          sh """
+            while read -r LINE; do \
+              docker logs \$(echo \$LINE | cut -d ' ' -f1) | gzip -6 > build-logs/\$(echo \$LINE | cut -d ' ' -f2).log.gz; \
+            done < <(docker ps --filter "network=d3-${DOCKER_NETWORK}" --format "{{.ID}} {{.Names}}")
+          """
+          archiveArtifacts artifacts: 'build-logs/*.log.gz'
+          sh "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml down"
           cleanWs()
         }
       }
