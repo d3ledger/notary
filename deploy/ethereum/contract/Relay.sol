@@ -1,7 +1,7 @@
 pragma solidity 0.4.25;
 
 import "./IMaster.sol";
-import "./ICoin.sol";
+import "./IERC20.sol";
 
 /**
  * Provides functionality of relay contract
@@ -34,16 +34,16 @@ contract Relay {
 
     /**
      * Sends ether and all tokens from this contract to master
-     * @param token_address address of sending token (0 for Ether)
+     * @param tokenAddress address of sending token (0 for Ether)
      */
-    function sendToMaster(address token_address) public {
+    function sendToMaster(address tokenAddress) public {
         // trusted call
-        require(masterInstance.checkTokenAddress(token_address));
-        if (token_address == 0) {
+        require(masterInstance.checkTokenAddress(tokenAddress));
+        if (tokenAddress == 0) {
             // trusted transfer
             masterAddress.transfer(address(this).balance);
         } else {
-            ICoin ic = ICoin(token_address);
+            IERC20 ic = IERC20(tokenAddress);
             // untrusted call in general but coin addresses are received from trusted master contract
             // which contains and manages whitelist of them
             ic.transfer(masterAddress, ic.balanceOf(address(this)));
@@ -52,7 +52,7 @@ contract Relay {
 
     /**
      * Withdraws specified amount of ether or one of ERC-20 tokens to provided address
-     * @param token_address address of token to withdraw (0 for ether)
+     * @param tokenAddress address of token to withdraw (0 for ether)
      * @param amount amount of tokens or ether to withdraw
      * @param to target account address
      * @param tx_hash hash of transaction from Iroha
@@ -62,7 +62,7 @@ contract Relay {
      * @param from relay contract address
      */
     function withdraw(
-        address token_address,
+        address tokenAddress,
         uint256 amount,
         address to,
         bytes32 tx_hash,
@@ -75,6 +75,6 @@ contract Relay {
     {
         emit AddressEvent(masterAddress);
         // trusted call
-        masterInstance.withdraw(token_address, amount, to, tx_hash, v, r, s, from);
+        masterInstance.withdraw(tokenAddress, amount, to, tx_hash, v, r, s, from);
     }
 }
