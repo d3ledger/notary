@@ -249,6 +249,7 @@ class ContractsTest {
     @Test
     fun singleCorrectSignatureTokenTest() {
         sendAddPeer(accMain)
+        master.disableAddingNewPeers().send()
         master.addToken(token.contractAddress).send()
         transferTokensToMaster(BigInteger.valueOf(5))
         addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
@@ -541,6 +542,7 @@ class ContractsTest {
     @Test
     fun usedHashTest() {
         sendAddPeer(accMain)
+        master.disableAddingNewPeers().send()
         master.addToken(token.contractAddress).send()
         addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
         transferTokensToMaster(BigInteger.valueOf(5))
