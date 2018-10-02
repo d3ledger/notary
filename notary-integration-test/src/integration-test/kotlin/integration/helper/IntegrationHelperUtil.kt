@@ -23,7 +23,6 @@ import provider.btc.BtcAddressesProvider
 import provider.btc.BtcRegisteredAddressesProvider
 import provider.eth.EthFreeRelayProvider
 import provider.eth.EthRelayProviderIrohaImpl
-import provider.eth.EthTokenInfo
 import provider.eth.EthTokensProviderImpl
 import registration.btc.BtcRegistrationStrategyImpl
 import registration.eth.EthRegistrationStrategyImpl
@@ -36,6 +35,7 @@ import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountAsset
+import token.EthTokenInfo
 import util.getRandomString
 import java.io.File
 import java.math.BigInteger

@@ -1,5 +1,7 @@
 package integration.eth
 
+import com.github.kittinunf.result.failure
+import com.github.kittinunf.result.map
 import com.google.gson.Gson
 import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.AfterEach
@@ -7,8 +9,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
-import provider.eth.EthTokenInfo
 import provider.eth.EthTokensProviderImpl
+import token.EthTokenInfo
 import token.executeTokenRegistration
 import util.getRandomString
 import java.io.File
@@ -26,7 +28,7 @@ class ERC20TokenRegistrationTest {
         integrationHelper.configHelper.createIrohaConfig(),
         integrationHelper.testCredential,
         tokenRegistrationConfig.tokenStorageAccount,
-        tokenRegistrationConfig.tokenCreatorAccount.accountId
+        tokenRegistrationConfig.irohaCredential.accountId
     )
 
     @AfterEach
@@ -46,12 +48,19 @@ class ERC20TokenRegistrationTest {
         val tokens = createRandomTokens()
         createTokensFile(tokens, tokensFilePath)
         executeTokenRegistration(tokenRegistrationConfig)
-        ethTokensProvider.getTokens().fold({ tokensFromProvider ->
-            assertEquals(
-                tokens,
-                tokensFromProvider
-            )
-        }, { ex -> fail("cannot fetch tokens", ex) })
+        ethTokensProvider.getTokens()
+            .map { tokensFromProvider ->
+                val expected = tokensFromProvider
+                    .map { (ethAddress, name) ->
+                        Pair(ethAddress, EthTokenInfo(name, ethTokensProvider.getTokenPrecision(name).get()))
+                    }.sortedBy { it.first }
+
+                assertEquals(
+                    tokens.toList().sortedBy { it.first },
+                    expected
+                )
+            }
+            .failure { ex -> fail("cannot fetch tokens", ex) }
     }
 
     /**
@@ -82,7 +91,7 @@ class ERC20TokenRegistrationTest {
 
     //Creates randomly generated tokens as a map (token address -> token info)
     private fun createRandomTokens(): Map<String, EthTokenInfo> {
-        val tokensToCreate = 10
+        val tokensToCreate = 5
         val defaultPrecision = 15
         val tokens = HashMap<String, EthTokenInfo>()
         for (i in 1..tokensToCreate) {

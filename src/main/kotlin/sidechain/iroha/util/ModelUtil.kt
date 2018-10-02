@@ -14,9 +14,9 @@ import iroha.protocol.TransactionOuterClass.Transaction
 import jp.co.soramitsu.iroha.*
 import model.IrohaCredential
 import mu.KLogging
-import provider.eth.EthTokenInfo
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.consumer.IrohaNetwork
+import token.EthTokenInfo
 import java.io.IOException
 import java.math.BigInteger
 import java.nio.file.Files
@@ -113,7 +113,7 @@ object ModelUtil {
                     String(java.nio.file.Files.readAllBytes(Paths.get(privkeyPath)))
                 )
             } catch (e: IOException) {
-                throw Exception("Unable to read Iroha key files", e)
+                throw Exception("Unable to read Iroha key files. Public key: $pubkeyPath, Private key: $privkeyPath", e)
             }
         }
     }
