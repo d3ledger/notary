@@ -151,6 +151,7 @@ sourceSets {
 
 allprojects {
     test {
+        setWorkingDir("$rootDir/")
         useJUnitPlatform()
         systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
         println "Runtime Iroha library path:${systemProperties}"
@@ -324,14 +325,6 @@ task runWithdrawal(type: JavaExec) {
     environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
 }
 
-processResources {
-    def profile = (project.hasProperty('profile') ? project.profile : 'develop').toLowerCase()
-
-    from('src/main/resources') {
-        include "**/**_${profile}.properties"
-        rename "(.*)_${profile}.properties", '$1.properties'
-    }
-}
 
 // -------------------------| JaCoCo code coverage |-------------------------
 

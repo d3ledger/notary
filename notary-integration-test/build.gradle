@@ -22,7 +22,6 @@ sourceSets {
             runtimeClasspath += main.output + test.output
             srcDirs += 'src/integration-test/kotlin'
         }
-        resources.srcDir file('src/integration-test/resources')
     }
 }
 
@@ -38,7 +37,7 @@ task integrationTest(type: Test) {
 
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
-
+    setWorkingDir("$rootDir/")
     // Enable JUnit5 tests
     useJUnitPlatform {
     }
