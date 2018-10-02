@@ -1,7 +1,6 @@
-package notary.btc.healthcheck
+package healthcheck
 
 import config.IrohaConfig
-import jp.co.soramitsu.iroha.Keypair
 import model.IrohaCredential
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -18,17 +17,17 @@ class IrohaHealthCheck(
     @Qualifier("healthCheckIrohaConfig")
     private val irohaConfig: IrohaConfig,
     @Autowired
-    @Qualifier("healthCheckCredential")
-    private val credential: IrohaCredential
+    @Qualifier("irohaHealthCheckCredential")
+    private val irohaHealthCheckCredential: IrohaCredential
 ) : HealthIndicator {
 
     private val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
 
     override fun health(): Health {
-        return getAssetInfo(credential, irohaNetwork, "ether#ethereum").fold(
+        return getAssetInfo(irohaHealthCheckCredential, irohaNetwork, "ether#ethereum").fold(
             { Health.up().build() },
             { ex ->
-                logger.error("Health check fail", ex)
+                logger.error("Iroha health check fail", ex)
                 Health.down().build()
             })
     }

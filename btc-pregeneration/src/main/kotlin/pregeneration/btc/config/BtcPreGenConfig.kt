@@ -1,4 +1,4 @@
-package registration.btc.pregen
+package pregeneration.btc.config
 
 import config.IrohaConfig
 import config.IrohaCredentialConfig
@@ -29,4 +29,7 @@ interface BtcPreGenConfig {
 
     //Account that sets registered notaries
     val notaryListSetterAccount: String
+
+    //Port of health check service
+    val healthCheckPort: Int
 }

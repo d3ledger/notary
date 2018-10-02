@@ -5,11 +5,9 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.EthereumPasswords
 import io.reactivex.Observable
-import jp.co.soramitsu.iroha.Keypair
 import model.IrohaCredential
 import mu.KLogging
 import notary.Notary
-import notary.NotaryImpl
 import notary.createEthNotary
 import notary.endpoint.RefundServerEndpoint
 import notary.endpoint.ServerInitializationBundle
@@ -17,7 +15,6 @@ import notary.endpoint.eth.EthRefundStrategyImpl
 import okhttp3.OkHttpClient
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
-import provider.NotaryPeerListProvider
 import provider.NotaryPeerListProviderImpl
 import provider.eth.EthRelayProvider
 import provider.eth.EthTokensProvider
@@ -106,11 +103,11 @@ class EthNotaryInitialization(
         RefundServerEndpoint(
             ServerInitializationBundle(ethNotaryConfig.refund.port, ethNotaryConfig.refund.endpointEthereum),
             EthRefundStrategyImpl(
-                notaryCredential,
+                ethNotaryConfig,
                 irohaNetwork,
+                notaryCredential,
                 ethNotaryConfig.ethereum,
                 passwordsConfig,
-                ethNotaryConfig.whitelistSetter,
                 ethTokensProvider
             )
         )

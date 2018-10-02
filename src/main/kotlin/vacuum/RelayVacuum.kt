@@ -5,12 +5,12 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.EthereumPasswords
 import contract.Relay
-import jp.co.soramitsu.iroha.Keypair
 import model.IrohaCredential
 import mu.KLogging
 import provider.eth.EthRelayProviderIrohaImpl
 import provider.eth.EthTokensProviderImpl
 import sidechain.eth.util.DeployHelper
+import sidechain.iroha.consumer.IrohaNetworkImpl
 
 /**
  * Class is responsible for relay contracts vacuum
@@ -23,6 +23,11 @@ class RelayVacuum(
 ) {
     private val ethTokenAddress = "0x0000000000000000000000000000000000000000"
 
+    val irohaNetwork = IrohaNetworkImpl(
+        relayVacuumConfig.iroha.hostname,
+        relayVacuumConfig.iroha.port
+    )
+
     /** Ethereum endpoint */
     private val deployHelper = DeployHelper(relayVacuumConfig.ethereum, relayVacuumEthereumPasswords)
 
@@ -34,7 +39,7 @@ class RelayVacuum(
     )
 
     private val ethRelayProvider = EthRelayProviderIrohaImpl(
-        relayVacuumConfig.iroha,
+        irohaNetwork,
         credential,
         relayVacuumConfig.notaryIrohaAccount,
         relayVacuumConfig.registrationServiceIrohaAccount
@@ -69,7 +74,7 @@ class RelayVacuum(
                     relay.sendToMaster(ethTokenAddress).send()
                     logger.info("${relay.contractAddress} send to master eth $ethTokenAddress")
                     providedTokens.forEach { providedToken ->
-                        logger.info("${relay.contractAddress} send to master ${providedToken.value.name} ${providedToken.key}")
+                        logger.info("${relay.contractAddress} send to master ${providedToken.value} ${providedToken.key}")
                         relay.sendToMaster(providedToken.key).send()
                     }
                 }
