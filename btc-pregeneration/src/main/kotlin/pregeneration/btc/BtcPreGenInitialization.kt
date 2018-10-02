@@ -1,49 +1,37 @@
-package registration.btc.pregen
+package pregeneration.btc
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
+import healthcheck.HealthyServiceInitializer
 import io.reactivex.Observable
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
-import jp.co.soramitsu.iroha.Keypair
 import model.IrohaCredential
 import mu.KLogging
-import org.bitcoinj.wallet.Wallet
-import provider.NotaryPeerListProviderImpl
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.stereotype.Component
+import pregeneration.btc.config.BtcPreGenConfig
 import provider.btc.BtcPublicKeyProvider
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.getAccountDetails
-import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
 
 /*
    This class listens to special account to be triggered and starts pregeneration process
  */
+@Component
 class BtcPreGenInitialization(
-    private val registrationCredential: IrohaCredential,
-    private val mstRegistrationCredential: IrohaCredential,
-    private val btcPreGenConfig: BtcPreGenConfig
-) {
-    private val walletFile = File(btcPreGenConfig.btcWalletFilePath)
-    private val wallet = Wallet.loadFromFile(walletFile)
-    private val notaryPeerListProvider = NotaryPeerListProviderImpl(
-        btcPreGenConfig.iroha,
-        registrationCredential,
-        btcPreGenConfig.notaryListStorageAccount,
-        btcPreGenConfig.notaryListSetterAccount
-    )
-    private val btcPublicKeyProvider =
-        BtcPublicKeyProvider(
-            wallet,
-            walletFile,
-            btcPreGenConfig.iroha,
-            notaryPeerListProvider,
-            registrationCredential,
-            mstRegistrationCredential,
-            btcPreGenConfig.notaryAccount
-        )
+    @Qualifier("registrationCredential")
+    @Autowired private val registrationCredential: IrohaCredential,
+    @Autowired private val btcPreGenConfig: BtcPreGenConfig,
+    @Autowired private val btcPublicKeyProvider: BtcPublicKeyProvider,
+    @Autowired private val irohaChainListener: IrohaChainListener
+) : HealthyServiceInitializer {
+    private val healthy = AtomicBoolean(true)
     private val irohaNetwork = IrohaNetworkImpl(btcPreGenConfig.iroha.hostname, btcPreGenConfig.iroha.port)
 
     /*
@@ -51,19 +39,14 @@ class BtcPreGenInitialization(
     If trigger account is triggered, new session account full notary public keys will be created
      */
     fun init(): Result<Unit, Exception> {
-        return IrohaChainListener(
-            btcPreGenConfig.iroha.hostname,
-            btcPreGenConfig.iroha.port,
-            registrationCredential
-        ).getBlockObservable().map { irohaObservable ->
+        return irohaChainListener.getBlockObservable().map { irohaObservable ->
             initIrohaObservable(irohaObservable)
         }
     }
 
     private fun initIrohaObservable(irohaObservable: Observable<BlockOuterClass.Block>) {
-        irohaObservable.subscribe { block ->
+        irohaObservable.subscribe({ block ->
             getSetDetailCommands(block).forEach { command ->
-
                 if (command.setAccountDetail.accountId == btcPreGenConfig.pubKeyTriggerAccount) {
                     //add new public key to session account, if trigger account was changed
                     val sessionAccountName = command.setAccountDetail.key
@@ -79,7 +62,10 @@ class BtcPreGenInitialization(
                     }
                 }
             }
-        }
+        }, { ex ->
+            healthy.set(false)
+            logger.error("Error on subscribe", ex)
+        })
     }
 
     private fun getSetDetailCommands(block: BlockOuterClass.Block): List<Commands.Command> {
@@ -102,6 +88,8 @@ class BtcPreGenInitialization(
             btcPublicKeyProvider.checkAndCreateMultiSigAddress(notaryKeys)
         }
     }
+
+    override fun isHealthy() = healthy.get()
 
     /**
      * Logger

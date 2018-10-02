@@ -13,7 +13,7 @@ import org.springframework.context.annotation.ComponentScan
 import sidechain.iroha.IrohaInitialization
 
 @SpringBootApplication
-@ComponentScan(basePackages = ["notary"])
+@ComponentScan(basePackages = ["notary","healthcheck"])
 class BtcNotaryApplication
 
 private val logger = KLogging().logger

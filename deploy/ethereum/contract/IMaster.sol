@@ -5,10 +5,10 @@ pragma solidity 0.4.25;
  */
 contract IMaster {
     function withdraw(
-        address token_address,
+        address tokenAddress,
         uint256 amount,
         address to,
-        bytes32 tx_hash,
+        bytes32 txHash,
         uint8[] v,
         bytes32[] r,
         bytes32[] s,

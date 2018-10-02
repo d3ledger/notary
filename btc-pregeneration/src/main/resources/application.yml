@@ -1,0 +1,12 @@
+endpoints:
+  health.enabled: true
+  info.enabled: false
+  env.enabled: false
+  beans.enabled: false
+  shutdown.enabled: false
+  threaddump.enabled: false
+  metrics.enabled: false
+  dump.enabled: false
+  trace.enabled: false
+  autoconfig.enabled: false
+  mappings.enabled: false
