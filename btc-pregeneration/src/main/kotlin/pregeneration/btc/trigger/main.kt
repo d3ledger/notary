@@ -1,16 +1,16 @@
 @file:JvmName("BtcPreGenerationTriggerMain")
 
-package registration.btc.pregen.trigger
+package pregeneration.btc.trigger
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import config.loadConfigs
 import model.IrohaCredential
 import mu.KLogging
+import pregeneration.btc.config.BtcPreGenConfig
+import pregeneration.btc.config.btcPreGenConfig
 import provider.TriggerProvider
 import provider.btc.BtcSessionProvider
-import registration.btc.pregen.BtcPreGenConfig
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.util.ModelUtil
 import util.getRandomId
@@ -21,9 +21,7 @@ private val logger = KLogging().logger
 This function is used to start BTC multisignature addresses pregeneration
  */
 fun main(args: Array<String>) {
-    val btcPkPreGenConfig =
-        loadConfigs("btc-pregen", BtcPreGenConfig::class.java, "/pregeneration.properties")
-    executeTrigger(btcPkPreGenConfig)
+    executeTrigger(btcPreGenConfig)
 }
 
 fun executeTrigger(btcPkPreGenConfig: BtcPreGenConfig) {
@@ -34,7 +32,7 @@ fun executeTrigger(btcPkPreGenConfig: BtcPreGenConfig) {
                 btcPkPreGenConfig.registrationAccount.pubkeyPath,
                 btcPkPreGenConfig.registrationAccount.privkeyPath
             )
-        }.map {keypair ->
+        }.map { keypair ->
             IrohaCredential(btcPkPreGenConfig.registrationAccount.accountId, keypair)
         }
         .flatMap { credential ->

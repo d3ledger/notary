@@ -1,7 +1,6 @@
 package notary.btc.config
 
 import config.loadConfigs
-import jp.co.soramitsu.iroha.Keypair
 import model.IrohaCredential
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -35,11 +34,9 @@ class BtcNotaryAppConfiguration {
     @Bean
     fun healthCheckCredential(): IrohaCredential {
         //Assuming Iroha library is loaded
-
         return ModelUtil.loadKeypair(
             notaryConfig.notaryCredential.pubkeyPath,
             notaryConfig.notaryCredential.privkeyPath
-        )
-            .fold({ keypair -> IrohaCredential(notaryConfig.notaryCredential.accountId, keypair) }, { ex -> throw ex })
+        ).fold({ keypair -> IrohaCredential(notaryConfig.notaryCredential.accountId, keypair) }, { ex -> throw ex })
     }
 }
