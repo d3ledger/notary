@@ -1,6 +1,7 @@
 package integration.eth
 
 import com.squareup.moshi.Moshi
+import config.loadConfigs
 import config.loadEthPasswords
 import integration.helper.IntegrationHelperUtil
 import notary.endpoint.eth.BigIntegerMoshiAdapter
@@ -41,8 +42,11 @@ class WithdrawalMultinotaryIntegrationTest {
     private val ethereumPasswords = loadEthPasswords("eth-notary", "/eth/ethereum_password.properties")
 
     init {
+        val notaryConfig = loadConfigs("eth-notary", EthNotaryConfig::class.java, "/eth/notary.properties")
+        val ethKeyPath = notaryConfig.ethereum.credentialsPath
+
         // create 1st notary config
-        val ethereumConfig1 = integrationHelper.configHelper.createEthereumConfig("deploy/ethereum/keys/ganache.key")
+        val ethereumConfig1 = integrationHelper.configHelper.createEthereumConfig(ethKeyPath)
 
         keypair1 = DeployHelper(ethereumConfig1, ethereumPasswords).credentials.ecKeyPair
 
@@ -52,7 +56,8 @@ class WithdrawalMultinotaryIntegrationTest {
 
 
         // create 2nd notary config
-        val ethereumConfig2 = integrationHelper.configHelper.createEthereumConfig("deploy/ethereum/keys/ganache2.key")
+        val ethereumConfig2 =
+            integrationHelper.configHelper.createEthereumConfig(ethKeyPath.split(".key").first() + "2.key")
         val irohaConfig2 =
             integrationHelper.configHelper.createIrohaConfig()
         notaryConfig2 = integrationHelper.configHelper.createEthNotaryConfig(irohaConfig2, ethereumConfig2)
@@ -114,6 +119,7 @@ class WithdrawalMultinotaryIntegrationTest {
         Assertions.assertEquals(decimalAmount, response1.ethRefund.amount)
         Assertions.assertEquals(ethWallet, response1.ethRefund.address)
         Assertions.assertEquals("0x0000000000000000000000000000000000000000", response1.ethRefund.assetId)
+        Assertions.assertEquals(hash, response1.ethRefund.irohaTxHash)
 
         Assertions.assertEquals(
             signUserData(
@@ -139,6 +145,7 @@ class WithdrawalMultinotaryIntegrationTest {
         Assertions.assertEquals(decimalAmount, response2.ethRefund.amount)
         Assertions.assertEquals(ethWallet, response2.ethRefund.address)
         Assertions.assertEquals("0x0000000000000000000000000000000000000000", response2.ethRefund.assetId)
+        Assertions.assertEquals(hash, response2.ethRefund.irohaTxHash)
 
         Assertions.assertEquals(
             signUserData(

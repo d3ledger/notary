@@ -326,6 +326,7 @@ task runWithdrawal(type: JavaExec) {
 }
 
 processResources {
+    return
     if (project.gradle.startParameter.taskNames.empty)
         return
 

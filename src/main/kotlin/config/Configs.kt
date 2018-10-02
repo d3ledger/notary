@@ -76,7 +76,9 @@ fun <T : Any> loadConfigs(prefix: String, type: Class<T>, filename: String): T {
     }
     val (file, extension) = filename.split(".")
     val pwd = System.getProperty("user.dir")
-    return loadRawConfigs(prefix, type, "$pwd/configs${file}_$profile.$extension")
+    val path = "$pwd/configs${file}_$profile.$extension"
+    logger.info { "Loading config from $path" }
+    return loadRawConfigs(prefix, type, path)
 }
 
 class Stream(private val stream: InputStream) : ConfigSource {
