@@ -335,6 +335,7 @@ class IntegrationHelperUtil {
     private fun deployMasterEth(relayRegistry: String): Master {
         val master = deployHelper.deployMasterSmartContract(relayRegistry)
         master.addPeer(notaryEthAddress).send()
+        master.disableAddingNewPeers().send()
         return master
     }
 
