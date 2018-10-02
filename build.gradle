@@ -325,39 +325,6 @@ task runWithdrawal(type: JavaExec) {
     environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
 }
 
-processResources {
-    return
-    if (project.gradle.startParameter.taskNames.empty)
-        return
-
-    def task = project.gradle.startParameter.taskNames.first()
-    def profiles = ["local", "testnet", "mainnet"]
-    def tasks = ["runEthNotary",
-                 "runEthRegistration",
-                 "runERC20TokenRegistration",
-                 "runDeployRelay",
-                 "runVacuumRelay",
-                 "runWithdrawal"
-    ]
-
-    if (tasks.contains(task)) {
-        profile = project.profile.toLowerCase()
-
-        if (!profiles.contains(profile))
-            throw new IllegalArgumentException("Invalid profile, please use one of " + profiles.toString())
-
-        from('src/main/resources') {
-            include "**/**_${profile}.properties"
-            rename "(.*)_${profile}.properties", '$1.properties'
-        }
-
-        from('src/integration_test/resources') {
-            include "**/**_${profile}.properties"
-            rename "(.*)_${profile}.properties", '$1.properties'
-        }
-
-    }
-}
 
 // -------------------------| JaCoCo code coverage |-------------------------
 
