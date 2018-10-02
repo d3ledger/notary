@@ -1,19 +1,26 @@
 buildscript {
+    ext.spring_boot_version = '1.5.4.RELEASE'
     repositories {
         mavenCentral()
         jcenter()
     }
+    dependencies {
+        //Spring-boot
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:$spring_boot_version"
+    }
 }
 
 apply plugin: 'application'
-mainClassName = "registration.btc.pregen.BtcPreGenerationMain"
+apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
+apply plugin: 'org.springframework.boot'
+mainClassName = "pregeneration.btc.BtcPreGenerationMain"
 
 dependencies {
     compile project(":btc")
 }
 
 task runBtcPreGen(type: JavaExec) {
-    main = 'registration.btc.pregen.BtcPreGenerationMain'
+    main = 'pregeneration.btc.BtcPreGenerationMain'
     classpath = sourceSets.main.runtimeClasspath
 
     systemProperty 'java.library.path', getIrohaLibPath()
@@ -21,7 +28,7 @@ task runBtcPreGen(type: JavaExec) {
 }
 
 task runBtcPreGenTrigger(type: JavaExec) {
-    main = 'registration.btc.pregen.trigger.BtcPreGenerationTriggerMain'
+    main = 'pregeneration.btc.trigger.BtcPreGenerationTriggerMain'
     classpath = sourceSets.main.runtimeClasspath
 
     systemProperty 'java.library.path', getIrohaLibPath()
