@@ -17,7 +17,7 @@ checkTag $TAG "${tags[@]}"
 
 
 rm build/libs/notary-1.0-SNAPSHOT-all.jar || true
-gradle shadowJar
+./gradlew shadowJar
 
 docker build -t nexus.iroha.tech:19002/d3-deploy/eth-relay:$TAG -f eth-relay.dockerfile .
 docker build -t nexus.iroha.tech:19002/d3-deploy/registration:$TAG  -f registration.dockerfile .
