@@ -16,7 +16,7 @@ pipeline {
           withCredentials([usernamePassword(credentialsId: 'nexus-d3-docker', usernameVariable: 'login', passwordVariable: 'password')]) {
               sh "docker login nexus.iroha.tech:19002 -u ${login} -p '${password}'"
               checkout scm
-              sh "echo env.getEnvironment()"
+              sh "env"
 
           }
         }
