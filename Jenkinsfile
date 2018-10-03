@@ -39,8 +39,8 @@ pipeline {
             iC = docker.image("openjdk:8-jdk")
             iC.inside("--network='d3-${DOCKER_NETWORK}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
               withCredentials([file(credentialsId: 'ethereum_password.properties', variable: 'ethereum_password')]) {
-                  sh "cp \$ethereum_password src/main/resources/eth/ethereum_password.properties"
-                  sh "cp \$ethereum_password notary-integration-test/src/integration-test/resources/eth/ethereum_password.properties"
+                  sh "cp \$ethereum_password configs/eth/ethereum_password_local.properties"
+                  sh "cp \$ethereum_password configs/eth/ethereum_password_local.properties"
               }
               sh "./gradlew dependencies"
               sh "./gradlew test --info"
@@ -51,7 +51,7 @@ pipeline {
       }
       post {
         always {
-          junit 'build/test-results/test/*.xml'
+          junit 'build/test-results/**/*.xml'
         }
         cleanup {
           sh "mkdir build-logs"
