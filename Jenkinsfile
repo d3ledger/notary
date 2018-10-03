@@ -14,7 +14,7 @@ pipeline {
       steps {
         script {
           withCredentials([usernamePassword(credentialsId: 'nexus-d3-docker', usernameVariable: 'login', passwordVariable: 'password')]) {
-              sh "docker login -u ${login} -p ${password}"
+              sh "docker login nexus.iroha.tech:19002 -u ${login} -p ${password}"
           }
         }
       }
