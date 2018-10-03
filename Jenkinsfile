@@ -23,6 +23,19 @@ pipeline {
                 iC.inside("-e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
                   sh "./build_and_push_nexus.sh ${env.BRANCH_NAME}"
                 }
+
+                sh """
+                    docker build -t nexus.iroha.tech:19002/d3-deploy/eth-relay:$TAG -f eth-relay.dockerfile . \
+                    docker build -t nexus.iroha.tech:19002/d3-deploy/registration:$TAG  -f registration.dockerfile . \
+                    docker build -t nexus.iroha.tech:19002/d3-deploy/notary:$TAG  -f notary.dockerfile . \
+                    docker build -t nexus.iroha.tech:19002/d3-deploy/withdrawal:$TAG  -f withdrawal.dockerfile . \
+
+                    docker push nexus.iroha.tech:19002/d3-deploy/eth-relay:$TAG \
+                    docker push nexus.iroha.tech:19002/d3-deploy/registration:$TAG \
+                    docker push nexus.iroha.tech:19002/d3-deploy/notary:$TAG \
+                    docker push nexus.iroha.tech:19002/d3-deploy/withdrawal:$TAG \
+
+                """
               }
           }
         }
