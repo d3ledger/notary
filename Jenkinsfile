@@ -9,6 +9,19 @@ pipeline {
   }
   agent any
   stages {
+    stage ('Docker login') {
+      agent { label 'd3-build-agent'}
+      steps {
+        script {x
+          withCredentials([usernamePassword(credentialsId: 'nexus-d3-docker', usernameVariable: 'login', passwordVariable: 'password')]) {
+              sh "docker login"
+          }
+        }
+      }
+
+    }
+
+
     stage ('Stop same job builds') {
       agent { label 'master' }
       steps {
@@ -46,6 +59,7 @@ pipeline {
               sh "./gradlew test --info"
               sh "./gradlew compileIntegrationTestKotlin --info"
               sh "./gradlew integrationTest --info"
+
             }
         }
       }
