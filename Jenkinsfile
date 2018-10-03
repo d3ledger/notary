@@ -17,6 +17,7 @@ pipeline {
           withCredentials([usernamePassword(credentialsId: 'nexus-d3-docker', usernameVariable: 'login', passwordVariable: 'password')]) {
               sh "docker login nexus.iroha.tech:19002 -u ${login} -p '${password}'"
               sh "env"
+              sh "echo ${env.BRANCH_NAME}"
               if(env.BRANCH_NAME ==~ /(master|develop|reserved)/){
                 sh "./build_and_push_nexus.sh ${env.CHANGE_BRANCH}"
               }
