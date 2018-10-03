@@ -107,7 +107,6 @@ fabric.properties
 
 # Ethereum passwords config
 configs/eth/ethereum_password*
-deploy/ethereum_credentials_testnet.env
 
 # Artifacts of parity node
 deploy/ethereum/cache
