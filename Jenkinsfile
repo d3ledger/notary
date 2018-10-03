@@ -19,6 +19,7 @@ pipeline {
               sh "env"
               sh "echo ${env.BRANCH_NAME}"
               if(env.BRANCH_NAME ==~ /(master|develop|reserved)/){
+                sh "rm build/libs/notary-1.0-SNAPSHOT-all.jar || true"
                 iC = docker.image("openjdk:8-jdk")
                 iC.inside("-e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
                   sh "./gradlew shadowJar"
