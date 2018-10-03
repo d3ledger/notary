@@ -21,7 +21,7 @@ pipeline {
               if(env.BRANCH_NAME ==~ /(master|develop|reserved)/){
                 iC = docker.image("openjdk:8-jdk")
                 iC.inside("-e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
-                  sh "./build_and_push_nexus.sh ${env.BRANCH_NAME}"
+                  ./gradlew shadowJar
                 }
 
                 sh """
