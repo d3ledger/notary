@@ -1,31 +1,31 @@
 #!/usr/bin/env bash
 set -e
 
-PROFILE=$1
+TAG=$1
 
-checkProfile () {
+checkTag () {
   local e
   for e in "${@:2}"; do [[ "$e" == "$1" ]] && return 0; done
-  echo "Invalid profile"
-  echo "Usage: ./build_and_push_nexus.sh <local | testnet | mainnet>"
+  echo "Invalid tag"
+  echo "Usage: ./build_and_push_nexus.sh <master | develop | debug>"
   exit 1
 }
 
-profiles=("local" "testnet" "mainnet")
+tags=("master" "develop" "debug")
 
-checkProfile $PROFILE "${profiles[@]}"
+checkTag $TAG "${tags[@]}"
 
 
 rm build/libs/notary-1.0-SNAPSHOT-all.jar || true
-gradle shadowJar -Pprofile=$PROFILE
+gradle shadowJar
 
-docker build -t nexus.iroha.tech:19002/d3-deploy/eth-relay:$PROFILE -f eth-relay.dockerfile .
-docker build -t nexus.iroha.tech:19002/d3-deploy/registration:$PROFILE  -f registration.dockerfile .
-docker build -t nexus.iroha.tech:19002/d3-deploy/notary:$PROFILE  -f notary.dockerfile .
-docker build -t nexus.iroha.tech:19002/d3-deploy/withdrawal:$PROFILE  -f withdrawal.dockerfile .
+docker build -t nexus.iroha.tech:19002/d3-deploy/eth-relay:$TAG -f eth-relay.dockerfile .
+docker build -t nexus.iroha.tech:19002/d3-deploy/registration:$TAG  -f registration.dockerfile .
+docker build -t nexus.iroha.tech:19002/d3-deploy/notary:$TAG  -f notary.dockerfile .
+docker build -t nexus.iroha.tech:19002/d3-deploy/withdrawal:$TAG  -f withdrawal.dockerfile .
 
 
-docker push nexus.iroha.tech:19002/d3-deploy/eth-relay:$PROFILE
-docker push nexus.iroha.tech:19002/d3-deploy/registration:$PROFILE
-docker push nexus.iroha.tech:19002/d3-deploy/notary:$PROFILE
-docker push nexus.iroha.tech:19002/d3-deploy/withdrawal:$PROFILE
+docker push nexus.iroha.tech:19002/d3-deploy/eth-relay:$TAG
+docker push nexus.iroha.tech:19002/d3-deploy/registration:$TAG
+docker push nexus.iroha.tech:19002/d3-deploy/notary:$TAG
+docker push nexus.iroha.tech:19002/d3-deploy/withdrawal:$TAG
