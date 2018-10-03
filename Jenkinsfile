@@ -12,7 +12,7 @@ pipeline {
     stage ('Docker login') {
       agent { label 'd3-build-agent'}
       steps {
-        script {x
+        script {
           withCredentials([usernamePassword(credentialsId: 'nexus-d3-docker', usernameVariable: 'login', passwordVariable: 'password')]) {
               sh "docker login"
           }
