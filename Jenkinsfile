@@ -26,7 +26,7 @@ pipeline {
                   sh "./gradlew shadowJar"
                 }
 
-                iPush = docker.build("docker build -t nexus.iroha.tech:19002/d3-deploy/eth-relay:${TAG}", "-f eth-relay.dockerfile .")
+                iPush = docker.build("nexus.iroha.tech:19002/d3-deploy/eth-relay:${TAG}", "-f eth-relay.dockerfile .")
                 iPush.push("nexus.iroha.tech:19002/d3-deploy/eth-relay:${TAG}")
                 sh "docker build -t nexus.iroha.tech:19002/d3-deploy/eth-relay:$TAG -f eth-relay.dockerfile ."
                 sh """
