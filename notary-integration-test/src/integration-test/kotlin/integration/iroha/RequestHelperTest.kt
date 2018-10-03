@@ -1,7 +1,5 @@
 package integration.iroha
 
-import config.loadConfigs
-import integration.TestConfig
 import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance

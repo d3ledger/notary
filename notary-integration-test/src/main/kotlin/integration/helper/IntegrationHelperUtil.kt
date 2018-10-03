@@ -17,7 +17,6 @@ import notary.eth.EthNotaryConfig
 import notary.eth.executeNotary
 import org.bitcoinj.core.Address
 import org.bitcoinj.wallet.Wallet
-import org.junit.jupiter.api.fail
 import org.web3j.protocol.core.DefaultBlockParameterName
 import provider.btc.BtcAddressesProvider
 import provider.btc.BtcRegisteredAddressesProvider
@@ -49,7 +48,8 @@ class IntegrationHelperUtil {
     init {
         IrohaInitialization.loadIrohaLibrary()
             .failure { ex ->
-                fail("cannot load iroha lib", ex)
+                logger.error("Cannot run eth notary", ex)
+                System.exit(1)
             }
     }
 
@@ -593,7 +593,12 @@ class IntegrationHelperUtil {
      * @param pubkey - user public key
      * @param port - port of registration service
      */
-    fun sendRegistrationRequest(name: String, whitelist: String, pubkey: PublicKey, port: Int): khttp.responses.Response {
+    fun sendRegistrationRequest(
+        name: String,
+        whitelist: String,
+        pubkey: PublicKey,
+        port: Int
+    ): khttp.responses.Response {
         return khttp.post(
             "http://127.0.0.1:${port}/users",
             data = mapOf("name" to name, "whitelist" to whitelist.trim('[').trim(']'), "pubkey" to pubkey.hex())
