@@ -24,7 +24,7 @@ pipeline {
                 iC.inside("-e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
                   sh "./gradlew shadowJar"
                 }
-
+                sh "docker build -t nexus.iroha.tech:19002/d3-deploy/eth-relay:$TAG -f eth-relay.dockerfile ."
                 sh """
                     docker build -t nexus.iroha.tech:19002/d3-deploy/eth-relay:$TAG -f eth-relay.dockerfile . \
                     docker build -t nexus.iroha.tech:19002/d3-deploy/registration:$TAG  -f registration.dockerfile . \
