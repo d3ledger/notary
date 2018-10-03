@@ -25,21 +25,17 @@ pipeline {
                 iC.inside("-e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
                   sh "./gradlew shadowJar"
                 }
-                iPush = docker.build("nexus.iroha.tech:19002/${login}/eth-relay:${TAG}", "-f eth-relay.dockerfile .")
-                iPush.push("${TAG}")
-                sh "docker build -t nexus.iroha.tech:19002/d3-deploy/eth-relay:$TAG -f eth-relay.dockerfile ."
-                sh """
-                    docker build -t nexus.iroha.tech:19002/d3-deploy/eth-relay:$TAG -f eth-relay.dockerfile . \
-                    docker build -t nexus.iroha.tech:19002/d3-deploy/registration:$TAG  -f registration.dockerfile . \
-                    docker build -t nexus.iroha.tech:19002/d3-deploy/notary:$TAG  -f notary.dockerfile . \
-                    docker build -t nexus.iroha.tech:19002/d3-deploy/withdrawal:$TAG  -f withdrawal.dockerfile . \
+                relay = docker.build("nexus.iroha.tech:19002/${login}/eth-relay:${TAG}", "-f eth-relay.dockerfile .")
+                registration = docker.build("nexus.iroha.tech:19002/${login}/registration:${TAG}", "-f registration.dockerfile .")
+                notary = docker.build("nexus.iroha.tech:19002/${login}/notary:${TAG}", "-f notary.dockerfile .")
+                withdrawal = docker.build("nexus.iroha.tech:19002/${login}/eth-relay:${TAG}", "-f eth-relay.dockerfile .")
 
-                    docker push nexus.iroha.tech:19002/d3-deploy/eth-relay:$TAG \
-                    docker push nexus.iroha.tech:19002/d3-deploy/registration:$TAG \
-                    docker push nexus.iroha.tech:19002/d3-deploy/notary:$TAG \
-                    docker push nexus.iroha.tech:19002/d3-deploy/withdrawal:$TAG \
 
-                """
+                relay.push("${TAG}")
+                registration.push("${TAG}")
+                notary.push("${TAG}")
+                withdrawal.push("${TAG}")
+
               }
           }
         }
