@@ -17,6 +17,7 @@ pipeline {
               sh "docker login nexus.iroha.tech:19002 -u ${login} -p '${password}'"
               checkout scm
               sh "echo ${env} ${env.GIT_LOCAL_BRANCH} ${env.CHANGE_BRANCH_LOCAL}"
+
           }
         }
       }
