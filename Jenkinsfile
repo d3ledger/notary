@@ -9,41 +9,6 @@ pipeline {
   }
   agent any
   stages {
-    stage ('Docker login') {
-      agent { label 'd3-build-agent'}
-      steps {
-        script {
-          def scmVars = checkout scm
-          withCredentials([usernamePassword(credentialsId: 'nexus-d3-docker', usernameVariable: 'login', passwordVariable: 'password')]) {
-              sh "docker login nexus.iroha.tech:19002 -u ${login} -p '${password}'"
-              sh "env"
-              sh "echo ${env.BRANCH_NAME}"
-              if(env.BRANCH_NAME ==~ /(master|develop|reserved)/){
-                TAG = env.BRANCH_NAME
-                sh "rm build/libs/notary-1.0-SNAPSHOT-all.jar || true"
-                iC = docker.image("openjdk:8-jdk")
-                iC.inside("-e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
-                  sh "./gradlew shadowJar"
-                }
-                relay = docker.build("nexus.iroha.tech:19002/${login}/eth-relay:${TAG}", "-f eth-relay.dockerfile .")
-                registration = docker.build("nexus.iroha.tech:19002/${login}/registration:${TAG}", "-f registration.dockerfile .")
-                notary = docker.build("nexus.iroha.tech:19002/${login}/notary:${TAG}", "-f notary.dockerfile .")
-                withdrawal = docker.build("nexus.iroha.tech:19002/${login}/eth-relay:${TAG}", "-f eth-relay.dockerfile .")
-
-
-                relay.push("${TAG}")
-                registration.push("${TAG}")
-                notary.push("${TAG}")
-                withdrawal.push("${TAG}")
-
-              }
-          }
-        }
-      }
-
-    }
-
-
     stage ('Stop same job builds') {
       agent { label 'master' }
       steps {
@@ -85,6 +50,40 @@ pipeline {
             }
         }
       }
+
+      stage ('Docker login') {
+        agent { label 'd3-build-agent'}
+        steps {
+          script {
+            def scmVars = checkout scm
+            withCredentials([usernamePassword(credentialsId: 'nexus-d3-docker', usernameVariable: 'login', passwordVariable: 'password')]) {
+                sh "docker login nexus.iroha.tech:19002 -u ${login} -p '${password}'"
+                sh "env"
+                sh "echo ${env.BRANCH_NAME}"
+                if(env.BRANCH_NAME ==~ /(master|develop|reserved)/) {
+                  TAG = env.BRANCH_NAME
+                  sh "rm build/libs/notary-1.0-SNAPSHOT-all.jar || true"
+                  iC = docker.image("openjdk:8-jdk")
+                  iC.inside("-e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
+                    sh "./gradlew shadowJar"
+                  }
+                  relay = docker.build("nexus.iroha.tech:19002/${login}/eth-relay:${TAG}", "-f eth-relay.dockerfile .")
+                  registration = docker.build("nexus.iroha.tech:19002/${login}/registration:${TAG}", "-f registration.dockerfile .")
+                  notary = docker.build("nexus.iroha.tech:19002/${login}/notary:${TAG}", "-f notary.dockerfile .")
+                  withdrawal = docker.build("nexus.iroha.tech:19002/${login}/withdrawal:${TAG}", "-f withdrawal.dockerfile .")
+
+                  relay.push("${TAG}")
+                  registration.push("${TAG}")
+                  notary.push("${TAG}")
+                  withdrawal.push("${TAG}")
+
+              }
+            }
+          }
+        }
+
+      }
+
       post {
         always {
           junit 'build/test-results/**/*.xml'
