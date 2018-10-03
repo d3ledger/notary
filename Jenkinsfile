@@ -19,7 +19,6 @@ pipeline {
               if(env.CHANGE_BRANCH ==~ /(master|develop|reserved)/){
                 sh "build_and_push_nexus.sh ${env.CHANGE_BRANCH}"
               }
-
           }
         }
       }
