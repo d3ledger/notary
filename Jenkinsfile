@@ -19,11 +19,15 @@ pipeline {
               sh "env"
               sh "echo ${env.BRANCH_NAME}"
               if(env.BRANCH_NAME ==~ /(master|develop|reserved)/){
+                TAG = env.BRANCH_NAME
                 sh "rm build/libs/notary-1.0-SNAPSHOT-all.jar || true"
                 iC = docker.image("openjdk:8-jdk")
                 iC.inside("-e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
                   sh "./gradlew shadowJar"
                 }
+
+                iPush = docker.build("docker build -t nexus.iroha.tech:19002/d3-deploy/eth-relay:${TAG}", "-f eth-relay.dockerfile .")
+                iPush.push("nexus.iroha.tech:19002/d3-deploy/eth-relay:${TAG}")
                 sh "docker build -t nexus.iroha.tech:19002/d3-deploy/eth-relay:$TAG -f eth-relay.dockerfile ."
                 sh """
                     docker build -t nexus.iroha.tech:19002/d3-deploy/eth-relay:$TAG -f eth-relay.dockerfile . \
