@@ -117,14 +117,11 @@ class EthRefundStrategyImpl(
                                 logger.error { errorMsg }
                                 throw NotaryException(errorMsg)
                             }
-                            relayProvider.getRelays()
+                            relayProvider.getRelay(commands.transferAsset.srcAccountId)
                         }.fanout {
                             tokenInfo
                         }.fold(
-                            { (relays, tokenInfo) ->
-                                val relayAddress = relays.filter {
-                                    it.value == commands.transferAsset.srcAccountId
-                                }.keys.first()
+                            { (relayAddress, tokenInfo) ->
                                 val decimalAmount =
                                     BigDecimal(amount).scaleByPowerOfTen(tokenInfo.second.toInt()).toPlainString()
                                 EthRefund(destEthAddress, tokenInfo.first, decimalAmount, request.irohaTx, relayAddress)

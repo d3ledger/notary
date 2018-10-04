@@ -44,6 +44,13 @@ class EthRelayProviderIrohaImpl(
         }
     }
 
+    /** Get relay belonging to [irohaAccountId] */
+    override fun getRelay(irohaAccountId: String): Result<String, Exception> {
+        return getRelays().map { relays ->
+            relays.filter { it.value == irohaAccountId }.keys.first()
+        }
+    }
+
     /**
      * Logger
      */
