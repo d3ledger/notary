@@ -32,14 +32,14 @@ class EthFreeRelayProviderTest {
     fun getFreeWallet() {
         val ethFreeWallet = "eth_free_wallet_stub"
 
-        setAccountDetail(irohaConsumer, testConfig.notaryIrohaAccount, ethFreeWallet, "free")
+        setAccountDetail(irohaConsumer, integrationHelper.accountHelper.notaryAccount.accountId, ethFreeWallet, "free")
             .failure { fail(it) }
 
         val freeWalletsProvider =
             EthFreeRelayProvider(
                 testConfig.iroha,
                 integrationHelper.testCredential,
-                testConfig.notaryIrohaAccount,
+                integrationHelper.accountHelper.notaryAccount.accountId,
                 creator
             )
         val result = freeWalletsProvider.getRelay()

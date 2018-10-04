@@ -1,7 +1,6 @@
 package sidechain.iroha.util
 
 import com.github.kittinunf.result.failure
-import config.TestConfig
 import config.loadConfigs
 import jp.co.soramitsu.iroha.Blob
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
@@ -19,12 +18,13 @@ class HasherTest {
     }
 
     /** Test configurations */
-    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
+    private val credentialConfig =
+        loadConfigs("test.testCredentialConfig", config.IrohaCredentialConfig::class.java, "/test.properties")
 
     /** Test keypair */
     private val keypair = ModelUtil.loadKeypair(
-        testConfig.testCredentialConfig.pubkeyPath,
-        testConfig.testCredentialConfig.privkeyPath
+        credentialConfig.pubkeyPath,
+        credentialConfig.privkeyPath
     ).get()
 
     /**
@@ -36,7 +36,7 @@ class HasherTest {
     fun testTransferAssetHash() {
 
         val tx = ModelTransactionBuilder()
-            .creatorAccountId(testConfig.testCredentialConfig.accountId)
+            .creatorAccountId(credentialConfig.accountId)
             .createdTime(ModelUtil.getCurrentTime())
             .quorum(1)
             .transferAsset("from@test", "to@test", "coin#test", "descr", "123")

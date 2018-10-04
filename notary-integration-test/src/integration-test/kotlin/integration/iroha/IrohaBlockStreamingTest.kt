@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.ModelUtil.getCurrentTime
 import sidechain.iroha.util.ModelUtil.getModelTransactionBuilder
 import java.util.concurrent.TimeUnit
