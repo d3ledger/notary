@@ -203,7 +203,7 @@ class IntegrationHelperUtil {
      * @return randomly generated BTC address
      */
     fun preGenBtcAddress(): Result<Address, Exception> {
-        val walletFile = File(configHelper.btcRegistrationConfig.btcWalletPath)
+        val walletFile = File(configHelper.createBtcRegistrationConfig().btcWalletPath)
         val wallet = Wallet.loadFromFile(walletFile)
         val address = wallet.freshReceiveAddress()
         wallet.saveToFile(walletFile)
