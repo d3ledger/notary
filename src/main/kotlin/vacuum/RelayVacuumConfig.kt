@@ -11,6 +11,9 @@ interface RelayVacuumConfig {
     /** Iroha account that stores tokens */
     val tokenStorageAccount: String
 
+    /** Iroha account that sets tokens */
+    val tokenSetterAccount: String
+
     /** Notary Iroha account that stores relay register */
     val notaryIrohaAccount: String
 

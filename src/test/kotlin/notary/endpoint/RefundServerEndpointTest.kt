@@ -9,7 +9,6 @@ import notary.endpoint.eth.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import sidechain.eth.util.DeployHelper
 import java.math.BigInteger
 
 /**

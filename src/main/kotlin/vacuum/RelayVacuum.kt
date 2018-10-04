@@ -24,12 +24,11 @@ class RelayVacuum(
 
     /** Ethereum endpoint */
     private val deployHelper = DeployHelper(relayVacuumConfig.ethereum, relayVacuumEthereumPasswords)
-
     private val ethTokensProvider = EthTokensProviderImpl(
         relayVacuumConfig.iroha,
         keypair,
-        relayVacuumConfig.notaryIrohaAccount,
-        relayVacuumConfig.tokenStorageAccount
+        relayVacuumConfig.tokenStorageAccount,
+        relayVacuumConfig.tokenSetterAccount
     )
 
     private val ethRelayProvider = EthRelayProviderIrohaImpl(

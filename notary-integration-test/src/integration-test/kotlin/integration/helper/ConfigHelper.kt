@@ -30,6 +30,10 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
     val withdrawalConfig =
         loadConfigs("withdrawal", WithdrawalServiceConfig::class.java, "/eth/withdrawal.properties")
 
+    /** Configuration for vacuum service instance */
+    val vacuumConfig =
+        loadConfigs("relay-vacuum", RelayVacuumConfig::class.java, "/eth/vacuum.properties")
+
     /** Configuration for registration instance */
     val ethRegistrationConfig =
         loadConfigs("eth-registration", EthRegistrationConfig::class.java, "/eth/registration.properties")
@@ -37,7 +41,7 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
     val btcNotaryConfig = loadConfigs("btc-notary", BtcNotaryConfig::class.java, "/btc/notary.properties")
 
     val relayRegistrationConfig =
-        loadConfigs("test", RelayRegistrationConfig::class.java, "/test.properties")
+        loadConfigs("relay-registration", RelayRegistrationConfig::class.java, "/eth/relay_registration.properties")
 
     val btcRegistrationConfig =
         loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/btc/registration.properties")
@@ -201,20 +205,26 @@ class ConfigHelper(private val accountHelper: AccountHelper) {
         }
     }
 
-    fun createRelayVacuumConfig(): RelayVacuumConfig {
+    fun createRelayVacuumConfig(
+        registrationServiceIrohaAccount: String = vacuumConfig.registrationServiceIrohaAccount,
+        tokenStorageAccount: String = vacuumConfig.tokenStorageAccount,
+        tokenSetterAccount: String = vacuumConfig.tokenSetterAccount
+    ): RelayVacuumConfig {
         return object : RelayVacuumConfig {
-            override val registrationServiceIrohaAccount = accountHelper.registrationAccount
+            override val registrationServiceIrohaAccount = registrationServiceIrohaAccount
 
-            override val tokenStorageAccount = accountHelper.tokenStorageAccount
+            override val tokenStorageAccount = tokenStorageAccount
+
+            override val tokenSetterAccount = tokenSetterAccount
 
             /** Notary Iroha account that stores relay register */
             override val notaryIrohaAccount = accountHelper.notaryAccount
 
             /** Iroha configurations */
-            override val iroha = createIrohaConfig()
+            override val iroha = vacuumConfig.iroha
 
             /** Ethereum configurations */
-            override val ethereum = testConfig.ethereum
+            override val ethereum = vacuumConfig.ethereum
         }
     }
 

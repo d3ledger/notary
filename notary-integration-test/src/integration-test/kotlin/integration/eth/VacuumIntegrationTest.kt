@@ -41,7 +41,13 @@ class VacuumIntegrationTest {
         }
         val initialMasterBalance = integrationHelper.getMasterEthBalance()
         logger.info("initialMasterBalance $initialMasterBalance")
-        vacuum.executeVacuum(integrationHelper.configHelper.createRelayVacuumConfig())
+        vacuum.executeVacuum(
+            integrationHelper.configHelper.createRelayVacuumConfig(
+                integrationHelper.accountHelper.registrationAccount,
+                integrationHelper.accountHelper.tokenStorageAccount,
+                integrationHelper.accountHelper.tokenSetterAccount
+            )
+        )
         Thread.sleep(30_000)
         val newMasterBalance = integrationHelper.getMasterEthBalance()
         Assertions.assertEquals(newMasterBalance, initialMasterBalance.add(totalRelayBalance))
