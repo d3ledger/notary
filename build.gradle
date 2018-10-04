@@ -13,18 +13,20 @@ buildscript {
         classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.6'
         classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.3.0'
         classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
+        classpath 'com.github.jengelman.gradle.plugins:shadow:4.0.1'
         pitest 'org.pitest:pitest-junit5-plugin:0.3'
     }
 }
+
 
 group = 'd3'
 version = '1.0-SNAPSHOT'
 
 
-apply plugin: 'application'
 apply plugin: 'com.google.protobuf'
 apply plugin: "jacoco"
 apply plugin: 'info.solidsoft.pitest'
+apply plugin: 'com.github.johnrengelman.shadow'
 
 allprojects {
     apply plugin: 'java'
@@ -124,6 +126,12 @@ dependencies {
 
 }
 
+jar {
+    manifest {
+        attributes 'Main-Class': 'notary.eth.EthNotaryMain'
+    }
+}
+
 allprojects {
     kotlin {
         experimental {
@@ -158,9 +166,6 @@ allprojects {
         println "Runtime Iroha library path:${systemProperties}"
         environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
     }
-}
-run {
-    systemProperty "java.library.path", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
 }
 
 protobuf {
