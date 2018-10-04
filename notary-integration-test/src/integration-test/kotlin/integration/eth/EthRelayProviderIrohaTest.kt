@@ -1,18 +1,12 @@
 package integration.eth
 
-import com.github.kittinunf.result.failure
 import integration.helper.IntegrationHelperUtil
-import notary.IrohaCommand
-import notary.IrohaTransaction
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
 import provider.eth.EthRelayProviderIrohaImpl
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
-import sidechain.iroha.util.ModelUtil
 
 /**
  * Requires Iroha is running
@@ -23,11 +17,11 @@ class EthRelayProviderIrohaTest {
     val integrationHelper = IntegrationHelperUtil()
     val testConfig = integrationHelper.configHelper.testConfig
 
-    /** Iroha account that has set details */
-    private val relaySetter = integrationHelper.accountHelper.registrationAccount.accountId
-
     /** Iroha account that holds details */
     private val relayStorage = integrationHelper.accountHelper.notaryAccount.accountId
+
+    /** Iroha account that has set details */
+    private val relaySetter = integrationHelper.accountHelper.registrationAccount.accountId
 
     val irohaNetwork = IrohaNetworkImpl(
         testConfig.iroha.hostname,
@@ -40,7 +34,7 @@ class EthRelayProviderIrohaTest {
      * @then not free wallets are returned in a map
      */
     @Test
-    fun storageTest() {
+    fun testStorage() {
         val domain = "notary"
 
         val entries = mapOf(
@@ -60,16 +54,19 @@ class EthRelayProviderIrohaTest {
             irohaNetwork,
             integrationHelper.testCredential,
             relayStorage,
-            integrationHelper.testCredential.accountId
+            relaySetter
         ).getRelays()
             .fold(
-                { assertEquals(valid, it) },
+                {
+                    assertEquals(valid, it)
+                    println(it)
+                },
                 { ex -> fail("cannot get relays", ex) }
             )
     }
 
     /**
-     * @given There is no relay accounts registered
+     * @given There is no relay accounts registered (we use test accountId as relay holder)
      * @when getRelays() is called
      * @then empty map is returned
      */
@@ -78,16 +75,12 @@ class EthRelayProviderIrohaTest {
         EthRelayProviderIrohaImpl(
             irohaNetwork,
             integrationHelper.testCredential,
-            relayStorage,
+            integrationHelper.testCredential.accountId,
             relaySetter
         ).getRelays()
             .fold(
-                {
-                    assert(it.isEmpty())
-                },
-                { ex ->
-                    fail("result has exception", ex)
-                }
+                { assert(it.isEmpty()) },
+                { ex -> fail("result has exception", ex) }
             )
     }
 }
