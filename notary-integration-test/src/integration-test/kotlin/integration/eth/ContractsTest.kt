@@ -15,6 +15,7 @@ import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Hash
 import org.web3j.crypto.Keys
 import org.web3j.protocol.core.DefaultBlockParameterName
+import org.web3j.protocol.core.methods.response.TransactionReceipt
 import org.web3j.protocol.exceptions.TransactionException
 import org.web3j.utils.Numeric.hexStringToByteArray
 import sidechain.eth.util.DeployHelper
@@ -37,7 +38,7 @@ class ContractsTest {
     private lateinit var master: Master
     private lateinit var relay: Relay
 
-    private var addPeerCalls: Int = 0
+    private var addPeerCalls = BigInteger.ZERO
 
     val etherAddress = "0x0000000000000000000000000000000000000000"
     val defaultIrohaHash = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))
@@ -67,18 +68,9 @@ class ContractsTest {
 
     private fun sendAddPeer(address: String) {
         ++addPeerCalls
-        val addPeer = master.addPeer(address).send()
-        // addPeer call produces 2 events
-        // first event is amount of peers after new peer was added
-        // second one is address of added peer
-        // events should be aligned to 64 hex digits and prefixed with 0x
-        assertEquals(2, addPeer.logs.size)
-        assertEquals("0x" + String.format("%064x", addPeerCalls), addPeer.logs[0].data)
-        assertEquals(
-            "0x" + "0".repeat(24) +
-                    address.slice(2 until address.length),
-            addPeer.logs[1].data
-        )
+        master.addPeer(address).send()
+        // addPeer return number of added peers
+        assertEquals(addPeerCalls, master.peersCount().send())
     }
 
     private fun transferTokensToMaster(amount: BigInteger) {
@@ -142,11 +134,11 @@ class ContractsTest {
         amount: BigInteger,
         tokenAddress: String,
         to: String
-    ) {
+    ): TransactionReceipt? {
         val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, defaultIrohaHash, relay.contractAddress)
         val sigs = prepareSignatures(1, listOf(keypair), finalHash)
 
-        master.withdraw(
+        return master.withdraw(
             tokenAddress,
             amount,
             to,
@@ -217,7 +209,6 @@ class ContractsTest {
         relayRegistry = deployHelper.deployRelayRegistrySmartContract()
         master = deployHelper.deployMasterSmartContract(relayRegistry.contractAddress)
         relay = deployHelper.deployRelaySmartContract(master.contractAddress)
-        addPeerCalls = 0
     }
 
     /**
@@ -282,13 +273,18 @@ class ContractsTest {
         sendAddPeer(accMain)
         master.disableAddingNewPeers().send()
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
-        Assertions.assertThrows(TransactionException::class.java) {
+        val call =
             withdraw(
                 BigInteger.valueOf(10000),
                 etherAddress,
                 accGreen
             )
-        }
+        assertEquals(
+            "0x" + "0".repeat(24) +
+                    etherAddress.slice(2 until etherAddress.length),
+            call!!.logs[0].data.subSequence(0, 66)
+        )
+        assertEquals(accGreen, "0x" + call.logs[0].data.subSequence(90, 130))
     }
 
     /**
@@ -1099,5 +1095,4 @@ class ContractsTest {
         }
 
     }
-
 }

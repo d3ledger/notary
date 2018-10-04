@@ -1,18 +1,12 @@
 package integration.eth
 
-import com.github.kittinunf.result.failure
 import integration.helper.IntegrationHelperUtil
-import notary.IrohaCommand
-import notary.IrohaTransaction
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
 import provider.eth.EthRelayProviderIrohaImpl
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
-import sidechain.iroha.util.ModelUtil
 
 /**
  * Requires Iroha is running
@@ -23,11 +17,11 @@ class EthRelayProviderIrohaTest {
     val integrationHelper = IntegrationHelperUtil()
     val testConfig = integrationHelper.configHelper.testConfig
 
-    /** Iroha account that has set details */
-    private val detailSetter = testConfig.registrationIrohaAccount
-
     /** Iroha account that holds details */
-    private val detailHolder = testConfig.notaryIrohaAccount
+    private val relayStorage = integrationHelper.accountHelper.notaryAccount.accountId
+
+    /** Iroha account that has set details */
+    private val relaySetter = integrationHelper.accountHelper.registrationAccount.accountId
 
     val irohaNetwork = IrohaNetworkImpl(
         testConfig.iroha.hostname,
@@ -35,12 +29,12 @@ class EthRelayProviderIrohaTest {
     )
 
     /**
-     * @given [detailHolder] has ethereum wallets in details
+     * @given ethereum relay wallets are stored in the system
      * @when getRelays() is called
      * @then not free wallets are returned in a map
      */
     @Test
-    fun storageTest() {
+    fun testStorage() {
         val domain = "notary"
 
         val entries = mapOf(
@@ -52,34 +46,15 @@ class EthRelayProviderIrohaTest {
             "0xfe9e8709d3215310075d67e3ed32a380ccf451c8" to "free"
         )
 
+        integrationHelper.addRelaysToIroha(entries)
+
         val valid = entries.filter { it.value != "free" }
-
-        val masterAccount = testConfig.registrationIrohaAccount
-
-        val irohaOutput = IrohaTransaction(
-            integrationHelper.testCredential.accountId,
-            ModelUtil.getCurrentTime(),
-            1,
-            entries.map {
-                // Set ethereum wallet as occupied by user id
-                IrohaCommand.CommandSetAccountDetail(
-                    masterAccount,
-                    it.key,
-                    it.value
-                )
-            }
-        )
-
-        val tx = IrohaConverterImpl().convert(irohaOutput)
-
-        IrohaConsumerImpl(integrationHelper.testCredential, testConfig.iroha).sendAndCheck(tx)
-            .failure { ex -> fail(ex) }
 
         EthRelayProviderIrohaImpl(
             irohaNetwork,
             integrationHelper.testCredential,
-            masterAccount,
-            integrationHelper.testCredential.accountId
+            relayStorage,
+            relaySetter
         ).getRelays()
             .fold(
                 { assertEquals(valid, it) },
@@ -88,7 +63,7 @@ class EthRelayProviderIrohaTest {
     }
 
     /**
-     * @given There is no account details on [detailHolder]
+     * @given There is no relay accounts registered (we use test accountId as relay holder)
      * @when getRelays() is called
      * @then empty map is returned
      */
@@ -97,16 +72,12 @@ class EthRelayProviderIrohaTest {
         EthRelayProviderIrohaImpl(
             irohaNetwork,
             integrationHelper.testCredential,
-            detailSetter,
-            detailHolder
+            integrationHelper.testCredential.accountId,
+            relaySetter
         ).getRelays()
             .fold(
-                {
-                    assert(it.isEmpty())
-                },
-                { ex ->
-                    fail("result has exception", ex)
-                }
+                { assert(it.isEmpty()) },
+                { ex -> fail("result has exception", ex) }
             )
     }
 }

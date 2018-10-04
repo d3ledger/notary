@@ -9,7 +9,7 @@ import "./IERC20.sol";
 contract Master {
     address private owner;
     mapping(address => bool) private peers;
-    uint private peersCount;
+    uint public peersCount;
     mapping(bytes32 => bool) private used;
     mapping(address => bool) private uniqueAddresses;
 
@@ -21,10 +21,10 @@ contract Master {
     // TODO: For development purpose only, https://soramitsu.atlassian.net/browse/D3-418
     bool public isLockAddPeer = false;
 
-    event AddressEvent(address input);
-    event StringEvent(string input);
-    event BytesEvent(bytes32 input);
-    event NumberEvent(uint256 input);
+    /**
+     * Emit event when master contract does not have enough assets to proceed withdraw
+     */
+    event InsufficientFundsForWithdrawal(address asset, address recipient);
 
     /**
      * Constructor. Sets contract owner to contract creator.
@@ -55,7 +55,6 @@ contract Master {
      */
     function() external payable {
         require(msg.data.length == 0);
-        emit AddressEvent(msg.sender);
     }
 
     /**
@@ -70,14 +69,13 @@ contract Master {
      * Adds new peer to list of signature verifiers. Can be called only by contract owner.
      * @param newAddress address of new peer
      */
-    function addPeer(address newAddress) public onlyOwner {
+    function addPeer(address newAddress) public onlyOwner returns(uint){
         // TODO: For development purpose only, https://soramitsu.atlassian.net/browse/D3-418
         require(!isLockAddPeer);
         require(peers[newAddress] == false);
         peers[newAddress] = true;
         ++peersCount;
-        emit NumberEvent(peersCount);
-        emit AddressEvent(newAddress);
+        return peersCount;
     }
 
     /**
@@ -160,10 +158,6 @@ contract Master {
 
         used[txHash] = true;
 
-        emit NumberEvent(amount);
-        emit NumberEvent(needSigs);
-        emit NumberEvent(s.length);
-
         address[] memory recoveredAddresses = new address[](s.length);
         for (uint i = 0; i < s.length; ++i) {
             recoveredAddresses[i] = recoverAddress(
@@ -178,15 +172,20 @@ contract Master {
         require(checkForUniqueness(recoveredAddresses));
 
         if (tokenAddress == 0) {
-            require(address(this).balance >= amount);
-            // untrusted transfer, relies on provided cryptographic proof
-            to.transfer(amount);
+            if (address(this).balance < amount) {
+                emit InsufficientFundsForWithdrawal(0, to);
+            } else {
+                // untrusted transfer, relies on provided cryptographic proof
+                to.transfer(amount);
+            }
         } else {
             IERC20 coin = IERC20(tokenAddress);
-            // untrusted call, relies on token whitelist check
-            require(coin.balanceOf(this) >= amount);
-            // untrusted call, relies on provided cryptographic proof
-            coin.transfer(to, amount);
+            if (coin.balanceOf(this) < amount) {
+                emit InsufficientFundsForWithdrawal(tokenAddress, to);
+            } else {
+                // untrusted call, relies on provided cryptographic proof
+                coin.transfer(to, amount);
+            }
         }
     }
 
@@ -222,11 +221,9 @@ contract Master {
      * @param s s-component of signature from hash
      * @return address recovered from signature
      */
-    function recoverAddress(bytes32 hash, uint8 v, bytes32 r, bytes32 s) private returns (address) {
-        emit BytesEvent(hash);
+    function recoverAddress(bytes32 hash, uint8 v, bytes32 r, bytes32 s) private pure returns (address) {
         bytes32 simple_hash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
         address res = ecrecover(simple_hash, v, r, s);
-        emit AddressEvent(res);
         return res;
     }
 }

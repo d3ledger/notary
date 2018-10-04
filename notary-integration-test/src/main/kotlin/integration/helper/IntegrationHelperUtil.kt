@@ -17,7 +17,6 @@ import notary.eth.EthNotaryConfig
 import notary.eth.executeNotary
 import org.bitcoinj.core.Address
 import org.bitcoinj.wallet.Wallet
-import org.junit.jupiter.api.fail
 import org.web3j.protocol.core.DefaultBlockParameterName
 import provider.btc.BtcAddressesProvider
 import provider.btc.BtcRegisteredAddressesProvider
@@ -49,7 +48,8 @@ class IntegrationHelperUtil {
     init {
         IrohaInitialization.loadIrohaLibrary()
             .failure { ex ->
-                fail("cannot load iroha lib", ex)
+                logger.error("Cannot run eth notary", ex)
+                System.exit(1)
             }
     }
 
@@ -68,7 +68,13 @@ class IntegrationHelperUtil {
 
     val accountHelper by lazy { AccountHelper() }
 
-    val configHelper by lazy { ConfigHelper(accountHelper, relayRegistryContract.contractAddress) }
+    val configHelper by lazy {
+        ConfigHelper(
+            accountHelper,
+            relayRegistryContract.contractAddress,
+            masterContract.contractAddress
+        )
+    }
 
     val ethRegistrationConfig by lazy { configHelper.createEthRegistrationConfig(testConfig.ethereum) }
 
@@ -101,24 +107,15 @@ class IntegrationHelperUtil {
     }
 
     private val whiteListIrohaConsumer by lazy {
-        IrohaConsumerImpl(
-            IrohaCredential(testConfig.whitelistSetter, testCredential.keyPair),
-            testConfig.iroha
-        )
+        IrohaConsumerImpl(accountHelper.whitelistSetter, testConfig.iroha)
     }
 
     private val notaryListIrohaConsumer by lazy {
-        IrohaConsumerImpl(
-            accountHelper.notaryListSetterAccount,
-            testConfig.iroha
-        )
+        IrohaConsumerImpl(accountHelper.notaryListSetterAccount, testConfig.iroha)
     }
 
     private val mstRegistrationIrohaConsumer by lazy {
-        IrohaConsumerImpl(
-            accountHelper.mstRegistrationAccount,
-            testConfig.iroha
-        )
+        IrohaConsumerImpl(accountHelper.mstRegistrationAccount, testConfig.iroha)
     }
 
     /** Notary ethereum address that is used in master smart contract to verify proof provided by notary */
@@ -212,7 +209,7 @@ class IntegrationHelperUtil {
      * @return randomly generated BTC address
      */
     fun preGenBtcAddress(): Result<Address, Exception> {
-        val walletFile = File(configHelper.btcRegistrationConfig.btcWalletPath)
+        val walletFile = File(configHelper.createBtcRegistrationConfig().btcWalletPath)
         val wallet = Wallet.loadFromFile(walletFile)
         val address = wallet.freshReceiveAddress()
         wallet.saveToFile(walletFile)
@@ -545,7 +542,7 @@ class IntegrationHelperUtil {
     }
 
     /**
-     * Add notary to notary list provider
+     * Add notary to notary list provider. [name] is a string to identify a multisig notary account
      */
     fun addNotary(name: String, address: String) {
         ModelUtil.setAccountDetail(
@@ -554,6 +551,22 @@ class IntegrationHelperUtil {
             name,
             address
         )
+    }
+
+    /**
+     * Add list of [relays].
+     * Set relays as details to NotaryAccount from RegistrationAccount
+     */
+    fun addRelaysToIroha(relays: Map<String, String>) {
+        relays.map {
+            // Set ethereum wallet as occupied by user id
+            ModelUtil.setAccountDetail(
+                registrationConsumer,
+                accountHelper.notaryAccount.accountId,
+                it.key,
+                it.value
+            )
+        }
     }
 
     /**
