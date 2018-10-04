@@ -14,7 +14,7 @@ import util.getRandomString
 /**
  * Class that handles all the accounts in running configuration.
  */
-class AccountHelper() {
+class AccountHelper {
 
     val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 

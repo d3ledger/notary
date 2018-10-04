@@ -68,7 +68,13 @@ class IntegrationHelperUtil {
 
     val accountHelper by lazy { AccountHelper() }
 
-    val configHelper by lazy { ConfigHelper(accountHelper, relayRegistryContract.contractAddress) }
+    val configHelper by lazy {
+        ConfigHelper(
+            accountHelper,
+            relayRegistryContract.contractAddress,
+            masterContract.contractAddress
+        )
+    }
 
     val ethRegistrationConfig by lazy { configHelper.createEthRegistrationConfig() }
 

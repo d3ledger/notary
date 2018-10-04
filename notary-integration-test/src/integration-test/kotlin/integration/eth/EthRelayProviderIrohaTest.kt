@@ -57,10 +57,7 @@ class EthRelayProviderIrohaTest {
             relaySetter
         ).getRelays()
             .fold(
-                {
-                    assertEquals(valid, it)
-                    println(it)
-                },
+                { assertEquals(valid, it) },
                 { ex -> fail("cannot get relays", ex) }
             )
     }

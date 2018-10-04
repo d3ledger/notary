@@ -19,7 +19,8 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 class ConfigHelper(
     private val accountHelper: AccountHelper,
-    val relayRegistryContractAddress: String
+    val relayRegistryContractAddress: String,
+    val masterContractAddress: String
 ) {
 
     /** Configurations for tests */
@@ -83,7 +84,7 @@ class ConfigHelper(
 
         return object : RelayRegistrationConfig {
             override val number = relayRegistrationConfig.number
-            override val ethMasterWallet = relayRegistrationConfig.ethMasterWallet
+            override val ethMasterWallet = masterContractAddress
             override val notaryIrohaAccount = accountHelper.notaryAccount.accountId
             override val iroha = createIrohaConfig()
             override val ethereum = relayRegistrationConfig.ethereum
