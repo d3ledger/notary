@@ -3,7 +3,9 @@
 package token
 
 import com.github.kittinunf.result.flatMap
+import com.github.kittinunf.result.map
 import config.loadConfigs
+import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.util.ModelUtil
@@ -28,13 +30,19 @@ fun executeTokenRegistration(tokenRegistrationConfig: ERC20TokenRegistrationConf
     IrohaInitialization.loadIrohaLibrary()
         .flatMap {
             ModelUtil.loadKeypair(
-                tokenRegistrationConfig.iroha.pubkeyPath,
-                tokenRegistrationConfig.iroha.privkeyPath
+                tokenRegistrationConfig.irohaCredential.pubkeyPath,
+                tokenRegistrationConfig.irohaCredential.privkeyPath
             )
         }
-        .flatMap { keypair -> ERC20TokenRegistration(keypair, tokenRegistrationConfig).init() }
-        .fold({ logger.info { "ERC20 tokens were successfully registered" } }, { ex ->
-            logger.error("Cannot run ERC20 token registration", ex)
-            System.exit(1)
-        })
+        .map { keypair -> IrohaCredential(tokenRegistrationConfig.irohaCredential.accountId, keypair) }
+        .flatMap { credentials -> ERC20TokenRegistration(tokenRegistrationConfig, credentials).init() }
+        .fold(
+            {
+                logger.info { "ERC20 tokens were successfully registered" }
+            },
+            { ex ->
+                logger.error("Cannot run ERC20 token registration", ex)
+                System.exit(1)
+            }
+        )
 }

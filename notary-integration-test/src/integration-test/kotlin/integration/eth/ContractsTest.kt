@@ -94,7 +94,7 @@ class ContractsTest {
         val tokenAddress = token.contractAddress
         val to = accGreen
 
-        val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, defaultIrohaHash)
+        val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, defaultIrohaHash, relay.contractAddress)
         val sigs = prepareSignatures(1, listOf(keypair), finalHash)
 
         master.withdraw(
@@ -104,7 +104,8 @@ class ContractsTest {
             defaultByteHash,
             sigs.vv,
             sigs.rr,
-            sigs.ss
+            sigs.ss,
+            relay.contractAddress
         ).send()
     }
 
@@ -116,7 +117,7 @@ class ContractsTest {
     private fun withdraw(to: String, amount: BigInteger) {
         val tokenAddress = token.contractAddress
 
-        val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, defaultIrohaHash)
+        val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, defaultIrohaHash, relay.contractAddress)
         val sigs = prepareSignatures(1, listOf(keypair), finalHash)
 
         master.withdraw(
@@ -126,7 +127,8 @@ class ContractsTest {
             defaultByteHash,
             sigs.vv,
             sigs.rr,
-            sigs.ss
+            sigs.ss,
+            relay.contractAddress
         ).send()
     }
 
@@ -141,7 +143,7 @@ class ContractsTest {
         tokenAddress: String,
         to: String
     ) {
-        val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, defaultIrohaHash)
+        val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, defaultIrohaHash, relay.contractAddress)
         val sigs = prepareSignatures(1, listOf(keypair), finalHash)
 
         master.withdraw(
@@ -151,7 +153,8 @@ class ContractsTest {
             defaultByteHash,
             sigs.vv,
             sigs.rr,
-            sigs.ss
+            sigs.ss,
+            relay.contractAddress
         ).send()
     }
 
@@ -168,7 +171,7 @@ class ContractsTest {
         to: String,
         fromMaster: Boolean
     ) {
-        val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, defaultIrohaHash)
+        val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, defaultIrohaHash, relay.contractAddress)
         val sigs = prepareSignatures(1, listOf(keypair), finalHash)
         if (fromMaster) {
             master.withdraw(
@@ -178,7 +181,8 @@ class ContractsTest {
                 defaultByteHash,
                 sigs.vv,
                 sigs.rr,
-                sigs.ss
+                sigs.ss,
+                relay.contractAddress
             ).send()
         } else {
             addWhiteListToRelayRegistry(relay.contractAddress, listOf(to))
@@ -189,7 +193,8 @@ class ContractsTest {
                 defaultByteHash,
                 sigs.vv,
                 sigs.rr,
-                sigs.ss
+                sigs.ss,
+                relay.contractAddress
             ).send()
         }
     }
@@ -243,6 +248,7 @@ class ContractsTest {
     @Test
     fun singleCorrectSignatureTokenTest() {
         sendAddPeer(accMain)
+        master.disableAddingNewPeers().send()
         master.addToken(token.contractAddress).send()
         transferTokensToMaster(BigInteger.valueOf(5))
         addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
@@ -260,6 +266,7 @@ class ContractsTest {
     fun singleNotEnoughSignaturesTokenTest() {
         sendAddPeer(accMain)
         sendAddPeer(accGreen)
+        master.disableAddingNewPeers().send()
         transferTokensToMaster(BigInteger.valueOf(5))
         Assertions.assertThrows(TransactionException::class.java) { withdraw(BigInteger.valueOf(1)) }
     }
@@ -273,6 +280,7 @@ class ContractsTest {
     @Test
     fun notEnoughEtherTest() {
         sendAddPeer(accMain)
+        master.disableAddingNewPeers().send()
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
         Assertions.assertThrows(TransactionException::class.java) {
             withdraw(
@@ -292,6 +300,7 @@ class ContractsTest {
     @Test
     fun notEnoughTokensTest() {
         sendAddPeer(accMain)
+        master.disableAddingNewPeers().send()
         transferTokensToMaster(BigInteger.valueOf(5))
         Assertions.assertThrows(TransactionException::class.java) { withdraw(BigInteger.valueOf(10)) }
     }
@@ -307,6 +316,7 @@ class ContractsTest {
         val initialBalance =
             deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         sendAddPeer(accMain)
+        master.disableAddingNewPeers().send()
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
         addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
         withdraw(
@@ -335,6 +345,7 @@ class ContractsTest {
         val initialBalance =
             deployHelper.web3.ethGetBalance(accGreen, DefaultBlockParameterName.LATEST).send().balance
         sendAddPeer(accMain)
+        master.disableAddingNewPeers().send()
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
         withdraw(
             BigInteger.valueOf(1000), etherAddress,
@@ -361,7 +372,7 @@ class ContractsTest {
         val initialBalance =
             deployHelper.web3.ethGetBalance(relay.contractAddress, DefaultBlockParameterName.LATEST).send().balance
         sendAddPeer(accMain)
-
+        master.disableAddingNewPeers().send()
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
         withdraw(
             BigInteger.valueOf(1000), etherAddress,
@@ -398,10 +409,12 @@ class ContractsTest {
     @Test
     fun differentVRS() {
         sendAddPeer(accMain)
+        master.disableAddingNewPeers().send()
         transferTokensToMaster(BigInteger.valueOf(5))
 
         val amount = BigInteger.valueOf(1)
-        val finalHash = hashToWithdraw(token.contractAddress, amount.toString(), accGreen, defaultIrohaHash)
+        val finalHash =
+            hashToWithdraw(token.contractAddress, amount.toString(), accGreen, defaultIrohaHash, relay.contractAddress)
         val keypair = DeployHelper(testConfig.ethereum, passwordConfig).credentials.ecKeyPair
 
         val sigs = prepareSignatures(1, listOf(keypair), finalHash)
@@ -415,7 +428,8 @@ class ContractsTest {
                 defaultByteHash,
                 sigs.vv,
                 sigs.rr,
-                sigs.ss
+                sigs.ss,
+                relay.contractAddress
             ).send()
         }
     }
@@ -430,10 +444,12 @@ class ContractsTest {
     @Test
     fun sameSignatures() {
         sendAddPeer(accMain)
+        master.disableAddingNewPeers().send()
         transferTokensToMaster(BigInteger.valueOf(5))
 
         val amount = BigInteger.valueOf(1)
-        val finalHash = hashToWithdraw(token.contractAddress, amount.toString(), accGreen, defaultIrohaHash)
+        val finalHash =
+            hashToWithdraw(token.contractAddress, amount.toString(), accGreen, defaultIrohaHash, relay.contractAddress)
         val sigs = prepareSignatures(2, listOf(keypair, keypair), finalHash)
 
         Assertions.assertThrows(TransactionException::class.java) {
@@ -444,7 +460,8 @@ class ContractsTest {
                 defaultByteHash,
                 sigs.vv,
                 sigs.rr,
-                sigs.ss
+                sigs.ss,
+                relay.contractAddress
             ).send()
         }
     }
@@ -460,10 +477,12 @@ class ContractsTest {
     @Test
     fun wrongPeerSignature() {
         sendAddPeer(accMain)
+        master.disableAddingNewPeers().send()
         transferTokensToMaster(BigInteger.valueOf(5))
 
         val amount = BigInteger.valueOf(1)
-        val finalHash = hashToWithdraw(token.contractAddress, amount.toString(), accGreen, defaultIrohaHash)
+        val finalHash =
+            hashToWithdraw(token.contractAddress, amount.toString(), accGreen, defaultIrohaHash, relay.contractAddress)
         val sigs = prepareSignatures(2, listOf(keypair, Keys.createEcKeyPair()), finalHash)
 
         Assertions.assertThrows(TransactionException::class.java) {
@@ -474,7 +493,8 @@ class ContractsTest {
                 defaultByteHash,
                 sigs.vv,
                 sigs.rr,
-                sigs.ss
+                sigs.ss,
+                relay.contractAddress
             ).send()
         }
     }
@@ -488,10 +508,12 @@ class ContractsTest {
     @Test
     fun invalidSignature() {
         sendAddPeer(accMain)
+        master.disableAddingNewPeers().send()
         transferTokensToMaster(BigInteger.valueOf(5))
 
         val amount = BigInteger.valueOf(1)
-        val finalHash = hashToWithdraw(token.contractAddress, amount.toString(), accGreen, defaultIrohaHash)
+        val finalHash =
+            hashToWithdraw(token.contractAddress, amount.toString(), accGreen, defaultIrohaHash, relay.contractAddress)
 
         val sigs = prepareSignatures(1, listOf(keypair), finalHash)
         sigs.ss.first()[0] = sigs.ss.first()[0].inc()
@@ -504,7 +526,8 @@ class ContractsTest {
                 defaultByteHash,
                 sigs.vv,
                 sigs.rr,
-                sigs.ss
+                sigs.ss,
+                relay.contractAddress
             ).send()
         }
     }
@@ -518,6 +541,7 @@ class ContractsTest {
     @Test
     fun usedHashTest() {
         sendAddPeer(accMain)
+        master.disableAddingNewPeers().send()
         master.addToken(token.contractAddress).send()
         addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
         transferTokensToMaster(BigInteger.valueOf(5))
@@ -652,7 +676,8 @@ class ContractsTest {
                 etherAddress,
                 amountToSend.toString(),
                 accGreen,
-                defaultIrohaHash
+                defaultIrohaHash,
+                relay.contractAddress
             )
 
         val keypairs = ArrayList<ECKeyPair>()
@@ -661,6 +686,7 @@ class ContractsTest {
             keypairs.add(keypair)
             sendAddPeer("0x" + Keys.getAddress(keypair))
         }
+        master.disableAddingNewPeers().send()
         val sigs = prepareSignatures(sigCount, keypairs, finalHash)
 
         addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
@@ -672,7 +698,8 @@ class ContractsTest {
             defaultByteHash,
             sigs.vv,
             sigs.rr,
-            sigs.ss
+            sigs.ss,
+            relay.contractAddress
         ).send()
 
         assertEquals(
@@ -706,7 +733,8 @@ class ContractsTest {
                 tokenAddress,
                 amountToSend.toString(),
                 accGreen,
-                defaultIrohaHash
+                defaultIrohaHash,
+                relay.contractAddress
             )
 
         val keypairs = ArrayList<ECKeyPair>()
@@ -717,6 +745,7 @@ class ContractsTest {
         }
         val sigs = prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
 
+        master.disableAddingNewPeers().send()
         addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
 
         master.withdraw(
@@ -726,7 +755,8 @@ class ContractsTest {
             defaultByteHash,
             sigs.vv,
             sigs.rr,
-            sigs.ss
+            sigs.ss,
+            relay.contractAddress
         ).send()
 
         assertEquals(
@@ -757,7 +787,8 @@ class ContractsTest {
                 tokenAddress,
                 amountToSend.toString(),
                 accGreen,
-                defaultIrohaHash
+                defaultIrohaHash,
+                relay.contractAddress
             )
 
         val keypairs = ArrayList<ECKeyPair>()
@@ -766,6 +797,7 @@ class ContractsTest {
             keypairs.add(keypair)
             sendAddPeer("0x" + Keys.getAddress(keypair))
         }
+        master.disableAddingNewPeers().send()
         val sigs = prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
 
         Assertions.assertThrows(TransactionException::class.java) {
@@ -776,7 +808,8 @@ class ContractsTest {
                 defaultByteHash,
                 sigs.vv,
                 sigs.rr,
-                sigs.ss
+                sigs.ss,
+                relay.contractAddress
             ).send()
         }
     }
@@ -801,7 +834,8 @@ class ContractsTest {
                 tokenAddress,
                 amountToSend.toString(),
                 accGreen,
-                defaultIrohaHash
+                defaultIrohaHash,
+                relay.contractAddress
             )
 
         val keypairs = ArrayList<ECKeyPair>()
@@ -810,6 +844,7 @@ class ContractsTest {
             keypairs.add(keypair)
             sendAddPeer("0x" + Keys.getAddress(keypair))
         }
+        master.disableAddingNewPeers().send()
         val sigs = prepareSignatures(sigCount, keypairs, finalHash)
 
         addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
@@ -821,7 +856,8 @@ class ContractsTest {
             defaultByteHash,
             sigs.vv,
             sigs.rr,
-            sigs.ss
+            sigs.ss,
+            relay.contractAddress
         ).send()
 
         assertEquals(
@@ -855,7 +891,8 @@ class ContractsTest {
                 tokenAddress,
                 amountToSend.toString(),
                 accGreen,
-                defaultIrohaHash
+                defaultIrohaHash,
+                relay.contractAddress
             )
 
         val keypairs = ArrayList<ECKeyPair>()
@@ -864,6 +901,7 @@ class ContractsTest {
             keypairs.add(keypair)
             sendAddPeer("0x" + Keys.getAddress(keypair))
         }
+        master.disableAddingNewPeers().send()
         val sigs = prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
 
         addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf(accGreen))
@@ -875,7 +913,8 @@ class ContractsTest {
             defaultByteHash,
             sigs.vv,
             sigs.rr,
-            sigs.ss
+            sigs.ss,
+            relay.contractAddress
         ).send()
 
         assertEquals(
@@ -906,7 +945,8 @@ class ContractsTest {
                 tokenAddress,
                 amountToSend.toString(),
                 accGreen,
-                defaultIrohaHash
+                defaultIrohaHash,
+                relay.contractAddress
             )
 
         val keypairs = ArrayList<ECKeyPair>()
@@ -915,6 +955,7 @@ class ContractsTest {
             keypairs.add(keypair)
             sendAddPeer("0x" + Keys.getAddress(keypair))
         }
+        master.disableAddingNewPeers().send()
         val sigs = prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
 
         Assertions.assertThrows(TransactionException::class.java) {
@@ -925,7 +966,8 @@ class ContractsTest {
                 defaultByteHash,
                 sigs.vv,
                 sigs.rr,
-                sigs.ss
+                sigs.ss,
+                relay.contractAddress
             ).send()
         }
     }
@@ -1007,7 +1049,8 @@ class ContractsTest {
                 etherAddress,
                 amountToSend.toString(),
                 accGreen,
-                defaultIrohaHash
+                defaultIrohaHash,
+                relay.contractAddress
             )
 
         val keypairs = ArrayList<ECKeyPair>()
@@ -1016,6 +1059,7 @@ class ContractsTest {
             keypairs.add(keypair)
             sendAddPeer("0x" + Keys.getAddress(keypair))
         }
+        master.disableAddingNewPeers().send()
         val sigs = prepareSignatures(sigCount, keypairs, finalHash)
 
         master.withdraw(
@@ -1025,7 +1069,8 @@ class ContractsTest {
             defaultByteHash,
             sigs.vv,
             sigs.rr,
-            sigs.ss
+            sigs.ss,
+            relay.contractAddress
         ).send()
 
         assertEquals(

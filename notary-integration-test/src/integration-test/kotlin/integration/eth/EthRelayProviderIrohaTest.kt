@@ -11,6 +11,7 @@ import org.junit.jupiter.api.fail
 import provider.eth.EthRelayProviderIrohaImpl
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
 /**
@@ -22,20 +23,16 @@ class EthRelayProviderIrohaTest {
     val integrationHelper = IntegrationHelperUtil()
     val testConfig = integrationHelper.configHelper.testConfig
 
-    /** Creator of txs in Iroha */
-    val creator: String = testConfig.iroha.creator
-
-    /** Iroha keypair */
-    val keypair = ModelUtil.loadKeypair(
-        testConfig.iroha.pubkeyPath,
-        testConfig.iroha.privkeyPath
-    ).get()
-
     /** Iroha account that has set details */
-    val detailSetter = testConfig.registrationIrohaAccount
+    private val detailSetter = testConfig.registrationIrohaAccount
 
     /** Iroha account that holds details */
-    val detailHolder = testConfig.notaryIrohaAccount
+    private val detailHolder = testConfig.notaryIrohaAccount
+
+    val irohaNetwork = IrohaNetworkImpl(
+        testConfig.iroha.hostname,
+        testConfig.iroha.port
+    )
 
     /**
      * @given [detailHolder] has ethereum wallets in details
@@ -60,7 +57,7 @@ class EthRelayProviderIrohaTest {
         val masterAccount = testConfig.registrationIrohaAccount
 
         val irohaOutput = IrohaTransaction(
-            creator,
+            integrationHelper.testCredential.accountId,
             ModelUtil.getCurrentTime(),
             1,
             entries.map {
@@ -75,14 +72,14 @@ class EthRelayProviderIrohaTest {
 
         val tx = IrohaConverterImpl().convert(irohaOutput)
 
-        IrohaConsumerImpl(testConfig.iroha.creator, testConfig.iroha).sendAndCheck(tx)
+        IrohaConsumerImpl(integrationHelper.testCredential, testConfig.iroha).sendAndCheck(tx)
             .failure { ex -> fail(ex) }
 
         EthRelayProviderIrohaImpl(
-            testConfig.iroha,
-            keypair,
+            irohaNetwork,
+            integrationHelper.testCredential,
             masterAccount,
-            creator
+            integrationHelper.testCredential.accountId
         ).getRelays()
             .fold(
                 { assertEquals(valid, it) },
@@ -97,7 +94,12 @@ class EthRelayProviderIrohaTest {
      */
     @Test
     fun testEmptyStorage() {
-        EthRelayProviderIrohaImpl(testConfig.iroha, keypair, detailSetter, detailHolder).getRelays()
+        EthRelayProviderIrohaImpl(
+            irohaNetwork,
+            integrationHelper.testCredential,
+            detailSetter,
+            detailHolder
+        ).getRelays()
             .fold(
                 {
                     assert(it.isEmpty())

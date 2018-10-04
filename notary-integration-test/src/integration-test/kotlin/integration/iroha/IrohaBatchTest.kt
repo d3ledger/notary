@@ -1,13 +1,13 @@
 package integration.iroha
 
 import config.loadConfigs
+import integration.helper.IntegrationHelperUtil
 import jp.co.soramitsu.iroha.Blob
 import jp.co.soramitsu.iroha.ModelCrypto
 import jp.co.soramitsu.iroha.iroha
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
 import kotlinx.coroutines.experimental.withTimeout
-import mu.KLogging
 import notary.IrohaCommand
 import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
@@ -32,14 +32,13 @@ class IrohaBatchTest {
     }
 
     val testConfig by lazy {
-        loadConfigs("test", EthNotaryConfig::class.java)
+        loadConfigs("test", EthNotaryConfig::class.java, "/test.properties")
     }
 
-    private val tester = "test@notary"
+    private val testCredential = IntegrationHelperUtil().testCredential
 
-    private val keypair by lazy {
-        ModelUtil.loadKeypair(testConfig.iroha.pubkeyPath, testConfig.iroha.privkeyPath).get()
-    }
+    private val keypair = testCredential.keyPair
+    private val tester = testCredential.accountId
 
     private val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
 
@@ -56,7 +55,7 @@ class IrohaBatchTest {
         val user = randomString()
         val asset_name = randomString()
 
-        val irohaConsumer = IrohaConsumerImpl(testConfig.iroha.creator, testConfig.iroha)
+        val irohaConsumer = IrohaConsumerImpl(testCredential, testConfig.iroha)
 
         val txList =
             listOf(
@@ -117,7 +116,7 @@ class IrohaBatchTest {
         val listener = IrohaChainListener(
             testConfig.iroha.hostname,
             testConfig.iroha.port,
-            tester, keypair
+            testCredential
         )
 
         val blockHashes = async {
@@ -128,10 +127,10 @@ class IrohaBatchTest {
 
         val successHash = irohaConsumer.sendAndCheck(lst).get()
 
-        val accountJson = getAccountData(testConfig.iroha, keypair, irohaNetwork, "$user@notary").get().toJsonString()
-        val tester_amount = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester, "$asset_name#notary").get()
+        val accountJson = getAccountData(testCredential, irohaNetwork, "$user@notary").get().toJsonString()
+        val tester_amount = getAccountAsset(testCredential, irohaNetwork, tester, "$asset_name#notary").get()
         val u1_amount =
-            getAccountAsset(testConfig.iroha, keypair, irohaNetwork, "$user@notary", "$asset_name#notary").get()
+            getAccountAsset(testCredential, irohaNetwork, "$user@notary", "$asset_name#notary").get()
 
         assertEquals(hashes, successHash)
         assertEquals("{\"test@notary\":{\"key\":\"value\"}}", accountJson)
@@ -155,7 +154,7 @@ class IrohaBatchTest {
         val user = randomString()
         val asset_name = randomString()
 
-        val irohaConsumer = IrohaConsumerImpl(testConfig.iroha.creator, testConfig.iroha)
+        val irohaConsumer = IrohaConsumerImpl(testCredential, testConfig.iroha)
 
         val txList =
             listOf(
@@ -231,8 +230,7 @@ class IrohaBatchTest {
         val listener = IrohaChainListener(
             testConfig.iroha.hostname,
             testConfig.iroha.port,
-            tester,
-            keypair
+            testCredential
         )
 
         val blockHashes = async {
@@ -243,10 +241,10 @@ class IrohaBatchTest {
 
         val successHash = irohaConsumer.sendAndCheck(lst).get()
 
-        val accountJson = getAccountData(testConfig.iroha, keypair, irohaNetwork, "$user@notary").get().toJsonString()
-        val tester_amount = getAccountAsset(testConfig.iroha, keypair, irohaNetwork, tester, "$asset_name#notary").get()
+        val accountJson = getAccountData(testCredential, irohaNetwork, "$user@notary").get().toJsonString()
+        val tester_amount = getAccountAsset(testCredential, irohaNetwork, tester, "$asset_name#notary").get()
         val u1_amount =
-            getAccountAsset(testConfig.iroha, keypair, irohaNetwork, "$user@notary", "$asset_name#notary").get()
+            getAccountAsset(testCredential, irohaNetwork, "$user@notary", "$asset_name#notary").get()
 
         assertEquals(expectedHashes, successHash)
         assertEquals("{\"test@notary\":{\"key\":\"value\"}}", accountJson)
@@ -260,4 +258,3 @@ class IrohaBatchTest {
         }
     }
 }
-

@@ -1,6 +1,7 @@
 package registration.btc
 
 import config.IrohaConfig
+import config.IrohaCredentialConfig
 
 /**
  * Interface represents configs for registration service for cfg4k
@@ -10,7 +11,7 @@ interface BtcRegistrationConfig {
     val port: Int
 
     /** Iroha account for btc account register */
-    val registrationAccount: String
+    val registrationCredential: IrohaCredentialConfig
 
     /** Iroha account for btc account register in MST fashion*/
     val mstRegistrationAccount: String

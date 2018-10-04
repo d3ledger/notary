@@ -2,6 +2,7 @@ package vacuum
 
 import config.EthereumConfig
 import config.IrohaConfig
+import config.IrohaCredentialConfig
 
 interface RelayVacuumConfig {
 
@@ -22,5 +23,7 @@ interface RelayVacuumConfig {
 
     /** Ethereum configurations */
     val ethereum: EthereumConfig
+
+    val vacuumCredential: IrohaCredentialConfig
 
 }

@@ -5,12 +5,11 @@ import mu.KLogging
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.methods.response.EthBlock
 import org.web3j.protocol.core.methods.response.Transaction
+import provider.eth.ETH_PRECISION
 import provider.eth.EthRelayProvider
-import provider.eth.EthTokenInfo
 import provider.eth.EthTokensProvider
 import sidechain.ChainHandler
 import sidechain.SideChainEvent
-import sidechain.eth.util.ETH_PRECISION
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -37,7 +36,7 @@ class EthChainHandler(
         tx: Transaction,
         time: BigInteger,
         wallets: Map<String, String>,
-        tokens: Map<String, EthTokenInfo>
+        tokens: Map<String, String>
     ): List<SideChainEvent.PrimaryBlockChainEvent> {
         logger.info { "Handle ERC20 tx ${tx.hash}" }
 
@@ -64,20 +63,28 @@ class EthChainHandler(
                     }
                 }
                 .map {
-                    // second and third topics are addresses from and to
-                    val from = "0x" + it.topics[1].drop(26).toLowerCase()
-                    val to = "0x" + it.topics[2].drop(26).toLowerCase()
-                    // amount of transfer is stored in data
-                    val amount = BigInteger(it.data.drop(2), 16)
-                    SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
-                        tx.hash,
-                        time,
-                        wallets[to]!!,
-                        // all non-existent keys were filtered out in parseBlock
-                        tokens[tx.to]!!.name,
-                        BigDecimal(amount, tokens[tx.to]!!.precision.toInt()).toPlainString(),
-                        from
-                    )
+                    // all non-existent keys were filtered out in parseBlock
+                    val tokenName = tokens[tx.to]!!
+                    ethTokensProvider.getTokenPrecision(tokenName)
+                        .fold(
+                            { precision ->
+                                // second and third topics are addresses from and to
+                                val from = "0x" + it.topics[1].drop(26).toLowerCase()
+                                val to = "0x" + it.topics[2].drop(26).toLowerCase()
+                                // amount of transfer is stored in data
+                                val amount = BigInteger(it.data.drop(2), 16)
+
+                                SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
+                                    tx.hash,
+                                    time,
+                                    wallets[to]!!,
+                                    tokenName,
+                                    BigDecimal(amount, precision.toInt()).toPlainString(),
+                                    from
+                                )
+                            },
+                            { throw it }
+                        )
                 }
         } else {
             return listOf()

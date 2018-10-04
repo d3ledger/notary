@@ -14,6 +14,7 @@ import util.getRandomString
 import java.math.BigInteger
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Disabled
 class BtcRegistrationIntegrationTest {
 
     private val integrationHelper = IntegrationHelperUtil()
@@ -27,9 +28,9 @@ class BtcRegistrationIntegrationTest {
 
     private val btcTakenAddressesProvider = BtcRegisteredAddressesProvider(
         config.iroha,
-        integrationHelper.irohaKeyPair,
-        config.registrationAccount,
-        config.iroha.creator
+        integrationHelper.testCredential,
+        config.registrationCredential.accountId,
+        integrationHelper.testCredential.accountId
     )
 
     /**
@@ -39,7 +40,6 @@ class BtcRegistrationIntegrationTest {
      * @when client name is passed to registration service
      * @then client has btc address in related Iroha account details
      */
-    @Disabled
     @Test
     fun testRegistration() {
         integrationHelper.preGenBtcAddress()
@@ -67,7 +67,6 @@ class BtcRegistrationIntegrationTest {
      * @when client names are passed to registration service
      * @then all the clients have btc address in related Iroha account details
      */
-    @Disabled
     @Test
     fun testRegistrationMultiple() {
         val takenAddresses = HashSet<String>()
@@ -103,7 +102,6 @@ class BtcRegistrationIntegrationTest {
      * @when client name is passed to registration service
      * @then client stays unregistered
      */
-    @Disabled
     @Test
     fun testRegistrationNoFree() {
         val clientsBeforeRegistration = btcTakenAddressesProvider.getRegisteredAddresses().get().size

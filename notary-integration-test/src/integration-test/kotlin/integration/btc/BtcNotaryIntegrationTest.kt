@@ -2,6 +2,7 @@ package integration.btc
 
 import com.github.kittinunf.result.failure
 import integration.helper.IntegrationHelperUtil
+import model.IrohaCredential
 import notary.btc.BtcNotaryInitialization
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Disabled
@@ -15,17 +16,18 @@ import java.math.BigDecimal
 private val integrationHelper = IntegrationHelperUtil()
 private val btcAsset = "btc#bitcoin"
 
+@Disabled
 class BtcNotaryIntegrationTest {
 
     private val notaryConfig = integrationHelper.configHelper.createBtcNotaryConfig()
 
     private val btcRegisteredAddressesProvider by lazy {
-        ModelUtil.loadKeypair(notaryConfig.iroha.pubkeyPath, notaryConfig.iroha.privkeyPath).fold({ keypair ->
+        ModelUtil.loadKeypair(notaryConfig.notaryCredential.pubkeyPath, notaryConfig.notaryCredential.privkeyPath).fold({ keypair ->
             BtcRegisteredAddressesProvider(
                 notaryConfig.iroha,
-                keypair,
+                IrohaCredential(notaryConfig.notaryCredential.accountId, keypair),
                 notaryConfig.registrationAccount,
-                notaryConfig.iroha.creator
+                notaryConfig.notaryCredential.accountId
             )
         }, { ex -> throw ex })
     }
@@ -40,7 +42,6 @@ class BtcNotaryIntegrationTest {
      * @when 1 btc was sent to new account
      * @then balance of new account is increased by 1 btc(or 100.000.000 sat)
      */
-    @Disabled
     @Test
     fun testDeposit() {
         integrationHelper.generateBtcBlocks()
