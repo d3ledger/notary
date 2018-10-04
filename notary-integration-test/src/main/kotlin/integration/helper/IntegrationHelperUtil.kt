@@ -551,7 +551,7 @@ class IntegrationHelperUtil {
      * Add list of [relays].
      * Set relays as details to NotaryAccount from RegistrationAccount
      */
-    fun addRelays(relays: Map<String, String>) {
+    fun addRelaysToIroha(relays: Map<String, String>) {
         relays.map {
             // Set ethereum wallet as occupied by user id
             ModelUtil.setAccountDetail(

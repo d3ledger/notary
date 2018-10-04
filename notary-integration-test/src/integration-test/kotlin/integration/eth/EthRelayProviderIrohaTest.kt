@@ -46,7 +46,7 @@ class EthRelayProviderIrohaTest {
             "0xfe9e8709d3215310075d67e3ed32a380ccf451c8" to "free"
         )
 
-        integrationHelper.addRelays(entries)
+        integrationHelper.addRelaysToIroha(entries)
 
         val valid = entries.filter { it.value != "free" }
 
