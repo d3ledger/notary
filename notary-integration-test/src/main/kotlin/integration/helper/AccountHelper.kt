@@ -14,7 +14,7 @@ import util.getRandomString
 /**
  * Class that handles all the accounts in running configuration.
  */
-class AccountHelper() {
+class AccountHelper {
 
     val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
@@ -44,6 +44,7 @@ class AccountHelper() {
         createTesterAccount("mst_registration", "registration_service")
     }
 
+    /** Account that used to set whitelists for clients to withdraw */
     val whitelistSetter by lazy { createTesterAccount("whitelist_setter", "whitelist_setter") }
 
     /** Account that used to store tokens */

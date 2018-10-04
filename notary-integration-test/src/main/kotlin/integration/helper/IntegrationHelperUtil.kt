@@ -68,7 +68,13 @@ class IntegrationHelperUtil {
 
     val accountHelper by lazy { AccountHelper() }
 
-    val configHelper by lazy { ConfigHelper(accountHelper, relayRegistryContract.contractAddress) }
+    val configHelper by lazy {
+        ConfigHelper(
+            accountHelper,
+            relayRegistryContract.contractAddress,
+            masterContract.contractAddress
+        )
+    }
 
     val ethRegistrationConfig by lazy { configHelper.createEthRegistrationConfig() }
 
@@ -203,7 +209,7 @@ class IntegrationHelperUtil {
      * @return randomly generated BTC address
      */
     fun preGenBtcAddress(): Result<Address, Exception> {
-        val walletFile = File(configHelper.btcRegistrationConfig.btcWalletPath)
+        val walletFile = File(configHelper.createBtcRegistrationConfig().btcWalletPath)
         val wallet = Wallet.loadFromFile(walletFile)
         val address = wallet.freshReceiveAddress()
         wallet.saveToFile(walletFile)
@@ -551,7 +557,7 @@ class IntegrationHelperUtil {
      * Add list of [relays].
      * Set relays as details to NotaryAccount from RegistrationAccount
      */
-    fun addRelays(relays: Map<String, String>) {
+    fun addRelaysToIroha(relays: Map<String, String>) {
         relays.map {
             // Set ethereum wallet as occupied by user id
             ModelUtil.setAccountDetail(
