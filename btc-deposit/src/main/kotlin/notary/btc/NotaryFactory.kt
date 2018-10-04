@@ -13,8 +13,6 @@ fun createBtcNotary(
     btcEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>,
     peerListProvider: NotaryPeerListProvider
 ): NotaryImpl {
-
-
     return NotaryImpl(
         btcNotaryConfig.iroha,
         notaryCredential,

@@ -8,14 +8,16 @@ import mu.KLogging
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Utils
-import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.script.ScriptBuilder
-import org.bitcoinj.wallet.Wallet
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.stereotype.Component
 import provider.NotaryPeerListProvider
+import provider.btc.network.BtcNetworkConfigProvider
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomId
-import java.io.File
+import wallet.WalletFile
 
 /**
  *  Bitcoin keys provider
@@ -24,24 +26,34 @@ import java.io.File
  *  @param irohaConfig - configutation to start Iroha client
  *  @param notaryPeerListProvider - class to query all current notaries
  */
+@Component
 class BtcPublicKeyProvider(
     //BTC wallet
-    private val wallet: Wallet,
-    //BTC wallet file storage
-    private val walletFile: File,
-    private val irohaConfig: IrohaConfig,
+    @Autowired private val walletFile: WalletFile,
+    //Iroha configurations
+    @Qualifier("btcPublicKeyProviderIrohaConfig")
+    @Autowired private val irohaConfig: IrohaConfig,
     //Provider that helps us fetching all the peers registered in the network
-    private val notaryPeerListProvider: NotaryPeerListProvider,
+    @Autowired private val notaryPeerListProvider: NotaryPeerListProvider,
     //BTC registration account
-    btcRegistrationCredential: IrohaCredential,
+    @Qualifier("btcRegistrationCredential")
+    @Autowired btcRegistrationCredential: IrohaCredential,
     //BTC registration account, that works in MST fashion
-    mstBtcRegistrationCredential: IrohaCredential,
+    @Qualifier("mstBtcRegistrationCredential")
+    @Autowired private val mstBtcRegistrationCredential: IrohaCredential,
     //Notary account to store BTC addresses
-    private val notaryAccount: String
+    @Qualifier("notaryAccount")
+    @Autowired private val notaryAccount: String,
+    //Provider of network configurations
+    @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider
 ) {
 
     private val sessionConsumer = IrohaConsumerImpl(btcRegistrationCredential, irohaConfig)
     private val multiSigConsumer = IrohaConsumerImpl(mstBtcRegistrationCredential, irohaConfig)
+
+    init {
+        logger.info { "BtcPublicKeyProvider was successfully initialized. Current wallet state:\n${walletFile.wallet}" }
+    }
 
     /**
      * Creates notary public key and sets it into session account details
@@ -50,7 +62,7 @@ class BtcPublicKeyProvider(
      */
     fun createKey(sessionAccountName: String): Result<String, Exception> {
         // Generate new key from wallet
-        val key = wallet.freshReceiveKey()
+        val key = walletFile.wallet.freshReceiveKey()
         val pubKey = key.publicKeyAsHex
         return ModelUtil.setAccountDetail(
             sessionConsumer,
@@ -58,7 +70,7 @@ class BtcPublicKeyProvider(
             String.getRandomId(),
             pubKey
         ).map {
-            wallet.saveToFile(walletFile)
+            walletFile.save()
             pubKey
         }
     }
@@ -76,14 +88,18 @@ class BtcPublicKeyProvider(
             } else if (notaryKeys.size == peers && hasMyKey(notaryKeys)) {
                 val threshold = getThreshold(peers)
                 val msAddress = createMsAddress(notaryKeys, threshold)
-                wallet.addWatchedAddress(msAddress)
+                if (!walletFile.wallet.addWatchedAddress(msAddress)) {
+                    throw IllegalStateException("BTC address $msAddress was not added to wallet")
+                }
+                logger.info { "Address $msAddress was added to wallet. Current wallet state:\n${walletFile.wallet}" }
                 ModelUtil.setAccountDetail(
                     multiSigConsumer,
                     notaryAccount,
                     msAddress.toBase58(),
                     "free"
                 ).fold({
-                    wallet.saveToFile(walletFile)
+                    //TODO this save will probably corrupt the wallet file
+                    walletFile.save()
                     logger.info { "New BTC multisignature address $msAddress was created " }
                 }, { ex -> throw ex })
             }
@@ -97,7 +113,7 @@ class BtcPublicKeyProvider(
      */
     private fun hasMyKey(notaryKeys: Collection<String>): Boolean {
         val hasMyKey = notaryKeys.find { key ->
-            wallet.issuedReceiveKeys.find { ecKey -> ecKey.publicKeyAsHex == key } != null
+            walletFile.wallet.issuedReceiveKeys.find { ecKey -> ecKey.publicKeyAsHex == key } != null
         } != null
         return hasMyKey
     }
@@ -114,7 +130,8 @@ class BtcPublicKeyProvider(
             keys.add(ecKey)
         }
         val script = ScriptBuilder.createP2SHOutputScript(threshold, keys)
-        return script.getToAddress(RegTestParams.get())
+        logger.info { "New BTC multisignature script $script" }
+        return script.getToAddress(btcNetworkConfigProvider.getConfig())
     }
 
     /**
