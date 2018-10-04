@@ -39,7 +39,7 @@ class ContractsTest {
     private lateinit var master: Master
     private lateinit var relay: Relay
 
-    private var addPeerCalls = BigInteger("0")
+    private var addPeerCalls = BigInteger.ZERO
 
     val etherAddress = "0x0000000000000000000000000000000000000000"
     val defaultIrohaHash = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))
@@ -274,14 +274,18 @@ class ContractsTest {
         sendAddPeer(accMain)
         master.disableAddingNewPeers().send()
         deployHelper.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
-        Assertions.assertEquals(
-            1,
+        val call =
             withdraw(
                 BigInteger.valueOf(10000),
                 etherAddress,
                 accGreen
-            )!!.logs.size
+            )
+        assertEquals(
+            "0x" + "0".repeat(24) +
+                    etherAddress.slice(2 until etherAddress.length),
+            call!!.logs[0].data.subSequence(0, 66)
         )
+        assertEquals(accGreen, "0x" + call.logs[0].data.subSequence(90, 130))
     }
 
     /**
@@ -1091,35 +1095,5 @@ class ContractsTest {
             )
         }
 
-    }
-
-    /**
-     * @given master contract and no ethers on it
-     * @when try to withdraw
-     * @then should be emitted an event
-     */
-    @Test
-    fun insufficientFundsForWithdrawal() {
-        sendAddPeer(accMain)
-        master.disableAddingNewPeers().send()
-        deployHelper.sendEthereum(BigInteger.valueOf(4000), master.contractAddress)
-        val to = accGreen
-        val amount = BigInteger.valueOf(5000)
-
-        val finalHash = hashToWithdraw(etherAddress, amount.toString(), to, defaultIrohaHash, relay.contractAddress)
-        val sigs = prepareSignatures(1, listOf(keypair), finalHash)
-
-        val call = master.withdraw(
-            etherAddress,
-            amount,
-            to,
-            defaultByteHash,
-            sigs.vv,
-            sigs.rr,
-            sigs.ss,
-            relay.contractAddress
-        ).send()
-
-        assertEquals(1, call.logs.size)
     }
 }
