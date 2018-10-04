@@ -173,7 +173,7 @@ class ConfigHelper(private val accountHelper: AccountHelper,
             override val tokenSetterAccount = accountHelper.tokenSetterAccount.accountId
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
             override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
-            override val whitelistSetter = testConfig.whitelistSetter
+            override val whitelistSetter = accountHelper.whitelistSetter.accountId
             override val notaryCredential = notaryCredential_
             override val refund = createRefundConfig()
             override val iroha = irohaConfig

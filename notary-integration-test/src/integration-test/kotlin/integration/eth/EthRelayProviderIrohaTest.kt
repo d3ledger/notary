@@ -24,10 +24,10 @@ class EthRelayProviderIrohaTest {
     val testConfig = integrationHelper.configHelper.testConfig
 
     /** Iroha account that has set details */
-    private val detailSetter = testConfig.registrationIrohaAccount
+    private val relaySetter = integrationHelper.accountHelper.registrationAccount.accountId
 
     /** Iroha account that holds details */
-    private val detailHolder = testConfig.notaryIrohaAccount
+    private val relayStorage = integrationHelper.accountHelper.notaryAccount.accountId
 
     val irohaNetwork = IrohaNetworkImpl(
         testConfig.iroha.hostname,
@@ -35,7 +35,7 @@ class EthRelayProviderIrohaTest {
     )
 
     /**
-     * @given [detailHolder] has ethereum wallets in details
+     * @given ethereum relay wallets are stored in the system
      * @when getRelays() is called
      * @then not free wallets are returned in a map
      */
@@ -52,33 +52,14 @@ class EthRelayProviderIrohaTest {
             "0xfe9e8709d3215310075d67e3ed32a380ccf451c8" to "free"
         )
 
+        integrationHelper.addRelays(entries)
+
         val valid = entries.filter { it.value != "free" }
-
-        val masterAccount = testConfig.registrationIrohaAccount
-
-        val irohaOutput = IrohaTransaction(
-            integrationHelper.testCredential.accountId,
-            ModelUtil.getCurrentTime(),
-            1,
-            entries.map {
-                // Set ethereum wallet as occupied by user id
-                IrohaCommand.CommandSetAccountDetail(
-                    masterAccount,
-                    it.key,
-                    it.value
-                )
-            }
-        )
-
-        val tx = IrohaConverterImpl().convert(irohaOutput)
-
-        IrohaConsumerImpl(integrationHelper.testCredential, testConfig.iroha).sendAndCheck(tx)
-            .failure { ex -> fail(ex) }
 
         EthRelayProviderIrohaImpl(
             irohaNetwork,
             integrationHelper.testCredential,
-            masterAccount,
+            relayStorage,
             integrationHelper.testCredential.accountId
         ).getRelays()
             .fold(
@@ -88,7 +69,7 @@ class EthRelayProviderIrohaTest {
     }
 
     /**
-     * @given There is no account details on [detailHolder]
+     * @given There is no relay accounts registered
      * @when getRelays() is called
      * @then empty map is returned
      */
@@ -97,8 +78,8 @@ class EthRelayProviderIrohaTest {
         EthRelayProviderIrohaImpl(
             irohaNetwork,
             integrationHelper.testCredential,
-            detailSetter,
-            detailHolder
+            relayStorage,
+            relaySetter
         ).getRelays()
             .fold(
                 {

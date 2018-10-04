@@ -101,24 +101,15 @@ class IntegrationHelperUtil {
     }
 
     private val whiteListIrohaConsumer by lazy {
-        IrohaConsumerImpl(
-            IrohaCredential(testConfig.whitelistSetter, testCredential.keyPair),
-            testConfig.iroha
-        )
+        IrohaConsumerImpl(accountHelper.whitelistSetter, testConfig.iroha)
     }
 
     private val notaryListIrohaConsumer by lazy {
-        IrohaConsumerImpl(
-            accountHelper.notaryListSetterAccount,
-            testConfig.iroha
-        )
+        IrohaConsumerImpl(accountHelper.notaryListSetterAccount, testConfig.iroha)
     }
 
     private val mstRegistrationIrohaConsumer by lazy {
-        IrohaConsumerImpl(
-            accountHelper.mstRegistrationAccount,
-            testConfig.iroha
-        )
+        IrohaConsumerImpl(accountHelper.mstRegistrationAccount, testConfig.iroha)
     }
 
     /** Notary ethereum address that is used in master smart contract to verify proof provided by notary */
@@ -545,7 +536,7 @@ class IntegrationHelperUtil {
     }
 
     /**
-     * Add notary to notary list provider
+     * Add notary to notary list provider. [name] is a string to identify a multisig notary account
      */
     fun addNotary(name: String, address: String) {
         ModelUtil.setAccountDetail(
@@ -554,6 +545,22 @@ class IntegrationHelperUtil {
             name,
             address
         )
+    }
+
+    /**
+     * Add list of [relays].
+     * Set relays as details to NotaryAccount from RegistrationAccount
+     */
+    fun addRelays(relays: Map<String, String>) {
+        relays.map {
+            // Set ethereum wallet as occupied by user id
+            ModelUtil.setAccountDetail(
+                registrationConsumer,
+                accountHelper.notaryAccount.accountId,
+                it.key,
+                it.value
+            )
+        }
     }
 
     /**

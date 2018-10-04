@@ -15,12 +15,5 @@ apply plugin: 'org.springframework.boot'
 mainClassName = "LongevityMain"
 
 dependencies {
-    compile project(":btc")
+    compile project(":notary-integration-test")
 }
-
-//dependencies {
-//    compile project(":notary-integration-test")
-//}
-//
-//task integrationTest(type: Test) {
-//}

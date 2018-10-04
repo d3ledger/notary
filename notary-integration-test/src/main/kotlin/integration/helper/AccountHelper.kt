@@ -11,19 +11,25 @@ import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 
-//Class that handles all the accounts in integration tests.
+/**
+ * Class that handles all the accounts in running configuration.
+ */
 class AccountHelper() {
 
     val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
+    /** A tester Iroha account with permissions to do everything */
     private val testCredential = IrohaCredential(
         testConfig.testCredentialConfig.accountId,
-        ModelUtil.loadKeypair(testConfig.testCredentialConfig.pubkeyPath, testConfig.testCredentialConfig.privkeyPath).get()
+        ModelUtil.loadKeypair(
+            testConfig.testCredentialConfig.pubkeyPath,
+            testConfig.testCredentialConfig.privkeyPath
+        ).get()
     )
 
     private val irohaConsumer by lazy { IrohaConsumerImpl(testCredential, testConfig.iroha) }
 
-    /** Notary account*/
+    /** Notary account */
     val notaryAccount by lazy { createTesterAccount("eth_notary", "notary") }
 
     /** Notary keys */
@@ -38,6 +44,8 @@ class AccountHelper() {
         createTesterAccount("mst_registration", "registration_service")
     }
 
+    val whitelistSetter by lazy { createTesterAccount("whitelist_setter", "whitelist_setter") }
+
     /** Account that used to store tokens */
     val tokenStorageAccount = notaryAccount
 
@@ -51,9 +59,9 @@ class AccountHelper() {
     val notaryListStorageAccount by lazy { createTesterAccount("notary_storage", "notary_holder") }
 
     fun createCredentialConfig(credetial: IrohaCredential): IrohaCredentialConfig {
-        return object:IrohaCredentialConfig{
+        return object : IrohaCredentialConfig {
             override val pubkeyPath: String
-                get() =  testConfig.testCredentialConfig.pubkeyPath
+                get() = testConfig.testCredentialConfig.pubkeyPath
             override val privkeyPath: String
                 get() = testConfig.testCredentialConfig.privkeyPath
             override val accountId: String
