@@ -28,7 +28,7 @@ class EthRegistrationStrategyImpl(
 ) : RegistrationStrategy {
 
     init {
-        logger.info { "Init EthRegistrationStrategyImpl with irohCreator=${irohaConsumer.creator}, notaryIrohaAccount=$notaryIrohaAccount" }
+        logger.info { "Init EthRegistrationStrategyImpl with irohaCreator=${irohaConsumer.creator}, notaryIrohaAccount=$notaryIrohaAccount" }
     }
 
     private val credentials = WalletUtils.loadCredentials(

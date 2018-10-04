@@ -43,9 +43,9 @@ class VacuumIntegrationTest {
         logger.info("initialMasterBalance $initialMasterBalance")
         vacuum.executeVacuum(
             integrationHelper.configHelper.createRelayVacuumConfig(
-                integrationHelper.accountHelper.registrationAccount,
-                integrationHelper.accountHelper.tokenStorageAccount,
-                integrationHelper.accountHelper.tokenSetterAccount
+                integrationHelper.accountHelper.registrationAccount.accountId,
+                integrationHelper.accountHelper.tokenStorageAccount.accountId,
+                integrationHelper.accountHelper.tokenSetterAccount.accountId
             )
         )
         Thread.sleep(30_000)

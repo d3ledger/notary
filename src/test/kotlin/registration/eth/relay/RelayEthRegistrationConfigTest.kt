@@ -25,8 +25,8 @@ class RelayEthRegistrationConfigTest {
 
 
         assertEquals("http://d3-eth-node0:8545", relayRegistrationConfig.ethereum.url)
-        assertEquals("deploy/ethereum/keys/ganache.key", relayRegistrationConfig.ethereum.credentialsPath)
-        assertEquals(1, relayRegistrationConfig.ethereum.gasPrice)
+        assertEquals("deploy/ethereum/keys/local/relay_registration.key", relayRegistrationConfig.ethereum.credentialsPath)
+        assertEquals(10000000000, relayRegistrationConfig.ethereum.gasPrice)
         assertEquals(1999999, relayRegistrationConfig.ethereum.gasLimit)
     }
 }

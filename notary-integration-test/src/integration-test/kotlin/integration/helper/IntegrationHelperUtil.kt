@@ -70,7 +70,7 @@ class IntegrationHelperUtil {
 
     val configHelper by lazy { ConfigHelper(accountHelper, relayRegistryContract.contractAddress) }
 
-    val ethRegistrationConfig by lazy { configHelper.createEthRegistrationConfig() }
+    val ethRegistrationConfig by lazy { configHelper.createEthRegistrationConfig(testConfig.ethereum) }
 
     /** Ethereum utils */
     private val deployHelper by lazy { DeployHelper(testConfig.ethereum, ethPasswordConfig) }
@@ -593,7 +593,12 @@ class IntegrationHelperUtil {
      * @param pubkey - user public key
      * @param port - port of registration service
      */
-    fun sendRegistrationRequest(name: String, whitelist: String, pubkey: PublicKey, port: Int): khttp.responses.Response {
+    fun sendRegistrationRequest(
+        name: String,
+        whitelist: String,
+        pubkey: PublicKey,
+        port: Int
+    ): khttp.responses.Response {
         return khttp.post(
             "http://127.0.0.1:${port}/users",
             data = mapOf("name" to name, "whitelist" to whitelist.trim('[').trim(']'), "pubkey" to pubkey.hex())
