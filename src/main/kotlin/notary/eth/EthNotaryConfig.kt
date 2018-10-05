@@ -2,6 +2,7 @@ package notary.eth
 
 import config.EthereumConfig
 import config.IrohaConfig
+import config.IrohaCredentialConfig
 
 /** Configuration of refund endpoint in Notary */
 interface RefundConfig {
@@ -28,6 +29,8 @@ interface EthNotaryConfig {
 
     /** Iroha account to set notary peer list */
     val notaryListSetterAccount: String
+
+    val notaryCredential: IrohaCredentialConfig
 
     val refund: RefundConfig
 

@@ -2,6 +2,7 @@ package registration.eth.relay
 
 import com.github.kittinunf.result.Result
 import config.EthereumPasswords
+import model.IrohaCredential
 import mu.KLogging
 import sidechain.eth.util.DeployHelper
 import sidechain.iroha.consumer.IrohaConsumerImpl
@@ -13,16 +14,14 @@ import sidechain.iroha.util.ModelUtil
  */
 class RelayRegistration(
     private val relayRegistrationConfig: RelayRegistrationConfig,
+    relayCredential: IrohaCredential,
     relayRegistrationEthereumPasswords: EthereumPasswords
 ) {
     /** Ethereum endpoint */
     private val deployHelper = DeployHelper(relayRegistrationConfig.ethereum, relayRegistrationEthereumPasswords)
 
     /** Iroha endpoint */
-    private val irohaConsumer = IrohaConsumerImpl(relayRegistrationConfig.iroha)
-
-    /** Iroha transaction creator */
-    private val creator = relayRegistrationConfig.iroha.creator
+    private val irohaConsumer = IrohaConsumerImpl(relayCredential, relayRegistrationConfig.iroha)
 
     private val notaryIrohaAccount = relayRegistrationConfig.notaryIrohaAccount
 
@@ -39,31 +38,28 @@ class RelayRegistration(
 
     /**
      * Registers relay in Iroha.
-     * @param wallet - ethereum wallet to record into Iroha
-     * @param creator - relay creator
+     * @param relayAddress - relay address to record into Iroha
      * @return Result with string representation of hash or possible failure
      */
-    fun registerRelayIroha(wallet: String, creator: String): Result<String, Exception> {
-        return ModelUtil.setAccountDetail(irohaConsumer, creator, notaryIrohaAccount, wallet, "free")
+    fun registerRelayIroha(relayAddress: String): Result<String, Exception> {
+        return ModelUtil.setAccountDetail(irohaConsumer, notaryIrohaAccount, relayAddress, "free")
     }
 
     fun deploy(): Result<Unit, Exception> {
         return deploy(
             relayRegistrationConfig.number,
-            relayRegistrationConfig.ethMasterWallet,
-            creator
+            relayRegistrationConfig.ethMasterWallet
         )
     }
 
     fun deploy(
         relaysToDeploy: Int,
-        ethMasterWallet: String,
-        creator: String
+        ethMasterWallet: String
     ): Result<Unit, Exception> {
         return Result.of {
             (1..relaysToDeploy).forEach {
                 val relayWallet = deployRelaySmartContract(ethMasterWallet)
-                registerRelayIroha(relayWallet, creator).fold(
+                registerRelayIroha(relayWallet).fold(
                     { logger.info("Relay $relayWallet was deployed") },
                     { ex -> logger.error("Cannot deploy relay $relayWallet", ex) })
             }

@@ -1,0 +1,25 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        //Spring-boot
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:$spring_boot_version"
+    }
+}
+apply plugin: 'application'
+apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
+apply plugin: 'org.springframework.boot'
+mainClassName = "notary.btc.BtcNotaryMain"
+
+dependencies {
+    compile project(":btc")
+}
+
+task runBtcNotary(type: JavaExec) {
+    main = 'notary.btc.BtcNotaryMain'
+    classpath = sourceSets.main.runtimeClasspath
+    systemProperty 'java.library.path', getIrohaLibPath()
+    environment "LD_LIBRARY_PATH", getIrohaLibPath()
+}

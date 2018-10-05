@@ -1,32 +1,29 @@
 package notary
 
 import io.reactivex.Observable
-import notary.btc.BtcNotaryConfig
+import model.IrohaCredential
 import notary.eth.EthNotaryConfig
+import provider.NotaryPeerListProvider
 import sidechain.SideChainEvent
+import sidechain.iroha.util.ModelUtil
 
 fun createEthNotary(
     ethNotaryConfig: EthNotaryConfig,
-    ethEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>
+    ethEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>,
+    peerListProvider: NotaryPeerListProvider
 ): NotaryImpl {
+    val credential = IrohaCredential(
+        ethNotaryConfig.notaryCredential.accountId,
+        ModelUtil.loadKeypair(
+            ethNotaryConfig.notaryCredential.pubkeyPath,
+            ethNotaryConfig.notaryCredential.privkeyPath
+        ).get()
+    )
     return NotaryImpl(
         ethNotaryConfig.iroha,
+        credential,
         ethEvents,
         "ethereum",
-        ethNotaryConfig.notaryListStorageAccount,
-        ethNotaryConfig.notaryListSetterAccount
-    )
-}
-
-fun createBtcNotary(
-    btcNotaryConfig: BtcNotaryConfig,
-    btcEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>
-): NotaryImpl {
-    return NotaryImpl(
-        btcNotaryConfig.iroha,
-        btcEvents,
-        "bitcoin",
-        btcNotaryConfig.notaryListStorageAccount,
-        btcNotaryConfig.notaryListSetterAccount
+        peerListProvider
     )
 }

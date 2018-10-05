@@ -8,6 +8,9 @@ import jp.co.soramitsu.iroha.UnsignedTx
  */
 interface IrohaConsumer {
 
+    /** Iroha transactions creator */
+    val creator: String
+
     /**
      * Send transaction to Iroha and check if it is committed with status stream
      * @param utx - unsigned transaction to send
