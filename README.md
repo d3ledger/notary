@@ -4,11 +4,11 @@ Backend code for a D3 notary
 ## How to run notary application and services in Ethereum main net
 1) clone project `master` branch
 2) launch Iroha and Postgres in docker with `docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml up`
-3) Provide ethereum passwords `src/main/resources/eth/ethereum_password.properties` (ask someone from maintainers team about the format)
-4) Run notary service `gradle runEthNotary -Pprofile=mainnet`
-5) Run registration service `gradle runEthRegistration -Pprofile=mainnet`
-6) Run withdrawal service `gradle runWithdrawal -Pprofile=mainnet`
-6) Deploy relay smart contract (one relay per one client registration) `gradle runDeployRelay -Pprofile=mainnet`. Ensure relay is deployed on etherscan.io
+3) Provide ethereum passwords `configs/eth/ethereum_password_mainnet.properties` (ask someone from maintainers team about the format)
+4) Run notary service `PROFILE=mainnet gradle runEthNotary`
+5) Run registration service `PROFILE=mainnet gradle runEthRegistration`
+6) Run withdrawal service `PROFILE=mainnet gradle runWithdrawal`
+7) Deploy relay smart contract (one relay per one client registration) `PROFILE=mainnet gradle runDeployRelay`. Ensure relay is deployed on etherscan.io
 
 Great! So now you can move on and connect frontend application (check back-office repo in d3ledger)
 
