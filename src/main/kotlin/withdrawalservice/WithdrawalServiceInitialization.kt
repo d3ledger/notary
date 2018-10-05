@@ -13,7 +13,7 @@ import sidechain.eth.consumer.EthConsumer
 import sidechain.iroha.IrohaChainHandler
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaNetworkImpl
-import sidechain.iroha.util.ModelUtil
+import vacuum.RelayVacuumConfig
 
 /**
  * @param withdrawalConfig - configuration for withdrawal service
@@ -22,7 +22,8 @@ import sidechain.iroha.util.ModelUtil
 class WithdrawalServiceInitialization(
     private val withdrawalConfig: WithdrawalServiceConfig,
     private val credential: IrohaCredential,
-    private val withdrawalEthereumPasswords: EthereumPasswords
+    private val withdrawalEthereumPasswords: EthereumPasswords,
+    private val relayVacuumConfig: RelayVacuumConfig
 ) {
 
     private val irohaHost = withdrawalConfig.iroha.hostname
@@ -54,7 +55,7 @@ class WithdrawalServiceInitialization(
         logger.info { "Init Ether withdrawal consumer" }
 
         return Result.of {
-            val ethConsumer = EthConsumer(withdrawalConfig.ethereum, withdrawalEthereumPasswords)
+            val ethConsumer = EthConsumer(withdrawalConfig.ethereum, withdrawalEthereumPasswords, relayVacuumConfig)
             withdrawalService.output()
                 .subscribe(
                     { res ->

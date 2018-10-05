@@ -2,15 +2,22 @@ package sidechain.eth.consumer
 
 import config.EthereumConfig
 import config.EthereumPasswords
+import contract.Relay
 import mu.KLogging
+import org.web3j.protocol.core.methods.response.TransactionReceipt
 import org.web3j.utils.Numeric
 import sidechain.eth.util.DeployHelper
+import vacuum.RelayVacuumConfig
+import vacuum.executeVacuum
 import withdrawalservice.WithdrawalServiceOutputEvent
 import java.math.BigInteger
 
-class EthConsumer(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPasswords) {
+class EthConsumer(
+    ethereumConfig: EthereumConfig,
+    ethereumPasswords: EthereumPasswords,
+    private val relayVacuumConfig: RelayVacuumConfig
+) {
     private val deployHelper = DeployHelper(ethereumConfig, ethereumPasswords)
-
     fun consume(event: WithdrawalServiceOutputEvent) {
         logger.info { "Consumed eth event $event" }
         if (event is WithdrawalServiceOutputEvent.EthRefund) {
@@ -23,25 +30,43 @@ class EthConsumer(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPas
                         "relay ${event.proof.relay}\n"
             }
 
-            val relay = contract.Relay.load(
-                event.proof.relay,
-                deployHelper.web3,
-                deployHelper.credentials,
-                deployHelper.gasPrice,
-                deployHelper.gasLimit
-            )
+            val call = withdraw(event)
 
-            relay.withdraw(
-                event.proof.tokenContractAddress,
-                BigInteger(event.proof.amount),
-                event.proof.account,
-                Numeric.hexStringToByteArray(event.proof.irohaHash),
-                event.proof.v,
-                event.proof.r,
-                event.proof.s,
-                relay.contractAddress
-            ).sendAsync()
+            if (call!!.isStatusOK && !call.logs.isEmpty()) {
+                println("Starting vacuum service $call.logs[0].data")
+                // Start vacuum service
+                executeVacuum(relayVacuumConfig).fold(
+                    {
+                        withdraw(event)
+                    },
+                    { ex ->
+                        throw ex
+                    }
+                )
+            }
+
         }
+    }
+
+    fun withdraw(event: WithdrawalServiceOutputEvent.EthRefund): TransactionReceipt? {
+        val relay = Relay.load(
+            event.proof.relay,
+            deployHelper.web3,
+            deployHelper.credentials,
+            deployHelper.gasPrice,
+            deployHelper.gasLimit
+        )
+
+        return relay.withdraw(
+            event.proof.tokenContractAddress,
+            BigInteger(event.proof.amount),
+            event.proof.account,
+            Numeric.hexStringToByteArray(event.proof.irohaHash),
+            event.proof.v,
+            event.proof.r,
+            event.proof.s,
+            relay.contractAddress
+        ).send()
     }
 
     /**
