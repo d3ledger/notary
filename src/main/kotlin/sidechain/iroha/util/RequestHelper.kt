@@ -5,11 +5,10 @@ import com.beust.klaxon.Parser
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import config.IrohaConfig
 import iroha.protocol.QryResponses
 import iroha.protocol.TransactionOuterClass
-import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelQueryBuilder
+import model.IrohaCredential
 import sidechain.iroha.consumer.IrohaNetwork
 import java.math.BigInteger
 
@@ -22,18 +21,17 @@ import java.math.BigInteger
  * @param assetId asset id in Iroha
  */
 fun getAssetPrecision(
-    irohaConfig: IrohaConfig,
-    keypair: Keypair,
+    credential: IrohaCredential,
     irohaNetwork: IrohaNetwork,
     assetId: String
 ): Result<Short, Exception> {
-    val uquery = ModelQueryBuilder().creatorAccountId(irohaConfig.creator)
+    val uquery = ModelQueryBuilder().creatorAccountId(credential.accountId)
         .queryCounter(BigInteger.valueOf(1))
         .createdTime(ModelUtil.getCurrentTime())
         .getAssetInfo(assetId)
         .build()
 
-    return ModelUtil.prepareQuery(uquery, keypair)
+    return ModelUtil.prepareQuery(uquery, credential.keyPair)
         .flatMap { query -> irohaNetwork.sendQuery(query) }
         .map { queryResponse ->
             validateResponse(queryResponse, "asset_response")
@@ -41,8 +39,101 @@ fun getAssetPrecision(
         }
 }
 
+
 /**
- * Retrieves account details from Iroha
+ * Get asset info
+ *
+ * @param irohaConfig - Iroha configuration parameters
+ * @param keypair - iroha keypair
+ * @param irohaNetwork - iroha network layer
+ * @param assetId asset id in Iroha
+ */
+fun getAssetInfo(
+    credential: IrohaCredential,
+    irohaNetwork: IrohaNetwork,
+    assetId: String
+): Result<QryResponses.Asset, Exception> {
+    val uquery = ModelQueryBuilder().creatorAccountId(credential.accountId)
+        .queryCounter(BigInteger.valueOf(1))
+        .createdTime(ModelUtil.getCurrentTime())
+        .getAssetInfo(assetId)
+        .build()
+
+    return ModelUtil.prepareQuery(uquery, credential.keyPair)
+        .flatMap { query -> irohaNetwork.sendQuery(query) }
+        .map { queryResponse ->
+            validateResponse(queryResponse, "asset_response")
+            queryResponse.assetResponse.asset
+        }
+}
+
+/**
+ * Get asset balance
+ *
+ * @param irohaConfig - Iroha configuration parameters
+ * @param keypair - iroha keypair
+ * @param irohaNetwork - iroha network layer
+ * @param accountId - iroha account
+ *
+ * @return asset account balance if asset is found, otherwise "0"
+ */
+fun getAccountAsset(
+    credential: IrohaCredential,
+    irohaNetwork: IrohaNetwork,
+    accountId: String,
+    assetId: String
+): Result<String, Exception> {
+    val uquery = ModelQueryBuilder()
+        .creatorAccountId(credential.accountId)
+        .queryCounter(BigInteger.valueOf(1))
+        .createdTime(ModelUtil.getCurrentTime())
+        .getAccountAssets(accountId)
+        .build()
+
+    return ModelUtil.prepareQuery(uquery, credential.keyPair)
+        .flatMap { query -> irohaNetwork.sendQuery(query) }
+        .map { queryResponse ->
+            validateResponse(queryResponse, "account_assets_response")
+
+            val accountAsset = queryResponse.accountAssetsResponse.accountAssetsList
+                .find { it.assetId == assetId }
+
+            accountAsset?.balance ?: "0"
+        }
+}
+
+
+/**
+ * Retrieves account JSON data from Iroha
+ * @param irohaConfig - Iroha configuration parameters
+ * @param keypair - iroha keypair
+ * @param irohaNetwork - iroha network layer
+ * @param acc account to retrieve relays from
+ * @return Map with account details
+ */
+fun getAccountData(
+    credential: IrohaCredential,
+    irohaNetwork: IrohaNetwork,
+    acc: String
+): Result<JsonObject, Exception> {
+    val uquery = ModelQueryBuilder().creatorAccountId(credential.accountId)
+        .queryCounter(BigInteger.valueOf(1))
+        .createdTime(ModelUtil.getCurrentTime())
+        .getAccount(acc)
+        .build()
+
+    return ModelUtil.prepareQuery(uquery, credential.keyPair)
+        .flatMap { query -> irohaNetwork.sendQuery(query) }
+        .map { queryResponse ->
+            validateResponse(queryResponse, "account_response")
+            val account = queryResponse.accountResponse.account
+            val stringBuilder = StringBuilder(account.jsonData)
+            Parser().parse(stringBuilder) as JsonObject
+        }
+}
+
+/**
+ * Retrieves account details by setter from Iroha
  * @param irohaConfig - Iroha configuration parameters
  * @param keypair - iroha keypair
  * @param irohaNetwork - iroha network layer
@@ -51,31 +142,21 @@ fun getAssetPrecision(
  * @return Map with account details
  */
 fun getAccountDetails(
-    irohaConfig: IrohaConfig,
-    keypair: Keypair,
+    credential: IrohaCredential,
     irohaNetwork: IrohaNetwork,
     acc: String,
     detailSetterAccount: String
 ): Result<Map<String, String>, Exception> {
-    val uquery = ModelQueryBuilder().creatorAccountId(irohaConfig.creator)
-        .queryCounter(BigInteger.valueOf(1))
-        .createdTime(ModelUtil.getCurrentTime())
-        .getAccount(acc)
-        .build()
-
-    return ModelUtil.prepareQuery(uquery, keypair)
-        .flatMap { query -> irohaNetwork.sendQuery(query) }
-        .map { queryResponse ->
-            validateResponse(queryResponse, "account_response")
-            val account = queryResponse.accountResponse.account
-            val stringBuilder = StringBuilder(account.jsonData)
-            val json: JsonObject = Parser().parse(stringBuilder) as JsonObject
-
-            if (json.map[detailSetterAccount] == null)
-                mapOf()
-            else
-                json.map[detailSetterAccount] as Map<String, String>
-        }
+    return getAccountData(
+        credential,
+        irohaNetwork,
+        acc
+    ).map { json ->
+        if (json.map[detailSetterAccount] == null)
+            mapOf()
+        else
+            json.map[detailSetterAccount] as Map<String, String>
+    }
 }
 
 /**

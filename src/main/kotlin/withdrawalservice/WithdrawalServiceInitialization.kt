@@ -6,6 +6,7 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.EthereumPasswords
 import io.reactivex.Observable
+import model.IrohaCredential
 import mu.KLogging
 import sidechain.SideChainEvent
 import sidechain.eth.consumer.EthConsumer
@@ -20,15 +21,9 @@ import sidechain.iroha.util.ModelUtil
  */
 class WithdrawalServiceInitialization(
     private val withdrawalConfig: WithdrawalServiceConfig,
+    private val credential: IrohaCredential,
     private val withdrawalEthereumPasswords: EthereumPasswords
 ) {
-
-    private val irohaCreator = withdrawalConfig.iroha.creator
-    private val irohaKeypair =
-        ModelUtil.loadKeypair(
-            withdrawalConfig.iroha.pubkeyPath,
-            withdrawalConfig.iroha.privkeyPath
-        ).get()
 
     private val irohaHost = withdrawalConfig.iroha.hostname
     private val irohaPort = withdrawalConfig.iroha.port
@@ -40,7 +35,7 @@ class WithdrawalServiceInitialization(
      */
     private fun initIrohaChain(): Result<Observable<SideChainEvent.IrohaEvent>, Exception> {
         logger.info { "Init Iroha chain listener" }
-        return IrohaChainListener(irohaHost, irohaPort, irohaCreator, irohaKeypair).getBlockObservable()
+        return IrohaChainListener(irohaHost, irohaPort, credential).getBlockObservable()
             .map { observable ->
                 observable.flatMapIterable { block -> IrohaChainHandler().parseBlock(block) }
             }
@@ -52,7 +47,7 @@ class WithdrawalServiceInitialization(
     private fun initWithdrawalService(inputEvents: Observable<SideChainEvent.IrohaEvent>): WithdrawalService {
         logger.info { "Init Withdrawal Service" }
 
-        return WithdrawalServiceImpl(withdrawalConfig, irohaKeypair, irohaNetwork, inputEvents)
+        return WithdrawalServiceImpl(withdrawalConfig, credential, irohaNetwork, inputEvents)
     }
 
     private fun initEthConsumer(withdrawalService: WithdrawalService): Result<Unit, Exception> {
@@ -61,15 +56,19 @@ class WithdrawalServiceInitialization(
         return Result.of {
             val ethConsumer = EthConsumer(withdrawalConfig.ethereum, withdrawalEthereumPasswords)
             withdrawalService.output()
-                .subscribe({
-                    it.map { withdrawalEvent ->
-                        ethConsumer.consume(withdrawalEvent)
-                    }.failure { ex ->
-                        logger.error("Cannot consume withdrawal event", ex)
+                .subscribe(
+                    { res ->
+                        res.map { withdrawalEvents ->
+                            withdrawalEvents.map { event ->
+                                ethConsumer.consume(event)
+                            }
+                        }.failure { ex ->
+                            logger.error("Cannot consume withdrawal event", ex)
+                        }
+                    }, { ex ->
+                        logger.error("Withdrawal observable error", ex)
                     }
-                }, { ex ->
-                    logger.error("Withdrawal observable error", ex)
-                })
+                )
             Unit
         }
     }

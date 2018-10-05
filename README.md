@@ -1,8 +1,6 @@
 # notary
 Backend code for a D3 notary
 
-[![CircleCI](https://circleci.com/gh/d3ledger/notary.svg?style=svg)](https://circleci.com/gh/d3ledger/notary)
-
 ## How to run notary application and services in Ethereum main net
 1) clone project `master` branch
 2) launch Iroha and Postgres in docker with `docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml up`
