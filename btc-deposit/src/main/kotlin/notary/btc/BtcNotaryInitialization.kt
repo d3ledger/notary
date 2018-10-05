@@ -88,7 +88,6 @@ class BtcNotaryInitialization(
         logger.info { "Start bitcoin blockchain download" }
         val networkParams = btcNetworkConfigProvider.getConfig()
         val levelDbFolder = File(btcNotaryConfig.bitcoin.blockStoragePath)
-        // TODO - D3-321 - dolgopolov.work - I can see nasty logs here. Try to fix it
         val blockStore = LevelDBBlockStore(Context(networkParams), levelDbFolder);
         val blockChain = BlockChain(networkParams, wallet, blockStore)
         val peerGroup = PeerGroup(networkParams, blockChain)

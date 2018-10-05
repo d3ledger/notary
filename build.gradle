@@ -250,7 +250,7 @@ def getEthPasswordsArgs() {
     return args
 }
 
-task retrieveIrohaBindings(type: Exec){
+task retrieveIrohaBindings(type: Exec) {
     description = 'Downloads Iroha binding for specific platform'
 
     def bindings_invocation = ['sh', 'iroha_bindings.sh', getCurrentOs()]
