@@ -3,8 +3,10 @@ package sidechain.eth.util
 import config.EthereumConfig
 import config.EthereumPasswords
 import contract.BasicCoin
+import contract.Failer
 import contract.Master
 import contract.Relay
+import contract.RelayRegistry
 import mu.KLogging
 import okhttp3.*
 import org.web3j.crypto.RawTransaction
@@ -102,15 +104,31 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
     }
 
     /**
-     * Deploy master smart contract
+     * Deploy relay registry smart contract
      * @return master smart contract object
      */
-    fun deployMasterSmartContract(): Master {
-        val master = contract.Master.deploy(
+    fun deployRelayRegistrySmartContract(): RelayRegistry {
+        val relayRegistry = contract.RelayRegistry.deploy(
             web3,
             credentials,
             gasPrice,
             gasLimit
+        ).send()
+        logger.info { "Relay Registry smart contract ${relayRegistry.contractAddress} was deployed" }
+        return relayRegistry
+    }
+
+    /**
+     * Deploy master smart contract
+     * @return master smart contract object
+     */
+    fun deployMasterSmartContract(relayRegistry: String): Master {
+        val master = contract.Master.deploy(
+            web3,
+            credentials,
+            gasPrice,
+            gasLimit,
+            relayRegistry
         ).send()
         logger.info { "Master smart contract ${master.contractAddress} was deployed" }
         return master
@@ -131,6 +149,12 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
         ).send()
         logger.info { "Relay smart contract ${replay.contractAddress} was deployed" }
         return replay
+    }
+
+    fun deployFailerContract(): Failer {
+        val failer = Failer.deploy(web3, credentials, gasPrice, gasLimit).send()
+        logger.info { "Failer smart contract ${failer.contractAddress} was deployed" }
+        return failer
     }
 
     /**

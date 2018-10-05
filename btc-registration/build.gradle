@@ -1,0 +1,27 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        //Spring-boot
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:$spring_boot_version"
+    }
+}
+
+apply plugin: 'application'
+apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
+apply plugin: 'org.springframework.boot'
+mainClassName = "registration.btc.BtcRegistrationMain"
+
+dependencies {
+    compile project(":btc")
+}
+
+task runBtcRegistration(type: JavaExec) {
+    main = 'registration.btc.BtcRegistrationMain'
+    classpath = sourceSets.main.runtimeClasspath
+
+    systemProperty 'java.library.path', getIrohaLibPath()
+    environment "LD_LIBRARY_PATH", getIrohaLibPath()
+}
