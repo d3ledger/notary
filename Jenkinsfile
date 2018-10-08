@@ -63,7 +63,7 @@ pipeline {
           catch(MissingPropertyException e) { }
         }
       }
-      // post {
+      post {
       //   always {
       //     junit 'build/test-results/**/*.xml'
       //   }
