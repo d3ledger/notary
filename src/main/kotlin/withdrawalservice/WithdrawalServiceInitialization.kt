@@ -13,6 +13,7 @@ import sidechain.eth.consumer.EthConsumer
 import sidechain.iroha.IrohaChainHandler
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaNetworkImpl
+import sidechain.iroha.util.ModelUtil
 
 /**
  * @param withdrawalConfig - configuration for withdrawal service
@@ -55,7 +56,6 @@ class WithdrawalServiceInitialization(
         return Result.of {
             val ethConsumer = EthConsumer(withdrawalConfig.ethereum, withdrawalEthereumPasswords)
             withdrawalService.output()
-                .subscribeOn(io.reactivex.schedulers.Schedulers.io())
                 .subscribe(
                     { res ->
                         res.map { withdrawalEvents ->
