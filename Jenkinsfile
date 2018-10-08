@@ -64,9 +64,9 @@ pipeline {
         }
       }
       post {
-        always {
-          junit 'build/test-results/**/*.xml'
-        }
+      //   always {
+      //     junit 'build/test-results/**/*.xml'
+      //   }
         cleanup {
           sh "mkdir build-logs"
           sh """
