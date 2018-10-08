@@ -13,7 +13,8 @@ const val ETH_CREDENTIALS_PASSWORD_ENV = "ETH_CREDENTIALS_PASSWORD"
 const val ETH_NODE_LOGIN_ENV = "ETH_NODE_LOGIN"
 //Environment variable that holds Ethereum node password
 const val ETH_NODE_PASSWORD_ENV = "ETH_NODE_PASSWORD"
-
+//Environment variable that holds current application profile
+const val PROFILE_ENV = "PROFILE"
 private val logger = KLogging().logger
 
 /**
@@ -66,14 +67,22 @@ interface EthereumPasswords {
 }
 
 /**
+ * Returns current profile based on environment variable
+ */
+fun getProfile(): String {
+    var profile = System.getenv(PROFILE_ENV)
+    if (profile == null) {
+        logger.warn { "No profile set. Using default local profile" }
+        profile = "local"
+    }
+    return profile
+}
+
+/**
  * Load configs from Java properties
  */
 fun <T : Any> loadConfigs(prefix: String, type: Class<T>, filename: String): T {
-    var profile = System.getenv("PROFILE")
-    if (profile == null) {
-        logger.warn { "No profile set, using default LOCAL profile" }
-        profile = "local"
-    }
+    val profile = getProfile()
     val (file, extension) = filename.split(".")
     val pwd = System.getProperty("user.dir")
     val path = "$pwd/configs${file}_$profile.$extension"
@@ -93,6 +102,7 @@ fun <T : Any> loadRawConfigs(prefix: String, type: Class<T>, filename: String): 
     val provider = ProxyConfigProvider(loader)
     return provider.bind(prefix, type)
 }
+
 /**
  * Loads ETH passwords. Lookup priority: command line args>environment variables>property file
  */

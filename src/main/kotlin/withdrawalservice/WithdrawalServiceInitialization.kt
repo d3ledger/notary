@@ -57,6 +57,7 @@ class WithdrawalServiceInitialization(
         return Result.of {
             val ethConsumer = EthConsumer(withdrawalConfig.ethereum, withdrawalEthereumPasswords, relayVacuumConfig)
             withdrawalService.output()
+                .subscribeOn(io.reactivex.schedulers.Schedulers.io())
                 .subscribe(
                     { res ->
                         res.map { withdrawalEvents ->

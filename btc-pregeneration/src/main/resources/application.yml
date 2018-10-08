@@ -1,3 +1,4 @@
+#enables http endpoints
 endpoints:
   health.enabled: true
   info.enabled: false

@@ -6,9 +6,10 @@ import jp.co.soramitsu.iroha.Keypair
 import model.IrohaCredential
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.getAccountDetails
+
 //Class that provides all created BTC addresses
 class BtcAddressesProvider(
-    private val irohaConfig: IrohaConfig,
+    irohaConfig: IrohaConfig,
     private val credential: IrohaCredential,
     private val mstRegistrationAccount: String,
     private val notaryAccount: String

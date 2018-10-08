@@ -76,7 +76,7 @@ class IntegrationHelperUtil {
         )
     }
 
-    val ethRegistrationConfig by lazy { configHelper.createEthRegistrationConfig() }
+    val ethRegistrationConfig by lazy { configHelper.createEthRegistrationConfig(testConfig.ethereum) }
 
     /** Ethereum utils */
     private val deployHelper by lazy { DeployHelper(testConfig.ethereum, ethPasswordConfig) }
@@ -192,7 +192,7 @@ class IntegrationHelperUtil {
         BtcRegistrationStrategyImpl(
             btcAddressesProvider,
             btcTakenAddressesProvider,
-            irohaConsumer,
+            registrationConsumer,
             accountHelper.notaryAccount.accountId
         )
     }

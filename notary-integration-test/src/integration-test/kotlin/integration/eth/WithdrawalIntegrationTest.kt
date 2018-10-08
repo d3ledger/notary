@@ -36,7 +36,7 @@ class WithdrawalIntegrationTest {
 
     /** Ethereum private key **/
     private val keypair = DeployHelper(
-        integrationHelper.configHelper.testConfig.ethereum,
+        notaryConfig.ethereum,
         integrationHelper.configHelper.ethPasswordConfig
     ).credentials.ecKeyPair
 

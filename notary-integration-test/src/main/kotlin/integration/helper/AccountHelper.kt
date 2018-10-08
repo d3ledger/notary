@@ -30,7 +30,7 @@ class AccountHelper {
     private val irohaConsumer by lazy { IrohaConsumerImpl(testCredential, testConfig.iroha) }
 
     /** Notary account */
-    val notaryAccount by lazy { createTesterAccount("eth_notary", "notary") }
+    val notaryAccount by lazy { createTesterAccount("notary", "notary") }
 
     /** Notary keys */
     val notaryKeys = mutableListOf(testCredential.keyPair)
