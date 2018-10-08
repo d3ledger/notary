@@ -30,7 +30,7 @@ class BtcRegistrationIntegrationTest {
         config.iroha,
         integrationHelper.testCredential,
         config.registrationCredential.accountId,
-        integrationHelper.testCredential.accountId
+        integrationHelper.accountHelper.notaryAccount.accountId
     )
 
     /**

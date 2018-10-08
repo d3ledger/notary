@@ -47,8 +47,20 @@ pipeline {
             sh "./gradlew test --info"
             sh "./gradlew compileIntegrationTestKotlin --info"
             sh "./gradlew integrationTest --info"
-
           }
+          // scan smartcontracts only on pull requests to master
+          try {
+            if (env.CHANGE_TARGET == "master") {
+              docker.image("mythril/myth").inside("--entrypoint=''") {
+                sh "echo 'Smart contracts scan results' > mythril.txt"
+                // using mythril to scan all solidity files
+                sh "find . -name '*.sol' -exec myth --execution-timeout 900 --create-timeout 900 -x {} \\; | tee mythril.txt"
+              }
+              // save results as a build artifact
+              zip archive: true, dir: '', glob: 'mythril.txt', zipFile: 'smartcontracts-scan-results.zip'
+            }
+          }
+          catch(MissingPropertyException e) { }
         }
       }
       post {

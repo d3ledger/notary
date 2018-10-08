@@ -4,9 +4,6 @@ import com.github.kittinunf.result.Result
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.launch
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -40,19 +37,11 @@ open class RegistrationTest {
         } doReturn Result.of { correctEthWallet }
     }
 
-    private val registrationService: Job
-
     init {
-        registrationService = launch {
-            RegistrationServiceEndpoint(port, strategy)
-        }
+
+        RegistrationServiceEndpoint(port, strategy)
 
         Thread.sleep(3_000)
-    }
-
-    @AfterAll
-    fun dropDown() {
-        registrationService.cancel()
     }
 
     /**

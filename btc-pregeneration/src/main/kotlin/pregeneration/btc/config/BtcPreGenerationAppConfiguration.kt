@@ -5,14 +5,15 @@ import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import provider.NotaryPeerListProvider
 import provider.NotaryPeerListProviderImpl
-import provider.btc.BtcPublicKeyProvider
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.util.ModelUtil
+import wallet.WalletFile
 import java.io.File
 
 val btcPreGenConfig =
-    loadConfigs("btc-pregen", BtcPreGenConfig::class.java, "/pregeneration.properties")
+    loadConfigs("btc-pregen", BtcPreGenConfig::class.java, "/btc/pregeneration.properties")
 
 @Configuration
 class BtcPreGenerationAppConfiguration {
@@ -43,25 +44,33 @@ class BtcPreGenerationAppConfiguration {
     fun preGenConfig() = btcPreGenConfig
 
     @Bean
-    fun btcPublicKeyProvider(): BtcPublicKeyProvider {
+    fun walletFile(): WalletFile {
         val walletFile = File(btcPreGenConfig.btcWalletFilePath)
         val wallet = Wallet.loadFromFile(walletFile)
-        val notaryPeerListProvider = NotaryPeerListProviderImpl(
+        return WalletFile(wallet, walletFile);
+    }
+
+    @Bean
+    fun notaryPeerListProvider(): NotaryPeerListProvider {
+        return NotaryPeerListProviderImpl(
             btcPreGenConfig.iroha,
             registrationCredential,
             btcPreGenConfig.notaryListStorageAccount,
             btcPreGenConfig.notaryListSetterAccount
         )
-        return BtcPublicKeyProvider(
-            wallet,
-            walletFile,
-            btcPreGenConfig.iroha,
-            notaryPeerListProvider,
-            registrationCredential,
-            mstRegistrationCredential,
-            btcPreGenConfig.notaryAccount
-        )
     }
+
+    @Bean
+    fun btcPublicKeyProviderIrohaConfig() = btcPreGenConfig.iroha
+
+    @Bean
+    fun btcRegistrationCredential() = registrationCredential
+
+    @Bean
+    fun mstBtcRegistrationCredential() = mstRegistrationCredential
+
+    @Bean
+    fun notaryAccount() = btcPreGenConfig.notaryAccount
 
     @Bean
     fun irohaChainListener() = IrohaChainListener(
