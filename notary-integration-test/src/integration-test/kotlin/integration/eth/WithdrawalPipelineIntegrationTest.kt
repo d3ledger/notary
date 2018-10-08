@@ -49,11 +49,7 @@ class WithdrawalPipelineIntegrationTest {
     private val withdrawalService: Job
 
     /** Relay vacuum config */
-    val relayVacuumConfig = loadConfigs("relay-vacuum", RelayVacuumConfig::class.java, "/eth/vacuum.properties")
-
-    private val registrationService: Job
-
-    private val withdrawalService: Job
+    private val relayVacuumConfig = loadConfigs("relay-vacuum", RelayVacuumConfig::class.java, "/eth/vacuum.properties")
 
     init {
         integrationHelper.runEthNotary(notaryConfig)
@@ -61,7 +57,7 @@ class WithdrawalPipelineIntegrationTest {
             registration.eth.executeRegistration(registrationConfig, passwordConfig)
         }
         withdrawalService = launch {
-            withdrawalservice.executeWithdrawal(withdrawalServiceConfig, passwordConfig)
+            withdrawalservice.executeWithdrawal(withdrawalServiceConfig, passwordConfig, relayVacuumConfig)
         }
         Thread.sleep(10_000)
     }
