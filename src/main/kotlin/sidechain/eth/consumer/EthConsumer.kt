@@ -31,10 +31,8 @@ class EthConsumer(
             }
 
             val call = withdraw(event)
-
-            if (call!!.isStatusOK && !call.logs.isEmpty()) {
-                println("Starting vacuum service $call.logs[0].data")
-                // Start vacuum service
+            if (call!!.logs.size == 2 &&
+                (event.proof.account == "0x" + call.logs[1].data.subSequence(90, 130))) {
                 executeVacuum(relayVacuumConfig).fold(
                     {
                         withdraw(event)
@@ -44,7 +42,6 @@ class EthConsumer(
                     }
                 )
             }
-
         }
     }
 
