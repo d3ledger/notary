@@ -48,6 +48,13 @@ services:
       - -h
       - 0.0.0.0
 
+  # bitcoin
+  d3-btc-node0:
+    image: kylemanna/bitcoind:latest
+    container_name: d3-btc-node0
+    volumes:
+      - ./bitcoin/bitcoin.conf:/bitcoin/.bitcoin/bitcoin.conf
+
   grpcwebproxy:
     build:
       context: grpcwebproxy/
