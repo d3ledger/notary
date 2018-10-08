@@ -268,7 +268,7 @@ task osInfo {
     }
 }
 
-def getIrohaLibPath(){
+def getIrohaLibPath() {
     return Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
 }
 

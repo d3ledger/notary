@@ -37,7 +37,7 @@ class TriggerProvider(
             payload,
             ""
         ).map {
-            logger.info { "${irohaConsumer.creator} was triggered with payload $payload" }
+            logger.info { "$triggerAccount was triggered with payload $payload" }
             Unit
         }
     }

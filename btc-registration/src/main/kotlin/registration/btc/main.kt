@@ -18,7 +18,7 @@ private val logger = KLogging().logger
  */
 fun main(args: Array<String>) {
     val registrationConfig =
-        loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/registration.properties")
+        loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/btc/registration.properties")
     executeRegistration(registrationConfig)
 }
 
@@ -31,8 +31,8 @@ fun executeRegistration(registrationConfig: BtcRegistrationConfig) {
                 registrationConfig.registrationCredential.privkeyPath
             )
         }
-        .map { keypair -> IrohaCredential(registrationConfig.registrationCredential.accountId, keypair)}
-        .flatMap {credential ->  BtcRegistrationServiceInitialization(registrationConfig, credential).init() }
+        .map { keypair -> IrohaCredential(registrationConfig.registrationCredential.accountId, keypair) }
+        .flatMap { credential -> BtcRegistrationServiceInitialization(registrationConfig, credential).init() }
         .failure { ex ->
             logger.error("Cannot run btc registration", ex)
             System.exit(1)
