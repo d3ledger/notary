@@ -3,9 +3,10 @@ package integration.eth
 import integration.helper.IntegrationHelperUtil
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelCrypto
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.launch
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import provider.eth.ETH_PRECISION
 import util.getRandomString
 import java.math.BigDecimal
@@ -28,7 +29,7 @@ class WithdrawalPipelineIntegrationTest {
     private val refundAddress = "http://localhost:${notaryConfig.refund.port}"
 
     /** Test Registration configuration */
-    private val registrationConfig = integrationHelper.configHelper.createEthRegistrationConfig()
+    private val registrationConfig = integrationHelper.ethRegistrationConfig
 
     /** Test Withdrawal configuration */
     private val withdrawalServiceConfig = integrationHelper.configHelper.createWithdrawalConfig()
@@ -42,18 +43,12 @@ class WithdrawalPipelineIntegrationTest {
     /** Notary account in Iroha */
     private val notaryAccount = withdrawalServiceConfig.notaryIrohaAccount
 
-    private val registrationService: Job
-
-    private val withdrawalService: Job
-
     init {
         integrationHelper.runEthNotary(notaryConfig)
-        registrationService = launch {
-            registration.eth.executeRegistration(registrationConfig, passwordConfig)
-        }
-        withdrawalService = launch {
-            withdrawalservice.executeWithdrawal(withdrawalServiceConfig, passwordConfig)
-        }
+        registration.eth.executeRegistration(registrationConfig, passwordConfig)
+
+        withdrawalservice.executeWithdrawal(withdrawalServiceConfig, passwordConfig)
+
         Thread.sleep(10_000)
     }
 
@@ -67,12 +62,6 @@ class WithdrawalPipelineIntegrationTest {
         clientName = String.getRandomString(9)
         clientId = "$clientName@notary"
         keypair = ModelCrypto().generateKeypair()
-    }
-
-    @AfterAll
-    fun dropDown() {
-        registrationService.cancel()
-        withdrawalService.cancel()
     }
 
     /**

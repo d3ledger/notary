@@ -15,8 +15,7 @@ import withdrawalservice.WithdrawalServiceConfig
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * Class that handles all the configuration objects.
- */
+ *Class that handles all the configuration objects.*/
 class ConfigHelper(
     private val accountHelper: AccountHelper,
     val relayRegistryContractAddress: String,
@@ -180,13 +179,12 @@ class ConfigHelper(
     }
 
     /** Test configuration of Registration with runtime dependencies */
-    fun createEthRegistrationConfig(): EthRegistrationConfig {
+    fun createEthRegistrationConfig(ethereumConfig: EthereumConfig): EthRegistrationConfig {
         val ethRegistrationConfig =
             loadConfigs("eth-registration", EthRegistrationConfig::class.java, "/eth/registration.properties")
-
         return object : EthRegistrationConfig {
             override val ethRelayRegistryAddress = relayRegistryContractAddress
-            override val ethereum = ethRegistrationConfig.ethereum
+            override val ethereum = ethereumConfig
             override val port = portCounter.incrementAndGet()
             override val relayRegistrationIrohaAccount = accountHelper.registrationAccount.accountId
             override val notaryIrohaAccount = accountHelper.notaryAccount.accountId
@@ -197,16 +195,23 @@ class ConfigHelper(
     }
 
     fun createRelayVacuumConfig(): RelayVacuumConfig {
+        val vacuumConfig =
+            loadConfigs("relay-vacuum", RelayVacuumConfig::class.java, "/eth/vacuum.properties")
         return object : RelayVacuumConfig {
             override val registrationServiceIrohaAccount = accountHelper.registrationAccount.accountId
             override val tokenStorageAccount = accountHelper.tokenStorageAccount.accountId
+
+            override val tokenSetterAccount = accountHelper.tokenSetterAccount.accountId
 
             /** Notary Iroha account that stores relay register */
             override val notaryIrohaAccount = accountHelper.notaryAccount.accountId
 
             override val vacuumCredential = getTestCredentialConfig()
+            /** Iroha configurations */
             override val iroha = createIrohaConfig()
-            override val ethereum = testConfig.ethereum
+
+            /** Ethereum configurations */
+            override val ethereum = vacuumConfig.ethereum
         }
     }
 
