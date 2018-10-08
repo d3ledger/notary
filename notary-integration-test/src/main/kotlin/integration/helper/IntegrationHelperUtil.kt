@@ -24,6 +24,7 @@ import provider.eth.EthFreeRelayProvider
 import provider.eth.EthRelayProviderIrohaImpl
 import provider.eth.EthTokensProviderImpl
 import registration.btc.BtcRegistrationStrategyImpl
+import registration.eth.EthRegistrationConfig
 import registration.eth.EthRegistrationStrategyImpl
 import registration.eth.relay.RelayRegistration
 import sidechain.eth.EthChainListener
@@ -36,6 +37,7 @@ import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountAsset
 import token.EthTokenInfo
 import util.getRandomString
+import withdrawalservice.WithdrawalServiceConfig
 import java.io.File
 import java.math.BigInteger
 
@@ -629,6 +631,20 @@ class IntegrationHelperUtil {
         addNotary(name, address)
 
         logger.info { "Notary $name is started on $address" }
+    }
+
+    /**
+     * Run ethereum registration config
+     */
+    fun runRegistrationService(registrationConfig: EthRegistrationConfig = ethRegistrationConfig) {
+        registration.eth.executeRegistration(registrationConfig, configHelper.ethPasswordConfig)
+    }
+
+    /**
+     * Run withdrawal service
+     */
+    fun runEthWithdrawalService(withdrawalServiceConfig: WithdrawalServiceConfig = configHelper.createWithdrawalConfig()) {
+        withdrawalservice.executeWithdrawal(withdrawalServiceConfig, configHelper.ethPasswordConfig)
     }
 
     /**

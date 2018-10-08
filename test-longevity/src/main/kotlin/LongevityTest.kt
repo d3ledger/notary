@@ -1,9 +1,20 @@
+import com.github.kittinunf.result.Result
 import config.IrohaCredentialConfig
+import config.loadEthPasswords
 import integration.helper.IntegrationHelperUtil
 import sidechain.iroha.util.ModelUtil
 
 class LongevityTest {
     private val integrationHelper = IntegrationHelperUtil()
+
+    /** 5 notary clients */
+    val clients = listOf(
+        NotaryClient(integrationHelper, loadEthPasswords("client0", "/eth/ethereum_password.properties")),
+        NotaryClient(integrationHelper, loadEthPasswords("client1", "/eth/ethereum_password.properties")),
+        NotaryClient(integrationHelper, loadEthPasswords("client2", "/eth/ethereum_password.properties")),
+        NotaryClient(integrationHelper, loadEthPasswords("client3", "/eth/ethereum_password.properties")),
+        NotaryClient(integrationHelper, loadEthPasswords("client4", "/eth/ethereum_password.properties"))
+    )
 
     /** Run 4 instances of notary */
     private fun runNotaries() {
@@ -32,7 +43,30 @@ class LongevityTest {
         }
     }
 
+    /**
+     * Run all notary services.
+     */
     fun runServices() {
         runNotaries()
+        integrationHelper.runRegistrationService()
+        integrationHelper.runEthWithdrawalService()
+
+        // wait until services are up
+        Thread.sleep(10_000)
+    }
+
+    fun registerClients(): Result<Unit, Exception> {
+        return Result.of {
+            for (client in clients) {
+                val status = client.signUp().statusCode
+                if (status != 200)
+                    throw Exception("Cannot register client ${client.irohaCredential.accountId}, status code: $status")
+            }
+        }
+    }
+
+    fun run() {
+        runServices()
+        registerClients()
     }
 }

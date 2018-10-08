@@ -47,7 +47,7 @@ class WithdrawalPipelineIntegrationTest {
         integrationHelper.runEthNotary(notaryConfig)
         registration.eth.executeRegistration(registrationConfig, passwordConfig)
 
-        withdrawalservice.executeWithdrawal(withdrawalServiceConfig, passwordConfig)
+        integrationHelper.runEthWithdrawalService()
 
         Thread.sleep(10_000)
     }
