@@ -9,6 +9,7 @@ import org.bitcoinj.wallet.Wallet
 import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener
 import provider.btc.BtcRegisteredAddressesProvider
 import sidechain.SideChainEvent
+import wallet.WalletFile
 import java.math.BigInteger
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -17,18 +18,29 @@ private const val BTC_ASSET_NAME = "btc"
 class ReceivedCoinsListener(
     private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
     private val confidenceLevel: Int,
-    private val emitter: ObservableEmitter<SideChainEvent.PrimaryBlockChainEvent>
+    private val emitter: ObservableEmitter<SideChainEvent.PrimaryBlockChainEvent>,
+    private val walletFile: WalletFile
 ) : WalletCoinsReceivedEventListener {
 
+    init {
+        logger.info { "BTC received coins listener was successfully initialized" }
+    }
+
     override fun onCoinsReceived(wallet: Wallet, tx: Transaction, prevBalance: Coin, newBalance: Coin) {
-        logger.info { "BTC coin was received, but it's not confirmed yet. Tx: ${tx.hashAsString}" }
-        tx.confidence.addEventListener(ConfirmedTxListener(confidenceLevel, tx, ::handleTx))
+        if (tx.confidence.depthInBlocks >= confidenceLevel) {
+            logger.info { "BTC was received. Tx: ${tx.hashAsString}" }
+            handleTx(tx)
+        } else {
+            logger.info { "BTC was received, but it's not confirmed yet. Tx: ${tx.hashAsString}" }
+            tx.confidence.addEventListener(ConfirmedTxListener(confidenceLevel, tx, ::handleTx))
+        }
     }
 
     private fun handleTx(tx: Transaction) {
         btcRegisteredAddressesProvider.getRegisteredAddresses().fold({ addresses ->
             tx.outputs.forEach { output ->
                 val btcAddress = output.scriptPubKey.getToAddress(output.params).toBase58()
+                logger.info { "Tx ${tx.hashAsString} has output address $btcAddress" }
                 val irohaAccount = addresses[btcAddress]
                 if (irohaAccount != null) {
                     val event = SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
@@ -37,6 +49,7 @@ class ReceivedCoinsListener(
                         //We take this value after transaction being confirmed several times,
                         //meaning that it must be time a transaction was added to blockchain.
                         //But I'm not sure is it safe to use it.
+                        //TODO now I'm 100% sure it's not safe
                         BigInteger.valueOf(tx.updateTime.time),
                         irohaAccount,
                         BTC_ASSET_NAME,
@@ -44,6 +57,7 @@ class ReceivedCoinsListener(
                         ""
                     )
                     logger.info { "BTC deposit event(tx ${tx.hashAsString}, amount ${output.value.value}) was created. Related client is $irohaAccount. " }
+                    walletFile.save()
                     emitter.onNext(event)
                 }
             }

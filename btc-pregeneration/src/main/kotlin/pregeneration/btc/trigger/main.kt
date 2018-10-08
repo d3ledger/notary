@@ -2,7 +2,6 @@
 
 package pregeneration.btc.trigger
 
-import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import model.IrohaCredential
@@ -48,8 +47,10 @@ fun executeTrigger(btcPkPreGenConfig: BtcPreGenConfig) {
             val sessionAccountName = String.getRandomId()
             btcKeyGenSessionProvider.createPubKeyCreationSession(sessionAccountName)
                 .map { triggerProvider.trigger(sessionAccountName) }
-        }.failure { ex ->
-            logger.error("Cannot trigger btc address pregeneration", ex)
-            System.exit(1)
-        }
+        }.fold(
+            { logger.info { "BTC multisignature address registration service was successfully triggered" } },
+            { ex ->
+                logger.error("Cannot trigger btc address pregeneration", ex)
+                System.exit(1)
+            })
 }

@@ -25,20 +25,20 @@ class BtcRegistrationServiceInitialization(
                     btcRegistrationConfig.iroha,
                     btcRegistrationCredential,
                     btcRegistrationConfig.mstRegistrationAccount,
-                    btcRegistrationCredential.accountId
+                    btcRegistrationConfig.notaryAccount
                 )
             val btcTakenAddressesProvider =
                 BtcRegisteredAddressesProvider(
                     btcRegistrationConfig.iroha,
                     btcRegistrationCredential,
                     btcRegistrationCredential.accountId,
-                    btcRegistrationCredential.accountId
+                    btcRegistrationConfig.notaryAccount
                 )
             BtcRegistrationStrategyImpl(
                 btcAddressesProvider,
                 btcTakenAddressesProvider,
                 irohaConsumer,
-                btcRegistrationCredential.accountId
+                btcRegistrationConfig.notaryAccount
             )
         }.map { registrationStrategy ->
             RegistrationServiceEndpoint(

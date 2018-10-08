@@ -21,7 +21,7 @@ dependencies {
 task runBtcRegistration(type: JavaExec) {
     main = 'registration.btc.BtcRegistrationMain'
     classpath = sourceSets.main.runtimeClasspath
-
+    setWorkingDir("$rootDir/")
     systemProperty 'java.library.path', getIrohaLibPath()
     environment "LD_LIBRARY_PATH", getIrohaLibPath()
 }

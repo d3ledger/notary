@@ -16,6 +16,9 @@ interface BtcRegistrationConfig {
     /** Iroha account for btc account register in MST fashion*/
     val mstRegistrationAccount: String
 
+    /** Notary account that stores addresses in details*/
+    val notaryAccount: String
+
     /** Iroha configuration */
     val iroha: IrohaConfig
 

@@ -128,8 +128,8 @@ class ConfigHelper(
     fun createBtcRegistrationConfig(): BtcRegistrationConfig {
         val btcRegistrationConfig =
             loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/btc/registration.properties")
-
         return object : BtcRegistrationConfig {
+            override val notaryAccount = accountHelper.notaryAccount.accountId
             override val mstRegistrationAccount = accountHelper.mstRegistrationAccount.accountId
             override val port = btcRegistrationConfig.port
             override val registrationCredential = btcRegistrationConfig.registrationCredential

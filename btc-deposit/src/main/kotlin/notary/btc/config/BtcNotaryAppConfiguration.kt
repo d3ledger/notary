@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration
 import provider.btc.BtcRegisteredAddressesProvider
 import sidechain.iroha.util.ModelUtil
 
-val notaryConfig = loadConfigs("btc-notary", BtcNotaryConfig::class.java, "/notary.properties")
+val notaryConfig = loadConfigs("btc-notary", BtcNotaryConfig::class.java, "/btc/notary.properties")
 
 @Configuration
 class BtcNotaryAppConfiguration {
@@ -32,7 +32,7 @@ class BtcNotaryAppConfiguration {
     fun healthCheckIrohaConfig() = notaryConfig.iroha
 
     @Bean
-    fun healthCheckCredential(): IrohaCredential {
+    fun irohaHealthCheckCredential(): IrohaCredential {
         //Assuming Iroha library is loaded
         return ModelUtil.loadKeypair(
             notaryConfig.notaryCredential.pubkeyPath,

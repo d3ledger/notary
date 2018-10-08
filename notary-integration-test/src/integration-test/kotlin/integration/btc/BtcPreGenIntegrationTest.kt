@@ -19,9 +19,11 @@ import provider.NotaryPeerListProviderImpl
 import provider.TriggerProvider
 import provider.btc.BtcPublicKeyProvider
 import provider.btc.BtcSessionProvider
+import provider.btc.network.BtcRegTestConfigProvider
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
+import wallet.WalletFile
 import java.io.File
 
 private const val WAIT_PREGEN_INIT_MILLIS = 10_000L
@@ -122,8 +124,9 @@ class BtcPreGenIntegrationTest {
 
 
     fun btcPublicKeyProvider(): BtcPublicKeyProvider {
-        val walletFile = File(btcPreGenConfig.btcWalletFilePath)
-        val wallet = Wallet.loadFromFile(walletFile)
+        val file = File(btcPreGenConfig.btcWalletFilePath)
+        val wallet = Wallet.loadFromFile(file)
+        val walletFile = WalletFile(wallet, file)
         val notaryPeerListProvider = NotaryPeerListProviderImpl(
             btcPreGenConfig.iroha,
             registrationCredential,
@@ -131,13 +134,13 @@ class BtcPreGenIntegrationTest {
             btcPreGenConfig.notaryListSetterAccount
         )
         return BtcPublicKeyProvider(
-            wallet,
             walletFile,
             btcPreGenConfig.iroha,
             notaryPeerListProvider,
             registrationCredential,
             mstRegistrationCredential,
-            btcPreGenConfig.notaryAccount
+            btcPreGenConfig.notaryAccount,
+            BtcRegTestConfigProvider()
         )
     }
 
