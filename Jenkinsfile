@@ -33,24 +33,24 @@ pipeline {
       steps {
         script {
           def scmVars = checkout scm
-          DOCKER_NETWORK = "${scmVars.CHANGE_ID}-${scmVars.GIT_COMMIT}-${BUILD_NUMBER}"
-          writeFile file: ".env", text: "SUBNET=${DOCKER_NETWORK}"
-          sh "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml pull"
-          sh(returnStdout: true, script: "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml up --build -d")
-          iC = docker.image("openjdk:8-jdk")
-          iC.inside("--network='d3-${DOCKER_NETWORK}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
-            withCredentials([file(credentialsId: 'ethereum_password.properties', variable: 'ethereum_password')]) {
-              sh "cp \$ethereum_password configs/eth/ethereum_password_local.properties"
-              sh "cp \$ethereum_password configs/eth/ethereum_password_local.properties"
-            }
-            sh "./gradlew dependencies"
-            sh "./gradlew test --info"
-            sh "./gradlew compileIntegrationTestKotlin --info"
-            sh "./gradlew integrationTest --info"
-          }
+          // DOCKER_NETWORK = "${scmVars.CHANGE_ID}-${scmVars.GIT_COMMIT}-${BUILD_NUMBER}"
+          // writeFile file: ".env", text: "SUBNET=${DOCKER_NETWORK}"
+          // sh "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml pull"
+          // sh(returnStdout: true, script: "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml up --build -d")
+          // iC = docker.image("openjdk:8-jdk")
+          // iC.inside("--network='d3-${DOCKER_NETWORK}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
+          //   withCredentials([file(credentialsId: 'ethereum_password.properties', variable: 'ethereum_password')]) {
+          //     sh "cp \$ethereum_password configs/eth/ethereum_password_local.properties"
+          //     sh "cp \$ethereum_password configs/eth/ethereum_password_local.properties"
+          //   }
+          //   sh "./gradlew dependencies"
+          //   sh "./gradlew test --info"
+          //   sh "./gradlew compileIntegrationTestKotlin --info"
+          //   sh "./gradlew integrationTest --info"
+          // }
           // scan smartcontracts only on pull requests to master
           try {
-            if (env.CHANGE_TARGET == "master") {
+            if (env.CHANGE_TARGET == "ignore-test2") {
               docker.image("mythril/myth").inside("--entrypoint=''") {
                 sh "echo 'Smart contracts scan results' > mythril.txt"
                 // using mythril to scan all solidity files
