@@ -50,7 +50,7 @@ pipeline {
           // }
           // scan smartcontracts only on pull requests to master
           try {
-            if (env.CHANGE_TARGET == "ignore-test2") {
+            if (env.CHANGE_TARGET == "feature/ignore-test2") {
               docker.image("mythril/myth").inside("--entrypoint=''") {
                 sh "echo 'Smart contracts scan results' > mythril.txt"
                 // using mythril to scan all solidity files
