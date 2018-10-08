@@ -14,26 +14,26 @@ class BtcRegistrationStrategyImpl(
     private val btcAddressesProvider: BtcAddressesProvider,
     private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
     irohaConsumer: IrohaConsumer,
-    notaryIrohaAccount: String,
-    registrationAccount: String
+    notaryIrohaAccount: String
 ) : RegistrationStrategy {
 
     private val irohaAccountCreator =
-        IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, registrationAccount, "bitcoin")
+        IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, "bitcoin")
     
     /**
      * Registers new Iroha client and associates BTC address to it
      * @param name - client name
      * @param pubkey - client public key
+     * @param whitelist - list of bitcoin addresses
      * @return associated BTC address
      */
-    override fun register(name: String, pubkey: String): Result<String, Exception> {
+    override fun register(name: String, whitelist: List<String>, pubkey: String): Result<String, Exception> {
         return btcAddressesProvider.getAddresses().fanout { btcRegisteredAddressesProvider.getRegisteredAddresses() }
             .flatMap { (addresses, takenAddresses) ->
                 try {
                     //It fetches all BTC addresses and takes one that was not registered
                     val freeAddress = addresses.keys.first { btcAddress -> !takenAddresses.containsKey(btcAddress) }
-                    irohaAccountCreator.create(freeAddress, name, pubkey)
+                    irohaAccountCreator.create(freeAddress, whitelist.toString().trim('[').trim(']'), name, pubkey)
                 } catch (e: NoSuchElementException) {
                     throw IllegalStateException("no free btc address to register")
                 }

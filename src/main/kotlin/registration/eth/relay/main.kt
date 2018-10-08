@@ -4,10 +4,13 @@ package registration.eth.relay
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
+import com.github.kittinunf.result.map
 import config.loadConfigs
 import config.loadEthPasswords
+import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.IrohaInitialization
+import sidechain.iroha.util.ModelUtil
 
 private val logger = KLogging().logger
 
@@ -24,7 +27,14 @@ fun main(args: Array<String>) {
     val passwordConfig = loadEthPasswords("relay-registration", "/eth/ethereum_password.properties", args)
 
     IrohaInitialization.loadIrohaLibrary()
-        .flatMap { RelayRegistration(relayRegistrationConfig, passwordConfig).deploy() }
+        .flatMap {
+            ModelUtil.loadKeypair(
+                relayRegistrationConfig.relayRegistrationCredential.pubkeyPath,
+                relayRegistrationConfig.relayRegistrationCredential.privkeyPath
+            )
+        }
+        .map { keypair -> IrohaCredential(relayRegistrationConfig.relayRegistrationCredential.accountId, keypair) }
+        .flatMap { credential -> RelayRegistration(relayRegistrationConfig, credential, passwordConfig).deploy() }
         .failure { ex ->
             logger.error("Cannot run relay deployer", ex)
             System.exit(1)

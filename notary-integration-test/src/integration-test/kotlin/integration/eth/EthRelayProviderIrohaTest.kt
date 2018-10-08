@@ -1,17 +1,12 @@
 package integration.eth
 
-import com.github.kittinunf.result.failure
 import integration.helper.IntegrationHelperUtil
-import notary.IrohaCommand
-import notary.IrohaTransaction
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
 import provider.eth.EthRelayProviderIrohaImpl
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaConverterImpl
-import sidechain.iroha.util.ModelUtil
+import sidechain.iroha.consumer.IrohaNetworkImpl
 
 /**
  * Requires Iroha is running
@@ -22,28 +17,24 @@ class EthRelayProviderIrohaTest {
     val integrationHelper = IntegrationHelperUtil()
     val testConfig = integrationHelper.configHelper.testConfig
 
-    /** Creator of txs in Iroha */
-    val creator: String = testConfig.iroha.creator
-
-    /** Iroha keypair */
-    val keypair = ModelUtil.loadKeypair(
-        testConfig.iroha.pubkeyPath,
-        testConfig.iroha.privkeyPath
-    ).get()
+    /** Iroha account that holds details */
+    private val relayStorage = integrationHelper.accountHelper.notaryAccount.accountId
 
     /** Iroha account that has set details */
-    val detailSetter = testConfig.registrationIrohaAccount
+    private val relaySetter = integrationHelper.accountHelper.registrationAccount.accountId
 
-    /** Iroha account that holds details */
-    val detailHolder = testConfig.notaryIrohaAccount
+    val irohaNetwork = IrohaNetworkImpl(
+        testConfig.iroha.hostname,
+        testConfig.iroha.port
+    )
 
     /**
-     * @given [detailHolder] has ethereum wallets in details
+     * @given ethereum relay wallets are stored in the system
      * @when getRelays() is called
      * @then not free wallets are returned in a map
      */
     @Test
-    fun storageTest() {
+    fun testStorage() {
         val domain = "notary"
 
         val entries = mapOf(
@@ -55,34 +46,15 @@ class EthRelayProviderIrohaTest {
             "0xfe9e8709d3215310075d67e3ed32a380ccf451c8" to "free"
         )
 
+        integrationHelper.addRelaysToIroha(entries)
+
         val valid = entries.filter { it.value != "free" }
 
-        val masterAccount = testConfig.registrationIrohaAccount
-
-        val irohaOutput = IrohaTransaction(
-            creator,
-            ModelUtil.getCurrentTime(),
-            1,
-            entries.map {
-                // Set ethereum wallet as occupied by user id
-                IrohaCommand.CommandSetAccountDetail(
-                    masterAccount,
-                    it.key,
-                    it.value
-                )
-            }
-        )
-
-        val tx = IrohaConverterImpl().convert(irohaOutput)
-
-        IrohaConsumerImpl(testConfig.iroha.creator, testConfig.iroha).sendAndCheck(tx)
-            .failure { ex -> fail(ex) }
-
         EthRelayProviderIrohaImpl(
-            testConfig.iroha,
-            keypair,
-            masterAccount,
-            creator
+            irohaNetwork,
+            integrationHelper.testCredential,
+            relayStorage,
+            relaySetter
         ).getRelays()
             .fold(
                 { assertEquals(valid, it) },
@@ -91,20 +63,21 @@ class EthRelayProviderIrohaTest {
     }
 
     /**
-     * @given There is no account details on [detailHolder]
+     * @given There is no relay accounts registered (we use test accountId as relay holder)
      * @when getRelays() is called
      * @then empty map is returned
      */
     @Test
     fun testEmptyStorage() {
-        EthRelayProviderIrohaImpl(testConfig.iroha, keypair, detailSetter, detailHolder).getRelays()
+        EthRelayProviderIrohaImpl(
+            irohaNetwork,
+            integrationHelper.testCredential,
+            integrationHelper.testCredential.accountId,
+            relaySetter
+        ).getRelays()
             .fold(
-                {
-                    assert(it.isEmpty())
-                },
-                { ex ->
-                    fail("result has exception", ex)
-                }
+                { assert(it.isEmpty()) },
+                { ex -> fail("result has exception", ex) }
             )
     }
 }

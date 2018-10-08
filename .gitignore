@@ -106,9 +106,7 @@ fabric.properties
 .idea/httpRequests
 
 # Ethereum passwords config
-src/main/resources/ethereum_password.properties
-src/main/resources/eth/ethereum_password.properties
-src/integration-test/resources/eth/ethereum_password.properties
+configs/eth/ethereum_password*
 
 # Artifacts of parity node
 deploy/ethereum/cache
@@ -117,5 +115,7 @@ deploy/ethereum/network
 deploy/ethereum/keys/test
 
 # Bitcoin wallets, blockchain and etc.
-# deploy/bitcoin
-
+deploy/bitcoin/testnet/d3.wallet
+deploy/bitcoin/testnet/blocks
+deploy/bitcoin/regtest/d3.wallet
+deploy/bitcoin/regtest/blocks

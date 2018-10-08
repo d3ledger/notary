@@ -1,10 +1,11 @@
 package integration.eth
 
+import config.IrohaCredentialConfig
 import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import sidechain.eth.util.ETH_PRECISION
+import provider.eth.ETH_PRECISION
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import java.math.BigDecimal
@@ -30,25 +31,30 @@ class DepositMultiIntegrationTest {
 
     private fun registerRelay(): String {
         integrationHelper.deployRelays(1)
-        return integrationHelper.registerClient(clientIrohaAccount)
+        // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
+        return integrationHelper.registerClient(clientIrohaAccount, listOf("0x0"))
     }
 
     /** Path to public key of 2nd instance of notary */
-    private val pubkeyPath = "../deploy/iroha/keys/notary2@notary.pub"
+    private val pubkeyPath2 = "deploy/iroha/keys/notary2@notary.pub"
 
     /** Path to private key of 2nd instance of notary */
-    private val privkeyPath = "../deploy/iroha/keys/notary2@notary.priv"
+    private val privkeyPath2 = "deploy/iroha/keys/notary2@notary.priv"
 
     init {
         // run notary
         integrationHelper.runEthNotary()
 
         // create 2nd notray config
-        val irohaConfig =
-            integrationHelper.configHelper.createIrohaConfig(pubkeyPath = pubkeyPath, privkeyPath = privkeyPath)
-        val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig(irohaConfig)
+        val notaryCredential2 = object : IrohaCredentialConfig {
+            override val pubkeyPath = pubkeyPath2
+            override val privkeyPath = privkeyPath2
+            override val accountId = integrationHelper.accountHelper.notaryAccount.accountId
+        }
 
-        val keypair = ModelUtil.loadKeypair(pubkeyPath, privkeyPath).get()
+        val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig(notaryCredential_ = notaryCredential2)
+
+        val keypair = ModelUtil.loadKeypair(pubkeyPath2, privkeyPath2).get()
 
         integrationHelper.accountHelper.addNotarySignatory(keypair)
 

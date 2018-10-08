@@ -2,7 +2,7 @@ package registration.btc
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import jp.co.soramitsu.iroha.Keypair
+import model.IrohaCredential
 import mu.KLogging
 import provider.btc.BtcAddressesProvider
 import provider.btc.BtcRegisteredAddressesProvider
@@ -11,7 +11,7 @@ import sidechain.iroha.consumer.IrohaConsumerImpl
 
 class BtcRegistrationServiceInitialization(
     private val btcRegistrationConfig: BtcRegistrationConfig,
-    private val keyPair: Keypair
+    private val btcRegistrationCredential: IrohaCredential
 ) {
     /**
      * Init Registration Service
@@ -19,27 +19,26 @@ class BtcRegistrationServiceInitialization(
     fun init(): Result<Unit, Exception> {
         logger.info { "Init BTC client registration service" }
         return Result.of {
-            val irohaConsumer = IrohaConsumerImpl(btcRegistrationConfig.iroha.creator, btcRegistrationConfig.iroha)
+            val irohaConsumer = IrohaConsumerImpl(btcRegistrationCredential, btcRegistrationConfig.iroha)
             val btcAddressesProvider =
                 BtcAddressesProvider(
                     btcRegistrationConfig.iroha,
-                    keyPair,
+                    btcRegistrationCredential,
                     btcRegistrationConfig.mstRegistrationAccount,
-                    btcRegistrationConfig.iroha.creator
+                    btcRegistrationConfig.notaryAccount
                 )
             val btcTakenAddressesProvider =
                 BtcRegisteredAddressesProvider(
                     btcRegistrationConfig.iroha,
-                    keyPair,
-                    btcRegistrationConfig.registrationAccount,
-                    btcRegistrationConfig.iroha.creator
+                    btcRegistrationCredential,
+                    btcRegistrationCredential.accountId,
+                    btcRegistrationConfig.notaryAccount
                 )
             BtcRegistrationStrategyImpl(
                 btcAddressesProvider,
                 btcTakenAddressesProvider,
                 irohaConsumer,
-                btcRegistrationConfig.iroha.creator,
-                btcRegistrationConfig.registrationAccount
+                btcRegistrationConfig.notaryAccount
             )
         }.map { registrationStrategy ->
             RegistrationServiceEndpoint(

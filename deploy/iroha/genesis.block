@@ -55,6 +55,7 @@
                   "permissions": [
                     "can_create_account",
                     "can_set_detail",
+                    "can_get_all_accounts",
                     "can_get_domain_accounts",
                     "can_get_all_txs",
                     "can_get_blocks",
@@ -250,7 +251,7 @@
                 "createAccount": {
                   "accountName": "token_storage_service",
                   "domainId": "notary",
-                  "publicKey": "iJ9riB4zG+IUh9t33PMsX409XoBm540v6sQjn+kdQW8="
+                  "publicKey": "jw9s6xR2efuBVJxI5yA0XxTtA0CHnkrTcKIbbdwygck="
                 }
               },
               {

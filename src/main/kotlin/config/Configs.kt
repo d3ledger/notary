@@ -2,8 +2,10 @@ package config
 
 import com.jdiazcano.cfg4k.loaders.PropertyConfigLoader
 import com.jdiazcano.cfg4k.providers.ProxyConfigProvider
-import com.jdiazcano.cfg4k.sources.ClasspathConfigSource
+import com.jdiazcano.cfg4k.sources.ConfigSource
 import mu.KLogging
+import java.io.File
+import java.io.InputStream
 
 //Environment variable that holds Ethereum credentials password
 const val ETH_CREDENTIALS_PASSWORD_ENV = "ETH_CREDENTIALS_PASSWORD"
@@ -11,7 +13,8 @@ const val ETH_CREDENTIALS_PASSWORD_ENV = "ETH_CREDENTIALS_PASSWORD"
 const val ETH_NODE_LOGIN_ENV = "ETH_NODE_LOGIN"
 //Environment variable that holds Ethereum node password
 const val ETH_NODE_PASSWORD_ENV = "ETH_NODE_PASSWORD"
-
+//Environment variable that holds current application profile
+const val PROFILE_ENV = "PROFILE"
 private val logger = KLogging().logger
 
 /**
@@ -20,7 +23,13 @@ private val logger = KLogging().logger
 interface IrohaConfig {
     val hostname: String
     val port: Int
-    val creator: String
+}
+
+/**
+ * Configuration for Iroha credential
+ */
+interface IrohaCredentialConfig {
+    val accountId: String
     val pubkeyPath: String
     val privkeyPath: String
 }
@@ -58,10 +67,38 @@ interface EthereumPasswords {
 }
 
 /**
+ * Returns current profile based on environment variable
+ */
+fun getProfile(): String {
+    var profile = System.getenv(PROFILE_ENV)
+    if (profile == null) {
+        logger.warn { "No profile set. Using default local profile" }
+        profile = "local"
+    }
+    return profile
+}
+
+/**
  * Load configs from Java properties
  */
-fun <T : Any> loadConfigs(prefix: String, type: Class<T>, filename: String = "/defaults.properties"): T {
-    val loader = PropertyConfigLoader(ClasspathConfigSource(filename))
+fun <T : Any> loadConfigs(prefix: String, type: Class<T>, filename: String): T {
+    val profile = getProfile()
+    val (file, extension) = filename.split(".")
+    val pwd = System.getProperty("user.dir")
+    val path = "$pwd/configs${file}_$profile.$extension"
+    logger.info { "Loading config from $path" }
+    return loadRawConfigs(prefix, type, path)
+}
+
+class Stream(private val stream: InputStream) : ConfigSource {
+    override fun read(): InputStream {
+        return stream;
+    }
+}
+
+fun <T : Any> loadRawConfigs(prefix: String, type: Class<T>, filename: String): T {
+    val stream = Stream(File(filename).inputStream())
+    val loader = PropertyConfigLoader(stream)
     val provider = ProxyConfigProvider(loader)
     return provider.bind(prefix, type)
 }

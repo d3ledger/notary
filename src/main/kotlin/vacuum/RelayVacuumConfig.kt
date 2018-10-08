@@ -2,6 +2,7 @@ package vacuum
 
 import config.EthereumConfig
 import config.IrohaConfig
+import config.IrohaCredentialConfig
 
 interface RelayVacuumConfig {
 
@@ -11,6 +12,9 @@ interface RelayVacuumConfig {
     /** Iroha account that stores tokens */
     val tokenStorageAccount: String
 
+    /** Iroha account that sets tokens */
+    val tokenSetterAccount: String
+
     /** Notary Iroha account that stores relay register */
     val notaryIrohaAccount: String
 
@@ -19,5 +23,7 @@ interface RelayVacuumConfig {
 
     /** Ethereum configurations */
     val ethereum: EthereumConfig
+
+    val vacuumCredential: IrohaCredentialConfig
 
 }

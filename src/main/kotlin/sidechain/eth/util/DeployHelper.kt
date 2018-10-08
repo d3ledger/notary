@@ -2,20 +2,16 @@ package sidechain.eth.util
 
 import config.EthereumConfig
 import config.EthereumPasswords
-import contract.BasicCoin
-import contract.Failer
-import contract.Master
-import contract.Relay
-import contract.RelayRegistry
+import contract.*
 import mu.KLogging
 import okhttp3.*
-import org.web3j.crypto.RawTransaction
-import org.web3j.crypto.TransactionEncoder
 import org.web3j.crypto.WalletUtils
 import org.web3j.protocol.Web3j
-import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.http.HttpService
-import org.web3j.utils.Numeric
+import org.web3j.tx.RawTransactionManager
+import org.web3j.tx.Transfer
+import org.web3j.utils.Convert
+import java.math.BigDecimal
 import java.math.BigInteger
 
 /**
@@ -51,6 +47,9 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
         WalletUtils.loadCredentials(ethereumPasswords.credentialsPassword, ethereumConfig.credentialsPath)
     }
 
+    /** transaction manager */
+    val rawTransactionManager = RawTransactionManager(web3, credentials)
+
     /** Gas price */
     val gasPrice = BigInteger.valueOf(ethereumConfig.gasPrice)
 
@@ -63,26 +62,9 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      * @param to target account
      */
     fun sendEthereum(amount: BigInteger, to: String) {
-        // get the next available nonce
-        val ethGetTransactionCount = web3.ethGetTransactionCount(
-            credentials.address, DefaultBlockParameterName.LATEST
-        ).send()
-        val nonce = ethGetTransactionCount.transactionCount
-
-        // create our transaction
-        val rawTransaction = RawTransaction.createTransaction(
-            nonce,
-            gasPrice,
-            gasLimit,
-            to,
-            amount,
-            ""
-        )
-
-        // sign & send our transaction
-        val signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials)
-        val hexValue = Numeric.toHexString(signedMessage)
-        val transactionHash = web3.ethSendRawTransaction(hexValue).send().transactionHash
+        val transfer = Transfer(web3, rawTransactionManager)
+        val transactionHash =
+            transfer.sendFunds(to, BigDecimal(amount), Convert.Unit.WEI, gasPrice, gasLimit).send().transactionHash
         logger.info("ETH $amount were sent to $to; tx hash $transactionHash")
     }
 
@@ -108,12 +90,14 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      * @return master smart contract object
      */
     fun deployRelayRegistrySmartContract(): RelayRegistry {
-        return contract.RelayRegistry.deploy(
+        val relayRegistry = contract.RelayRegistry.deploy(
             web3,
             credentials,
             gasPrice,
             gasLimit
         ).send()
+        logger.info { "Relay Registry smart contract ${relayRegistry.contractAddress} was deployed" }
+        return relayRegistry
     }
 
     /**

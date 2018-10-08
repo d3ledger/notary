@@ -21,7 +21,7 @@ class ConfigsTest {
     @Test
     fun testLoadEthPasswordsArgs() {
         val args = arrayOf("argCredentialsPassword", "argNodeLogin", "argNodePassword")
-        val ethPasswords = loadEthPasswords("test", "/test.properties", args)
+        val ethPasswords = loadEthPasswords("test", "/eth/test_eth_credentials.properties", args)
         assertEquals(args[0], ethPasswords.credentialsPassword)
         assertEquals(args[1], ethPasswords.nodeLogin)
         assertEquals(args[2], ethPasswords.nodePassword)
@@ -36,7 +36,7 @@ class ConfigsTest {
     fun testLoadEthPasswordsArgsWithEnvVariables() {
         setEnvVariables()
         val args = arrayOf("argCredentialsPassword", "argNodeLogin", "argNodePassword")
-        val ethPasswords = loadEthPasswords("test", "/test.properties", args)
+        val ethPasswords = loadEthPasswords("test", "/eth/test_eth_credentials.properties", args)
         assertEquals(args[0], ethPasswords.credentialsPassword)
         assertEquals(args[1], ethPasswords.nodeLogin)
         assertEquals(args[2], ethPasswords.nodePassword)
@@ -53,24 +53,10 @@ class ConfigsTest {
         val envCredentialsPassword = System.getenv(ETH_CREDENTIALS_PASSWORD_ENV)
         val envNodeLogin = System.getenv(ETH_NODE_LOGIN_ENV)
         val envNodePassword = System.getenv(ETH_NODE_PASSWORD_ENV)
-        val ethPasswords = loadEthPasswords("test", "/test.properties")
+        val ethPasswords = loadEthPasswords("test", "/eth/test_eth_credentials.properties")
         assertEquals(envCredentialsPassword, ethPasswords.credentialsPassword)
         assertEquals(envNodeLogin, ethPasswords.nodeLogin)
         assertEquals(envNodePassword, ethPasswords.nodePassword)
-    }
-
-    /**
-     * @given properties file
-     * @when properties file is passed to loadEthPasswords()
-     * @then EthPasswordsConfig is constructed based on properties file
-     */
-    @Test
-    fun testLoadEthPasswordsProperties() {
-        val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
-        val ethPasswords = loadEthPasswords("test", "/test.properties")
-        assertEquals(testConfig.credentialsPassword, ethPasswords.credentialsPassword)
-        assertEquals(testConfig.nodeLogin, ethPasswords.nodeLogin)
-        assertEquals(testConfig.nodePassword, ethPasswords.nodePassword)
     }
 
     private fun setEnvVariables() {
