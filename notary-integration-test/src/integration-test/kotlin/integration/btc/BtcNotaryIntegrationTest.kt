@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import provider.btc.BtcRegisteredAddressesProvider
+import provider.btc.network.BtcRegTestConfigProvider
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import java.math.BigDecimal
@@ -22,17 +23,21 @@ class BtcNotaryIntegrationTest {
     private val notaryConfig = integrationHelper.configHelper.createBtcNotaryConfig()
 
     private val btcRegisteredAddressesProvider by lazy {
-        ModelUtil.loadKeypair(notaryConfig.notaryCredential.pubkeyPath, notaryConfig.notaryCredential.privkeyPath).fold({ keypair ->
-            BtcRegisteredAddressesProvider(
-                notaryConfig.iroha,
-                IrohaCredential(notaryConfig.notaryCredential.accountId, keypair),
-                notaryConfig.registrationAccount,
-                notaryConfig.notaryCredential.accountId
-            )
-        }, { ex -> throw ex })
+        ModelUtil.loadKeypair(notaryConfig.notaryCredential.pubkeyPath, notaryConfig.notaryCredential.privkeyPath)
+            .fold({ keypair ->
+                BtcRegisteredAddressesProvider(
+                    notaryConfig.iroha,
+                    IrohaCredential(notaryConfig.notaryCredential.accountId, keypair),
+                    notaryConfig.registrationAccount,
+                    notaryConfig.notaryCredential.accountId
+                )
+            }, { ex -> throw ex })
     }
 
-    private val btcNotaryInitialization = BtcNotaryInitialization(notaryConfig, btcRegisteredAddressesProvider)
+    private val btcNetworkConfigProvider = BtcRegTestConfigProvider()
+
+    private val btcNotaryInitialization =
+        BtcNotaryInitialization(notaryConfig, btcRegisteredAddressesProvider, btcNetworkConfigProvider)
 
 
     /**

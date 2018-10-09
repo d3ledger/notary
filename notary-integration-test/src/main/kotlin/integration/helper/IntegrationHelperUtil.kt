@@ -193,7 +193,7 @@ class IntegrationHelperUtil {
         BtcRegistrationStrategyImpl(
             btcAddressesProvider,
             btcTakenAddressesProvider,
-            irohaConsumer,
+            registrationConsumer,
             accountHelper.notaryAccount.accountId
         )
     }
