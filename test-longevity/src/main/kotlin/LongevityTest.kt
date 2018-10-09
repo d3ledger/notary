@@ -2,6 +2,7 @@ import com.github.kittinunf.result.Result
 import config.IrohaCredentialConfig
 import config.loadEthPasswords
 import integration.helper.IntegrationHelperUtil
+import kotlinx.coroutines.experimental.launch
 import provider.eth.ETH_PRECISION
 import sidechain.iroha.util.ModelUtil
 import java.math.BigDecimal
@@ -62,8 +63,8 @@ class LongevityTest {
      */
     fun runServices() {
         runNotaries()
-        integrationHelper.runRegistrationService()
-        integrationHelper.runEthWithdrawalService()
+        launch { integrationHelper.runRegistrationService() }
+        launch { integrationHelper.runEthWithdrawalService() }
 
         // wait until services are up
         Thread.sleep(10_000)
@@ -75,7 +76,7 @@ class LongevityTest {
             for (client in clients) {
                 val status = client.signUp().statusCode
                 if (status != 200)
-                    throw Exception("Cannot register client ${client.irohaCredential.accountId}, status code: $status")
+                    throw Exception("Cannot register client ${client.accountId}, status code: $status")
             }
         }
     }
@@ -120,7 +121,6 @@ class LongevityTest {
             println("After: ${client.getEthBalance()}")
 
             println("Vacuum")
-
         }
     }
 }

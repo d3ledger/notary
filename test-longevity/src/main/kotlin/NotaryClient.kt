@@ -17,22 +17,22 @@ class NotaryClient(
     ethPasswordConfig: EthereumPasswords,
     val name: String = "client_${String.getRandomString(6)}"
 ) {
-    val irohaCredential = IrohaCredential("$name@notary", ModelCrypto().generateKeypair())
+    private val irohaCredential = IrohaCredential("$name@notary", ModelCrypto().generateKeypair())
 
-    val etherHelper = DeployHelper(ethConfig, ethPasswordConfig)
+    private val etherHelper = DeployHelper(ethConfig, ethPasswordConfig)
+
+    private val masterAccountId = integrationHelper.accountHelper.notaryAccount.accountId
+
+    val accountId = irohaCredential.accountId
 
     val ethAddress = etherHelper.credentials.address
 
     val whitelist: List<String> = listOf(ethAddress)
 
-    // eth credentials
-
-    private val masterAccountId = integrationHelper.accountHelper.notaryAccount.accountId
-
     var relay: String? = null
 
     init {
-        logger.info { "Created client $name with eth address $ethAddress." }
+        logger.info { "Created client $accountId with eth address $ethAddress." }
     }
 
     /**
@@ -70,8 +70,17 @@ class NotaryClient(
         )
     }
 
-    fun transfer(amount: BigInteger, to: String) {
-        etherHelper.sendEthereum(amount, to)
+    fun transfer(amount: String, to: String) {
+        logger.info { "Client $name wants to transfer $amount ether to $to" }
+        integrationHelper.transferAssetIrohaFromClient(
+            irohaCredential.accountId,
+            irohaCredential.keyPair,
+            irohaCredential.accountId,
+            to,
+            "ether#ethereum",
+            "",
+            amount
+        )
     }
 
     fun getEthBalance(): BigInteger {

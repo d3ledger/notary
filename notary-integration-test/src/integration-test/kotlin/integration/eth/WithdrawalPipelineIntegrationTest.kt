@@ -3,10 +3,9 @@ package integration.eth
 import integration.helper.IntegrationHelperUtil
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelCrypto
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.launch
+import org.junit.jupiter.api.*
 import provider.eth.ETH_PRECISION
 import util.getRandomString
 import java.math.BigDecimal
@@ -40,10 +39,18 @@ class WithdrawalPipelineIntegrationTest {
     /** Notary account in Iroha */
     private val notaryAccount = withdrawalServiceConfig.notaryIrohaAccount
 
+    private val registrationService: Job
+
+    private val withdrawalService: Job
+
     init {
         integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig)
-        integrationHelper.runRegistrationService(registrationConfig)
-        integrationHelper.runEthWithdrawalService()
+        registrationService = launch {
+            integrationHelper.runRegistrationService(registrationConfig)
+        }
+        withdrawalService = launch {
+            integrationHelper.runEthWithdrawalService()
+        }
 
         integrationHelper.lockEthMasterSmartcontract()
 
@@ -60,6 +67,12 @@ class WithdrawalPipelineIntegrationTest {
         clientName = String.getRandomString(9)
         clientId = "$clientName@notary"
         keypair = ModelCrypto().generateKeypair()
+    }
+
+    @AfterAll
+    fun dropDown() {
+        registrationService.cancel()
+        withdrawalService.cancel()
     }
 
     /**
