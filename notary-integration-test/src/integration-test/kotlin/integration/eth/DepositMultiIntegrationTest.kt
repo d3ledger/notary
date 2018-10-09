@@ -1,6 +1,7 @@
 package integration.eth
 
 import config.IrohaCredentialConfig
+import config.loadEthPasswords
 import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -36,30 +37,39 @@ class DepositMultiIntegrationTest {
     }
 
     /** Path to public key of 2nd instance of notary */
-    private val pubkeyPath2 = "deploy/iroha/keys/notary2@notary.pub"
+    private val pubkeyPath2 = "deploy/iroha/keys/notary1@notary.pub"
 
     /** Path to private key of 2nd instance of notary */
-    private val privkeyPath2 = "deploy/iroha/keys/notary2@notary.priv"
+    private val privkeyPath2 = "deploy/iroha/keys/notary1@notary.priv"
 
     init {
         // run notary
         integrationHelper.runEthNotary()
 
         // create 2nd notray config
-        val notaryCredential2 = object : IrohaCredentialConfig {
+        val irohaCredential = object : IrohaCredentialConfig {
             override val pubkeyPath = pubkeyPath2
             override val privkeyPath = privkeyPath2
             override val accountId = integrationHelper.accountHelper.notaryAccount.accountId
         }
 
-        val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig(notaryCredential_ = notaryCredential2)
+        val ethereumPasswords = loadEthPasswords("notary1", "/eth/ethereum_password.properties")
+        val ethereumConfig =
+            integrationHelper.configHelper.createEthereumConfig("deploy/ethereum/keys/local/notary1.key")
+        val notaryConfig =
+            integrationHelper.configHelper.createEthNotaryConfig(
+                ethereumConfig = ethereumConfig,
+                notaryCredential_ = irohaCredential
+            )
 
         val keypair = ModelUtil.loadKeypair(pubkeyPath2, privkeyPath2).get()
 
         integrationHelper.accountHelper.addNotarySignatory(keypair)
 
         // run 2nd instance of notary
-        integrationHelper.runEthNotary(notaryConfig)
+        integrationHelper.runEthNotary(ethereumPasswords, notaryConfig)
+
+        integrationHelper.lockEthMasterSmartcontract()
     }
 
     /**

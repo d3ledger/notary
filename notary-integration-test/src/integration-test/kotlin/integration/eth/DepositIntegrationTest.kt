@@ -23,6 +23,7 @@ class DepositIntegrationTest {
     init {
         // run notary
         integrationHelper.runEthNotary()
+        integrationHelper.lockEthMasterSmartcontract()
     }
 
     /** Iroha client account */

@@ -15,6 +15,7 @@ class FailedTransactionTest {
 
     init {
         integrationHelper.runEthNotary()
+        integrationHelper.lockEthMasterSmartcontract()
     }
 
     /**

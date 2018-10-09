@@ -31,7 +31,8 @@ class WithdrawalIntegrationTest {
     private val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig()
 
     init {
-        integrationHelper.runEthNotary(notaryConfig)
+        integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig)
+        integrationHelper.lockEthMasterSmartcontract()
     }
 
     /** Ethereum private key **/

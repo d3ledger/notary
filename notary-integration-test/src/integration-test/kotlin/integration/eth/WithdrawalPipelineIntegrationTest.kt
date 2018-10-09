@@ -34,9 +34,6 @@ class WithdrawalPipelineIntegrationTest {
     /** Test Withdrawal configuration */
     private val withdrawalServiceConfig = integrationHelper.configHelper.createWithdrawalConfig()
 
-    /** Ethereum password configs */
-    private val passwordConfig = integrationHelper.configHelper.ethPasswordConfig
-
     /** Ethereum test address where we want to withdraw to */
     private val toAddress = integrationHelper.configHelper.testConfig.ethTestAccount
 
@@ -44,10 +41,11 @@ class WithdrawalPipelineIntegrationTest {
     private val notaryAccount = withdrawalServiceConfig.notaryIrohaAccount
 
     init {
-        integrationHelper.runEthNotary(notaryConfig)
-        registration.eth.executeRegistration(registrationConfig, passwordConfig)
-
+        integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig)
+        integrationHelper.runRegistrationService(registrationConfig)
         integrationHelper.runEthWithdrawalService()
+
+        integrationHelper.lockEthMasterSmartcontract()
 
         Thread.sleep(10_000)
     }

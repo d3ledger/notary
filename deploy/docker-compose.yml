@@ -49,6 +49,11 @@ services:
       - '--account=0x57dde9abe8f042a4c5bf7caae9cfaa81f3e97b06bdf114009ce976535d7d1ddf,100000000000000000000'
       - '--account=0x6fc42cef1778a451b0d8ec7703624fb010c5df46ac1c90f57538c1943948a62e,100000000000000000000'
       - '--account=0xa0548d46a9327d47c496404a5b70867ed056c5a869f2e651ea6c802034ce01a8,100000000000000000000'
+      # notaries for tests
+      - '--account=0x8d766c4b43637c8525d30c447e269a653e4cdfefeaccb781373d9ceec0a38c48,0'
+      - '--account=0xf4500494cb5fd7755421f6f058fb3e85e06a2fd19407e5121e6772f1cfab7380,0'
+      - '--account=0x7e45a3d8898b3cd70ea03ecafb91561fedc7d6235eabbf9276748bfcc393d50e,0'
+      - '--account=0x79a9856c648c326348c17fcbcb68cb2d2b26cfa1d5c0833a47231edbe78ae4b3,0'
       - --noVMErrorsOnRPCResponse
       - --secure
       - -h
