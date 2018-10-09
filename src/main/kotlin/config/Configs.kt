@@ -56,7 +56,7 @@ interface BitcoinConfig {
     //Depth of transactions in BTC blockchain
     val confidenceLevel: Int
     //BTC node host name
-    val host:String
+    val host: String
 }
 
 /**
