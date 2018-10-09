@@ -13,7 +13,6 @@ import sidechain.eth.consumer.EthConsumer
 import sidechain.iroha.IrohaChainHandler
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaNetworkImpl
-import sidechain.iroha.util.ModelUtil
 
 /**
  * @param withdrawalConfig - configuration for withdrawal service
