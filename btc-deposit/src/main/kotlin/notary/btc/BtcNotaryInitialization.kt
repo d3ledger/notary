@@ -11,6 +11,7 @@ import notary.btc.config.BtcNotaryConfig
 import notary.btc.listener.ReceivedCoinsListener
 import org.bitcoinj.core.BlockChain
 import org.bitcoinj.core.Context
+import org.bitcoinj.core.PeerAddress
 import org.bitcoinj.core.PeerGroup
 import org.bitcoinj.store.LevelDBBlockStore
 import org.bitcoinj.wallet.Wallet
@@ -23,6 +24,7 @@ import sidechain.SideChainEvent
 import sidechain.iroha.util.ModelUtil
 import wallet.WalletFile
 import java.io.File
+import java.net.InetAddress
 
 @Component
 class BtcNotaryInitialization(
@@ -91,6 +93,7 @@ class BtcNotaryInitialization(
         val blockStore = LevelDBBlockStore(Context(networkParams), levelDbFolder);
         val blockChain = BlockChain(networkParams, wallet, blockStore)
         val peerGroup = PeerGroup(networkParams, blockChain)
+        peerGroup.addAddress(InetAddress.getByName(btcNotaryConfig.bitcoin.host))
         peerGroup.startAsync()
         peerGroup.downloadBlockChain()
     }

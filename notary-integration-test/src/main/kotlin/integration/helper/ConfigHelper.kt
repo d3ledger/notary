@@ -134,7 +134,6 @@ class ConfigHelper(
             override val port = btcRegistrationConfig.port
             override val registrationCredential = btcRegistrationConfig.registrationCredential
             override val iroha = createIrohaConfig()
-            override val btcWalletPath = btcRegistrationConfig.btcWalletPath
         }
     }
 

@@ -1,3 +1,4 @@
+
 pipeline {
   environment {
     DOCKER_NETWORK = ''
@@ -37,8 +38,10 @@ pipeline {
           writeFile file: ".env", text: "SUBNET=${DOCKER_NETWORK}"
           sh "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml pull"
           sh(returnStdout: true, script: "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml up --build -d")
+          sh "docker cp d3-btc-node0-${DOCKER_NETWORK}:/usr/bin/bitcoin-cli deploy/bitcoin/"
           iC = docker.image("openjdk:8-jdk")
           iC.inside("--network='d3-${DOCKER_NETWORK}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
+            sh "ln -s deploy/bitcoin/bitcoin-cli /usr/bin/bitcoin-cli"
             withCredentials([file(credentialsId: 'ethereum_password.properties', variable: 'ethereum_password')]) {
               sh "cp \$ethereum_password configs/eth/ethereum_password_local.properties"
               sh "cp \$ethereum_password configs/eth/ethereum_password_local.properties"
