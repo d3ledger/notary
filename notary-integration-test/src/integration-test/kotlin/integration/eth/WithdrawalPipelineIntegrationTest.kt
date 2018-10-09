@@ -30,14 +30,11 @@ class WithdrawalPipelineIntegrationTest {
     /** Test Registration configuration */
     private val registrationConfig = integrationHelper.ethRegistrationConfig
 
-    /** Test Withdrawal configuration */
-    private val withdrawalServiceConfig = integrationHelper.configHelper.createWithdrawalConfig()
-
     /** Ethereum test address where we want to withdraw to */
     private val toAddress = integrationHelper.configHelper.testConfig.ethTestAccount
 
     /** Notary account in Iroha */
-    private val notaryAccount = withdrawalServiceConfig.notaryIrohaAccount
+    private val notaryAccount = integrationHelper.accountHelper.notaryAccount.accountId
 
     private val registrationService: Job
 
