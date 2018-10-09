@@ -46,7 +46,7 @@ class DepositMultiIntegrationTest {
         // run notary
         integrationHelper.runEthNotary()
 
-        // create 2nd notray config
+        // create 2nd notary config
         val irohaCredential = object : IrohaCredentialConfig {
             override val pubkeyPath = pubkeyPath2
             override val privkeyPath = privkeyPath2
