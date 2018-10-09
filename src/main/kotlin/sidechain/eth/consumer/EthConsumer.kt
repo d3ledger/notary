@@ -30,7 +30,7 @@ class EthConsumer(
                         "relay ${event.proof.relay}\n"
             }
 
-            //
+            // The first withdraw call
             val call = withdraw(event)
             // Here works next logic:
             // If the first call returns logs with size 2 then check if a destination address is equal to the address
