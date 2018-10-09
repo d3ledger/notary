@@ -1,3 +1,3 @@
-package sideChain.iroha
+package sidechain.iroha
 
 const val CLIENT_DOMAIN = "d3"

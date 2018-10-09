@@ -14,10 +14,10 @@ import org.junit.jupiter.api.TestInstance
 import org.web3j.crypto.ECKeyPair
 import provider.eth.ETH_PRECISION
 import provider.eth.EthRelayProviderIrohaImpl
-import sideChain.iroha.CLIENT_DOMAIN
 import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
+import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
