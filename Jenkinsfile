@@ -96,10 +96,10 @@ pipeline {
               iC.inside("-e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
                 sh "./gradlew shadowJar"
               }
-              relay = docker.build("nexus.iroha.tech:19002/${login}/eth-relay:${TAG}", "-f eth-relay.dockerfile .")
-              registration = docker.build("nexus.iroha.tech:19002/${login}/registration:${TAG}", "-f registration.dockerfile .")
-              notary = docker.build("nexus.iroha.tech:19002/${login}/notary:${TAG}", "-f notary.dockerfile .")
-              withdrawal = docker.build("nexus.iroha.tech:19002/${login}/withdrawal:${TAG}", "-f withdrawal.dockerfile .")
+              relay = docker.build("nexus.iroha.tech:19002/${login}/eth-relay:${TAG}", "-f docker/eth-relay.dockerfile .")
+              registration = docker.build("nexus.iroha.tech:19002/${login}/registration:${TAG}", "-f docker/registration.dockerfile .")
+              notary = docker.build("nexus.iroha.tech:19002/${login}/notary:${TAG}", "-f docker/notary.dockerfile .")
+              withdrawal = docker.build("nexus.iroha.tech:19002/${login}/withdrawal:${TAG}", "-f docker/withdrawal.dockerfile .")
 
               relay.push("${TAG}")
               registration.push("${TAG}")
