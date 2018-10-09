@@ -30,7 +30,12 @@ class EthConsumer(
                         "relay ${event.proof.relay}\n"
             }
 
+            //
             val call = withdraw(event)
+            // Here works next logic:
+            // If the first call returns logs with size 2 then check if a destination address is equal to the address
+            // from the second log
+            // If its true then we start vacuum process
             if (call!!.logs.size == 2 &&
                 (event.proof.account == "0x" + call.logs[1].data.subSequence(90, 130))) {
                 executeVacuum(relayVacuumConfig).fold(

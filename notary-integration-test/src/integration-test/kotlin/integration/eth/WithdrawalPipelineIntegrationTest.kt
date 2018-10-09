@@ -1,6 +1,5 @@
 package integration.eth
 
-import config.loadConfigs
 import integration.helper.IntegrationHelperUtil
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelCrypto
@@ -9,7 +8,6 @@ import kotlinx.coroutines.experimental.launch
 import org.junit.jupiter.api.*
 import provider.eth.ETH_PRECISION
 import util.getRandomString
-import vacuum.RelayVacuumConfig
 import java.math.BigDecimal
 import java.math.BigInteger
 import kotlin.test.assertEquals
@@ -49,7 +47,7 @@ class WithdrawalPipelineIntegrationTest {
     private val withdrawalService: Job
 
     /** Relay vacuum config */
-    private val relayVacuumConfig = loadConfigs("relay-vacuum", RelayVacuumConfig::class.java, "/eth/vacuum.properties")
+    private val relayVacuumConfig = integrationHelper.configHelper.createRelayVacuumConfig()
 
     init {
         integrationHelper.runEthNotary(notaryConfig)
