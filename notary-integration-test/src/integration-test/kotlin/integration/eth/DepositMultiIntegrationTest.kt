@@ -53,7 +53,7 @@ class DepositMultiIntegrationTest {
             override val accountId = integrationHelper.accountHelper.notaryAccount.accountId
         }
 
-        val ethereumPasswords = loadEthPasswords("notary1", "/eth/ethereum_password.properties")
+        val ethereumPasswords = loadEthPasswords("test", "/eth/ethereum_password.properties")
         val ethereumConfig =
             integrationHelper.configHelper.createEthereumConfig("deploy/ethereum/keys/local/notary1.key")
         val notaryConfig =
