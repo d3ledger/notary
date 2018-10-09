@@ -5,7 +5,6 @@ import integration.helper.IntegrationHelperUtil
 import model.IrohaCredential
 import notary.btc.BtcNotaryInitialization
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import provider.btc.BtcRegisteredAddressesProvider
@@ -17,7 +16,6 @@ import java.math.BigDecimal
 private val integrationHelper = IntegrationHelperUtil()
 private val btcAsset = "btc#bitcoin"
 
-@Disabled
 class BtcNotaryIntegrationTest {
 
     private val notaryConfig = integrationHelper.configHelper.createBtcNotaryConfig()
@@ -60,9 +58,7 @@ class BtcNotaryIntegrationTest {
             btcAsset
         )
         val btcAmount = 1
-        if (!integrationHelper.sendBtc(btcAddress, btcAmount)) {
-            fail { "failed to send btc" }
-        }
+        integrationHelper.sendBtc(btcAddress, btcAmount)
         Thread.sleep(30_000)
         val newBalance = integrationHelper.getIrohaAccountBalance(testClient, btcAsset)
         assertEquals(

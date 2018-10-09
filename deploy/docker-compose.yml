@@ -55,9 +55,16 @@ services:
     depends_on:
       - d3-iroha
     entrypoint:
-      - grpcwebproxy
-      - --backend_addr=d3-iroha:50051
-      - --run_tls_server=false
+    - grpcwebproxy
+    - --backend_addr=d3-iroha:50051
+    - --run_tls_server=false
+
+  # bitcoin
+  d3-btc-node0:
+    image: kylemanna/bitcoind:latest
+    container_name: d3-btc-node0
+    volumes:
+      - ./bitcoin/bitcoin.conf:/bitcoin/.bitcoin/bitcoin.conf
 
 volumes:
   iroha_block_store:
