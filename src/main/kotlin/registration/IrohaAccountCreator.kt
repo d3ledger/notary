@@ -37,7 +37,7 @@ class IrohaAccountCreator(
         pubkey: String
     ): Result<String, Exception> {
         return Result.of {
-            val domain = "notary"
+            val domain = "d3"
             // TODO: implement https://soramitsu.atlassian.net/browse/D3-415
             IrohaOrderedBatch(
                 listOf(

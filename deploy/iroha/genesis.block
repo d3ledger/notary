@@ -153,6 +153,12 @@
               },
               {
                 "createDomain": {
+                    "domainId": "d3",
+                    "defaultRole": "client"
+                }
+              },
+              {
+                "createDomain": {
                   "domainId": "btcSession",
                   "defaultRole": "none"
                 }
