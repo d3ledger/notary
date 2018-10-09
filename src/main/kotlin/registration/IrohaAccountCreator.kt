@@ -36,8 +36,9 @@ class IrohaAccountCreator(
         userName: String,
         pubkey: String
     ): Result<String, Exception> {
+        val domain = "d3"
         return Result.of {
-            val domain = "d3"
+
             // TODO: implement https://soramitsu.atlassian.net/browse/D3-415
             IrohaOrderedBatch(
                 listOf(
@@ -83,7 +84,7 @@ class IrohaAccountCreator(
             val utx = IrohaConverterImpl().convert(irohaTx)
             irohaConsumer.sendAndCheck(utx)
         }.map {
-            logger.info { "New account $userName was created" }
+            logger.info { "New account $userName@$domain was created" }
             currencyAddress
         }
     }

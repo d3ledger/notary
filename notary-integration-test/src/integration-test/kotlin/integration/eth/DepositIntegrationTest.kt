@@ -27,7 +27,7 @@ class DepositIntegrationTest {
 
     /** Iroha client account */
     private val clientIrohaAccount = String.getRandomString(9)
-    private val clientIrohaAccountId = "$clientIrohaAccount@notary"
+    private val clientIrohaAccountId = "$clientIrohaAccount@d3"
 
     /** Ethereum address to transfer to */
     private val relayWallet = registerRelay()

@@ -95,7 +95,7 @@ class WithdrawalMultinotaryIntegrationTest {
 
         // create
         val client = String.getRandomString(9)
-        val clientId = "$client@notary"
+        val clientId = "$client@d3"
         integrationHelper.registerClient(client, listOf(ethWallet), integrationHelper.testCredential.keyPair)
         integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
         val relay = EthRelayProviderIrohaImpl(

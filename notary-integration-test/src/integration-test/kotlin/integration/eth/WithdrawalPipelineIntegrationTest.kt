@@ -60,7 +60,7 @@ class WithdrawalPipelineIntegrationTest {
     fun setup() {
         // generate client name and key
         clientName = String.getRandomString(9)
-        clientId = "$clientName@notary"
+        clientId = "$clientName@d3"
         keypair = ModelCrypto().generateKeypair()
     }
 

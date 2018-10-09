@@ -153,8 +153,8 @@
               },
               {
                 "createDomain": {
-                    "domainId": "d3",
-                    "defaultRole": "client"
+                  "domainId": "d3",
+                  "defaultRole": "client"
                 }
               },
               {
