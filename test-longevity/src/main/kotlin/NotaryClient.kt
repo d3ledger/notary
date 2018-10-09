@@ -27,8 +27,6 @@ class NotaryClient(
 
     // eth credentials
 
-    private var balanceIroha: Map<String, Int> = mapOf("ether#ethereum" to 0)
-
     private val masterAccountId = integrationHelper.accountHelper.notaryAccount.accountId
 
     var relay: String? = null
