@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import provider.eth.ETH_PRECISION
+import sideChain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import java.math.BigDecimal
@@ -24,7 +25,7 @@ class DepositMultiIntegrationTest {
 
     /** Iroha client account */
     private val clientIrohaAccount = String.getRandomString(9)
-    private val clientIrohaAccountId = "$clientIrohaAccount@d3"
+    private val clientIrohaAccountId = "$clientIrohaAccount@$CLIENT_DOMAIN"
 
     /** Ethereum address to transfer to */
     private val relayWallet = registerRelay()

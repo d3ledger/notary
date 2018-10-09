@@ -7,6 +7,7 @@ import mu.KLogging
 import notary.IrohaCommand
 import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
+import sideChain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.util.ModelUtil.getCurrentTime
@@ -36,7 +37,7 @@ class IrohaAccountCreator(
         userName: String,
         pubkey: String
     ): Result<String, Exception> {
-        val domain = "d3"
+        val domain = CLIENT_DOMAIN
         return Result.of {
 
             // TODO: implement https://soramitsu.atlassian.net/browse/D3-415

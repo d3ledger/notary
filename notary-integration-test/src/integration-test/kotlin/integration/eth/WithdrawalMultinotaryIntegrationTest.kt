@@ -14,6 +14,7 @@ import org.junit.jupiter.api.TestInstance
 import org.web3j.crypto.ECKeyPair
 import provider.eth.ETH_PRECISION
 import provider.eth.EthRelayProviderIrohaImpl
+import sideChain.iroha.Domain
 import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
@@ -95,7 +96,7 @@ class WithdrawalMultinotaryIntegrationTest {
 
         // create
         val client = String.getRandomString(9)
-        val clientId = "$client@d3"
+        val clientId = "$client@${Domain.CLIENT.domainId}"
         integrationHelper.registerClient(client, listOf(ethWallet), integrationHelper.testCredential.keyPair)
         integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
         val relay = EthRelayProviderIrohaImpl(

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import provider.eth.ETH_PRECISION
 import provider.eth.EthRelayProviderIrohaImpl
+import sideChain.iroha.CLIENT_DOMAIN
 import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
@@ -62,7 +63,7 @@ class WithdrawalIntegrationTest {
 
         // create
         val client = String.getRandomString(9)
-        val clientId = "$client@d3"
+        val clientId = "$client@$CLIENT_DOMAIN"
         integrationHelper.registerClient(client, listOf(ethWallet), integrationHelper.testCredential.keyPair)
         integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
         val relay = EthRelayProviderIrohaImpl(
