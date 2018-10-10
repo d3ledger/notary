@@ -40,7 +40,6 @@ services:
       - PROFILE
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
-      - IROHA_NETWORK=deploy_default
       - CLASS=registration.eth.relay.DeployRelayMain
 
 
@@ -59,7 +58,6 @@ services:
       - PROFILE
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
-      - IROHA_NETWORK=deploy_default
       - CLASS=registration.eth.EthRegistrationMain
 
   d3-notary:

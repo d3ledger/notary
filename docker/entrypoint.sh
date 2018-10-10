@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 if  [ -z "${IROHA_HOST}" ] || [ -z "${IROHA_PORT}" ] || [ -z "${CLASS}" ]; then
-    echo "Please set IROHA_NETWORK, IROHA_HOST, IROHA_PORT and CLASS variables"
+    echo "Please set IROHA_HOST, IROHA_PORT and CLASS variables"
     exit
 fi
 
