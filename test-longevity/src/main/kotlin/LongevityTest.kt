@@ -14,8 +14,14 @@ class LongevityTest {
 
     private val masterContract = integrationHelper.masterContract.contractAddress
 
-    /** create 5 d3 clients */
-    val clients = (0..4).map { clientNumber ->
+    /**
+     * Number of clients for tests.
+     * Since clients keys for ethereum and iroha are files [totalClients] should be in [1..5]
+     */
+    private val totalClients = 5
+
+    /** Create d3 clients */
+    val clients = (0..totalClients - 1).map { clientNumber ->
         NotaryClient(
             integrationHelper,
             integrationHelper.configHelper.createEthereumConfig("deploy/ethereum/keys/local/client$clientNumber.key"),
@@ -106,12 +112,13 @@ class LongevityTest {
                     logger.info { "Clietn ${client.name} eth balance: $ethBalanceBefore after deposit" }
                     logger.info { "Client ${client.name} iroha balance $irohaBalanceBefore after deposit" }
 
-                    if (!BigDecimal(irohaBalanceBefore).equals(amount))
-                        logger.warn { "Client ${client.name} has wrong iroha balance. Expected 0, but got before: $irohaBalanceBefore" }
+                    val decimalAmount = BigDecimal(amount, ETH_PRECISION.toInt())
 
-                    val decimalAmount = BigDecimal(amount, ETH_PRECISION.toInt()).toPlainString()
-                    logger.info { "Client ${client.name} perform withdrawal of $decimalAmount" }
-                    client.withdraw(decimalAmount)
+                    if (!BigDecimal(irohaBalanceBefore).equals(decimalAmount))
+                        logger.warn { "Client ${client.name} has wrong iroha balance. Expected ${decimalAmount.toPlainString()}, but got before: $irohaBalanceBefore" }
+
+                    logger.info { "Client ${client.name} perform withdrawal of ${decimalAmount.toPlainString()}" }
+                    client.withdraw(decimalAmount.toPlainString())
                     Thread.sleep(30_000)
 
                     val ethBalanceAfter = client.getEthBalance()

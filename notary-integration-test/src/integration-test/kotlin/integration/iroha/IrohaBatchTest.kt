@@ -37,7 +37,6 @@ class IrohaBatchTest {
 
     private val testCredential = IntegrationHelperUtil().testCredential
 
-    private val keypair = testCredential.keyPair
     private val tester = testCredential.accountId
 
     private val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
