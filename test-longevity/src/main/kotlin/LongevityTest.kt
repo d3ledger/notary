@@ -3,6 +3,7 @@ import config.IrohaCredentialConfig
 import config.loadEthPasswords
 import integration.helper.IntegrationHelperUtil
 import kotlinx.coroutines.experimental.launch
+import mu.KLogging
 import provider.eth.ETH_PRECISION
 import sidechain.iroha.util.ModelUtil
 import java.math.BigDecimal
@@ -10,6 +11,8 @@ import java.math.BigInteger
 
 class LongevityTest {
     private val integrationHelper = IntegrationHelperUtil()
+
+    private val masterContract = integrationHelper.masterContract.contractAddress
 
     /** create 5 d3 clients */
     val clients = (0..4).map { clientNumber ->
@@ -70,6 +73,9 @@ class LongevityTest {
         Thread.sleep(10_000)
     }
 
+    /**
+     * Register all clients.
+     */
     fun registerClients(): Result<Unit, Exception> {
         integrationHelper.deployRelays(5)
         return Result.of {
@@ -81,46 +87,70 @@ class LongevityTest {
         }
     }
 
+    /**
+     * Run test strategy.
+     */
+    private fun runTest() {
+        clients.forEach { client ->
+            Thread.sleep(5_000)
+            launch {
+                while (true) {
+                    val amount = BigInteger.valueOf(12_000_000_000)
+                    logger.info { "Client ${client.name} perform deposit of $amount wei" }
+                    client.deposit(amount)
+                    Thread.sleep(30_000)
+
+                    val ethBalanceBefore = client.getEthBalance()
+                    val irohaBalanceBefore = client.getIrohaBalance()
+                    logger.info { "Master eth balance ${integrationHelper.getEthBalance(masterContract)} after deposit" }
+                    logger.info { "Clietn ${client.name} eth balance: $ethBalanceBefore after deposit" }
+                    logger.info { "Client ${client.name} iroha balance $irohaBalanceBefore after deposit" }
+
+                    if (!BigDecimal(irohaBalanceBefore).equals(amount))
+                        logger.warn { "Client ${client.name} has wrong iroha balance. Expected 0, but got before: $irohaBalanceBefore" }
+
+                    val decimalAmount = BigDecimal(amount, ETH_PRECISION.toInt()).toPlainString()
+                    logger.info { "Client ${client.name} perform withdrawal of $decimalAmount" }
+                    client.withdraw(decimalAmount)
+                    Thread.sleep(30_000)
+
+                    val ethBalanceAfter = client.getEthBalance()
+                    val irohaBalanceAfter = client.getIrohaBalance()
+                    logger.info { "Master eth balance ${integrationHelper.getEthBalance(masterContract)} after withdrawal" }
+                    logger.info { "Clietn ${client.name} eth balance: $ethBalanceAfter after withdrawal" }
+                    logger.info { "Client ${client.name} iroha balance $irohaBalanceAfter after withdrawal" }
+
+                    // check balance
+                    if (!ethBalanceBefore.add(amount).equals(ethBalanceAfter))
+                        logger.warn { "Client ${client.name} has wrong eth balance. Expected equal but got before: $ethBalanceBefore, after: $ethBalanceAfter" }
+
+                    if (!BigDecimal(irohaBalanceBefore).equals(BigDecimal(amount, ETH_PRECISION.toInt())))
+                        logger.warn { "Client ${client.name} has wrong iroha balance. Expected 0, but got after: $irohaBalanceBefore" }
+
+                    if (!BigDecimal(irohaBalanceAfter).equals(BigDecimal(BigInteger.ZERO, ETH_PRECISION.toInt())))
+                        logger.warn { "Client ${client.name} has wrong iroha balance. Expected 0, but got after: $irohaBalanceAfter" }
+                }
+            }
+        }
+    }
+
+    /**
+     * Run all.
+     */
     fun run() {
         runServices()
         registerClients()
 
         // send ether to master account for fee
         val toMaster = BigInteger.valueOf(150_000_000_000_000)
-        val decimalToMaster = BigDecimal(toMaster, ETH_PRECISION.toInt()).toPlainString()
-
-        println("send $decimalToMaster to master")
         integrationHelper.sendEth(toMaster, integrationHelper.masterContract.contractAddress)
-        println("Is locked: " + integrationHelper.masterContract.isLockAddPeer.send())
 
-        var i = 0
-        while (true) {
-            println("===========================================")
-            println("iteration ${i++}")
-
-            val client = clients[0]
-
-            println("Initial: ${client.getEthBalance()}")
-            println("Client iroha balance ${client.getIrohaBalance()}")
-
-            val amount = BigInteger.valueOf(12_000_000_000)
-            client.deposit(amount)
-            Thread.sleep(20_000)
-
-            println("Before: ${client.getEthBalance()}")
-            println("master eth balance ${integrationHelper.getEthBalance(integrationHelper.masterContract.contractAddress)}")
-            println("Client iroha balance ${client.getIrohaBalance()}")
-
-            val decimalAmount = BigDecimal(amount, ETH_PRECISION.toInt()).toPlainString()
-            println("withdraw $decimalAmount")
-            client.withdraw(decimalAmount)
-
-            Thread.sleep(20_000)
-            println("whitelist: " + integrationHelper.relayRegistryContract.getWhiteListByRelay(clients[0].relay).send())
-
-            println("After: ${client.getEthBalance()}")
-
-            println("Vacuum")
-        }
+        runTest()
     }
+
+    /**
+     * Logger
+     */
+    companion object : KLogging()
+
 }
