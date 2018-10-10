@@ -76,7 +76,6 @@ services:
       - PROFILE
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
-      - IROHA_NETWORK=deploy_default
       - CLASS=notary.eth.EthNotaryMain
 
   d3-withdrawal:
@@ -91,7 +90,6 @@ services:
       - PROFILE
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
-      - IROHA_NETWORK=deploy_default
       - CLASS=withdrawalservice.WithdrawalServiceMain
 
   grpcwebproxy:
@@ -107,9 +105,30 @@ services:
       - --backend_addr=d3-iroha:50051
       - --run_tls_server=false
 
+  # ethereum
+  d3-eth-node0:
+    image: trufflesuite/ganache-cli:latest
+    container_name: d3-eth-node0
+    volumes:
+    - ./ethereum:/eth
+    environment:
+    - NODE=0
+    entrypoint:
+    - node
+    - ./build/cli.node.js
+    - '--account=0x508753c72080c0189f48db5bf570b8e987caf3bbb26e108873f03b051240ef5b,100000000000000000000'
+    - '--account=0xf758884fb22f308ecebf23a25eac9b4f9110844b366ebe894a6371b2e659abcb,0'
+    - '--account=0x148ac13271330ace1f0b32c6624ff72a1ae443eb35018d3f0aa123314945e354,100000000000000000000'
+    - '--account=0x962da152ce387552f84a59af03d03735384f569292f63a924e8613dcdddf423d,100000000000000000000'
+    - '--account=0xdcd96f098bde48011d76c52986ebd04a38472fd17c3f611a165ce2249db5253c,100000000000000000000'
+    - '--account=0x2a6140acbd79a769f9d3c587f4b5f621fa301729611d6e166fcd618e96db22db,100000000000000000000'
+    - '--account=0x573057047372d0042a7d0b74ee96199de08e4145cec35accd1a6ea06f2710081,100000000000000000000'
+    - --noVMErrorsOnRPCResponse
+    - --secure
+    - -h
+    - 0.0.0.0
+
 
 volumes:
   iroha_block_store:
 
-networks:
-  d3-network:
