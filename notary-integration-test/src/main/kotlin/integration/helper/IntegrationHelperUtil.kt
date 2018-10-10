@@ -1,5 +1,6 @@
 package integration.helper
 
+import com.github.jleskovar.btcrpc.BitcoinRpcClientFactory
 import com.github.kittinunf.result.*
 import config.loadConfigs
 import config.loadEthPasswords
@@ -37,6 +38,7 @@ import sidechain.iroha.util.getAccountAsset
 import token.EthTokenInfo
 import util.getRandomString
 import java.io.File
+import java.math.BigDecimal
 import java.math.BigInteger
 
 /**
@@ -48,7 +50,7 @@ class IntegrationHelperUtil {
     init {
         IrohaInitialization.loadIrohaLibrary()
             .failure { ex ->
-                logger.error("Cannot run eth notary", ex)
+                logger.error("Cannot load Iroha library", ex)
                 System.exit(1)
             }
     }
@@ -134,6 +136,16 @@ class IntegrationHelperUtil {
         wallet
     }
 
+    private val rpcClient by lazy {
+        BitcoinRpcClientFactory.createClient(
+            user = "test",
+            password = "test",
+            host = configHelper.createBtcNotaryConfig().bitcoin.host,
+            port = 8332,
+            secure = false
+        )
+    }
+
     /** Provider that is used to store/fetch tokens*/
     val ethTokensProvider by lazy {
         EthTokensProviderImpl(
@@ -209,7 +221,7 @@ class IntegrationHelperUtil {
      * @return randomly generated BTC address
      */
     fun preGenBtcAddress(): Result<Address, Exception> {
-        val walletFile = File(configHelper.createBtcRegistrationConfig().btcWalletPath)
+        val walletFile = File(configHelper.createBtcPreGenConfig().btcWalletFilePath)
         val wallet = Wallet.loadFromFile(walletFile)
         val address = wallet.freshReceiveAddress()
         wallet.saveToFile(walletFile)
@@ -479,28 +491,18 @@ class IntegrationHelperUtil {
     /**
      * Sends btc to a given address
      */
-    fun sendBtc(address: String, amount: Int): Boolean {
-        return runCommand("bitcoin-cli -regtest sendtoaddress $address $amount")
-                && generateBtcBlocks(6)
+
+    fun sendBtc(address: String, amount: Int) {
+        rpcClient.sendToAddress(address = address, amount = BigDecimal(amount))
+        generateBtcBlocks(6)
     }
 
     /**
-     * Creates 100 more blocks in bitcoin blockchain. May be used as transaction confirmation mechanism.
+     * Creates blocks in bitcoin blockchain. May be used as transaction confirmation mechanism.
      */
-    fun generateBtcBlocks(blocks: Int = 100): Boolean {
-        return runCommand("bitcoin-cli -regtest generate $blocks")
+    fun generateBtcBlocks(blocks: Int = 150) {
+        rpcClient.generate(numberOfBlocks = blocks)
     }
-
-    /**
-     * Runs command line
-     */
-    private fun runCommand(cmd: String): Boolean {
-        logger.info { "command to run $cmd" }
-        val pr = Runtime.getRuntime().exec(cmd)
-        pr.waitFor()
-        return pr.exitValue() == 0
-    }
-
 
     /**
      * Create account for client
