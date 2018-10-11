@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import provider.btc.BtcRegisteredAddressesProvider
 import provider.btc.network.BtcRegTestConfigProvider
+import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import java.math.BigDecimal
@@ -17,6 +18,11 @@ private val integrationHelper = IntegrationHelperUtil()
 private val btcAsset = "btc#bitcoin"
 
 class BtcNotaryIntegrationTest {
+
+    init {
+        integrationHelper.generateBtcBlocks()
+        integrationHelper.addNotary("test_notary", "test_notary_address")
+    }
 
     private val notaryConfig = integrationHelper.configHelper.createBtcNotaryConfig()
 
@@ -47,11 +53,9 @@ class BtcNotaryIntegrationTest {
      */
     @Test
     fun testDeposit() {
-        integrationHelper.generateBtcBlocks()
-        integrationHelper.addNotary("test_notary", "test_notary_address")
         btcNotaryInitialization.init().failure { ex -> fail("Cannot run BTC notary", ex) }
         val randomName = String.getRandomString(9)
-        val testClient = "$randomName@notary"
+        val testClient = "$randomName@$CLIENT_DOMAIN"
         val btcAddress = integrationHelper.registerBtcAddress(randomName)
         val initialBalance = integrationHelper.getIrohaAccountBalance(
             testClient,
