@@ -1,3 +1,6 @@
+package longevity
+
+import NotaryClient
 import com.github.kittinunf.result.Result
 import config.IrohaCredentialConfig
 import config.loadEthPasswords

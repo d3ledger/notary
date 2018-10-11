@@ -1,5 +1,7 @@
 @file:JvmName("LongevityMain")
 
+package longevity
+
 /**
  * Entry point for Registration Service
  */
