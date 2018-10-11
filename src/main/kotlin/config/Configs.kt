@@ -55,6 +55,8 @@ interface BitcoinConfig {
     val blockStoragePath: String
     //Depth of transactions in BTC blockchain
     val confidenceLevel: Int
+    //BTC node host name
+    val host: String
 }
 
 /**

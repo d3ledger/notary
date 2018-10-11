@@ -21,6 +21,4 @@ interface BtcRegistrationConfig {
 
     /** Iroha configuration */
     val iroha: IrohaConfig
-
-    val btcWalletPath: String
 }
