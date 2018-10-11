@@ -103,7 +103,16 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
         send(batch)
 
         return Result.of {
-            hashes.map { checkTransactionStatus(it) }.filter { it.component1() != null }.map { it.get() }
+            hashes.map { checkTransactionStatus(it) }
+                .filter {
+                    it.fold(
+                        { true },
+                        {
+                            logger.warn("Send batch: ", it)
+                            false
+                        }
+                    )
+                }.map { it.get() }
         }
     }
 
