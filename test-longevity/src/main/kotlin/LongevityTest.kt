@@ -2,6 +2,8 @@ import com.github.kittinunf.result.Result
 import config.IrohaCredentialConfig
 import config.loadEthPasswords
 import integration.helper.IntegrationHelperUtil
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
 import mu.KLogging
 import provider.eth.ETH_PRECISION
@@ -9,6 +11,10 @@ import sidechain.iroha.util.ModelUtil
 import java.math.BigDecimal
 import java.math.BigInteger
 
+/**
+ * Class for longevity testing.
+ * It is supposed to be used for long-running tests.
+ */
 class LongevityTest {
     private val integrationHelper = IntegrationHelperUtil()
 
@@ -21,7 +27,7 @@ class LongevityTest {
     private val totalClients = 5
 
     /** Create d3 clients */
-    val clients = (0..totalClients - 1).map { clientNumber ->
+    private val clients = (0..totalClients - 1).map { clientNumber ->
         NotaryClient(
             integrationHelper,
             integrationHelper.configHelper.createEthereumConfig("deploy/ethereum/keys/local/client$clientNumber.key"),
@@ -70,7 +76,7 @@ class LongevityTest {
     /**
      * Run all notary services.
      */
-    fun runServices() {
+    private fun runServices() {
         runNotaries()
         launch { integrationHelper.runRegistrationService() }
         launch { integrationHelper.runEthWithdrawalService() }
@@ -82,7 +88,7 @@ class LongevityTest {
     /**
      * Register all clients.
      */
-    fun registerClients(): Result<Unit, Exception> {
+    private fun registerClients(): Result<Unit, Exception> {
         integrationHelper.deployRelays(5)
         return Result.of {
             for (client in clients) {
@@ -97,14 +103,18 @@ class LongevityTest {
      * Run test strategy.
      */
     private fun runTest() {
+        logger.info { "client count ${clients.size}" }
+
         clients.forEach { client ->
-            Thread.sleep(5_000)
+            async { delay(3_000) }
             launch {
+                logger.info { "start client ${client.accountId}" }
                 while (true) {
                     val amount = BigInteger.valueOf(12_000_000_000)
                     logger.info { "Client ${client.name} perform deposit of $amount wei" }
                     client.deposit(amount)
-                    Thread.sleep(30_000)
+                    async { delay(20_000) }
+
 
                     val ethBalanceBefore = client.getEthBalance()
                     val irohaBalanceBefore = client.getIrohaBalance()
@@ -119,7 +129,7 @@ class LongevityTest {
 
                     logger.info { "Client ${client.name} perform withdrawal of ${decimalAmount.toPlainString()}" }
                     client.withdraw(decimalAmount.toPlainString())
-                    Thread.sleep(30_000)
+                    async { delay(20_000) }
 
                     val ethBalanceAfter = client.getEthBalance()
                     val irohaBalanceAfter = client.getIrohaBalance()
@@ -161,3 +171,4 @@ class LongevityTest {
     companion object : KLogging()
 
 }
+
