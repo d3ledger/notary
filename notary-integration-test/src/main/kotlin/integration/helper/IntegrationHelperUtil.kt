@@ -40,6 +40,7 @@ import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountAsset
 import token.EthTokenInfo
 import util.getRandomString
+import vacuum.RelayVacuumConfig
 import withdrawalservice.WithdrawalServiceConfig
 import java.io.File
 import java.math.BigDecimal
@@ -657,8 +658,11 @@ class IntegrationHelperUtil {
     /**
      * Run withdrawal service
      */
-    fun runEthWithdrawalService(withdrawalServiceConfig: WithdrawalServiceConfig = configHelper.createWithdrawalConfig()) {
-        withdrawalservice.executeWithdrawal(withdrawalServiceConfig, configHelper.ethPasswordConfig)
+    fun runEthWithdrawalService(
+        withdrawalServiceConfig: WithdrawalServiceConfig = configHelper.createWithdrawalConfig(),
+        relayVacuumConfig: RelayVacuumConfig = configHelper.createRelayVacuumConfig()
+    ) {
+        withdrawalservice.executeWithdrawal(withdrawalServiceConfig, configHelper.ethPasswordConfig, relayVacuumConfig)
     }
 
     /**
