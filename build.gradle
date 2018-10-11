@@ -278,6 +278,16 @@ retrieveIrohaBindings.dependsOn(osInfo)
 
 // -------------------------| Run services |-------------------------
 
+// Deploy ethereum smart contracts - RelayRegistry, Master, add notaries wallets to Master and lock Master.
+task runPreDeployEthereum(type: JavaExec) {
+    main = 'deploy.EthPreDeployMain'
+    classpath = sourceSets.main.runtimeClasspath
+
+    args getEthPasswordsArgs()
+    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
+    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
+}
+
 task runEthNotary(type: JavaExec) {
     main = 'notary.eth.EthNotaryMain'
     classpath = sourceSets.main.runtimeClasspath
