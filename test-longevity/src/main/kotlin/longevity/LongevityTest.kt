@@ -27,7 +27,7 @@ class LongevityTest {
      * Number of clients for tests.
      * Since clients keys for ethereum and iroha are files [totalClients] should be in [1..5]
      */
-    private val totalClients = 5
+    private val totalClients = 1
 
     /** Create d3 clients */
     private val clients = (0..totalClients - 1).map { clientNumber ->
