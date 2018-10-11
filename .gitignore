@@ -117,5 +117,4 @@ deploy/ethereum/keys/test
 # Bitcoin wallets, blockchain and etc.
 deploy/bitcoin/testnet/d3.wallet
 deploy/bitcoin/testnet/blocks
-deploy/bitcoin/regtest/d3.wallet
 deploy/bitcoin/regtest/blocks

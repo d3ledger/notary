@@ -39,4 +39,5 @@ Command line args > Environment variables > Properties file
 127.0.0.1 d3-iroha-postgres
 127.0.0.1 d3-notary
 127.0.0.1 d3-eth-node0
+127.0.0.1 d3-btc-node0
 ```

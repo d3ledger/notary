@@ -1,11 +1,12 @@
 package sidechain
 
 import com.github.kittinunf.result.Result
+import java.io.Closeable
 
 /**
  * Class listens for new [Block] in side block chain
  */
-interface ChainListener<Block> {
+interface ChainListener<Block> : Closeable {
 
     /**
      * @return Observable on blocks that committed to the network
@@ -15,6 +16,6 @@ interface ChainListener<Block> {
     /**
      * @return a block that was committed into network
      */
-    suspend fun getBlock(): Block;
+    suspend fun getBlock(): Block
 
 }

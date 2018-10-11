@@ -4,7 +4,6 @@ import integration.helper.IntegrationHelperUtil
 import jp.co.soramitsu.iroha.ModelCrypto
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
@@ -14,7 +13,6 @@ import util.getRandomString
 import java.math.BigInteger
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Disabled
 class BtcRegistrationIntegrationTest {
 
     private val integrationHelper = IntegrationHelperUtil()
