@@ -15,7 +15,6 @@ private val logger = KLogging().logger
  * [args] should contain the list of notary ethereum addresses
  */
 fun main(args: Array<String>) {
-    args.forEach { println(it) }
     logger.info { "Run predeploy with notary addresses: ${args.toList()}" }
 
     val ethereumConfig = loadConfigs("predeploy.ethereum", EthereumConfig::class.java, "/eth/predeploy.properties")
