@@ -126,6 +126,10 @@ dependencies {
 
 }
 
+wrapper {
+    gradleVersion = 4.10
+}
+
 jar {
     manifest {
         attributes 'Main-Class': 'notary.eth.EthNotaryMain'
