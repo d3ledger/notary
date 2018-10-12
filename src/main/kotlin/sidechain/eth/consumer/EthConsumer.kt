@@ -36,16 +36,19 @@ class EthConsumer(
             // If the first call returns logs with size 2 then check if a destination address is equal to the address
             // from the second log
             // If its true then we start vacuum process
-            if (call!!.logs.size == 2 &&
-                (event.proof.account == "0x" + call.logs[1].data.subSequence(90, 130))) {
-                executeVacuum(relayVacuumConfig).fold(
-                    {
-                        withdraw(event)
-                    },
-                    { ex ->
-                        throw ex
-                    }
-                )
+            for (log in call!!.logs) {
+                if (log.topics.contains("0x33d1e0301846de1496df73b1da3d17c85b7266dd832d21e10ff21a1f143ef293")
+                    && event.proof.account == "0x" + log.data.subSequence(90, 130)
+                ) {
+                    executeVacuum(relayVacuumConfig).fold(
+                        {
+                            withdraw(event)
+                        },
+                        { ex ->
+                            throw ex
+                        }
+                    )
+                }
             }
         }
     }
