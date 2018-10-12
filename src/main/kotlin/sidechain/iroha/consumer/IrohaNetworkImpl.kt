@@ -108,7 +108,7 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
                     it.fold(
                         { true },
                         {
-                            logger.warn("Send batch: ", it)
+                            logger.warn("Batch tx was failed: ", it)
                             false
                         }
                     )
