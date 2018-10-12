@@ -64,7 +64,7 @@ class RegistrationServiceEndpoint(
         if (name == null || whitelist == null || pubkey == null) {
             return responseError(HttpStatusCode.BadRequest, reason)
         }
-        registrationStrategy.register(name, whitelist, pubkey).fold(
+        registrationStrategy.register(name, whitelist.filter { it.isNotEmpty() }, pubkey).fold(
             { address ->
                 logger.info { "Client $name was successfully registered with address $address" }
                 return Response(HttpStatusCode.OK, address)
