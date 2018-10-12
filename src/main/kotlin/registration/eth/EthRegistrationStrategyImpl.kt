@@ -59,7 +59,11 @@ class EthRegistrationStrategyImpl(
     override fun register(name: String, whitelist: List<String>, pubkey: String): Result<String, Exception> {
         return ethFreeRelayProvider.getRelay()
             .flatMap { freeEthWallet ->
-                relayRegistry.addNewRelayAddress(freeEthWallet, whitelist).send()
+                if (whitelist.isEmpty()) {
+                    relayRegistry.addNewRelayAddress(freeEthWallet, listOf()).send()
+                } else {
+                    relayRegistry.addNewRelayAddress(freeEthWallet, whitelist).send()
+                }
                 irohaAccountCreator.create(
                     freeEthWallet, whitelist.toString().trim('[').trim(']'), name, pubkey
                 )

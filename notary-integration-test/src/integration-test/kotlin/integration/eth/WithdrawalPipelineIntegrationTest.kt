@@ -229,7 +229,7 @@ class WithdrawalPipelineIntegrationTest {
     @Test
     fun testWithdrawEmptyWhitelist() {
         // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
-        integrationHelper.registerClient(clientName, listOf("0x0"), keypair)
+        integrationHelper.registerClient(clientName, listOf(), keypair)
 
         val withdrawalEthAddress = "0x123"
 
