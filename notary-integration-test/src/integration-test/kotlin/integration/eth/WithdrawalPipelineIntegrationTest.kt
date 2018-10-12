@@ -164,8 +164,6 @@ class WithdrawalPipelineIntegrationTest {
         )
         Assertions.assertEquals(200, res.statusCode)
 
-        integrationHelper.setWhitelist(clientId, listOf(toAddress))
-
         val initialBalance = integrationHelper.getERC20TokenBalance(tokenAddress, toAddress)
 
         // add assets to user
@@ -198,7 +196,6 @@ class WithdrawalPipelineIntegrationTest {
     @Test
     fun testWithdrawInWhitelist() {
         integrationHelper.registerClient(clientName, listOf(toAddress, "0x123"), keypair)
-        integrationHelper.setWhitelist(clientId, listOf(toAddress, "0x123"))
 
         val amount = "125"
         val assetId = "ether#ethereum"
