@@ -59,7 +59,8 @@ fun executeNotary(notaryConfig: EthNotaryConfig, args: Array<String> = emptyArra
                 notaryConfig,
                 passwordConfig,
                 ethRelayProvider,
-                ethTokensProvider
+                ethTokensProvider,
+                irohaNetwork
             ).init()
         }
         .failure { ex ->

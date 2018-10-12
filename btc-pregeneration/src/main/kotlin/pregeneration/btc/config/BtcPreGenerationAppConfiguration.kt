@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration
 import provider.NotaryPeerListProvider
 import provider.NotaryPeerListProviderImpl
 import sidechain.iroha.IrohaChainListener
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import wallet.WalletFile
 import java.io.File
@@ -47,16 +48,17 @@ class BtcPreGenerationAppConfiguration {
     fun walletFile(): WalletFile {
         val walletFile = File(btcPreGenConfig.btcWalletFilePath)
         val wallet = Wallet.loadFromFile(walletFile)
-        return WalletFile(wallet, walletFile);
+        return WalletFile(wallet, walletFile)
     }
 
     @Bean
     fun notaryPeerListProvider(): NotaryPeerListProvider {
+        val irohaNetwork = IrohaNetworkImpl(btcPreGenConfig.iroha.hostname, btcPreGenConfig.iroha.port)
         return NotaryPeerListProviderImpl(
-            btcPreGenConfig.iroha,
             registrationCredential,
             btcPreGenConfig.notaryListStorageAccount,
-            btcPreGenConfig.notaryListSetterAccount
+            btcPreGenConfig.notaryListSetterAccount,
+            irohaNetwork
         )
     }
 

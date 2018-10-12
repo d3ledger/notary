@@ -21,6 +21,7 @@ import provider.NotaryPeerListProviderImpl
 import provider.btc.BtcRegisteredAddressesProvider
 import provider.btc.network.BtcNetworkConfigProvider
 import sidechain.SideChainEvent
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import java.io.File
 import java.net.InetAddress
@@ -49,11 +50,12 @@ class BtcNotaryInitialization(
             )
         }.map { (btcEvents, keypair) ->
             val credential = IrohaCredential(btcNotaryConfig.notaryCredential.accountId, keypair)
+            val irohaNetwork = IrohaNetworkImpl(btcNotaryConfig.iroha.hostname, btcNotaryConfig.iroha.port)
             val peerListProvider = NotaryPeerListProviderImpl(
-                btcNotaryConfig.iroha,
                 credential,
                 btcNotaryConfig.notaryListStorageAccount,
-                btcNotaryConfig.notaryListSetterAccount
+                btcNotaryConfig.notaryListSetterAccount,
+                irohaNetwork
             )
             val notary = createBtcNotary(btcNotaryConfig, credential, btcEvents, peerListProvider)
             notary.initIrohaConsumer().failure { ex -> throw ex }
@@ -88,7 +90,7 @@ class BtcNotaryInitialization(
         logger.info { wallet }
         val networkParams = btcNetworkConfigProvider.getConfig()
         val levelDbFolder = File(btcNotaryConfig.bitcoin.blockStoragePath)
-        val blockStore = LevelDBBlockStore(Context(networkParams), levelDbFolder);
+        val blockStore = LevelDBBlockStore(Context(networkParams), levelDbFolder)
         val blockChain = BlockChain(networkParams, wallet, blockStore)
         return PeerGroup(networkParams, blockChain)
     }

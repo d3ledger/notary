@@ -20,6 +20,7 @@ import provider.btc.BtcPublicKeyProvider
 import provider.btc.BtcSessionProvider
 import provider.btc.network.BtcRegTestConfigProvider
 import sidechain.iroha.IrohaChainListener
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import wallet.WalletFile
@@ -125,11 +126,12 @@ class BtcPreGenIntegrationTest {
         val file = File(btcPreGenConfig.btcWalletFilePath)
         val wallet = Wallet.loadFromFile(file)
         val walletFile = WalletFile(wallet, file)
+        val irohaNetwork = IrohaNetworkImpl(btcPreGenConfig.iroha.hostname, btcPreGenConfig.iroha.port)
         val notaryPeerListProvider = NotaryPeerListProviderImpl(
-            btcPreGenConfig.iroha,
             registrationCredential,
             btcPreGenConfig.notaryListStorageAccount,
-            btcPreGenConfig.notaryListSetterAccount
+            btcPreGenConfig.notaryListSetterAccount,
+            irohaNetwork
         )
         return BtcPublicKeyProvider(
             walletFile,

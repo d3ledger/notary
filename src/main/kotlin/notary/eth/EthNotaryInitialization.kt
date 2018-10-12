@@ -23,7 +23,6 @@ import sidechain.eth.EthChainHandler
 import sidechain.eth.EthChainListener
 import sidechain.eth.util.BasicAuthenticator
 import sidechain.iroha.consumer.IrohaNetwork
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import java.math.BigInteger
 
 /**
@@ -37,10 +36,7 @@ class EthNotaryInitialization(
     private val passwordsConfig: EthereumPasswords,
     private val ethRelayProvider: EthRelayProvider,
     private val ethTokensProvider: EthTokensProvider,
-    private val irohaNetwork: IrohaNetwork = IrohaNetworkImpl(
-        ethNotaryConfig.iroha.hostname,
-        ethNotaryConfig.iroha.port
-    )
+    private val irohaNetwork: IrohaNetwork
 ) {
     /**
      * Init notary
@@ -86,10 +82,10 @@ class EthNotaryInitialization(
         logger.info { "Init Notary notary" }
 
         val peerListProvider = NotaryPeerListProviderImpl(
-            ethNotaryConfig.iroha,
             notaryCredential,
             ethNotaryConfig.notaryListStorageAccount,
-            ethNotaryConfig.notaryListSetterAccount
+            ethNotaryConfig.notaryListSetterAccount,
+            irohaNetwork
         )
 
         return createEthNotary(ethNotaryConfig, ethEvents, peerListProvider)

@@ -5,7 +5,6 @@ import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.map
 import com.squareup.moshi.Moshi
 import io.reactivex.Observable
-import jp.co.soramitsu.iroha.Keypair
 import model.IrohaCredential
 import mu.KLogging
 import notary.endpoint.eth.AmountType
@@ -55,10 +54,10 @@ class WithdrawalServiceImpl(
     private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
 ) : WithdrawalService {
     private val notaryPeerListProvider = NotaryPeerListProviderImpl(
-        withdrawalServiceConfig.iroha,
         credential,
         withdrawalServiceConfig.notaryListStorageAccount,
-        withdrawalServiceConfig.notaryListSetterAccount
+        withdrawalServiceConfig.notaryListSetterAccount,
+        irohaNetwork
     )
     private val tokensProvider: EthTokensProvider = EthTokensProviderImpl(
         withdrawalServiceConfig.iroha,
