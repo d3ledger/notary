@@ -53,13 +53,21 @@ public class RelayRegistry extends Contract {
     }
 
     public RemoteCall<TransactionReceipt> addNewRelayAddress(String relay, List<String> whiteList) {
-        final Function function = new Function(
-                FUNC_ADDNEWRELAYADDRESS, 
-                Arrays.<Type>asList(new Address(relay),
-                new DynamicArray<Address>(
-                        org.web3j.abi.Utils.typeMap(whiteList, Address.class))),
-                Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function);
+        if (whiteList.isEmpty()) {
+            final Function function = new Function(
+                    FUNC_ADDNEWRELAYADDRESS,
+                    Arrays.<Type>asList(new Address(relay), DynamicArray.empty("address[]")),
+                    Collections.<TypeReference<?>>emptyList());
+            return executeRemoteCallTransaction(function);
+        } else {
+            final Function function = new Function(
+                    FUNC_ADDNEWRELAYADDRESS,
+                    Arrays.<Type>asList(new Address(relay),
+                            new DynamicArray<Address>(
+                                    org.web3j.abi.Utils.typeMap(whiteList, Address.class))),
+                    Collections.<TypeReference<?>>emptyList());
+            return executeRemoteCallTransaction(function);
+        }
     }
 
     public RemoteCall<List> getWhiteListByRelay(String relay) {

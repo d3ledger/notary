@@ -199,8 +199,8 @@ class ContractsTest {
     private fun addWhiteListToRelayRegistry(
         relayAddress: String,
         whiteList: List<String>
-    ) {
-        relayRegistry.addNewRelayAddress(relayAddress, whiteList).send()
+    ): TransactionReceipt? {
+        return relayRegistry.addNewRelayAddress(relayAddress, whiteList).send()
     }
 
     @BeforeEach
@@ -1094,5 +1094,19 @@ class ContractsTest {
             )
         }
 
+    }
+
+    // TODO: make test for empty whitelist in smart contract
+    /**
+     * @given relay registry contract
+     * @when try to store empty list
+     * @then transaction should be successful
+     */
+    @Test
+    fun setEmptyList() {
+        val call = addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf())
+        if (call != null) {
+            assertEquals(true, call.isStatusOK)
+        }
     }
 }

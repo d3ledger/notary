@@ -174,10 +174,7 @@ class EthRefundStrategyImpl(
             notaryConfig.whitelistSetter
         ).map { details ->
             val whitelist = details["eth_whitelist"]
-
-            // Check for whitelist == "0x0" indicating empty list. It is a workaround should be removed
-            // when web3j will allow pass empty lists as parameter to contract call.
-            if (whitelist == null || whitelist.isEmpty() || whitelist == "0x0") {
+            if (whitelist == null || whitelist.isEmpty()) {
                 logger.debug { "Whitelist is empty. Allow." }
                 true
             } else {

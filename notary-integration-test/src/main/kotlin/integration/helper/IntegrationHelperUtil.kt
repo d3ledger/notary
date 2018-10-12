@@ -405,7 +405,7 @@ class IntegrationHelperUtil {
      */
     fun registerRandomRelay(): String {
         // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
-        val ethWallet = registerClient(String.getRandomString(9), listOf("0x0"))
+        val ethWallet = registerClient(String.getRandomString(9), listOf())
         return ethWallet
     }
 
