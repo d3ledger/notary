@@ -511,10 +511,10 @@ class IntegrationHelperUtil {
      */
     fun setWhitelist(clientAccount: String, addresses: List<String>) {
         val text = addresses.joinToString()
-        logger.info { "Set whitelist $text to $clientAccount by ${whiteListIrohaConsumer.creator}" }
+        logger.info { "Set whitelist $text to $clientAccount by ${registrationConsumer.creator}" }
 
         ModelUtil.setAccountDetail(
-            whiteListIrohaConsumer,
+            registrationConsumer,
             clientAccount,
             "eth_whitelist",
             text
