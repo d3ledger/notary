@@ -15,7 +15,7 @@ import sidechain.iroha.util.ModelUtil.getCurrentTime
 class IrohaAccountCreator(
     private val irohaConsumer: IrohaConsumer,
     private val notaryIrohaAccount: String,
-    private val addressName: String
+    private val currencyName: String
 ) {
 
     private val creator = irohaConsumer.creator
@@ -55,7 +55,7 @@ class IrohaAccountCreator(
                             // Set user wallet/address in account detail
                             IrohaCommand.CommandSetAccountDetail(
                                 "$userName@$domain",
-                                addressName,
+                                currencyName,
                                 currencyAddress
                             ),
                             // Set wallet/address as occupied by user id
@@ -72,6 +72,7 @@ class IrohaAccountCreator(
                         1,
                         arrayListOf(
                             //set whitelist
+                            //TODO this function is used to create both BTC and ETH clients. "eth_whitelist" is not appropriate detail key.
                             IrohaCommand.CommandSetAccountDetail(
                                 "$userName@$domain",
                                 "eth_whitelist",
