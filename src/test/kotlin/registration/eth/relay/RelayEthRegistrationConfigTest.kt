@@ -17,7 +17,7 @@ class RelayEthRegistrationConfigTest {
             loadConfigs("relay-registration", RelayRegistrationConfig::class.java, "/eth/relay_registration.properties")
 
         assertEquals(10, relayRegistrationConfig.number)
-        assertEquals("notary_red@notary", relayRegistrationConfig.notaryIrohaAccount)
+        assertEquals("notary@notary", relayRegistrationConfig.notaryIrohaAccount)
         assertEquals("0xde2173601b9c44f3ee4af212186902e5986bde5a", relayRegistrationConfig.ethMasterWallet)
 
         assertEquals("d3-iroha", relayRegistrationConfig.iroha.hostname)
