@@ -4,6 +4,7 @@ import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.web3j.protocol.exceptions.TransactionException
+import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -33,7 +34,7 @@ class FailedTransactionTest {
         integrationHelper.sendEth(BigInteger.valueOf(1), failerAddress)
         integrationHelper.waitOneEtherBlock()
         assertEquals(BigInteger.ZERO, integrationHelper.getEthBalance(failerAddress))
-        val irohaBalance = integrationHelper.getIrohaAccountBalance("$clientAccount@notary", "ether#ethereum")
+        val irohaBalance = integrationHelper.getIrohaAccountBalance("$clientAccount@$CLIENT_DOMAIN", "ether#ethereum")
         assertEquals(BigDecimal.ZERO, BigDecimal(irohaBalance))
     }
 
@@ -68,7 +69,8 @@ class FailedTransactionTest {
         // it's probably impossible to get some money deposit to iroha
         // because logs are empty for reverted transactions
         // but let's leave it for a rainy day
-        val irohaBalance = integrationHelper.getIrohaAccountBalance("$clientAccount@notary", "$coinName#ethereum")
+        val irohaBalance =
+            integrationHelper.getIrohaAccountBalance("$clientAccount@$CLIENT_DOMAIN", "$coinName#ethereum")
         assertEquals(BigDecimal.ZERO, BigDecimal(irohaBalance))
     }
 }
