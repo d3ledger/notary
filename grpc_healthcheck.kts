@@ -4,11 +4,11 @@
  * Checks if grpc service is ready to accept connections
  * Was designed to check if iroha is up
  * Usage: python3 iroha_healthcheck.py <host> <port>
- * Possible outputs (stdout):
- * -1: some arguments are missing
- * 0: iroha is down
- * 1: iroha is up
+ * Possible exit codes:
+ * 0: iroha is up
+ * 1: iroha is down
  * 2: unknown error
+ * 3: some arguments are missing
  */
 
 @file:DependsOn("io.grpc:grpc-netty:1.14.0")
@@ -19,8 +19,7 @@ import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
 
 if (args.size < 2) {
-    println(-1)
-    System.exit(0)
+    System.exit(3)
 }
 
 val host = args[0]
@@ -38,9 +37,9 @@ while (state == io.grpc.ConnectivityState.IDLE || state == io.grpc.ConnectivityS
 }
 
 val result = when (state) {
-    io.grpc.ConnectivityState.TRANSIENT_FAILURE -> 0
-    io.grpc.ConnectivityState.READY -> 1
+    io.grpc.ConnectivityState.READY -> 0
+    io.grpc.ConnectivityState.TRANSIENT_FAILURE -> 1
     else -> 2
 }
 
-println(result)
+System.exit(result)

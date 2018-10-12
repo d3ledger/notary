@@ -5,10 +5,11 @@ if  [ -z "${IROHA_HOST}" ] || [ -z "${IROHA_PORT}" ] || [ -z "${CLASS}" ]; then
     exit
 fi
 
-STATE=0
+STATE=1
 
-while [ $STATE -ne 1 ]; do
-    let STATE="$(./grpc_healthcheck ${IROHA_HOST} ${IROHA_PORT})"
+while [ $STATE -ne 0 ]; do
+    ./grpc_healthcheck ${IROHA_HOST} ${IROHA_PORT}
+    STATE=$?
     echo "Waiting for iroha..."
     sleep 0.1
 done

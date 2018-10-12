@@ -10,5 +10,5 @@ ENV LD_LIBRARY_PATH="/opt/notary:${LD_LIBRARY_PATH}"
 COPY grpc_healthcheck /opt/notary
 
 COPY docker/entrypoint.sh /opt/notary/
-
+RUN chmod +x /opt/notary/entrypoint.sh
 ENTRYPOINT ["/opt/notary/entrypoint.sh"]
