@@ -220,7 +220,14 @@
                   "accountId": "eth_registration_service@notary",
                   "roleName": "relay_deployer"
                 }
-              },{
+              },
+              {
+                "appendRole": {
+                  "accountId": "eth_registration_service@notary",
+                  "roleName": "whitelist_setter"
+                }
+              },
+              {
                 "createAccount": {
                   "accountName": "btc_registration_service",
                   "domainId": "notary",
@@ -310,19 +317,6 @@
                 "appendRole": {
                   "accountId": "vacuumer@notary",
                   "roleName": "vacuumer"
-                }
-              },
-              {
-                "createAccount": {
-                  "accountName": "whitelist_setter",
-                  "domainId": "notary",
-                  "publicKey": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
-                }
-              },
-              {
-                "appendRole": {
-                  "accountId": "whitelist_setter@notary",
-                  "roleName": "whitelist_setter"
                 }
               },
               {
