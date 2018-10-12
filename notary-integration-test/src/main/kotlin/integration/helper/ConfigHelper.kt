@@ -151,7 +151,7 @@ class ConfigHelper(
             override val tokenSetterAccount = accountHelper.tokenSetterAccount.accountId
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
             override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
-            override val whitelistSetter = accountHelper.whitelistSetter.accountId
+            override val whitelistSetter = accountHelper.registrationAccount.accountId
             override val notaryCredential = notaryCredential_
             override val refund = createRefundConfig()
             override val iroha = irohaConfig
@@ -179,8 +179,6 @@ class ConfigHelper(
 
     /** Test configuration of Registration with runtime dependencies */
     fun createEthRegistrationConfig(ethereumConfig: EthereumConfig): EthRegistrationConfig {
-        val ethRegistrationConfig =
-            loadConfigs("eth-registration", EthRegistrationConfig::class.java, "/eth/registration.properties")
         return object : EthRegistrationConfig {
             override val ethRelayRegistryAddress = relayRegistryContractAddress
             override val ethereum = ethereumConfig
