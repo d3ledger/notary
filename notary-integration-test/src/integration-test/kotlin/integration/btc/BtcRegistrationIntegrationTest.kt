@@ -9,6 +9,7 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
 import provider.btc.BtcRegisteredAddressesProvider
 import registration.btc.executeRegistration
+import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
 import java.math.BigInteger
 
@@ -50,11 +51,11 @@ class BtcRegistrationIntegrationTest {
         assertEquals(200, res.statusCode)
         val registeredBtcAddress = String(res.content)
         btcTakenAddressesProvider.getRegisteredAddresses().fold({ addresses ->
-            assertEquals("$userName@notary", addresses[registeredBtcAddress])
+            assertEquals("$userName@$CLIENT_DOMAIN", addresses[registeredBtcAddress])
         }, { ex -> fail("cannot get addresses", ex) })
         assertEquals(
             BigInteger.ZERO.toString(),
-            integrationHelper.getIrohaAccountBalance("$userName@notary", "btc#bitcoin")
+            integrationHelper.getIrohaAccountBalance("$userName@$CLIENT_DOMAIN", "btc#bitcoin")
         )
     }
 
@@ -84,11 +85,11 @@ class BtcRegistrationIntegrationTest {
             assertFalse(takenAddresses.contains(registeredBtcAddress))
             takenAddresses.add(registeredBtcAddress)
             btcTakenAddressesProvider.getRegisteredAddresses().fold({ addresses ->
-                assertEquals("$userName@notary", addresses[registeredBtcAddress])
+                assertEquals("$userName@$CLIENT_DOMAIN", addresses[registeredBtcAddress])
             }, { ex -> fail("cannot get addresses", ex) })
             assertEquals(
                 BigInteger.ZERO.toString(),
-                integrationHelper.getIrohaAccountBalance("$userName@notary", "btc#bitcoin")
+                integrationHelper.getIrohaAccountBalance("$userName@$CLIENT_DOMAIN", "btc#bitcoin")
             )
         }
     }
