@@ -7,6 +7,7 @@ import config.loadConfigs
 import config.loadEthPasswords
 import mu.KLogging
 import sidechain.eth.util.DeployHelper
+import java.io.File
 
 private val logger = KLogging().logger
 
@@ -16,6 +17,10 @@ private val logger = KLogging().logger
  */
 fun main(args: Array<String>) {
     logger.info { "Run predeploy with notary addresses: ${args.toList()}" }
+    if (args.isEmpty()) {
+        logger.error { "No notary ethereum addresses are provided." }
+        System.exit(1)
+    }
 
     val ethereumConfig = loadConfigs("predeploy.ethereum", EthereumConfig::class.java, "/eth/predeploy.properties")
     val passwordConfig = loadEthPasswords("eth-registration", "/eth/ethereum_password.properties")
@@ -33,5 +38,12 @@ fun main(args: Array<String>) {
     if (!result) {
         logger.error("Error: failed to call master smart contract")
         System.exit(1)
+    }
+
+    File("master_eth_address").printWriter().use {
+        it.print(master.contractAddress)
+    }
+    File("relay_registry_eth_address").printWriter().use {
+        it.print(relayRegistry.contractAddress)
     }
 }
