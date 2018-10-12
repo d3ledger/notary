@@ -17,6 +17,7 @@ import provider.eth.EthRelayProviderIrohaImpl
 import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
+import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
@@ -95,7 +96,7 @@ class WithdrawalMultinotaryIntegrationTest {
 
         // create
         val client = String.getRandomString(9)
-        val clientId = "$client@notary"
+        val clientId = "$client@$CLIENT_DOMAIN"
         integrationHelper.registerClient(client, listOf(ethWallet), integrationHelper.testCredential.keyPair)
         integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
         val relay = EthRelayProviderIrohaImpl(
