@@ -28,8 +28,8 @@ fun main(args: Array<String>) {
     var result = true
     args.forEach { address ->
         result = result && master.addPeer(address).send().isStatusOK
-        result = result && master.disableAddingNewPeers().send().isStatusOK
     }
+    result = result && master.disableAddingNewPeers().send().isStatusOK
 
     if (!result) {
         logger.error("Error: failed to call master smart contract")
