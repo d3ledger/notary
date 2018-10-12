@@ -152,6 +152,12 @@
               {
                 "createDomain": {
                   "domainId": "notary",
+                  "defaultRole": "none"
+                }
+              },
+              {
+                "createDomain": {
+                  "domainId": "d3",
                   "defaultRole": "client"
                 }
               },

@@ -7,6 +7,7 @@ import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.launch
 import org.junit.jupiter.api.*
 import provider.eth.ETH_PRECISION
+import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -62,7 +63,7 @@ class WithdrawalPipelineIntegrationTest {
     fun setup() {
         // generate client name and key
         clientName = String.getRandomString(9)
-        clientId = "$clientName@notary"
+        clientId = "$clientName@$CLIENT_DOMAIN"
         keypair = ModelCrypto().generateKeypair()
     }
 

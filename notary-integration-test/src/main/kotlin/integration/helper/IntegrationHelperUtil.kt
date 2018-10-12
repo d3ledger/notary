@@ -513,28 +513,6 @@ class IntegrationHelperUtil {
     }
 
     /**
-     * Create account for client
-     */
-    fun createClientAccount(): IrohaCredential {
-        val name = "client_${String.getRandomString(9)}"
-        val domain = "notary"
-        val creator = accountHelper.registrationAccount.accountId
-        // TODO: change to other key
-        val keyPair = accountHelper.registrationAccount.keyPair
-        irohaConsumer.sendAndCheck(
-            ModelTransactionBuilder()
-                .creatorAccountId(creator)
-                .createdTime(ModelUtil.getCurrentTime())
-                .createAccount(name, domain, keyPair.publicKey())
-                .build()
-        ).fold({
-            logger.info("client account $name@$domain was created")
-            return IrohaCredential("$name@notary", keyPair)
-        }, { ex -> throw Exception("cannot create client", ex) })
-
-    }
-
-    /**
      * Add Ethrereum addresses to client whitelist, so that she can withdraw only for that addresses
      * @param clientAccount - client account id in Iroha network
      * @param addresses - ethereum addresses where client can withdraw her assets

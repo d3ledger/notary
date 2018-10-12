@@ -46,11 +46,12 @@ class IrohaBlockStreamingTest {
     fun irohaStreamingTest() {
         var cmds = listOf<iroha.protocol.Commands.Command>()
 
-        IrohaChainListener(
+        val listener = IrohaChainListener(
             testConfig.iroha.hostname,
             testConfig.iroha.port,
             testCredential
-        ).getBlockObservable()
+        )
+        listener.getBlockObservable()
             .map { obs ->
                 obs.map { block ->
                     cmds = block.payload.transactionsList
@@ -75,6 +76,7 @@ class IrohaBlockStreamingTest {
         assertEquals(creator, cmds.first().setAccountDetail.accountId)
         assertEquals("test", cmds.first().setAccountDetail.key)
         assertEquals("test", cmds.first().setAccountDetail.value)
+        listener.close()
     }
 
     /**
@@ -102,16 +104,20 @@ class IrohaBlockStreamingTest {
 
         IrohaConsumerImpl(testCredential, testConfig.iroha).sendAndCheck(utx)
 
-        runBlocking {
-            val bl = block.await()
-            val cmds = bl.payload.transactionsList
-                .flatMap {
-                    it.payload.reducedPayload.commandsList
-                }
-            assertEquals(1, cmds.size)
-            assertEquals(creator, cmds.first().setAccountDetail.accountId)
-            assertEquals("test", cmds.first().setAccountDetail.key)
-            assertEquals("test", cmds.first().setAccountDetail.value)
+
+        val bl = runBlocking {
+            block.await()
         }
+
+        val cmds = bl.payload.transactionsList
+            .flatMap {
+                it.payload.reducedPayload.commandsList
+            }
+        assertEquals(1, cmds.size)
+        assertEquals(creator, cmds.first().setAccountDetail.accountId)
+        assertEquals("test", cmds.first().setAccountDetail.key)
+        assertEquals("test", cmds.first().setAccountDetail.value)
+
+        listener.close()
     }
 }
