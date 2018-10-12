@@ -30,7 +30,7 @@ class FailedTransactionTest {
         val failerAddress = integrationHelper.deployFailer()
         integrationHelper.registerRelayByAddress(failerAddress)
         val clientAccount = String.getRandomString(9)
-        integrationHelper.registerClientWithoutRelay(clientAccount, listOf("0x0"))
+        integrationHelper.registerClientWithoutRelay(clientAccount, listOf())
         integrationHelper.sendEth(BigInteger.valueOf(1), failerAddress)
         integrationHelper.waitOneEtherBlock()
         assertEquals(BigInteger.ZERO, integrationHelper.getEthBalance(failerAddress))
@@ -52,7 +52,7 @@ class FailedTransactionTest {
         val anotherFailerAddress = integrationHelper.deployFailer()
         integrationHelper.registerRelayByAddress(failerAddress)
         val clientAccount = String.getRandomString(9)
-        integrationHelper.registerClientWithoutRelay(clientAccount, listOf("0x0"))
+        integrationHelper.registerClientWithoutRelay(clientAccount, listOf())
         val coinName = String.getRandomString(9)
         integrationHelper.addERC20Token(anotherFailerAddress, coinName, 0)
 
