@@ -11,6 +11,7 @@ import pregeneration.btc.config.btcPreGenConfig
 import provider.TriggerProvider
 import provider.btc.BtcSessionProvider
 import sidechain.iroha.IrohaInitialization
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomId
 
@@ -35,10 +36,11 @@ fun executeTrigger(btcPkPreGenConfig: BtcPreGenConfig) {
             IrohaCredential(btcPkPreGenConfig.registrationAccount.accountId, keypair)
         }
         .flatMap { credential ->
+            val irohaNetwork = IrohaNetworkImpl(btcPkPreGenConfig.iroha.hostname, btcPkPreGenConfig.iroha.port)
             val triggerProvider = TriggerProvider(
-                btcPkPreGenConfig.iroha,
                 credential,
-                btcPkPreGenConfig.pubKeyTriggerAccount
+                btcPkPreGenConfig.pubKeyTriggerAccount,
+                irohaNetwork
             )
             val btcKeyGenSessionProvider = BtcSessionProvider(
                 btcPkPreGenConfig.iroha,

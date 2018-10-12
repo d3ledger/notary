@@ -88,36 +88,27 @@ class IntegrationHelperUtil {
     }
 
     private val irohaConsumer by lazy {
-        IrohaConsumerImpl(
-            testCredential,
-            testConfig.iroha
-        )
+        IrohaConsumerImpl(testCredential, irohaNetwork)
     }
 
     private val registrationConsumer by lazy {
-        IrohaConsumerImpl(
-            accountHelper.registrationAccount,
-            testConfig.iroha
-        )
+        IrohaConsumerImpl(accountHelper.registrationAccount, irohaNetwork)
     }
 
     private val tokenProviderIrohaConsumer by lazy {
-        IrohaConsumerImpl(
-            accountHelper.tokenSetterAccount,
-            testConfig.iroha
-        )
+        IrohaConsumerImpl(accountHelper.tokenSetterAccount, irohaNetwork)
     }
 
     private val whiteListIrohaConsumer by lazy {
-        IrohaConsumerImpl(accountHelper.whitelistSetter, testConfig.iroha)
+        IrohaConsumerImpl(accountHelper.whitelistSetter, irohaNetwork)
     }
 
     private val notaryListIrohaConsumer by lazy {
-        IrohaConsumerImpl(accountHelper.notaryListSetterAccount, testConfig.iroha)
+        IrohaConsumerImpl(accountHelper.notaryListSetterAccount, irohaNetwork)
     }
 
     private val mstRegistrationIrohaConsumer by lazy {
-        IrohaConsumerImpl(accountHelper.mstRegistrationAccount, testConfig.iroha)
+        IrohaConsumerImpl(accountHelper.mstRegistrationAccount, irohaNetwork)
     }
 
     /** Notary ethereum address that is used in master smart contract to verify proof provided by notary */

@@ -11,6 +11,7 @@ import config.loadEthPasswords
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.IrohaInitialization
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import vacuum.RelayVacuumConfig
 
@@ -44,11 +45,16 @@ fun executeWithdrawal(
         }
         .map { keypair -> IrohaCredential(withdrawalConfig.withdrawalCredential.accountId, keypair) }
         .flatMap { credential ->
+            val irohaNetwork = IrohaNetworkImpl(
+                withdrawalConfig.iroha.hostname,
+                withdrawalConfig.iroha.port
+            )
             WithdrawalServiceInitialization(
                 withdrawalConfig,
                 credential,
                 passwordConfig,
-                relayVacuumConfig
+                relayVacuumConfig,
+                irohaNetwork
             ).init()
         }
         .failure { ex ->

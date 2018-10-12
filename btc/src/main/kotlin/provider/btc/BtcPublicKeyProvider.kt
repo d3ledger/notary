@@ -15,13 +15,13 @@ import org.springframework.stereotype.Component
 import provider.NotaryPeerListProvider
 import provider.btc.network.BtcNetworkConfigProvider
 import sidechain.iroha.consumer.IrohaConsumerImpl
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomId
 import wallet.WalletFile
 
 /**
  *  Bitcoin keys provider
- *  @param wallet - bitcoinJ wallet class
  *  @param walletFile - file where to save wallet
  *  @param irohaConfig - configutation to start Iroha client
  *  @param notaryPeerListProvider - class to query all current notaries
@@ -47,9 +47,9 @@ class BtcPublicKeyProvider(
     //Provider of network configurations
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider
 ) {
-
-    private val sessionConsumer = IrohaConsumerImpl(btcRegistrationCredential, irohaConfig)
-    private val multiSigConsumer = IrohaConsumerImpl(mstBtcRegistrationCredential, irohaConfig)
+    private val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
+    private val sessionConsumer = IrohaConsumerImpl(btcRegistrationCredential, irohaNetwork)
+    private val multiSigConsumer = IrohaConsumerImpl(mstBtcRegistrationCredential, irohaNetwork)
 
     init {
         logger.info { "BtcPublicKeyProvider was successfully initialized. Current wallet state:\n${walletFile.wallet}" }
@@ -140,7 +140,7 @@ class BtcPublicKeyProvider(
      * @return minimal number of signatures required
      */
     private fun getThreshold(peers: Int): Int {
-        return (peers * 2 / 3) + 1;
+        return (peers * 2 / 3) + 1
     }
 
     /**

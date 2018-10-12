@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil.getCurrentTime
 import sidechain.iroha.util.ModelUtil.getModelTransactionBuilder
 import java.util.concurrent.TimeUnit
@@ -25,12 +26,11 @@ import java.util.concurrent.TimeUnit
 class IrohaBlockStreamingTest {
 
     /** Test configurations */
-    val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
+    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
-    val testCredential = IntegrationHelperUtil().testCredential
-    val creator = testCredential.accountId
-
-    val keypair = testCredential.keyPair
+    private val testCredential = IntegrationHelperUtil().testCredential
+    private val creator = testCredential.accountId
+    private val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
 
     @BeforeAll
     fun setUp() {
@@ -67,7 +67,7 @@ class IrohaBlockStreamingTest {
             .setAccountDetail(creator, "test", "test")
             .build()
 
-        IrohaConsumerImpl(testCredential, testConfig.iroha).sendAndCheck(utx)
+        IrohaConsumerImpl(testCredential, irohaNetwork).sendAndCheck(utx)
         runBlocking {
             delay(5000, TimeUnit.MILLISECONDS)
         }
@@ -102,7 +102,7 @@ class IrohaBlockStreamingTest {
             .setAccountDetail(creator, "test", "test")
             .build()
 
-        IrohaConsumerImpl(testCredential, testConfig.iroha).sendAndCheck(utx)
+        IrohaConsumerImpl(testCredential, irohaNetwork).sendAndCheck(utx)
 
 
         val bl = runBlocking {

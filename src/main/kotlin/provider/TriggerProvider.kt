@@ -6,15 +6,16 @@ import config.IrohaConfig
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.consumer.IrohaConsumerImpl
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
 /*
     Provider that helps us to implement pub/sub mechanism in Iroha using account as an event source.
  */
 class TriggerProvider(
-    irohaConfig: IrohaConfig,
     private val callerCredential: IrohaCredential,
-    private val triggerAccount: String
+    private val triggerAccount: String,
+    irohaNetwork: IrohaNetworkImpl
 ) {
     init {
         logger.info {
@@ -22,7 +23,7 @@ class TriggerProvider(
         }
     }
 
-    private val irohaConsumer = IrohaConsumerImpl(callerCredential, irohaConfig)
+    private val irohaConsumer = IrohaConsumerImpl(callerCredential, irohaNetwork)
 
     /**
      * Triggers triggeredAccount by setting details

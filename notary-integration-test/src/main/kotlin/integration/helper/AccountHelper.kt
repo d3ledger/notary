@@ -8,6 +8,7 @@ import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.consumer.IrohaConsumerImpl
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 
@@ -27,7 +28,9 @@ class AccountHelper {
         ).get()
     )
 
-    private val irohaConsumer by lazy { IrohaConsumerImpl(testCredential, testConfig.iroha) }
+    private val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
+
+    private val irohaConsumer by lazy { IrohaConsumerImpl(testCredential, irohaNetwork) }
 
     /** Notary account */
     val notaryAccount by lazy { createTesterAccount("notary", "notary") }

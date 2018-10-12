@@ -58,7 +58,7 @@ class IrohaBatchTest {
         val user = randomString()
         val asset_name = randomString()
 
-        val irohaConsumer = IrohaConsumerImpl(testCredential, testConfig.iroha)
+        val irohaConsumer = IrohaConsumerImpl(testCredential, irohaNetwork)
 
         val userId = "$user@$CLIENT_DOMAIN"
 
@@ -160,7 +160,7 @@ class IrohaBatchTest {
         val user = randomString()
         val asset_name = randomString()
 
-        val irohaConsumer = IrohaConsumerImpl(testCredential, testConfig.iroha)
+        val irohaConsumer = IrohaConsumerImpl(testCredential, irohaNetwork)
 
         val userId = "$user@$CLIENT_DOMAIN"
         val assetId = "$asset_name#$assetDomain"

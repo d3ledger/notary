@@ -9,15 +9,17 @@ import notary.IrohaCommand
 import notary.IrohaTransaction
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
 
 // Class for creating session accounts. Theses accounts are used to store BTC public keys.
 class BtcSessionProvider(
-    val irohaConfig: IrohaConfig,
+    irohaConfig: IrohaConfig,
     private val credential: IrohaCredential
 ) {
-    private val irohaConsumer = IrohaConsumerImpl(credential, irohaConfig)
+    private val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
+    private val irohaConsumer = IrohaConsumerImpl(credential, irohaNetwork)
 
     /**
      * Creates a special session account for notaries public key storage

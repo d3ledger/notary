@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import provider.eth.EthFreeRelayProvider
 import sidechain.iroha.consumer.IrohaConsumerImpl
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil.setAccountDetail
 
 class EthFreeRelayProviderTest {
@@ -17,8 +18,10 @@ class EthFreeRelayProviderTest {
 
     val testConfig = integrationHelper.configHelper.testConfig
 
+    private val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
+
     /** Iroha consumer */
-    private val irohaConsumer = IrohaConsumerImpl(integrationHelper.testCredential, testConfig.iroha)
+    private val irohaConsumer = IrohaConsumerImpl(integrationHelper.testCredential, irohaNetwork)
 
     /** Iroha transaction creator */
     val creator = integrationHelper.testCredential.accountId

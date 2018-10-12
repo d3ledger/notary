@@ -6,6 +6,7 @@ import model.IrohaCredential
 import mu.KLogging
 import sidechain.eth.util.DeployHelper
 import sidechain.iroha.consumer.IrohaConsumerImpl
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
 /**
@@ -20,8 +21,11 @@ class RelayRegistration(
     /** Ethereum endpoint */
     private val deployHelper = DeployHelper(relayRegistrationConfig.ethereum, relayRegistrationEthereumPasswords)
 
+    private val irohaNetwork =
+        IrohaNetworkImpl(relayRegistrationConfig.iroha.hostname, relayRegistrationConfig.iroha.port)
+
     /** Iroha endpoint */
-    private val irohaConsumer = IrohaConsumerImpl(relayCredential, relayRegistrationConfig.iroha)
+    private val irohaConsumer = IrohaConsumerImpl(relayCredential, irohaNetwork)
 
     private val notaryIrohaAccount = relayRegistrationConfig.notaryIrohaAccount
 

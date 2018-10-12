@@ -36,10 +36,12 @@ class BtcPreGenIntegrationTest {
     private val btcPreGenConfig =
         integrationHelper.configHelper.createBtcPreGenConfig()
 
+    private val irohaNetwork = IrohaNetworkImpl(btcPreGenConfig.iroha.hostname, btcPreGenConfig.iroha.port)
+
     private val triggerProvider = TriggerProvider(
-        btcPreGenConfig.iroha,
         integrationHelper.testCredential,
-        btcPreGenConfig.pubKeyTriggerAccount
+        btcPreGenConfig.pubKeyTriggerAccount,
+        irohaNetwork
     )
     private val btcKeyGenSessionProvider = BtcSessionProvider(
         btcPreGenConfig.iroha,

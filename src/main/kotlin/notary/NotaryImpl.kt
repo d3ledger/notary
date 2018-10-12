@@ -11,6 +11,7 @@ import provider.NotaryPeerListProvider
 import sidechain.SideChainEvent
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import java.math.BigInteger
 import java.util.concurrent.Executors
@@ -117,7 +118,8 @@ class NotaryImpl(
     override fun initIrohaConsumer(): Result<Unit, Exception> {
         logger.info { "Init Iroha consumer" }
         return Result.of {
-            val irohaConsumer = IrohaConsumerImpl(notaryCredential, irohaConfig)
+            val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
+            val irohaConsumer = IrohaConsumerImpl(notaryCredential, irohaNetwork)
 
             // Init Iroha Consumer pipeline
             irohaOutput()

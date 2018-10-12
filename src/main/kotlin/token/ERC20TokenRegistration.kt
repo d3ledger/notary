@@ -9,6 +9,7 @@ import model.IrohaCredential
 import mu.KLogging
 import provider.eth.EthTokensProviderImpl
 import sidechain.iroha.consumer.IrohaConsumerImpl
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import java.io.BufferedReader
 import java.io.File
@@ -29,7 +30,10 @@ class ERC20TokenRegistration(
     //For json serialization/deserialization
     private val moshi = Moshi.Builder().build()
 
-    private val irohaConsumer = IrohaConsumerImpl(irohaCredential, tokenRegistrationConfig.iroha)
+    private val irohaNetwork =
+        IrohaNetworkImpl(tokenRegistrationConfig.iroha.hostname, tokenRegistrationConfig.iroha.port)
+
+    private val irohaConsumer = IrohaConsumerImpl(irohaCredential, irohaNetwork)
 
     //Initiates process of ERC20 tokens registration
     fun init(): Result<Unit, Exception> {

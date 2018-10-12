@@ -23,12 +23,11 @@ class WithdrawalServiceInitialization(
     private val withdrawalConfig: WithdrawalServiceConfig,
     private val credential: IrohaCredential,
     private val withdrawalEthereumPasswords: EthereumPasswords,
-    private val relayVacuumConfig: RelayVacuumConfig
+    private val relayVacuumConfig: RelayVacuumConfig,
+    private val irohaNetwork: IrohaNetworkImpl
 ) {
-
     private val irohaHost = withdrawalConfig.iroha.hostname
     private val irohaPort = withdrawalConfig.iroha.port
-    private val irohaNetwork = IrohaNetworkImpl(irohaHost, irohaPort)
 
     /**
      * Init Iroha chain listener
