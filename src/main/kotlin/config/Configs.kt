@@ -15,6 +15,12 @@ const val ETH_NODE_LOGIN_ENV = "ETH_NODE_LOGIN"
 const val ETH_NODE_PASSWORD_ENV = "ETH_NODE_PASSWORD"
 //Environment variable that holds current application profile
 const val PROFILE_ENV = "PROFILE"
+//Environment variable that holds address of the master wallet
+const val ETH_MASTER_WALLET_ENV = "ETH_MASTER_WALLET"
+//Environment variable that holds address of the relay registry
+const val ETH_RELAY_REGISTRY_ENV = "ETH_RELAY_REGISTRY"
+
+
 private val logger = KLogging().logger
 
 /**
