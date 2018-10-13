@@ -5,6 +5,7 @@ package registration.eth.relay
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
+import config.ETH_MASTER_WALLET_ENV
 import config.loadConfigs
 import config.loadEthPasswords
 import model.IrohaCredential
@@ -22,8 +23,19 @@ private val logger = KLogging().logger
 // TODO a.chernyshov - think about automatization of trigger and obtaining master address
 fun main(args: Array<String>) {
     logger.info { "Run relay deployment" }
-    val relayRegistrationConfig =
+    val tmp =
         loadConfigs("relay-registration", RelayRegistrationConfig::class.java, "/eth/relay_registration.properties")
+
+    val relayRegistrationConfig = object : RelayRegistrationConfig {
+        override val number = tmp.number
+        override val ethMasterWallet = System.getenv(ETH_MASTER_WALLET_ENV) ?: tmp.ethMasterWallet
+        override val notaryIrohaAccount = tmp.notaryIrohaAccount
+        override val relayRegistrationCredential = tmp.relayRegistrationCredential
+        override val iroha = tmp.iroha
+        override val ethereum = tmp.ethereum
+
+    }
+
     val passwordConfig = loadEthPasswords("relay-registration", "/eth/ethereum_password.properties", args)
 
     IrohaInitialization.loadIrohaLibrary()
