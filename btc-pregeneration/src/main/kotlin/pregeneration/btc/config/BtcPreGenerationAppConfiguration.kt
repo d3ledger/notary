@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration
 import provider.NotaryPeerListProvider
 import provider.NotaryPeerListProviderImpl
 import sidechain.iroha.IrohaChainListener
+import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import wallet.WalletFile
 import java.io.File
@@ -61,13 +62,10 @@ class BtcPreGenerationAppConfiguration {
     }
 
     @Bean
-    fun btcPublicKeyProviderIrohaConfig() = btcPreGenConfig.iroha
+    fun sessionConsumer() = IrohaConsumerImpl(registrationCredential, btcPreGenConfig.iroha)
 
     @Bean
-    fun btcRegistrationCredential() = registrationCredential
-
-    @Bean
-    fun mstBtcRegistrationCredential() = mstRegistrationCredential
+    fun multiSigConsumer() = IrohaConsumerImpl(mstRegistrationCredential, btcPreGenConfig.iroha)
 
     @Bean
     fun notaryAccount() = btcPreGenConfig.notaryAccount
