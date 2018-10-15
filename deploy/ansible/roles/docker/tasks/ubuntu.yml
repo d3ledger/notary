@@ -42,14 +42,6 @@
       - docker-py
       - docker-compose
 
-  - name: install docker python modules
-    pip:
-      name: "{{ item }}"
-      state: latest
-    with_items:
-      - docker
-      - docker-compose
-
   - name: download docker-compose bin
     raw: curl -L https://github.com/docker/compose/releases/download/{{ dockerComposeVersion }}/docker-compose-`uname -s`-`uname -m` -o {{ execPath }}/docker-compose
 
@@ -58,12 +50,6 @@
       path: "{{ execPath }}/docker-compose"
       mode: "a+x"
 
-  - name: Log into private registry and force re-authorization
-    docker_login:
-      registry: nexus.iroha.tech:19002
-      username: d3-deploy
-      password: "{{ docker_password }}"
-      reauthorize: yes
 
   - name: remove all docker containers
     shell: docker rm -f $(docker ps -a -q)
