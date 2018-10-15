@@ -34,7 +34,7 @@ class DepositMultiIntegrationTest {
     private fun registerRelay(): String {
         integrationHelper.deployRelays(1)
         // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
-        return integrationHelper.registerClient(clientIrohaAccount, listOf("0x0"))
+        return integrationHelper.registerClient(clientIrohaAccount, listOf())
     }
 
     /** Path to public key of 2nd instance of notary */

@@ -158,8 +158,6 @@ class WithdrawalPipelineIntegrationTest {
         )
         Assertions.assertEquals(200, res.statusCode)
 
-        integrationHelper.setWhitelist(clientId, listOf(toAddress))
-
         val initialBalance = integrationHelper.getERC20TokenBalance(tokenAddress, toAddress)
 
         // add assets to user
@@ -192,7 +190,6 @@ class WithdrawalPipelineIntegrationTest {
     @Test
     fun testWithdrawInWhitelist() {
         integrationHelper.registerClient(clientName, listOf(toAddress, "0x123"), keypair)
-        integrationHelper.setWhitelist(clientId, listOf(toAddress, "0x123"))
 
         val amount = "125"
         val assetId = "ether#ethereum"
@@ -226,7 +223,7 @@ class WithdrawalPipelineIntegrationTest {
     @Test
     fun testWithdrawEmptyWhitelist() {
         // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
-        integrationHelper.registerClient(clientName, listOf("0x0"), keypair)
+        integrationHelper.registerClient(clientName, listOf(), keypair)
 
         val withdrawalEthAddress = "0x123"
 

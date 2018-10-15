@@ -412,7 +412,7 @@ class IntegrationHelperUtil {
      */
     fun registerRandomRelay(): String {
         // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
-        val ethWallet = registerClient(String.getRandomString(9), listOf("0x0"))
+        val ethWallet = registerClient(String.getRandomString(9), listOf())
         return ethWallet
     }
 
@@ -519,10 +519,10 @@ class IntegrationHelperUtil {
      */
     fun setWhitelist(clientAccount: String, addresses: List<String>) {
         val text = addresses.joinToString()
-        logger.info { "Set whitelist $text to $clientAccount by ${whiteListIrohaConsumer.creator}" }
+        logger.info { "Set whitelist $text to $clientAccount by ${registrationConsumer.creator}" }
 
         ModelUtil.setAccountDetail(
-            whiteListIrohaConsumer,
+            registrationConsumer,
             clientAccount,
             "eth_whitelist",
             text

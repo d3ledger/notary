@@ -19,6 +19,11 @@ private val btcAsset = "btc#bitcoin"
 
 class BtcNotaryIntegrationTest {
 
+    init {
+        integrationHelper.generateBtcBlocks()
+        integrationHelper.addNotary("test_notary", "test_notary_address")
+    }
+
     private val notaryConfig = integrationHelper.configHelper.createBtcNotaryConfig()
 
     private val btcRegisteredAddressesProvider by lazy {
@@ -48,8 +53,6 @@ class BtcNotaryIntegrationTest {
      */
     @Test
     fun testDeposit() {
-        integrationHelper.generateBtcBlocks()
-        integrationHelper.addNotary("test_notary", "test_notary_address")
         btcNotaryInitialization.init().failure { ex -> fail("Cannot run BTC notary", ex) }
         val randomName = String.getRandomString(9)
         val testClient = "$randomName@$CLIENT_DOMAIN"
