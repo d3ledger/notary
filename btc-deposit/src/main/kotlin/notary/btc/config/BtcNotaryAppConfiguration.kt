@@ -4,7 +4,7 @@ import config.loadConfigs
 import model.IrohaCredential
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import provider.btc.BtcRegisteredAddressesProvider
+import provider.btc.address.BtcRegisteredAddressesProvider
 import sidechain.iroha.util.ModelUtil
 
 val notaryConfig = loadConfigs("btc-notary", BtcNotaryConfig::class.java, "/btc/notary.properties")

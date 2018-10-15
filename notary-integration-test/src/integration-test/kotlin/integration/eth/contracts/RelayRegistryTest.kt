@@ -78,4 +78,16 @@ class RelayRegistryTest {
 
         assertEquals(equalAddressesSize, relayRegistry.getWhiteListByRelay(Keys.getAddress(keypair)).send().size)
     }
+
+    // TODO: make test for empty whitelist in smart contract
+    /**
+     * @given relay registry contract
+     * @when try to store empty list
+     * @then transaction should be successful
+     */
+    @Test
+    fun setEmptyList() {
+        val call = cth.addWhiteListToRelayRegistry(Keys.getAddress(keypair), listOf())
+        assertEquals(true, call.isStatusOK)
+    }
 }

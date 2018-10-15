@@ -46,8 +46,7 @@ class EthRegistrationStrategyImpl(
         BigInteger.valueOf(ethRegistrationConfig.ethereum.gasLimit)
     )
 
-    val irohaAccountCreator = IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, "ethereum_wallet")
-
+    private val irohaAccountCreator = IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, "ethereum_wallet")
 
     /**
      * Register new notary client

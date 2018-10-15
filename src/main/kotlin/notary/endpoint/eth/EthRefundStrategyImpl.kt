@@ -174,11 +174,12 @@ class EthRefundStrategyImpl(
             notaryConfig.whitelistSetter
         ).map { details ->
             val whitelist = details["eth_whitelist"]
-
-            if (whitelist == null || whitelist.isEmpty())
+            if (whitelist == null || whitelist.isEmpty()) {
+                logger.debug { "Whitelist is empty. Allow." }
                 true
-            else
+            } else {
                 whitelist.split(", ").contains(address)
+            }
         }
     }
 

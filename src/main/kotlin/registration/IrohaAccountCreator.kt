@@ -7,6 +7,7 @@ import mu.KLogging
 import notary.IrohaCommand
 import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
+import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.util.ModelUtil.getCurrentTime
@@ -14,7 +15,7 @@ import sidechain.iroha.util.ModelUtil.getCurrentTime
 class IrohaAccountCreator(
     private val irohaConsumer: IrohaConsumer,
     private val notaryIrohaAccount: String,
-    private val addressName: String
+    private val currencyName: String
 ) {
 
     private val creator = irohaConsumer.creator
@@ -36,8 +37,9 @@ class IrohaAccountCreator(
         userName: String,
         pubkey: String
     ): Result<String, Exception> {
+        val domain = CLIENT_DOMAIN
         return Result.of {
-            val domain = "notary"
+
             // TODO: implement https://soramitsu.atlassian.net/browse/D3-415
             IrohaOrderedBatch(
                 listOf(
@@ -53,7 +55,7 @@ class IrohaAccountCreator(
                             // Set user wallet/address in account detail
                             IrohaCommand.CommandSetAccountDetail(
                                 "$userName@$domain",
-                                addressName,
+                                currencyName,
                                 currencyAddress
                             ),
                             // Set wallet/address as occupied by user id
@@ -70,6 +72,7 @@ class IrohaAccountCreator(
                         1,
                         arrayListOf(
                             //set whitelist
+                            //TODO this function is used to create both BTC and ETH clients. "eth_whitelist" is not appropriate detail key.
                             IrohaCommand.CommandSetAccountDetail(
                                 "$userName@$domain",
                                 "eth_whitelist",
@@ -83,7 +86,7 @@ class IrohaAccountCreator(
             val utx = IrohaConverterImpl().convert(irohaTx)
             irohaConsumer.sendAndCheck(utx)
         }.map {
-            logger.info { "New account $userName was created" }
+            logger.info { "New account $userName@$domain was created" }
             currencyAddress
         }
     }

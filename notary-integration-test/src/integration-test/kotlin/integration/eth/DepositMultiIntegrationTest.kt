@@ -1,11 +1,13 @@
 package integration.eth
 
 import config.IrohaCredentialConfig
+import config.loadEthPasswords
 import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import provider.eth.ETH_PRECISION
+import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import java.math.BigDecimal
@@ -24,7 +26,7 @@ class DepositMultiIntegrationTest {
 
     /** Iroha client account */
     private val clientIrohaAccount = String.getRandomString(9)
-    private val clientIrohaAccountId = "$clientIrohaAccount@notary"
+    private val clientIrohaAccountId = "$clientIrohaAccount@$CLIENT_DOMAIN"
 
     /** Ethereum address to transfer to */
     private val relayWallet = registerRelay()
@@ -32,34 +34,43 @@ class DepositMultiIntegrationTest {
     private fun registerRelay(): String {
         integrationHelper.deployRelays(1)
         // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
-        return integrationHelper.registerClient(clientIrohaAccount, listOf("0x0"))
+        return integrationHelper.registerClient(clientIrohaAccount, listOf())
     }
 
     /** Path to public key of 2nd instance of notary */
-    private val pubkeyPath2 = "deploy/iroha/keys/notary2@notary.pub"
+    private val pubkeyPath2 = "deploy/iroha/keys/notary1@notary.pub"
 
     /** Path to private key of 2nd instance of notary */
-    private val privkeyPath2 = "deploy/iroha/keys/notary2@notary.priv"
+    private val privkeyPath2 = "deploy/iroha/keys/notary1@notary.priv"
 
     init {
         // run notary
         integrationHelper.runEthNotary()
 
-        // create 2nd notray config
-        val notaryCredential2 = object : IrohaCredentialConfig {
+        // create 2nd notary config
+        val irohaCredential = object : IrohaCredentialConfig {
             override val pubkeyPath = pubkeyPath2
             override val privkeyPath = privkeyPath2
             override val accountId = integrationHelper.accountHelper.notaryAccount.accountId
         }
 
-        val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig(notaryCredential_ = notaryCredential2)
+        val ethereumPasswords = loadEthPasswords("test", "/eth/ethereum_password.properties")
+        val ethereumConfig =
+            integrationHelper.configHelper.createEthereumConfig("deploy/ethereum/keys/local/notary1.key")
+        val notaryConfig =
+            integrationHelper.configHelper.createEthNotaryConfig(
+                ethereumConfig = ethereumConfig,
+                notaryCredential_ = irohaCredential
+            )
 
         val keypair = ModelUtil.loadKeypair(pubkeyPath2, privkeyPath2).get()
 
         integrationHelper.accountHelper.addNotarySignatory(keypair)
 
         // run 2nd instance of notary
-        integrationHelper.runEthNotary(notaryConfig)
+        integrationHelper.runEthNotary(ethereumPasswords, notaryConfig)
+
+        integrationHelper.lockEthMasterSmartcontract()
     }
 
     /**

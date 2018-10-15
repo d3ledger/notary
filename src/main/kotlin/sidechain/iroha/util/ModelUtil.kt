@@ -334,21 +334,4 @@ object ModelUtil {
         }
     }
 
-    /**
-     * Create new Iroha account with [accountName].
-     */
-    fun createAccount(
-        irohaConsumer: IrohaConsumer,
-        irohaKeyPair: Keypair,
-        accountName: String
-    ): Result<String, Exception> {
-        val domain = "notary"
-        return irohaConsumer.sendAndCheck(
-            ModelTransactionBuilder()
-                .creatorAccountId(irohaConsumer.creator)
-                .createdTime(ModelUtil.getCurrentTime())
-                .createAccount(accountName, domain, irohaKeyPair.publicKey())
-                .build()
-        ).map { "$accountName@$domain" }
-    }
 }

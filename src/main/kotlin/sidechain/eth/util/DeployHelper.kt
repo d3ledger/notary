@@ -32,8 +32,6 @@ class BasicAuthenticator(private val ethereumPasswords: EthereumPasswords) : Aut
  * @param ethereumPasswords config with Ethereum passwords
  */
 class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPasswords) {
-
-    val url: String = ethereumConfig.url
     val web3: Web3j
 
     init {

@@ -200,12 +200,13 @@ class ContractTestHelper {
      * Save white list in the contract
      * @param relayAddress relay contract address
      * @param whiteList list of addresses allowed to withdraw
+     * @return receipt of a transaction was sent
      */
     fun addWhiteListToRelayRegistry(
         relayAddress: String,
         whiteList: List<String>
-    ) {
-        relayRegistry.addNewRelayAddress(relayAddress, whiteList).send()
+    ): TransactionReceipt {
+        return relayRegistry.addNewRelayAddress(relayAddress, whiteList).send()
     }
 
     fun sendEthereum(amount: BigInteger, to: String) {

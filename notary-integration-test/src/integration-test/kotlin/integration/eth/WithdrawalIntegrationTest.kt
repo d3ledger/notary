@@ -13,6 +13,7 @@ import provider.eth.EthRelayProviderIrohaImpl
 import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
+import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import util.getRandomString
 import java.math.BigDecimal
@@ -31,7 +32,8 @@ class WithdrawalIntegrationTest {
     private val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig()
 
     init {
-        integrationHelper.runEthNotary(notaryConfig)
+        integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig)
+        integrationHelper.lockEthMasterSmartcontract()
     }
 
     /** Ethereum private key **/
@@ -62,7 +64,7 @@ class WithdrawalIntegrationTest {
 
         // create
         val client = String.getRandomString(9)
-        val clientId = "$client@notary"
+        val clientId = "$client@$CLIENT_DOMAIN"
         integrationHelper.registerClient(client, listOf(ethWallet), integrationHelper.testCredential.keyPair)
         integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
         val relay = EthRelayProviderIrohaImpl(

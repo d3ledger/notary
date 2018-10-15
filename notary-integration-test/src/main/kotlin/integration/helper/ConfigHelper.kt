@@ -6,7 +6,7 @@ import notary.btc.config.BtcNotaryConfig
 import notary.eth.EthNotaryConfig
 import notary.eth.RefundConfig
 import pregeneration.btc.config.BtcPreGenConfig
-import registration.btc.BtcRegistrationConfig
+import registration.btc.config.BtcRegistrationConfig
 import registration.eth.EthRegistrationConfig
 import registration.eth.relay.RelayRegistrationConfig
 import token.ERC20TokenRegistrationConfig
@@ -129,6 +129,7 @@ class ConfigHelper(
         val btcRegistrationConfig =
             loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/btc/registration.properties")
         return object : BtcRegistrationConfig {
+            override val healthCheckPort = btcRegistrationConfig.healthCheckPort
             override val notaryAccount = accountHelper.notaryAccount.accountId
             override val mstRegistrationAccount = accountHelper.mstRegistrationAccount.accountId
             override val port = btcRegistrationConfig.port
@@ -151,7 +152,7 @@ class ConfigHelper(
             override val tokenSetterAccount = accountHelper.tokenSetterAccount.accountId
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
             override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
-            override val whitelistSetter = accountHelper.whitelistSetter.accountId
+            override val whitelistSetter = accountHelper.registrationAccount.accountId
             override val notaryCredential = notaryCredential_
             override val refund = createRefundConfig()
             override val iroha = irohaConfig
@@ -179,8 +180,6 @@ class ConfigHelper(
 
     /** Test configuration of Registration with runtime dependencies */
     fun createEthRegistrationConfig(ethereumConfig: EthereumConfig): EthRegistrationConfig {
-        val ethRegistrationConfig =
-            loadConfigs("eth-registration", EthRegistrationConfig::class.java, "/eth/registration.properties")
         return object : EthRegistrationConfig {
             override val ethRelayRegistryAddress = relayRegistryContractAddress
             override val ethereum = ethereumConfig
