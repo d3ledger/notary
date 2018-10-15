@@ -21,11 +21,12 @@ import org.bitcoinj.core.Address
 import org.bitcoinj.wallet.Wallet
 import org.web3j.crypto.WalletUtils
 import org.web3j.protocol.core.DefaultBlockParameterName
-import provider.btc.BtcAddressesProvider
-import provider.btc.BtcRegisteredAddressesProvider
+import provider.btc.address.BtcAddressesProvider
+import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.eth.EthFreeRelayProvider
 import provider.eth.EthRelayProviderIrohaImpl
 import provider.eth.EthTokensProviderImpl
+import registration.IrohaAccountCreator
 import registration.btc.BtcRegistrationStrategyImpl
 import registration.eth.EthRegistrationConfig
 import registration.eth.EthRegistrationStrategyImpl
@@ -203,11 +204,14 @@ class IntegrationHelperUtil {
                 accountHelper.registrationAccount.accountId,
                 accountHelper.notaryAccount.accountId
             )
+        val irohaAccountCreator = IrohaAccountCreator(
+            registrationConsumer,
+            accountHelper.notaryAccount.accountId, "bitcoin"
+        )
         BtcRegistrationStrategyImpl(
             btcAddressesProvider,
             btcTakenAddressesProvider,
-            registrationConsumer,
-            accountHelper.notaryAccount.accountId
+            irohaAccountCreator
         )
     }
 

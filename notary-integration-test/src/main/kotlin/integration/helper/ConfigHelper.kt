@@ -6,7 +6,7 @@ import notary.btc.config.BtcNotaryConfig
 import notary.eth.EthNotaryConfig
 import notary.eth.RefundConfig
 import pregeneration.btc.config.BtcPreGenConfig
-import registration.btc.BtcRegistrationConfig
+import registration.btc.config.BtcRegistrationConfig
 import registration.eth.EthRegistrationConfig
 import registration.eth.relay.RelayRegistrationConfig
 import token.ERC20TokenRegistrationConfig
@@ -129,6 +129,7 @@ class ConfigHelper(
         val btcRegistrationConfig =
             loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/btc/registration.properties")
         return object : BtcRegistrationConfig {
+            override val healthCheckPort = btcRegistrationConfig.healthCheckPort
             override val notaryAccount = accountHelper.notaryAccount.accountId
             override val mstRegistrationAccount = accountHelper.mstRegistrationAccount.accountId
             override val port = btcRegistrationConfig.port
