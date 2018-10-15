@@ -48,7 +48,6 @@ class EthRegistrationStrategyImpl(
 
     private val irohaAccountCreator = IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, "ethereum_wallet")
 
-
     /**
      * Register new notary client
      * @param name - client name

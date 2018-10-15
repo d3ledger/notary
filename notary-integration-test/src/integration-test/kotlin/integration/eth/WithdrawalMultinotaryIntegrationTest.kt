@@ -56,22 +56,22 @@ class WithdrawalMultinotaryIntegrationTest {
 
         // run 1st instance of notary
         notaryConfig1 = integrationHelper.configHelper.createEthNotaryConfig()
-        integrationHelper.runEthNotary(notaryConfig1)
+        integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig1)
 
 
         // create 2nd notary config
         val ethereumConfig2 =
             integrationHelper.configHelper.createEthereumConfig(ethKeyPath.split(".key").first() + "2.key")
-        val irohaConfig2 =
-            integrationHelper.configHelper.createIrohaConfig()
-        notaryConfig2 = integrationHelper.configHelper.createEthNotaryConfig(irohaConfig2, ethereumConfig2)
+        notaryConfig2 = integrationHelper.configHelper.createEthNotaryConfig(ethereumConfig = ethereumConfig2)
 
         keypair2 = DeployHelper(ethereumConfig2, ethereumPasswords).credentials.ecKeyPair
 
         integrationHelper.accountHelper.addNotarySignatory(ModelUtil.loadKeypair(pubkeyPath, privkeyPath).get())
 
         // run 2nd instance of notary
-        integrationHelper.runEthNotary(notaryConfig2)
+        integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig2)
+
+        integrationHelper.lockEthMasterSmartcontract()
     }
 
     val irohaNetwork = IrohaNetworkImpl(
