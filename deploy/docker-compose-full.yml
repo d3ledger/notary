@@ -38,6 +38,9 @@ services:
       - ../configs:/opt/notary/configs
     environment:
       - PROFILE
+      - IROHA_HOST=d3-iroha
+      - IROHA_PORT=50051
+      - CLASS=registration.eth.relay.DeployRelayMain
 
 
   d3-registration:
@@ -53,6 +56,9 @@ services:
       - ../configs:/opt/notary/configs
     environment:
       - PROFILE
+      - IROHA_HOST=d3-iroha
+      - IROHA_PORT=50051
+      - CLASS=registration.eth.EthRegistrationMain
 
   d3-notary:
     image: nexus.iroha.tech:19002/d3-deploy/notary:${TAG}
@@ -66,6 +72,9 @@ services:
       - ../configs:/opt/notary/configs
     environment:
       - PROFILE
+      - IROHA_HOST=d3-iroha
+      - IROHA_PORT=50051
+      - CLASS=notary.eth.EthNotaryMain
 
   d3-withdrawal:
     image: nexus.iroha.tech:19002/d3-deploy/withdrawal:${TAG}
@@ -77,6 +86,9 @@ services:
       - ../configs:/opt/notary/configs
     environment:
       - PROFILE
+      - IROHA_HOST=d3-iroha
+      - IROHA_PORT=50051
+      - CLASS=withdrawalservice.WithdrawalServiceMain
 
   grpcwebproxy:
     image: nexus.iroha.tech:19002/d3-deploy/grpcwebproxy
@@ -94,3 +106,4 @@ services:
 
 volumes:
   iroha_block_store:
+
