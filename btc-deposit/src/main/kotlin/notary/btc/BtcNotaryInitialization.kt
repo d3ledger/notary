@@ -46,9 +46,9 @@ class BtcNotaryInitialization(
         }.map { btcEvents ->
             val peerListProvider = NotaryPeerListProviderImpl(
                 irohaCredential,
+                irohaNetwork,
                 btcNotaryConfig.notaryListStorageAccount,
-                btcNotaryConfig.notaryListSetterAccount,
-                irohaNetwork
+                btcNotaryConfig.notaryListSetterAccount
             )
             val notary = createBtcNotary(irohaCredential, irohaNetwork, btcEvents, peerListProvider)
             notary.initIrohaConsumer().failure { ex -> throw ex }

@@ -28,8 +28,6 @@ import wallet.WalletFile
 class BtcPublicKeyProvider(
     //BTC wallet
     @Autowired private val walletFile: WalletFile,
-    //Iroha configurations
-    @Autowired private val irohaNetwork: IrohaNetwork,
     //Provider that helps us fetching all the peers registered in the network
     @Autowired private val notaryPeerListProvider: NotaryPeerListProvider,
     //BTC registration account
@@ -38,6 +36,8 @@ class BtcPublicKeyProvider(
     //BTC registration account, that works in MST fashion
     @Qualifier("mstBtcRegistrationCredential")
     @Autowired private val mstBtcRegistrationCredential: IrohaCredential,
+    //Iroha configurations
+    @Autowired private val irohaNetwork: IrohaNetwork,
     //Notary account to store BTC addresses
     @Qualifier("notaryAccount")
     @Autowired private val notaryAccount: String,

@@ -64,9 +64,9 @@ class BtcPreGenerationAppConfiguration {
     fun notaryPeerListProvider(irohaNetwork: IrohaNetwork): NotaryPeerListProvider {
         return NotaryPeerListProviderImpl(
             registrationCredential,
+            irohaNetwork,
             btcPreGenConfig.notaryListStorageAccount,
-            btcPreGenConfig.notaryListSetterAccount,
-            irohaNetwork
+            btcPreGenConfig.notaryListSetterAccount
         )
     }
 

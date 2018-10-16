@@ -146,16 +146,16 @@ class BtcPreGenIntegrationTest {
         val walletFile = WalletFile(wallet, file)
         val notaryPeerListProvider = NotaryPeerListProviderImpl(
             registrationCredential,
+            irohaNetwork,
             btcPreGenConfig.notaryListStorageAccount,
-            btcPreGenConfig.notaryListSetterAccount,
-            irohaNetwork
+            btcPreGenConfig.notaryListSetterAccount
         )
         return BtcPublicKeyProvider(
             walletFile,
-            irohaNetwork,
             notaryPeerListProvider,
             registrationCredential,
             mstRegistrationCredential,
+            irohaNetwork,
             btcPreGenConfig.notaryAccount,
             BtcRegTestConfigProvider()
         )

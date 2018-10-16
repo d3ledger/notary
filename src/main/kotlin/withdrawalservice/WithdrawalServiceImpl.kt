@@ -55,9 +55,9 @@ class WithdrawalServiceImpl(
 ) : WithdrawalService {
     private val notaryPeerListProvider = NotaryPeerListProviderImpl(
         credential,
+        irohaNetwork,
         withdrawalServiceConfig.notaryListStorageAccount,
-        withdrawalServiceConfig.notaryListSetterAccount,
-        irohaNetwork
+        withdrawalServiceConfig.notaryListSetterAccount
     )
     private val tokensProvider: EthTokensProvider = EthTokensProviderImpl(
         credential,

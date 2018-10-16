@@ -11,9 +11,9 @@ import sidechain.iroha.util.getAccountDetails
  */
 class NotaryPeerListProviderImpl(
     private val credential: IrohaCredential,
+    private val irohaNetwork: IrohaNetwork,
     private val notaryListStorageAccount: String,
-    private val notaryListSetterAccount: String,
-    private val irohaNetwork: IrohaNetwork
+    private val notaryListSetterAccount: String
 ) : NotaryPeerListProvider {
 
     init {
