@@ -1,8 +1,8 @@
 package integration.eth
 
 import integration.helper.IntegrationHelperUtil
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.runBlocking
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -12,6 +12,7 @@ import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
+
 /**
  * Integration tests for deposit case.
  */
@@ -23,11 +24,10 @@ class DepositIntegrationTest {
     /** Ethereum assetId in Iroha */
     private val etherAssetId = "ether#ethereum"
 
-    private val notary: Job
-
     init {
         // run notary
-        notary = launch { integrationHelper.runEthNotary() }
+        integrationHelper.runEthNotary()
+        integrationHelper.lockEthMasterSmartcontract()
     }
 
     /** Iroha client account */
@@ -46,7 +46,6 @@ class DepositIntegrationTest {
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
-        notary.cancel()
     }
 
     /**

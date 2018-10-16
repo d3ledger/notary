@@ -4,10 +4,6 @@ import com.squareup.moshi.Moshi
 import config.loadConfigs
 import config.loadEthPasswords
 import integration.helper.IntegrationHelperUtil
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.runBlocking
 import notary.endpoint.eth.BigIntegerMoshiAdapter
 import notary.endpoint.eth.EthNotaryResponse
 import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
@@ -48,10 +44,6 @@ class WithdrawalMultinotaryIntegrationTest {
 
     private val keypair2: ECKeyPair
 
-    private val notary1: Job
-
-    private val notary2: Job
-
     private val ethereumPasswords = loadEthPasswords("eth-notary", "/eth/ethereum_password.properties")
 
     init {
@@ -65,24 +57,21 @@ class WithdrawalMultinotaryIntegrationTest {
 
         // run 1st instance of notary
         notaryConfig1 = integrationHelper.configHelper.createEthNotaryConfig()
-        notary1 = launch { integrationHelper.runEthNotary(notaryConfig1) }
-
+        integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig1)
 
         // create 2nd notary config
         val ethereumConfig2 =
             integrationHelper.configHelper.createEthereumConfig(ethKeyPath.split(".key").first() + "2.key")
-        val irohaConfig2 =
-            integrationHelper.configHelper.createIrohaConfig()
-        notaryConfig2 = integrationHelper.configHelper.createEthNotaryConfig(irohaConfig2, ethereumConfig2)
+        notaryConfig2 = integrationHelper.configHelper.createEthNotaryConfig(ethereumConfig = ethereumConfig2)
 
         keypair2 = DeployHelper(ethereumConfig2, ethereumPasswords).credentials.ecKeyPair
 
         integrationHelper.accountHelper.addNotarySignatory(ModelUtil.loadKeypair(pubkeyPath, privkeyPath).get())
 
         // run 2nd instance of notary
-        notary2 = launch { integrationHelper.runEthNotary(notaryConfig2) }
+        integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig2)
 
-        runBlocking { delay(5_000) }
+        integrationHelper.lockEthMasterSmartcontract()
     }
 
     val irohaNetwork = IrohaNetworkImpl(
@@ -93,8 +82,6 @@ class WithdrawalMultinotaryIntegrationTest {
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
-        notary1.cancel()
-        notary2.cancel()
         irohaNetwork.close()
     }
 

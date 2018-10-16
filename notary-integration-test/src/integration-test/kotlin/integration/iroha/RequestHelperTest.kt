@@ -24,7 +24,6 @@ class RequestHelperTest {
     val credential = integrationHelper.testCredential
     val irohaConfig = integrationHelper.configHelper.createIrohaConfig()
 
-
     private val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
 
     @AfterAll

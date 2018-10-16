@@ -17,7 +17,7 @@ import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import provider.NotaryPeerListProviderImpl
-import provider.btc.BtcRegisteredAddressesProvider
+import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.btc.network.BtcNetworkConfigProvider
 import sidechain.SideChainEvent
 import sidechain.iroha.consumer.IrohaNetwork

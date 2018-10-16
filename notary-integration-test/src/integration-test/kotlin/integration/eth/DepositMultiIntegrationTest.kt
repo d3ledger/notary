@@ -1,9 +1,12 @@
 package integration.eth
 
 import config.IrohaCredentialConfig
+import config.loadEthPasswords
 import integration.helper.IntegrationHelperUtil
 import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.runBlocking
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -40,40 +43,44 @@ class DepositMultiIntegrationTest {
     }
 
     /** Path to public key of 2nd instance of notary */
-    private val pubkeyPath2 = "deploy/iroha/keys/notary2@notary.pub"
+    private val pubkeyPath2 = "deploy/iroha/keys/notary1@notary.pub"
 
     /** Path to private key of 2nd instance of notary */
-    private val privkeyPath2 = "deploy/iroha/keys/notary2@notary.priv"
-
-    private val notary1: Job
-    private val notary2: Job
+    private val privkeyPath2 = "deploy/iroha/keys/notary1@notary.priv"
 
     init {
         // run notary
-        notary1 = launch { integrationHelper.runEthNotary() }
+        integrationHelper.runEthNotary()
 
-        // create 2nd notray config
-        val notaryCredential2 = object : IrohaCredentialConfig {
+        // create 2nd notary config
+        val irohaCredential = object : IrohaCredentialConfig {
             override val pubkeyPath = pubkeyPath2
             override val privkeyPath = privkeyPath2
             override val accountId = integrationHelper.accountHelper.notaryAccount.accountId
         }
 
-        val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig(notaryCredential_ = notaryCredential2)
+        val ethereumPasswords = loadEthPasswords("test", "/eth/ethereum_password.properties")
+        val ethereumConfig =
+            integrationHelper.configHelper.createEthereumConfig("deploy/ethereum/keys/local/notary1.key")
+        val notaryConfig =
+            integrationHelper.configHelper.createEthNotaryConfig(
+                ethereumConfig = ethereumConfig,
+                notaryCredential_ = irohaCredential
+            )
 
         val keypair = ModelUtil.loadKeypair(pubkeyPath2, privkeyPath2).get()
 
         integrationHelper.accountHelper.addNotarySignatory(keypair)
 
         // run 2nd instance of notary
-        notary2 = launch { integrationHelper.runEthNotary(notaryConfig) }
+        integrationHelper.runEthNotary(ethereumPasswords, notaryConfig)
+
+        integrationHelper.lockEthMasterSmartcontract()
     }
 
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
-        notary1.cancel()
-        notary2.cancel()
     }
 
     /**

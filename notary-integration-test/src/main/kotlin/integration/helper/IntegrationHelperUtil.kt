@@ -2,6 +2,7 @@ package integration.helper
 
 import com.github.jleskovar.btcrpc.BitcoinRpcClientFactory
 import com.github.kittinunf.result.*
+import config.EthereumPasswords
 import config.loadConfigs
 import config.loadEthPasswords
 import contract.Master
@@ -18,13 +19,16 @@ import notary.eth.EthNotaryConfig
 import notary.eth.executeNotary
 import org.bitcoinj.core.Address
 import org.bitcoinj.wallet.Wallet
+import org.web3j.crypto.WalletUtils
 import org.web3j.protocol.core.DefaultBlockParameterName
-import provider.btc.BtcAddressesProvider
-import provider.btc.BtcRegisteredAddressesProvider
+import provider.btc.address.BtcAddressesProvider
+import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.eth.EthFreeRelayProvider
 import provider.eth.EthRelayProviderIrohaImpl
 import provider.eth.EthTokensProviderImpl
+import registration.IrohaAccountCreator
 import registration.btc.BtcRegistrationStrategyImpl
+import registration.eth.EthRegistrationConfig
 import registration.eth.EthRegistrationStrategyImpl
 import registration.eth.relay.RelayRegistration
 import sidechain.eth.EthChainListener
@@ -37,6 +41,8 @@ import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountAsset
 import token.EthTokenInfo
 import util.getRandomString
+import vacuum.RelayVacuumConfig
+import withdrawalservice.WithdrawalServiceConfig
 import java.io.Closeable
 import java.io.File
 import java.math.BigDecimal
@@ -128,9 +134,6 @@ class IntegrationHelperUtil : Closeable {
         IrohaConsumerImpl(accountHelper.mstRegistrationAccount, irohaNetwork)
     }
 
-    /** Notary ethereum address that is used in master smart contract to verify proof provided by notary */
-    private val notaryEthAddress = "0x6826d84158e516f631bbf14586a9be7e255b2d23"
-
     val relayRegistryContract by lazy {
         val contract = deployRelayRegistry()
         logger.info { "relay registry eth wallet ${contract.contractAddress} was deployed" }
@@ -209,11 +212,14 @@ class IntegrationHelperUtil : Closeable {
                 accountHelper.registrationAccount.accountId,
                 accountHelper.notaryAccount.accountId
             )
+        val irohaAccountCreator = IrohaAccountCreator(
+            registrationConsumer,
+            accountHelper.notaryAccount.accountId, "bitcoin"
+        )
         BtcRegistrationStrategyImpl(
             btcAddressesProvider,
             btcTakenAddressesProvider,
-            registrationConsumer,
-            accountHelper.notaryAccount.accountId
+            irohaAccountCreator
         )
     }
 
@@ -351,10 +357,16 @@ class IntegrationHelperUtil : Closeable {
      * Deploys ETH master contract
      */
     private fun deployMasterEth(relayRegistry: String): Master {
-        val master = deployHelper.deployMasterSmartContract(relayRegistry)
-        master.addPeer(notaryEthAddress).send()
-        master.disableAddingNewPeers().send()
-        return master
+        return deployHelper.deployMasterSmartContract(relayRegistry)
+    }
+
+    /**
+     * Disable adding new notary peers to smart contract.
+     * Before smart contract can be used it should be locked in order to prevent adding malicious peers.
+     */
+    fun lockEthMasterSmartcontract() {
+        logger.info { "Disable adding new peers on master contract ${masterContract.contractAddress}" }
+        masterContract.disableAddingNewPeers().send()
     }
 
     /**
@@ -422,7 +434,10 @@ class IntegrationHelperUtil : Closeable {
      * Waits for exactly one iroha block
      */
     fun waitOneIrohaBlock() {
-        runBlocking { irohaListener.getBlock() }
+        runBlocking {
+            val block = irohaListener.getBlock()
+            logger.info { "Wait for one block ${block.payload.height}" }
+        }
     }
 
     /**
@@ -596,19 +611,42 @@ class IntegrationHelperUtil : Closeable {
     /**
      * Run Ethereum notary process
      */
-    fun runEthNotary(ethNotaryConfig: EthNotaryConfig = configHelper.createEthNotaryConfig()) {
+    fun runEthNotary(
+        ethereumPasswords: EthereumPasswords = configHelper.ethPasswordConfig,
+        ethNotaryConfig: EthNotaryConfig = configHelper.createEthNotaryConfig()
+    ) {
         val name = String.getRandomString(9)
         val address = "http://localhost:${ethNotaryConfig.refund.port}"
         addNotary(name, address)
 
-        logger.info { "Notary $name is started on $address" }
+        val ethCredential =
+            WalletUtils.loadCredentials(ethereumPasswords.credentialsPassword, ethNotaryConfig.ethereum.credentialsPath)
+        masterContract.addPeer(ethCredential.address).send()
 
-        executeNotary(ethNotaryConfig)
+        executeNotary(ethereumPasswords, ethNotaryConfig)
+
+        logger.info { "Notary $name is started on $address" }
+    }
+
+    /**
+     * Run ethereum registration config
+     */
+    fun runRegistrationService(registrationConfig: EthRegistrationConfig = ethRegistrationConfig) {
+        registration.eth.executeRegistration(registrationConfig, configHelper.ethPasswordConfig)
+    }
+
+    /**
+     * Run withdrawal service
+     */
+    fun runEthWithdrawalService(
+        withdrawalServiceConfig: WithdrawalServiceConfig = configHelper.createWithdrawalConfig(),
+        relayVacuumConfig: RelayVacuumConfig = configHelper.createRelayVacuumConfig()
+    ) {
+        withdrawalservice.executeWithdrawal(withdrawalServiceConfig, configHelper.ethPasswordConfig, relayVacuumConfig)
     }
 
     /**
      * Logger
      */
     companion object : KLogging()
-
 }

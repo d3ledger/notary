@@ -6,7 +6,7 @@ import org.bitcoinj.core.Block
 import org.bitcoinj.core.FilteredBlock
 import org.bitcoinj.core.Peer
 import org.bitcoinj.core.listeners.BlocksDownloadedEventListener
-import provider.btc.BtcRegisteredAddressesProvider
+import provider.btc.address.BtcRegisteredAddressesProvider
 import sidechain.SideChainEvent
 
 private const val DAY_MILLIS = 24 * 60 * 60 * 1000L

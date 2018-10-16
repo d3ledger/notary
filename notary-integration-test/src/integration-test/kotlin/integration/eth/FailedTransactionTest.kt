@@ -2,7 +2,9 @@ package integration.eth
 
 import integration.helper.IntegrationHelperUtil
 import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.runBlocking
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -17,16 +19,15 @@ import kotlin.test.assertEquals
 class FailedTransactionTest {
     val integrationHelper = IntegrationHelperUtil()
 
-    private val notary: Job
-
     init {
-        notary = launch { integrationHelper.runEthNotary() }
+        integrationHelper.runEthNotary()
+
+        integrationHelper.lockEthMasterSmartcontract()
     }
 
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
-        notary.cancel()
     }
 
     /**

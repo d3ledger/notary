@@ -2,20 +2,24 @@ package integration.btc
 
 import integration.helper.IntegrationHelperUtil
 import jp.co.soramitsu.iroha.ModelCrypto
-import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
+import model.IrohaCredential
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
-import provider.btc.BtcRegisteredAddressesProvider
-import registration.btc.executeRegistration
+import provider.btc.address.BtcAddressesProvider
+import provider.btc.address.BtcRegisteredAddressesProvider
+import registration.IrohaAccountCreator
+import registration.btc.BtcRegistrationServiceInitialization
+import registration.btc.BtcRegistrationStrategyImpl
 import sidechain.iroha.CLIENT_DOMAIN
+import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
+import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import java.math.BigInteger
 
@@ -24,28 +28,42 @@ class BtcRegistrationIntegrationTest {
 
     private val integrationHelper = IntegrationHelperUtil()
 
-    private val config = integrationHelper.configHelper.createBtcRegistrationConfig()
+    private val btcRegistrationConfig = integrationHelper.configHelper.createBtcRegistrationConfig()
 
-    private val irohaNetwork = IrohaNetworkImpl(config.iroha.hostname, config.iroha.port)
+    private val btcRegistrationCredential = ModelUtil.loadKeypair(
+        btcRegistrationConfig.registrationCredential.pubkeyPath,
+        btcRegistrationConfig.registrationCredential.privkeyPath
+    ).fold(
+        { keypair ->
+            IrohaCredential(btcRegistrationConfig.registrationCredential.accountId, keypair)
+        },
+        { ex -> throw ex }
+    )
 
-    private val registrationService: Job
+    private val irohaNetwork = IrohaNetworkImpl(btcRegistrationConfig.iroha.hostname, btcRegistrationConfig.iroha.port)
+
+    private val btcClientCreatorConsumer = IrohaConsumerImpl(btcRegistrationCredential, irohaNetwork)
+
+    private val btcRegistrationServiceInitialization = BtcRegistrationServiceInitialization(
+        btcRegistrationConfig,
+        BtcRegistrationStrategyImpl(btcAddressesProvider(), btcRegisteredAddressesProvider(), irohaAccountCreator())
+    )
 
     init {
-        registrationService = launch { executeRegistration(config) }
+        btcRegistrationServiceInitialization.init()
         runBlocking { delay(5_000) }
     }
 
     private val btcTakenAddressesProvider = BtcRegisteredAddressesProvider(
         integrationHelper.testCredential,
         irohaNetwork,
-        config.registrationCredential.accountId,
+        btcRegistrationConfig.registrationCredential.accountId,
         integrationHelper.accountHelper.notaryAccount.accountId
     )
 
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
-        registrationService.cancel()
         irohaNetwork.close()
     }
 
@@ -62,7 +80,7 @@ class BtcRegistrationIntegrationTest {
         val keypair = ModelCrypto().generateKeypair()
         val userName = String.getRandomString(9)
         val res = khttp.post(
-            "http://127.0.0.1:${config.port}/users",
+            "http://127.0.0.1:${btcRegistrationConfig.port}/users",
             data = mapOf("name" to userName, "pubkey" to keypair.publicKey().hex())
         )
         assertEquals(200, res.statusCode)
@@ -94,7 +112,7 @@ class BtcRegistrationIntegrationTest {
             val keypair = ModelCrypto().generateKeypair()
             val userName = String.getRandomString(9)
             val res = khttp.post(
-                "http://127.0.0.1:${config.port}/users",
+                "http://127.0.0.1:${btcRegistrationConfig.port}/users",
                 data = mapOf("name" to userName, "pubkey" to keypair.publicKey().hex())
             )
             assertEquals(200, res.statusCode)
@@ -124,11 +142,37 @@ class BtcRegistrationIntegrationTest {
         val keypair = ModelCrypto().generateKeypair()
         val userName = String.getRandomString(9)
         val res = khttp.post(
-            "http://127.0.0.1:${config.port}/users",
+            "http://127.0.0.1:${btcRegistrationConfig.port}/users",
             data = mapOf("name" to userName, "pubkey" to keypair.publicKey().hex())
         )
         assertEquals(400, res.statusCode)
         assertEquals(clientsBeforeRegistration, btcTakenAddressesProvider.getRegisteredAddresses().get().size)
 
+    }
+
+    private fun btcAddressesProvider(): BtcAddressesProvider {
+        return BtcAddressesProvider(
+            btcRegistrationCredential,
+            irohaNetwork,
+            btcRegistrationConfig.mstRegistrationAccount,
+            btcRegistrationConfig.notaryAccount
+        )
+    }
+
+    private fun btcRegisteredAddressesProvider(): BtcRegisteredAddressesProvider {
+        return BtcRegisteredAddressesProvider(
+            btcRegistrationCredential,
+            irohaNetwork,
+            btcRegistrationCredential.accountId,
+            btcRegistrationConfig.notaryAccount
+        )
+    }
+
+    private fun irohaAccountCreator(): IrohaAccountCreator {
+        return IrohaAccountCreator(
+            btcClientCreatorConsumer,
+            btcRegistrationConfig.notaryAccount,
+            "bitcoin"
+        )
     }
 }

@@ -1,27 +1,27 @@
-package provider.btc
+package provider.btc.address
 
 import com.github.kittinunf.result.Result
 import model.IrohaCredential
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
 
-//Class that provides all registered BTC addresses
-class BtcRegisteredAddressesProvider(
+//Class that provides all created BTC addresses
+class BtcAddressesProvider(
     private val credential: IrohaCredential,
     private val irohaNetwork: IrohaNetwork,
-    private val registrationAccount: String,
+    private val mstRegistrationAccount: String,
     private val notaryAccount: String
 ) {
     /**
-     * Get all registered btc addresses
-     * @return map full of registered btc addresses (btc address -> iroha account name)
+     * Get all created btc addresses
+     * @return map full of created btc addresses (btc address -> iroha account name)
      */
-    fun getRegisteredAddresses(): Result<Map<String, String>, Exception> {
+    fun getAddresses(): Result<Map<String, String>, Exception> {
         return getAccountDetails(
             credential,
             irohaNetwork,
             notaryAccount,
-            registrationAccount
+            mstRegistrationAccount
         )
     }
 }

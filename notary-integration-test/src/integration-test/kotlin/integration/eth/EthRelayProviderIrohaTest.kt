@@ -14,7 +14,6 @@ import sidechain.iroha.consumer.IrohaNetworkImpl
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class EthRelayProviderIrohaTest {
-
     val integrationHelper = IntegrationHelperUtil()
     val testConfig = integrationHelper.configHelper.testConfig
 

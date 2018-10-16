@@ -95,7 +95,7 @@ fun <T : Any> loadConfigs(prefix: String, type: Class<T>, filename: String): T {
     val (file, extension) = filename.split(".")
     val pwd = System.getProperty("user.dir")
     val path = "$pwd/configs${file}_$profile.$extension"
-    logger.info { "Loading config from $path" }
+    logger.info { "Loading config from $path, prefix $prefix" }
     return loadRawConfigs(prefix, type, path)
 }
 

@@ -108,8 +108,18 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
     ): Result<List<String>, Exception> {
         send(batch)
 
-        val results = hashes.map { checkTransactionStatus(it) }.filter { it.component1() != null }.map { it.get() }
-        return Result.of { results }
+        return Result.of {
+            hashes.map { checkTransactionStatus(it) }
+                .filter {
+                    it.fold(
+                        { true },
+                        {
+                            logger.warn("Batch tx was failed: ", it)
+                            false
+                        }
+                    )
+                }.map { it.get() }
+        }
     }
 
     /**

@@ -2,8 +2,6 @@ package integration.eth
 
 import com.squareup.moshi.Moshi
 import integration.helper.IntegrationHelperUtil
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.launch
 import notary.endpoint.eth.BigIntegerMoshiAdapter
 import notary.endpoint.eth.EthNotaryResponse
 import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
@@ -34,10 +32,9 @@ class WithdrawalIntegrationTest {
     /** Test Notary configuration */
     private val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig()
 
-    private val notary: Job
-
     init {
-        notary = launch { integrationHelper.runEthNotary(notaryConfig) }
+        integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig)
+        integrationHelper.lockEthMasterSmartcontract()
     }
 
     /** Ethereum private key **/
@@ -54,7 +51,6 @@ class WithdrawalIntegrationTest {
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
-        notary.cancel()
         irohaNetwork.close()
     }
 

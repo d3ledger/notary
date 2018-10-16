@@ -3,20 +3,20 @@ package integration.helper
 import config.IrohaCredentialConfig
 import config.loadConfigs
 import integration.TestConfig
+import jp.co.soramitsu.iroha.Grantable
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetwork
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 
 /**
  * Class that handles all the accounts in running configuration.
  */
-class AccountHelper(irohaNetwork: IrohaNetwork) {
+class AccountHelper(private val irohaNetwork: IrohaNetwork) {
 
     val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
@@ -32,7 +32,7 @@ class AccountHelper(irohaNetwork: IrohaNetwork) {
     private val irohaConsumer by lazy { IrohaConsumerImpl(testCredential, irohaNetwork) }
 
     /** Notary account */
-    val notaryAccount by lazy { createTesterAccount("notary", "notary") }
+    val notaryAccount by lazy { createNotaryAccount() }
 
     /** Notary keys */
     val notaryKeys = mutableListOf(testCredential.keyPair)
@@ -96,12 +96,30 @@ class AccountHelper(irohaNetwork: IrohaNetwork) {
     }
 
     /**
+     * Create notary account and grant set_my_quorum and add_my_signatory permissions to test account
+     */
+    private fun createNotaryAccount(): IrohaCredential {
+        val credential = createTesterAccount("eth_notary_${String.getRandomString(9)}", "notary")
+
+        IrohaConsumerImpl(credential, irohaNetwork).sendAndCheck(
+            ModelTransactionBuilder()
+                .creatorAccountId(credential.accountId)
+                .createdTime(ModelUtil.getCurrentTime())
+                .grantPermission(testCredential.accountId, Grantable.kSetMyQuorum)
+                .grantPermission(testCredential.accountId, Grantable.kAddMySignatory)
+                .build()
+        )
+
+        return credential
+    }
+
+    /**
      * Add signatory with [keypair] to notary
      */
     fun addNotarySignatory(keypair: Keypair) {
         irohaConsumer.sendAndCheck(
             ModelTransactionBuilder()
-                .creatorAccountId(notaryAccount.accountId)
+                .creatorAccountId(testCredential.accountId)
                 .createdTime(ModelUtil.getCurrentTime())
                 .addSignatory(notaryAccount.accountId, keypair.publicKey())
                 .setAccountQuorum(notaryAccount.accountId, notaryKeys.size + 1)

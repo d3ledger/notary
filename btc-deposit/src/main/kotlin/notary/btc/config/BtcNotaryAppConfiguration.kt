@@ -5,7 +5,7 @@ import model.IrohaCredential
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import provider.btc.BtcRegisteredAddressesProvider
+import provider.btc.address.BtcRegisteredAddressesProvider
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
