@@ -1,13 +1,8 @@
-package integration.eth.contracts
+package integration.helper
 
 import config.EthereumPasswords
 import config.loadConfigs
-import contract.BasicCoin
-import contract.Master
-import contract.Relay
-import contract.RelayRegistry
 import integration.TestConfig
-import org.junit.jupiter.api.Assertions
 import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Hash
 import org.web3j.protocol.core.methods.response.TransactionReceipt
@@ -17,17 +12,19 @@ import sidechain.eth.util.extractVRS
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
 import java.math.BigInteger
+import kotlin.test.assertEquals
 
 class ContractTestHelper {
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
     private val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/eth/ethereum_password.properties")
-    private val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
+
+    val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
 
     val keypair = deployHelper.credentials.ecKeyPair
-    lateinit var relayRegistry: RelayRegistry
-    lateinit var token: BasicCoin
-    lateinit var master: Master
-    lateinit var relay: Relay
+    val relayRegistry by lazy { deployHelper.deployRelayRegistrySmartContract() }
+    val token by lazy { deployHelper.deployERC20TokenSmartContract() }
+    val master by lazy { deployHelper.deployMasterSmartContract(relayRegistry.contractAddress) }
+    val relay by lazy { deployHelper.deployRelaySmartContract(master.contractAddress) }
 
     private var addPeerCalls = BigInteger.ZERO
 
@@ -41,16 +38,6 @@ class ContractTestHelper {
     val accGreen = testConfig.ethTestAccount
 
     data class sigsData(val vv: ArrayList<BigInteger>, val rr: ArrayList<ByteArray>, val ss: ArrayList<ByteArray>)
-
-    /**
-     * Deploys token, relay registry, master and relay contracts
-     */
-    fun deployContracts() {
-        token = deployHelper.deployERC20TokenSmartContract()
-        relayRegistry = deployHelper.deployRelayRegistrySmartContract()
-        master = deployHelper.deployMasterSmartContract(relayRegistry.contractAddress)
-        relay = deployHelper.deployRelaySmartContract(master.contractAddress)
-    }
 
     fun prepareSignatures(amount: Int, keypairs: List<ECKeyPair>, toSign: String): sigsData {
         val vv = ArrayList<BigInteger>()
@@ -71,12 +58,12 @@ class ContractTestHelper {
         ++addPeerCalls
         master.addPeer(address).send()
         // addPeer return number of added peers
-        Assertions.assertEquals(addPeerCalls, master.peersCount().send())
+        assertEquals(addPeerCalls, master.peersCount().send())
     }
 
     fun transferTokensToMaster(amount: BigInteger) {
         token.transfer(master.contractAddress, amount).send()
-        Assertions.assertEquals(amount, token.balanceOf(master.contractAddress).send())
+        assertEquals(amount, token.balanceOf(master.contractAddress).send())
     }
 
     /**
@@ -213,7 +200,19 @@ class ContractTestHelper {
         deployHelper.sendEthereum(amount, to)
     }
 
+    fun sendERC20Token(contractAddress: String, amount: BigInteger, toAddress: String) {
+        deployHelper.sendERC20(contractAddress, toAddress, amount)
+    }
+
     fun getETHBalance(whoAddress: String): BigInteger {
         return deployHelper.getETHBalance(whoAddress)
+    }
+
+    fun getERC20TokenBalance(contractAddress: String, whoAddress: String): BigInteger {
+        return deployHelper.getERC20Balance(contractAddress, whoAddress)
+    }
+
+    fun deployFailer(): String {
+        return deployHelper.deployFailerContract().contractAddress
     }
 }
