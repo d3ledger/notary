@@ -1,0 +1,66 @@
+version: '3'
+
+
+services:
+  d3-eth-relay:
+    image: nexus.iroha.tech:19002/d3-deploy/eth-relay:${TAG}
+    container_name: d3-eth-relay
+    volumes:
+      - ./:/opt/notary/deploy
+      - ../configs:/opt/notary/configs
+    environment:
+      - PROFILE
+      - IROHA_HOST=d3-iroha
+      - IROHA_PORT=50051
+      - CLASS=registration.eth.relay.DeployRelayMain
+    networks:
+      - d3-network
+
+
+  d3-registration:
+    image: nexus.iroha.tech:19002/d3-deploy/registration:${TAG}
+    container_name: d3-registration
+    ports:
+      - 8083:8083
+    volumes:
+      - ./:/opt/notary/deploy
+      - ../configs:/opt/notary/configs
+    environment:
+      - PROFILE
+      - IROHA_HOST=d3-iroha
+      - IROHA_PORT=50051
+      - CLASS=registration.eth.EthRegistrationMain
+    networks:
+      - d3-network
+
+  d3-withdrawal:
+    image: nexus.iroha.tech:19002/d3-deploy/withdrawal:${TAG}
+    container_name: d3-withdrawal
+    volumes:
+      - ./:/opt/notary/deploy
+      - ../configs:/opt/notary/configs
+    environment:
+      - PROFILE
+      - IROHA_HOST=d3-iroha
+      - IROHA_PORT=50051
+      - CLASS=withdrawalservice.WithdrawalServiceMain
+    networks:
+      - d3-network
+
+
+  grpcwebproxy:
+    image: nexus.iroha.tech:19002/d3-deploy/grpcwebproxy
+    container_name: d3-grpcwebproxy
+    ports:
+      - 8081:8080
+      - 8443:8443
+    entrypoint:
+      - grpcwebproxy
+      - --backend_addr=d3-iroha:50051
+      - --run_tls_server=false
+    networks:
+      - d3-network
+
+
+networks:
+  d3-network:
