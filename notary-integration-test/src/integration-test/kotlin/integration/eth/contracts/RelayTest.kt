@@ -3,6 +3,7 @@ package integration.eth.contracts
 import contract.BasicCoin
 import contract.Master
 import contract.Relay
+import integration.helper.ContractTestHelper
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -10,20 +11,23 @@ import org.web3j.protocol.exceptions.TransactionException
 import java.math.BigInteger
 
 class RelayTest {
-    private val cth = ContractTestHelper()
+    private lateinit var cth: ContractTestHelper
     private lateinit var master: Master
     private lateinit var token: BasicCoin
     private lateinit var relay: Relay
-    private val accMain = cth.accMain
-    private val accGreen = cth.accGreen
-    private val etherAddress = cth.etherAddress
+    private lateinit var accMain: String
+    private lateinit var accGreen: String
+    private lateinit var etherAddress: String
 
     @BeforeEach
     fun setup() {
-        cth.deployContracts()
+        cth = ContractTestHelper()
         master = cth.master
         token = cth.token
         relay = cth.relay
+        accMain = cth.accMain
+        accGreen = cth.accGreen
+        etherAddress = cth.etherAddress
     }
 
     /**
