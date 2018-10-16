@@ -50,9 +50,9 @@ fun executeWithdrawal(
             WithdrawalServiceInitialization(
                 withdrawalConfig,
                 credential,
+                irohaNetwork,
                 passwordConfig,
-                relayVacuumConfig,
-                irohaNetwork
+                relayVacuumConfig
             ).init()
         }
         .failure { ex ->
