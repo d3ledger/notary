@@ -6,7 +6,6 @@ import com.jdiazcano.cfg4k.sources.ConfigSource
 import mu.KLogging
 import java.io.File
 import java.io.InputStream
-import javax.xml.transform.Result
 
 //Environment variable that holds Ethereum credentials password
 const val ETH_CREDENTIALS_PASSWORD_ENV = "ETH_CREDENTIALS_PASSWORD"

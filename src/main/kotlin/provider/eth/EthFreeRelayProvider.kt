@@ -16,9 +16,9 @@ import sidechain.iroha.util.getAccountDetails
 // on provider side with some synchronization.
 class EthFreeRelayProvider(
     private val credential: IrohaCredential,
+    private val irohaNetwork: IrohaNetwork,
     private val notaryIrohaAccount: String,
-    private val registrationIrohaAccount: String,
-    val irohaNetwork: IrohaNetwork
+    private val registrationIrohaAccount: String
 ) {
 
     init {

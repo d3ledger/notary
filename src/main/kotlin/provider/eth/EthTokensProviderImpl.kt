@@ -23,9 +23,9 @@ const val ETH_ADDRESS = "0x0000000000000000000000000000000000000000"
  */
 class EthTokensProviderImpl(
     private val credential: IrohaCredential,
+    private val irohaNetwork: IrohaNetwork,
     private val tokenStorageAccount: String,
-    private val tokenSetterAccount: String,
-    private val irohaNetwork: IrohaNetwork
+    private val tokenSetterAccount: String
 ) : EthTokensProvider {
 
     init {

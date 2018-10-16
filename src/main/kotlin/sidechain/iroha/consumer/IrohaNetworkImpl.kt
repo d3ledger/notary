@@ -110,8 +110,8 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
 
         return Result.of {
             hashes.map { checkTransactionStatus(it) }
-                .filter {
-                    it.fold(
+                .filter { res ->
+                    res.fold(
                         { true },
                         {
                             logger.warn("Batch tx was failed: ", it)
@@ -135,7 +135,7 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
     /**
      * Get block streaming.
      */
-    override fun getBlocksStreaming(credential: IrohaCredential): Result<Observable<QryResponses.BlockQueryResponse>, Exception> {
+    override fun getBlockStreaming(credential: IrohaCredential): Result<Observable<QryResponses.BlockQueryResponse>, Exception> {
         return Result.of {
             val uquery = ModelBlocksQueryBuilder()
                 .creatorAccountId(credential.accountId)

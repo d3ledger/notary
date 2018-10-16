@@ -1,8 +1,6 @@
 package integration.eth
 
 import integration.helper.IntegrationHelperUtil
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.runBlocking
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test

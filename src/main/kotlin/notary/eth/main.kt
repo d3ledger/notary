@@ -70,16 +70,16 @@ fun executeNotary(
     )
     val ethTokensProvider = EthTokensProviderImpl(
         irohaCredential,
+        irohaNetwork,
         notaryConfig.tokenStorageAccount,
-        notaryConfig.tokenSetterAccount,
-        irohaNetwork
+        notaryConfig.tokenSetterAccount
     )
     return EthNotaryInitialization(
         irohaCredential,
+        irohaNetwork,
         notaryConfig,
         ethereumPasswords,
         ethRelayProvider,
-        ethTokensProvider,
-        irohaNetwork
+        ethTokensProvider
     ).init()
 }

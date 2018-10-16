@@ -17,8 +17,8 @@ import util.getRandomId
 
 private val logger = KLogging().logger
 
-/*
-This function is used to start BTC multisignature addresses pregeneration
+/**
+ * This function is used to start BTC multisignature addresses pregeneration
  */
 fun main(args: Array<String>) {
     executeTrigger(btcPreGenConfig)
@@ -39,8 +39,8 @@ fun executeTrigger(btcPkPreGenConfig: BtcPreGenConfig) {
             IrohaNetworkImpl(btcPkPreGenConfig.iroha.hostname, btcPkPreGenConfig.iroha.port).use { irohaNetwork ->
                 val triggerProvider = TriggerProvider(
                     credential,
-                    btcPkPreGenConfig.pubKeyTriggerAccount,
-                    irohaNetwork
+                    irohaNetwork,
+                    btcPkPreGenConfig.pubKeyTriggerAccount
                 )
                 val btcKeyGenSessionProvider = BtcSessionProvider(
                     credential,

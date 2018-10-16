@@ -26,6 +26,7 @@ class BtcRegistrationAppConfiguration {
         },
         { ex -> throw ex }
     )
+    // TODO close on termination. Make bean?
     private val irohaNetwork = IrohaNetworkImpl(btcRegistrationConfig.iroha.hostname, btcRegistrationConfig.iroha.port)
     private val btcClientCreatorConsumer = IrohaConsumerImpl(btcRegistrationCredential, irohaNetwork)
 

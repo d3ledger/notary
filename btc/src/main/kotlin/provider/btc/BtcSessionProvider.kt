@@ -2,7 +2,6 @@ package provider.btc
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
-import config.IrohaConfig
 import model.IrohaCredential
 import notary.IrohaCommand
 import notary.IrohaTransaction
@@ -10,7 +9,6 @@ import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
-
 
 // Class for creating session accounts. Theses accounts are used to store BTC public keys.
 class BtcSessionProvider(

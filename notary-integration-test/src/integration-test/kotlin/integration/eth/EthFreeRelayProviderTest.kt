@@ -50,9 +50,9 @@ class EthFreeRelayProviderTest {
         val freeWalletsProvider =
             EthFreeRelayProvider(
                 integrationHelper.testCredential,
+                irohaNetwork,
                 integrationHelper.accountHelper.notaryAccount.accountId,
-                creator,
-                irohaNetwork
+                creator
             )
         val result = freeWalletsProvider.getRelay()
 
@@ -69,7 +69,7 @@ class EthFreeRelayProviderTest {
         val wrongMasterAccount = "wrong@account"
 
         val freeWalletsProvider =
-            EthFreeRelayProvider(integrationHelper.testCredential, creator, wrongMasterAccount, irohaNetwork)
+            EthFreeRelayProvider(integrationHelper.testCredential, irohaNetwork, creator, wrongMasterAccount)
         freeWalletsProvider.getRelay()
             .success { fail { "should return Exception" } }
     }

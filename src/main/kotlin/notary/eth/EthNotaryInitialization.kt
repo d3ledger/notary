@@ -32,11 +32,11 @@ import java.math.BigInteger
  */
 class EthNotaryInitialization(
     private val notaryCredential: IrohaCredential,
+    private val irohaNetwork: IrohaNetwork,
     private val ethNotaryConfig: EthNotaryConfig,
     private val passwordsConfig: EthereumPasswords,
     private val ethRelayProvider: EthRelayProvider,
-    private val ethTokensProvider: EthTokensProvider,
-    private val irohaNetwork: IrohaNetwork
+    private val ethTokensProvider: EthTokensProvider
 ) {
     /**
      * Init notary

@@ -13,8 +13,8 @@ import sidechain.iroha.util.ModelUtil
  */
 class TriggerProvider(
     private val callerCredential: IrohaCredential,
-    private val triggerAccount: String,
-    irohaNetwork: IrohaNetwork
+    irohaNetwork: IrohaNetwork,
+    private val triggerAccount: String
 ) {
     init {
         logger.info {

@@ -43,6 +43,7 @@ class BtcPreGenerationAppConfiguration {
     private val mstRegistrationCredential =
         IrohaCredential(btcPreGenConfig.mstRegistrationAccount.accountId, mstRegistrationKeyPair)
 
+    // TODO add close() on destroy
     @Bean
     fun irohaNetwork() = IrohaNetworkImpl(
         btcPreGenConfig.iroha.hostname,

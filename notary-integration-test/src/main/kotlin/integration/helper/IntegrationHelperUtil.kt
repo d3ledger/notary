@@ -161,9 +161,9 @@ class IntegrationHelperUtil : Closeable {
     val ethTokensProvider by lazy {
         EthTokensProviderImpl(
             testCredential,
+            irohaNetwork,
             accountHelper.tokenStorageAccount.accountId,
-            accountHelper.tokenSetterAccount.accountId,
-            irohaNetwork
+            accountHelper.tokenSetterAccount.accountId
         )
     }
 
@@ -171,9 +171,9 @@ class IntegrationHelperUtil : Closeable {
     private val ethFreeRelayProvider by lazy {
         EthFreeRelayProvider(
             accountHelper.registrationAccount,
+            irohaNetwork,
             accountHelper.notaryAccount.accountId,
-            accountHelper.registrationAccount.accountId,
-            irohaNetwork
+            accountHelper.registrationAccount.accountId
         )
     }
 
@@ -226,8 +226,9 @@ class IntegrationHelperUtil : Closeable {
     private val relayRegistration by lazy {
         RelayRegistration(
             configHelper.createRelayRegistrationConfig(),
-            accountHelper.registrationAccount, configHelper.ethPasswordConfig,
-            irohaNetwork
+            accountHelper.registrationAccount,
+            irohaNetwork,
+            configHelper.ethPasswordConfig
         )
     }
 

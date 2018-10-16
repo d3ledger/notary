@@ -41,5 +41,5 @@ interface IrohaNetwork : Closeable {
     /**
      * Get block streaming.
      */
-    fun getBlocksStreaming(credential: IrohaCredential): Result<Observable<QryResponses.BlockQueryResponse>, Exception>
+    fun getBlockStreaming(credential: IrohaCredential): Result<Observable<QryResponses.BlockQueryResponse>, Exception>
 }

@@ -39,9 +39,9 @@ class EthRegistrationServiceInitialization(
                 Pair(
                     EthFreeRelayProvider(
                         credential,
+                        irohaNetwork,
                         ethRegistrationConfig.notaryIrohaAccount,
-                        ethRegistrationConfig.relayRegistrationIrohaAccount,
-                        irohaNetwork
+                        ethRegistrationConfig.relayRegistrationIrohaAccount
                     ),
                     IrohaConsumerImpl(credential, irohaNetwork)
                 )

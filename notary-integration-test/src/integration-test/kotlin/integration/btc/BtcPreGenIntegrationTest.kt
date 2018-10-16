@@ -43,8 +43,8 @@ class BtcPreGenIntegrationTest {
 
     private val triggerProvider = TriggerProvider(
         integrationHelper.testCredential,
-        btcPreGenConfig.pubKeyTriggerAccount,
-        irohaNetwork
+        irohaNetwork,
+        btcPreGenConfig.pubKeyTriggerAccount
     )
     private val btcKeyGenSessionProvider = BtcSessionProvider(
         integrationHelper.accountHelper.registrationAccount,

@@ -3,10 +3,6 @@ package integration.eth
 import config.IrohaCredentialConfig
 import config.loadEthPasswords
 import integration.helper.IntegrationHelperUtil
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.runBlocking
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test

@@ -28,9 +28,9 @@ class RelayVacuum(
     private val deployHelper = DeployHelper(relayVacuumConfig.ethereum, relayVacuumEthereumPasswords)
     private val ethTokensProvider = EthTokensProviderImpl(
         credential,
+        irohaNetwork,
         relayVacuumConfig.tokenStorageAccount,
-        relayVacuumConfig.tokenSetterAccount,
-        irohaNetwork
+        relayVacuumConfig.tokenSetterAccount
     )
 
     private val ethRelayProvider = EthRelayProviderIrohaImpl(

@@ -23,7 +23,7 @@ class IrohaChainListener(
      */
     override fun getBlockObservable(): Result<Observable<iroha.protocol.BlockOuterClass.Block>, Exception> {
         logger.info { "On subscribe to Iroha chain" }
-        return irohaNetwork.getBlocksStreaming(credential).map { observable ->
+        return irohaNetwork.getBlockStreaming(credential).map { observable ->
             observable.map { response ->
                 logger.info { "New Iroha block arrived. Height ${response.blockResponse.block.payload.height}" }
                 response.blockResponse.block

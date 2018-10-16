@@ -12,8 +12,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.ComponentScan
 import registration.btc.config.btcRegistrationConfig
 import sidechain.iroha.IrohaInitialization
-import sidechain.iroha.consumer.IrohaNetworkImpl
-import sidechain.iroha.util.ModelUtil
 
 private val logger = KLogging().logger
 

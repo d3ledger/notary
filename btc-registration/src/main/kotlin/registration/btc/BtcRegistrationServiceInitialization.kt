@@ -7,8 +7,6 @@ import org.springframework.stereotype.Component
 import registration.RegistrationServiceEndpoint
 import registration.RegistrationStrategy
 import registration.btc.config.BtcRegistrationConfig
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaNetwork
 
 @Component
 class BtcRegistrationServiceInitialization(
