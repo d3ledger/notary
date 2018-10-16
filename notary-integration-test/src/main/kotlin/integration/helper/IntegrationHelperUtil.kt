@@ -4,9 +4,6 @@ import com.github.jleskovar.btcrpc.BitcoinRpcClientFactory
 import com.github.kittinunf.result.*
 import config.EthereumPasswords
 import config.loadConfigs
-import config.loadEthPasswords
-import contract.Master
-import contract.RelayRegistry
 import integration.TestConfig
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelCrypto
@@ -20,7 +17,6 @@ import notary.eth.executeNotary
 import org.bitcoinj.core.Address
 import org.bitcoinj.wallet.Wallet
 import org.web3j.crypto.WalletUtils
-import org.web3j.protocol.core.DefaultBlockParameterName
 import provider.btc.address.BtcAddressesProvider
 import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.eth.EthFreeRelayProvider
@@ -32,7 +28,6 @@ import registration.eth.EthRegistrationConfig
 import registration.eth.EthRegistrationStrategyImpl
 import registration.eth.relay.RelayRegistration
 import sidechain.eth.EthChainListener
-import sidechain.eth.util.DeployHelper
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
@@ -63,9 +58,6 @@ class IntegrationHelperUtil {
 
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
-    /** Ethereum password configs */
-    val ethPasswordConfig = loadEthPasswords("test", "/eth/ethereum_password.properties")
-
     val testCredential = IrohaCredential(
         testConfig.testCredentialConfig.accountId,
         ModelUtil.loadKeypair(
@@ -87,7 +79,7 @@ class IntegrationHelperUtil {
     val ethRegistrationConfig by lazy { configHelper.createEthRegistrationConfig(testConfig.ethereum) }
 
     /** Ethereum utils */
-    private val deployHelper by lazy { DeployHelper(testConfig.ethereum, ethPasswordConfig) }
+    private val contractTestHelper by lazy { ContractTestHelper() }
 
     private val irohaNetwork by lazy {
         IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
@@ -127,14 +119,14 @@ class IntegrationHelperUtil {
     }
 
     val relayRegistryContract by lazy {
-        val contract = deployRelayRegistry()
+        val contract = contractTestHelper.relayRegistry
         logger.info { "relay registry eth wallet ${contract.contractAddress} was deployed" }
         contract
     }
 
     /** New master ETH master contract*/
     val masterContract by lazy {
-        val wallet = deployMasterEth(relayRegistryContract.contractAddress)
+        val wallet = contractTestHelper.master
         logger.info("master eth wallet ${wallet.contractAddress} was deployed ")
         wallet
     }
@@ -258,7 +250,7 @@ class IntegrationHelperUtil {
      * Returns ETH balance for a given address
      */
     fun getEthBalance(address: String): BigInteger {
-        return deployHelper.web3.ethGetBalance(address, DefaultBlockParameterName.LATEST).send().balance
+        return contractTestHelper.getETHBalance(address)
     }
 
     /**
@@ -279,18 +271,18 @@ class IntegrationHelperUtil {
      */
     fun deployERC20Token(name: String, precision: Short): String {
         logger.info { "create $name ERC20 token" }
-        val tokenAddress = deployHelper.deployERC20TokenSmartContract().contractAddress
+        val tokenAddress = contractTestHelper.deployHelper.deployERC20TokenSmartContract().contractAddress
         addERC20Token(tokenAddress, name, precision)
         masterContract.addToken(tokenAddress).send()
         return tokenAddress
     }
 
     /**
-     * Deploys smart contract which always fails. Use only if you know why do need it.
+     * Deploys smart contract which always fails. Use only if you know why do you need it.
      * @return contract address
      */
     fun deployFailer(): String {
-        return deployHelper.deployFailerContract().contractAddress
+        return contractTestHelper.deployFailer()
     }
 
     /**
@@ -318,7 +310,7 @@ class IntegrationHelperUtil {
      */
     fun sendERC20Token(contractAddress: String, amount: BigInteger, toAddress: String) {
         logger.info { "send ERC20 $contractAddress $amount to $toAddress" }
-        deployHelper.sendERC20(contractAddress, toAddress, amount)
+        contractTestHelper.sendERC20Token(contractAddress, amount, toAddress)
     }
 
     /**
@@ -326,29 +318,15 @@ class IntegrationHelperUtil {
      * @param contractAddress - address of ERC20 smart contract
      * @param whoAddress - address of client
      */
-    fun getERC20TokenBalance(contractAddress: String, whoAddress: String): BigInteger =
-        deployHelper.getERC20Balance(contractAddress, whoAddress)
+    fun getERC20TokenBalance(contractAddress: String, whoAddress: String): BigInteger {
+        return contractTestHelper.getERC20TokenBalance(contractAddress, whoAddress)
+    }
 
     /**
      * Returns master contract ETH balance
      */
     fun getMasterEthBalance(): BigInteger {
         return getEthBalance(masterContract.contractAddress)
-    }
-
-    /**
-     * Deploys relay registry contract
-     */
-    private fun deployRelayRegistry(): RelayRegistry {
-        val relayRegistry = deployHelper.deployRelayRegistrySmartContract()
-        return relayRegistry
-    }
-
-    /**
-     * Deploys ETH master contract
-     */
-    private fun deployMasterEth(relayRegistry: String): Master {
-        return deployHelper.deployMasterSmartContract(relayRegistry)
     }
 
     /**
@@ -443,7 +421,7 @@ class IntegrationHelperUtil {
      */
     fun waitOneEtherBlock() {
         val listener = EthChainListener(
-            deployHelper.web3,
+            contractTestHelper.deployHelper.web3,
             BigInteger.valueOf(testConfig.ethereum.confirmationPeriod)
         )
         runBlocking { listener.getBlock() }
@@ -454,7 +432,7 @@ class IntegrationHelperUtil {
      */
     fun sendEth(amount: BigInteger, to: String) {
         logger.info { "send $amount Wei to $to " }
-        deployHelper.sendEthereum(amount, to)
+        contractTestHelper.sendEthereum(amount, to)
     }
 
     fun getAccountDetails(accountDetailHolder: String, accountDetailSetter: String): Map<String, String> {

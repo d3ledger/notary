@@ -2,6 +2,7 @@ package integration.eth.contracts
 
 import contract.BasicCoin
 import contract.Master
+import integration.helper.ContractTestHelper
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -12,19 +13,23 @@ import sidechain.eth.util.hashToWithdraw
 import java.math.BigInteger
 
 class MasterTest {
-    private val cth = ContractTestHelper()
+    private lateinit var cth: ContractTestHelper
     private lateinit var master: Master
     private lateinit var token: BasicCoin
-    private val accMain = cth.accMain
-    private val accGreen = cth.accGreen
-    private val keypair = cth.keypair
-    private val etherAddress = cth.etherAddress
+    private lateinit var accMain: String
+    private lateinit var accGreen: String
+    private lateinit var keypair: ECKeyPair
+    private lateinit var etherAddress: String
 
     @BeforeEach
     fun setup() {
-        cth.deployContracts()
+        cth = ContractTestHelper()
         master = cth.master
         token = cth.token
+        accMain = cth.accMain
+        accGreen = cth.accGreen
+        keypair = cth.keypair
+        etherAddress = cth.etherAddress
     }
 
     /**
