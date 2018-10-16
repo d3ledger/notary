@@ -79,7 +79,7 @@ class IntegrationHelperUtil {
     val ethRegistrationConfig by lazy { configHelper.createEthRegistrationConfig(testConfig.ethereum) }
 
     /** Ethereum utils */
-    private val contractTestHelper = ContractTestHelper()
+    private val contractTestHelper by lazy { ContractTestHelper() }
 
     private val irohaNetwork by lazy {
         IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
