@@ -6,6 +6,7 @@ import config.IrohaConfig
 import config.IrohaCredentialConfig
 import io.reactivex.Observable
 import io.reactivex.observers.TestObserver
+import jp.co.soramitsu.iroha.Keypair
 import model.IrohaCredential
 import notary.eth.EthNotaryConfig
 import org.junit.jupiter.api.Test
@@ -33,7 +34,7 @@ class NotaryTest {
         on {accountId} doReturn "creator@iroha"
     }
 
-    private val irohaCredential = mock<IrohaCredential>()
+    private val irohaCredential = IrohaCredential("creator@iroha", mock<Keypair>())
     private val irohaNetwork = mock<IrohaNetwork>()
 
     /** Configuration for notary */
