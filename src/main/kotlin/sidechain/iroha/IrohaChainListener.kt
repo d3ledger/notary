@@ -14,7 +14,7 @@ import sidechain.iroha.consumer.IrohaNetworkImpl
 class IrohaChainListener(
     irohaHost: String,
     irohaPort: Int,
-    val credential: IrohaCredential
+    private val credential: IrohaCredential
 ) : ChainListener<iroha.protocol.BlockOuterClass.Block> {
     val irohaNetwork = IrohaNetworkImpl(irohaHost, irohaPort)
 
@@ -23,10 +23,10 @@ class IrohaChainListener(
      */
     override fun getBlockObservable(): Result<Observable<iroha.protocol.BlockOuterClass.Block>, Exception> {
         logger.info { "On subscribe to Iroha chain" }
-        return irohaNetwork.getBlocksStreaming(credential).map {
-            it.map {
-                logger.info { "New Iroha block arrived. Height ${it.blockResponse.block.payload.height}" }
-                it.blockResponse.block
+        return irohaNetwork.getBlocksStreaming(credential).map { observable ->
+            observable.map { response ->
+                logger.info { "New Iroha block arrived. Height ${response.blockResponse.block.payload.height}" }
+                response.blockResponse.block
             }
         }
     }

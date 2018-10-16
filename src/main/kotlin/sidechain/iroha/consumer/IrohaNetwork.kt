@@ -1,14 +1,17 @@
 package sidechain.iroha.consumer
 
 import com.github.kittinunf.result.Result
+import io.reactivex.Observable
 import iroha.protocol.QryResponses
 import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.Hash
+import model.IrohaCredential
+import java.io.Closeable
 
 /**
  * Interface for network layer of Iroha chain
  */
-interface IrohaNetwork {
+interface IrohaNetwork : Closeable {
 
     /**
      * Send transaction to Iroha and check if it is committed with status stream
@@ -34,4 +37,9 @@ interface IrohaNetwork {
      * @param protoQuery - protobuf representation of query
      */
     fun sendQuery(protoQuery: iroha.protocol.Queries.Query): Result<QryResponses.QueryResponse, Exception>
+
+    /**
+     * Get block streaming.
+     */
+    fun getBlocksStreaming(credential: IrohaCredential): Result<Observable<QryResponses.BlockQueryResponse>, Exception>
 }

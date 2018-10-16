@@ -2,6 +2,9 @@ package integration.eth
 
 import config.IrohaCredentialConfig
 import integration.helper.IntegrationHelperUtil
+import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.launch
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -42,9 +45,12 @@ class DepositMultiIntegrationTest {
     /** Path to private key of 2nd instance of notary */
     private val privkeyPath2 = "deploy/iroha/keys/notary2@notary.priv"
 
+    private val notary1: Job
+    private val notary2: Job
+
     init {
         // run notary
-        integrationHelper.runEthNotary()
+        notary1 = launch { integrationHelper.runEthNotary() }
 
         // create 2nd notray config
         val notaryCredential2 = object : IrohaCredentialConfig {
@@ -60,7 +66,14 @@ class DepositMultiIntegrationTest {
         integrationHelper.accountHelper.addNotarySignatory(keypair)
 
         // run 2nd instance of notary
-        integrationHelper.runEthNotary(notaryConfig)
+        notary2 = launch { integrationHelper.runEthNotary(notaryConfig) }
+    }
+
+    @AfterAll
+    fun dropDown() {
+        integrationHelper.close()
+        notary1.cancel()
+        notary2.cancel()
     }
 
     /**

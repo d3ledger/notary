@@ -6,6 +6,7 @@ import com.jdiazcano.cfg4k.sources.ConfigSource
 import mu.KLogging
 import java.io.File
 import java.io.InputStream
+import javax.xml.transform.Result
 
 //Environment variable that holds Ethereum credentials password
 const val ETH_CREDENTIALS_PASSWORD_ENV = "ETH_CREDENTIALS_PASSWORD"
@@ -100,7 +101,7 @@ fun <T : Any> loadConfigs(prefix: String, type: Class<T>, filename: String): T {
 
 class Stream(private val stream: InputStream) : ConfigSource {
     override fun read(): InputStream {
-        return stream;
+        return stream
     }
 }
 

@@ -1,6 +1,7 @@
 package integration.eth
 
 import integration.helper.IntegrationHelperUtil
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -27,6 +28,12 @@ class EthRelayProviderIrohaTest {
         testConfig.iroha.hostname,
         testConfig.iroha.port
     )
+
+    @AfterAll
+    fun dropDown() {
+        integrationHelper.close()
+        irohaNetwork.close()
+    }
 
     /**
      * @given ethereum relay wallets are stored in the system

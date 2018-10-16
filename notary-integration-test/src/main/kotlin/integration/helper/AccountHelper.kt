@@ -8,6 +8,7 @@ import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.consumer.IrohaConsumerImpl
+import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
@@ -15,7 +16,7 @@ import util.getRandomString
 /**
  * Class that handles all the accounts in running configuration.
  */
-class AccountHelper {
+class AccountHelper(irohaNetwork: IrohaNetwork) {
 
     val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
@@ -27,8 +28,6 @@ class AccountHelper {
             testConfig.testCredentialConfig.privkeyPath
         ).get()
     )
-
-    private val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
 
     private val irohaConsumer by lazy { IrohaConsumerImpl(testCredential, irohaNetwork) }
 

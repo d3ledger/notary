@@ -2,9 +2,12 @@ package integration.eth
 
 import com.squareup.moshi.Moshi
 import integration.helper.IntegrationHelperUtil
+import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.launch
 import notary.endpoint.eth.BigIntegerMoshiAdapter
 import notary.endpoint.eth.EthNotaryResponse
 import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -31,8 +34,10 @@ class WithdrawalIntegrationTest {
     /** Test Notary configuration */
     private val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig()
 
+    private val notary: Job
+
     init {
-        integrationHelper.runEthNotary(notaryConfig)
+        notary = launch { integrationHelper.runEthNotary(notaryConfig) }
     }
 
     /** Ethereum private key **/
@@ -45,6 +50,13 @@ class WithdrawalIntegrationTest {
         notaryConfig.iroha.hostname,
         notaryConfig.iroha.port
     )
+
+    @AfterAll
+    fun dropDown() {
+        integrationHelper.close()
+        notary.cancel()
+        irohaNetwork.close()
+    }
 
     /**
      * Test US-003 Withdrawal of ETH token

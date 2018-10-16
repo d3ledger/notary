@@ -11,6 +11,7 @@ import config.loadEthPasswords
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.IrohaInitialization
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
 private const val RELAY_VACUUM_PREFIX = "relay-vacuum"
@@ -38,5 +39,9 @@ fun executeVacuum(relayVacuumConfig: RelayVacuumConfig, args: Array<String> = em
             )
         }
         .map { keypair -> IrohaCredential(relayVacuumConfig.vacuumCredential.accountId, keypair) }
-        .flatMap { credential -> RelayVacuum(relayVacuumConfig, passwordConfig, credential).vacuum() }
+        .flatMap { credential ->
+            IrohaNetworkImpl(relayVacuumConfig.iroha.hostname, relayVacuumConfig.iroha.port).use { irohaNetwork ->
+                RelayVacuum(relayVacuumConfig, passwordConfig, credential, irohaNetwork).vacuum()
+            }
+        }
 }

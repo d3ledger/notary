@@ -11,6 +11,7 @@ import config.loadEthPasswords
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.IrohaInitialization
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
 private val logger = KLogging().logger
@@ -46,8 +47,14 @@ fun main(args: Array<String>) {
             )
         }
         .map { keypair -> IrohaCredential(relayRegistrationConfig.relayRegistrationCredential.accountId, keypair) }
-        .flatMap { credential -> RelayRegistration(relayRegistrationConfig, credential, passwordConfig).deploy() }
-        .failure { ex ->
+        .flatMap { credential ->
+            IrohaNetworkImpl(
+                relayRegistrationConfig.iroha.hostname,
+                relayRegistrationConfig.iroha.port
+            ).use { irohaNetwork ->
+                RelayRegistration(relayRegistrationConfig, credential, passwordConfig, irohaNetwork).deploy()
+            }
+        }.failure { ex ->
             logger.error("Cannot run relay deployer", ex)
             System.exit(1)
         }

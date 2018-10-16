@@ -2,6 +2,11 @@ package integration.btc
 
 import integration.helper.IntegrationHelperUtil
 import jp.co.soramitsu.iroha.ModelCrypto
+import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.runBlocking
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
@@ -10,6 +15,7 @@ import org.junit.jupiter.api.fail
 import provider.btc.BtcRegisteredAddressesProvider
 import registration.btc.executeRegistration
 import sidechain.iroha.CLIENT_DOMAIN
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import util.getRandomString
 import java.math.BigInteger
 
@@ -20,17 +26,28 @@ class BtcRegistrationIntegrationTest {
 
     private val config = integrationHelper.configHelper.createBtcRegistrationConfig()
 
+    private val irohaNetwork = IrohaNetworkImpl(config.iroha.hostname, config.iroha.port)
+
+    private val registrationService: Job
+
     init {
-        executeRegistration(config)
-        Thread.sleep(10_000)
+        registrationService = launch { executeRegistration(config) }
+        runBlocking { delay(5_000) }
     }
 
     private val btcTakenAddressesProvider = BtcRegisteredAddressesProvider(
-        config.iroha,
         integrationHelper.testCredential,
+        irohaNetwork,
         config.registrationCredential.accountId,
         integrationHelper.accountHelper.notaryAccount.accountId
     )
+
+    @AfterAll
+    fun dropDown() {
+        integrationHelper.close()
+        registrationService.cancel()
+        irohaNetwork.close()
+    }
 
     /**
      * Test US-001 Client registration

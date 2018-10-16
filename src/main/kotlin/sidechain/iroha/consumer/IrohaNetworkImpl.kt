@@ -12,7 +12,6 @@ import jp.co.soramitsu.iroha.Hash
 import jp.co.soramitsu.iroha.ModelBlocksQueryBuilder
 import model.IrohaCredential
 import mu.KLogging
-import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.toByteArray
 import java.math.BigInteger
@@ -126,7 +125,7 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
     /**
      * Get block streaming.
      */
-    fun getBlocksStreaming(credential: IrohaCredential): Result<Observable<QryResponses.BlockQueryResponse>, Exception> {
+    override fun getBlocksStreaming(credential: IrohaCredential): Result<Observable<QryResponses.BlockQueryResponse>, Exception> {
         return Result.of {
             val uquery = ModelBlocksQueryBuilder()
                 .creatorAccountId(credential.accountId)
@@ -142,12 +141,12 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
     /**
      * Shutdown channel
      */
-    fun close() {
+    override fun close() {
         channel.shutdown()
         try {
             channel.awaitTermination(1, TimeUnit.SECONDS)
         } catch (ex: InterruptedException) {
-            IrohaChainListener.logger.warn { ex }
+            logger.warn { ex }
             channel.shutdownNow()
         }
     }

@@ -4,12 +4,15 @@ import com.github.kittinunf.result.failure
 import integration.helper.IntegrationHelperUtil
 import model.IrohaCredential
 import notary.btc.BtcNotaryInitialization
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
 import provider.btc.BtcRegisteredAddressesProvider
 import provider.btc.network.BtcRegTestConfigProvider
 import sidechain.iroha.CLIENT_DOMAIN
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import java.math.BigDecimal
@@ -17,6 +20,7 @@ import java.math.BigDecimal
 private val integrationHelper = IntegrationHelperUtil()
 private val btcAsset = "btc#bitcoin"
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcNotaryIntegrationTest {
 
     init {
@@ -25,24 +29,35 @@ class BtcNotaryIntegrationTest {
     }
 
     private val notaryConfig = integrationHelper.configHelper.createBtcNotaryConfig()
+    private val irohaCredential = IrohaCredential(
+        notaryConfig.notaryCredential.accountId,
+        ModelUtil.loadKeypair(notaryConfig.notaryCredential.pubkeyPath, notaryConfig.notaryCredential.privkeyPath).get()
+    )
+    private val irohaNetwork = IrohaNetworkImpl(notaryConfig.iroha.hostname, notaryConfig.iroha.port)
 
-    private val btcRegisteredAddressesProvider by lazy {
-        ModelUtil.loadKeypair(notaryConfig.notaryCredential.pubkeyPath, notaryConfig.notaryCredential.privkeyPath)
-            .fold({ keypair ->
-                BtcRegisteredAddressesProvider(
-                    notaryConfig.iroha,
-                    IrohaCredential(notaryConfig.notaryCredential.accountId, keypair),
-                    notaryConfig.registrationAccount,
-                    notaryConfig.notaryCredential.accountId
-                )
-            }, { ex -> throw ex })
-    }
+    private val btcRegisteredAddressesProvider = BtcRegisteredAddressesProvider(
+        irohaCredential,
+        irohaNetwork,
+        notaryConfig.registrationAccount,
+        notaryConfig.notaryCredential.accountId
+    )
 
     private val btcNetworkConfigProvider = BtcRegTestConfigProvider()
 
     private val btcNotaryInitialization =
-        BtcNotaryInitialization(notaryConfig, btcRegisteredAddressesProvider, btcNetworkConfigProvider)
+        BtcNotaryInitialization(
+            notaryConfig,
+            irohaCredential,
+            irohaNetwork,
+            btcRegisteredAddressesProvider,
+            btcNetworkConfigProvider
+        )
 
+    @AfterAll
+    fun dropDown() {
+        integrationHelper.close()
+        irohaNetwork.close()
+    }
 
     /**
      * Test US-001 Deposit

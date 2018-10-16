@@ -36,6 +36,8 @@ fun executeWithdrawal(
     relayVacuumConfig: RelayVacuumConfig
 ) {
     logger.info { "Run withdrawal service" }
+    val irohaNetwork = IrohaNetworkImpl(withdrawalConfig.iroha.hostname, withdrawalConfig.iroha.port)
+
     IrohaInitialization.loadIrohaLibrary()
         .flatMap {
             ModelUtil.loadKeypair(
@@ -45,10 +47,6 @@ fun executeWithdrawal(
         }
         .map { keypair -> IrohaCredential(withdrawalConfig.withdrawalCredential.accountId, keypair) }
         .flatMap { credential ->
-            val irohaNetwork = IrohaNetworkImpl(
-                withdrawalConfig.iroha.hostname,
-                withdrawalConfig.iroha.port
-            )
             WithdrawalServiceInitialization(
                 withdrawalConfig,
                 credential,
@@ -59,6 +57,7 @@ fun executeWithdrawal(
         }
         .failure { ex ->
             logger.error("Cannot run withdrawal service", ex)
+            irohaNetwork.close()
             System.exit(1)
         }
 }

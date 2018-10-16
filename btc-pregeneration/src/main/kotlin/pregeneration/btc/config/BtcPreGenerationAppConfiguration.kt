@@ -3,11 +3,13 @@ package pregeneration.btc.config
 import config.loadConfigs
 import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import provider.NotaryPeerListProvider
 import provider.NotaryPeerListProviderImpl
 import sidechain.iroha.IrohaChainListener
+import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import wallet.WalletFile
@@ -42,6 +44,12 @@ class BtcPreGenerationAppConfiguration {
         IrohaCredential(btcPreGenConfig.mstRegistrationAccount.accountId, mstRegistrationKeyPair)
 
     @Bean
+    fun irohaNetwork() = IrohaNetworkImpl(
+        btcPreGenConfig.iroha.hostname,
+        btcPreGenConfig.iroha.port
+    )
+
+    @Bean
     fun preGenConfig() = btcPreGenConfig
 
     @Bean
@@ -52,8 +60,8 @@ class BtcPreGenerationAppConfiguration {
     }
 
     @Bean
-    fun notaryPeerListProvider(): NotaryPeerListProvider {
-        val irohaNetwork = IrohaNetworkImpl(btcPreGenConfig.iroha.hostname, btcPreGenConfig.iroha.port)
+    @Autowired
+    fun notaryPeerListProvider(irohaNetwork: IrohaNetwork): NotaryPeerListProvider {
         return NotaryPeerListProviderImpl(
             registrationCredential,
             btcPreGenConfig.notaryListStorageAccount,
@@ -75,6 +83,7 @@ class BtcPreGenerationAppConfiguration {
     fun notaryAccount() = btcPreGenConfig.notaryAccount
 
     @Bean
+    // TODO class is Closeable, make sure it is closed
     fun irohaChainListener() = IrohaChainListener(
         btcPreGenConfig.iroha.hostname,
         btcPreGenConfig.iroha.port,

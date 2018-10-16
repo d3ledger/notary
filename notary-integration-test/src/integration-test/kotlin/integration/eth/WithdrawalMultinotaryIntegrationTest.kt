@@ -4,10 +4,15 @@ import com.squareup.moshi.Moshi
 import config.loadConfigs
 import config.loadEthPasswords
 import integration.helper.IntegrationHelperUtil
+import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.runBlocking
 import notary.endpoint.eth.BigIntegerMoshiAdapter
 import notary.endpoint.eth.EthNotaryResponse
 import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
 import notary.eth.EthNotaryConfig
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -43,6 +48,10 @@ class WithdrawalMultinotaryIntegrationTest {
 
     private val keypair2: ECKeyPair
 
+    private val notary1: Job
+
+    private val notary2: Job
+
     private val ethereumPasswords = loadEthPasswords("eth-notary", "/eth/ethereum_password.properties")
 
     init {
@@ -56,7 +65,7 @@ class WithdrawalMultinotaryIntegrationTest {
 
         // run 1st instance of notary
         notaryConfig1 = integrationHelper.configHelper.createEthNotaryConfig()
-        integrationHelper.runEthNotary(notaryConfig1)
+        notary1 = launch { integrationHelper.runEthNotary(notaryConfig1) }
 
 
         // create 2nd notary config
@@ -71,13 +80,23 @@ class WithdrawalMultinotaryIntegrationTest {
         integrationHelper.accountHelper.addNotarySignatory(ModelUtil.loadKeypair(pubkeyPath, privkeyPath).get())
 
         // run 2nd instance of notary
-        integrationHelper.runEthNotary(notaryConfig2)
+        notary2 = launch { integrationHelper.runEthNotary(notaryConfig2) }
+
+        runBlocking { delay(5_000) }
     }
 
     val irohaNetwork = IrohaNetworkImpl(
         notaryConfig1.iroha.hostname,
         notaryConfig1.iroha.port
     )
+
+    @AfterAll
+    fun dropDown() {
+        integrationHelper.close()
+        notary1.cancel()
+        notary2.cancel()
+        irohaNetwork.close()
+    }
 
     /**
      * Test US-003 Withdrawal of ETH token

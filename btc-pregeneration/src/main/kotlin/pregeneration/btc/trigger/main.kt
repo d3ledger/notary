@@ -36,19 +36,20 @@ fun executeTrigger(btcPkPreGenConfig: BtcPreGenConfig) {
             IrohaCredential(btcPkPreGenConfig.registrationAccount.accountId, keypair)
         }
         .flatMap { credential ->
-            val irohaNetwork = IrohaNetworkImpl(btcPkPreGenConfig.iroha.hostname, btcPkPreGenConfig.iroha.port)
-            val triggerProvider = TriggerProvider(
-                credential,
-                btcPkPreGenConfig.pubKeyTriggerAccount,
-                irohaNetwork
-            )
-            val btcKeyGenSessionProvider = BtcSessionProvider(
-                btcPkPreGenConfig.iroha,
-                credential
-            )
-            val sessionAccountName = String.getRandomId()
-            btcKeyGenSessionProvider.createPubKeyCreationSession(sessionAccountName)
-                .map { triggerProvider.trigger(sessionAccountName) }
+            IrohaNetworkImpl(btcPkPreGenConfig.iroha.hostname, btcPkPreGenConfig.iroha.port).use { irohaNetwork ->
+                val triggerProvider = TriggerProvider(
+                    credential,
+                    btcPkPreGenConfig.pubKeyTriggerAccount,
+                    irohaNetwork
+                )
+                val btcKeyGenSessionProvider = BtcSessionProvider(
+                    credential,
+                    irohaNetwork
+                )
+                val sessionAccountName = String.getRandomId()
+                btcKeyGenSessionProvider.createPubKeyCreationSession(sessionAccountName)
+                    .map { triggerProvider.trigger(sessionAccountName) }
+            }
         }.fold(
             { logger.info { "BTC multisignature address registration service was successfully triggered" } },
             { ex ->

@@ -2,11 +2,10 @@ package provider
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import config.IrohaConfig
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaNetworkImpl
+import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
 
 /*
@@ -15,7 +14,7 @@ import sidechain.iroha.util.ModelUtil
 class TriggerProvider(
     private val callerCredential: IrohaCredential,
     private val triggerAccount: String,
-    irohaNetwork: IrohaNetworkImpl
+    irohaNetwork: IrohaNetwork
 ) {
     init {
         logger.info {

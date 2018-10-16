@@ -2,16 +2,24 @@ package integration.eth
 
 import integration.helper.IntegrationHelperUtil
 import mu.KLogging
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import java.math.BigInteger
 
 /**
  * Integration tests for vacuum use case
  */
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class VacuumIntegrationTest {
 
     private val integrationHelper = IntegrationHelperUtil()
+
+    @AfterAll
+    fun dropDown() {
+        integrationHelper.close()
+    }
 
     /**
      * Test US-001 Vacuum of ETH

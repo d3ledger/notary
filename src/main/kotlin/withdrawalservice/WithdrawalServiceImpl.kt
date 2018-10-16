@@ -60,10 +60,10 @@ class WithdrawalServiceImpl(
         irohaNetwork
     )
     private val tokensProvider: EthTokensProvider = EthTokensProviderImpl(
-        withdrawalServiceConfig.iroha,
         credential,
         withdrawalServiceConfig.tokenStorageAccount,
-        withdrawalServiceConfig.tokenSetterAccount
+        withdrawalServiceConfig.tokenSetterAccount,
+        irohaNetwork
     )
     private val masterAccount = withdrawalServiceConfig.notaryIrohaAccount
 

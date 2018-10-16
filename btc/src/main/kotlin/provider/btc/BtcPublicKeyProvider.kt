@@ -2,7 +2,6 @@ package provider.btc
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import config.IrohaConfig
 import model.IrohaCredential
 import mu.KLogging
 import org.bitcoinj.core.Address
@@ -15,7 +14,7 @@ import org.springframework.stereotype.Component
 import provider.NotaryPeerListProvider
 import provider.btc.network.BtcNetworkConfigProvider
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaNetworkImpl
+import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
 import util.getRandomId
 import wallet.WalletFile
@@ -23,7 +22,6 @@ import wallet.WalletFile
 /**
  *  Bitcoin keys provider
  *  @param walletFile - file where to save wallet
- *  @param irohaConfig - configutation to start Iroha client
  *  @param notaryPeerListProvider - class to query all current notaries
  */
 @Component
@@ -31,8 +29,7 @@ class BtcPublicKeyProvider(
     //BTC wallet
     @Autowired private val walletFile: WalletFile,
     //Iroha configurations
-    @Qualifier("btcPublicKeyProviderIrohaConfig")
-    @Autowired private val irohaConfig: IrohaConfig,
+    @Autowired private val irohaNetwork: IrohaNetwork,
     //Provider that helps us fetching all the peers registered in the network
     @Autowired private val notaryPeerListProvider: NotaryPeerListProvider,
     //BTC registration account
@@ -47,7 +44,6 @@ class BtcPublicKeyProvider(
     //Provider of network configurations
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider
 ) {
-    private val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
     private val sessionConsumer = IrohaConsumerImpl(btcRegistrationCredential, irohaNetwork)
     private val multiSigConsumer = IrohaConsumerImpl(mstBtcRegistrationCredential, irohaNetwork)
 

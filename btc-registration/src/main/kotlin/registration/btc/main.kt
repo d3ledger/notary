@@ -9,6 +9,7 @@ import config.loadConfigs
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.IrohaInitialization
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
 private val logger = KLogging().logger
@@ -24,6 +25,8 @@ fun main(args: Array<String>) {
 
 fun executeRegistration(registrationConfig: BtcRegistrationConfig) {
     logger.info { "Run BTC client registration" }
+    val irohaNetwork = IrohaNetworkImpl(registrationConfig.iroha.hostname, registrationConfig.iroha.port)
+
     IrohaInitialization.loadIrohaLibrary()
         .flatMap {
             ModelUtil.loadKeypair(
@@ -32,9 +35,12 @@ fun executeRegistration(registrationConfig: BtcRegistrationConfig) {
             )
         }
         .map { keypair -> IrohaCredential(registrationConfig.registrationCredential.accountId, keypair) }
-        .flatMap { credential -> BtcRegistrationServiceInitialization(registrationConfig, credential).init() }
+        .flatMap { credential ->
+            BtcRegistrationServiceInitialization(registrationConfig, credential, irohaNetwork).init()
+        }
         .failure { ex ->
             logger.error("Cannot run btc registration", ex)
+            irohaNetwork.close()
             System.exit(1)
         }
 }

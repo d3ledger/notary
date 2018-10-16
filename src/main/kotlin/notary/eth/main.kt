@@ -28,6 +28,7 @@ fun main(args: Array<String>) {
 fun executeNotary(notaryConfig: EthNotaryConfig, args: Array<String> = emptyArray()) {
     logger.info { "Run ETH notary" }
     val passwordConfig = loadEthPasswords("eth-notary", "/eth/ethereum_password.properties", args)
+    val irohaNetwork = IrohaNetworkImpl(notaryConfig.iroha.hostname, notaryConfig.iroha.port)
 
     IrohaInitialization.loadIrohaLibrary()
         .flatMap {
@@ -38,10 +39,6 @@ fun executeNotary(notaryConfig: EthNotaryConfig, args: Array<String> = emptyArra
         }
         .map { keypair -> IrohaCredential(notaryConfig.notaryCredential.accountId, keypair) }
         .flatMap { credential ->
-            val irohaNetwork = IrohaNetworkImpl(
-                notaryConfig.iroha.hostname,
-                notaryConfig.iroha.port
-            )
             val ethRelayProvider = EthRelayProviderIrohaImpl(
                 irohaNetwork,
                 credential,
@@ -49,10 +46,10 @@ fun executeNotary(notaryConfig: EthNotaryConfig, args: Array<String> = emptyArra
                 notaryConfig.registrationServiceIrohaAccount
             )
             val ethTokensProvider = EthTokensProviderImpl(
-                notaryConfig.iroha,
                 credential,
                 notaryConfig.tokenStorageAccount,
-                notaryConfig.tokenSetterAccount
+                notaryConfig.tokenSetterAccount,
+                irohaNetwork
             )
             EthNotaryInitialization(
                 credential,
@@ -65,6 +62,7 @@ fun executeNotary(notaryConfig: EthNotaryConfig, args: Array<String> = emptyArra
         }
         .failure { ex ->
             logger.error("Cannot run eth notary", ex)
+            irohaNetwork.close()
             System.exit(1)
         }
 }

@@ -37,6 +37,7 @@ import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountAsset
 import token.EthTokenInfo
 import util.getRandomString
+import java.io.Closeable
 import java.io.File
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -45,7 +46,7 @@ import java.math.BigInteger
  * Utility class that makes testing more comfortable.
  * Class lazily creates new master contract in Ethereum and master account in Iroha.
  */
-class IntegrationHelperUtil {
+class IntegrationHelperUtil : Closeable {
 
     init {
         IrohaInitialization.loadIrohaLibrary()
@@ -53,6 +54,11 @@ class IntegrationHelperUtil {
                 logger.error("Cannot load Iroha library", ex)
                 System.exit(1)
             }
+    }
+
+    override fun close() {
+        irohaNetwork.close()
+        irohaListener.close()
     }
 
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
@@ -68,7 +74,7 @@ class IntegrationHelperUtil {
         ).get()
     )
 
-    val accountHelper by lazy { AccountHelper() }
+    val accountHelper by lazy { AccountHelper(irohaNetwork) }
 
     val configHelper by lazy {
         ConfigHelper(
@@ -90,6 +96,17 @@ class IntegrationHelperUtil {
     private val irohaConsumer by lazy {
         IrohaConsumerImpl(testCredential, irohaNetwork)
     }
+
+    private val irohaListener = IrohaChainListener(
+        testConfig.iroha.hostname,
+        testConfig.iroha.port,
+        testCredential
+    )
+
+    val ethListener = EthChainListener(
+        deployHelper.web3,
+        BigInteger.valueOf(testConfig.ethereum.confirmationPeriod)
+    )
 
     private val registrationConsumer by lazy {
         IrohaConsumerImpl(accountHelper.registrationAccount, irohaNetwork)
@@ -140,20 +157,20 @@ class IntegrationHelperUtil {
     /** Provider that is used to store/fetch tokens*/
     val ethTokensProvider by lazy {
         EthTokensProviderImpl(
-            testConfig.iroha,
             testCredential,
             accountHelper.tokenStorageAccount.accountId,
-            accountHelper.tokenSetterAccount.accountId
+            accountHelper.tokenSetterAccount.accountId,
+            irohaNetwork
         )
     }
 
     /** Provider that is used to get free registered relays*/
     private val ethFreeRelayProvider by lazy {
         EthFreeRelayProvider(
-            testConfig.iroha,
             accountHelper.registrationAccount,
             accountHelper.notaryAccount.accountId,
-            accountHelper.registrationAccount.accountId
+            accountHelper.registrationAccount.accountId,
+            irohaNetwork
         )
     }
 
@@ -180,15 +197,15 @@ class IntegrationHelperUtil {
     private val btcRegistrationStrategy by lazy {
         val btcAddressesProvider =
             BtcAddressesProvider(
-                testConfig.iroha,
                 testCredential,
+                irohaNetwork,
                 accountHelper.mstRegistrationAccount.accountId,
                 accountHelper.notaryAccount.accountId
             )
         val btcTakenAddressesProvider =
             BtcRegisteredAddressesProvider(
-                testConfig.iroha,
                 testCredential,
+                irohaNetwork,
                 accountHelper.registrationAccount.accountId,
                 accountHelper.notaryAccount.accountId
             )
@@ -203,7 +220,8 @@ class IntegrationHelperUtil {
     private val relayRegistration by lazy {
         RelayRegistration(
             configHelper.createRelayRegistrationConfig(),
-            accountHelper.registrationAccount, configHelper.ethPasswordConfig
+            accountHelper.registrationAccount, configHelper.ethPasswordConfig,
+            irohaNetwork
         )
     }
 
@@ -404,28 +422,14 @@ class IntegrationHelperUtil {
      * Waits for exactly one iroha block
      */
     fun waitOneIrohaBlock() {
-
-        val listener = IrohaChainListener(
-            testConfig.iroha.hostname,
-            testConfig.iroha.port,
-            testCredential
-        )
-
-        runBlocking {
-            listener.getBlock()
-        }
-
+        runBlocking { irohaListener.getBlock() }
     }
 
     /**
      * Waits for exactly one Ethereum block
      */
     fun waitOneEtherBlock() {
-        val listener = EthChainListener(
-            deployHelper.web3,
-            BigInteger.valueOf(testConfig.ethereum.confirmationPeriod)
-        )
-        runBlocking { listener.getBlock() }
+        runBlocking { ethListener.getBlock() }
     }
 
     /**
@@ -593,13 +597,13 @@ class IntegrationHelperUtil {
      * Run Ethereum notary process
      */
     fun runEthNotary(ethNotaryConfig: EthNotaryConfig = configHelper.createEthNotaryConfig()) {
-        executeNotary(ethNotaryConfig)
-
         val name = String.getRandomString(9)
         val address = "http://localhost:${ethNotaryConfig.refund.port}"
         addNotary(name, address)
 
         logger.info { "Notary $name is started on $address" }
+
+        executeNotary(ethNotaryConfig)
     }
 
     /**

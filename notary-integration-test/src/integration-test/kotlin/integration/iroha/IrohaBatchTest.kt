@@ -12,7 +12,9 @@ import notary.IrohaCommand
 import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
 import notary.eth.EthNotaryConfig
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
@@ -26,6 +28,7 @@ import util.getRandomString
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class IrohaBatchTest {
 
     init {
@@ -36,16 +39,30 @@ class IrohaBatchTest {
         loadConfigs("test", EthNotaryConfig::class.java, "/test.properties")
     }
 
-    private val testCredential = IntegrationHelperUtil().testCredential
+    private val integrationHelper = IntegrationHelperUtil()
 
-    private val keypair = testCredential.keyPair
+    private val testCredential = integrationHelper.testCredential
+
     private val tester = testCredential.accountId
 
     val assetDomain = "notary"
 
     private val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
 
+    val listener = IrohaChainListener(
+        testConfig.iroha.hostname,
+        testConfig.iroha.port,
+        testCredential
+    )
+
     private fun randomString() = String.getRandomString(10)
+
+    @AfterAll
+    fun dropDown() {
+        integrationHelper.close()
+        irohaNetwork.close()
+        listener.close()
+    }
 
     /**
      * @given A batch
@@ -118,12 +135,6 @@ class IrohaBatchTest {
         val batch = IrohaOrderedBatch(txList)
         val lst = IrohaConverterImpl().convert(batch)
         val hashes = lst.map { it.hash().hex() }
-
-        val listener = IrohaChainListener(
-            testConfig.iroha.hostname,
-            testConfig.iroha.port,
-            testCredential
-        )
 
         val blockHashes = async {
             listener.getBlock().payload.transactionsList.map {
@@ -235,12 +246,6 @@ class IrohaBatchTest {
         val lst = IrohaConverterImpl().convert(batch)
         val hashes = lst.map { it.hash().hex() }
         val expectedHashes = hashes.subList(0, hashes.size - 1)
-
-        val listener = IrohaChainListener(
-            testConfig.iroha.hostname,
-            testConfig.iroha.port,
-            testCredential
-        )
 
         val blockHashes = async {
             listener.getBlock().payload.transactionsList.map {

@@ -8,11 +8,12 @@ import provider.btc.BtcAddressesProvider
 import provider.btc.BtcRegisteredAddressesProvider
 import registration.RegistrationServiceEndpoint
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaNetworkImpl
+import sidechain.iroha.consumer.IrohaNetwork
 
 class BtcRegistrationServiceInitialization(
     private val btcRegistrationConfig: BtcRegistrationConfig,
-    private val btcRegistrationCredential: IrohaCredential
+    private val btcRegistrationCredential: IrohaCredential,
+    private val irohaNetwork: IrohaNetwork
 ) {
     /**
      * Init Registration Service
@@ -20,19 +21,18 @@ class BtcRegistrationServiceInitialization(
     fun init(): Result<Unit, Exception> {
         logger.info { "Init BTC client registration service" }
         return Result.of {
-            val irohaNetwork = IrohaNetworkImpl(btcRegistrationConfig.iroha.hostname, btcRegistrationConfig.iroha.port)
             val irohaConsumer = IrohaConsumerImpl(btcRegistrationCredential, irohaNetwork)
             val btcAddressesProvider =
                 BtcAddressesProvider(
-                    btcRegistrationConfig.iroha,
                     btcRegistrationCredential,
+                    irohaNetwork,
                     btcRegistrationConfig.mstRegistrationAccount,
                     btcRegistrationConfig.notaryAccount
                 )
             val btcTakenAddressesProvider =
                 BtcRegisteredAddressesProvider(
-                    btcRegistrationConfig.iroha,
                     btcRegistrationCredential,
+                    irohaNetwork,
                     btcRegistrationCredential.accountId,
                     btcRegistrationConfig.notaryAccount
                 )

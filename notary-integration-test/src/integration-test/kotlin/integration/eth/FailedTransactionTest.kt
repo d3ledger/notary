@@ -1,6 +1,9 @@
 package integration.eth
 
 import integration.helper.IntegrationHelperUtil
+import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.launch
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.web3j.protocol.exceptions.TransactionException
@@ -14,8 +17,16 @@ import kotlin.test.assertEquals
 class FailedTransactionTest {
     val integrationHelper = IntegrationHelperUtil()
 
+    private val notary: Job
+
     init {
-        integrationHelper.runEthNotary()
+        notary = launch { integrationHelper.runEthNotary() }
+    }
+
+    @AfterAll
+    fun dropDown() {
+        integrationHelper.close()
+        notary.cancel()
     }
 
     /**

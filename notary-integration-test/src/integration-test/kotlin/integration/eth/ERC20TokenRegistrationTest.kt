@@ -4,12 +4,11 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import com.google.gson.Gson
 import integration.helper.IntegrationHelperUtil
-import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.fail
 import provider.eth.EthTokensProviderImpl
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import token.EthTokenInfo
 import token.executeTokenRegistration
 import util.getRandomString
@@ -18,22 +17,31 @@ import java.io.File
 /**
  * Requires Iroha is running
  */
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ERC20TokenRegistrationTest {
     private val integrationHelper = IntegrationHelperUtil()
     private val tokensFilePath = "tokens-for-test.json"
     private val tokenRegistrationConfig =
         integrationHelper.configHelper.createERC20TokenRegistrationConfig(tokensFilePath)
 
+    val irohaNetwork = IrohaNetworkImpl(tokenRegistrationConfig.iroha.hostname, tokenRegistrationConfig.iroha.port)
+
     private val ethTokensProvider = EthTokensProviderImpl(
-        integrationHelper.configHelper.createIrohaConfig(),
         integrationHelper.testCredential,
         tokenRegistrationConfig.tokenStorageAccount,
-        tokenRegistrationConfig.irohaCredential.accountId
+        tokenRegistrationConfig.irohaCredential.accountId,
+        irohaNetwork
     )
 
     @AfterEach
     fun clearFile() {
         File(tokensFilePath).delete()
+    }
+
+    @AfterAll
+    fun dropDown() {
+        integrationHelper.close()
+        irohaNetwork.close()
     }
 
     /**

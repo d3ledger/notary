@@ -2,9 +2,11 @@ package integration.eth
 
 import com.github.kittinunf.result.success
 import integration.helper.IntegrationHelperUtil
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
 import provider.eth.ETH_ADDRESS
 import provider.eth.ETH_NAME
@@ -15,10 +17,16 @@ import util.getRandomString
 /**
  * Test Iroha Ethereum ERC20 tokens provider
  */
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class EthTokensProviderTest {
     private val integrationHelper = IntegrationHelperUtil()
 
     private val ethTokensProvider = integrationHelper.ethTokensProvider
+
+    @AfterAll
+    fun dropDown() {
+        integrationHelper.close()
+    }
 
     /**
      * Test US-001 Listing all the tokens from tokensProvider

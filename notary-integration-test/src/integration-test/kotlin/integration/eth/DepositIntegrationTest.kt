@@ -1,6 +1,9 @@
 package integration.eth
 
 import integration.helper.IntegrationHelperUtil
+import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.launch
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -20,9 +23,11 @@ class DepositIntegrationTest {
     /** Ethereum assetId in Iroha */
     private val etherAssetId = "ether#ethereum"
 
+    private val notary: Job
+
     init {
         // run notary
-        integrationHelper.runEthNotary()
+        notary = launch { integrationHelper.runEthNotary() }
     }
 
     /** Iroha client account */
@@ -36,6 +41,12 @@ class DepositIntegrationTest {
         integrationHelper.deployRelays(1)
         // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
         return integrationHelper.registerClient(clientIrohaAccount, listOf())
+    }
+
+    @AfterAll
+    fun dropDown() {
+        integrationHelper.close()
+        notary.cancel()
     }
 
     /**

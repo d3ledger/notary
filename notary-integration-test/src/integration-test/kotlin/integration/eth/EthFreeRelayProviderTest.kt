@@ -3,14 +3,17 @@ package integration.eth
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.success
 import integration.helper.IntegrationHelperUtil
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
 import provider.eth.EthFreeRelayProvider
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil.setAccountDetail
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class EthFreeRelayProviderTest {
 
     /** Test configurations */
@@ -26,6 +29,12 @@ class EthFreeRelayProviderTest {
     /** Iroha transaction creator */
     val creator = integrationHelper.testCredential.accountId
 
+    @AfterAll
+    fun dropDown() {
+        integrationHelper.close()
+        irohaNetwork.close()
+    }
+
     /**
      * @given Iroha network running and Iroha master account with attribute ["eth_wallet", "free"] set by master account
      * @when getRelay() of FreeRelayProvider is called
@@ -40,10 +49,10 @@ class EthFreeRelayProviderTest {
 
         val freeWalletsProvider =
             EthFreeRelayProvider(
-                testConfig.iroha,
                 integrationHelper.testCredential,
                 integrationHelper.accountHelper.notaryAccount.accountId,
-                creator
+                creator,
+                irohaNetwork
             )
         val result = freeWalletsProvider.getRelay()
 
@@ -60,7 +69,7 @@ class EthFreeRelayProviderTest {
         val wrongMasterAccount = "wrong@account"
 
         val freeWalletsProvider =
-            EthFreeRelayProvider(testConfig.iroha, integrationHelper.testCredential, creator, wrongMasterAccount)
+            EthFreeRelayProvider(integrationHelper.testCredential, creator, wrongMasterAccount, irohaNetwork)
         freeWalletsProvider.getRelay()
             .success { fail { "should return Exception" } }
     }

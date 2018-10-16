@@ -5,7 +5,7 @@ import com.github.kittinunf.result.map
 import config.IrohaConfig
 import model.IrohaCredential
 import mu.KLogging
-import sidechain.iroha.consumer.IrohaNetworkImpl
+import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
 import sidechain.iroha.util.getAssetPrecision
 
@@ -16,23 +16,21 @@ const val ETH_ADDRESS = "0x0000000000000000000000000000000000000000"
 /**
  * Implementation of [EthTokensProvider] with Iroha storage.
  *
- * @param irohaConfig - Iroha configuration
  * @param credential - Iroha credential
  * @param tokenStorageAccount - tokenStorageAccount that contains details
  * @param tokenSetterAccount - tokenSetterAccount that holds tokens in tokenStorageAccount account
+ * @param irohaNetwork - iroha network
  */
 class EthTokensProviderImpl(
-    private val irohaConfig: IrohaConfig,
     private val credential: IrohaCredential,
     private val tokenStorageAccount: String,
-    private val tokenSetterAccount: String
+    private val tokenSetterAccount: String,
+    private val irohaNetwork: IrohaNetwork
 ) : EthTokensProvider {
 
     init {
         logger.info { "Init token provider, storage: '$tokenStorageAccount', setter: '$tokenSetterAccount'" }
     }
-
-    private val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
 
     /**
      * Get all tokens. Returns EthreumAddress -> TokenName

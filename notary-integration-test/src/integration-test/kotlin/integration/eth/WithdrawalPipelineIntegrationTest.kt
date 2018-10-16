@@ -50,13 +50,16 @@ class WithdrawalPipelineIntegrationTest {
     /** Relay vacuum config */
     private val relayVacuumConfig = integrationHelper.configHelper.createRelayVacuumConfig()
 
+    private val notary: Job
+
     init {
-        integrationHelper.runEthNotary(notaryConfig)
+        notary = launch { integrationHelper.runEthNotary(notaryConfig) }
         registrationService = launch {
             registration.eth.executeRegistration(registrationConfig, passwordConfig)
         }
         withdrawalService = launch {
             withdrawalservice.executeWithdrawal(withdrawalServiceConfig, passwordConfig, relayVacuumConfig)
+            println("done")
         }
         Thread.sleep(10_000)
     }
@@ -75,6 +78,8 @@ class WithdrawalPipelineIntegrationTest {
 
     @AfterAll
     fun dropDown() {
+        integrationHelper.close()
+        notary.cancel()
         registrationService.cancel()
         withdrawalService.cancel()
     }
