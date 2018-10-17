@@ -5,6 +5,7 @@ import integration.helper.IntegrationHelperUtil
 import notary.endpoint.eth.BigIntegerMoshiAdapter
 import notary.endpoint.eth.EthNotaryResponse
 import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
+import notary.eth.ENDPOINT_ETHEREUM
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -96,7 +97,7 @@ class WithdrawalIntegrationTest {
 
         // query
         val res =
-            khttp.get("http://127.0.0.1:${notaryConfig.refund.port}/${notaryConfig.refund.endpointEthereum}/$hash")
+            khttp.get("http://127.0.0.1:${notaryConfig.refund.port}/$ENDPOINT_ETHEREUM/$hash")
 
         val moshi = Moshi
             .Builder()

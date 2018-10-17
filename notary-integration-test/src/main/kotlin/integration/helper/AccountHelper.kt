@@ -53,13 +53,12 @@ class AccountHelper(private val irohaNetwork: IrohaNetwork) {
     val tokenStorageAccount = notaryAccount
 
     /** Account that sets tokens */
-    val tokenSetterAccount by lazy { createTesterAccount("eth_tokens", "token_service") }
+    val tokenSetterAccount by lazy { createTesterAccount("eth_tokens", "eth_token_list_storage") }
 
-    // TODO - D3-348 - dolgopolov.work change to suitable role name
     /** Account that used to store peers*/
-    val notaryListSetterAccount by lazy { createTesterAccount("notary_setter", "token_service") }
+    val notaryListSetterAccount by lazy { createTesterAccount("notary_setter", "eth_token_list_storage") }
 
-    val notaryListStorageAccount by lazy { createTesterAccount("notary_storage", "notary_holder") }
+    val notaryListStorageAccount by lazy { createTesterAccount("notary_storage", "notary_list_holder") }
 
     fun createCredentialConfig(credetial: IrohaCredential): IrohaCredentialConfig {
         return object : IrohaCredentialConfig {
