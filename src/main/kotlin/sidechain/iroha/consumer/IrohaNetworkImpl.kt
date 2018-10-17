@@ -156,7 +156,7 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
         try {
             channel.awaitTermination(1, TimeUnit.SECONDS)
         } catch (ex: InterruptedException) {
-            logger.warn { ex }
+            logger.warn("IrohaNetwork close error.", ex)
             channel.shutdownNow()
         }
     }

@@ -79,7 +79,7 @@ class EthNotaryInitialization(
     private fun initNotary(
         ethEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>
     ): Notary {
-        logger.info { "Init ethereum Notary notary" }
+        logger.info { "Init ethereum notary" }
 
         val peerListProvider = NotaryPeerListProviderImpl(
             notaryCredential,
