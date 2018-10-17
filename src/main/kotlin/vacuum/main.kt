@@ -20,7 +20,7 @@ private val logger = KLogging().logger
  * Entry point for moving all currency from relay contracts to master contract
  */
 fun main(args: Array<String>) {
-    val relayVacuumConfig = loadConfigs(RELAY_VACUUM_PREFIX, RelayVacuumConfig::class.java, "/eth/vacuum.properties")
+    val relayVacuumConfig = loadConfigs(RELAY_VACUUM_PREFIX, RelayVacuumConfig::class.java, "/eth/vacuum.properties").get()
     executeVacuum(relayVacuumConfig, args)
         .failure { ex ->
             logger.error("Cannot run vacuum", ex)
@@ -30,7 +30,7 @@ fun main(args: Array<String>) {
 
 fun executeVacuum(relayVacuumConfig: RelayVacuumConfig, args: Array<String> = emptyArray()): Result<Unit, Exception> {
     logger.info { "Run relay vacuum" }
-    val passwordConfig = loadEthPasswords(RELAY_VACUUM_PREFIX, "/eth/ethereum_password.properties", args)
+    val passwordConfig = loadEthPasswords(RELAY_VACUUM_PREFIX, "/eth/ethereum_password.properties", args).get()
     return IrohaInitialization.loadIrohaLibrary()
         .flatMap {
             ModelUtil.loadKeypair(

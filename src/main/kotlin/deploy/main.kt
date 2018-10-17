@@ -21,8 +21,8 @@ fun main(args: Array<String>) {
         System.exit(1)
     }
 
-    val ethereumConfig = loadConfigs("predeploy.ethereum", EthereumConfig::class.java, "/eth/predeploy.properties")
-    val passwordConfig = loadEthPasswords("predeploy", "/eth/ethereum_password.properties")
+    val ethereumConfig = loadConfigs("predeploy.ethereum", EthereumConfig::class.java, "/eth/predeploy.properties").get()
+    val passwordConfig = loadEthPasswords("predeploy", "/eth/ethereum_password.properties").get()
     val deployHelper = DeployHelper(ethereumConfig, passwordConfig)
 
     val relayRegistry = deployHelper.deployRelayRegistrySmartContract()

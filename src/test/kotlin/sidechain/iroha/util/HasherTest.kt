@@ -19,7 +19,7 @@ class HasherTest {
 
     /** Test configurations */
     private val credentialConfig =
-        loadConfigs("test.testCredentialConfig", config.IrohaCredentialConfig::class.java, "/test.properties")
+        loadConfigs("test.testCredentialConfig", config.IrohaCredentialConfig::class.java, "/test.properties").get()
 
     /** Test keypair */
     private val keypair = ModelUtil.loadKeypair(

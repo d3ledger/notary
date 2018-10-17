@@ -22,7 +22,7 @@ fun main(args: Array<String>) {
             "token-registration",
             ERC20TokenRegistrationConfig::class.java,
             "/eth/token_registration.properties"
-        )
+        ).get()
     executeTokenRegistration(tokenRegistrationConfig)
 }
 

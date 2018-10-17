@@ -18,7 +18,7 @@ import util.getRandomString
  */
 class IrohaAccountHelper(private val irohaNetwork: IrohaNetwork) {
 
-    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
+    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
 
     /** A tester Iroha account with permissions to do everything */
     private val testCredential = IrohaCredential(

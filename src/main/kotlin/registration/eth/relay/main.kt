@@ -25,7 +25,7 @@ private val logger = KLogging().logger
 fun main(args: Array<String>) {
     logger.info { "Run relay deployment" }
     val tmp =
-        loadConfigs("relay-registration", RelayRegistrationConfig::class.java, "/eth/relay_registration.properties")
+        loadConfigs("relay-registration", RelayRegistrationConfig::class.java, "/eth/relay_registration.properties").get()
 
     val relayRegistrationConfig = object : RelayRegistrationConfig {
         override val number = tmp.number
@@ -37,7 +37,7 @@ fun main(args: Array<String>) {
 
     }
 
-    val passwordConfig = loadEthPasswords("relay-registration", "/eth/ethereum_password.properties", args)
+    val passwordConfig = loadEthPasswords("relay-registration", "/eth/ethereum_password.properties", args).get()
 
     IrohaInitialization.loadIrohaLibrary()
         .flatMap {

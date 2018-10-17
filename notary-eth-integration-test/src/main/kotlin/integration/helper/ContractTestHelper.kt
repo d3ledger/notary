@@ -15,8 +15,8 @@ import java.math.BigInteger
 import kotlin.test.assertEquals
 
 class ContractTestHelper {
-    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
-    private val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/eth/ethereum_password.properties")
+    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
+    private val passwordConfig = loadConfigs("test", EthereumPasswords::class.java, "/eth/ethereum_password.properties").get()
 
     val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
 

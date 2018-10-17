@@ -10,7 +10,7 @@ import integration.TestConfig
 open class IrohaConfigHelper {
 
     /** Configurations for tests */
-    val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
+    val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
 
     /** Test configuration for Iroha */
     fun createIrohaConfig(

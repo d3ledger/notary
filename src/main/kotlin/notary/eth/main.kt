@@ -23,8 +23,8 @@ private val logger = KLogging().logger
  * Application entry point
  */
 fun main(args: Array<String>) {
-    val notaryConfig = loadConfigs("eth-notary", EthNotaryConfig::class.java, "/eth/notary.properties")
-    val passwordConfig = loadEthPasswords("eth-notary", "/eth/ethereum_password.properties", args)
+    val notaryConfig = loadConfigs("eth-notary", EthNotaryConfig::class.java, "/eth/notary.properties").get()
+    val passwordConfig = loadEthPasswords("eth-notary", "/eth/ethereum_password.properties", args).get()
 
     executeNotary(passwordConfig, notaryConfig)
 }

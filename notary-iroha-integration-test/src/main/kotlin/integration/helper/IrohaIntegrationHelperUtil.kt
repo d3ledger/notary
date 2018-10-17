@@ -35,7 +35,7 @@ open class IrohaIntegrationHelperUtil : Closeable {
         irohaListener.close()
     }
 
-    val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
+    val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
 
     val testCredential = IrohaCredential(
         testConfig.testCredentialConfig.accountId,

@@ -19,7 +19,7 @@ private val logger = KLogging().logger
  */
 fun main(args: Array<String>) {
     val tmp =
-        loadConfigs("eth-registration", EthRegistrationConfig::class.java, "/eth/registration.properties")
+        loadConfigs("eth-registration", EthRegistrationConfig::class.java, "/eth/registration.properties").get()
 
     val registrationConfig = object : EthRegistrationConfig {
         override val ethRelayRegistryAddress = System.getenv(ETH_RELAY_REGISTRY_ENV) ?: tmp.ethRelayRegistryAddress
@@ -31,7 +31,7 @@ fun main(args: Array<String>) {
         override val registrationCredential = tmp.registrationCredential
     }
 
-    val passwordConfig = loadEthPasswords("eth-registration", "/eth/ethereum_password.properties", args)
+    val passwordConfig = loadEthPasswords("eth-registration", "/eth/ethereum_password.properties", args).get()
 
     executeRegistration(registrationConfig, passwordConfig)
 }

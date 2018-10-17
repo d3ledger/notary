@@ -23,10 +23,10 @@ private const val RELAY_VACUUM_PREFIX = "relay-vacuum"
  * Main entry point of Withdrawal Service app
  */
 fun main(args: Array<String>) {
-    val withdrawalConfig = loadConfigs("withdrawal", WithdrawalServiceConfig::class.java, "/eth/withdrawal.properties")
-    val passwordConfig = loadEthPasswords("withdrawal", "/eth/ethereum_password.properties", args)
+    val withdrawalConfig = loadConfigs("withdrawal", WithdrawalServiceConfig::class.java, "/eth/withdrawal.properties").get()
+    val passwordConfig = loadEthPasswords("withdrawal", "/eth/ethereum_password.properties", args).get()
     val relayVacuumConfig =
-        loadConfigs(RELAY_VACUUM_PREFIX, RelayVacuumConfig::class.java, "/eth/vacuum.properties")
+        loadConfigs(RELAY_VACUUM_PREFIX, RelayVacuumConfig::class.java, "/eth/vacuum.properties").get()
     executeWithdrawal(withdrawalConfig, passwordConfig, relayVacuumConfig)
 }
 
