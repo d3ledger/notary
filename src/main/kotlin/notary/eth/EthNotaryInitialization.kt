@@ -26,6 +26,8 @@ import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import java.math.BigInteger
 
+const val ENDPOINT_ETHEREUM = "eth"
+
 /**
  * Class for notary instantiation
  * @param ethRelayProvider - provides with white list of ethereum wallets
@@ -101,7 +103,7 @@ class EthNotaryInitialization(
     private fun initRefund() {
         logger.info { "Init Refund endpoint" }
         RefundServerEndpoint(
-            ServerInitializationBundle(ethNotaryConfig.refund.port, ethNotaryConfig.refund.endpointEthereum),
+            ServerInitializationBundle(ethNotaryConfig.refund.port, ENDPOINT_ETHEREUM),
             EthRefundStrategyImpl(
                 ethNotaryConfig,
                 irohaNetwork,

@@ -44,7 +44,7 @@
               },
               {
                 "createRole": {
-                  "roleName": "token_service",
+                  "roleName": "eth_token_list_storage",
                   "permissions": [
                     "can_set_detail",
                     "can_create_asset"
@@ -143,7 +143,7 @@
               },
               {
                 "createRole": {
-                  "roleName": "notary_holder",
+                  "roleName": "notary_list_holder",
                   "permissions": [
                     "can_set_detail"
                   ]
@@ -266,15 +266,15 @@
               },
               {
                 "createAccount": {
-                  "accountName": "token_storage_service",
+                  "accountName": "eth_token_storage_service",
                   "domainId": "notary",
                   "publicKey": "jw9s6xR2efuBVJxI5yA0XxTtA0CHnkrTcKIbbdwygck="
                 }
               },
               {
                 "appendRole": {
-                  "accountId": "token_storage_service@notary",
-                  "roleName": "token_service"
+                  "accountId": "eth_token_storage_service@notary",
+                  "roleName": "eth_token_list_storage"
                 }
               },
               {
@@ -288,13 +288,6 @@
                 "appendRole": {
                   "accountId": "withdrawal@notary",
                   "roleName": "withdrawal"
-                }
-              },
-              {
-                "createAccount": {
-                  "accountName": "user1",
-                  "domainId": "notary",
-                  "publicKey": "3MfszkSPLhkKSBrsfKIe5S7aVG5mC0gg9JdtATIVcJc="
                 }
               },
               {
@@ -333,7 +326,7 @@
               {
                 "appendRole": {
                   "accountId": "notaries@notary",
-                  "roleName": "notary_holder"
+                  "roleName": "notary_list_holder"
                 }
               },
               {
@@ -351,7 +344,7 @@
                 }
               }
             ],
-            "creatorAccountId": "token_storage_service@notary",
+            "creatorAccountId": "notary@notary",
             "quorum": 1
           }
         }
