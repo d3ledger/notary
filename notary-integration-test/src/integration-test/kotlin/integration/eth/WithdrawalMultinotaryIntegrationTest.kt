@@ -7,6 +7,7 @@ import integration.helper.IntegrationHelperUtil
 import notary.endpoint.eth.BigIntegerMoshiAdapter
 import notary.endpoint.eth.EthNotaryResponse
 import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
+import notary.eth.ENDPOINT_ETHEREUM
 import notary.eth.EthNotaryConfig
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -121,7 +122,7 @@ class WithdrawalMultinotaryIntegrationTest {
 
         // query 1
         val res1 =
-            khttp.get("http://127.0.0.1:${notaryConfig1.refund.port}/${notaryConfig1.refund.endpointEthereum}/$hash")
+            khttp.get("http://127.0.0.1:${notaryConfig1.refund.port}/$ENDPOINT_ETHEREUM/$hash")
 
         val moshi = Moshi
             .Builder()
@@ -154,7 +155,7 @@ class WithdrawalMultinotaryIntegrationTest {
 
         // query 2
         val res2 =
-            khttp.get("http://127.0.0.1:${notaryConfig2.refund.port}/${notaryConfig2.refund.endpointEthereum}/$hash")
+            khttp.get("http://127.0.0.1:${notaryConfig2.refund.port}/$ENDPOINT_ETHEREUM/$hash")
 
         val response2 = ethNotaryAdapter.fromJson(res2.jsonObject.toString())
 
