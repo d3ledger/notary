@@ -18,6 +18,7 @@ import sidechain.iroha.IrohaInitialization
 class BtcPreGenerationApplication
 
 private val logger = KLogging().logger
+
 fun main(args: Array<String>) {
     IrohaInitialization.loadIrohaLibrary().map {
         val app = SpringApplication(BtcPreGenerationApplication::class.java)

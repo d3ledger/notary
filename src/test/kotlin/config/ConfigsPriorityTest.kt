@@ -6,7 +6,7 @@ import org.junit.Test
 import org.junit.contrib.java.lang.system.EnvironmentVariables
 
 
-class ConfigsTest {
+class ConfigsPriorityTest {
 
     @Rule
     @JvmField

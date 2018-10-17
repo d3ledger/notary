@@ -16,7 +16,7 @@ import sidechain.iroha.IrohaInitialization
 private val logger = KLogging().logger
 
 @SpringBootApplication
-@ComponentScan(basePackages = ["registration", "provider.btc.address"])
+@ComponentScan(basePackages = ["registration"])
 class BtcRegistrationApplication
 
 /**
