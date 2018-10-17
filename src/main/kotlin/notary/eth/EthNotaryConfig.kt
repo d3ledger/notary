@@ -7,7 +7,6 @@ import config.IrohaCredentialConfig
 /** Configuration of refund endpoint in Notary */
 interface RefundConfig {
     val port: Int
-    val endpointEthereum: String
 }
 
 /** Configuration of notary */

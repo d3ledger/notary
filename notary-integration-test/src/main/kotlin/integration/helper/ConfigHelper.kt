@@ -106,7 +106,6 @@ class ConfigHelper(
      */
     fun createRefundConfig(): RefundConfig {
         return object : RefundConfig {
-            override val endpointEthereum = ethNotaryConfig.refund.endpointEthereum
             override val port = portCounter.incrementAndGet()
         }
     }
