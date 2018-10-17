@@ -54,7 +54,6 @@ class AccountHelper {
     /** Account that sets tokens */
     val tokenSetterAccount by lazy { createTesterAccount("eth_tokens", "eth_token_list_storage") }
 
-    // TODO - D3-348 - dolgopolov.work change to suitable role name
     /** Account that used to store peers*/
     val notaryListSetterAccount by lazy { createTesterAccount("notary_setter", "eth_token_list_storage") }
 
