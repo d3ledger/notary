@@ -1,0 +1,84 @@
+package config
+
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doThrow
+import com.nhaarman.mockito_kotlin.mock
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
+
+class ConfigValidationTest {
+
+    /**
+     * @given failing validation rule
+     * @when configuration is loaded with given failing rule
+     * @then it fails with IllegalArgumentException
+     */
+    @Test
+    fun testLoadConfigsFailedValidation() {
+        val validationRule = mock<ConfigValidationRule<TestConfig>> {
+            on { validate(any()) } doThrow IllegalArgumentException()
+        }
+        Assertions.assertThrows(IllegalArgumentException::class.java) {
+            loadConfigs(
+                "test",
+                TestConfig::class.java,
+                "/test.properties",
+                validationRule
+            )
+        }
+    }
+
+    /**
+     * @given two rules: succeeding and failing
+     * @when configuration is loaded with given rules
+     * @then it fails with IllegalArgumentException
+     */
+    @Test
+    fun testLoadConfigsFailedSecondValidation() {
+        val validationRuleSuccess = mock<ConfigValidationRule<TestConfig>>()
+        val validationRuleFail = mock<ConfigValidationRule<TestConfig>> {
+            on { validate(any()) } doThrow IllegalArgumentException()
+        }
+        Assertions.assertThrows(IllegalArgumentException::class.java) {
+            loadConfigs(
+                "test",
+                TestConfig::class.java,
+                "/test.properties",
+                validationRuleSuccess, validationRuleFail
+            )
+        }
+    }
+
+    /**
+     * @given succeeding rule
+     * @when configuration is loaded with given rule
+     * @then it doesn't throw any exception
+     */
+    @Test
+    fun testLoadConfigsValidationSuccess() {
+        val validationRuleSuccess = mock<ConfigValidationRule<TestConfig>>()
+        val config = loadConfigs(
+            "test",
+            TestConfig::class.java,
+            "/test.properties",
+            validationRuleSuccess
+        )
+        assertEquals("test@notary", config.testCredentialConfig.accountId)
+    }
+
+    /**
+     * @given no rules
+     * @when configuration is loaded with no rules
+     * @then it doesn't throw any exception
+     */
+    @Test
+    fun testLoadConfigsNoValidationSuccess() {
+        val config = loadConfigs(
+            "test",
+            TestConfig::class.java,
+            "/test.properties"
+        )
+        assertEquals("test@notary", config.testCredentialConfig.accountId)
+    }
+}

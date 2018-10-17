@@ -89,13 +89,20 @@ fun getProfile(): String {
 /**
  * Load configs from Java properties
  */
-fun <T : Any> loadConfigs(prefix: String, type: Class<T>, filename: String): T {
+fun <T : Any> loadConfigs(
+    prefix: String,
+    type: Class<T>,
+    filename: String,
+    vararg validators: ConfigValidationRule<T>
+): T {
     val profile = getProfile()
     val (file, extension) = filename.split(".")
     val pwd = System.getProperty("user.dir")
     val path = "$pwd/configs${file}_$profile.$extension"
     logger.info { "Loading config from $path, prefix $prefix" }
-    return loadRawConfigs(prefix, type, path)
+    val config = loadRawConfigs(prefix, type, path)
+    validators.forEach { rule -> rule.validate(config) }
+    return config
 }
 
 class Stream(private val stream: InputStream) : ConfigSource {

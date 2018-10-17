@@ -2,8 +2,6 @@ package provider.btc
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import config.IrohaConfig
-import model.IrohaCredential
 import mu.KLogging
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.ECKey
@@ -14,43 +12,32 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import provider.NotaryPeerListProvider
 import provider.btc.network.BtcNetworkConfigProvider
-import sidechain.iroha.consumer.IrohaConsumerImpl
+import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.util.ModelUtil
 import util.getRandomId
 import wallet.WalletFile
 
 /**
  *  Bitcoin keys provider
- *  @param wallet - bitcoinJ wallet class
- *  @param walletFile - file where to save wallet
- *  @param irohaConfig - configutation to start Iroha client
- *  @param notaryPeerListProvider - class to query all current notaries
+ *  @param walletFile - bitcoin wallet
+ *  @param notaryPeerListProvider - provider to query all current notaries
+ *  @param notaryAccount - Iroha account of notary service. Used to store BTC addresses
+ *  @param multiSigConsumer - consumer of multisignature Iroha account. Used to create multisignature transactions.
+ *  @param sessionConsumer - consumer of session Iroha account. Used to store session data.
+ *  @param btcNetworkConfigProvider - provider of network configuration
  */
 @Component
 class BtcPublicKeyProvider(
-    //BTC wallet
     @Autowired private val walletFile: WalletFile,
-    //Iroha configurations
-    @Qualifier("btcPublicKeyProviderIrohaConfig")
-    @Autowired private val irohaConfig: IrohaConfig,
-    //Provider that helps us fetching all the peers registered in the network
     @Autowired private val notaryPeerListProvider: NotaryPeerListProvider,
-    //BTC registration account
-    @Qualifier("btcRegistrationCredential")
-    @Autowired btcRegistrationCredential: IrohaCredential,
-    //BTC registration account, that works in MST fashion
-    @Qualifier("mstBtcRegistrationCredential")
-    @Autowired private val mstBtcRegistrationCredential: IrohaCredential,
-    //Notary account to store BTC addresses
     @Qualifier("notaryAccount")
     @Autowired private val notaryAccount: String,
-    //Provider of network configurations
+    @Qualifier("multiSigConsumer")
+    @Autowired private val multiSigConsumer: IrohaConsumer,
+    @Qualifier("sessionConsumer")
+    @Autowired private val sessionConsumer: IrohaConsumer,
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider
 ) {
-
-    private val sessionConsumer = IrohaConsumerImpl(btcRegistrationCredential, irohaConfig)
-    private val multiSigConsumer = IrohaConsumerImpl(mstBtcRegistrationCredential, irohaConfig)
-
     init {
         logger.info { "BtcPublicKeyProvider was successfully initialized. Current wallet state:\n${walletFile.wallet}" }
     }
