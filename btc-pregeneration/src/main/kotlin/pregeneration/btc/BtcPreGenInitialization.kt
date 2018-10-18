@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component
 import pregeneration.btc.config.BtcPreGenConfig
 import provider.btc.BtcPublicKeyProvider
 import sidechain.iroha.IrohaChainListener
-import sidechain.iroha.consumer.IrohaNetworkImpl
+import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -27,12 +27,12 @@ import java.util.concurrent.atomic.AtomicBoolean
 class BtcPreGenInitialization(
     @Qualifier("registrationCredential")
     @Autowired private val registrationCredential: IrohaCredential,
+    @Autowired private val irohaNetwork: IrohaNetwork,
     @Autowired private val btcPreGenConfig: BtcPreGenConfig,
     @Autowired private val btcPublicKeyProvider: BtcPublicKeyProvider,
     @Autowired private val irohaChainListener: IrohaChainListener
 ) : HealthyServiceInitializer {
     private val healthy = AtomicBoolean(true)
-    private val irohaNetwork = IrohaNetworkImpl(btcPreGenConfig.iroha.hostname, btcPreGenConfig.iroha.port)
 
     /*
     Initiates listener that listens to events in trigger account.

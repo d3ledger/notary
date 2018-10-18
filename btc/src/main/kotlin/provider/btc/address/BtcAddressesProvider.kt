@@ -1,20 +1,17 @@
 package provider.btc.address
 
 import com.github.kittinunf.result.Result
-import config.IrohaConfig
-import jp.co.soramitsu.iroha.Keypair
 import model.IrohaCredential
-import sidechain.iroha.consumer.IrohaNetworkImpl
+import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
 
 //Class that provides all created BTC addresses
 class BtcAddressesProvider(
-    irohaConfig: IrohaConfig,
     private val credential: IrohaCredential,
+    private val irohaNetwork: IrohaNetwork,
     private val mstRegistrationAccount: String,
     private val notaryAccount: String
 ) {
-    private val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
     /**
      * Get all created btc addresses
      * @return map full of created btc addresses (btc address -> iroha account name)

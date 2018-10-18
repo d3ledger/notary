@@ -9,9 +9,11 @@ import org.bitcoinj.core.Utils
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
 import pregeneration.btc.BtcPreGenInitialization
 import provider.NotaryPeerListProviderImpl
@@ -21,6 +23,7 @@ import provider.btc.BtcSessionProvider
 import provider.btc.network.BtcRegTestConfigProvider
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import wallet.WalletFile
@@ -29,6 +32,7 @@ import java.io.File
 private const val WAIT_PREGEN_INIT_MILLIS = 10_000L
 private const val WAIT_PREGEN_PROCESS_MILLIS = 15_000L
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcPreGenIntegrationTest {
 
     private val integrationHelper = IntegrationHelperUtil()
@@ -36,15 +40,23 @@ class BtcPreGenIntegrationTest {
     private val btcPreGenConfig =
         integrationHelper.configHelper.createBtcPreGenConfig()
 
+    private val irohaNetwork = IrohaNetworkImpl(btcPreGenConfig.iroha.hostname, btcPreGenConfig.iroha.port)
+
     private val triggerProvider = TriggerProvider(
-        btcPreGenConfig.iroha,
         integrationHelper.testCredential,
+        irohaNetwork,
         btcPreGenConfig.pubKeyTriggerAccount
     )
     private val btcKeyGenSessionProvider = BtcSessionProvider(
-        btcPreGenConfig.iroha,
-        integrationHelper.accountHelper.registrationAccount
+        integrationHelper.accountHelper.registrationAccount,
+        irohaNetwork
     )
+
+    @AfterAll
+    fun dropDown() {
+        integrationHelper.close()
+        irohaNetwork.close()
+    }
 
     /**
      * Test US-001 btc addresses pregeneration
@@ -57,12 +69,19 @@ class BtcPreGenIntegrationTest {
     fun testGenerateKey() {
         integrationHelper.addNotary("test_notary", "test_notary_address")
         launch {
-            BtcPreGenInitialization(
-                registrationCredential,
-                btcPreGenConfig,
-                btcPublicKeyProvider(),
-                irohaChainListener()
-            ).init()
+            IrohaChainListener(
+                btcPreGenConfig.iroha.hostname,
+                btcPreGenConfig.iroha.port,
+                registrationCredential
+            ).use { irohaListener ->
+                BtcPreGenInitialization(
+                    registrationCredential,
+                    irohaNetwork,
+                    btcPreGenConfig,
+                    btcPublicKeyProvider(),
+                    irohaListener
+                ).init()
+            }
         }
         Thread.sleep(WAIT_PREGEN_INIT_MILLIS)
         val sessionAccountName = String.getRandomString(9)
@@ -119,11 +138,11 @@ class BtcPreGenIntegrationTest {
         }, { ex -> throw ex })
 
     private val sessionConsumer =
-        IrohaConsumerImpl(registrationCredential, pregeneration.btc.config.btcPreGenConfig.iroha)
+        IrohaConsumerImpl(registrationCredential, irohaNetwork)
 
     private val multiSigConsumer = IrohaConsumerImpl(
         IrohaCredential(btcPreGenConfig.mstRegistrationAccount.accountId, mstRegistrationKeyPair),
-        pregeneration.btc.config.btcPreGenConfig.iroha
+        irohaNetwork
     )
 
     fun btcPublicKeyProvider(): BtcPublicKeyProvider {
@@ -131,8 +150,8 @@ class BtcPreGenIntegrationTest {
         val wallet = Wallet.loadFromFile(file)
         val walletFile = WalletFile(wallet, file)
         val notaryPeerListProvider = NotaryPeerListProviderImpl(
-            btcPreGenConfig.iroha,
             registrationCredential,
+            irohaNetwork,
             btcPreGenConfig.notaryListStorageAccount,
             btcPreGenConfig.notaryListSetterAccount
         )
@@ -145,12 +164,6 @@ class BtcPreGenIntegrationTest {
             BtcRegTestConfigProvider()
         )
     }
-
-    fun irohaChainListener() = IrohaChainListener(
-        btcPreGenConfig.iroha.hostname,
-        btcPreGenConfig.iroha.port,
-        registrationCredential
-    )
 
     /**
      * Logger

@@ -3,12 +3,15 @@ package pregeneration.btc.config
 import config.loadConfigs
 import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import provider.NotaryPeerListProvider
 import provider.NotaryPeerListProviderImpl
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
+import sidechain.iroha.consumer.IrohaNetwork
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import wallet.WalletFile
 import java.io.File
@@ -41,6 +44,13 @@ class BtcPreGenerationAppConfiguration {
     private val mstRegistrationCredential =
         IrohaCredential(btcPreGenConfig.mstRegistrationAccount.accountId, mstRegistrationKeyPair)
 
+    // TODO add close() on destroy
+    @Bean
+    fun irohaNetwork() = IrohaNetworkImpl(
+        btcPreGenConfig.iroha.hostname,
+        btcPreGenConfig.iroha.port
+    )
+
     @Bean
     fun preGenConfig() = btcPreGenConfig
 
@@ -48,29 +58,33 @@ class BtcPreGenerationAppConfiguration {
     fun walletFile(): WalletFile {
         val walletFile = File(btcPreGenConfig.btcWalletFilePath)
         val wallet = Wallet.loadFromFile(walletFile)
-        return WalletFile(wallet, walletFile);
+        return WalletFile(wallet, walletFile)
     }
 
     @Bean
-    fun notaryPeerListProvider(): NotaryPeerListProvider {
+    @Autowired
+    fun notaryPeerListProvider(irohaNetwork: IrohaNetwork): NotaryPeerListProvider {
         return NotaryPeerListProviderImpl(
-            btcPreGenConfig.iroha,
             registrationCredential,
+            irohaNetwork,
             btcPreGenConfig.notaryListStorageAccount,
             btcPreGenConfig.notaryListSetterAccount
         )
     }
 
     @Bean
-    fun sessionConsumer() = IrohaConsumerImpl(registrationCredential, btcPreGenConfig.iroha)
+    @Autowired
+    fun sessionConsumer(irohaNetwork: IrohaNetwork) = IrohaConsumerImpl(registrationCredential, irohaNetwork)
 
     @Bean
-    fun multiSigConsumer() = IrohaConsumerImpl(mstRegistrationCredential, btcPreGenConfig.iroha)
+    @Autowired
+    fun multiSigConsumer(irohaNetwork: IrohaNetwork) = IrohaConsumerImpl(mstRegistrationCredential, irohaNetwork)
 
     @Bean
     fun notaryAccount() = btcPreGenConfig.notaryAccount
 
     @Bean
+    // TODO class is Closeable, make sure it is closed
     fun irohaChainListener() = IrohaChainListener(
         btcPreGenConfig.iroha.hostname,
         btcPreGenConfig.iroha.port,

@@ -2,18 +2,18 @@ package provider
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import config.IrohaConfig
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.consumer.IrohaConsumerImpl
+import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
 
 /*
     Provider that helps us to implement pub/sub mechanism in Iroha using account as an event source.
  */
 class TriggerProvider(
-    irohaConfig: IrohaConfig,
     private val callerCredential: IrohaCredential,
+    irohaNetwork: IrohaNetwork,
     private val triggerAccount: String
 ) {
     init {
@@ -22,7 +22,7 @@ class TriggerProvider(
         }
     }
 
-    private val irohaConsumer = IrohaConsumerImpl(callerCredential, irohaConfig)
+    private val irohaConsumer = IrohaConsumerImpl(callerCredential, irohaNetwork)
 
     /**
      * Triggers triggeredAccount by setting details

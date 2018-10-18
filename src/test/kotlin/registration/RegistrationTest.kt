@@ -5,7 +5,9 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.runBlocking
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -47,7 +49,7 @@ open class RegistrationTest {
             RegistrationServiceEndpoint(port, strategy)
         }
 
-        Thread.sleep(3_000)
+        runBlocking { delay(3_000) }
     }
 
     @AfterAll

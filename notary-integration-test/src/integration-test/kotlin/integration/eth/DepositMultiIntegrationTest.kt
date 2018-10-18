@@ -3,6 +3,7 @@ package integration.eth
 import config.IrohaCredentialConfig
 import config.loadEthPasswords
 import integration.helper.IntegrationHelperUtil
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -71,6 +72,11 @@ class DepositMultiIntegrationTest {
         integrationHelper.runEthNotary(ethereumPasswords, notaryConfig)
 
         integrationHelper.lockEthMasterSmartcontract()
+    }
+
+    @AfterAll
+    fun dropDown() {
+        integrationHelper.close()
     }
 
     /**

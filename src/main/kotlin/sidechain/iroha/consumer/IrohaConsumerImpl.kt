@@ -2,7 +2,6 @@ package sidechain.iroha.consumer
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
-import config.IrohaConfig
 import jp.co.soramitsu.iroha.UnsignedTx
 import model.IrohaCredential
 import mu.KLogging
@@ -11,15 +10,15 @@ import sidechain.iroha.util.ModelUtil
 /**
  * Endpoint of Iroha to write transactions
  * @param irohaCredential for creating transactions
- * @param irohaConfig Iroha configurations
+ * @param irohaNetwork Iroha network
  */
-class IrohaConsumerImpl(irohaCredential: IrohaCredential, irohaConfig: IrohaConfig) : IrohaConsumer {
-
-    override val creator =  irohaCredential.accountId
+class IrohaConsumerImpl(
+    irohaCredential: IrohaCredential,
+    private val irohaNetwork: IrohaNetwork
+) : IrohaConsumer {
+    override val creator = irohaCredential.accountId
 
     val keypair = irohaCredential.keyPair
-
-    val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
 
     /**
      * Send transaction to Iroha and check if it is committed with status stream

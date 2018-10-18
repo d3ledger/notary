@@ -2,7 +2,6 @@ package sidechain.iroha.util
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
-import com.github.kittinunf.result.map
 import com.google.protobuf.InvalidProtocolBufferException
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.CommandServiceGrpc
@@ -55,7 +54,7 @@ object ModelUtil {
      * @port to connect
      * @return managed channel
      */
-    fun getChannel(host: String, port: Int) = ManagedChannelBuilder.forAddress(host, port).usePlaintext(true).build()
+    fun getChannel(host: String, port: Int) = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build()
 
     /**
      * Creates a stub for commands

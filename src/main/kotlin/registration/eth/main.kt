@@ -10,6 +10,7 @@ import config.loadConfigs
 import config.loadEthPasswords
 import mu.KLogging
 import sidechain.iroha.IrohaInitialization
+import sidechain.iroha.consumer.IrohaNetworkImpl
 
 private val logger = KLogging().logger
 
@@ -37,10 +38,16 @@ fun main(args: Array<String>) {
 
 fun executeRegistration(ethRegistrationConfig: EthRegistrationConfig, passwordConfig: EthereumPasswords) {
     logger.info { "Run ETH registration service" }
+    val irohaNetwork = IrohaNetworkImpl(ethRegistrationConfig.iroha.hostname, ethRegistrationConfig.iroha.port)
+
     IrohaInitialization.loadIrohaLibrary()
-        .flatMap { EthRegistrationServiceInitialization(ethRegistrationConfig, passwordConfig).init() }
+        .flatMap {
+            EthRegistrationServiceInitialization(ethRegistrationConfig, passwordConfig, irohaNetwork).init()
+
+        }
         .failure { ex ->
             logger.error("cannot run eth registration", ex)
+            irohaNetwork.close()
             System.exit(1)
         }
 }

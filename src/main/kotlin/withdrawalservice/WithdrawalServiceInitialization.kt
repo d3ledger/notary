@@ -12,7 +12,7 @@ import sidechain.SideChainEvent
 import sidechain.eth.consumer.EthConsumer
 import sidechain.iroha.IrohaChainHandler
 import sidechain.iroha.IrohaChainListener
-import sidechain.iroha.consumer.IrohaNetworkImpl
+import sidechain.iroha.consumer.IrohaNetwork
 import vacuum.RelayVacuumConfig
 
 /**
@@ -22,13 +22,12 @@ import vacuum.RelayVacuumConfig
 class WithdrawalServiceInitialization(
     private val withdrawalConfig: WithdrawalServiceConfig,
     private val credential: IrohaCredential,
+    private val irohaNetwork: IrohaNetwork,
     private val withdrawalEthereumPasswords: EthereumPasswords,
     private val relayVacuumConfig: RelayVacuumConfig
 ) {
-
     private val irohaHost = withdrawalConfig.iroha.hostname
     private val irohaPort = withdrawalConfig.iroha.port
-    private val irohaNetwork = IrohaNetworkImpl(irohaHost, irohaPort)
 
     /**
      * Init Iroha chain listener
