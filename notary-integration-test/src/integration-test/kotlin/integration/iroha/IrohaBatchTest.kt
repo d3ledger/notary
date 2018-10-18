@@ -12,6 +12,7 @@ import notary.IrohaCommand
 import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
 import notary.eth.EthNotaryConfig
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.IrohaChainListener
@@ -26,6 +27,7 @@ import util.getRandomString
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 
+@Disabled
 class IrohaBatchTest {
 
     init {

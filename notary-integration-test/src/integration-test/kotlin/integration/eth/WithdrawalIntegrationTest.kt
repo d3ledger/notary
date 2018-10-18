@@ -7,6 +7,7 @@ import notary.endpoint.eth.EthNotaryResponse
 import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
 import notary.eth.ENDPOINT_ETHEREUM
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import provider.eth.ETH_PRECISION
@@ -23,6 +24,7 @@ import java.math.BigInteger
 /**
  * Class for Ethereum sidechain infrastructure deployment and communication.
  */
+@Disabled
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class WithdrawalIntegrationTest {
 

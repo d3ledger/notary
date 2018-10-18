@@ -5,11 +5,13 @@ import integration.helper.ContractTestHelper
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Keys
 import org.web3j.protocol.exceptions.TransactionException
 
+@Disabled
 class RelayRegistryTest {
     private lateinit var cth: ContractTestHelper
     private lateinit var relayRegistry: RelayRegistry
