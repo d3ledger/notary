@@ -3,6 +3,7 @@
 package withdrawalservice
 
 import com.github.kittinunf.result.failure
+import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.EthereumPasswords
@@ -23,11 +24,18 @@ private const val RELAY_VACUUM_PREFIX = "relay-vacuum"
  * Main entry point of Withdrawal Service app
  */
 fun main(args: Array<String>) {
-    val withdrawalConfig = loadConfigs("withdrawal", WithdrawalServiceConfig::class.java, "/eth/withdrawal.properties").get()
-    val passwordConfig = loadEthPasswords("withdrawal", "/eth/ethereum_password.properties", args).get()
-    val relayVacuumConfig =
-        loadConfigs(RELAY_VACUUM_PREFIX, RelayVacuumConfig::class.java, "/eth/vacuum.properties").get()
-    executeWithdrawal(withdrawalConfig, passwordConfig, relayVacuumConfig)
+    loadConfigs("withdrawal", WithdrawalServiceConfig::class.java, "/eth/withdrawal.properties")
+        .fanout { loadEthPasswords("withdrawal", "/eth/ethereum_password.properties", args) }
+        .map { (withdrawalConfig, passwordConfig) ->
+            loadConfigs(RELAY_VACUUM_PREFIX, RelayVacuumConfig::class.java, "/eth/vacuum.properties")
+                .map { relayVacuumConfig ->
+                    executeWithdrawal(withdrawalConfig, passwordConfig, relayVacuumConfig)
+                }
+        }
+        .failure { ex ->
+            logger.error("Cannot run withdrawal service", ex)
+            System.exit(1)
+        }
 }
 
 fun executeWithdrawal(

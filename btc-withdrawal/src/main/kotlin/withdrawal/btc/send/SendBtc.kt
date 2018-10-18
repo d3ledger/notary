@@ -33,7 +33,7 @@ fun main(args: Array<String>) {
     val satAmount = args[1].toInt()
     val withdrawalConfig = loadConfigs(
         "btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties"
-    )
+    ).get()
     IrohaInitialization.loadIrohaLibrary()
         .map {
             val irohaNetwork = IrohaNetworkImpl(withdrawalConfig.iroha.hostname, withdrawalConfig.iroha.port)

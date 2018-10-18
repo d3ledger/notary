@@ -25,7 +25,7 @@ class BtcConfigHelper(
                 "btc-address-generation",
                 BtcAddressGenerationConfig::class.java,
                 "/btc/address_generation.properties"
-            )
+            ).get()
 
         return object : BtcAddressGenerationConfig {
             override val changeAddressesStorageAccount = accountHelper.changeAddressesStorageAccount.accountId
@@ -45,7 +45,7 @@ class BtcConfigHelper(
     /** Creates config for BTC withdrawal service */
     fun createBtcWithdrawalConfig(): BtcWithdrawalConfig {
         val btcWithdrawalConfig =
-            loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties")
+            loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties").get()
         return object : BtcWithdrawalConfig {
             override val changeAddressesStorageAccount = accountHelper.changeAddressesStorageAccount.accountId
             override val registrationCredential =
@@ -77,7 +77,7 @@ class BtcConfigHelper(
     }
 
     fun createBtcNotaryConfig(): BtcNotaryConfig {
-        val btcNotaryConfig = loadConfigs("btc-notary", BtcNotaryConfig::class.java, "/btc/notary.properties")
+        val btcNotaryConfig = loadConfigs("btc-notary", BtcNotaryConfig::class.java, "/btc/notary.properties").get()
 
         return object : BtcNotaryConfig {
             override val healthCheckPort = btcNotaryConfig.healthCheckPort
@@ -101,7 +101,7 @@ class BtcConfigHelper(
 
     fun createBtcRegistrationConfig(): BtcRegistrationConfig {
         val btcRegistrationConfig =
-            loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/btc/registration.properties")
+            loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/btc/registration.properties").get()
         return object : BtcRegistrationConfig {
             override val healthCheckPort = btcRegistrationConfig.healthCheckPort
             override val notaryAccount = accountHelper.notaryAccount.accountId

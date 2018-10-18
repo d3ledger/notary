@@ -100,10 +100,10 @@ fun <T : Any> loadConfigs(
 }
 
 private fun <T : Any> loadValidatedConfigs(
-        prefix: String,
-        type: Class<T>,
-        filename: String,
-        vararg validators: ConfigValidationRule<T>
+    prefix: String,
+    type: Class<T>,
+    filename: String,
+    vararg validators: ConfigValidationRule<T>
 ): T {
     val profile = getProfile()
     val (file, extension) = filename.split(".")
@@ -131,7 +131,11 @@ fun <T : Any> loadRawConfigs(prefix: String, type: Class<T>, filename: String): 
 /**
  * Loads ETH passwords. Lookup priority: command line args>environment variables>property file
  */
-fun loadEthPasswords(prefix: String, filename: String, args: Array<String> = emptyArray()): Result<EthereumPasswords, Exception> {
+fun loadEthPasswords(
+    prefix: String,
+    filename: String,
+    args: Array<String> = emptyArray()
+): Result<EthereumPasswords, Exception> {
     val ethPasswordsFromArgs = createEthPasswordsFromArgs(args)
     if (ethPasswordsFromArgs != null) {
         logger.info { "eth passwords configuration was taken from command line arguments" }

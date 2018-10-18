@@ -20,8 +20,10 @@ private val logger = KLogging().logger
  * Entry point for moving all currency from relay contracts to master contract
  */
 fun main(args: Array<String>) {
-    val relayVacuumConfig = loadConfigs(RELAY_VACUUM_PREFIX, RelayVacuumConfig::class.java, "/eth/vacuum.properties").get()
-    executeVacuum(relayVacuumConfig, args)
+    loadConfigs(RELAY_VACUUM_PREFIX, RelayVacuumConfig::class.java, "/eth/vacuum.properties")
+        .map {
+            executeVacuum(it, args)
+        }
         .failure { ex ->
             logger.error("Cannot run vacuum", ex)
             System.exit(1)
