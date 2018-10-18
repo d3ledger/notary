@@ -48,19 +48,5 @@ services:
       - d3-network
 
 
-  grpcwebproxy:
-    image: nexus.iroha.tech:19002/d3-deploy/grpcwebproxy
-    container_name: d3-grpcwebproxy
-    ports:
-      - 8081:8080
-      - 8443:8443
-    entrypoint:
-      - grpcwebproxy
-      - --backend_addr=d3-iroha:50051
-      - --run_tls_server=false
-    networks:
-      - d3-network
-
-
 networks:
   d3-network:
