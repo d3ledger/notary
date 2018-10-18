@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <title>{{summary.title}}</title>
+    <link rel="stylesheet" type="text/css" href="../resources/main/semantic.min.css">
+    <style>
+        h2 {
+            margin-top:1.5em !important;
+        }
+        .dont-break-out {
+
+  /* These are technically the same, but use both */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+
+  -ms-word-break: break-all;
+  /* This is the dangerous one in WebKit, as it breaks things wherever */
+  word-break: break-all;
+  /* Instead use this non-standard one: */
+  word-break: break-word;
+
+  /* Adds a hyphen where the word breaks, if supported (No Blink) */
+  -ms-hyphens: auto;
+  -moz-hyphens: auto;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+min-width:110px !important;
+}
+    </style>
+</head>
+<body>
+<div class="ui container" style="padding-top:20px">
+    <h1 class="ui dividing header">{{summary.title}}</h1>
+
+    <div class="ui vertical segment">
+        <h2 class="ui header">Summary</h2>
+        <p>The report contains statistics about integration test cases written in D3 project</p>
+
+
+        <table class="ui striped very basic celled collapsing table">
+            <tbody>
+            <tr>
+                <td>Project Root Dir</td>
+                <td><code>{{summary.projectRootDir}}</code></td>
+            </tr>
+            <tr>
+                <td>Report Generation Date</td>
+                <td>{{summary.generationDate}}</td>
+            </tr>
+            </tbody>
+        </table>
+
+
+        <div class="ui small statistics">
+
+            <div class="statistic">
+                <div class="value">
+                    {{summary.filesWithTests}}
+                </div>
+                <div class="label">
+                    files with tests
+                </div>
+            </div>
+            <div class="statistic">
+                <div class="value">
+                    {{summary.testCases}}
+                </div>
+                <div class="label">
+                    test cases
+                </div>
+            </div>
+            <div class="orange statistic">
+                <div class="value">
+                    {{summary.lacksInDescription}}
+                </div>
+                <div class="label">
+                    lacks in description
+                </div>
+            </div>
+            <div class="statistic">
+                <div class="value">
+                    {{summary.disabledCases}}
+                </div>
+                <div class="label">
+                    disabled cases
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{#hasLacksOfDescription}}
+    <div class="ui vertical segment" id="noDescription">
+        <h2 class="ui header">No description test cases</h2>
+        <div class="ui list">
+            <div class="item">
+                <div class="content">
+                    <div class="list">
+                        {{#noDescriptionTestCases}}
+                        <div class="item">
+                            <div class="content">
+                                {{.}}
+                            </div>
+                        </div>
+                        {{/noDescriptionTestCases}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{/hasLacksOfDescription}}
+
+    <div class="ui vertical segment" id="testFiles">
+        <h2 class="ui header">Test files</h2>
+        <div class="ui list">
+            <div class="item">
+                <div class="content">
+                    <div class="list">
+                        <div class="item">
+                            <div class="content">
+                                {{#testFiles}}
+                                <div class="header"><a
+                                        href="#{{.}}">{{.}}</a>
+                                </div>
+                                {{/testFiles}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <h2 class="ui header">Test Cases</h2>
+
+    {{#reportData}}
+    <div class="ui top attached block header" id="{{fileName}}">
+        <div style="display:inline-block">{{fileName}}</div>
+        <div style="float: right;">
+            <a href="#testFiles">back to test files</a>
+        </div>
+    </div>
+    <div class="ui bottom attached segment">
+        <table class="ui selectable very basic celled attached table">
+            <thead>
+            <tr>
+                <th>Line</th>
+                <th class="collapsing">Test Name</th>
+                <th>Given</th>
+                <th>When</th>
+                <th>Then</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{#reportItems}}
+            <tr class="">
+                <td>{{line}}</td>
+                <td>{{#disabled}}
+                    <div class="ui grey horizontal label">DISABLED</div>
+                    {{/disabled}}{{testCaseName}}
+                </td>
+                <td>{{given}}</td>
+                <td>{{when}}</td>
+                <td>{{then}}</td>
+            </tr>
+            {{/reportItems}}
+            </tbody>
+        </table>
+    </div>
+    {{/reportData}}
+    <div class="ui basic segment">&nbsp;</div>
+
+</div>
+
+</body>
+</html>

@@ -1,3 +1,4 @@
 rootProject.name = 'notary'
 include 'notary-integration-test', 'btc', 'btc-deposit', 'btc-registration', 'btc-pregeneration'
 include 'test-longevity'
+include 'd3testreport'

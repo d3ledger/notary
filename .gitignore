@@ -18,6 +18,7 @@
 *.zip
 *.tar.gz
 *.rar
+*.class
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
@@ -39,6 +40,10 @@ hs_err_pid*
 /btc-pregeneration/build/
 /btc-pregeneration/gradle/
 /btc-pregeneration/gradlew
+/d3testreport/gradle
+/d3testreport/gradlew
+/d3testreport/gradlew.bat
+/d3testreport/build
 
 *gradlew.bat
 
