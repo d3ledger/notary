@@ -38,7 +38,6 @@ class IrohaBatchTest {
 
     private val testCredential = IntegrationHelperUtil().testCredential
 
-    private val keypair = testCredential.keyPair
     private val tester = testCredential.accountId
 
     val assetDomain = "notary"

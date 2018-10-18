@@ -1,4 +1,4 @@
-package registration.btc
+package registration.btc.config
 
 import config.IrohaConfig
 import config.IrohaCredentialConfig
@@ -21,4 +21,7 @@ interface BtcRegistrationConfig {
 
     /** Iroha configuration */
     val iroha: IrohaConfig
+
+    /** Port for health check service */
+    val healthCheckPort: Int
 }
