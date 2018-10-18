@@ -4,7 +4,6 @@ import com.github.kittinunf.result.success
 import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import provider.eth.ETH_ADDRESS
@@ -16,7 +15,6 @@ import util.getRandomString
 /**
  * Test Iroha Ethereum ERC20 tokens provider
  */
-@Disabled
 class EthTokensProviderTest {
     private val integrationHelper = IntegrationHelperUtil()
 

@@ -20,7 +20,7 @@ private val btcAsset = "btc#bitcoin"
 class BtcNotaryIntegrationTest {
 
     init {
-        //integrationHelper.generateBtcBlocks()
+        integrationHelper.generateBtcBlocks()
         integrationHelper.addNotary("test_notary", "test_notary_address")
     }
 

@@ -135,7 +135,7 @@ class IntegrationHelperUtil {
         BitcoinRpcClientFactory.createClient(
             user = "test",
             password = "test",
-            host = "d3-btc-node0",//configHelper.createBtcNotaryConfig().bitcoin.host,
+            host = configHelper.createBtcNotaryConfig().bitcoin.host,
             port = 8332,
             secure = false
         )

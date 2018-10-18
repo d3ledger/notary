@@ -7,7 +7,6 @@ import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import provider.eth.EthTokensProviderImpl
@@ -19,7 +18,6 @@ import java.io.File
 /**
  * Requires Iroha is running
  */
-@Disabled
 class ERC20TokenRegistrationTest {
     private val integrationHelper = IntegrationHelperUtil()
     private val tokensFilePath = "tokens-for-test.json"

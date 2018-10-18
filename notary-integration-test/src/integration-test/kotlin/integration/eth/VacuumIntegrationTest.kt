@@ -3,14 +3,12 @@ package integration.eth
 import integration.helper.IntegrationHelperUtil
 import mu.KLogging
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.math.BigInteger
 
 /**
  * Integration tests for vacuum use case
  */
-@Disabled
 class VacuumIntegrationTest {
 
     private val integrationHelper = IntegrationHelperUtil()

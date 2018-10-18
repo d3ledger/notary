@@ -4,7 +4,6 @@ import config.IrohaCredentialConfig
 import config.loadEthPasswords
 import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import provider.eth.ETH_PRECISION
@@ -17,7 +16,6 @@ import java.math.BigInteger
 /**
  * Integration tests with multiple notaries for deposit case.
  */
-@Disabled
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DepositMultiIntegrationTest {
     /** Utility functions for integration tests */

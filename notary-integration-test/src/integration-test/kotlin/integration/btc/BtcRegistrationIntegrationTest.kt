@@ -5,7 +5,6 @@ import jp.co.soramitsu.iroha.ModelCrypto
 import model.IrohaCredential
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
@@ -20,7 +19,6 @@ import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import java.math.BigInteger
 
-@Disabled
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcRegistrationIntegrationTest {
 

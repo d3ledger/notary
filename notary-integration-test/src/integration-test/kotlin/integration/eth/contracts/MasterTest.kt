@@ -5,7 +5,6 @@ import contract.Master
 import integration.helper.ContractTestHelper
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Keys
@@ -13,7 +12,6 @@ import org.web3j.protocol.exceptions.TransactionException
 import sidechain.eth.util.hashToWithdraw
 import java.math.BigInteger
 
-@Disabled
 class MasterTest {
     private lateinit var cth: ContractTestHelper
     private lateinit var master: Master
