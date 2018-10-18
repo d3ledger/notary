@@ -8,4 +8,4 @@ RUN apt-get update && \
 
 COPY . /root
 
-CMD ["bitcoind", "--conf=/root/bitcoin.conf"]
+CMD ["bitcoind", "--conf=/bitcoin/.bitcoin/bitcoin.conf"]

@@ -75,8 +75,15 @@ services:
   d3-btc-node0:
     image: kylemanna/bitcoind:latest
     container_name: d3-btc-node0
-    volumes:
-      - ./bitcoin/bitcoin.conf:/bitcoin/.bitcoin/bitcoin.conf
+    entrypoint:
+    - bitcoind
+    - --rpcuser=test
+    - --rpcpassword=test
+    - --regtest=1
+    - --server=1
+    - --rpcallowip=172.0.0.0/8
+    - --rpcport=8332
+
 
 volumes:
   iroha_block_store:
