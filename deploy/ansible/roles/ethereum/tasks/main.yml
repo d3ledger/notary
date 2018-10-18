@@ -1,0 +1,60 @@
+- name: Clean files dir
+  local_action:
+    module: file
+    path: "{{ role_path }}/files/"
+    state: absent
+  run_once: yes
+  become: no
+
+- name: Create notary accounts
+  local_action:
+    module: shell
+    _raw_params: >
+      ./create_account.sh notary_{{ inventory_hostname}} {{ eth_pass }}
+    chdir: "{{ role_path }}"
+  become: no
+
+- name: Create other ethereum accounts
+  local_action:
+    module: shell
+    _raw_params: >
+      ./create_account.sh {{ item }} {{ eth_pass }}
+    chdir: "{{ role_path }}"
+  with_items:
+    - withdrawal
+    - registration
+    - relay_registration
+    - vacuum
+  become: no
+  run_once: yes
+
+- name: Create notary addr list file
+  local_action:
+    module: shell
+    _raw_params: >
+      printf 0x'{{ lookup('file','files/notary_{{ inventory_hostname }}.key')
+        | from_json
+        |  json_query('address') }} ' \
+        >> list.txt
+    chdir: "{{ role_path }}/files"
+  become: no
+
+- name: Set notary addrs
+  local_action:
+    module: shell
+    _raw_params: >
+      cat list.txt
+    chdir: "{{ role_path }}/files"
+  become: no
+  register: addrs
+
+- debug: var=addrs.stdout
+
+- name: Deploy relay registry and master contract
+  local_action:
+    module: shell
+    _raw_params: >
+      ./gradlew runPreDeployEthereum --args='{{ addrs.stdout }}'
+    chdir: "{{ playbook_dir }}/../../"
+  become: no
+  run_once: yes
