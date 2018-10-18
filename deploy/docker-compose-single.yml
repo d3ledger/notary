@@ -3,7 +3,7 @@ version: '3'
 
 services:
   d3-eth-relay:
-    image: nexus.iroha.tech:19002/d3-deploy/eth-relay:${TAG}
+    image: nexus.iroha.tech:19002/d3-deploy/eth-relay:${TAG-master}
     container_name: d3-eth-relay
     volumes:
       - ./:/opt/notary/deploy
@@ -18,7 +18,7 @@ services:
 
 
   d3-registration:
-    image: nexus.iroha.tech:19002/d3-deploy/registration:${TAG}
+    image: nexus.iroha.tech:19002/d3-deploy/registration:${TAG-master}
     container_name: d3-registration
     ports:
       - 8083:8083
@@ -34,7 +34,7 @@ services:
       - d3-network
 
   d3-withdrawal:
-    image: nexus.iroha.tech:19002/d3-deploy/withdrawal:${TAG}
+    image: nexus.iroha.tech:19002/d3-deploy/withdrawal:${TAG-master}
     container_name: d3-withdrawal
     volumes:
       - ./:/opt/notary/deploy

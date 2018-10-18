@@ -2,7 +2,7 @@ version: '3'
 
 services:
   d3-notary:
-    image: nexus.iroha.tech:19002/d3-deploy/notary:${TAG}
+    image: nexus.iroha.tech:19002/d3-deploy/notary:${TAG:-master}
     container_name: d3-notary
     depends_on:
       - d3-iroha
