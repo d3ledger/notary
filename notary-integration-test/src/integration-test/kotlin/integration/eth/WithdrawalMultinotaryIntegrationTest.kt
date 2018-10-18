@@ -10,6 +10,7 @@ import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
 import notary.eth.ENDPOINT_ETHEREUM
 import notary.eth.EthNotaryConfig
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.web3j.crypto.ECKeyPair
@@ -25,6 +26,7 @@ import util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
 
+@Disabled
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class WithdrawalMultinotaryIntegrationTest {
     /** Utility functions for integration tests */

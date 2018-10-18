@@ -1,6 +1,7 @@
 package integration.eth
 
 import integration.helper.IntegrationHelperUtil
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.web3j.protocol.exceptions.TransactionException
@@ -10,6 +11,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import kotlin.test.assertEquals
 
+@Disabled
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class FailedTransactionTest {
     val integrationHelper = IntegrationHelperUtil()

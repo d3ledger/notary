@@ -11,6 +11,7 @@ import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import pregeneration.btc.BtcPreGenInitialization
@@ -29,6 +30,7 @@ import java.io.File
 private const val WAIT_PREGEN_INIT_MILLIS = 10_000L
 private const val WAIT_PREGEN_PROCESS_MILLIS = 15_000L
 
+@Disabled
 class BtcPreGenIntegrationTest {
 
     private val integrationHelper = IntegrationHelperUtil()

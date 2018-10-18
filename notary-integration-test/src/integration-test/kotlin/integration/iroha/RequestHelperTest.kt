@@ -1,6 +1,7 @@
 package integration.iroha
 
 import integration.helper.IntegrationHelperUtil
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import sidechain.iroha.consumer.IrohaNetworkImpl
@@ -12,6 +13,7 @@ import kotlin.test.assertEquals
  *
  * Note: Requires Iroha running.
  */
+@Disabled
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RequestHelperTest {
 

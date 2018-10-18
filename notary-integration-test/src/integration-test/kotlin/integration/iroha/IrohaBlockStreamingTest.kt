@@ -10,6 +10,7 @@ import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import sidechain.iroha.IrohaChainListener
@@ -21,6 +22,7 @@ import java.util.concurrent.TimeUnit
 /**
  * Note: Requires Iroha is running.
  */
+@Disabled
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class IrohaBlockStreamingTest {
 
