@@ -43,6 +43,8 @@ import java.io.File
 import java.math.BigDecimal
 import java.math.BigInteger
 
+const val btcAsset = "btc#bitcoin"
+
 /**
  * Utility class that makes testing more comfortable.
  * Class lazily creates new master contract in Ethereum and master account in Iroha.
@@ -87,7 +89,7 @@ class IntegrationHelperUtil : Closeable {
     /** Ethereum utils */
     private val contractTestHelper by lazy { ContractTestHelper() }
 
-    private val irohaNetwork by lazy {
+    val irohaNetwork by lazy {
         IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
     }
 
@@ -348,6 +350,11 @@ class IntegrationHelperUtil : Closeable {
         masterContract.disableAddingNewPeers().send()
     }
 
+    // Converts Bitcoins to Satoshi
+    fun btcToSat(btc: Int): Long {
+        return btc * 100_000_000L
+    }
+
     /**
      * Deploys relay contracts in Ethereum network
      */
@@ -481,16 +488,26 @@ class IntegrationHelperUtil : Closeable {
      * Sends btc to a given address
      */
 
-    fun sendBtc(address: String, amount: Int) {
+    fun sendBtc(address: String, amount: Int, confirmations: Int = 6) {
         rpcClient.sendToAddress(address = address, amount = BigDecimal(amount))
-        generateBtcBlocks(6)
+        generateBtcBlocks(confirmations)
     }
 
     /**
      * Creates blocks in bitcoin blockchain. May be used as transaction confirmation mechanism.
      */
     fun generateBtcBlocks(blocks: Int = 150) {
-        rpcClient.generate(numberOfBlocks = blocks)
+        if (blocks > 0) {
+            rpcClient.generate(numberOfBlocks = blocks)
+            logger.info { "New $blocks ${singularOrPluralBlocks(blocks)} generated in Bitcoin blockchain" }
+        }
+    }
+
+    private fun singularOrPluralBlocks(blocks: Int): String {
+        if (blocks == 1) {
+            return "block was"
+        }
+        return "blocks were"
     }
 
     /**
