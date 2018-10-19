@@ -17,7 +17,6 @@ class BtcNotaryAppConfiguration {
     fun notaryConfig() = notaryConfig
 
     @Bean
-    // TODO add annotation @PreDestroy in order to close()
     fun irohaNetwork() = IrohaNetworkImpl(notaryConfig.iroha.hostname, notaryConfig.iroha.port)
 
     @Bean
