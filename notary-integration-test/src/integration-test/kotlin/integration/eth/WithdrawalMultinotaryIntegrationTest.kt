@@ -9,6 +9,7 @@ import notary.endpoint.eth.EthNotaryResponse
 import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
 import notary.eth.ENDPOINT_ETHEREUM
 import notary.eth.EthNotaryConfig
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -59,7 +60,6 @@ class WithdrawalMultinotaryIntegrationTest {
         notaryConfig1 = integrationHelper.configHelper.createEthNotaryConfig()
         integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig1)
 
-
         // create 2nd notary config
         val ethereumConfig2 =
             integrationHelper.configHelper.createEthereumConfig(ethKeyPath.split(".key").first() + "2.key")
@@ -79,6 +79,12 @@ class WithdrawalMultinotaryIntegrationTest {
         notaryConfig1.iroha.hostname,
         notaryConfig1.iroha.port
     )
+
+    @AfterAll
+    fun dropDown() {
+        integrationHelper.close()
+        irohaNetwork.close()
+    }
 
     /**
      * Test US-003 Withdrawal of ETH token

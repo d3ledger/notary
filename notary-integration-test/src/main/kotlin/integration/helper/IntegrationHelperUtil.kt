@@ -38,6 +38,7 @@ import token.EthTokenInfo
 import util.getRandomString
 import vacuum.RelayVacuumConfig
 import withdrawalservice.WithdrawalServiceConfig
+import java.io.Closeable
 import java.io.File
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -46,7 +47,7 @@ import java.math.BigInteger
  * Utility class that makes testing more comfortable.
  * Class lazily creates new master contract in Ethereum and master account in Iroha.
  */
-class IntegrationHelperUtil {
+class IntegrationHelperUtil : Closeable {
 
     init {
         IrohaInitialization.loadIrohaLibrary()
@@ -54,6 +55,11 @@ class IntegrationHelperUtil {
                 logger.error("Cannot load Iroha library", ex)
                 System.exit(1)
             }
+    }
+
+    override fun close() {
+        irohaNetwork.close()
+        irohaListener.close()
     }
 
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
@@ -66,7 +72,7 @@ class IntegrationHelperUtil {
         ).get()
     )
 
-    val accountHelper by lazy { AccountHelper() }
+    val accountHelper by lazy { AccountHelper(irohaNetwork) }
 
     val configHelper by lazy {
         ConfigHelper(
@@ -86,36 +92,38 @@ class IntegrationHelperUtil {
     }
 
     private val irohaConsumer by lazy {
-        IrohaConsumerImpl(
-            testCredential,
-            testConfig.iroha
-        )
+        IrohaConsumerImpl(testCredential, irohaNetwork)
     }
 
+    private val irohaListener = IrohaChainListener(
+        testConfig.iroha.hostname,
+        testConfig.iroha.port,
+        testCredential
+    )
+
+    val ethListener = EthChainListener(
+        contractTestHelper.deployHelper.web3,
+        BigInteger.valueOf(testConfig.ethereum.confirmationPeriod)
+    )
+
     private val registrationConsumer by lazy {
-        IrohaConsumerImpl(
-            accountHelper.registrationAccount,
-            testConfig.iroha
-        )
+        IrohaConsumerImpl(accountHelper.registrationAccount, irohaNetwork)
     }
 
     private val tokenProviderIrohaConsumer by lazy {
-        IrohaConsumerImpl(
-            accountHelper.tokenSetterAccount,
-            testConfig.iroha
-        )
+        IrohaConsumerImpl(accountHelper.tokenSetterAccount, irohaNetwork)
     }
 
     private val whiteListIrohaConsumer by lazy {
-        IrohaConsumerImpl(accountHelper.whitelistSetter, testConfig.iroha)
+        IrohaConsumerImpl(accountHelper.whitelistSetter, irohaNetwork)
     }
 
     private val notaryListIrohaConsumer by lazy {
-        IrohaConsumerImpl(accountHelper.notaryListSetterAccount, testConfig.iroha)
+        IrohaConsumerImpl(accountHelper.notaryListSetterAccount, irohaNetwork)
     }
 
     private val mstRegistrationIrohaConsumer by lazy {
-        IrohaConsumerImpl(accountHelper.mstRegistrationAccount, testConfig.iroha)
+        IrohaConsumerImpl(accountHelper.mstRegistrationAccount, irohaNetwork)
     }
 
     val relayRegistryContract by lazy {
@@ -144,8 +152,8 @@ class IntegrationHelperUtil {
     /** Provider that is used to store/fetch tokens*/
     val ethTokensProvider by lazy {
         EthTokensProviderImpl(
-            testConfig.iroha,
             testCredential,
+            irohaNetwork,
             accountHelper.tokenStorageAccount.accountId,
             accountHelper.tokenSetterAccount.accountId
         )
@@ -154,8 +162,8 @@ class IntegrationHelperUtil {
     /** Provider that is used to get free registered relays*/
     private val ethFreeRelayProvider by lazy {
         EthFreeRelayProvider(
-            testConfig.iroha,
             accountHelper.registrationAccount,
+            irohaNetwork,
             accountHelper.notaryAccount.accountId,
             accountHelper.registrationAccount.accountId
         )
@@ -184,15 +192,15 @@ class IntegrationHelperUtil {
     private val btcRegistrationStrategy by lazy {
         val btcAddressesProvider =
             BtcAddressesProvider(
-                testConfig.iroha,
                 testCredential,
+                irohaNetwork,
                 accountHelper.mstRegistrationAccount.accountId,
                 accountHelper.notaryAccount.accountId
             )
         val btcTakenAddressesProvider =
             BtcRegisteredAddressesProvider(
-                testConfig.iroha,
                 testCredential,
+                irohaNetwork,
                 accountHelper.registrationAccount.accountId,
                 accountHelper.notaryAccount.accountId
             )
@@ -210,7 +218,9 @@ class IntegrationHelperUtil {
     private val relayRegistration by lazy {
         RelayRegistration(
             configHelper.createRelayRegistrationConfig(),
-            accountHelper.registrationAccount, configHelper.ethPasswordConfig
+            accountHelper.registrationAccount,
+            irohaNetwork,
+            configHelper.ethPasswordConfig
         )
     }
 
@@ -334,6 +344,7 @@ class IntegrationHelperUtil {
      * Before smart contract can be used it should be locked in order to prevent adding malicious peers.
      */
     fun lockEthMasterSmartcontract() {
+        logger.info { "Disable adding new peers on master contract ${masterContract.contractAddress}" }
         masterContract.disableAddingNewPeers().send()
     }
 
@@ -402,29 +413,17 @@ class IntegrationHelperUtil {
      * Waits for exactly one iroha block
      */
     fun waitOneIrohaBlock() {
-
-        val listener = IrohaChainListener(
-            testConfig.iroha.hostname,
-            testConfig.iroha.port,
-            testCredential
-        )
-
         runBlocking {
-            val block = listener.getBlock()
+            val block = irohaListener.getBlock()
             logger.info { "Wait for one block ${block.payload.height}" }
         }
-
     }
 
     /**
      * Waits for exactly one Ethereum block
      */
     fun waitOneEtherBlock() {
-        val listener = EthChainListener(
-            contractTestHelper.deployHelper.web3,
-            BigInteger.valueOf(testConfig.ethereum.confirmationPeriod)
-        )
-        runBlocking { listener.getBlock() }
+        runBlocking { ethListener.getBlock() }
     }
 
     /**

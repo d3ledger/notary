@@ -9,13 +9,14 @@ import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.consumer.IrohaConsumerImpl
+import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 
 /**
  * Class that handles all the accounts in running configuration.
  */
-class AccountHelper {
+class AccountHelper(private val irohaNetwork: IrohaNetwork) {
 
     val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
@@ -28,7 +29,7 @@ class AccountHelper {
         ).get()
     )
 
-    private val irohaConsumer by lazy { IrohaConsumerImpl(testCredential, testConfig.iroha) }
+    private val irohaConsumer by lazy { IrohaConsumerImpl(testCredential, irohaNetwork) }
 
     /** Notary account */
     val notaryAccount by lazy { createNotaryAccount() }
@@ -99,7 +100,7 @@ class AccountHelper {
     private fun createNotaryAccount(): IrohaCredential {
         val credential = createTesterAccount("eth_notary_${String.getRandomString(9)}", "notary")
 
-        IrohaConsumerImpl(credential, testConfig.iroha).sendAndCheck(
+        IrohaConsumerImpl(credential, irohaNetwork).sendAndCheck(
             ModelTransactionBuilder()
                 .creatorAccountId(credential.accountId)
                 .createdTime(ModelUtil.getCurrentTime())

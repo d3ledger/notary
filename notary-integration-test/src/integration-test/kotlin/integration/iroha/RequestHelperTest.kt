@@ -1,6 +1,7 @@
 package integration.iroha
 
 import integration.helper.IntegrationHelperUtil
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import sidechain.iroha.consumer.IrohaNetworkImpl
@@ -19,12 +20,17 @@ class RequestHelperTest {
         System.loadLibrary("irohajava")
     }
 
-    val helper = IntegrationHelperUtil()
-    val credential = helper.testCredential
-    val irohaConfig = helper.configHelper.createIrohaConfig()
-
+    val integrationHelper = IntegrationHelperUtil()
+    val credential = integrationHelper.testCredential
+    val irohaConfig = integrationHelper.configHelper.createIrohaConfig()
 
     private val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
+
+    @AfterAll
+    fun dropDown() {
+        integrationHelper.close()
+        irohaNetwork.close()
+    }
 
     /**
      * @given Iroha running

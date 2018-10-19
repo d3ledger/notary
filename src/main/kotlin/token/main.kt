@@ -8,6 +8,7 @@ import config.loadConfigs
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.IrohaInitialization
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
 private val logger = KLogging().logger
@@ -35,7 +36,14 @@ fun executeTokenRegistration(tokenRegistrationConfig: ERC20TokenRegistrationConf
             )
         }
         .map { keypair -> IrohaCredential(tokenRegistrationConfig.irohaCredential.accountId, keypair) }
-        .flatMap { credentials -> ERC20TokenRegistration(tokenRegistrationConfig, credentials).init() }
+        .flatMap { credentials ->
+            IrohaNetworkImpl(
+                tokenRegistrationConfig.iroha.hostname,
+                tokenRegistrationConfig.iroha.port
+            ).use { irohaNetwork ->
+                ERC20TokenRegistration(tokenRegistrationConfig, credentials, irohaNetwork).init()
+            }
+        }
         .fold(
             {
                 logger.info { "ERC20 tokens were successfully registered" }

@@ -51,8 +51,6 @@ class WithdrawalPipelineIntegrationTest {
         }
 
         integrationHelper.lockEthMasterSmartcontract()
-
-        Thread.sleep(10_000)
     }
 
     lateinit var clientName: String
@@ -69,6 +67,7 @@ class WithdrawalPipelineIntegrationTest {
 
     @AfterAll
     fun dropDown() {
+        integrationHelper.close()
         registrationService.cancel()
         withdrawalService.cancel()
     }

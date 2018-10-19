@@ -1,6 +1,7 @@
 package integration.eth
 
 import integration.helper.IntegrationHelperUtil
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.web3j.protocol.exceptions.TransactionException
@@ -16,7 +17,13 @@ class FailedTransactionTest {
 
     init {
         integrationHelper.runEthNotary()
+
         integrationHelper.lockEthMasterSmartcontract()
+    }
+
+    @AfterAll
+    fun dropDown() {
+        integrationHelper.close()
     }
 
     /**

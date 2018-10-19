@@ -15,8 +15,7 @@ import java.math.BigInteger
 /**
  * Get asset precision
  *
- * @param irohaConfig - Iroha configuration parameters
- * @param keypair - iroha keypair
+ * @param credential - iroha credential
  * @param irohaNetwork - iroha network layer
  * @param assetId asset id in Iroha
  */
@@ -43,8 +42,7 @@ fun getAssetPrecision(
 /**
  * Get asset info
  *
- * @param irohaConfig - Iroha configuration parameters
- * @param keypair - iroha keypair
+ * @param credential - iroha credential
  * @param irohaNetwork - iroha network layer
  * @param assetId asset id in Iroha
  */
@@ -70,8 +68,7 @@ fun getAssetInfo(
 /**
  * Get asset balance
  *
- * @param irohaConfig - Iroha configuration parameters
- * @param keypair - iroha keypair
+ * @param credential - iroha credential
  * @param irohaNetwork - iroha network layer
  * @param accountId - iroha account
  *
@@ -105,8 +102,7 @@ fun getAccountAsset(
 
 /**
  * Retrieves account JSON data from Iroha
- * @param irohaConfig - Iroha configuration parameters
- * @param keypair - iroha keypair
+ * @param credential - iroha credential
  * @param irohaNetwork - iroha network layer
  * @param acc account to retrieve relays from
  * @return Map with account details
@@ -134,8 +130,7 @@ fun getAccountData(
 
 /**
  * Retrieves account details by setter from Iroha
- * @param irohaConfig - Iroha configuration parameters
- * @param keypair - iroha keypair
+ * @param credential - iroha credential
  * @param irohaNetwork - iroha network layer
  * @param acc account to retrieve relays from
  * @param detailSetterAccount - account that has set the details

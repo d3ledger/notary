@@ -8,12 +8,14 @@ import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil.getCurrentTime
 import sidechain.iroha.util.ModelUtil.getModelTransactionBuilder
 import java.util.concurrent.TimeUnit
@@ -25,16 +27,32 @@ import java.util.concurrent.TimeUnit
 class IrohaBlockStreamingTest {
 
     /** Test configurations */
-    val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
+    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
-    val testCredential = IntegrationHelperUtil().testCredential
-    val creator = testCredential.accountId
+    private val integrationHelper = IntegrationHelperUtil()
 
-    val keypair = testCredential.keyPair
+    private val testCredential = integrationHelper.testCredential
+
+    private val creator = testCredential.accountId
+
+    private val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
+
+    private val listener = IrohaChainListener(
+        testConfig.iroha.hostname,
+        testConfig.iroha.port,
+        testCredential
+    )
 
     @BeforeAll
     fun setUp() {
         System.loadLibrary("irohajava")
+    }
+
+    @AfterAll
+    fun dropDown() {
+        integrationHelper.close()
+        irohaNetwork.close()
+        listener.close()
     }
 
     /**
@@ -46,11 +64,6 @@ class IrohaBlockStreamingTest {
     fun irohaStreamingTest() {
         var cmds = listOf<iroha.protocol.Commands.Command>()
 
-        val listener = IrohaChainListener(
-            testConfig.iroha.hostname,
-            testConfig.iroha.port,
-            testCredential
-        )
         listener.getBlockObservable()
             .map { obs ->
                 obs.map { block ->
@@ -67,7 +80,7 @@ class IrohaBlockStreamingTest {
             .setAccountDetail(creator, "test", "test")
             .build()
 
-        IrohaConsumerImpl(testCredential, testConfig.iroha).sendAndCheck(utx)
+        IrohaConsumerImpl(testCredential, irohaNetwork).sendAndCheck(utx)
         runBlocking {
             delay(5000, TimeUnit.MILLISECONDS)
         }
@@ -76,7 +89,6 @@ class IrohaBlockStreamingTest {
         assertEquals(creator, cmds.first().setAccountDetail.accountId)
         assertEquals("test", cmds.first().setAccountDetail.key)
         assertEquals("test", cmds.first().setAccountDetail.value)
-        listener.close()
     }
 
     /**
@@ -86,12 +98,6 @@ class IrohaBlockStreamingTest {
      */
     @Test
     fun irohaGetBlockTest() {
-        val listener = IrohaChainListener(
-            testConfig.iroha.hostname,
-            testConfig.iroha.port,
-            testCredential
-        )
-
         val block = async {
             listener.getBlock()
         }
@@ -102,7 +108,7 @@ class IrohaBlockStreamingTest {
             .setAccountDetail(creator, "test", "test")
             .build()
 
-        IrohaConsumerImpl(testCredential, testConfig.iroha).sendAndCheck(utx)
+        IrohaConsumerImpl(testCredential, irohaNetwork).sendAndCheck(utx)
 
 
         val bl = runBlocking {
@@ -117,7 +123,5 @@ class IrohaBlockStreamingTest {
         assertEquals(creator, cmds.first().setAccountDetail.accountId)
         assertEquals("test", cmds.first().setAccountDetail.key)
         assertEquals("test", cmds.first().setAccountDetail.value)
-
-        listener.close()
     }
 }

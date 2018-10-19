@@ -127,7 +127,7 @@ class BtcPublicKeyProvider(
      * @return minimal number of signatures required
      */
     private fun getThreshold(peers: Int): Int {
-        return (peers * 2 / 3) + 1;
+        return (peers * 2 / 3) + 1
     }
 
     /**

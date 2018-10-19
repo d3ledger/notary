@@ -3,13 +3,19 @@ package sidechain.iroha.consumer
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.google.protobuf.ByteString
+import io.reactivex.Observable
+import io.reactivex.rxkotlin.toObservable
 import iroha.protocol.Endpoint
 import iroha.protocol.QryResponses
 import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.Hash
+import jp.co.soramitsu.iroha.ModelBlocksQueryBuilder
+import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.toByteArray
+import java.math.BigInteger
+import java.util.concurrent.TimeUnit
 
 /**
  * Implements netwrok layer of Iroha chain
@@ -104,8 +110,8 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
 
         return Result.of {
             hashes.map { checkTransactionStatus(it) }
-                .filter {
-                    it.fold(
+                .filter { res ->
+                    res.fold(
                         { true },
                         {
                             logger.warn("Batch tx was failed: ", it)
@@ -127,10 +133,32 @@ class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
     }
 
     /**
+     * Get block streaming.
+     */
+    override fun getBlockStreaming(credential: IrohaCredential): Result<Observable<QryResponses.BlockQueryResponse>, Exception> {
+        return Result.of {
+            val uquery = ModelBlocksQueryBuilder()
+                .creatorAccountId(credential.accountId)
+                .createdTime(ModelUtil.getCurrentTime())
+                .queryCounter(BigInteger.valueOf(1))
+                .build()
+            val query = ModelUtil.prepareBlocksQuery(uquery, credential.keyPair)!!
+
+            queryStub.fetchCommits(query).toObservable()
+        }
+    }
+
+    /**
      * Shutdown channel
      */
-    fun shutdown() {
+    override fun close() {
         channel.shutdown()
+        try {
+            channel.awaitTermination(1, TimeUnit.SECONDS)
+        } catch (ex: InterruptedException) {
+            logger.warn("IrohaNetwork close error.", ex)
+            channel.shutdownNow()
+        }
     }
 
     /**
