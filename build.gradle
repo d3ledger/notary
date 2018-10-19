@@ -9,6 +9,7 @@ buildscript {
     }
     configurations.maybeCreate("pitest")
     dependencies {
+        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.2"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.6'
         classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.3.0'
@@ -27,6 +28,24 @@ apply plugin: 'com.google.protobuf'
 apply plugin: "jacoco"
 apply plugin: 'info.solidsoft.pitest'
 apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'org.sonarqube'
+
+sonarqube {
+    properties {
+        property "sonar.projectName", "D3 notary"
+        property "sonar.projectKey", "D3:notary"
+        property "sonar.sources", "src/main"
+        property "sonar.test", "src/test"
+        property "sonar.inclusions", "*.java, *.kt"
+        property "sonar.test.inclusions", "*.java, *.kt"
+        property "sonar.java.binaries", "${project.projectDir}/build/classes"
+        property "sonar.java.libraries", "${project.projectDir}/build/libs"
+        property "sonar.java.test.binaries", "${project.projectDir}/build/test-results/test/binary"
+        property "sonar.junit.reportsPaths", "${project.projectDir}/build/test-results/**/*.xml"
+        property "sonar.jacoco.reportPaths", "${project.projectDir}/build/jacoco/test.exec"
+        property "sonar.exclusions", "${project.projectDir}/**/*.txt"
+    }
+}
 
 allprojects {
     apply plugin: 'java'
@@ -375,4 +394,29 @@ pitest {
     avoidCallsTo = ['kotlin.jvm.internal', 'mu']
     mutators = ['CONDITIONALS_BOUNDARY', 'NEGATE_CONDITIONALS', 'REMOVE_CONDITIONALS', 'MATH', 'INCREMENTS',
                 'INVERT_NEGS', 'INLINE_CONSTS', 'VOID_METHOD_CALLS']
+}
+
+// -------------------------| Code coverage testing |-------------------------
+task codeCoverageReport(type: JacocoReport) {
+
+    // Gather execution data from all subprojects
+    // (change this if you e.g. want to calculate unit test/integration test coverage separately)
+    executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
+
+    // Add all relevant sourcesets from the subprojects
+    subprojects.each {
+       sourceSets it.sourceSets.main
+    }
+
+    reports {
+      xml.enabled true
+      html.enabled false
+      html.destination "${buildDir}/reports/jacoco"
+      csv.enabled false
+    }
+}
+
+// always run the tests before generating the report
+codeCoverageReport.dependsOn {
+    subprojects*.test
 }

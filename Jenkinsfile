@@ -50,6 +50,12 @@ pipeline {
             sh "./gradlew test --info"
             sh "./gradlew compileIntegrationTestKotlin --info"
             sh "./gradlew integrationTest --info"
+            withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
+              sh(script: "./gradlew sonarqube --configure-on-demand \
+                -Dsonar.host.url=https://sonar.soramitsu.co.jp \
+                -Dsonar.login=${SONAR_TOKEN} \
+              ")
+            }
           }
           // scan smartcontracts only on pull requests to master
           try {
