@@ -124,3 +124,4 @@ deploy/bitcoin/testnet/d3.wallet
 deploy/bitcoin/testnet/blocks
 deploy/bitcoin/regtest/blocks
 deploy/bitcoin/regtest/d3.wallet
+deploy/bitcoin/regtest/d3-test.wallet
