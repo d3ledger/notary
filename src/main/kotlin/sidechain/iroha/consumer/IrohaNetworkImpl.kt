@@ -18,7 +18,7 @@ import java.math.BigInteger
 import java.util.concurrent.TimeUnit
 
 /**
- * Implements netwrok layer of Iroha chain
+ * Implements network layer of Iroha chain
  */
 class IrohaNetworkImpl(host: String, port: Int) : IrohaNetwork {
 

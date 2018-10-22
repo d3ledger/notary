@@ -26,9 +26,14 @@ class BtcRegistrationAppConfiguration {
         },
         { ex -> throw ex }
     )
-    // TODO close on termination. Make bean?
-    private val irohaNetwork = IrohaNetworkImpl(btcRegistrationConfig.iroha.hostname, btcRegistrationConfig.iroha.port)
-    private val btcClientCreatorConsumer = IrohaConsumerImpl(btcRegistrationCredential, irohaNetwork)
+
+    @Bean
+    fun irohaNetwork() = IrohaNetworkImpl(btcRegistrationConfig.iroha.hostname, btcRegistrationConfig.iroha.port)
+
+    @Bean
+    fun btcClientCreatorConsumer() = IrohaConsumerImpl(
+        btcRegistrationCredential, irohaNetwork()
+    )
 
     @Bean
     fun btcRegistrationConfig() = btcRegistrationConfig
@@ -37,7 +42,7 @@ class BtcRegistrationAppConfiguration {
     fun btcAddressesProvider(): BtcAddressesProvider {
         return BtcAddressesProvider(
             btcRegistrationCredential,
-            irohaNetwork,
+            irohaNetwork(),
             btcRegistrationConfig.mstRegistrationAccount,
             btcRegistrationConfig.notaryAccount
         )
@@ -47,7 +52,7 @@ class BtcRegistrationAppConfiguration {
     fun btcRegisteredAddressesProvider(): BtcRegisteredAddressesProvider {
         return BtcRegisteredAddressesProvider(
             btcRegistrationCredential,
-            irohaNetwork,
+            irohaNetwork(),
             btcRegistrationCredential.accountId,
             btcRegistrationConfig.notaryAccount
         )
@@ -55,6 +60,6 @@ class BtcRegistrationAppConfiguration {
 
     @Bean
     fun irohaAccountCreator(): IrohaAccountCreator {
-        return IrohaAccountCreator(btcClientCreatorConsumer, btcRegistrationConfig.notaryAccount, "bitcoin")
+        return IrohaAccountCreator(btcClientCreatorConsumer(), btcRegistrationConfig.notaryAccount, "bitcoin")
     }
 }
