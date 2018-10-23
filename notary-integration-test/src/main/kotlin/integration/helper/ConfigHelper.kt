@@ -86,9 +86,12 @@ class ConfigHelper(
         val newWalletFilePath = btcWalletPath.replaceFirst(".wallet", "-test.wallet")
         val walletFile = File(newWalletFilePath)
         if (!walletFile.exists()) {
-            val src = FileInputStream(btcWalletPath).channel
-            val dest = FileOutputStream(newWalletFilePath).channel
-            dest.transferFrom(src, 0, src.size())
+            FileInputStream(btcWalletPath).use { src ->
+                FileOutputStream(newWalletFilePath).use { dest ->
+                    val srcChannel = src.channel
+                    dest.channel.transferFrom(srcChannel, 0, srcChannel.size())
+                }
+            }
         }
         return newWalletFilePath
     }
