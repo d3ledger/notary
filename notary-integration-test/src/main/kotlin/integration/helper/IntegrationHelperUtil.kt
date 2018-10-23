@@ -364,6 +364,21 @@ class IntegrationHelperUtil : Closeable {
     }
 
     /**
+     * Import relays from given file
+     */
+    fun importRelays(filename: String) {
+        relayRegistration.import(filename)
+            .fold(
+                {
+                    logger.info("Relays were imported by ${accountHelper.registrationAccount}")
+                },
+                {
+                    logger.error("Relays were not imported.", it)
+                }
+            )
+    }
+
+    /**
      * Registers relay account in Iroha with given address
      * @param address Ethereum address to register
      */
