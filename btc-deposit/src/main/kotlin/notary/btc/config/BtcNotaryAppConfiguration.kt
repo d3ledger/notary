@@ -33,10 +33,7 @@ class BtcNotaryAppConfiguration {
     }
 
     @Bean
-    fun healthCheckIrohaConfig() = notaryConfig.iroha
-
-    @Bean
-    fun irohaHealthCheckCredential(): IrohaCredential {
+    fun notaryCredential(): IrohaCredential {
         //Assuming Iroha library is loaded
         return ModelUtil.loadKeypair(
             notaryConfig.notaryCredential.pubkeyPath,
