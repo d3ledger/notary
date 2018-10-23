@@ -8,6 +8,7 @@ import sidechain.eth.util.DeployHelper
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
+import java.io.File
 
 /**
  * Class is responsible for relay addresses registration.
@@ -66,6 +67,20 @@ class RelayRegistration(
                     { ex -> logger.error("Cannot deploy relay $relayWallet", ex) })
             }
         }
+    }
+
+    fun import(filename: String): Result<Unit, Exception> {
+        return Result.of {
+            getRelaysFromFile(filename).forEach { relay ->
+                registerRelayIroha(relay).fold(
+                    { logger.info("Relay $relay was imported") },
+                    { ex -> logger.error("Cannot import relay $relay", ex) })
+            }
+        }
+    }
+
+    private fun getRelaysFromFile(filename: String): List<String> {
+        return File(filename).readLines()
     }
 
     /**
