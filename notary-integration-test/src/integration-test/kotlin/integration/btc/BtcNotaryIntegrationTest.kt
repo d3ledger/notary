@@ -5,16 +5,20 @@ import integration.helper.IntegrationHelperUtil
 import integration.helper.btcAsset
 import model.IrohaCredential
 import notary.btc.BtcNotaryInitialization
+import org.bitcoinj.core.Address
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
 import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.btc.network.BtcRegTestConfigProvider
 import sidechain.iroha.CLIENT_DOMAIN
+import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
+import java.io.File
 import java.math.BigDecimal
 
 private val integrationHelper = IntegrationHelperUtil()
@@ -26,6 +30,12 @@ class BtcNotaryIntegrationTest {
     private val irohaCredential = IrohaCredential(
         notaryConfig.notaryCredential.accountId,
         ModelUtil.loadKeypair(notaryConfig.notaryCredential.pubkeyPath, notaryConfig.notaryCredential.privkeyPath).get()
+    )
+
+    private val irohaChainListener = IrohaChainListener(
+        notaryConfig.iroha.hostname,
+        notaryConfig.iroha.port,
+        irohaCredential
     )
 
     private val btcRegisteredAddressesProvider = BtcRegisteredAddressesProvider(
@@ -43,15 +53,20 @@ class BtcNotaryIntegrationTest {
             irohaCredential,
             integrationHelper.irohaNetwork,
             btcRegisteredAddressesProvider,
+            irohaChainListener,
             btcNetworkConfigProvider
         )
 
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
+        //Clear bitcoin blockchain folder
+        File(notaryConfig.bitcoin.blockStoragePath).deleteRecursively()
     }
 
     init {
+        //Clear bitcoin blockchain folder
+        File(notaryConfig.bitcoin.blockStoragePath).deleteRecursively()
         integrationHelper.generateBtcBlocks()
         integrationHelper.addNotary("test_notary", "test_notary_address")
         btcNotaryInitialization.init().failure { ex -> fail("Cannot run BTC notary", ex) }
@@ -81,6 +96,7 @@ class BtcNotaryIntegrationTest {
             BigDecimal(initialBalance).add(integrationHelper.btcToSat(btcAmount).toBigDecimal()).toString(),
             newBalance
         )
+        assertTrue(addressIsWatched(btcAddress, btcNotaryInitialization.getWatchedAddresses()))
     }
 
     /**
@@ -112,6 +128,7 @@ class BtcNotaryIntegrationTest {
             ).toString(),
             newBalance
         )
+        assertTrue(addressIsWatched(btcAddress, btcNotaryInitialization.getWatchedAddresses()))
     }
 
     /**
@@ -135,6 +152,7 @@ class BtcNotaryIntegrationTest {
         Thread.sleep(20_000)
         val newBalance = integrationHelper.getIrohaAccountBalance(testClient, btcAsset)
         assertEquals(initialBalance, newBalance)
+        assertTrue(addressIsWatched(btcAddress, btcNotaryInitialization.getWatchedAddresses()))
     }
 
     /**
@@ -166,5 +184,11 @@ class BtcNotaryIntegrationTest {
             BigDecimal(initialBalance).add(integrationHelper.btcToSat(btcAmount).toBigDecimal()).toString(),
             newBalance
         )
+        assertTrue(addressIsWatched(btcAddress, btcNotaryInitialization.getWatchedAddresses()))
+    }
+
+    //Checks if address is in set of watched address
+    private fun addressIsWatched(btcAddress: String, watchedAddresses: List<Address>): Boolean {
+        return watchedAddresses.find { address -> address.toBase58() == btcAddress } != null
     }
 }
