@@ -3,6 +3,8 @@ package registration
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
+import jp.co.soramitsu.iroha.ModelTransactionBuilder
+import jp.co.soramitsu.iroha.PublicKey
 import mu.KLogging
 import notary.IrohaCommand
 import notary.IrohaOrderedBatch
@@ -39,51 +41,20 @@ class IrohaAccountCreator(
     ): Result<String, Exception> {
         val domain = CLIENT_DOMAIN
         return Result.of {
-
-            // TODO: implement https://soramitsu.atlassian.net/browse/D3-415
-            IrohaOrderedBatch(
-                listOf(
-                    IrohaTransaction(
-                        creator,
-                        getCurrentTime(),
-                        1,
-                        arrayListOf(
-                            // Create account
-                            IrohaCommand.CommandCreateAccount(
-                                userName, domain, pubkey
-                            ),
-                            // Set user wallet/address in account detail
-                            IrohaCommand.CommandSetAccountDetail(
-                                "$userName@$domain",
-                                currencyName,
-                                currencyAddress
-                            ),
-                            // Set wallet/address as occupied by user id
-                            IrohaCommand.CommandSetAccountDetail(
-                                notaryIrohaAccount,
-                                currencyAddress,
-                                "$userName@$domain"
-                            )
-                        )
-                    ),
-                    IrohaTransaction(
-                        creator,
-                        getCurrentTime(),
-                        1,
-                        arrayListOf(
-                            //set whitelist
-                            //TODO this function is used to create both BTC and ETH clients. "eth_whitelist" is not appropriate detail key.
-                            IrohaCommand.CommandSetAccountDetail(
-                                "$userName@$domain",
-                                "eth_whitelist",
-                                whitelist
-                            )
-                        )
-                    )
-                )
-            )
-        }.flatMap { irohaTx ->
-            val utx = IrohaConverterImpl().convert(irohaTx)
+            ModelTransactionBuilder()
+                .createdTime(getCurrentTime())
+                .creatorAccountId(creator)
+                .quorum(1)
+                // Create account
+                .createAccount(userName, domain, PublicKey(PublicKey.fromHexString(pubkey)))
+                // Set user wallet/address in account detail
+                .setAccountDetail("$userName@$domain", "${currencyName}_wallet", currencyAddress)
+                // Set wallet/address as occupied by user id
+                .setAccountDetail(notaryIrohaAccount, currencyAddress, "$userName@$domain")
+                // Set whitelist
+                .setAccountDetail("$userName@$domain", "${currencyName}_whitelist", whitelist)
+                .build()
+        }.map { utx ->
             irohaConsumer.sendAndCheck(utx)
         }.map {
             logger.info { "New account $userName@$domain was created" }
