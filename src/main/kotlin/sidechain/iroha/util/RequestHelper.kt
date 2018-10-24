@@ -5,6 +5,8 @@ import com.beust.klaxon.Parser
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
+import iroha.protocol.BlockOuterClass
+import iroha.protocol.Commands
 import iroha.protocol.QryResponses
 import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.ModelQueryBuilder
@@ -168,6 +170,16 @@ fun getFirstTransaction(queryResponse: QryResponses.QueryResponse): Result<Trans
         // return transaction
         queryResponse.transactionsResponse.transactionsList[0]
     }
+}
+
+/**
+ * Return all "set account detail" commands from Iroha block
+ * @param block - Iroha block
+ * @return list full of "set account detail" commands
+ */
+fun getSetDetailCommands(block: BlockOuterClass.Block): List<Commands.Command> {
+    return block.payload.transactionsList.flatMap { tx -> tx.payload.reducedPayload.commandsList
+    }.filter { command -> command.hasSetAccountDetail() }
 }
 
 /**
