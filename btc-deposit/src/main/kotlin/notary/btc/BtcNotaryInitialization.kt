@@ -52,7 +52,7 @@ class BtcNotaryInitialization(
         logger.info { "Btc notary initialization" }
         //Enables short log format for Bitcoin events
         BriefLogFormatter.init()
-        logger.info { wallet }
+        logger.info { "Current wallet state $wallet" }
         val peerGroup = getPeerGroup(wallet)
         addPeerHealthCheck(peerGroup)
         return irohaChainListener.getBlockObservable().map { irohaObservable ->
