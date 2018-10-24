@@ -60,4 +60,5 @@ dependencies {
     compile project(":btc-registration")
     compile project(":btc-pregeneration")
     compile project(":btc-deposit")
+    compile project(":btc-withdrawal")
 }

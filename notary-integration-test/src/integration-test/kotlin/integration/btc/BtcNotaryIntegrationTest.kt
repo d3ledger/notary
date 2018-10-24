@@ -60,6 +60,7 @@ class BtcNotaryIntegrationTest {
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
+        irohaChainListener.close()
         //Clear bitcoin blockchain folder
         File(notaryConfig.bitcoin.blockStoragePath).deleteRecursively()
     }
