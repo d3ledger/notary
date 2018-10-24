@@ -52,7 +52,13 @@ fun main(args: Array<String>) {
                 relayRegistrationConfig.iroha.hostname,
                 relayRegistrationConfig.iroha.port
             ).use { irohaNetwork ->
-                RelayRegistration(relayRegistrationConfig, credential, irohaNetwork, passwordConfig).deploy()
+                val relayRegistration =
+                    RelayRegistration(relayRegistrationConfig, credential, irohaNetwork, passwordConfig)
+                if (args.size == 0) {
+                    relayRegistration.deploy()
+                } else {
+                    relayRegistration.import(args[0])
+                }
             }
         }.failure { ex ->
             logger.error("Cannot run relay deployer", ex)

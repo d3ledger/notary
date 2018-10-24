@@ -44,7 +44,6 @@ class BtcPreGenerationAppConfiguration {
     private val mstRegistrationCredential =
         IrohaCredential(btcPreGenConfig.mstRegistrationAccount.accountId, mstRegistrationKeyPair)
 
-    // TODO add close() on destroy
     @Bean
     fun irohaNetwork() = IrohaNetworkImpl(
         btcPreGenConfig.iroha.hostname,
@@ -84,19 +83,11 @@ class BtcPreGenerationAppConfiguration {
     fun notaryAccount() = btcPreGenConfig.notaryAccount
 
     @Bean
-    // TODO class is Closeable, make sure it is closed
     fun irohaChainListener() = IrohaChainListener(
         btcPreGenConfig.iroha.hostname,
         btcPreGenConfig.iroha.port,
         registrationCredential
     )
-
-    @Bean
-    fun healthCheckIrohaConfig() = btcPreGenConfig.iroha
-
-    //TODO dedicate a special account for performing Iroha health checks
-    @Bean
-    fun irohaHealthCheckCredential() = registrationCredential
 
     @Bean
     fun registrationCredential() = registrationCredential

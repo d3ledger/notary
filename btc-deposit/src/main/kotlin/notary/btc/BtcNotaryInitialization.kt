@@ -3,6 +3,7 @@ package notary.btc
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
+import healthcheck.HealthyService
 import io.reactivex.Observable
 import model.IrohaCredential
 import mu.KLogging
@@ -31,7 +32,7 @@ class BtcNotaryInitialization(
     @Autowired private val irohaNetwork: IrohaNetwork,
     @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider
-) {
+) : HealthyService() {
 
     /**
      * Init notary
@@ -41,6 +42,7 @@ class BtcNotaryInitialization(
         //Enables short log format for Bitcoin events
         BriefLogFormatter.init()
         val peerGroup = getPeerGroup()
+        addPeerHealthCheck(peerGroup)
         return Result.of {
             getBtcEvents(peerGroup, btcNotaryConfig.bitcoin.confidenceLevel)
         }.map { btcEvents ->
@@ -86,6 +88,21 @@ class BtcNotaryInitialization(
         val blockStore = LevelDBBlockStore(Context(networkParams), levelDbFolder)
         val blockChain = BlockChain(networkParams, wallet, blockStore)
         return PeerGroup(networkParams, blockChain)
+    }
+
+    /**
+     * Adds health checks for a current peer group
+     */
+    private fun addPeerHealthCheck(peerGroup: PeerGroup) {
+        peerGroup.addDisconnectedEventListener { peer, peerCount ->
+            //If no peers left
+            if (peerCount == 0) {
+                logger.warn { "Out of peers" }
+                notHealthy()
+            }
+        }
+        // If new peer connected
+        peerGroup.addConnectedEventListener { peer, peerCount -> cured() }
     }
 
     /**
