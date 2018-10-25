@@ -44,7 +44,10 @@ hs_err_pid*
 /d3testreport/gradlew
 /d3testreport/gradlew.bat
 /d3testreport/build
-
+/btc-withdrawal/build
+/btc-withdrawal/gradle
+/btc-withdrawal/gradlew
+/btc-withdrawal/gradlew.bat
 *gradlew.bat
 
 # Ignore Gradle GUI config

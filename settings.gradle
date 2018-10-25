@@ -1,4 +1,5 @@
 rootProject.name = 'notary'
-include 'notary-integration-test', 'btc', 'btc-deposit', 'btc-registration', 'btc-pregeneration'
+include 'btc', 'btc-deposit', 'btc-registration', 'btc-pregeneration', 'btc-withdrawal'
+include 'notary-integration-test'
 include 'test-longevity'
 include 'd3testreport'
