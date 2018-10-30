@@ -24,11 +24,11 @@ group = 'd3'
 version = '1.0-SNAPSHOT'
 
 
-// apply plugin: 'com.google.protobuf'
-// apply plugin: "jacoco"
-// apply plugin: 'info.solidsoft.pitest'
-// apply plugin: 'com.github.johnrengelman.shadow'
-// apply plugin: 'org.sonarqube'
+apply plugin: 'com.google.protobuf'
+apply plugin: "jacoco"
+apply plugin: 'info.solidsoft.pitest'
+apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'org.sonarqube'
 
 
 subprojects {
