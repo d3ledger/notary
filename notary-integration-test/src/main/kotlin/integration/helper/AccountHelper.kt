@@ -18,7 +18,7 @@ import util.getRandomString
  */
 class AccountHelper(private val irohaNetwork: IrohaNetwork) {
 
-    val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
+    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
     /** A tester Iroha account with permissions to do everything */
     private val testCredential = IrohaCredential(
@@ -46,11 +46,15 @@ class AccountHelper(private val irohaNetwork: IrohaNetwork) {
         createTesterAccount("mst_registration", "registration_service")
     }
 
+    val btcWithdrawalAccount by lazy {
+        createTesterAccount("btc_withdrawal", "withdrawal")
+    }
+
     /** Account that used to set whitelists for clients to withdraw */
     val whitelistSetter by lazy { createTesterAccount("whitelist_setter", "whitelist_setter") }
 
     /** Account that used to store tokens */
-    val tokenStorageAccount = notaryAccount
+    val tokenStorageAccount by lazy { notaryAccount }
 
     /** Account that sets tokens */
     val tokenSetterAccount by lazy { createTesterAccount("eth_tokens", "eth_token_list_storage") }
@@ -60,14 +64,14 @@ class AccountHelper(private val irohaNetwork: IrohaNetwork) {
 
     val notaryListStorageAccount by lazy { createTesterAccount("notary_storage", "notary_list_holder") }
 
-    fun createCredentialConfig(credetial: IrohaCredential): IrohaCredentialConfig {
+    fun createCredentialConfig(credential: IrohaCredential): IrohaCredentialConfig {
         return object : IrohaCredentialConfig {
             override val pubkeyPath: String
                 get() = testConfig.testCredentialConfig.pubkeyPath
             override val privkeyPath: String
                 get() = testConfig.testCredentialConfig.privkeyPath
             override val accountId: String
-                get() = credetial.accountId
+                get() = credential.accountId
         }
     }
 

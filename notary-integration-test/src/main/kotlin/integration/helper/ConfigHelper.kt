@@ -11,6 +11,7 @@ import registration.eth.EthRegistrationConfig
 import registration.eth.relay.RelayRegistrationConfig
 import token.ERC20TokenRegistrationConfig
 import vacuum.RelayVacuumConfig
+import withdrawal.btc.config.BtcWithdrawalConfig
 import withdrawalservice.WithdrawalServiceConfig
 import java.io.File
 import java.io.FileInputStream
@@ -76,6 +77,17 @@ class ConfigHelper(
             override val iroha = createIrohaConfig()
             override val btcWalletFilePath = createTempWalletFile(btcPkPreGenConfig.btcWalletFilePath)
             override val registrationAccount = accountHelper.createCredentialConfig(accountHelper.registrationAccount)
+        }
+    }
+
+    /** Creates config for BTC withdrawal service */
+    fun createBtcWithdrawalConfig(): BtcWithdrawalConfig {
+        val btcWithdrawalConfig =
+            loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties")
+        return object : BtcWithdrawalConfig {
+            override val healthCheckPort = btcWithdrawalConfig.healthCheckPort
+            override val withdrawalCredential = accountHelper.createCredentialConfig(accountHelper.btcWithdrawalAccount)
+            override val iroha = btcWithdrawalConfig.iroha
         }
     }
 

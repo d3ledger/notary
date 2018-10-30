@@ -85,7 +85,8 @@
                   "permissions": [
                     "can_get_domain_accounts",
                     "can_get_blocks",
-                    "can_read_assets"
+                    "can_read_assets",
+                    "can_receive"
                   ]
                 }
               },
@@ -287,6 +288,19 @@
               {
                 "appendRole": {
                   "accountId": "withdrawal@notary",
+                  "roleName": "withdrawal"
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "btc_withdrawal_service",
+                  "domainId": "notary",
+                  "publicKey": "CSdCcCMvQ/15TFyBdirByGh/cINoJlRlbqltH5sU9NM="
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "btc_withdrawal_service@notary",
                   "roleName": "withdrawal"
                 }
               },

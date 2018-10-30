@@ -5,6 +5,7 @@ import model.IrohaCredential
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import provider.btc.address.BtcRegisteredAddressesProvider
+import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
@@ -12,6 +13,13 @@ val notaryConfig = loadConfigs("btc-notary", BtcNotaryConfig::class.java, "/btc/
 
 @Configuration
 class BtcNotaryAppConfiguration {
+
+    private val notaryKeypair = ModelUtil.loadKeypair(
+        notaryConfig.notaryCredential.pubkeyPath,
+        notaryConfig.notaryCredential.privkeyPath
+    ).fold({ keypair -> keypair }, { ex -> throw ex })
+
+    private val notaryCredential = IrohaCredential(notaryConfig.notaryCredential.accountId, notaryKeypair)
 
     @Bean
     fun notaryConfig() = notaryConfig
@@ -33,11 +41,12 @@ class BtcNotaryAppConfiguration {
     }
 
     @Bean
-    fun notaryCredential(): IrohaCredential {
-        //Assuming Iroha library is loaded
-        return ModelUtil.loadKeypair(
-            notaryConfig.notaryCredential.pubkeyPath,
-            notaryConfig.notaryCredential.privkeyPath
-        ).fold({ keypair -> IrohaCredential(notaryConfig.notaryCredential.accountId, keypair) }, { ex -> throw ex })
-    }
+    fun notaryCredential() = notaryCredential
+
+    @Bean
+    fun irohaChainListener() = IrohaChainListener(
+        notaryConfig.iroha.hostname,
+        notaryConfig.iroha.port,
+        notaryCredential
+    )
 }
