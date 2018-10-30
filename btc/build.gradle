@@ -42,6 +42,6 @@ dependencies {
 
 sonarqube {
     properties {
-        property "sonar.projectKey", "D3:btc"
+        property "sonar.projectKey", "notary:btc"
     }
 }
