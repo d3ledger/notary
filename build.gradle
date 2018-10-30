@@ -24,28 +24,62 @@ group = 'd3'
 version = '1.0-SNAPSHOT'
 
 
-apply plugin: 'com.google.protobuf'
-apply plugin: "jacoco"
-apply plugin: 'info.solidsoft.pitest'
-apply plugin: 'com.github.johnrengelman.shadow'
-apply plugin: 'org.sonarqube'
+// apply plugin: 'com.google.protobuf'
+// apply plugin: "jacoco"
+// apply plugin: 'info.solidsoft.pitest'
+// apply plugin: 'com.github.johnrengelman.shadow'
+// apply plugin: 'org.sonarqube'
 
-sonarqube {
-    properties {
-        property "sonar.projectName", "D3 notary"
-        property "sonar.projectKey", "D3:notary"
-        property "sonar.sources", "src/main"
-        property "sonar.test", "src/test"
-        property "sonar.inclusions", "*.java, *.kt"
-        property "sonar.test.inclusions", "*.java, *.kt"
-        property "sonar.java.binaries", "${project.projectDir}/build/classes"
-        property "sonar.java.libraries", "${project.projectDir}/build/libs"
-        property "sonar.java.test.binaries", "${project.projectDir}/build/test-results/test/binary"
-        property "sonar.junit.reportsPaths", "${project.projectDir}/build/test-results/**/*.xml"
-        property "sonar.jacoco.reportPaths", "${project.projectDir}/build/jacoco/test.exec"
-        property "sonar.exclusions", "${project.projectDir}/**/*.txt"
-    }
+
+subprojects {
+    project ->
+        apply plugin: 'com.google.protobuf'
+        apply plugin: "jacoco"
+        apply plugin: "java"
+        apply plugin: "kotlin"
+        apply plugin: 'info.solidsoft.pitest'
+        apply plugin: 'com.github.johnrengelman.shadow'
+        apply plugin: 'org.sonarqube'
+        if (project.name != 'shared-events') {
+            apply plugin: 'com.palantir.docker'
+        }
+
+        ext {
+            repoUrl = "nexus.iroha.tech:19001"
+        }
+
+        sonarqube {
+            properties {
+                property "sonar.java.binaries", "${project.projectDir}/build/classes"
+                property "sonar.java.libraries", "${project.projectDir}/build/libs"
+                property "sonar.java.test.binaries", "${project.projectDir}/build/test-results/test/binary"
+                property "sonar.junit.reportsPaths", "${project.projectDir}/build/test-results/**/*.xml"
+                property "sonar.jacoco.reportPaths", "${project.projectDir}/build/jacoco/test.exec"
+                property "sonar.exclusions", "${project.projectDir}/**/*.txt"
+            }
+        }
+
+        task wrapper(type: Wrapper) {
+            gradleVersion = '4.8'
+        }
 }
+
+// sonarqube {
+//     properties {
+//         property "sonar.projectName", "D3 notary"
+//         property "sonar.projectKey", "D3:notary"
+//         property "sonar.sources", "src/main"
+//         property "sonar.test", "src/test"
+//         property "sonar.inclusions", "*.java, *.kt"
+//         property "sonar.test.inclusions", "*.java, *.kt"
+//         property "sonar.java.binaries", "${project.projectDir}/build/classes"
+//         property "sonar.java.libraries", "${project.projectDir}/build/libs"
+//         property "sonar.java.test.binaries", "${project.projectDir}/build/test-results/test/binary"
+//         property "sonar.junit.reportsPaths", "${project.projectDir}/build/test-results/**/*.xml"
+//         property "sonar.jacoco.reportPaths", "${project.projectDir}/build/jacoco/test.exec"
+//         property "sonar.exclusions", "${project.projectDir}/**/*.txt"
+//     }
+// }
 
 allprojects {
     apply plugin: 'java'

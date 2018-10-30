@@ -40,3 +40,8 @@ dependencies {
     compile group: 'commons-logging', name: 'commons-logging', version: '1.2'
 }
 
+sonarqube {
+    properties {
+        property "sonar.projectKey", "D3:btc"
+    }
+}
