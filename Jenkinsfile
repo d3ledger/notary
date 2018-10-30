@@ -50,7 +50,6 @@ pipeline {
             sh "./gradlew test --info"
             sh "./gradlew compileIntegrationTestKotlin --info"
             sh "./gradlew integrationTest --info"
-            sh "./gradlew jacocoTestReport --info"
             sh "./gradlew codeCoverageReport --info"
             // sh "./gradlew pitest --info"
             withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
