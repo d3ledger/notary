@@ -65,10 +65,6 @@ subprojects {
 // }
 
 subprojects {
-    dependencies {
-        compile project(':')
-    }
-    
     sonarqube {
         properties {
             property "sonar.java.binaries", "${project.projectDir}/build/classes"
