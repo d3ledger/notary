@@ -40,13 +40,6 @@ subprojects {
         apply plugin: 'info.solidsoft.pitest'
         apply plugin: 'com.github.johnrengelman.shadow'
         apply plugin: 'org.sonarqube'
-        if (project.name != 'shared-events') {
-            apply plugin: 'com.palantir.docker'
-        }
-
-        ext {
-            repoUrl = "nexus.iroha.tech:19001"
-        }
 
         sonarqube {
             properties {
