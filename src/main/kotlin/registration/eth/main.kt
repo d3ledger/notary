@@ -43,7 +43,6 @@ fun executeRegistration(ethRegistrationConfig: EthRegistrationConfig, passwordCo
     IrohaInitialization.loadIrohaLibrary()
         .flatMap {
             EthRegistrationServiceInitialization(ethRegistrationConfig, passwordConfig, irohaNetwork).init()
-
         }
         .failure { ex ->
             logger.error("cannot run eth registration", ex)
