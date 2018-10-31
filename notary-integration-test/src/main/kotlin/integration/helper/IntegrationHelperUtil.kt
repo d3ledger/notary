@@ -248,8 +248,8 @@ class IntegrationHelperUtil : Closeable {
      * @param irohaAccountName - client account in Iroha
      * @return btc address related to client
      */
-    fun registerBtcAddress(irohaAccountName: String): String {
-        val keypair = ModelCrypto().generateKeypair()
+    fun registerBtcAddress(irohaAccountName: String,
+                           keypair: Keypair = ModelCrypto().generateKeypair()): String {
         preGenBtcAddress().fold({
             btcRegistrationStrategy.register(irohaAccountName, emptyList(), keypair.publicKey().hex())
                 .fold({ btcAddress ->
