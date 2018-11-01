@@ -65,6 +65,18 @@ contract Master {
         return tokens;
     }
 
+
+    /**
+     * Adds new peers to list of signature verifiers. Can be called only by contract owner.
+     * @param newAddresses addresses of new peers
+     */
+    function addPeers(address[] newAddresses) public onlyOwner returns (uint){
+        for (uint i = 0; i < newAddresses.length; i++) {
+            addPeer(newAddresses[i]);
+        }
+        return peersCount;
+    }
+
     /**
      * Adds new peer to list of signature verifiers. Can be called only by contract owner.
      * @param newAddress address of new peer
