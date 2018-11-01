@@ -2,9 +2,9 @@ package sidechain.eth
 
 import com.github.kittinunf.result.fanout
 import mu.KLogging
-import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.methods.response.EthBlock
 import org.web3j.protocol.core.methods.response.Transaction
+import org.web3j.protocol.parity.Parity
 import provider.eth.ETH_PRECISION
 import provider.eth.EthRelayProvider
 import provider.eth.EthTokensProvider
@@ -21,7 +21,7 @@ import java.math.BigInteger
  * @param ethTokensProvider - provider of observable tokens
  */
 class EthChainHandler(
-    val web3: Web3j,
+    val web3: Parity,
     val ethRelayProvider: EthRelayProvider,
     val ethTokensProvider: EthTokensProvider
 ) :
@@ -103,9 +103,9 @@ class EthChainHandler(
     ): List<SideChainEvent.PrimaryBlockChainEvent> {
         logger.info { "Handle Ethereum tx ${tx.hash}" }
 
-        val receipt = web3.ethGetTransactionReceipt(tx.hash).send()
+        val receipt = web3.traceTransaction(tx.hash).send()
 
-        return if (!receipt.transactionReceipt.get().isStatusOK) {
+        return if (receipt.hashCode() != 1) {
             logger.warn { "Transaction ${tx.hash} from Ethereum has FAIL status" }
             listOf()
         } else if (tx.value <= BigInteger.ZERO) {

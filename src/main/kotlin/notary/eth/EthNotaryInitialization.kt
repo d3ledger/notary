@@ -13,8 +13,8 @@ import notary.endpoint.RefundServerEndpoint
 import notary.endpoint.ServerInitializationBundle
 import notary.endpoint.eth.EthRefundStrategyImpl
 import okhttp3.OkHttpClient
-import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
+import org.web3j.protocol.parity.Parity
 import provider.NotaryPeerListProviderImpl
 import provider.eth.EthRelayProvider
 import provider.eth.EthTokensProvider
@@ -62,7 +62,7 @@ class EthNotaryInitialization(
 
         val builder = OkHttpClient().newBuilder()
         builder.authenticator(BasicAuthenticator(passwordsConfig))
-        val web3 = Web3j.build(HttpService(ethNotaryConfig.ethereum.url, builder.build(), false))
+        val web3 = Parity.build(HttpService(ethNotaryConfig.ethereum.url, builder.build(), false))
 
         /** List of all observable wallets */
         val ethHandler = EthChainHandler(web3, ethRelayProvider, ethTokensProvider)

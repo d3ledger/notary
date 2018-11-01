@@ -4,9 +4,9 @@ import com.github.kittinunf.result.Result
 import hu.akarnokd.rxjava.interop.RxJavaInterop
 import io.reactivex.Observable
 import mu.KLogging
-import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.DefaultBlockParameter
 import org.web3j.protocol.core.methods.response.EthBlock
+import org.web3j.protocol.parity.Parity
 import sidechain.ChainListener
 import java.math.BigInteger
 
@@ -16,7 +16,7 @@ import java.math.BigInteger
  * @param confirmationPeriod - number of block to consider block final
  */
 class EthChainListener(
-    private val web3: Web3j,
+    private val web3: Parity,
     private val confirmationPeriod: BigInteger
 ) : ChainListener<EthBlock> {
 
