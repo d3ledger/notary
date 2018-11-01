@@ -681,6 +681,6 @@ class MasterTest {
         val n = master.peersCount().send()
 
         Assertions.assertTrue(result.isStatusOK)
-        Assertions.assertEquals(3, n)
+        Assertions.assertEquals(3, n.toInt())
     }
 }
