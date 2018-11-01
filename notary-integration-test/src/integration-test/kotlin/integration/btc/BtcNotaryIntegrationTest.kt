@@ -66,8 +66,11 @@ class BtcNotaryIntegrationTest {
     }
 
     init {
+        val blockStorageFolder = File(notaryConfig.bitcoin.blockStoragePath)
         //Clear bitcoin blockchain folder
-        File(notaryConfig.bitcoin.blockStoragePath).deleteRecursively()
+        blockStorageFolder.deleteRecursively()
+        //Recreate folder
+        blockStorageFolder.mkdirs()
         integrationHelper.generateBtcBlocks()
         integrationHelper.addNotary("test_notary", "test_notary_address")
         btcNotaryInitialization.init().failure { ex -> fail("Cannot run BTC notary", ex) }
@@ -84,7 +87,7 @@ class BtcNotaryIntegrationTest {
     fun testDeposit() {
         val randomName = String.getRandomString(9)
         val testClient = "$randomName@$CLIENT_DOMAIN"
-        val btcAddress = integrationHelper.registerBtcAddress(randomName)
+        val btcAddress = integrationHelper.registerBtcAddress(notaryConfig.bitcoin.walletPath, randomName)
         val initialBalance = integrationHelper.getIrohaAccountBalance(
             testClient,
             btcAsset
@@ -112,7 +115,7 @@ class BtcNotaryIntegrationTest {
         val totalDeposits = 3
         val randomName = String.getRandomString(9)
         val testClient = "$randomName@$CLIENT_DOMAIN"
-        val btcAddress = integrationHelper.registerBtcAddress(randomName)
+        val btcAddress = integrationHelper.registerBtcAddress(notaryConfig.bitcoin.walletPath, randomName)
         val initialBalance = integrationHelper.getIrohaAccountBalance(
             testClient,
             btcAsset
@@ -143,7 +146,7 @@ class BtcNotaryIntegrationTest {
     fun testDepositNotConfirmed() {
         val randomName = String.getRandomString(9)
         val testClient = "$randomName@$CLIENT_DOMAIN"
-        val btcAddress = integrationHelper.registerBtcAddress(randomName)
+        val btcAddress = integrationHelper.registerBtcAddress(notaryConfig.bitcoin.walletPath, randomName)
         val initialBalance = integrationHelper.getIrohaAccountBalance(
             testClient,
             btcAsset
@@ -167,7 +170,7 @@ class BtcNotaryIntegrationTest {
     fun testDepositConfirmation() {
         val randomName = String.getRandomString(9)
         val testClient = "$randomName@$CLIENT_DOMAIN"
-        val btcAddress = integrationHelper.registerBtcAddress(randomName)
+        val btcAddress = integrationHelper.registerBtcAddress(notaryConfig.bitcoin.walletPath, randomName)
         val initialBalance = integrationHelper.getIrohaAccountBalance(
             testClient,
             btcAsset

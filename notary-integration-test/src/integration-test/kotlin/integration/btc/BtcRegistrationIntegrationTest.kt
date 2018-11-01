@@ -29,6 +29,8 @@ class BtcRegistrationIntegrationTest {
 
     private val btcRegistrationConfig = integrationHelper.configHelper.createBtcRegistrationConfig()
 
+    private val btcNotaryConfig = integrationHelper.configHelper.createBtcNotaryConfig()
+
     private val btcRegistrationCredential = ModelUtil.loadKeypair(
         btcRegistrationConfig.registrationCredential.pubkeyPath,
         btcRegistrationConfig.registrationCredential.privkeyPath
@@ -72,7 +74,7 @@ class BtcRegistrationIntegrationTest {
      */
     @Test
     fun testRegistration() {
-        integrationHelper.preGenBtcAddress()
+        integrationHelper.preGenBtcAddress(btcNotaryConfig.bitcoin.walletPath)
         val keypair = ModelCrypto().generateKeypair()
         val userName = String.getRandomString(9)
         val res = khttp.post(
@@ -102,7 +104,7 @@ class BtcRegistrationIntegrationTest {
         val takenAddresses = HashSet<String>()
         val addressesToRegister = 3
         for (i in 1..addressesToRegister) {
-            integrationHelper.preGenBtcAddress()
+            integrationHelper.preGenBtcAddress(btcNotaryConfig.bitcoin.walletPath)
         }
         for (i in 1..addressesToRegister) {
             val keypair = ModelCrypto().generateKeypair()
