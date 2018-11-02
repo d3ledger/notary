@@ -1,12 +1,20 @@
 ---
 
+- name: Clean files dir
+  local_action:
+    module: file
+    path: "{{ role_path }}/files/"
+    state: absent
+  run_once: yes
+  become: no
+
   - name: Compile kotlin script
     local_action:
       module: shell
       _raw_params: >
        kotlinc -cp {{ projectRoot }}/iroha_bindings/iroha-bindings-example.jar generateKeypair.kt
        -include-runtime -d GenerateKeypair.jar
-      chdir: "{{ projectRoot }}/deploy/ansible/roles/iroha"
+      chdir: "{{ role_path }}"
     run_once: yes
     become: no
 
@@ -18,47 +26,84 @@
         -classpath {{ projectRoot }}/iroha_bindings/iroha-bindings-example.jar
         -classpath GenerateKeypair.jar
         -Djava.library.path={{ projectRoot }}/iroha_bindings/mac
-        GenerateKeypairKt {{ item }}
-      chdir: "{{ projectRoot }}/deploy/ansible/roles/iroha"
+        GenerateKeypairKt
+      chdir: "{{ role_path }}"
     register: "keys"
     with_inventory_hostnames:
       - all
     run_once: yes
     become: no
 
-  - name: Remove nodes.csv file
-    local_action:
-      module: file
-      path: "{{ projectRoot }}/deploy/ansible/roles/iroha/nodes.csv"
-      state: absent
-    become: no
+- name: Remove nodes.csv file
+  local_action:
+    module: file
+    path: "{{ role_path }}/files/nodes.csv"
+    state: absent
+  become: no
 
 
-  - name: Write nodes to file
-    local_action:
-      module: lineinfile
-      path: "{{ projectRoot }}/deploy/ansible/roles/iroha/nodes.csv"
-      line: "{{ hostvars[item.0]['ansible_host'] }};10001;{{ item.1.stdout }}"
-      create: yes
-    with_together:
-      - "{{ play_hosts }}"
-      - "{{ keys.results }}"
-    run_once: yes
-    become: no
+- name: Write nodes to file
+  local_action:
+    module: lineinfile
+    path: "{{ role_path }}/files/nodes.csv"
+    line: "{{ hostvars[item.0]['ansible_host'] }};10001;{{ item.1.stdout }}"
+    create: yes
+  with_together:
+    - "{{ play_hosts }}"
+    - "{{ keys.results }}"
+  run_once: yes
+  become: no
 
-  - name: Copy genesis block
+- name: Copy genesis block
+  local_action:
+    module: copy
+    src: "{{ projectRoot }}/deploy/iroha/genesis.block"
+    dest: "{{ role_path }}/files"
+  run_once: yes
+  become: no
+
+- name: Add peers to genesis block
+  local_action:
+    module: shell
+    _raw_params: "python add_peers.py nodes.csv"
+    chdir: "{{ role_path }}"
+  run_once: yes
+  become: no
+
+- name: Generate notary signatories
+  local_action:
+    module: shell
+    _raw_params: >
+      kotlin
+      -classpath {{ projectRoot }}/iroha_bindings/iroha-bindings-example.jar
+      -classpath GenerateKeypair.jar
+      -Djava.library.path={{ projectRoot }}/iroha_bindings/mac
+      GenerateKeypairKt
+    chdir: "{{ role_path }}"
+  register: "signatories"
+  become: no
+
+
+- name: Write notary signatories private key to files
     local_action:
       module: copy
-      src: "{{ projectRoot }}/deploy/iroha/genesis.block"
-      dest: "{{ projectRoot }}/deploy/ansible/roles/iroha"
+      content: "{{ signatories.stdout.split(';')[0] }}"
+      dest: "{{ role_path }}/files/notary_{{inventory_hostname}}.priv"
+    become: no
+
+
+- name: Write notary signatories public key to files
+    local_action:
+      module: copy
+      content: "{{ signatories.stdout.split(';')[1] }}"
+      dest: "{{ role_path }}/files/notary_{{inventory_hostname}}.pub"
+    become: no
+
+- name: Add notary signatories to genesis block
+    local_action:
+      module: shell
+      _raw_params: "python3 add_signatories.py  {{play_hosts | map('regex_replace', '^(.*)$', 'notary_\\1.pub') |  join(' ') }}"
+      chdir: "{{ role_path }}"
     run_once: yes
     become: no
 
-  - name: Add peers to genesis block
-    local_action:
-      module: shell
-      _raw_params: "python add_peers.py nodes.csv"
-      chdir: "{{ projectRoot }}/deploy/ansible/roles/iroha"
-    register: stdout
-    run_once: yes
-    become: no

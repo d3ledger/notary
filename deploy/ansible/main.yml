@@ -7,7 +7,7 @@
       changed_when: False
 
 - hosts: docker
-  gather_facts: yes
+  gather_facts: no
   pre_tasks:
     - name: install python 2
       raw: tce-load -wi python
@@ -19,7 +19,7 @@
 - hosts: all
   gather_facts: yes
   roles:
-    - ethereum
 #    - { role: docker }
-#      - { role: iroha }
+    - ethereum
+    - iroha
 #      - { role: notary }

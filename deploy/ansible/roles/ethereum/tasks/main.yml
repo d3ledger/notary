@@ -56,5 +56,25 @@
     _raw_params: >
       ./gradlew runPreDeployEthereum --args='{{ addrs.stdout }}'
     chdir: "{{ playbook_dir }}/../../"
+  environment:
+    PROFILE: testnet
+  register: file
+
   become: no
   run_once: yes
+
+
+- name: Write master contract address
+  local_action:
+    module: copy
+    content: "{{ (file.stdout.split('\n') | select('search', 'master_eth_address:::') | list | first).split(' ') | last }}"
+    dest: "{{ role_path }}/files/master_eth_address"
+  become: no
+
+- name: Write relay registry address
+  local_action:
+    module: copy
+    content: "{{ (file.stdout.split('\n') | select('search', 'relay_registry_eth_address:::') | list | first).split(' ') | last }}"
+    dest: "{{ role_path }}/files/relay_registry_eth_address"
+  become: no
+
