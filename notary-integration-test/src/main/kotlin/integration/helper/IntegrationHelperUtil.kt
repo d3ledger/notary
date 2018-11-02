@@ -134,6 +134,12 @@ class IntegrationHelperUtil : Closeable {
         contract
     }
 
+    val internalTxProducer by lazy {
+        val contract = contractTestHelper.internalTxProducer
+        logger.info { "Internal tx producer ${contract.contractAddress} was deployed" }
+        contract
+    }
+
     /** New master ETH master contract*/
     val masterContract by lazy {
         val wallet = contractTestHelper.master

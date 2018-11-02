@@ -157,4 +157,26 @@ class DepositIntegrationTest {
         )
     }
 
+    /**
+     * Test US-003 Deposit of ETH
+     * Note: Ethereum and Iroha must be deployed to pass the test.
+     * @given Ethereum and Iroha networks running, smart contract with balance
+     * @when smart-contract transfers 1234000000000 Wei to "relayWallet"
+     * @then Associated Iroha account balance is increased on 1234000000000 Wei
+     */
+    @Test
+    fun internalTransactionDeposit() {
+        val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId)
+        val amount = BigInteger.valueOf(1_234_000_000_000)
+        // send ETH
+        integrationHelper.sendEth(amount, integrationHelper.internalTxProducer.contractAddress)
+        integrationHelper.internalTxProducer.sendFunds(relayWallet).send()
+        integrationHelper.waitOneIrohaBlock()
+
+        Assertions.assertEquals(
+            BigDecimal(amount, ETH_PRECISION.toInt()).add(BigDecimal(initialAmount)),
+            BigDecimal(integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId))
+        )
+    }
+
 }

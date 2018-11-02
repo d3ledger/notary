@@ -6,9 +6,9 @@ import contract.*
 import mu.KLogging
 import okhttp3.*
 import org.web3j.crypto.WalletUtils
-import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.http.HttpService
+import org.web3j.protocol.parity.Parity
 import org.web3j.tx.RawTransactionManager
 import org.web3j.tx.Transfer
 import org.web3j.utils.Convert
@@ -32,12 +32,12 @@ class BasicAuthenticator(private val ethereumPasswords: EthereumPasswords) : Aut
  * @param ethereumPasswords config with Ethereum passwords
  */
 class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPasswords) {
-    val web3: Web3j
+    val web3: Parity
 
     init {
         val builder = OkHttpClient().newBuilder()
         builder.authenticator(BasicAuthenticator(ethereumPasswords))
-        web3 = Web3j.build(HttpService(ethereumConfig.url, builder.build(), false))
+        web3 = Parity.build(HttpService(ethereumConfig.url, builder.build(), false))
 
     }
 
@@ -97,6 +97,21 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
         ).send()
         logger.info { "Relay Registry smart contract ${relayRegistry.contractAddress} was deployed" }
         return relayRegistry
+    }
+
+    /**
+     * Deploy internalTxProducer smart contract
+     * @return master smart contract object
+     */
+    fun deployInternalTxProducerSmartContract(): InternalTxProducer {
+        val internalTxProducer = contract.InternalTxProducer.deploy(
+            web3,
+            credentials,
+            gasPrice,
+            gasLimit
+        ).send()
+        logger.info { "Internal Tx producer smart contract ${internalTxProducer.contractAddress} was deployed" }
+        return internalTxProducer
     }
 
     /**

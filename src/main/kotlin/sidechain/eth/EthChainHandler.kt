@@ -5,6 +5,7 @@ import mu.KLogging
 import org.web3j.protocol.core.methods.response.EthBlock
 import org.web3j.protocol.core.methods.response.Transaction
 import org.web3j.protocol.parity.Parity
+import org.web3j.protocol.parity.methods.response.Trace
 import provider.eth.ETH_PRECISION
 import provider.eth.EthRelayProvider
 import provider.eth.EthTokensProvider
@@ -97,31 +98,35 @@ class EthChainHandler(
      * @return list of notary events on Ether deposit
      */
     private fun handleEther(
-        tx: Transaction,
+        hash: String,
+        from: String,
+        to: String,
+        value: BigInteger,
         time: BigInteger,
         wallets: Map<String, String>
     ): List<SideChainEvent.PrimaryBlockChainEvent> {
-        logger.info { "Handle Ethereum tx ${tx.hash}" }
+        logger.info { "Handle Ethereum tx $hash" }
 
-        val receipt = web3.traceTransaction(tx.hash).send()
+        val receipt = web3.ethGetTransactionReceipt(hash).send()
 
-        return if (receipt.hashCode() != 1) {
-            logger.warn { "Transaction ${tx.hash} from Ethereum has FAIL status" }
+        return if (!receipt.transactionReceipt.get().isStatusOK) {
+            logger.warn { "Transaction $hash from Ethereum has FAIL status" }
             listOf()
-        } else if (tx.value <= BigInteger.ZERO) {
-            logger.warn { "Transaction ${tx.hash} from Ethereum with 0 ETH amount" }
+        } else if (value <= BigInteger.ZERO) {
+            logger.warn { "Transaction $hash from Ethereum with 0 ETH amount" }
             listOf()
         } else {
             // if tx amount > 0 and is committed successfully
+            println("IM HERE $hash, $from, $to, $value")
             listOf(
                 SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
-                    tx.hash,
+                    hash,
                     time,
                     // all non-existent keys were filtered out in parseBlock
-                    wallets[tx.to]!!,
+                    wallets[to]!!,
                     "ether",
-                    BigDecimal(tx.value, ETH_PRECISION.toInt()).toPlainString(),
-                    tx.from
+                    BigDecimal(value, ETH_PRECISION.toInt()).toPlainString(),
+                    from
                 )
             )
         }
@@ -129,7 +134,7 @@ class EthChainHandler(
 
     /**
      * Parse [EthBlock] for transactions.
-     * @return List of transation we are interested in
+     * @return List of transaction we are interested in
      */
     override fun parseBlock(block: EthBlock): List<SideChainEvent.PrimaryBlockChainEvent> {
         logger.info { "Eth chain handler for block ${block.block.number}" }
@@ -142,11 +147,19 @@ class EthChainHandler(
                 val time = block.block.timestamp.multiply(BigInteger.valueOf(1000))
                 block.block.transactions
                     .map { it.get() as Transaction }
-                    .flatMap {
-                        if (wallets.containsKey(it.to))
-                            handleEther(it, time, wallets)
-                        else if (tokens.containsKey(it.to))
-                            handleErc20(it, time, wallets, tokens)
+                    .flatMap { tx ->
+                        val receipt = web3.traceTransaction(tx.hash).send()
+                        receipt.result.forEach {
+                            val ac = it.action
+                            if (ac is Trace.CallAction) {
+                                if (wallets.containsKey(ac.to)) {
+                                    return handleEther(tx.hash, tx.from, ac.to, ac.value, time, wallets)
+                                }
+                            }
+                        }
+
+                        if (tokens.containsKey(tx.to))
+                            handleErc20(tx, time, wallets, tokens)
                         else
                             listOf()
                     }
