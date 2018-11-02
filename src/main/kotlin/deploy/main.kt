@@ -7,7 +7,6 @@ import config.loadConfigs
 import config.loadEthPasswords
 import mu.KLogging
 import sidechain.eth.util.DeployHelper
-import java.io.File
 
 private val logger = KLogging().logger
 
@@ -29,21 +28,20 @@ fun main(args: Array<String>) {
     val relayRegistry = deployHelper.deployRelayRegistrySmartContract()
     val master = deployHelper.deployMasterSmartContract(relayRegistry.contractAddress)
 
-    var result = true
-    args.forEach { address ->
-        result = result && master.addPeer(address).send().isStatusOK
-    }
+
+    var result = master.addPeers(args.toList()).send().isStatusOK
+    logger.info { "Peers were added" }
+
     result = result && master.disableAddingNewPeers().send().isStatusOK
+
+    logger.info { "Master account has been locked" }
 
     if (!result) {
         logger.error("Error: failed to call master smart contract")
         System.exit(1)
     }
 
-    File("master_eth_address").printWriter().use {
-        it.print(master.contractAddress)
-    }
-    File("relay_registry_eth_address").printWriter().use {
-        it.print(relayRegistry.contractAddress)
-    }
+    logger.info { "master_eth_address::: ${master.contractAddress}" }
+    logger.info { "relay_registry_eth_address::: ${relayRegistry.contractAddress}" }
+
 }
