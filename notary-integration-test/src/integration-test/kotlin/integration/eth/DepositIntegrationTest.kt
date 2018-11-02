@@ -1,6 +1,7 @@
 package integration.eth
 
 import integration.helper.IntegrationHelperUtil
+import jdk.nashorn.internal.ir.annotations.Ignore
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -165,6 +166,7 @@ class DepositIntegrationTest {
      * @then Associated Iroha account balance is increased on 1234000000000 Wei
      */
     @Test
+    @Ignore
     fun internalTransactionDeposit() {
         val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId)
         val amount = BigInteger.valueOf(1_234_000_000_000)
