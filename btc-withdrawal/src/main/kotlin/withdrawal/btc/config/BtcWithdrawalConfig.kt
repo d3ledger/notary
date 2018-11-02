@@ -15,7 +15,7 @@ interface BtcWithdrawalConfig {
     val iroha: IrohaConfig
     //Bitcoin configurations
     val bitcoin: BitcoinConfig
-    // Base58 formatted Bitcoin address that stores changes
+    // Base58 formatted Bitcoin address that stores change
     val changeAddress: String
 
     val notaryCredential: IrohaCredentialConfig

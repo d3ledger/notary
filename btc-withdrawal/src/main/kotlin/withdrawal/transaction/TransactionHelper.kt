@@ -32,9 +32,8 @@ class TransactionHelper(
      * @param transaction - current transaction
      * @param unspents - used to compute change
      * @param destinationAddress - receiver's base58 Bitcoin address
-     * @param amount - amount of money to spend(used to compute change)
-     * @param changeAddress - address that is used to store changes
-     * @return result of operation
+     * @param amount - amount of SAT to spend(used to compute change)
+     * @param changeAddress - address that is used to store change
      */
     fun addOutputs(
         transaction: Transaction,
@@ -42,25 +41,22 @@ class TransactionHelper(
         destinationAddress: String,
         amount: Long,
         changeAddress: Address
-    ): Result<Unit, Exception> {
-        return Result.of {
-            val totalAmount = getTotalUnspentValue(unspents)
-            transaction.addOutput(
-                Coin.valueOf(amount),
-                Address.fromBase58(btcNetworkConfigProvider.getConfig(), destinationAddress)
-            )
-            val change = totalAmount - amount - MIN_FEE
-            //TODO create change address creation mechanism
-            transaction.addOutput(Coin.valueOf(change), changeAddress)
-            Unit
-        }
+    ) {
+        val totalAmount = getTotalUnspentValue(unspents)
+        transaction.addOutput(
+            Coin.valueOf(amount),
+            Address.fromBase58(btcNetworkConfigProvider.getConfig(), destinationAddress)
+        )
+        val change = totalAmount - amount - MIN_FEE
+        //TODO create change address creation mechanism
+        transaction.addOutput(Coin.valueOf(change), changeAddress)
     }
 
     /**
      * Collects previously sent transactions, that may be used as an input for newly created transaction
      * @param availableAddresses - set of addresses which transactions will be available to spend
      * @param wallet - current wallet. Used to fetch unspents
-     * @param amount - amount of money to spend
+     * @param amount - amount of SAT to spend
      * @param confidenceLevel - minimum depth of transactions
      * @return result with list full of unspent transactions
      */

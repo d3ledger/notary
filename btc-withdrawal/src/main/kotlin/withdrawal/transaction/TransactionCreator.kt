@@ -23,7 +23,7 @@ class TransactionCreator(
     /**
      * Creates UNSIGNED Bitcoin transaction
      * @param wallet - current wallet that will be used to fetch unspent transactions
-     * @param amount - amount of money to spend
+     * @param amount - amount of SAT to spend
      * @param destinationAddress - receiver's base58 Bitcoin address
      * @param confidenceLevel - minimum tx depth that will be used in unspents
      * @return result with unsigned transaction full of input/output data
@@ -39,11 +39,7 @@ class TransactionCreator(
             transactionHelper.collectUnspents(availableAddresses, wallet, amount, confidenceLevel)
         }.map { unspents ->
             unspents.forEach { unspent -> transaction.addInput(unspent) }
-            unspents
-        }.map { unspents ->
             transactionHelper.addOutputs(transaction, unspents, destinationAddress, amount, changeAddress)
-            unspents
-        }.map { unspents ->
             transactionHelper.registerUnspents(unspents)
         }.map { transaction }
     }
