@@ -151,10 +151,8 @@ class EthChainHandler(
                         val receipt = web3.traceTransaction(tx.hash).send()
                         receipt?.result?.forEach {
                             val ac = it.action
-                            if (ac is Trace.CallAction) {
-                                if (wallets.containsKey(ac.to)) {
-                                    return handleEther(tx.hash, tx.from, ac.to, ac.value, time, wallets)
-                                }
+                            if (ac is Trace.CallAction && wallets.containsKey(ac.to)) {
+                                return handleEther(tx.hash, tx.from, ac.to, ac.value, time, wallets)
                             }
                         }
 
@@ -163,7 +161,8 @@ class EthChainHandler(
                         else
                             listOf()
                     }
-            }, { ex ->
+            },
+            { ex ->
                 logger.error("Cannot parse block", ex)
                 listOf()
             }
