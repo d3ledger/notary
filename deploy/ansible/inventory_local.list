@@ -1,8 +1,8 @@
 
 [docker]
-vm0 ansible_host=192.168.99.100  ansible_ssh_private_key_file=/Users/dumitru/.docker/machine/machines/node0/id_rsa
-vm1 ansible_host=192.168.99.101  ansible_ssh_private_key_file=/Users/dumitru/.docker/machine/machines/node1/id_rsa
-vm2 ansible_host=192.168.99.102  ansible_ssh_private_key_file=/Users/dumitru/.docker/machine/machines/node2/id_rsa
+vm0 ansible_host=192.168.99.101  ansible_ssh_private_key_file=
+vm1 ansible_host=192.168.99.102  ansible_ssh_private_key_file=
+vm2 ansible_host=192.168.99.103  ansible_ssh_private_key_file=
 
 [docker:vars]
 ansible_ssh_user=docker
