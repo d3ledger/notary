@@ -134,7 +134,7 @@ class EthChainHandler(
 
     /**
      * Parse [EthBlock] for transactions.
-     * @return List of transaction we are interested in
+     * @return List of transactions we are interested in
      */
     override fun parseBlock(block: EthBlock): List<SideChainEvent.PrimaryBlockChainEvent> {
         logger.info { "Eth chain handler for block ${block.block.number}" }

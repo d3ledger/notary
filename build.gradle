@@ -215,7 +215,7 @@ task buildEthereumContractsBindings(type: Exec) {
     String cmd = 'for f in ' + wildcard + '; ' +
             'do ' +
             'name=$(echo "$f" | cut -f 1 -d \'.\'); ' +
-            'web3j solidity generate ${name}.bin ${name}.abi -o <bin_path> -p jp.co.soramitsu \n'.replace("<bin_path>", bin_path) +
+            'web3j solidity generate ${name}.bin ${name}.abi -o <bin_path> -p contract \n'.replace("<bin_path>", bin_path) +
             'done'
 
     commandLine 'bash', '-c', cmd
