@@ -4,6 +4,8 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import healthcheck.HealthyService
+import helper.network.getPeerGroup
+import helper.network.startChainDownload
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import iroha.protocol.BlockOuterClass
@@ -13,10 +15,7 @@ import mu.KLogging
 import notary.btc.config.BtcNotaryConfig
 import notary.btc.listener.BitcoinBlockChainListener
 import org.bitcoinj.core.Address
-import org.bitcoinj.core.BlockChain
-import org.bitcoinj.core.Context
 import org.bitcoinj.core.PeerGroup
-import org.bitcoinj.store.LevelDBBlockStore
 import org.bitcoinj.utils.BriefLogFormatter
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,7 +29,6 @@ import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getSetDetailCommands
 import java.io.File
-import java.net.InetAddress
 import java.util.concurrent.Executors
 
 @Component
@@ -53,7 +51,8 @@ class BtcNotaryInitialization(
         //Enables short log format for Bitcoin events
         BriefLogFormatter.init()
         logger.info { "Current wallet state $wallet" }
-        val peerGroup = getPeerGroup(wallet)
+        val peerGroup =
+            getPeerGroup(wallet, btcNetworkConfigProvider.getConfig(), btcNotaryConfig.bitcoin.blockStoragePath)
         addPeerHealthCheck(peerGroup)
         return irohaChainListener.getBlockObservable().map { irohaObservable ->
             listenToRegisteredClients(wallet, irohaObservable)
@@ -70,7 +69,7 @@ class BtcNotaryInitialization(
             val notary = createBtcNotary(irohaCredential, irohaNetwork, btcEvents, peerListProvider)
             notary.initIrohaConsumer().failure { ex -> throw ex }
         }.map {
-            startChainDownload(peerGroup)
+            startChainDownload(peerGroup, btcNotaryConfig.bitcoin.host)
         }
     }
 
@@ -125,17 +124,6 @@ class BtcNotaryInitialization(
     }
 
     /**
-     * Returns group of peers
-     */
-    private fun getPeerGroup(wallet: Wallet): PeerGroup {
-        val networkParams = btcNetworkConfigProvider.getConfig()
-        val levelDbFolder = File(btcNotaryConfig.bitcoin.blockStoragePath)
-        val blockStore = LevelDBBlockStore(Context(networkParams), levelDbFolder)
-        val blockChain = BlockChain(networkParams, wallet, blockStore)
-        return PeerGroup(networkParams, blockChain)
-    }
-
-    /**
      * Adds health checks for a current peer group
      */
     private fun addPeerHealthCheck(peerGroup: PeerGroup) {
@@ -148,16 +136,6 @@ class BtcNotaryInitialization(
         }
         // If new peer connected
         peerGroup.addConnectedEventListener { peer, peerCount -> cured() }
-    }
-
-    /**
-     * Starts bitcoin blockchain downloading process
-     */
-    private fun startChainDownload(peerGroup: PeerGroup) {
-        logger.info { "Start bitcoin blockchain download" }
-        peerGroup.addAddress(InetAddress.getByName(btcNotaryConfig.bitcoin.host))
-        peerGroup.startAsync()
-        peerGroup.downloadBlockChain()
     }
 
     /**
