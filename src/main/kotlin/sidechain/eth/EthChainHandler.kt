@@ -149,7 +149,7 @@ class EthChainHandler(
                     .map { it.get() as Transaction }
                     .flatMap { tx ->
                         val receipt = web3.traceTransaction(tx.hash).send()
-                        receipt.result.forEach {
+                        receipt?.result?.forEach {
                             val ac = it.action
                             if (ac is Trace.CallAction) {
                                 if (wallets.containsKey(ac.to)) {
