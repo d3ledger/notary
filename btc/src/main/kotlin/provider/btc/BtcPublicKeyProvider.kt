@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import provider.NotaryPeerListProvider
+import provider.btc.address.AddressInfo
 import provider.btc.network.BtcNetworkConfigProvider
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.util.ModelUtil
@@ -83,7 +84,7 @@ class BtcPublicKeyProvider(
                     multiSigConsumer,
                     notaryAccount,
                     msAddress.toBase58(),
-                    "free"
+                    AddressInfo.createFreeAddressInfo(ArrayList<String>(notaryKeys)).toJson()
                 ).fold({
                     //TODO this save will probably corrupt the wallet file
                     walletFile.save()

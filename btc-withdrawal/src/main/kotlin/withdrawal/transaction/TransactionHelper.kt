@@ -122,14 +122,14 @@ class TransactionHelper(
     fun getAvailableAddresses(wallet: Wallet): Result<Set<String>, Exception> {
         return btcRegisteredAddressesProvider.getRegisteredAddresses()
             .map { registeredAddresses ->
-                registeredAddresses.keys.filter { btcAddress ->
+                registeredAddresses.filter { btcAddress ->
                     wallet.isAddressWatched(
                         Address.fromBase58(
                             btcNetworkConfigProvider.getConfig(),
-                            btcAddress
+                            btcAddress.address
                         )
                     )
-                }.toSet()
+                }.map { btcAddress -> btcAddress.address }.toSet()
             }
     }
 
