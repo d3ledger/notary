@@ -50,7 +50,6 @@ subprojects {
     sonarqube {
         properties {
             property "sonar.java.binaries", "${project.projectDir}/build/classes"
-            property "sonar.java.libraries", "${project.projectDir}/build/libs"
             property "sonar.java.test.binaries", "${project.projectDir}/build/test-results/test/binary"
             property "sonar.junit.reportsPaths", "${project.projectDir}/build/test-results/**/*.xml"
             property "sonar.jacoco.reportPaths", "${project.projectDir}/build/jacoco/test.exec"
