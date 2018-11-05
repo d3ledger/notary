@@ -23,55 +23,39 @@ buildscript {
 group = 'd3'
 version = '1.0-SNAPSHOT'
 
+
 apply plugin: 'com.google.protobuf'
+apply plugin: "jacoco"
 apply plugin: 'info.solidsoft.pitest'
 apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'org.sonarqube'
 
-subprojects {
-        sonarqube {
-            properties {
-                property "sonar.java.binaries", "${project.projectDir}/build/classes"
-                property "sonar.java.libraries", "${project.projectDir}/build/libs"
-                property "sonar.java.test.binaries", "${project.projectDir}/build/test-results/test/binary"
-                property "sonar.junit.reportsPaths", "${project.projectDir}/build/test-results/**/*.xml"
-                property "sonar.jacoco.reportPaths", "${project.projectDir}/build/jacoco/test.exec"
-                property "sonar.exclusions", "${project.projectDir}/**/*.txt"
-            }
-        }
-}
 
 allprojects {
-    apply plugin: "jacoco"
     apply plugin: 'java'
     apply plugin: 'kotlin'
-    
     repositories {
         mavenCentral()
         // for Ktor
         jcenter()
         maven { url = 'https://dl.bintray.com/kotlin/ktor' }
     }
+}
 
-    kotlin {
-        experimental {
-            coroutines "enable"
+subprojects {
+    dependencies {
+        compile project(':')
+    }
+
+    sonarqube {
+        properties {
+            property "sonar.java.binaries", "${project.projectDir}/build/classes"
+            property "sonar.java.libraries", "${project.projectDir}/build/libs"
+            property "sonar.java.test.binaries", "${project.projectDir}/build/test-results/test/binary"
+            property "sonar.junit.reportsPaths", "${project.projectDir}/build/test-results/**/*.xml"
+            property "sonar.jacoco.reportPaths", "${project.projectDir}/build/jacoco/test.exec"
+            property "sonar.exclusions", "${project.projectDir}/**/*.txt"
         }
-    }
-
-    compileKotlin {
-        kotlinOptions.jvmTarget = "1.8"
-    }
-    compileTestKotlin {
-        kotlinOptions.jvmTarget = "1.8"
-    }
-    
-    test {
-        setWorkingDir("$rootDir/")
-        useJUnitPlatform()
-        systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-        println "Runtime Iroha library path:${systemProperties}"
-        environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
     }
 }
 
@@ -163,6 +147,42 @@ wrapper {
 jar {
     manifest {
         attributes 'Main-Class': 'notary.eth.EthNotaryMain'
+    }
+}
+
+allprojects {
+    kotlin {
+        experimental {
+            coroutines "enable"
+        }
+    }
+
+    compileKotlin {
+        kotlinOptions.jvmTarget = "1.8"
+    }
+    compileTestKotlin {
+        kotlinOptions.jvmTarget = "1.8"
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs += "src/main"
+            // iroha bindings
+            srcDirs += "build/generated/source/proto/main/java"
+            srcDirs += "build/generated/source/proto/main/grpc"
+        }
+    }
+}
+
+allprojects {
+    test {
+        setWorkingDir("$rootDir/")
+        useJUnitPlatform()
+        systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
+        println "Runtime Iroha library path:${systemProperties}"
+        environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
     }
 }
 
@@ -352,7 +372,8 @@ pitest {
                 'INVERT_NEGS', 'INLINE_CONSTS', 'VOID_METHOD_CALLS']
 }
 
-// -------------------------| Code coverage testing |-------------------------
+// -------------------------| JaCoCo code coverage |-------------------------
+
 task codeCoverageReport(type: JacocoReport) {
 
     // Gather execution data from all subprojects
