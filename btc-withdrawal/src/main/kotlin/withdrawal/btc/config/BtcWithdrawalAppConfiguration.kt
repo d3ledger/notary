@@ -8,9 +8,12 @@ import org.springframework.context.annotation.Configuration
 import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.btc.network.BtcNetworkConfigProvider
 import sidechain.iroha.IrohaChainListener
+import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import withdrawal.btc.BtcWhiteListProvider
+import withdrawal.transaction.SignCollector
+import withdrawal.transaction.TransactionSigner
 
 val withdrawalConfig = loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties")
 
@@ -22,8 +25,12 @@ class BtcWithdrawalAppConfiguration {
         withdrawalConfig.withdrawalCredential.privkeyPath
     ).fold({ keypair -> keypair }, { ex -> throw ex })
 
-    private val withdrawalCredential =
+    @Bean
+    fun withdrawalCredential() =
         IrohaCredential(withdrawalConfig.withdrawalCredential.accountId, withdrawalKeypair)
+
+    @Bean
+    fun withdrawalConsumer() = IrohaConsumerImpl(withdrawalCredential(), irohaNetwork())
 
     @Bean
     fun withdrawalConfig() = withdrawalConfig
@@ -32,7 +39,7 @@ class BtcWithdrawalAppConfiguration {
     fun irohaChainListener() = IrohaChainListener(
         withdrawalConfig.iroha.hostname,
         withdrawalConfig.iroha.port,
-        withdrawalCredential
+        withdrawalCredential()
     )
 
     @Bean
@@ -61,8 +68,16 @@ class BtcWithdrawalAppConfiguration {
     fun whiteListProvider() {
         BtcWhiteListProvider(
             withdrawalConfig.registrationAccount,
-            withdrawalCredential,
+            withdrawalCredential(),
             irohaNetwork()
         )
     }
+
+    @Bean
+    fun transactionSigner() = TransactionSigner(btcRegisteredAddressesProvider())
+
+    @Bean
+    fun signCollector() =
+        SignCollector(irohaNetwork(), withdrawalCredential(), withdrawalConsumer(), transactionSigner())
+
 }

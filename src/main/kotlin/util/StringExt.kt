@@ -1,9 +1,13 @@
 package util
 
 import java.util.*
+import javax.xml.bind.DatatypeConverter
 
 
 private const val CHAR = "abcdefghijklmnopqrstuvwxyz"
+
+//Iroha can't stand unescaped quote symbols
+private const val IROHA_FRIENDLY_QUOTE = "\\\""
 
 /**
  * Extension function to convert hexidecimal string to text
@@ -33,4 +37,19 @@ fun String.Companion.getRandomString(len: Int): String {
 
 fun String.Companion.getRandomId(): String {
     return UUID.randomUUID().toString().replace("-", "").substring(0, 32)
+}
+
+// Transforms byte array into hex string
+fun String.Companion.hex(bytes: ByteArray): String {
+    return DatatypeConverter.printHexBinary(bytes)
+}
+
+// Transforms hex string into byte array
+fun String.Companion.unHex(s: String): ByteArray {
+    return DatatypeConverter.parseHexBinary(s)
+}
+
+// Escapes string so it can be used in Iroha
+fun String.Companion.irohaEscape(text: String): String {
+    return text.replace("\"", IROHA_FRIENDLY_QUOTE)
 }

@@ -2,6 +2,7 @@ package withdrawal.transaction
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
+import helper.address.outPutToBase58Address
 import mu.KLogging
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.Coin
@@ -26,6 +27,9 @@ class TransactionHelper(
 ) {
 
     private val usedOutputs = HashSet<TransactionOutput>()
+
+    //Collection of "blacklisted" addresses. For testing purposes only
+    private val btcAddressBlackList = HashSet<String>()
 
     /**
      * Adds outputs(destination and change addresses) to a given transaction
@@ -94,7 +98,7 @@ class TransactionHelper(
             if (collectedAmount < totalAmount) {
                 throw IllegalStateException("Cannot get enough BTC amount(required $amount, collected $collectedAmount) using current unspent tx collection")
             }
-            unspents
+            usedUnspents
         }
     }
 
@@ -106,19 +110,11 @@ class TransactionHelper(
         usedOutputs.addAll(unspents)
     }
 
-    // Computes total unspend value
-    private fun getTotalUnspentValue(unspents: List<TransactionOutput>): Long {
-        var totalValue = 0L
-        unspents.forEach { unspent -> totalValue += unspent.value.value }
-        return totalValue
-    }
-
-    // Checks if transaction output was addressed to available address
-    private fun isAvailableOutput(availableAddresses: Set<String>, output: TransactionOutput): Boolean {
-        return availableAddresses.contains(output.scriptPubKey.getToAddress(output.params).toBase58())
-    }
-
-    // Fetches available(registered) addresses( intersection between watched and registered addresses)
+    /**
+     * Returns available addresses (intersection between watched and registered addresses)
+     * @param wallet - current wallet. Used to get "watched" addresses
+     * @return result with set full of available addresses
+     */
     fun getAvailableAddresses(wallet: Wallet): Result<Set<String>, Exception> {
         return btcRegisteredAddressesProvider.getRegisteredAddresses()
             .map { registeredAddresses ->
@@ -131,6 +127,27 @@ class TransactionHelper(
                     )
                 }.map { btcAddress -> btcAddress.address }.toSet()
             }
+    }
+
+    /**
+     * Adds address to black list. It makes given address money unable to spend
+     * @param btcAddress - address to add in black list
+     */
+    fun addToBlackList(btcAddress: String) {
+        btcAddressBlackList.add(btcAddress)
+    }
+
+    // Computes total unspend value
+    private fun getTotalUnspentValue(unspents: List<TransactionOutput>): Long {
+        var totalValue = 0L
+        unspents.forEach { unspent -> totalValue += unspent.value.value }
+        return totalValue
+    }
+
+    // Checks if transaction output was addressed to available address
+    private fun isAvailableOutput(availableAddresses: Set<String>, output: TransactionOutput): Boolean {
+        val btcAddress = outPutToBase58Address(output)
+        return availableAddresses.contains(btcAddress) && !btcAddressBlackList.contains(btcAddress)
     }
 
     /**

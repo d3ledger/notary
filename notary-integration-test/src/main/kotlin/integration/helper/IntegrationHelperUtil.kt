@@ -15,6 +15,9 @@ import mu.KLogging
 import notary.eth.EthNotaryConfig
 import notary.eth.executeNotary
 import org.bitcoinj.core.Address
+import org.bitcoinj.core.ECKey
+import org.bitcoinj.params.RegTestParams
+import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
 import org.web3j.crypto.WalletUtils
 import provider.btc.address.AddressInfo
@@ -238,6 +241,11 @@ class IntegrationHelperUtil : Closeable {
         }
     }
 
+    private fun createMstAddress(keys: List<ECKey>): Address {
+        val script = ScriptBuilder.createP2SHOutputScript(1, keys)
+        return script.getToAddress(RegTestParams.get())
+    }
+
     /**
      * Pregenerates one BTC address that can be registered later
      * @param walletFilePath - path to wallet file
@@ -246,14 +254,15 @@ class IntegrationHelperUtil : Closeable {
     fun preGenBtcAddress(walletFilePath: String): Result<Address, Exception> {
         val walletFile = File(walletFilePath)
         val wallet = Wallet.loadFromFile(walletFile)
-        val address = wallet.freshReceiveAddress()
+        val key = wallet.freshReceiveKey()
+        val address = createMstAddress(listOf(key))
         wallet.addWatchedAddress(address)
         wallet.saveToFile(walletFile)
         return ModelUtil.setAccountDetail(
             mstRegistrationIrohaConsumer,
             accountHelper.notaryAccount.accountId,
             address.toBase58(),
-            AddressInfo.createFreeAddressInfo(emptyList()).toJson()
+            AddressInfo.createFreeAddressInfo(listOf(key.publicKeyAsHex)).toJson()
         ).map { address }
     }
 
