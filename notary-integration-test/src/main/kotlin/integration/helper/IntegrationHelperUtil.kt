@@ -17,6 +17,7 @@ import notary.eth.executeNotary
 import org.bitcoinj.core.Address
 import org.bitcoinj.wallet.Wallet
 import org.web3j.crypto.WalletUtils
+import provider.btc.address.AddressInfo
 import provider.btc.address.BtcAddressesProvider
 import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.eth.EthFreeRelayProvider
@@ -114,10 +115,6 @@ class IntegrationHelperUtil : Closeable {
 
     private val tokenProviderIrohaConsumer by lazy {
         IrohaConsumerImpl(accountHelper.tokenSetterAccount, irohaNetwork)
-    }
-
-    private val whiteListIrohaConsumer by lazy {
-        IrohaConsumerImpl(accountHelper.whitelistSetter, irohaNetwork)
     }
 
     private val notaryListIrohaConsumer by lazy {
@@ -255,7 +252,7 @@ class IntegrationHelperUtil : Closeable {
             mstRegistrationIrohaConsumer,
             accountHelper.notaryAccount.accountId,
             address.toBase58(),
-            "free"
+            AddressInfo.createFreeAddressInfo(emptyList()).toJson()
         ).map { address }
     }
 

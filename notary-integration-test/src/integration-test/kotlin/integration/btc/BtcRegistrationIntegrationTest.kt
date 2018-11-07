@@ -84,7 +84,10 @@ class BtcRegistrationIntegrationTest {
         assertEquals(200, res.statusCode)
         val registeredBtcAddress = String(res.content)
         btcTakenAddressesProvider.getRegisteredAddresses().fold({ addresses ->
-            assertEquals("$userName@$CLIENT_DOMAIN", addresses[registeredBtcAddress])
+            assertEquals(
+                "$userName@$CLIENT_DOMAIN",
+                addresses.first { btcAddress -> btcAddress.address == registeredBtcAddress }.info.irohaClient
+            )
         }, { ex -> fail("cannot get addresses", ex) })
         assertEquals(
             BigInteger.ZERO.toString(),
@@ -118,7 +121,10 @@ class BtcRegistrationIntegrationTest {
             assertFalse(takenAddresses.contains(registeredBtcAddress))
             takenAddresses.add(registeredBtcAddress)
             btcTakenAddressesProvider.getRegisteredAddresses().fold({ addresses ->
-                assertEquals("$userName@$CLIENT_DOMAIN", addresses[registeredBtcAddress])
+                assertEquals(
+                    "$userName@$CLIENT_DOMAIN",
+                    addresses.first { btcAddress -> btcAddress.address == registeredBtcAddress }.info.irohaClient
+                )
             }, { ex -> fail("cannot get addresses", ex) })
             assertEquals(
                 BigInteger.ZERO.toString(),
