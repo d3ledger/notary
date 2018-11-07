@@ -106,4 +106,3 @@
       chdir: "{{ role_path }}"
     run_once: yes
     become: no
-
