@@ -31,6 +31,7 @@ class BtcRegistrationStrategyImpl(
         return btcAddressesProvider.getAddresses().fanout { btcRegisteredAddressesProvider.getRegisteredAddresses() }
             .flatMap { (addresses, takenAddresses) ->
                 try {
+                    //TODO Warning. Race condition ahead. Multiple threads/nodes can register the same BTC address twice.
                     //It fetches all BTC addresses and takes one that was not registered
                     val freeAddress =
                         addresses.first { btcAddress -> !takenAddresses.any { takenAddress -> takenAddress.address == btcAddress.address } }
