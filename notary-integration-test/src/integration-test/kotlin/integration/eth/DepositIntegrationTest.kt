@@ -1,11 +1,7 @@
 package integration.eth
 
 import integration.helper.IntegrationHelperUtil
-import jdk.nashorn.internal.ir.annotations.Ignore
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.*
 import provider.eth.ETH_PRECISION
 import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
@@ -161,12 +157,13 @@ class DepositIntegrationTest {
     /**
      * Test US-003 Deposit of ETH
      * Note: Ethereum and Iroha must be deployed to pass the test.
+     * Note: This test case dose not working with Ganache environment
      * @given Ethereum and Iroha networks running, smart contract with balance
      * @when smart-contract transfers 1234000000000 Wei to "relayWallet"
      * @then Associated Iroha account balance is increased on 1234000000000 Wei
      */
     @Test
-    @Ignore
+    @Disabled
     fun internalTransactionDeposit() {
         val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId)
         val amount = BigInteger.valueOf(1_234_000_000_000)
