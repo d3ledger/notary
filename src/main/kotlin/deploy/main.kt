@@ -7,6 +7,7 @@ import config.loadConfigs
 import config.loadEthPasswords
 import mu.KLogging
 import sidechain.eth.util.DeployHelper
+import java.io.File
 
 private val logger = KLogging().logger
 
@@ -41,7 +42,11 @@ fun main(args: Array<String>) {
         System.exit(1)
     }
 
-    logger.info { "master_eth_address::: ${master.contractAddress}" }
-    logger.info { "relay_registry_eth_address::: ${relayRegistry.contractAddress}" }
+    File("master_eth_address").printWriter().use {
+        it.print(master.contractAddress)
+    }
+    File("relay_registry_eth_address").printWriter().use {
+        it.print(relayRegistry.contractAddress)
+    }
 
 }
