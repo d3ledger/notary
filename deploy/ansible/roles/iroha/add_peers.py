@@ -2,6 +2,7 @@
 import base64
 import csv
 import json
+import os
 import sys
 
 '''
@@ -46,7 +47,7 @@ def genesis_add_peers(peers_list, genesis_block_fp):
         genesis_dict['payload']['transactions'][0]['payload']['reducedPayload']['commands'].append(p_add_command)
 
     with open(genesis_block_fp, 'w') as genesis_json:
-        json.dump(genesis_dict, genesis_json, sort_keys=True, indent=4)
+        json.dump(genesis_dict, genesis_json, indent=4)
 
 
 def hex_to_b64(hex_string):
@@ -63,6 +64,7 @@ def make_keys(peers):
 
 
 if __name__ == "__main__":
+    os.chdir("files")
     peers_csv = sys.argv[1]
     peers = parse_peers(peers_csv)
     genesis_add_peers(peers, "genesis.block")
