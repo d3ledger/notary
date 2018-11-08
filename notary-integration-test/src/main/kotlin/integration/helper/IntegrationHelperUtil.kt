@@ -17,6 +17,7 @@ import notary.eth.executeNotary
 import org.bitcoinj.core.Address
 import org.bitcoinj.wallet.Wallet
 import org.web3j.crypto.WalletUtils
+import provider.btc.address.AddressInfo
 import provider.btc.address.BtcAddressesProvider
 import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.eth.EthFreeRelayProvider
@@ -114,10 +115,6 @@ class IntegrationHelperUtil : Closeable {
 
     private val tokenProviderIrohaConsumer by lazy {
         IrohaConsumerImpl(accountHelper.tokenSetterAccount, irohaNetwork)
-    }
-
-    private val whiteListIrohaConsumer by lazy {
-        IrohaConsumerImpl(accountHelper.whitelistSetter, irohaNetwork)
     }
 
     private val notaryListIrohaConsumer by lazy {
@@ -227,35 +224,69 @@ class IntegrationHelperUtil : Closeable {
     }
 
     /**
+     * Pregenerates multiple BTC address that can be registered later
+     * @param walletFilePath - path to wallet file
+     * @param addressesToGenerate - number of addresses to generate
+     * @return result of operation
+     */
+    fun preGenBtcAddresses(walletFilePath: String, addressesToGenerate: Int): Result<Unit, Exception> {
+        return Result.of {
+            for (i in 1..addressesToGenerate) {
+                preGenBtcAddress(walletFilePath).failure { ex -> throw ex }
+            }
+        }
+    }
+
+    /**
      * Pregenerates one BTC address that can be registered later
+     * @param walletFilePath - path to wallet file
      * @return randomly generated BTC address
      */
-    fun preGenBtcAddress(): Result<Address, Exception> {
-        val walletFile = File(configHelper.createBtcPreGenConfig().btcWalletFilePath)
+    fun preGenBtcAddress(walletFilePath: String): Result<Address, Exception> {
+        val walletFile = File(walletFilePath)
         val wallet = Wallet.loadFromFile(walletFile)
         val address = wallet.freshReceiveAddress()
+        wallet.addWatchedAddress(address)
         wallet.saveToFile(walletFile)
         return ModelUtil.setAccountDetail(
             mstRegistrationIrohaConsumer,
             accountHelper.notaryAccount.accountId,
             address.toBase58(),
-            "free"
+            AddressInfo.createFreeAddressInfo(emptyList()).toJson()
         ).map { address }
     }
 
     /**
      * Registers BTC client
+     * @param walletFilePath - path to wallet file
+     * @param irohaAccountName - client account in Iroha
+     * @param keypair - key pair for new client in Iroha
+     * @return btc address related to client
+     */
+    fun registerBtcAddress(
+        walletFilePath: String,
+        irohaAccountName: String,
+        keypair: Keypair = ModelCrypto().generateKeypair()
+    ): String {
+        preGenBtcAddress(walletFilePath).fold({
+            return registerBtcAddressNoPreGen(irohaAccountName, keypair)
+        }, { ex -> throw ex })
+    }
+
+    /**
+     * Registers BTC client with no pregeneration
      * @param irohaAccountName - client account in Iroha
      * @return btc address related to client
      */
-    fun registerBtcAddress(irohaAccountName: String,
-                           keypair: Keypair = ModelCrypto().generateKeypair()): String {
-        preGenBtcAddress().fold({
-            btcRegistrationStrategy.register(irohaAccountName, emptyList(), keypair.publicKey().hex())
-                .fold({ btcAddress ->
-                    return btcAddress
-                }, { ex -> throw ex })
-        }, { ex -> throw ex })
+    fun registerBtcAddressNoPreGen(
+        irohaAccountName: String,
+        keypair: Keypair = ModelCrypto().generateKeypair()
+    ): String {
+        btcRegistrationStrategy.register(irohaAccountName, emptyList(), keypair.publicKey().hex())
+            .fold({ btcAddress ->
+                logger.info { "BTC address $btcAddress was registered by $irohaAccountName" }
+                return btcAddress
+            }, { ex -> throw ex })
     }
 
     /**

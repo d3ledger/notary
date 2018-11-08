@@ -85,6 +85,10 @@ class ConfigHelper(
         val btcWithdrawalConfig =
             loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties")
         return object : BtcWithdrawalConfig {
+            override val registrationAccount = accountHelper.registrationAccount.accountId
+            override val bitcoin = createBitcoinConfig(btcWithdrawalConfig.bitcoin)
+            override val changeAddress = btcWithdrawalConfig.changeAddress
+            override val notaryCredential = accountHelper.createCredentialConfig(accountHelper.notaryAccount)
             override val healthCheckPort = btcWithdrawalConfig.healthCheckPort
             override val withdrawalCredential = accountHelper.createCredentialConfig(accountHelper.btcWithdrawalAccount)
             override val iroha = btcWithdrawalConfig.iroha

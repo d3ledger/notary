@@ -72,7 +72,7 @@ dependencies {
     compile fileTree(dir: iroha_bindings_dir, include: '*.jar')
 
     // Eth library
-    compile 'org.web3j:core:3.5.0'
+    compile 'org.web3j:core:3.6.0'
 
     // Waves library
     compile 'com.wavesplatform:wavesj:0.4'
@@ -214,7 +214,7 @@ task buildEthereumContractsBindings(type: Exec) {
     String cmd = 'for f in ' + wildcard + '; ' +
             'do ' +
             'name=$(echo "$f" | cut -f 1 -d \'.\'); ' +
-            'web3j solidity generate ${name}.bin ${name}.abi -o <bin_path> -p jp.co.soramitsu \n'.replace("<bin_path>", bin_path) +
+            'web3j solidity generate ${name}.bin ${name}.abi -o <bin_path> -p contract \n'.replace("<bin_path>", bin_path) +
             'done'
 
     commandLine 'bash', '-c', cmd

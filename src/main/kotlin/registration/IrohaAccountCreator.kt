@@ -1,17 +1,12 @@
 package registration
 
 import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import jp.co.soramitsu.iroha.PublicKey
 import mu.KLogging
-import notary.IrohaCommand
-import notary.IrohaOrderedBatch
-import notary.IrohaTransaction
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumer
-import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.util.ModelUtil.getCurrentTime
 
 class IrohaAccountCreator(
@@ -39,25 +34,46 @@ class IrohaAccountCreator(
         userName: String,
         pubkey: String
     ): Result<String, Exception> {
-        val domain = CLIENT_DOMAIN
+        return create(currencyAddress, whitelist, userName, pubkey) { "$userName@$CLIENT_DOMAIN" }
+    }
+
+    /**
+     * Creates new account to Iroha with given address
+     * - CreateAccount with client name
+     * - SetAccountDetail on client account with assigned relay wallet from notary pool of free relay addresses
+     * - SetAccountDetail on notary node account to mark relay address in pool as assigned to the particular user
+     * @param currencyAddress - address of crypto currency wallet
+     * @param whitelist - list of addresses allowed to withdraw to
+     * @param userName - client userName in Iroha
+     * @param pubkey - client's public key
+     * @param notaryStorageStrategy - function that defines the way newly created account data will be stored in notary
+     * @return address associated with userName
+     */
+    fun create(
+        currencyAddress: String,
+        whitelist: String,
+        userName: String,
+        pubkey: String,
+        notaryStorageStrategy: () -> String
+    ): Result<String, Exception> {
         return Result.of {
             ModelTransactionBuilder()
                 .createdTime(getCurrentTime())
                 .creatorAccountId(creator)
                 .quorum(1)
                 // Create account
-                .createAccount(userName, domain, PublicKey(PublicKey.fromHexString(pubkey)))
+                .createAccount(userName, CLIENT_DOMAIN, PublicKey(PublicKey.fromHexString(pubkey)))
                 // Set user wallet/address in account detail
-                .setAccountDetail("$userName@$domain", "${currencyName}_wallet", currencyAddress)
+                .setAccountDetail("$userName@$CLIENT_DOMAIN", "${currencyName}_wallet", currencyAddress)
                 // Set wallet/address as occupied by user id
-                .setAccountDetail(notaryIrohaAccount, currencyAddress, "$userName@$domain")
+                .setAccountDetail(notaryIrohaAccount, currencyAddress, notaryStorageStrategy())
                 // Set whitelist
-                .setAccountDetail("$userName@$domain", "${currencyName}_whitelist", whitelist)
+                .setAccountDetail("$userName@$CLIENT_DOMAIN", "${currencyName}_whitelist", whitelist)
                 .build()
         }.map { utx ->
             irohaConsumer.sendAndCheck(utx)
         }.map {
-            logger.info { "New account $userName@$domain was created" }
+            logger.info { "New account $userName@$CLIENT_DOMAIN was created" }
             currencyAddress
         }
     }

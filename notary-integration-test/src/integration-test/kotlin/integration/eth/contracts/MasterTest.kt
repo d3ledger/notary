@@ -668,4 +668,19 @@ class MasterTest {
             cth.withdraw(BigInteger.valueOf(4000), "0x1")   //wrong address
         }
     }
+
+    /**
+     * @given relay registry and master contract
+     * @when adding all peers as a list
+     * @then all peers should be stored in the contract
+     */
+    @Test
+    fun addAllPeersAtOnce() {
+        val peers = listOf("0x01", "0x02", "0x03")
+        val result = master.addPeers(peers).send()
+        val n = master.peersCount().send()
+
+        Assertions.assertTrue(result.isStatusOK)
+        Assertions.assertEquals(3, n.toInt())
+    }
 }
