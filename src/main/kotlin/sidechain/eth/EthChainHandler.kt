@@ -117,7 +117,6 @@ class EthChainHandler(
             listOf()
         } else {
             // if tx amount > 0 and is committed successfully
-            println("IM HERE $hash, $from, $to, $value")
             listOf(
                 SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
                     hash,
