@@ -48,6 +48,7 @@ class SignCollector(
             if (signedInputs.isEmpty()) {
                 throw IllegalStateException("No inputs were signed")
             }
+            logger.info { "Tx ${tx.hashAsString} signatures to add in Iroha $signedInputs" }
             val shortTxHash = shortTxHash(tx)
             val createAccountTx = IrohaConverterImpl().convert(createSignCollectionAccountTx(shortTxHash))
             withdrawalConsumer.sendAndCheck(createAccountTx)
@@ -125,6 +126,7 @@ class SignCollector(
     //Creates Iroha transaction to store signatures as acount details
     private fun setSignatureDetailsTx(txShortHash: String, signedInputs: List<InputSignature>): IrohaTransaction {
         val signCollectionAccountId = "$txShortHash@$BTC_SIGN_COLLECT_DOMAIN"
+        val signaturesJson = String.irohaEscape(inputSignatureJsonAdapter.toJson(signedInputs))
         return IrohaTransaction(
             withdrawalCredential.accountId,
             ModelUtil.getCurrentTime(),
@@ -133,7 +135,7 @@ class SignCollector(
                 IrohaCommand.CommandSetAccountDetail(
                     signCollectionAccountId,
                     String.getRandomId(),
-                    String.irohaEscape(inputSignatureJsonAdapter.toJson(signedInputs))
+                    signaturesJson
                 )
             )
         )

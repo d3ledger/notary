@@ -39,7 +39,7 @@ class BtcWithdrawalInitialization(
 ) : HealthyService() {
 
     //TODO create rollback mechanism
-    private val unsignedTransactions = ConcurrentHashMap<String, Transaction>()
+    private val unsignedTransactions = ConcurrentHashMap<String, TimedTx>()
 
     fun init(): Result<Unit, Exception> {
         val wallet = Wallet.loadFromFile(File(btcWithdrawalConfig.bitcoin.walletPath))
@@ -121,11 +121,12 @@ class BtcWithdrawalInitialization(
             destinationAddress,
             btcWithdrawalConfig.bitcoin.confidenceLevel
         ).map { transaction ->
+            logger.info { "Tx to sign\n$transaction" }
             signCollector.addSignatures(transaction, wallet)
             transaction
         }.map { transaction ->
             val txHash = transaction.hashAsString
-            unsignedTransactions[txHash] = transaction
+            unsignedTransactions[txHash] = TimedTx.create(transaction)
             logger.info { "Tx $txHash was added to collection of unsigned transactions" }
         }.failure { ex -> logger.error("Cannot create withdrawal transaction", ex) }
     }
@@ -137,4 +138,11 @@ class BtcWithdrawalInitialization(
      */
     companion object : KLogging()
 
+}
+
+//Data class that holds transaction with its creation time
+data class TimedTx(val creationTime: Long, val tx: Transaction) {
+    companion object {
+        fun create(tx: Transaction) = TimedTx(System.currentTimeMillis(), tx)
+    }
 }

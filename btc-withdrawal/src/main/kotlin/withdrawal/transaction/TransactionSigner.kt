@@ -4,6 +4,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import helper.address.getSignThreshold
 import helper.address.outPutToBase58Address
+import mu.KLogging
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.Utils
@@ -46,6 +47,9 @@ class TransactionSigner(
                     val hashOut = tx.hashForSignature(inputIndex, redeem, Transaction.SigHash.ALL, false)
                     val signature = keyPair.sign(hashOut)
                     signatures.add(InputSignature(inputIndex, String.hex(signature.encodeToDER())))
+                    logger.info { "Tx ${tx.hashAsString} input $inputIndex was signed" }
+                } else {
+                    logger.warn { "Cannot sign ${tx.hashAsString} input $inputIndex" }
                 }
             }, { ex ->
                 throw IllegalStateException("Cannot get used pub keys for ${tx.hashAsString}", ex)
@@ -74,6 +78,11 @@ class TransactionSigner(
                 registeredAddresses.find { registeredAddress -> registeredAddress.address == btcAddress }!!.info.notaryKeys
             }
     }
+
+    /**
+     * Logger
+     */
+    companion object : KLogging()
 }
 
 data class InputSignature(val index: Int, val signatureHex: String)

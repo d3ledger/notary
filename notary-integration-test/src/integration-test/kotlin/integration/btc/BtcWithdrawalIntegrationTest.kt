@@ -5,7 +5,9 @@ import integration.helper.IntegrationHelperUtil
 import integration.helper.btcAsset
 import jp.co.soramitsu.iroha.ModelCrypto
 import model.IrohaCredential
+import mu.KLogging
 import org.bitcoinj.core.Address
+import org.bitcoinj.core.Transaction
 import org.junit.jupiter.api.*
 import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.btc.network.BtcRegTestConfigProvider
@@ -17,6 +19,7 @@ import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import withdrawal.btc.BtcWhiteListProvider
 import withdrawal.btc.BtcWithdrawalInitialization
+import withdrawal.btc.TimedTx
 import withdrawal.transaction.SignCollector
 import withdrawal.transaction.TransactionCreator
 import withdrawal.transaction.TransactionHelper
@@ -130,8 +133,9 @@ class BtcWithdrawalIntegrationTest {
         )
         Thread.sleep(WITHDRAWAL_WAIT_MILLIS)
         assertEquals(initTxCount + 1, btcWithdrawalInitialization.getUnsignedTransactions().size)
-        val createdWithdrawalTx = btcWithdrawalInitialization.getUnsignedTransactions().iterator().next().hashAsString
+        val createdWithdrawalTx = getLastUnsignedTx(btcWithdrawalInitialization.getUnsignedTransactions()).hashAsString
         signCollector.getSignatures(createdWithdrawalTx).fold({ signatures ->
+            logger.info { "signatures $signatures" }
             assertEquals(1, signatures[0]!!.size)
         }, { ex -> fail(ex) })
         transactionHelper.addToBlackList(btcAddressSrc)
@@ -168,8 +172,9 @@ class BtcWithdrawalIntegrationTest {
         )
         Thread.sleep(WITHDRAWAL_WAIT_MILLIS)
         assertEquals(initTxCount + 1, btcWithdrawalInitialization.getUnsignedTransactions().size)
-        val createdWithdrawalTx = btcWithdrawalInitialization.getUnsignedTransactions().iterator().next().hashAsString
+        val createdWithdrawalTx = getLastUnsignedTx(btcWithdrawalInitialization.getUnsignedTransactions()).hashAsString
         signCollector.getSignatures(createdWithdrawalTx).fold({ signatures ->
+            logger.info { "signatures $signatures" }
             assertEquals(1, signatures[0]!!.size)
             assertEquals(1, signatures[1]!!.size)
         }, { ex -> fail(ex) })
@@ -278,8 +283,9 @@ class BtcWithdrawalIntegrationTest {
         Thread.sleep(WITHDRAWAL_WAIT_MILLIS)
         assertEquals(initTxCount + 1, btcWithdrawalInitialization.getUnsignedTransactions().size)
 
-        val createdWithdrawalTx = btcWithdrawalInitialization.getUnsignedTransactions().iterator().next().hashAsString
+        val createdWithdrawalTx = getLastUnsignedTx(btcWithdrawalInitialization.getUnsignedTransactions()).hashAsString
         signCollector.getSignatures(createdWithdrawalTx).fold({ signatures ->
+            logger.info { "signatures $signatures" }
             assertEquals(1, signatures[0]!!.size)
         }, { ex -> fail(ex) })
 
@@ -364,4 +370,13 @@ class BtcWithdrawalIntegrationTest {
         transactionHelper.addToBlackList(btcAddressSrc)
         transactionHelper.addToBlackList(btcAddressDest)
     }
+
+    private fun getLastUnsignedTx(unsignedTransactions: Collection<TimedTx>) =
+        unsignedTransactions.maxBy { timedTx -> timedTx.creationTime }!!.tx
+
+    /**
+     * Logger
+     */
+    companion object : KLogging()
+
 }
