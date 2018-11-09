@@ -3,7 +3,6 @@ package notary.endpoint.eth
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
-import com.github.kittinunf.result.map
 import config.EthereumConfig
 import config.EthereumPasswords
 import iroha.protocol.TransactionOuterClass.Transaction
@@ -11,14 +10,15 @@ import model.IrohaCredential
 import mu.KLogging
 import notary.eth.EthNotaryConfig
 import org.web3j.crypto.ECKeyPair
+import provider.WhiteListProvider
 import provider.eth.EthRelayProviderIrohaImpl
 import provider.eth.EthTokensProvider
+import registration.ETH_WHITE_LIST_KEY
 import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
-import sidechain.iroha.util.getAccountDetails
 import java.math.BigDecimal
 
 class NotaryException(reason: String) : Exception(reason)
@@ -27,7 +27,7 @@ class NotaryException(reason: String) : Exception(reason)
  * Class performs effective implementation of refund strategy for Ethereum
  */
 class EthRefundStrategyImpl(
-    private val notaryConfig: EthNotaryConfig,
+    notaryConfig: EthNotaryConfig,
     private val irohaNetwork: IrohaNetwork,
     private val credential: IrohaCredential,
     ethereumConfig: EthereumConfig,
@@ -35,11 +35,16 @@ class EthRefundStrategyImpl(
     private val tokensProvider: EthTokensProvider
 ) : EthRefundStrategy {
 
-    val relayProvider = EthRelayProviderIrohaImpl(
+    private val relayProvider = EthRelayProviderIrohaImpl(
         irohaNetwork,
         credential,
         credential.accountId,
         notaryConfig.registrationServiceIrohaAccount
+    )
+
+    private val whiteListProvider = WhiteListProvider(
+        notaryConfig.whitelistSetter, credential, irohaNetwork,
+        ETH_WHITE_LIST_KEY
     )
 
     private var ecKeyPair: ECKeyPair = DeployHelper(ethereumConfig, ethereumPasswords).credentials.ecKeyPair
@@ -71,7 +76,7 @@ class EthRefundStrategyImpl(
             val commands = appearedTx.payload.reducedPayload.getCommands(0)
 
             when {
-            // rollback case
+                // rollback case
                 appearedTx.payload.reducedPayload.commandsCount == 1 &&
                         commands.hasSetAccountDetail() -> {
 
@@ -94,7 +99,7 @@ class EthRefundStrategyImpl(
 
                     EthRefund(destEthAddress, "mockCoinType", "10", request.irohaTx, relayAddress)
                 }
-            // withdrawal case
+                // withdrawal case
                 (appearedTx.payload.reducedPayload.commandsCount == 1) &&
                         commands.hasTransferAsset() -> {
                     val destAccount = commands.transferAsset.destAccountId
@@ -110,7 +115,7 @@ class EthRefundStrategyImpl(
                     val tokenInfo = tokensProvider.getTokenAddress(token)
                         .fanout { tokensProvider.getTokenPrecision(token) }
 
-                    checkWithdrawalAddress(srcAccountId, destEthAddress)
+                    whiteListProvider.checkWithdrawalAddress(srcAccountId, destEthAddress)
                         .flatMap { isWhitelisted ->
                             if (!isWhitelisted) {
                                 val errorMsg = "$destEthAddress not in whitelist"
@@ -157,29 +162,6 @@ class EthRefundStrategyImpl(
 
             val signature = signUserData(ecKeyPair, finalHash)
             EthNotaryResponse.Successful(signature, ethRefund)
-        }
-    }
-
-    /**
-     * Check if [srcAccountId] has Ethereum withdrawal [address] in whitelist
-     * @param srcAccountId - Iroha account - holder of whitelist
-     * @param address - ethereum address to check
-     * @return true if whitelist is not set, otherwise checks if [address] in the whitelist
-     */
-    private fun checkWithdrawalAddress(srcAccountId: String, address: String): Result<Boolean, Exception> {
-        return getAccountDetails(
-            credential,
-            irohaNetwork,
-            srcAccountId,
-            notaryConfig.whitelistSetter
-        ).map { details ->
-            val whitelist = details["eth_whitelist"]
-            if (whitelist == null || whitelist.isEmpty()) {
-                logger.debug { "Whitelist is empty. Allow." }
-                true
-            } else {
-                whitelist.split(", ").contains(address)
-            }
         }
     }
 

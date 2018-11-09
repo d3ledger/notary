@@ -5,6 +5,8 @@ import model.IrohaCredential
 import org.bitcoinj.core.Address
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import provider.WhiteListProvider
+import provider.btc.account.BTC_WHITE_LIST_KEY
 import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.btc.network.BtcNetworkConfigProvider
 import sidechain.iroha.IrohaChainListener
@@ -54,5 +56,15 @@ class BtcWithdrawalAppConfiguration {
                 withdrawalConfig.notaryCredential.accountId
             )
         }, { ex -> throw ex })
+    }
+
+    @Bean
+    fun whiteListProvider() {
+        WhiteListProvider(
+            withdrawalConfig.registrationAccount,
+            withdrawalCredential,
+            irohaNetwork(),
+            BTC_WHITE_LIST_KEY
+        )
     }
 }

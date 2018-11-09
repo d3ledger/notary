@@ -20,26 +20,7 @@ class IrohaAccountCreator(
 
     private val creator = irohaConsumer.creator
 
-    /**
-     * Creates new account to Iroha with given address
-     * - CreateAccount with client name
-     * - SetAccountDetail on client account with assigned relay wallet from notary pool of free relay addresses
-     * - SetAccountDetail on notary node account to mark relay address in pool as assigned to the particular user
-     * @param currencyAddress - address of crypto currency wallet
-     * @param whitelist - list of addresses allowed to withdraw to
-     * @param userName - client userName in Iroha
-     * @param pubkey - client's public key
-     * @return address associated with userName
-     */
-    fun create(
-        currencyAddress: String,
-        whitelist: String,
-        userName: String,
-        pubkey: String
-    ): Result<String, Exception> {
-        return create(currencyAddress, whitelist, userName, pubkey) { "$userName@$CLIENT_DOMAIN" }
-    }
-
+    //TODO update comments
     /**
      * Creates new account to Iroha with given address
      * - CreateAccount with client name
@@ -54,7 +35,8 @@ class IrohaAccountCreator(
      */
     fun create(
         currencyAddress: String,
-        whitelist: String,
+        whitelistKey: String,
+        whitelist: List<String>,
         userName: String,
         pubkey: String,
         notaryStorageStrategy: () -> String
@@ -93,11 +75,10 @@ class IrohaAccountCreator(
                         1,
                         arrayListOf(
                             //set whitelist
-                            //TODO this function is used to create both BTC and ETH clients. "eth_whitelist" is not appropriate detail key.
                             IrohaCommand.CommandSetAccountDetail(
                                 "$userName@$CLIENT_DOMAIN",
-                                "eth_whitelist",
-                                whitelist
+                                whitelistKey,
+                                whitelist.toString().trim('[').trim(']')
                             )
                         )
                     )
