@@ -1,11 +1,10 @@
 package notary.btc.listener
 
+import helper.address.outPutToBase58Address
 import io.reactivex.ObservableEmitter
 import mu.KLogging
-import org.bitcoinj.core.ScriptException
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.TransactionConfidence
-import org.bitcoinj.core.TransactionOutput
 import provider.btc.address.BtcAddress
 import sidechain.SideChainEvent
 import java.math.BigInteger
@@ -103,15 +102,6 @@ class BitcoinTransactionListener(
                 confidence.removeEventListener(this)
                 txHandler(tx, blockTime)
             }
-        }
-    }
-
-    //Safely takes base58 encoded address from tx output
-    private fun outPutToBase58Address(output: TransactionOutput): String {
-        try {
-            return output.scriptPubKey.getToAddress(output.params).toBase58()
-        } catch (expected: ScriptException) {
-            return "[undefined]"
         }
     }
 

@@ -100,7 +100,7 @@ class BtcNotaryIntegrationTest {
             BigDecimal(initialBalance).add(integrationHelper.btcToSat(btcAmount).toBigDecimal()).toString(),
             newBalance
         )
-        assertTrue(addressIsWatched(btcAddress, btcNotaryInitialization.getWatchedAddresses()))
+        assertTrue(btcNotaryInitialization.isWatchedAddress(btcAddress))
     }
 
     /**
@@ -132,7 +132,7 @@ class BtcNotaryIntegrationTest {
             ).toString(),
             newBalance
         )
-        assertTrue(addressIsWatched(btcAddress, btcNotaryInitialization.getWatchedAddresses()))
+        assertTrue(btcNotaryInitialization.isWatchedAddress(btcAddress))
     }
 
     /**
@@ -156,7 +156,7 @@ class BtcNotaryIntegrationTest {
         Thread.sleep(20_000)
         val newBalance = integrationHelper.getIrohaAccountBalance(testClient, btcAsset)
         assertEquals(initialBalance, newBalance)
-        assertTrue(addressIsWatched(btcAddress, btcNotaryInitialization.getWatchedAddresses()))
+        assertTrue(btcNotaryInitialization.isWatchedAddress(btcAddress))
     }
 
     /**
@@ -188,7 +188,7 @@ class BtcNotaryIntegrationTest {
             BigDecimal(initialBalance).add(integrationHelper.btcToSat(btcAmount).toBigDecimal()).toString(),
             newBalance
         )
-        assertTrue(addressIsWatched(btcAddress, btcNotaryInitialization.getWatchedAddresses()))
+        assertTrue(btcNotaryInitialization.isWatchedAddress(btcAddress))
     }
 
     //Checks if address is in set of watched address

@@ -73,8 +73,9 @@ class BtcNotaryInitialization(
         }
     }
 
-    //Returns all currently watched addresses
-    fun getWatchedAddresses() = wallet.watchedAddresses
+    //Checks if address is watched by notary
+    fun isWatchedAddress(btcAddress: String) =
+        wallet.isAddressWatched(Address.fromBase58(btcNetworkConfigProvider.getConfig(), btcAddress))
 
     /**
      * Listens to newly registered bitcoin addresses and adds addresses to current wallet object
@@ -84,14 +85,16 @@ class BtcNotaryInitialization(
             .subscribe({ block ->
                 getSetDetailCommands(block).forEach { command ->
                     if (isNewClientWasRegistered(command)) {
-                        //Add new registered address to wallet
-                        wallet.addWatchedAddress(
-                            Address.fromBase58(
-                                btcNetworkConfigProvider.getConfig(),
-                                command.setAccountDetail.value
-                            )
+                        val address = Address.fromBase58(
+                            btcNetworkConfigProvider.getConfig(),
+                            command.setAccountDetail.value
                         )
-                        logger.info { "New BTC address ${command.setAccountDetail.value} was added to wallet" }
+                        //Add new registered address to wallet
+                        if (wallet.addWatchedAddress(address)) {
+                            logger.info { "New BTC address ${command.setAccountDetail.value} was added to wallet" }
+                        } else {
+                            logger.error { "Address $address was not added to wallet" }
+                        }
                     }
                 }
             }, { ex ->

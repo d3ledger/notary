@@ -2,6 +2,7 @@ package provider.btc
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
+import helper.address.getSignThreshold
 import mu.KLogging
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.ECKey
@@ -74,7 +75,7 @@ class BtcPublicKeyProvider(
             if (peers == 0) {
                 throw IllegalStateException("No peers to create btc multisignature address")
             } else if (notaryKeys.size == peers && hasMyKey(notaryKeys)) {
-                val threshold = getThreshold(peers)
+                val threshold = getSignThreshold(peers)
                 val msAddress = createMsAddress(notaryKeys, threshold)
                 if (!walletFile.wallet.addWatchedAddress(msAddress)) {
                     throw IllegalStateException("BTC address $msAddress was not added to wallet")
@@ -120,15 +121,6 @@ class BtcPublicKeyProvider(
         val script = ScriptBuilder.createP2SHOutputScript(threshold, keys)
         logger.info { "New BTC multisignature script $script" }
         return script.getToAddress(btcNetworkConfigProvider.getConfig())
-    }
-
-    /**
-     * Calculate threshold
-     * @param peers - total number of peers
-     * @return minimal number of signatures required
-     */
-    private fun getThreshold(peers: Int): Int {
-        return (peers * 2 / 3) + 1
     }
 
     /**
