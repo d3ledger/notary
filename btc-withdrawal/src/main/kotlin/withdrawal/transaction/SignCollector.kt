@@ -39,11 +39,14 @@ class SignCollector(
         .adapter<List<InputSignature>>(Types.newParameterizedType(List::class.java, InputSignature::class.java))
 
     /**
-     * Adds current notary signatures to Iroha
+     * Collects current notary signatures. Process consists of 3 steps:
+     * 1) Sign tx
+     * 2) Create special account named after tx hash for signature storing
+     * 3) Save signatures in recently created account details
      * @param tx - transaction to sign
      * @param wallet - current wallet. Used to get private keys
      */
-    fun addSignatures(tx: Transaction, wallet: Wallet) {
+    fun collectSignatures(tx: Transaction, wallet: Wallet) {
         transactionSigner.sign(tx, wallet).flatMap { signedInputs ->
             if (signedInputs.isEmpty()) {
                 throw IllegalStateException("No inputs were signed")
@@ -81,14 +84,18 @@ class SignCollector(
             val totalInputSignatures = HashMap<Int, ArrayList<String>>()
             signatureDetails.entries.forEach { signatureData ->
                 val notaryInputSignatures = inputSignatureJsonAdapter.fromJson(signatureData.value)!!
-                collectSignatures(totalInputSignatures, notaryInputSignatures)
+                combineSignatures(totalInputSignatures, notaryInputSignatures)
             }
             totalInputSignatures
         }
     }
 
-    //Function that combines signatures from Iroha into map.
-    private fun collectSignatures(
+    /**
+     * Function that combines signatures from Iroha into map.
+     * @param totalInputSignatures - collection that stores all the signatures in convenient form: input index as key and list of signatures as value
+     * @param notaryInputSignatures - signatures of particular node from Iroha. It will be added to [totalInputSignatures]
+     */
+    private fun combineSignatures(
         totalInputSignatures: HashMap<Int, ArrayList<String>>,
         notaryInputSignatures: List<InputSignature>
     ) {
@@ -101,7 +108,7 @@ class SignCollector(
         }
     }
 
-    //Cuts tx hash using raw tx hash string
+    //Cuts tx hash using raw tx hash string. Only first 32 symbols are taken.
     private fun shortTxHash(txHash: String) = txHash.substring(0, 32)
 
     //Cuts tx hash using tx

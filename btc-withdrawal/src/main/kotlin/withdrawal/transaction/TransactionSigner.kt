@@ -85,4 +85,5 @@ class TransactionSigner(
     companion object : KLogging()
 }
 
+//Class that stores input with its signature in hex format
 data class InputSignature(val index: Int, val signatureHex: String)

@@ -28,9 +28,6 @@ class TransactionHelper(
 
     private val usedOutputs = HashSet<TransactionOutput>()
 
-    //Collection of "blacklisted" addresses. For testing purposes only
-    private val btcAddressBlackList = HashSet<String>()
-
     /**
      * Adds outputs(destination and change addresses) to a given transaction
      * @param transaction - current transaction
@@ -129,13 +126,7 @@ class TransactionHelper(
             }
     }
 
-    /**
-     * Adds address to black list. It makes given address money unable to spend
-     * @param btcAddress - address to add in black list
-     */
-    fun addToBlackList(btcAddress: String) {
-        btcAddressBlackList.add(btcAddress)
-    }
+
 
     // Computes total unspend value
     private fun getTotalUnspentValue(unspents: List<TransactionOutput>): Long {
@@ -145,9 +136,9 @@ class TransactionHelper(
     }
 
     // Checks if transaction output was addressed to available address
-    private fun isAvailableOutput(availableAddresses: Set<String>, output: TransactionOutput): Boolean {
+    protected fun isAvailableOutput(availableAddresses: Set<String>, output: TransactionOutput): Boolean {
         val btcAddress = outPutToBase58Address(output)
-        return availableAddresses.contains(btcAddress) && !btcAddressBlackList.contains(btcAddress)
+        return availableAddresses.contains(btcAddress)
     }
 
     /**

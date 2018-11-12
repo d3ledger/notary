@@ -1,15 +1,17 @@
 package integration.btc
 
 import com.github.kittinunf.result.failure
+import helper.address.outPutToBase58Address
 import integration.helper.IntegrationHelperUtil
 import integration.helper.btcAsset
 import jp.co.soramitsu.iroha.ModelCrypto
 import model.IrohaCredential
 import mu.KLogging
 import org.bitcoinj.core.Address
-import org.bitcoinj.core.Transaction
+import org.bitcoinj.core.TransactionOutput
 import org.junit.jupiter.api.*
 import provider.btc.address.BtcRegisteredAddressesProvider
+import provider.btc.network.BtcNetworkConfigProvider
 import provider.btc.network.BtcRegTestConfigProvider
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.IrohaChainListener
@@ -71,7 +73,7 @@ class BtcWithdrawalIntegrationTest {
     private val changeAddress =
         Address.fromBase58(btcNetworkConfigProvider.getConfig(), btcWithdrawalConfig.changeAddress)
     private val transactionHelper =
-        TransactionHelper(btcNetworkConfigProvider, btcRegisteredAddressesProvider)
+        BlackListableTransactionHelper(btcNetworkConfigProvider, btcRegisteredAddressesProvider)
     private val transactionCreator = TransactionCreator(changeAddress, btcNetworkConfigProvider, transactionHelper)
     private val transactionSigner = TransactionSigner(btcRegisteredAddressesProvider)
     private val signCollector =
@@ -373,6 +375,29 @@ class BtcWithdrawalIntegrationTest {
 
     private fun getLastUnsignedTx(unsignedTransactions: Collection<TimedTx>) =
         unsignedTransactions.maxBy { timedTx -> timedTx.creationTime }!!.tx
+
+
+    private class BlackListableTransactionHelper(
+        btcNetworkConfigProvider: BtcNetworkConfigProvider,
+        btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider
+    ) : TransactionHelper(btcNetworkConfigProvider, btcRegisteredAddressesProvider) {
+        //Collection of "blacklisted" addresses. For testing purposes only
+        private val btcAddressBlackList = HashSet<String>()
+
+        /**
+         * Adds address to black list. It makes given address money unable to spend
+         * @param btcAddress - address to add in black list
+         */
+        fun addToBlackList(btcAddress: String) {
+            btcAddressBlackList.add(btcAddress)
+        }
+
+        // Checks if transaction output was addressed to available address
+        override fun isAvailableOutput(availableAddresses: Set<String>, output: TransactionOutput): Boolean {
+            val btcAddress = outPutToBase58Address(output)
+            return availableAddresses.contains(btcAddress) && !btcAddressBlackList.contains(btcAddress)
+        }
+    }
 
     /**
      * Logger

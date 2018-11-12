@@ -10,7 +10,6 @@ import helper.network.startChainDownload
 import io.reactivex.schedulers.Schedulers
 import iroha.protocol.Commands
 import mu.KLogging
-import org.bitcoinj.core.Transaction
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -122,7 +121,7 @@ class BtcWithdrawalInitialization(
             btcWithdrawalConfig.bitcoin.confidenceLevel
         ).map { transaction ->
             logger.info { "Tx to sign\n$transaction" }
-            signCollector.addSignatures(transaction, wallet)
+            signCollector.collectSignatures(transaction, wallet)
             transaction
         }.map { transaction ->
             val txHash = transaction.hashAsString
@@ -138,11 +137,4 @@ class BtcWithdrawalInitialization(
      */
     companion object : KLogging()
 
-}
-
-//Data class that holds transaction with its creation time
-data class TimedTx(val creationTime: Long, val tx: Transaction) {
-    companion object {
-        fun create(tx: Transaction) = TimedTx(System.currentTimeMillis(), tx)
-    }
 }
