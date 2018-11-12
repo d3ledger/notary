@@ -101,7 +101,7 @@ class BtcWithdrawalIntegrationTest {
     fun setUp() {
         integrationHelper.generateBtcBlocks()
         //TODO make it faster
-        integrationHelper.preGenBtcAddresses(btcWithdrawalConfig.bitcoin.walletPath, 12).failure { ex -> throw ex }
+        integrationHelper.preGenBtcAddresses(btcWithdrawalConfig.bitcoin.walletPath, 14).failure { ex -> throw ex }
         btcWithdrawalInitialization.init()
     }
 
@@ -215,8 +215,10 @@ class BtcWithdrawalIntegrationTest {
             btcAddressDest,
             amount
         )
-        Thread.sleep(5_000)
+        Thread.sleep(WITHDRAWAL_WAIT_MILLIS)
         assertEquals(initTxCount, btcWithdrawalInitialization.getUnsignedTransactions().size)
+        transactionHelper.addToBlackList(btcAddressSrc)
+        transactionHelper.addToBlackList(btcAddressDest)
     }
 
     /**
@@ -250,8 +252,10 @@ class BtcWithdrawalIntegrationTest {
             btcAddressDest,
             amount
         )
-        Thread.sleep(5_000)
+        Thread.sleep(WITHDRAWAL_WAIT_MILLIS)
         assertEquals(initTxCount + 1, btcWithdrawalInitialization.getUnsignedTransactions().size)
+        transactionHelper.addToBlackList(btcAddressSrc)
+        transactionHelper.addToBlackList(btcAddressDest)
     }
 
     /**
