@@ -20,12 +20,11 @@ class IrohaAccountCreator(
 
     private val creator = irohaConsumer.creator
 
-    //TODO update comments
     /**
      * Creates new account to Iroha with given address
      * - CreateAccount with client name
-     * - SetAccountDetail on client account with assigned relay wallet from notary pool of free relay addresses
-     * - SetAccountDetail on notary node account to mark relay address in pool as assigned to the particular user
+     * - SetAccountDetail on client account with assigned [currencyAddress]
+     * - SetAccountDetail on notary node account to mark [currencyAddress] as assigned to the particular user
      * @param currencyAddress - address of crypto currency wallet
      * @param whitelist - list of addresses allowed to withdraw to
      * @param userName - client userName in Iroha

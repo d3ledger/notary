@@ -19,6 +19,7 @@ import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
+import withdrawal.btc.BtcWhiteListProvider
 import withdrawal.btc.BtcWithdrawalInitialization
 import withdrawal.transaction.TransactionCreator
 import withdrawal.transaction.TransactionHelper
@@ -68,9 +69,8 @@ class BtcWithdrawalIntegrationTest {
             btcWithdrawalConfig,
             irohaChainListener,
             transactionCreator,
-            WhiteListProvider(
-                btcWithdrawalConfig.registrationAccount, withdrawalCredential, irohaNetwork,
-                BTC_WHITE_LIST_KEY
+            BtcWhiteListProvider(
+                btcWithdrawalConfig.registrationAccount, withdrawalCredential, irohaNetwork
             ),
             btcNetworkConfigProvider
         )

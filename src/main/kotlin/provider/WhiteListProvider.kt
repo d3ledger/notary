@@ -7,7 +7,7 @@ import notary.endpoint.eth.EthRefundStrategyImpl
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
 
-class WhiteListProvider(
+abstract class WhiteListProvider protected constructor(
     private val whiteListSetterAccount: String,
     private val credential: IrohaCredential,
     private val irohaNetwork: IrohaNetwork,
@@ -15,10 +15,10 @@ class WhiteListProvider(
 ) {
 
     /**
-     * Check if [srcAccountId] has withdrawal [address] in whitelist
+     * Check if [srcAccountId] has withdrawal [address] in whitelist.
      * @param srcAccountId - Iroha account - holder of whitelist
      * @param address - address to check
-     * @return true if whitelist is not set, otherwise checks if [address] in the whitelist
+     * @return true if whitelist is not set or empty, otherwise checks if [address] in the whitelist
      */
     fun checkWithdrawalAddress(srcAccountId: String, address: String): Result<Boolean, Exception> {
         return getAccountDetails(

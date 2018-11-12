@@ -5,13 +5,12 @@ import model.IrohaCredential
 import org.bitcoinj.core.Address
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import provider.WhiteListProvider
-import provider.btc.account.BTC_WHITE_LIST_KEY
 import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.btc.network.BtcNetworkConfigProvider
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
+import withdrawal.btc.BtcWhiteListProvider
 
 val withdrawalConfig = loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties")
 
@@ -60,11 +59,10 @@ class BtcWithdrawalAppConfiguration {
 
     @Bean
     fun whiteListProvider() {
-        WhiteListProvider(
+        BtcWhiteListProvider(
             withdrawalConfig.registrationAccount,
             withdrawalCredential,
-            irohaNetwork(),
-            BTC_WHITE_LIST_KEY
+            irohaNetwork()
         )
     }
 }

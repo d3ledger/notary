@@ -10,10 +10,8 @@ import model.IrohaCredential
 import mu.KLogging
 import notary.eth.EthNotaryConfig
 import org.web3j.crypto.ECKeyPair
-import provider.WhiteListProvider
 import provider.eth.EthRelayProviderIrohaImpl
 import provider.eth.EthTokensProvider
-import registration.ETH_WHITE_LIST_KEY
 import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
@@ -42,9 +40,8 @@ class EthRefundStrategyImpl(
         notaryConfig.registrationServiceIrohaAccount
     )
 
-    private val whiteListProvider = WhiteListProvider(
-        notaryConfig.whitelistSetter, credential, irohaNetwork,
-        ETH_WHITE_LIST_KEY
+    private val whiteListProvider = EthWhiteListProvider(
+        notaryConfig.whitelistSetter, credential, irohaNetwork
     )
 
     private var ecKeyPair: ECKeyPair = DeployHelper(ethereumConfig, ethereumPasswords).credentials.ecKeyPair
