@@ -10,6 +10,7 @@ import provider.btc.network.BtcNetworkConfigProvider
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
+import withdrawal.btc.BtcWhiteListProvider
 
 val withdrawalConfig = loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties")
 
@@ -54,5 +55,14 @@ class BtcWithdrawalAppConfiguration {
                 withdrawalConfig.notaryCredential.accountId
             )
         }, { ex -> throw ex })
+    }
+
+    @Bean
+    fun whiteListProvider() {
+        BtcWhiteListProvider(
+            withdrawalConfig.registrationAccount,
+            withdrawalCredential,
+            irohaNetwork()
+        )
     }
 }

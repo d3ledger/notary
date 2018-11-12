@@ -10,7 +10,7 @@ import org.web3j.crypto.WalletUtils
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
 import provider.eth.EthFreeRelayProvider
-import registration.IrohaAccountCreator
+import registration.IrohaEthAccountCreator
 import registration.RegistrationStrategy
 import sidechain.eth.util.BasicAuthenticator
 import sidechain.iroha.consumer.IrohaConsumer
@@ -46,7 +46,7 @@ class EthRegistrationStrategyImpl(
         BigInteger.valueOf(ethRegistrationConfig.ethereum.gasLimit)
     )
 
-    private val irohaAccountCreator = IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, "ethereum_wallet")
+    private val irohaEthAccountCreator = IrohaEthAccountCreator(irohaConsumer, notaryIrohaAccount)
 
     /**
      * Register new notary client
@@ -59,8 +59,8 @@ class EthRegistrationStrategyImpl(
         return ethFreeRelayProvider.getRelay()
             .flatMap { freeEthWallet ->
                 relayRegistry.addNewRelayAddress(freeEthWallet, whitelist).send()
-                irohaAccountCreator.create(
-                    freeEthWallet, whitelist.toString().trim('[').trim(']'), name, pubkey
+                irohaEthAccountCreator.create(
+                    freeEthWallet, whitelist, name, pubkey
                 )
             }
     }

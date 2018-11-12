@@ -13,6 +13,7 @@ import org.bitcoinj.core.Transaction
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import provider.WhiteListProvider
 import provider.btc.network.BtcNetworkConfigProvider
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.util.getTransferCommands
@@ -30,6 +31,7 @@ class BtcWithdrawalInitialization(
     @Autowired private val btcWithdrawalConfig: BtcWithdrawalConfig,
     @Autowired private val irohaChainListener: IrohaChainListener,
     @Autowired private val transactionCreator: TransactionCreator,
+    @Autowired private val whiteListProvider: WhiteListProvider,
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider
 ) : HealthyService() {
 
@@ -88,17 +90,31 @@ class BtcWithdrawalInitialization(
         if (transferCommand.destAccountId != btcWithdrawalConfig.withdrawalCredential.accountId) {
             return
         }
+        val destinationAddress = transferCommand.description
         logger.info {
             "Withdrawal event(" +
                     "from:${transferCommand.srcAccountId} " +
-                    "to:${transferCommand.description} " +
+                    "to:$destinationAddress " +
                     "amount:${transferCommand.amount})"
         }
-        //TODO check if destination address from 'transferCommand.description' is whitelisted
+        whiteListProvider.checkWithdrawalAddress(transferCommand.srcAccountId, destinationAddress)
+            .fold({ ableToWithdraw ->
+                if (ableToWithdraw) {
+                    withdraw(wallet, destinationAddress, transferCommand.amount.toLong())
+                } else {
+                    logger.warn { "Cannot withdraw to $destinationAddress, because it's not in ${transferCommand.srcAccountId} whitelist" }
+                }
+            }, { ex ->
+                logger.error("Cannot check ability to withdraw", ex)
+            })
+    }
+
+    //Main withdraw process
+    private fun withdraw(wallet: Wallet, destinationAddress: String, amount: Long) {
         transactionCreator.createTransaction(
             wallet,
-            transferCommand.amount.toLong(),
-            transferCommand.description,
+            amount,
+            destinationAddress,
             btcWithdrawalConfig.bitcoin.confidenceLevel
         ).fold({ transaction ->
             val txHash = transaction.hashAsString
