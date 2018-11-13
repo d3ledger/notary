@@ -49,7 +49,7 @@ subprojects {
     }
     dokka {
         outputFormat = 'html' 
-        outputDirectory = "${project.projectDir}/build/dokka"
+        outputDirectory = "${project.projectDir}/build/reports/dokka"
         reportUndocumented = true
         sourceDirs = files("${project.projectDir}/src/main/kotlin")
     }
