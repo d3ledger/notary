@@ -1,4 +1,4 @@
-package withdrawal.transaction
+package withdrawal.btc.transaction
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map

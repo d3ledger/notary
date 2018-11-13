@@ -1,4 +1,4 @@
-package withdrawal.btc
+package withdrawal.btc.transaction
 
 import org.bitcoinj.core.Transaction
 

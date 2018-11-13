@@ -11,9 +11,7 @@ import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
-import withdrawal.btc.BtcWhiteListProvider
-import withdrawal.transaction.SignCollector
-import withdrawal.transaction.TransactionSigner
+import withdrawal.btc.provider.BtcWhiteListProvider
 
 val withdrawalConfig = loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties")
 
@@ -65,19 +63,11 @@ class BtcWithdrawalAppConfiguration {
     }
 
     @Bean
-    fun whiteListProvider() {
-        BtcWhiteListProvider(
+    fun whiteListProvider(): BtcWhiteListProvider {
+        return BtcWhiteListProvider(
             withdrawalConfig.registrationAccount,
             withdrawalCredential(),
             irohaNetwork()
         )
     }
-
-    @Bean
-    fun transactionSigner() = TransactionSigner(btcRegisteredAddressesProvider())
-
-    @Bean
-    fun signCollector() =
-        SignCollector(irohaNetwork(), withdrawalCredential(), withdrawalConsumer(), transactionSigner())
-
 }

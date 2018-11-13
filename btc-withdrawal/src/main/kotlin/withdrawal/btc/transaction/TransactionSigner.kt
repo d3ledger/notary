@@ -1,4 +1,4 @@
-package withdrawal.transaction
+package withdrawal.btc.transaction
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
@@ -8,6 +8,7 @@ import mu.KLogging
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.Utils
+import org.bitcoinj.script.Script
 import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,6 +34,30 @@ class TransactionSigner(
         return Result.of { signUnsafe(tx, wallet) }
     }
 
+    /**
+     * Creates redeem script using given public keys
+     *
+     * @param pubKeys - public keys that will be used to created redeem script
+     * @return - redeem script
+     */
+    fun createdRedeemScript(pubKeys: List<String>): Script {
+        val ecPubKeys = pubKeys.map { pubKey -> ECKey.fromPublicOnly(Utils.parseAsHexOrBase58(pubKey)) }
+        return ScriptBuilder.createMultiSigOutputScript(getSignThreshold(pubKeys), ecPubKeys)
+    }
+
+    /**
+     * Returns public keys that were used to create given multi signature Bitcoin adddress
+     *
+     * @param btcAddress - Bitcoin address
+     * @return - result with list full of public keys that were used in [btcAddress] creation
+     */
+    fun getUsedPubKeys(btcAddress: String): Result<List<String>, Exception> {
+        return btcRegisteredAddressesProvider.getRegisteredAddresses()
+            .map { registeredAddresses ->
+                registeredAddresses.find { registeredAddress -> registeredAddress.address == btcAddress }!!.info.notaryKeys
+            }
+    }
+
     // Main signing function
     private fun signUnsafe(tx: Transaction, wallet: Wallet): List<InputSignature> {
         var inputIndex = 0
@@ -46,7 +71,12 @@ class TransactionSigner(
                     val redeem = ScriptBuilder.createMultiSigOutputScript(getSignThreshold(pubKeys), ecPubKeys)
                     val hashOut = tx.hashForSignature(inputIndex, redeem, Transaction.SigHash.ALL, false)
                     val signature = keyPair.sign(hashOut)
-                    signatures.add(InputSignature(inputIndex, String.hex(signature.encodeToDER())))
+                    signatures.add(
+                        InputSignature(
+                            inputIndex,
+                            String.hex(signature.encodeToDER())
+                        )
+                    )
                     logger.info { "Tx ${tx.hashAsString} input $inputIndex was signed" }
                 } else {
                     logger.warn { "Cannot sign ${tx.hashAsString} input $inputIndex" }
@@ -69,14 +99,6 @@ class TransactionSigner(
             }
         }
         return null
-    }
-
-    // Returns public keys that were used in creation of given address
-    private fun getUsedPubKeys(btcAddress: String): Result<List<String>, Exception> {
-        return btcRegisteredAddressesProvider.getRegisteredAddresses()
-            .map { registeredAddresses ->
-                registeredAddresses.find { registeredAddress -> registeredAddress.address == btcAddress }!!.info.notaryKeys
-            }
     }
 
     /**
