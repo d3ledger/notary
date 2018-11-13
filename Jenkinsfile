@@ -47,10 +47,11 @@ pipeline {
               sh "cp \$ethereum_password configs/eth/ethereum_password_local.properties"
             }
             sh "./gradlew dependencies"
-            sh "./gradlew test --info"
-            sh "./gradlew compileIntegrationTestKotlin --info"
-            sh "./gradlew integrationTest --info"
-            sh "./gradlew codeCoverageReport --info"
+            sh "./gradlew dokka"
+//            sh "./gradlew test --info"
+//            sh "./gradlew compileIntegrationTestKotlin --info"
+//            sh "./gradlew integrationTest --info"
+//            sh "./gradlew codeCoverageReport --info"
             // sh "./gradlew pitest --info"
             withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
               sh(script: """./gradlew sonarqube --configure-on-demand \

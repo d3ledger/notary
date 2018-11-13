@@ -9,6 +9,7 @@ buildscript {
     }
     configurations.maybeCreate("pitest")
     dependencies {
+        classpath "org.jetbrains.dokka:dokka-gradle-plugin:0.9.17"
         classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.2"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.6'
@@ -29,7 +30,7 @@ apply plugin: "jacoco"
 apply plugin: 'info.solidsoft.pitest'
 apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'org.sonarqube'
-
+apply plugin: 'org.jetbrains.dokka'
 
 allprojects {
     apply plugin: 'java'
@@ -46,7 +47,10 @@ subprojects {
     dependencies {
         compile project(':')
     }
-
+    dokka {
+        outputFormat = 'html' 
+        outputDirectory = "${project.projectDir}/build/javadoc"
+    }
     sonarqube {
         properties {
             property "sonar.java.binaries", "${project.projectDir}/build/classes"
