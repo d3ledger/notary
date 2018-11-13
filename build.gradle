@@ -49,7 +49,9 @@ subprojects {
     }
     dokka {
         outputFormat = 'html' 
-        outputDirectory = "${project.projectDir}/build/javadoc"
+        outputDirectory = "${project.projectDir}/build/dokka"
+        reportUndocumented = true
+        sourceDirs = files("${project.projectDir}/src/main/kotlin")
     }
     sonarqube {
         properties {

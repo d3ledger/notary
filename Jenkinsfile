@@ -48,10 +48,11 @@ pipeline {
             }
             sh "./gradlew dependencies"
             sh "./gradlew dokka"
-//            sh "./gradlew test --info"
-//            sh "./gradlew compileIntegrationTestKotlin --info"
-//            sh "./gradlew integrationTest --info"
-//            sh "./gradlew codeCoverageReport --info"
+            sh "./gradlew test --info"
+            sh "./gradlew compileIntegrationTestKotlin --info"
+            sh "./gradlew integrationTest --info"
+            sh "./gradlew codeCoverageReport --info"
+            sh "./gradlew dokka --info"
             // sh "./gradlew pitest --info"
             withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
               sh(script: """./gradlew sonarqube --configure-on-demand \
@@ -89,8 +90,9 @@ pipeline {
             done < <(docker ps --filter "network=d3-${DOCKER_NETWORK}" --format "{{.ID}} {{.Names}}")
           """
           
-          sh "tar -zcvf build-logs/jacoco.log.gz build/reports/jacoco/*"
-          archiveArtifacts artifacts: 'build-logs/*.log.gz'
+          sh "tar -zcvf build-logs/jacoco.gz build/reports/jacoco/*"
+          sh "tar -zcvf build-logs/dokka.gz build/reports/dokka/*"
+          archiveArtifacts artifacts: 'build-logs/*.gz'
           sh "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml down"
           cleanWs()
         }
