@@ -164,16 +164,16 @@ allprojects {
     }
 }
 
-sourceSets {
-    main {
-        java {
-            srcDirs += "src/main"
-            // iroha bindings
-            srcDirs += "build/generated/source/proto/main/java"
-            srcDirs += "build/generated/source/proto/main/grpc"
-        }
-    }
-}
+// sourceSets {
+//    main {
+//        java {
+//            srcDirs += "src/main"
+//            // iroha bindings
+//            srcDirs += "build/generated/source/proto/main/java"
+//            srcDirs += "build/generated/source/proto/main/grpc"
+//        }
+//    }
+// }
 
 allprojects {
     test {
