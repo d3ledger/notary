@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap
 class UnsignedTransactions(
     @Autowired private val signCollector: SignCollector
 ) {
+    //TODO create rollback mechanism
     private val unsignedTransactions = ConcurrentHashMap<String, TimedTx>()
 
     /**

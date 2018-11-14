@@ -39,7 +39,7 @@ class BtcWithdrawalInitialization(
     fun init(): Result<Unit, Exception> {
         val wallet = Wallet.loadFromFile(File(btcWithdrawalConfig.bitcoin.walletPath))
         return initBtcBlockChain(wallet).flatMap { peerGroup ->
-            initTransferListener(
+            initWithdrawalTransferListener(
                 wallet,
                 irohaChainListener,
                 peerGroup
@@ -52,7 +52,7 @@ class BtcWithdrawalInitialization(
      * @param irohaChainListener - listener of Iroha blockchain
      * @return result of initiation process
      */
-    private fun initTransferListener(
+    private fun initWithdrawalTransferListener(
         wallet: Wallet,
         irohaChainListener: IrohaChainListener,
         peerGroup: PeerGroup
