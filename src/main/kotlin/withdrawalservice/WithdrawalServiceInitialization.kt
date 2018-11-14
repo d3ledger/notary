@@ -54,7 +54,7 @@ class WithdrawalServiceInitialization(
         logger.info { "Init Ether withdrawal consumer" }
 
         return Result.of {
-            val ethConsumer = EthConsumer(withdrawalConfig.ethereum, withdrawalEthereumPasswords, relayVacuumConfig)
+            val ethConsumer = EthConsumer(withdrawalConfig.ethereum, withdrawalEthereumPasswords, relayVacuumConfig, WithdrawalEthTxHolder)
             withdrawalService.output()
                 .subscribe(
                     { res ->

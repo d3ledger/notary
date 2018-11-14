@@ -10,14 +10,17 @@ import sidechain.eth.util.DeployHelper
 import vacuum.RelayVacuumConfig
 import vacuum.executeVacuum
 import withdrawalservice.WithdrawalServiceOutputEvent
+import withdrawalservice.WithdrawalTxHolder
 import java.math.BigInteger
 
 class EthConsumer(
     ethereumConfig: EthereumConfig,
     ethereumPasswords: EthereumPasswords,
-    private val relayVacuumConfig: RelayVacuumConfig
+    private val relayVacuumConfig: RelayVacuumConfig,
+    private val txCorrespondaceHolder: WithdrawalTxHolder<String, TransactionReceipt?>
 ) {
     private val deployHelper = DeployHelper(ethereumConfig, ethereumPasswords)
+
     fun consume(event: WithdrawalServiceOutputEvent) {
         logger.info { "Consumed eth event $event" }
         if (event is WithdrawalServiceOutputEvent.EthRefund) {
@@ -31,7 +34,7 @@ class EthConsumer(
             }
 
             // The first withdraw call
-            val call = withdraw(event)
+            val call = withdrawAndStore(event)
             // Here works next logic:
             // If the first call returns logs with size 2 then check if a destination address is equal to the address
             // from the second log
@@ -42,7 +45,7 @@ class EthConsumer(
                 ) {
                     executeVacuum(relayVacuumConfig).fold(
                         {
-                            withdraw(event)
+                            withdrawAndStore(event)
                         },
                         { ex ->
                             throw ex
@@ -72,6 +75,18 @@ class EthConsumer(
             event.proof.s,
             relay.contractAddress
         ).send()
+    }
+
+    private fun withdrawAndStore(outputEvent: WithdrawalServiceOutputEvent.EthRefund): TransactionReceipt? {
+        var ethReceipt: TransactionReceipt? = null
+        try {
+            ethReceipt = withdraw(outputEvent)
+        } catch (ex: Exception) {
+            logger.error("An error occurred during eth withdrawal transaction execution or creation", ex)
+        } finally {
+            txCorrespondaceHolder.store(outputEvent.proof.irohaHash, ethReceipt)
+            return ethReceipt
+        }
     }
 
     /**
