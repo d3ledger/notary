@@ -14,8 +14,14 @@ import org.springframework.stereotype.Component
 import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.btc.network.BtcNetworkConfigProvider
 
-//TODO develop more sophisticated mechanism to compute fee
-private const val MIN_FEE = 1000
+//TODO make it configurable
+//Fee per byte rate
+private const val FEE_RATE = 10
+//Only two ouputs are used: destination and change
+private const val OUTPUTS = 2
+
+private const val BYTES_PER_INPUT = 180
+private const val BYTES_PER_OUTPUT = 34
 
 /*
     Helper class that is used to collect inputs, outputs and etc
@@ -48,7 +54,7 @@ class TransactionHelper(
             Coin.valueOf(amount),
             Address.fromBase58(btcNetworkConfigProvider.getConfig(), destinationAddress)
         )
-        val change = totalAmount - amount - MIN_FEE
+        val change = totalAmount - amount - getTxFee(transaction.inputs.size, OUTPUTS)
         //TODO create change address creation mechanism
         transaction.addOutput(Coin.valueOf(change), changeAddress)
     }
@@ -68,34 +74,7 @@ class TransactionHelper(
         confidenceLevel: Int
     ): Result<List<TransactionOutput>, Exception> {
         return Result.of {
-            //Only confirmed transactions must be used
-            val unspents =
-                ArrayList<TransactionOutput>(wallet.unspents.filter { unspent ->
-                    unspent.parentTransactionDepthInBlocks >= confidenceLevel && !usedOutputs.contains(
-                        unspent
-                    )
-                })
-            /*
-            Wallet stores unspents in a HashSet, while the order of HashSet depends on several factors: current array size and etc.
-            This may lead different notary nodes to pick different transactions.
-            This is why we order transactions manually, essentially reducing the probability of
-            different nodes to pick different transactions*/
-            unspents.sortWith(Comparator { output1, output2 -> output1.hashCode().compareTo(output2.hashCode()) })
-            val usedUnspents = ArrayList<TransactionOutput>()
-            val totalAmount = amount + MIN_FEE
-            var collectedAmount = 0L
-            //We use registered clients outputs only
-            unspents.filter { unspent -> isAvailableOutput(availableAddresses, unspent) }.forEach { unspent ->
-                if (collectedAmount >= totalAmount) {
-                    return@forEach
-                }
-                collectedAmount += unspent.value.value
-                usedUnspents.add(unspent)
-            }
-            if (collectedAmount < totalAmount) {
-                throw IllegalStateException("Cannot get enough BTC amount(required $amount, collected $collectedAmount) using current unspent tx collection")
-            }
-            usedUnspents
+            collectUnspentsRec(availableAddresses, wallet, amount, confidenceLevel, ArrayList())
         }
     }
 
@@ -126,14 +105,96 @@ class TransactionHelper(
             }
     }
 
+    /**
+     * Collects previously sent transactions, that may be used as an input for newly created transaction.
+     * It may go into recursion if not enough money for fee was collected.
+     * @param availableAddresses - set of addresses which transactions will be available to spend
+     * @param wallet - current wallet. Used to fetch unspents
+     * @param amount - amount of SAT to spend
+     * @param confidenceLevel - minimum depth of transactions
+     * @param recursivelyCollectedUnspents - list of unspents collected from all recursion levels. It will be returned at the end on execution
+     * @return list full of unspent transactions
+     */
+    private tailrec fun collectUnspentsRec(
+        availableAddresses: Set<String>,
+        wallet: Wallet,
+        amount: Long,
+        confidenceLevel: Int,
+        recursivelyCollectedUnspents: MutableList<TransactionOutput>
+    ): List<TransactionOutput> {
+        //Only confirmed transactions must be used
+        val unspents =
+            ArrayList<TransactionOutput>(wallet.unspents.filter { unspent ->
+                unspent.parentTransactionDepthInBlocks >= confidenceLevel
+                        //Cannot use already used unspents
+                        && !usedOutputs.contains(unspent)
+                        //Cannot use unspents from another level of recursion
+                        && !recursivelyCollectedUnspents.contains(unspent)
+            })
+        if (unspents.isEmpty()) {
+            throw IllegalStateException("Out of unspents")
+        }
+        /*
+        Wallet stores unspents in a HashSet. Order of a HashSet depends on several factors: current array size and etc.
+        This may lead different notary nodes to pick different transactions.
+        This is why we order transactions manually, essentially reducing the probability of
+        different nodes to pick different output transactions.*/
+        unspents.sortWith(Comparator { output1, output2 ->
+            /*
+            Outputs are compared by values.
+            It will help us having a little amount of inputs.
+            Less inputs -> smaller tx size -> smaller fee*/
+            val valueComparison = output1.value.value.compareTo(output2.value.value)
+            //If values are the same, we compare by hash codes
+            if (valueComparison == 0) {
+                output1.hashCode().compareTo(output2.hashCode())
+            } else {
+                valueComparison
+            }
+        })
+        var collectedAmount = getTotalUnspentValue(recursivelyCollectedUnspents)
+        //We use registered clients outputs only
+        unspents.filter { unspent -> isAvailableOutput(availableAddresses, unspent) }.forEach { unspent ->
+            if (collectedAmount >= amount) {
+                return@forEach
+            }
+            collectedAmount += unspent.value.value
+            recursivelyCollectedUnspents.add(unspent)
+        }
+        if (collectedAmount < amount) {
+            throw IllegalStateException("Cannot get enough BTC amount(required $amount, collected $collectedAmount) using current unspent tx collection")
+        }
+        //Check if able to pay fee
+        val amountAndFee = amount + getTxFee(recursivelyCollectedUnspents.size, OUTPUTS)
+        if (collectedAmount < amountAndFee) {
+            logger.info { "Not enough BTC amount(required $amountAndFee, collected $collectedAmount) was collected for fee" }
+            // Try to collect more unspents if no money is left for fee
+            return collectUnspentsRec(
+                availableAddresses,
+                wallet,
+                amountAndFee,
+                confidenceLevel,
+                recursivelyCollectedUnspents
+            )
+        }
+        return recursivelyCollectedUnspents
+    }
 
-
-    // Computes total unspend value
+    // Computes total unspent value
     private fun getTotalUnspentValue(unspents: List<TransactionOutput>): Long {
         var totalValue = 0L
         unspents.forEach { unspent -> totalValue += unspent.value.value }
         return totalValue
     }
+
+    // Computes transaction size based on inputs
+    private fun getTxSizeInputs(inputs: Int) = inputs * BYTES_PER_INPUT
+
+    // Computes transaction size based on outputs
+    private fun getTxSizeOutputs(outputs: Int) = outputs * BYTES_PER_OUTPUT
+
+    // Computes transaction fee based on inputs and outputs
+    private fun getTxFee(inputs: Int, outputs: Int) = (getTxSizeInputs(inputs) + getTxSizeOutputs(outputs)) * FEE_RATE
 
     // Checks if transaction output was addressed to available address
     protected fun isAvailableOutput(availableAddresses: Set<String>, output: TransactionOutput): Boolean {
