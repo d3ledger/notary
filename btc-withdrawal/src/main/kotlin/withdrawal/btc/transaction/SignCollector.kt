@@ -1,4 +1,4 @@
-package withdrawal.transaction
+package withdrawal.btc.transaction
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
@@ -6,11 +6,16 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
+import helper.address.getSignThreshold
+import helper.address.outPutToBase58Address
 import model.IrohaCredential
 import mu.KLogging
 import notary.IrohaCommand
 import notary.IrohaTransaction
+import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Transaction
+import org.bitcoinj.crypto.TransactionSignature
+import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -22,6 +27,7 @@ import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountDetails
 import util.getRandomId
 import util.irohaEscape
+import util.unHex
 
 /*
     Class that is used to collect signatures in Iroha
@@ -91,6 +97,73 @@ class SignCollector(
     }
 
     /**
+     * Checks if enough signatures for inputs were collected to execute withdrawal
+     * @param tx - previously created unsigned transaction full of inputs
+     * @param signatures - map full of input signatures from other notary nodes
+     * @return true if all inputs are properly signed
+     */
+    fun isEnoughSignaturesCollected(tx: Transaction, signatures: Map<Int, List<String>>): Boolean {
+        var inputIndex = 0
+        tx.inputs.forEach { input ->
+            if (!signatures.containsKey(inputIndex)) {
+                logger.info { "Tx ${tx.hashAsString} input at index $inputIndex is not signed yet" }
+                return false
+            }
+            val inputAddress = outPutToBase58Address(input.connectedOutput!!)
+            transactionSigner.getUsedPubKeys(inputAddress).fold(
+                { usedPubKeys ->
+                    val threshold = getSignThreshold(usedPubKeys)
+                    val collectedSignatures = signatures[inputIndex]!!.size
+                    if (collectedSignatures < threshold) {
+                        logger.info { "Tx ${tx.hashAsString} input at index $inputIndex has $collectedSignatures signatures out of $threshold required " }
+                        return false
+                    }
+                    inputIndex += 1
+                }, { ex -> throw ex })
+        }
+        return true
+    }
+
+    /**
+     * Fills given transaction with input signatures
+     * @param tx - transaction to fill with signatures
+     * @param signatures - map full of input signatures from other notary nodes
+     */
+    fun fillTxWithSignatures(
+        tx: Transaction,
+        signatures: Map<Int, List<String>>
+    ): Result<Unit, Exception> {
+        return Result.of {
+            var inputIndex = 0
+            tx.inputs.forEach { input ->
+                val inputAddress = outPutToBase58Address(input.connectedOutput!!)
+                transactionSigner.getUsedPubKeys(inputAddress).fold({ usedKeys ->
+                    val inputScript = ScriptBuilder.createP2SHMultiSigInputScript(
+                        signatures[inputIndex]!!.map { signature ->
+                            decodeSignatureFromHex(signature)
+                        },
+                        transactionSigner.createdRedeemScript(usedKeys)
+                    )
+                    input.scriptSig = inputScript
+                    input.verify()
+                }, { ex ->
+                    throw IllegalStateException("Cannot get used keys", ex)
+                })
+                inputIndex++
+            }
+        }
+    }
+
+    //Decodes hex into signature object
+    private fun decodeSignatureFromHex(signatureHex: String): TransactionSignature {
+        return TransactionSignature(
+            ECKey.ECDSASignature.decodeFromDER(String.unHex(signatureHex)),
+            Transaction.SigHash.ALL,
+            false
+        )
+    }
+
+    /**
      * Function that combines signatures from Iroha into map.
      * @param totalInputSignatures - collection that stores all the signatures in convenient form: input index as key and list of signatures as value
      * @param notaryInputSignatures - signatures of particular node from Iroha. It will be added to [totalInputSignatures]
@@ -109,10 +182,10 @@ class SignCollector(
     }
 
     //Cuts tx hash using raw tx hash string. Only first 32 symbols are taken.
-    private fun shortTxHash(txHash: String) = txHash.substring(0, 32)
+    fun shortTxHash(txHash: String) = txHash.substring(0, 32)
 
     //Cuts tx hash using tx
-    private fun shortTxHash(tx: Transaction) = shortTxHash(tx.hashAsString)
+    fun shortTxHash(tx: Transaction) = shortTxHash(tx.hashAsString)
 
     //Creates Iroha transaction to create signature storing account
     private fun createSignCollectionAccountTx(txShortHash: String): IrohaTransaction {

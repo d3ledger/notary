@@ -1,4 +1,4 @@
-package withdrawal.btc
+package withdrawal.btc.provider
 
 import model.IrohaCredential
 import provider.WhiteListProvider
