@@ -17,7 +17,7 @@ import provider.btc.network.BtcNetworkConfigProvider
 //TODO make it configurable
 //Fee rate per byte in SAT
 private const val FEE_RATE = 10
-//Only two ouputs are used: destination and change
+//Only two outputs are used: destination and change
 private const val OUTPUTS = 2
 
 private const val BYTES_PER_INPUT = 180
@@ -74,7 +74,7 @@ class TransactionHelper(
         confidenceLevel: Int
     ): Result<List<TransactionOutput>, Exception> {
         return Result.of {
-            collectUnspentsRec(availableAddresses, wallet, amount, confidenceLevel, ArrayList())
+            collectUnspentsRec(availableAddresses, wallet, amount, 0, confidenceLevel, ArrayList())
         }
     }
 
@@ -111,6 +111,7 @@ class TransactionHelper(
      * @param availableAddresses - set of addresses which transactions will be available to spend
      * @param wallet - current wallet. Used to fetch unspents
      * @param amount - amount of SAT to spend
+     * @param fee - tx fee that depends on inputs and outputs. Initial value is zero.
      * @param confidenceLevel - minimum depth of transactions
      * @param recursivelyCollectedUnspents - list of unspents collected from all recursion levels. It will be returned at the end on execution
      * @return list full of unspent transactions
@@ -119,6 +120,7 @@ class TransactionHelper(
         availableAddresses: Set<String>,
         wallet: Wallet,
         amount: Long,
+        fee: Int,
         confidenceLevel: Int,
         recursivelyCollectedUnspents: MutableList<TransactionOutput>
     ): List<TransactionOutput> {
@@ -144,7 +146,7 @@ class TransactionHelper(
             Outputs are compared by values.
             It will help us having a little amount of inputs.
             Less inputs -> smaller tx size -> smaller fee*/
-            val valueComparison = output1.value.value.compareTo(output2.value.value)
+            val valueComparison = -output1.value.value.compareTo(output2.value.value)
             //If values are the same, we compare by hash codes
             if (valueComparison == 0) {
                 output1.hashCode().compareTo(output2.hashCode())
@@ -152,27 +154,29 @@ class TransactionHelper(
                 valueComparison
             }
         })
+        val amountAndFee = amount + fee
         var collectedAmount = getTotalUnspentValue(recursivelyCollectedUnspents)
         //We use registered clients outputs only
         unspents.filter { unspent -> isAvailableOutput(availableAddresses, unspent) }.forEach { unspent ->
-            if (collectedAmount >= amount) {
+            if (collectedAmount >= amountAndFee) {
                 return@forEach
             }
             collectedAmount += unspent.value.value
             recursivelyCollectedUnspents.add(unspent)
         }
-        if (collectedAmount < amount) {
-            throw IllegalStateException("Cannot get enough BTC amount(required $amount, collected $collectedAmount) using current unspent tx collection")
-        }
-        //Check if able to pay fee
-        val amountAndFee = amount + getTxFee(recursivelyCollectedUnspents.size, OUTPUTS)
         if (collectedAmount < amountAndFee) {
-            logger.info { "Not enough BTC amount(required $amountAndFee, collected $collectedAmount) was collected for fee" }
+            throw IllegalStateException("Cannot get enough BTC amount(required $amountAndFee, collected $collectedAmount) using current unspent tx collection")
+        }
+        // Check if able to pay fee
+        val newFee = getTxFee(recursivelyCollectedUnspents.size, OUTPUTS)
+        if (collectedAmount < amount + newFee) {
+            logger.info { "Not enough BTC amount(required $amount, fee $newFee, collected $collectedAmount) was collected for fee" }
             // Try to collect more unspents if no money is left for fee
             return collectUnspentsRec(
                 availableAddresses,
                 wallet,
-                amountAndFee,
+                amount,
+                newFee,
                 confidenceLevel,
                 recursivelyCollectedUnspents
             )
@@ -181,7 +185,7 @@ class TransactionHelper(
     }
 
     // Computes total unspent value
-    private fun getTotalUnspentValue(unspents: List<TransactionOutput>): Long {
+    protected fun getTotalUnspentValue(unspents: List<TransactionOutput>): Long {
         var totalValue = 0L
         unspents.forEach { unspent -> totalValue += unspent.value.value }
         return totalValue
