@@ -30,6 +30,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
 private const val WITHDRAWAL_WAIT_MILLIS = 15_000L
+private const val TOTAL_TESTS = 9
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcWithdrawalIntegrationTest {
@@ -120,7 +121,8 @@ class BtcWithdrawalIntegrationTest {
         blockStorageFolder.mkdirs()
         integrationHelper.generateBtcBlocks()
         //TODO make it faster
-        integrationHelper.preGenBtcAddresses(btcWithdrawalConfig.bitcoin.walletPath, 18).failure { ex -> throw ex }
+        integrationHelper.preGenBtcAddresses(btcWithdrawalConfig.bitcoin.walletPath, TOTAL_TESTS * 2)
+            .failure { ex -> throw ex }
         btcWithdrawalInitialization.init()
         withdrawalTransferEventHandler.addNewBtcTransactionListener { tx ->
             createdTransactions[tx.hashAsString] = TimedTx.create(tx)

@@ -15,7 +15,7 @@ import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.btc.network.BtcNetworkConfigProvider
 
 //TODO make it configurable
-//Fee per byte rate
+//Fee rate per byte in SAT
 private const val FEE_RATE = 10
 //Only two ouputs are used: destination and change
 private const val OUTPUTS = 2
