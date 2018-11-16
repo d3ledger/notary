@@ -10,14 +10,14 @@ import sidechain.eth.util.DeployHelper
 import vacuum.RelayVacuumConfig
 import vacuum.executeVacuum
 import withdrawalservice.WithdrawalServiceOutputEvent
-import withdrawalservice.WithdrawalTxHolder
+import withdrawalservice.WithdrawalTxDAO
 import java.math.BigInteger
 
 class EthConsumer(
     ethereumConfig: EthereumConfig,
     ethereumPasswords: EthereumPasswords,
     private val relayVacuumConfig: RelayVacuumConfig,
-    private val txCorrespondaceHolder: WithdrawalTxHolder<String, TransactionReceipt?>
+    private val txCorrespondaceHolder: WithdrawalTxDAO<String, TransactionReceipt?>
 ) {
     private val deployHelper = DeployHelper(ethereumConfig, ethereumPasswords)
 

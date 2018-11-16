@@ -16,7 +16,7 @@ import sidechain.iroha.util.ModelUtil
 class WdRollbackServiceImpl(
     private val irohaNetwork: IrohaNetwork,
     private val credential: IrohaCredential,
-    private val withdrawalEthTxHolder: Observable<Result<Map.Entry<String, TransactionReceipt?>, Exception>>,
+    private val withdrawalTransactions: Observable<Map.Entry<String, TransactionReceipt?>>,
     private val notaryAccount: String
 ) : WdRollbackService {
 
@@ -37,7 +37,6 @@ class WdRollbackServiceImpl(
             )
         }
     }
-
 
     /**
      * Create and send transaction for assets refunding in Iroha in case of rollback
@@ -72,24 +71,20 @@ class WdRollbackServiceImpl(
                     "Rollback transaction in Iroha for $destAccountId due to error during withdrawal in Ethereum",
                     transferCommand.transferAsset.amount
                 )
+                // TODO: Add removal of processed items from acc details
             }
     }
 
-    /**
-     * Relay events to consumer
-     */
-    override fun monitorWithdrawal(irohaEvent: SideChainEvent.IrohaEvent): Result<Unit, Exception> {
+    override fun monitorWithdrawal(): Result<Unit, Exception> {
+        // TODO: provide synchronization if rollback service is not singleton
         return Result.of {
-            withdrawalEthTxHolder.subscribe({ res ->
-                res
-                    .map {
-                        processIrohaEvent(it.key, it.value)
-                    }
+            withdrawalTransactions.subscribe({ res ->
+                processIrohaEvent(res.key, res.value)
                     .map { outcome ->
-                        outcome.map { initiateRollback(it) }
+                        initiateRollback(outcome)
                     }
                     .failure { ex ->
-                        logger.error("Error during Iroha rollback initiation for ${res.get().key}", ex)
+                        logger.error("Error during Iroha rollback initiation for ${res.key}", ex)
                         throw ex
                     }
             }, { ex ->

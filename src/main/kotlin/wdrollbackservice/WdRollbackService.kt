@@ -5,5 +5,8 @@ import sidechain.SideChainEvent
 
 interface WdRollbackService {
 
-    fun monitorWithdrawal(irohaEvent: SideChainEvent.IrohaEvent): Result<Unit, Exception>
+    /**
+     * Process internal events and initiate rollback if needed
+     */
+    fun monitorWithdrawal(): Result<Unit, Exception>
 }

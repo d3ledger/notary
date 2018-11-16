@@ -2,7 +2,7 @@ package withdrawalservice
 
 import io.reactivex.Observable
 
-interface WithdrawalTxHolder<SourceTranscationDescription, TargetTranscationDescription> {
+interface WithdrawalTxDAO<SourceTranscationDescription, TargetTranscationDescription> {
 
     fun store(
         sourceTranscationDescription: SourceTranscationDescription,
@@ -11,7 +11,7 @@ interface WithdrawalTxHolder<SourceTranscationDescription, TargetTranscationDesc
 
     fun getTarget(sourceTranscationDescription: SourceTranscationDescription): TargetTranscationDescription
 
-    fun removeEntry(sourceTranscationDescription: SourceTranscationDescription)
+    fun remove(sourceTranscationDescription: SourceTranscationDescription)
 
     fun getObservable(): Observable<Map.Entry<SourceTranscationDescription, TargetTranscationDescription>>
 }

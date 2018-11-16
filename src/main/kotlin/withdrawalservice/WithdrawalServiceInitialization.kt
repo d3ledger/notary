@@ -12,6 +12,7 @@ import sidechain.SideChainEvent
 import sidechain.eth.consumer.EthConsumer
 import sidechain.iroha.IrohaChainHandler
 import sidechain.iroha.IrohaChainListener
+import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetwork
 import vacuum.RelayVacuumConfig
 
@@ -54,7 +55,17 @@ class WithdrawalServiceInitialization(
         logger.info { "Init Ether withdrawal consumer" }
 
         return Result.of {
-            val ethConsumer = EthConsumer(withdrawalConfig.ethereum, withdrawalEthereumPasswords, relayVacuumConfig, WithdrawalEthTxHolder)
+            val ethConsumer = EthConsumer(
+                withdrawalConfig.ethereum,
+                withdrawalEthereumPasswords,
+                relayVacuumConfig,
+                WithdrawalTxDAOImpl(
+                    IrohaConsumerImpl(credential, irohaNetwork),
+                    credential,
+                    irohaNetwork,
+                    withdrawalConfig.notaryIrohaAccount
+                )
+            )
             withdrawalService.output()
                 .subscribe(
                     { res ->

@@ -3,9 +3,10 @@ package wdrollbackservice
 import com.github.kittinunf.result.Result
 import model.IrohaCredential
 import mu.KLogging
+import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetwork
-import withdrawalservice.WithdrawalEthTxHolder
 import withdrawalservice.WithdrawalServiceConfig
+import withdrawalservice.WithdrawalTxDAOImpl
 
 /**
  * @param withdrawalConfig - configuration for withdrawal service
@@ -30,7 +31,12 @@ class WdRollbackServiceInitialization(
             WdRollbackServiceImpl(
                 irohaNetwork,
                 credential,
-                WithdrawalEthTxHolder.getObservable(),
+                WithdrawalTxDAOImpl(
+                    IrohaConsumerImpl(credential, irohaNetwork),
+                    credential,
+                    irohaNetwork,
+                    notaryAccount
+                ).getObservable(),
                 notaryAccount
             )
         }
