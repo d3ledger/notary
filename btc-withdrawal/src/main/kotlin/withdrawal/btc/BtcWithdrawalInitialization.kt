@@ -4,12 +4,14 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import healthcheck.HealthyService
+import helper.network.addPeerConnectionStatusListener
 import helper.network.getPeerGroup
 import helper.network.startChainDownload
 import io.reactivex.schedulers.Schedulers
 import iroha.protocol.Commands
 import mu.KLogging
 import org.bitcoinj.core.PeerGroup
+import org.bitcoinj.utils.BriefLogFormatter
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -87,7 +89,8 @@ class BtcWithdrawalInitialization(
      * @param wallet - wallet object that will be enriched with block chain data: sent, unspent transactions, last processed block and etc
      */
     private fun initBtcBlockChain(wallet: Wallet): Result<PeerGroup, Exception> {
-        //TODO add peer group health check later
+        //Enables short log format for Bitcoin events
+        BriefLogFormatter.init()
         return Result.of {
             getPeerGroup(
                 wallet,
@@ -96,6 +99,7 @@ class BtcWithdrawalInitialization(
             )
         }.map { peerGroup ->
             startChainDownload(peerGroup, btcWithdrawalConfig.bitcoin.host)
+            addPeerConnectionStatusListener(peerGroup, ::notHealthy, ::cured)
             peerGroup
         }
     }

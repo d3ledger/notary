@@ -4,6 +4,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import healthcheck.HealthyService
+import helper.network.addPeerConnectionStatusListener
 import helper.network.getPeerGroup
 import helper.network.startChainDownload
 import io.reactivex.Observable
@@ -53,7 +54,7 @@ class BtcNotaryInitialization(
         logger.info { "Current wallet state $wallet" }
         val peerGroup =
             getPeerGroup(wallet, btcNetworkConfigProvider.getConfig(), btcNotaryConfig.bitcoin.blockStoragePath)
-        addPeerHealthCheck(peerGroup)
+        addPeerConnectionStatusListener(peerGroup, ::notHealthy, ::cured)
         return irohaChainListener.getBlockObservable().map { irohaObservable ->
             listenToRegisteredClients(wallet, irohaObservable)
             logger.info { "Registration service listener was successfully initialized" }
@@ -124,21 +125,6 @@ class BtcNotaryInitialization(
                 )
             )
         }
-    }
-
-    /**
-     * Adds health checks for a current peer group
-     */
-    private fun addPeerHealthCheck(peerGroup: PeerGroup) {
-        peerGroup.addDisconnectedEventListener { peer, peerCount ->
-            //If no peers left
-            if (peerCount == 0) {
-                logger.warn { "Out of peers" }
-                notHealthy()
-            }
-        }
-        // If new peer connected
-        peerGroup.addConnectedEventListener { peer, peerCount -> cured() }
     }
 
     /**
