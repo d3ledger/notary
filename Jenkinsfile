@@ -47,9 +47,19 @@ pipeline {
               sh "cp \$ethereum_password configs/eth/ethereum_password_local.properties"
             }
             sh "./gradlew dependencies"
+            sh "./gradlew dokka"
             sh "./gradlew test --info"
             sh "./gradlew compileIntegrationTestKotlin --info"
             sh "./gradlew integrationTest --info"
+            sh "./gradlew codeCoverageReport --info"
+            sh "./gradlew dokka --info"
+            // sh "./gradlew pitest --info"
+            withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
+              sh(script: """./gradlew sonarqube --configure-on-demand \
+                -Dsonar.host.url=https://sonar.soramitsu.co.jp \
+                -Dsonar.login=${SONAR_TOKEN} \
+              """)
+            }
           }
           // scan smartcontracts only on pull requests to master
           try {
@@ -64,11 +74,13 @@ pipeline {
             }
           }
           catch(MissingPropertyException e) { }
+          
         }
       }
       post {
         always {
-          junit 'build/test-results/**/*.xml'
+          junit allowEmptyResults: true, keepLongStdio: true, testResults: 'build/test-results/**/*.xml'
+          jacoco execPattern: 'build/jacoco/test.exec', sourcePattern: '.'
         }
         cleanup {
           sh "mkdir build-logs"
@@ -77,7 +89,10 @@ pipeline {
               docker logs \$(echo \$LINE | cut -d ' ' -f1) | gzip -6 > build-logs/\$(echo \$LINE | cut -d ' ' -f2).log.gz; \
             done < <(docker ps --filter "network=d3-${DOCKER_NETWORK}" --format "{{.ID}} {{.Names}}")
           """
-          archiveArtifacts artifacts: 'build-logs/*.log.gz'
+          
+          sh "tar -zcvf build-logs/jacoco.gz -C build/reports jacoco"
+          sh "tar -zcvf build-logs/dokka.gz -C build/reports dokka"
+          archiveArtifacts artifacts: 'build-logs/*.gz'
           sh "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml down"
           cleanWs()
         }
@@ -116,3 +131,4 @@ pipeline {
     }
   }
 }
+

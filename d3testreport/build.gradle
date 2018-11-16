@@ -22,3 +22,9 @@ task htmlTestsReport(type: JavaExec) {
     setWorkingDir("$rootDir/")
     classpath = sourceSets.main.runtimeClasspath
 }
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "notary:d3testreport"
+    }
+}
