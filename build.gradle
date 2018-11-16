@@ -128,21 +128,25 @@ dependencies {
 
     // ------------------| Test dependencies |------------------
 
-    // unit tests
-    testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
-    testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
-    // https://mvnrepository.com/artifact/org.mockito/mockito-all
-    testCompile group: 'org.mockito', name: 'mockito-all', version: '2.0.2-beta'
-    testCompile('com.nhaarman:mockito-kotlin:1.5.0') {
-        exclude group: 'org.jetbrains.kotlin'
-        exclude group: 'org.mockito'
+}
+
+allprojects{
+    dependencies{
+        // unit tests
+        testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
+        testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
+        // https://mvnrepository.com/artifact/org.mockito/mockito-all
+        testCompile group: 'org.mockito', name: 'mockito-all', version: '2.0.2-beta'
+        testCompile('com.nhaarman:mockito-kotlin:1.5.0') {
+            exclude group: 'org.jetbrains.kotlin'
+            exclude group: 'org.mockito'
+        }
+
+        // for setting env variables in tests
+        testCompile group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.18.0'
+        // to run both junit4 and junit5 tests
+        testRuntime("org.junit.vintage:junit-vintage-engine:5.2.0")
     }
-
-    // for setting env variables in tests
-    testCompile group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.18.0'
-    // to run both junit4 and junit5 tests
-    testRuntime("org.junit.vintage:junit-vintage-engine:5.2.0")
-
 }
 
 wrapper {
