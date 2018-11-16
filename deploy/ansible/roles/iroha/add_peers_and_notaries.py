@@ -91,4 +91,3 @@ if __name__ == "__main__":
     peers_csv = sys.argv[1]
     peers = parse_peers(peers_csv)
     genesis_add_peers(peers, "genesis.block")
-    make_keys(peers)
