@@ -19,7 +19,7 @@
 - hosts: all
   gather_facts: yes
   roles:
-    - { role: docker }
+#    - { role: docker }
 #    - ethereum
-#    - { role: iroha }
+    - { role: iroha }
     - { role: notary }

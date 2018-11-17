@@ -6,6 +6,7 @@
       state: absent
     run_once: yes
     become: no
+    delegate_to: localhost
 
   - name: Compile kotlin script
     shell:
@@ -68,7 +69,7 @@
     become: no
     delegate_to: localhost
 
-  - name: Add peers to genesis block
+  - name: Add peers and notaries to genesis block
     shell:
       _raw_params: "python add_peers_and_notaries.py nodes.csv"
       chdir: "{{ role_path }}"

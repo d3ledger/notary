@@ -25,6 +25,7 @@ services:
       - d3-iroha
     ports:
       - 8080:8080
+      - 20000:20000
     volumes:
       - ./:/opt/notary/deploy
       - ../configs:/opt/notary/configs

@@ -31,7 +31,7 @@ def parse_peers(peers_csv_fp):
     with open(peers_csv_fp) as csvfile:
         peersreader = csv.reader(csvfile, delimiter=';')
         for peer in peersreader:
-            peers.append(Peer(peer[0], peer[1], peer[3], peer[2]))
+            peers.append(Peer(peer[0], peer[1], peer[2], peer[3]))
     return peers
 
 
@@ -56,7 +56,7 @@ def genesis_add_peers(peers_list, genesis_block_fp):
     for p in peers_list:
         p_add_command = {
             "addPeer": {"peer": {"address": "%s:%s" % (p.host, '10001'), "peerKey": hex_to_b64(p.pub_key)}}}
-
+        print(p.host, p.pub_key, hex_to_b64(p.pub_key))
         genesis_dict['payload']['transactions'][0]['payload']['reducedPayload']['commands'].append(p_add_command)
 
         p_add_command = {

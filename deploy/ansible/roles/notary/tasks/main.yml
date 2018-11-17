@@ -1,92 +1,101 @@
 ---
 
-#- name: Remove notary folder
-#  file:
-#    path: "/opt/notary"
-#    state: absent
-#
-#- name: Create notary folder
-#  file:
-#    path: "/opt/notary"
-#    state: directory
-#    recurse: yes
-#    mode: 666
-#
-#- name: Create iroha keys folder
-#  file:
-#    path: /opt/notary/iroha/keys
-#    state: directory
-#    recurse: yes
-#
-#
-#- name: Copy ethereum folder
-#  copy:
-#    src: "{{ projectRoot }}/deploy/ethereum"
-#    dest: /opt/notary
-#
-#- name: Copy iroha node private key
-#  copy:
-#    src: "{{ projectRoot }}/deploy/ansible/roles/iroha/files/node_{{ inventory_hostname }}.priv"
-#    dest: /opt/notary/iroha/keys/node0.priv
-#
-#- name: Copy iroha node public key
-#  copy:
-#    src: "{{ projectRoot }}/deploy/ansible/roles/iroha/files/node_{{ inventory_hostname }}.pub"
-#    dest: /opt/notary/iroha/keys/node0.pub
-#
-#- name: Copy notary private key
-#  copy:
-#    src: "{{ projectRoot }}/deploy/ansible/roles/iroha/files/notary_{{ inventory_hostname }}.priv"
-#    dest: /opt/notary/iroha/keys/notary0@notary.priv
-#
-#
-#- name: Copy notary public key
-#  copy:
-#    src: "{{ projectRoot }}/deploy/ansible/roles/iroha/files/notary_{{ inventory_hostname }}.pub"
-#    dest: /opt/notary/iroha/keys/notary0@notary.pub
-#
-#
-#
-#
-#- name: Copy other iroha private keys
-#  copy:
-#    src: "{{ projectRoot }}/deploy/iroha/keys/{{ item }}.priv"
-#    dest: "/opt/notary/iroha/keys/{{ item }}.priv"
-#  with_items:
-#    - btc_registration_service@notary
-#    - eth_registration_service@notary
-#    - eth_token_storage_service@notary
-#    - mst_btc_registration_service@notary
-#    - vacuumer@notary
-#    - withdrawal@notary
-#  run_once: yes
-#
-#
-#- name: Copy other iroha public keys
-#  copy:
-#    src: "{{ projectRoot }}/deploy/iroha/keys/{{ item }}.pub"
-#    dest: "/opt/notary/iroha/keys/{{ item }}.pub"
-#  with_items:
-#    - btc_registration_service@notary
-#    - eth_registration_service@notary
-#    - eth_token_storage_service@notary
-#    - mst_btc_registration_service@notary
-#    - vacuumer@notary
-#    - withdrawal@notary
-#  run_once: yes
-#
-#
-#
-#
-#- name: Copy other iroha files
-#  copy:
-#    src: "{{ item }}"
-#    dest: /opt/notary/iroha
-#  with_items:
-#    - "{{ projectRoot }}/deploy/iroha/entrypoint.sh"
-#    - "{{ projectRoot }}/deploy/iroha/config.docker"
-#    - "{{ projectRoot }}/deploy/ansible/roles/iroha/files/genesis.block"
-#
+- name: Remove notary folder
+  file:
+    path: "/opt/notary"
+    state: absent
+
+- name: Create notary folder
+  file:
+    path: "/opt/notary"
+    state: directory
+    recurse: yes
+    mode: 666
+
+- name: Create iroha keys folder
+  file:
+    path: /opt/notary/iroha/keys
+    state: directory
+    recurse: yes
+
+
+- name: Copy ethereum folder
+  copy:
+    src: "{{ projectRoot }}/deploy/ethereum"
+    dest: /opt/notary
+
+- name: Copy iroha node private key
+  copy:
+    src: "{{ projectRoot }}/deploy/ansible/roles/iroha/files/node_{{ inventory_hostname }}.priv"
+    dest: /opt/notary/iroha/keys/node0.priv
+
+- name: Copy iroha node public key
+  copy:
+    src: "{{ projectRoot }}/deploy/ansible/roles/iroha/files/node_{{ inventory_hostname }}.pub"
+    dest: /opt/notary/iroha/keys/node0.pub
+
+- name: cat
+  shell: cat /opt/notary/iroha/keys/node0.pub
+  register: key
+
+- debug: msg="{{ key.stdout | b64encode}}"
+
+
+
+
+- name: Copy notary private key
+  copy:
+    src: "{{ projectRoot }}/deploy/ansible/roles/iroha/files/notary_{{ inventory_hostname }}.priv"
+    dest: /opt/notary/iroha/keys/notary0@notary.priv
+
+
+- name: Copy notary public key
+  copy:
+    src: "{{ projectRoot }}/deploy/ansible/roles/iroha/files/notary_{{ inventory_hostname }}.pub"
+    dest: /opt/notary/iroha/keys/notary0@notary.pub
+
+
+
+
+- name: Copy other iroha private keys
+  copy:
+    src: "{{ projectRoot }}/deploy/iroha/keys/{{ item }}.priv"
+    dest: "/opt/notary/iroha/keys/{{ item }}.priv"
+  with_items:
+    - btc_registration_service@notary
+    - eth_registration_service@notary
+    - eth_token_storage_service@notary
+    - mst_btc_registration_service@notary
+    - vacuumer@notary
+    - withdrawal@notary
+  run_once: yes
+
+
+- name: Copy other iroha public keys
+  copy:
+    src: "{{ projectRoot }}/deploy/iroha/keys/{{ item }}.pub"
+    dest: "/opt/notary/iroha/keys/{{ item }}.pub"
+  with_items:
+    - btc_registration_service@notary
+    - eth_registration_service@notary
+    - eth_token_storage_service@notary
+    - mst_btc_registration_service@notary
+    - vacuumer@notary
+    - withdrawal@notary
+  run_once: yes
+
+
+
+
+- name: Copy other iroha files
+  copy:
+    src: "{{ item }}"
+    dest: /opt/notary/iroha
+  with_items:
+    - "{{ projectRoot }}/deploy/iroha/entrypoint.sh"
+    - "{{ projectRoot }}/deploy/iroha/config.docker"
+    - "{{ projectRoot }}/deploy/ansible/roles/iroha/files/genesis.block"
+
 
 - name: Make iroha entrypoint executable
   file:
@@ -122,7 +131,7 @@
 - name: Run compose base
   docker_service:
     project_src: /opt/notary
-#    pull: yes
+    pull: yes
     recreate: always
     files:
       - docker-compose-base.yml
@@ -135,7 +144,7 @@
 - name: Run compose once
   docker_service:
     project_src: /opt/notary
-#    pull: yes
+    pull: yes
     recreate: always
     files:
       - docker-compose-single.yml

@@ -21,7 +21,7 @@
 - include_tasks: install_docker.yml
   when: ansible_distribution == 'Ubuntu'
 
-- include_tasks: clean_docker.yml
+#- include_tasks: clean_docker.yml
 
 - include_tasks: login_docker.yml
 
