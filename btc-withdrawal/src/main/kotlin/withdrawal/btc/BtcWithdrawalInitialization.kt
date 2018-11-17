@@ -9,17 +9,19 @@ import helper.network.startChainDownload
 import io.reactivex.schedulers.Schedulers
 import iroha.protocol.Commands
 import mu.KLogging
-import org.bitcoinj.core.Transaction
+import org.bitcoinj.core.PeerGroup
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import provider.btc.network.BtcNetworkConfigProvider
+import sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
 import sidechain.iroha.IrohaChainListener
+import sidechain.iroha.util.getSetDetailCommands
 import sidechain.iroha.util.getTransferCommands
 import withdrawal.btc.config.BtcWithdrawalConfig
-import withdrawal.transaction.TransactionCreator
+import withdrawal.btc.handler.NewSignatureEventHandler
+import withdrawal.btc.handler.WithdrawalTransferEventHandler
 import java.io.File
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 
 /*
@@ -29,17 +31,20 @@ import java.util.concurrent.Executors
 class BtcWithdrawalInitialization(
     @Autowired private val btcWithdrawalConfig: BtcWithdrawalConfig,
     @Autowired private val irohaChainListener: IrohaChainListener,
-    @Autowired private val transactionCreator: TransactionCreator,
-    @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider
+    @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider,
+    @Autowired private val withdrawalTransferEventHandler: WithdrawalTransferEventHandler,
+    @Autowired private val newSignatureEventHandler: NewSignatureEventHandler
 ) : HealthyService() {
-
-    //TODO create rollback mechanism
-    private val unsignedTransactions = ConcurrentHashMap<String, Transaction>()
 
     fun init(): Result<Unit, Exception> {
         val wallet = Wallet.loadFromFile(File(btcWithdrawalConfig.bitcoin.walletPath))
-        return initTransferListener(wallet, irohaChainListener)
-            .flatMap { initBtcBlockChain(wallet) }
+        return initBtcBlockChain(wallet).flatMap { peerGroup ->
+            initWithdrawalTransferListener(
+                wallet,
+                irohaChainListener,
+                peerGroup
+            )
+        }
     }
 
     /**
@@ -47,16 +52,27 @@ class BtcWithdrawalInitialization(
      * @param irohaChainListener - listener of Iroha blockchain
      * @return result of initiation process
      */
-    private fun initTransferListener(wallet: Wallet, irohaChainListener: IrohaChainListener): Result<Unit, Exception> {
+    private fun initWithdrawalTransferListener(
+        wallet: Wallet,
+        irohaChainListener: IrohaChainListener,
+        peerGroup: PeerGroup
+    ): Result<Unit, Exception> {
         return irohaChainListener.getBlockObservable().map { irohaObservable ->
             irohaObservable.subscribeOn(Schedulers.from(Executors.newSingleThreadExecutor()))
                 .subscribe({ block ->
                     getTransferCommands(block).forEach { command ->
-                        handleTransferCommand(
+                        withdrawalTransferEventHandler.handleTransferCommand(
                             wallet,
                             command.transferAsset
                         )
                     }
+                    getSetDetailCommands(block).filter { command -> isNewWithdrawalSignature(command) }
+                        .forEach { command ->
+                            newSignatureEventHandler.handleNewSignatureCommand(
+                                command.setAccountDetail,
+                                peerGroup
+                            )
+                        }
                 }, { ex ->
                     notHealthy()
                     logger.error("Error on transfer events subscription", ex)
@@ -70,50 +86,25 @@ class BtcWithdrawalInitialization(
      * Starts Bitcoin block chain download process
      * @param wallet - wallet object that will be enriched with block chain data: sent, unspent transactions, last processed block and etc
      */
-    private fun initBtcBlockChain(wallet: Wallet): Result<Unit, Exception> {
+    private fun initBtcBlockChain(wallet: Wallet): Result<PeerGroup, Exception> {
+        //TODO add peer group health check later
         return Result.of {
             getPeerGroup(
                 wallet,
                 btcNetworkConfigProvider.getConfig(),
                 btcWithdrawalConfig.bitcoin.blockStoragePath
             )
-        }.map { peerGroup -> startChainDownload(peerGroup, btcWithdrawalConfig.bitcoin.host) }
+        }.map { peerGroup ->
+            startChainDownload(peerGroup, btcWithdrawalConfig.bitcoin.host)
+            peerGroup
+        }
     }
 
-    /**
-     * Handles "transfer asset" command
-     * @param transferCommand - object with "transfer asset" data: source account, destination account, amount and etc
-     */
-    private fun handleTransferCommand(wallet: Wallet, transferCommand: Commands.TransferAsset) {
-        if (transferCommand.destAccountId != btcWithdrawalConfig.withdrawalCredential.accountId) {
-            return
-        }
-        logger.info {
-            "Withdrawal event(" +
-                    "from:${transferCommand.srcAccountId} " +
-                    "to:${transferCommand.description} " +
-                    "amount:${transferCommand.amount})"
-        }
-        //TODO check if destination address from 'transferCommand.description' is whitelisted
-        transactionCreator.createTransaction(
-            wallet,
-            transferCommand.amount.toLong(),
-            transferCommand.description,
-            btcWithdrawalConfig.bitcoin.confidenceLevel
-        ).fold({ transaction ->
-            val txHash = transaction.hashAsString
-            unsignedTransactions[txHash] = transaction
-            logger.info { "Tx $txHash was added to collection of unsigned transactions" }
-            //TODO start collecting signatures
-            Unit
-        }, { ex -> logger.error("Cannot create withdrawal transaction", ex) })
-    }
-
-    fun getUnsignedTransactions() = unsignedTransactions.values
+    private fun isNewWithdrawalSignature(command: Commands.Command) =
+        command.setAccountDetail.accountId.endsWith("@$BTC_SIGN_COLLECT_DOMAIN")
 
     /**
      * Logger
      */
     companion object : KLogging()
-
 }

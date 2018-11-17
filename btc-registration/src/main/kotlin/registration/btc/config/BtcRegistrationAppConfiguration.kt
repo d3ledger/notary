@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import provider.btc.address.BtcAddressesProvider
 import provider.btc.address.BtcRegisteredAddressesProvider
-import registration.IrohaAccountCreator
+import provider.btc.account.IrohaBtcAccountCreator
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
@@ -59,7 +59,10 @@ class BtcRegistrationAppConfiguration {
     }
 
     @Bean
-    fun irohaAccountCreator(): IrohaAccountCreator {
-        return IrohaAccountCreator(btcClientCreatorConsumer(), btcRegistrationConfig.notaryAccount, "bitcoin")
+    fun irohaBtcAccountCreator(): IrohaBtcAccountCreator {
+        return IrohaBtcAccountCreator(
+            btcClientCreatorConsumer(),
+            btcRegistrationConfig.notaryAccount
+        )
     }
 }

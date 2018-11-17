@@ -47,7 +47,7 @@ class AccountHelper(private val irohaNetwork: IrohaNetwork) {
     }
 
     val btcWithdrawalAccount by lazy {
-        createTesterAccount("btc_withdrawal", "withdrawal")
+        createTesterAccount("btc_withdrawal", "withdrawal", "signature_collector")
     }
 
     /** Account that used to set whitelists for clients to withdraw */
@@ -78,18 +78,20 @@ class AccountHelper(private val irohaNetwork: IrohaNetwork) {
     /**
      * Creates randomly named tester account in Iroha
      */
-    private fun createTesterAccount(prefix: String, roleName: String = "tester"): IrohaCredential {
+    private fun createTesterAccount(prefix: String, vararg roleName: String): IrohaCredential {
         val name = prefix + "_${String.getRandomString(9)}"
         val domain = "notary"
         // TODO - Bulat - generate new keys for account?
         val creator = testCredential.accountId
+        var txBuilder = ModelTransactionBuilder()
+            .creatorAccountId(creator)
+            .createdTime(ModelUtil.getCurrentTime())
+            .createAccount(name, domain, testCredential.keyPair.publicKey())
+        roleName.forEach {
+            txBuilder = txBuilder.appendRole("$name@$domain", it)
+        }
         irohaConsumer.sendAndCheck(
-            ModelTransactionBuilder()
-                .creatorAccountId(creator)
-                .createdTime(ModelUtil.getCurrentTime())
-                .createAccount(name, domain, testCredential.keyPair.publicKey())
-                .appendRole("$name@$domain", roleName)
-                .build()
+            txBuilder.build()
         ).fold({
             logger.info("account $name@$domain was created")
             return IrohaCredential("$name@$domain", testCredential.keyPair)

@@ -1,6 +1,7 @@
 package provider.btc.address
 
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.map
 import model.IrohaCredential
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
@@ -12,16 +13,21 @@ class BtcAddressesProvider(
     private val mstRegistrationAccount: String,
     private val notaryAccount: String
 ) {
+
     /**
      * Get all created btc addresses
-     * @return map full of created btc addresses (btc address -> iroha account name)
+     * @return list full of created BTC addresses
      */
-    fun getAddresses(): Result<Map<String, String>, Exception> {
+    fun getAddresses(): Result<List<BtcAddress>, Exception> {
         return getAccountDetails(
             credential,
             irohaNetwork,
             notaryAccount,
             mstRegistrationAccount
-        )
+        ).map { addresses ->
+            addresses.map { entry ->
+                BtcAddress(entry.key, AddressInfo.fromJson(entry.value)!!)
+            }
+        }
     }
 }

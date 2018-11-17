@@ -23,21 +23,23 @@ class IrohaAccountCreator(
     /**
      * Creates new account to Iroha with given address
      * - CreateAccount with client name
-     * - SetAccountDetail on client account with assigned relay wallet from notary pool of free relay addresses
-     * - SetAccountDetail on notary node account to mark relay address in pool as assigned to the particular user
+     * - SetAccountDetail on client account with assigned [currencyAddress]
+     * - SetAccountDetail on notary node account to mark [currencyAddress] as assigned to the particular user
      * @param currencyAddress - address of crypto currency wallet
      * @param whitelist - list of addresses allowed to withdraw to
      * @param userName - client userName in Iroha
      * @param pubkey - client's public key
+     * @param notaryStorageStrategy - function that defines the way newly created account data will be stored in notary
      * @return address associated with userName
      */
     fun create(
         currencyAddress: String,
-        whitelist: String,
+        whitelistKey: String,
+        whitelist: List<String>,
         userName: String,
-        pubkey: String
+        pubkey: String,
+        notaryStorageStrategy: () -> String
     ): Result<String, Exception> {
-        val domain = CLIENT_DOMAIN
         return Result.of {
 
             // TODO: implement https://soramitsu.atlassian.net/browse/D3-415
@@ -50,11 +52,11 @@ class IrohaAccountCreator(
                         arrayListOf(
                             // Create account
                             IrohaCommand.CommandCreateAccount(
-                                userName, domain, pubkey
+                                userName, CLIENT_DOMAIN, pubkey
                             ),
                             // Set user wallet/address in account detail
                             IrohaCommand.CommandSetAccountDetail(
-                                "$userName@$domain",
+                                "$userName@$CLIENT_DOMAIN",
                                 currencyName,
                                 currencyAddress
                             ),
@@ -62,7 +64,7 @@ class IrohaAccountCreator(
                             IrohaCommand.CommandSetAccountDetail(
                                 notaryIrohaAccount,
                                 currencyAddress,
-                                "$userName@$domain"
+                                notaryStorageStrategy()
                             )
                         )
                     ),
@@ -72,11 +74,10 @@ class IrohaAccountCreator(
                         1,
                         arrayListOf(
                             //set whitelist
-                            //TODO this function is used to create both BTC and ETH clients. "eth_whitelist" is not appropriate detail key.
                             IrohaCommand.CommandSetAccountDetail(
-                                "$userName@$domain",
-                                "eth_whitelist",
-                                whitelist
+                                "$userName@$CLIENT_DOMAIN",
+                                whitelistKey,
+                                whitelist.toString().trim('[').trim(']')
                             )
                         )
                     )
@@ -86,7 +87,7 @@ class IrohaAccountCreator(
             val utx = IrohaConverterImpl().convert(irohaTx)
             irohaConsumer.sendAndCheck(utx)
         }.map {
-            logger.info { "New account $userName@$domain was created" }
+            logger.info { "New account $userName@$CLIENT_DOMAIN was created" }
             currencyAddress
         }
     }
