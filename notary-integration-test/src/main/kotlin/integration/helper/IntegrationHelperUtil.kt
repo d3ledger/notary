@@ -15,15 +15,20 @@ import mu.KLogging
 import notary.eth.EthNotaryConfig
 import notary.eth.executeNotary
 import org.bitcoinj.core.Address
+import org.bitcoinj.core.ECKey
+import org.bitcoinj.params.RegTestParams
+import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
 import org.web3j.crypto.WalletUtils
+import provider.btc.address.AddressInfo
 import provider.btc.address.BtcAddressesProvider
 import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.eth.EthFreeRelayProvider
 import provider.eth.EthRelayProviderIrohaImpl
 import provider.eth.EthTokensProviderImpl
-import registration.IrohaAccountCreator
+import registration.ETH_WHITE_LIST_KEY
 import registration.btc.BtcRegistrationStrategyImpl
+import provider.btc.account.IrohaBtcAccountCreator
 import registration.eth.EthRegistrationConfig
 import registration.eth.EthRegistrationStrategyImpl
 import registration.eth.relay.RelayRegistration
@@ -116,10 +121,6 @@ class IntegrationHelperUtil : Closeable {
         IrohaConsumerImpl(accountHelper.tokenSetterAccount, irohaNetwork)
     }
 
-    private val whiteListIrohaConsumer by lazy {
-        IrohaConsumerImpl(accountHelper.whitelistSetter, irohaNetwork)
-    }
-
     private val notaryListIrohaConsumer by lazy {
         IrohaConsumerImpl(accountHelper.notaryListSetterAccount, irohaNetwork)
     }
@@ -206,14 +207,14 @@ class IntegrationHelperUtil : Closeable {
                 accountHelper.registrationAccount.accountId,
                 accountHelper.notaryAccount.accountId
             )
-        val irohaAccountCreator = IrohaAccountCreator(
+        val irohaBtcAccountCreator = IrohaBtcAccountCreator(
             registrationConsumer,
-            accountHelper.notaryAccount.accountId, "bitcoin"
+            accountHelper.notaryAccount.accountId
         )
         BtcRegistrationStrategyImpl(
             btcAddressesProvider,
             btcTakenAddressesProvider,
-            irohaAccountCreator
+            irohaBtcAccountCreator
         )
     }
 
@@ -240,6 +241,11 @@ class IntegrationHelperUtil : Closeable {
         }
     }
 
+    private fun createMstAddress(keys: List<ECKey>): Address {
+        val script = ScriptBuilder.createP2SHOutputScript(1, keys)
+        return script.getToAddress(RegTestParams.get())
+    }
+
     /**
      * Pregenerates one BTC address that can be registered later
      * @param walletFilePath - path to wallet file
@@ -248,14 +254,15 @@ class IntegrationHelperUtil : Closeable {
     fun preGenBtcAddress(walletFilePath: String): Result<Address, Exception> {
         val walletFile = File(walletFilePath)
         val wallet = Wallet.loadFromFile(walletFile)
-        val address = wallet.freshReceiveAddress()
+        val key = wallet.freshReceiveKey()
+        val address = createMstAddress(listOf(key))
         wallet.addWatchedAddress(address)
         wallet.saveToFile(walletFile)
         return ModelUtil.setAccountDetail(
             mstRegistrationIrohaConsumer,
             accountHelper.notaryAccount.accountId,
             address.toBase58(),
-            "free"
+            AddressInfo.createFreeAddressInfo(listOf(key.publicKeyAsHex)).toJson()
         ).map { address }
     }
 
@@ -279,13 +286,16 @@ class IntegrationHelperUtil : Closeable {
     /**
      * Registers BTC client with no pregeneration
      * @param irohaAccountName - client account in Iroha
+     * @param keypair - key pair of new client in Iroha
+     * @param whitelist - list available addresses to send money to
      * @return btc address related to client
      */
     fun registerBtcAddressNoPreGen(
         irohaAccountName: String,
-        keypair: Keypair = ModelCrypto().generateKeypair()
+        keypair: Keypair = ModelCrypto().generateKeypair(),
+        whitelist: List<String> = emptyList()
     ): String {
-        btcRegistrationStrategy.register(irohaAccountName, emptyList(), keypair.publicKey().hex())
+        btcRegistrationStrategy.register(irohaAccountName, whitelist, keypair.publicKey().hex())
             .fold({ btcAddress ->
                 logger.info { "BTC address $btcAddress was registered by $irohaAccountName" }
                 return btcAddress
@@ -571,7 +581,7 @@ class IntegrationHelperUtil : Closeable {
         ModelUtil.setAccountDetail(
             registrationConsumer,
             clientAccount,
-            "eth_whitelist",
+            ETH_WHITE_LIST_KEY,
             text
         )
     }

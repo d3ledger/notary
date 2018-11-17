@@ -2,6 +2,7 @@ package provider.btc
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
+import helper.address.getSignThreshold
 import mu.KLogging
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.ECKey
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import provider.NotaryPeerListProvider
+import provider.btc.address.AddressInfo
 import provider.btc.network.BtcNetworkConfigProvider
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.util.ModelUtil
@@ -73,7 +75,7 @@ class BtcPublicKeyProvider(
             if (peers == 0) {
                 throw IllegalStateException("No peers to create btc multisignature address")
             } else if (notaryKeys.size == peers && hasMyKey(notaryKeys)) {
-                val threshold = getThreshold(peers)
+                val threshold = getSignThreshold(peers)
                 val msAddress = createMsAddress(notaryKeys, threshold)
                 if (!walletFile.wallet.addWatchedAddress(msAddress)) {
                     throw IllegalStateException("BTC address $msAddress was not added to wallet")
@@ -83,7 +85,7 @@ class BtcPublicKeyProvider(
                     multiSigConsumer,
                     notaryAccount,
                     msAddress.toBase58(),
-                    "free"
+                    AddressInfo.createFreeAddressInfo(ArrayList<String>(notaryKeys)).toJson()
                 ).fold({
                     //TODO this save will probably corrupt the wallet file
                     walletFile.save()
@@ -119,15 +121,6 @@ class BtcPublicKeyProvider(
         val script = ScriptBuilder.createP2SHOutputScript(threshold, keys)
         logger.info { "New BTC multisignature script $script" }
         return script.getToAddress(btcNetworkConfigProvider.getConfig())
-    }
-
-    /**
-     * Calculate threshold
-     * @param peers - total number of peers
-     * @return minimal number of signatures required
-     */
-    private fun getThreshold(peers: Int): Int {
-        return (peers * 2 / 3) + 1
     }
 
     /**

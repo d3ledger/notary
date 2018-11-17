@@ -62,3 +62,9 @@ dependencies {
     compile project(":btc-deposit")
     compile project(":btc-withdrawal")
 }
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "notary:notary-integration-test"
+    }
+}

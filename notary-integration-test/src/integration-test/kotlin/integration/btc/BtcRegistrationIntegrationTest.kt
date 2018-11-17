@@ -13,9 +13,9 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
 import provider.btc.address.BtcAddressesProvider
 import provider.btc.address.BtcRegisteredAddressesProvider
-import registration.IrohaAccountCreator
 import registration.btc.BtcRegistrationServiceInitialization
 import registration.btc.BtcRegistrationStrategyImpl
+import provider.btc.account.IrohaBtcAccountCreator
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
@@ -45,7 +45,7 @@ class BtcRegistrationIntegrationTest {
 
     private val btcRegistrationServiceInitialization = BtcRegistrationServiceInitialization(
         btcRegistrationConfig,
-        BtcRegistrationStrategyImpl(btcAddressesProvider(), btcRegisteredAddressesProvider(), irohaAccountCreator())
+        BtcRegistrationStrategyImpl(btcAddressesProvider(), btcRegisteredAddressesProvider(), irohaBtcAccountCreator())
     )
 
     init {
@@ -84,7 +84,10 @@ class BtcRegistrationIntegrationTest {
         assertEquals(200, res.statusCode)
         val registeredBtcAddress = String(res.content)
         btcTakenAddressesProvider.getRegisteredAddresses().fold({ addresses ->
-            assertEquals("$userName@$CLIENT_DOMAIN", addresses[registeredBtcAddress])
+            assertEquals(
+                "$userName@$CLIENT_DOMAIN",
+                addresses.first { btcAddress -> btcAddress.address == registeredBtcAddress }.info.irohaClient
+            )
         }, { ex -> fail("cannot get addresses", ex) })
         assertEquals(
             BigInteger.ZERO.toString(),
@@ -118,7 +121,10 @@ class BtcRegistrationIntegrationTest {
             assertFalse(takenAddresses.contains(registeredBtcAddress))
             takenAddresses.add(registeredBtcAddress)
             btcTakenAddressesProvider.getRegisteredAddresses().fold({ addresses ->
-                assertEquals("$userName@$CLIENT_DOMAIN", addresses[registeredBtcAddress])
+                assertEquals(
+                    "$userName@$CLIENT_DOMAIN",
+                    addresses.first { btcAddress -> btcAddress.address == registeredBtcAddress }.info.irohaClient
+                )
             }, { ex -> fail("cannot get addresses", ex) })
             assertEquals(
                 BigInteger.ZERO.toString(),
@@ -166,11 +172,10 @@ class BtcRegistrationIntegrationTest {
         )
     }
 
-    private fun irohaAccountCreator(): IrohaAccountCreator {
-        return IrohaAccountCreator(
+    private fun irohaBtcAccountCreator(): IrohaBtcAccountCreator {
+        return IrohaBtcAccountCreator(
             btcClientCreatorConsumer,
-            btcRegistrationConfig.notaryAccount,
-            "bitcoin"
+            btcRegistrationConfig.notaryAccount
         )
     }
 }

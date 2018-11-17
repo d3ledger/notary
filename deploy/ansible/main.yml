@@ -20,6 +20,6 @@
   gather_facts: yes
   roles:
 #    - { role: docker }
-#    - ethereum
-    - { role: iroha }
-    - { role: notary }
+    - ethereum
+    - iroha
+#      - { role: notary }

@@ -4,6 +4,7 @@ import integration.helper.IntegrationHelperUtil
 import kotlinx.coroutines.experimental.launch
 import model.IrohaCredential
 import mu.KLogging
+import org.bitcoinj.core.Address
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Utils
 import org.bitcoinj.params.RegTestParams
@@ -20,6 +21,7 @@ import provider.NotaryPeerListProviderImpl
 import provider.TriggerProvider
 import provider.btc.BtcPublicKeyProvider
 import provider.btc.BtcSessionProvider
+import provider.btc.address.AddressInfo
 import provider.btc.network.BtcRegTestConfigProvider
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
@@ -101,7 +103,9 @@ class BtcPreGenIntegrationTest {
                 btcPreGenConfig.mstRegistrationAccount.accountId
             )
         val expectedMsAddress = createMstAddress(sessionDetails.values)
-        assertEquals("free", notaryAccountDetails.get(expectedMsAddress))
+        val generatedAddress = AddressInfo.fromJson(notaryAccountDetails[expectedMsAddress]!!)!!
+        assertEquals("free", generatedAddress.irohaClient)
+        assertEquals(sessionDetails.values.toList(), generatedAddress.notaryKeys.toList())
     }
 
     private fun createMstAddress(notaryKeys: Collection<String>): String {

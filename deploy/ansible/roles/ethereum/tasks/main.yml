@@ -1,22 +1,23 @@
 - name: Clean files dir
-  local_action:
-    module: file
+  file:
     path: "{{ role_path }}/files/"
     state: absent
   run_once: yes
   become: no
+  delegate_to: localhost
+
 
 - name: Create notary accounts
-  local_action:
-    module: shell
+  shell:
     _raw_params: >
       ./create_account.sh notary_{{ inventory_hostname}} {{ eth_pass }}
     chdir: "{{ role_path }}"
   become: no
+  delegate_to: localhost
+
 
 - name: Create other ethereum accounts
-  local_action:
-    module: shell
+  shell:
     _raw_params: >
       ./create_account.sh {{ item }} {{ eth_pass }}
     chdir: "{{ role_path }}"
@@ -27,10 +28,11 @@
     - vacuum
   become: no
   run_once: yes
+  delegate_to: localhost
+
 
 - name: Create notary addr list file
-  local_action:
-    module: shell
+  shell:
     _raw_params: >
       printf 0x'{{ lookup('file','files/notary_{{ inventory_hostname }}.key')
         | from_json
@@ -38,43 +40,46 @@
         >> list.txt
     chdir: "{{ role_path }}/files"
   become: no
+  delegate_to: localhost
+
 
 - name: Set notary addrs
-  local_action:
-    module: shell
+  shell:
     _raw_params: >
       cat list.txt
     chdir: "{{ role_path }}/files"
   become: no
   register: addrs
+  delegate_to: localhost
+  run_once: yes
 
-- debug: var=addrs.stdout
 
 - name: Deploy relay registry and master contract
-  local_action:
-    module: shell
+  shell:
     _raw_params: >
       ./gradlew runPreDeployEthereum --args='{{ addrs.stdout }}'
     chdir: "{{ playbook_dir }}/../../"
   environment:
     PROFILE: testnet
   register: file
-
+  delegate_to: localhost
   become: no
   run_once: yes
 
 
 - name: Write master contract address
-  local_action:
-    module: copy
-    content: "{{ (file.stdout.split('\n') | select('search', 'master_eth_address:::') | list | first).split(' ') | last }}"
+  copy:
+    src: "{{ playbook_dir }}/../../master_eth_address"
     dest: "{{ role_path }}/files/master_eth_address"
   become: no
+  run_once: yes
+  delegate_to: localhost
 
 - name: Write relay registry address
-  local_action:
-    module: copy
-    content: "{{ (file.stdout.split('\n') | select('search', 'relay_registry_eth_address:::') | list | first).split(' ') | last }}"
+  copy:
+    src: "{{ playbook_dir }}/../../relay_registry_eth_address"
     dest: "{{ role_path }}/files/relay_registry_eth_address"
   become: no
+  run_once: yes
+  delegate_to: localhost
 

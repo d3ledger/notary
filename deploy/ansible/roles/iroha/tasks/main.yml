@@ -44,6 +44,14 @@
     run_once: yes
     become: no
 
+  - name: Remove nodes.csv file
+    local_action:
+      module: file
+      path: "{{ role_path }}/files/nodes.csv"
+      state: absent
+    become: no
+    delegate_to: localhost
+
 
   - name: Write iroha nodes private keys to files
     copy:
@@ -61,6 +69,7 @@
     delegate_to: localhost
 
 
+
   - name: Copy genesis block
     copy:
       src: "{{ projectRoot }}/deploy/iroha/genesis.block"
@@ -76,6 +85,7 @@
     run_once: yes
     become: no
     delegate_to: localhost
+
 
   - name: Generate notary signatories
     shell:

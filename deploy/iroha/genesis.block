@@ -83,10 +83,20 @@
                 "createRole": {
                   "roleName": "withdrawal",
                   "permissions": [
-                    "can_get_domain_accounts",
+                    "can_get_all_accounts",
                     "can_get_blocks",
                     "can_read_assets",
                     "can_receive"
+                  ]
+                }
+              },
+              {
+                "createRole": {
+                  "roleName": "signature_collector",
+                  "permissions": [
+                    "can_create_account",
+                    "can_set_detail",
+                    "can_get_all_accounts"
                   ]
                 }
               },
@@ -184,6 +194,12 @@
               {
                 "createDomain": {
                   "domainId": "bitcoin",
+                  "defaultRole": "none"
+                }
+              },
+              {
+                "createDomain": {
+                  "domainId": "btcSignCollect",
                   "defaultRole": "none"
                 }
               },
@@ -302,6 +318,12 @@
                 "appendRole": {
                   "accountId": "btc_withdrawal_service@notary",
                   "roleName": "withdrawal"
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "btc_withdrawal_service@notary",
+                  "roleName": "signature_collector"
                 }
               },
               {

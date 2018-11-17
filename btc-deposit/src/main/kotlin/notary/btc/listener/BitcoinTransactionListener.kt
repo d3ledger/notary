@@ -1,11 +1,11 @@
 package notary.btc.listener
 
+import helper.address.outPutToBase58Address
 import io.reactivex.ObservableEmitter
 import mu.KLogging
-import org.bitcoinj.core.ScriptException
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.TransactionConfidence
-import org.bitcoinj.core.TransactionOutput
+import provider.btc.address.BtcAddress
 import sidechain.SideChainEvent
 import java.math.BigInteger
 import java.util.*
@@ -15,8 +15,8 @@ private const val BTC_ASSET_NAME = "btc"
 private const val TWO_HOURS_MILLIS = 2 * 60 * 60 * 1000L;
 
 class BitcoinTransactionListener(
-    // Map full of Bitcoin addresses registered in Iroha in form (btc address -> Iroha client name)
-    private val registeredAddresses: Map<String, String>,
+    // List of registered BTC addresses
+    private val registeredAddresses: List<BtcAddress>,
     // Level of confidence aka depth of transaction. Recommend value is 6
     private val confidenceLevel: Int,
     // Source of Bitcoin deposit events
@@ -44,19 +44,19 @@ class BitcoinTransactionListener(
 
     //Checks if tx contains registered addresses in its outputs
     private fun hasRegisteredAddresses(tx: Transaction): Boolean {
-        return registeredAddresses.keys.any { registeredBtcAddress ->
+        return registeredAddresses.any { registeredBtcAddress ->
             tx.outputs.map { out ->
                 outPutToBase58Address(out)
-            }.contains(registeredBtcAddress)
+            }.contains(registeredBtcAddress.address)
         }
     }
 
     private fun handleTx(tx: Transaction, blockTime: Date) {
         tx.outputs.forEach { output ->
-            val btcAddress = outPutToBase58Address(output)
-            logger.info { "Tx ${tx.hashAsString} has output address $btcAddress" }
-            val irohaAccount = registeredAddresses[btcAddress]
-            if (irohaAccount != null) {
+            val txBtcAddress = outPutToBase58Address(output)
+            logger.info { "Tx ${tx.hashAsString} has output address $txBtcAddress" }
+            val btcAddress = registeredAddresses.firstOrNull { btcAddress -> btcAddress.address == txBtcAddress }
+            if (btcAddress != null) {
                 val event = SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
                     tx.hashAsString,
                     /*
@@ -66,12 +66,12 @@ class BitcoinTransactionListener(
                     Subtracting 2 hours is just a simple workaround of this problem.
                     */
                     BigInteger.valueOf(blockTime.time - TWO_HOURS_MILLIS),
-                    irohaAccount,
+                    btcAddress.info.irohaClient,
                     BTC_ASSET_NAME,
                     output.value.value.toString(),
                     ""
                 )
-                logger.info { "BTC deposit event(tx ${tx.hashAsString}, amount ${output.value.value}) was created. Related client is $irohaAccount. " }
+                logger.info { "BTC deposit event(tx ${tx.hashAsString}, amount ${output.value.value}) was created. Related client is ${btcAddress.info.irohaClient}. " }
                 emitter.onNext(event)
             }
         }
@@ -102,15 +102,6 @@ class BitcoinTransactionListener(
                 confidence.removeEventListener(this)
                 txHandler(tx, blockTime)
             }
-        }
-    }
-
-    //Safely takes base58 encoded address from tx output
-    private fun outPutToBase58Address(output: TransactionOutput): String {
-        try {
-            return output.scriptPubKey.getToAddress(output.params).toBase58()
-        } catch (expected: ScriptException) {
-            return "[undefined]"
         }
     }
 
