@@ -64,7 +64,7 @@ class IrohaAccountCreator(
                 // Create account
                 .createAccount(userName, CLIENT_DOMAIN, PublicKey(PublicKey.fromHexString(pubkey)))
                 // Set user wallet/address in account detail
-                .setAccountDetail("$userName@$CLIENT_DOMAIN", "${currencyName}_wallet", currencyAddress)
+                .setAccountDetail("$userName@$CLIENT_DOMAIN", currencyName, currencyAddress)
                 // Set wallet/address as occupied by user id
                 .setAccountDetail(notaryIrohaAccount, currencyAddress, notaryStorageStrategy())
                 // Set whitelist
