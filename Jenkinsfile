@@ -90,8 +90,8 @@ pipeline {
             done < <(docker ps --filter "network=d3-${DOCKER_NETWORK}" --format "{{.ID}} {{.Names}}")
           """
           
-          sh "tar -zcvf build-logs/jacoco.gz -C build/reports jacoco"
-          sh "tar -zcvf build-logs/dokka.gz -C build/reports dokka"
+          sh "tar -zcvf build-logs/jacoco.gz -C build/reports jacoco || true"
+          sh "tar -zcvf build-logs/dokka.gz -C build/reports dokka || true"
           archiveArtifacts artifacts: 'build-logs/*.gz'
           sh "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml down"
           cleanWs()
