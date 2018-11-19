@@ -36,7 +36,6 @@ services:
       - ./ethereum:/eth
     environment:
       - NODE=0
-    entrypoint: /eth/docker-entrypoint.sh
 
   grpcwebproxy:
     build:
