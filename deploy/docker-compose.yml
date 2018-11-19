@@ -27,7 +27,10 @@ services:
 
   # ethereum
   d3-eth-node0:
-    image: trufflesuite/ganache-cli:latest
+    build: 
+      context: ./ethereum
+      dockerfile: ganache.dockerfile
+   
     container_name: d3-eth-node0
     volumes:
       - ./ethereum:/eth

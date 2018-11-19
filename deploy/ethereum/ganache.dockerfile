@@ -1,4 +1,4 @@
 FROM trufflesuite/ganache-cli:latest
-COPY ./ethereum/entrypoint.sh /eth/entrypoint.sh
-RUN chmod +x /eth/entrypoint.sh
-ENTRYPOINT ["/eth/entrypoint.sh"]
+COPY ./entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+ENTRYPOINT ["/docker-entrypoint.sh"]
