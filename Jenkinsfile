@@ -42,9 +42,6 @@ pipeline {
           iC = docker.image("openjdk:8-jdk")
           iC.inside("--network='d3-${DOCKER_NETWORK}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
             sh "ln -s deploy/bitcoin/bitcoin-cli /usr/bin/bitcoin-cli"
-            withCredentials([file(credentialsId: 'ethereum_password.properties', variable: 'ethereum_password')]) {
-              sh "cp \$ethereum_password configs/eth/ethereum_password_local.properties"
-            }
             sh "./gradlew dependencies"
             sh "./gradlew test --info"
             sh "./gradlew compileIntegrationTestKotlin --info"
@@ -88,6 +85,7 @@ pipeline {
             done < <(docker ps --filter "network=d3-${DOCKER_NETWORK}" --format "{{.ID}} {{.Names}}")
           """
           
+          sh "tar -zcvf build-logs/notaryIntegrationTest.gz -C notary-integration-test/build/reports/tests integrationTest || true"
           sh "tar -zcvf build-logs/jacoco.gz -C build/reports jacoco || true"
           sh "tar -zcvf build-logs/dokka.gz -C build/reports dokka || true"
           archiveArtifacts artifacts: 'build-logs/*.gz'
