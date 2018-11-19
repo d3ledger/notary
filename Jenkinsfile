@@ -44,10 +44,8 @@ pipeline {
             sh "ln -s deploy/bitcoin/bitcoin-cli /usr/bin/bitcoin-cli"
             withCredentials([file(credentialsId: 'ethereum_password.properties', variable: 'ethereum_password')]) {
               sh "cp \$ethereum_password configs/eth/ethereum_password_local.properties"
-              sh "cp \$ethereum_password configs/eth/ethereum_password_local.properties"
             }
             sh "./gradlew dependencies"
-            sh "./gradlew dokka"
             sh "./gradlew test --info"
             sh "./gradlew compileIntegrationTestKotlin --info"
             sh "./gradlew integrationTest --info"

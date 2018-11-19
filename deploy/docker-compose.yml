@@ -30,7 +30,6 @@ services:
     build: 
       context: ./ethereum
       dockerfile: ganache.dockerfile
-   
     container_name: d3-eth-node0
     volumes:
       - ./ethereum:/eth
