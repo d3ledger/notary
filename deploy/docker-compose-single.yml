@@ -10,6 +10,7 @@ services:
       - ../configs:/opt/notary/configs
     environment:
       - ETH_MASTER_WALLET
+      - ETH_CREDENTIALS_PASSWORD
       - PROFILE
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
@@ -42,6 +43,7 @@ services:
       - ./:/opt/notary/deploy
       - ../configs:/opt/notary/configs
     environment:
+      - ETH_CREDENTIALS_PASSWORD
       - PROFILE
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051

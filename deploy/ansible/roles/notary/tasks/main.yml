@@ -19,10 +19,38 @@
     recurse: yes
 
 
-- name: Copy ethereum folder
+- name: Create ethereum directory
+  file:
+    path: "/opt/notary/ethereum/keys/{{ directory_map[lookup('env','PROFILE')] }}"
+    state: directory
+    recurse: yes
+
+- name: Copy ethereum keys
   copy:
-    src: "{{ projectRoot }}/deploy/ethereum"
-    dest: /opt/notary
+    src: "{{ playbook_dir }}/roles/ethereum/files/{{ item }}"
+    dest: "/opt/notary/ethereum/keys/{{ directory_map[lookup('env','PROFILE')] }}"
+  with_items:
+    - vacuum.key
+    - withdrawal.key
+    - relay_registration.key
+
+
+- name: Copy ethereum genesis as registration key
+  copy:
+    src: "{{ projectRoot }}/deploy/ethereum/keys/{{ directory_map[lookup('env','PROFILE')] }}/genesis.key"
+    dest: "/opt/notary/ethereum/keys/{{ directory_map[lookup('env','PROFILE')] }}/registration.key"
+  with_items:
+  - registration.key
+  - vacuum.key
+  - withdrawal.key
+  - relay_registration.key
+
+
+- name: Copy ethereum notary key
+  copy:
+    src: "{{ projectRoot }}/deploy/ansible/roles/ethereum/files/notary_{{ inventory_hostname }}.key"
+    dest: "/opt/notary/ethereum/keys/{{ directory_map[lookup('env','PROFILE')] }}/notary.key"
+
 
 - name: Copy iroha node private key
   copy:
@@ -43,13 +71,13 @@
 
 
 
-- name: Copy notary private key
+- name: Copy iroha notary private key
   copy:
     src: "{{ projectRoot }}/deploy/ansible/roles/iroha/files/notary_{{ inventory_hostname }}.priv"
     dest: /opt/notary/iroha/keys/notary0@notary.priv
 
 
-- name: Copy notary public key
+- name: Copy iroha notary public key
   copy:
     src: "{{ projectRoot }}/deploy/ansible/roles/iroha/files/notary_{{ inventory_hostname }}.pub"
     dest: /opt/notary/iroha/keys/notary0@notary.pub
@@ -85,8 +113,6 @@
   run_once: yes
 
 
-
-
 - name: Copy other iroha files
   copy:
     src: "{{ item }}"
@@ -118,6 +144,23 @@
     - docker-compose-base.yml
     - docker-compose-single.yml
 
+- name: Get master eth address
+  shell: "cat {{ playbook_dir }}/roles/ethereum/files/master_eth_address"
+  register: master_eth_address
+  delegate_to: localhost
+  become: no
+
+- name: Get relay registry eth address
+  shell: "cat {{ playbook_dir }}/roles/ethereum/files/relay_registry_eth_address"
+  register: relay_registry_eth_address
+  delegate_to: localhost
+  become: no
+
+- name: Read eth pass
+  shell: "cat {{ playbook_dir }}/roles/ethereum/files/eth_pass"
+  register: eth_pass
+  delegate_to: localhost
+  become: no
 
 - name: Shutdown compose
   docker_service:
@@ -137,8 +180,9 @@
       - docker-compose-base.yml
       - docker-compose-full.yml
   environment:
-    TAG: develop
+    TAG: "{{ lookup('env','TAG') }}"
     PROFILE: "{{ lookup('env','PROFILE') }}"
+    ETH_CREDENTIALS_PASSWORD: "{{ eth_pass.stdout }}"
 
 
 - name: Run compose once
@@ -149,6 +193,9 @@
     files:
       - docker-compose-single.yml
   environment:
-    TAG: develop
+    TAG: "{{ lookup('env','TAG') }}"
     PROFILE: "{{ lookup('env','PROFILE') }}"
+    ETH_RELAY_REGISTRY: "{{ relay_registry_eth_address.stdout }}"
+    ETH_MASTER_WALLET: "{{ master_eth_address.stdout }}"
+    ETH_CREDENTIALS_PASSWORD: "{{ eth_pass.stdout }}"
   run_once: yes

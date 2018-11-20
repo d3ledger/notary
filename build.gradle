@@ -294,6 +294,16 @@ retrieveIrohaBindings.dependsOn(osInfo)
 
 // -------------------------| Run services |-------------------------
 
+task runSendEther(type: JavaExec) {
+    main = 'deploy.EthSendEther'
+    classpath = sourceSets.main.runtimeClasspath
+
+    args getEthPasswordsArgs()
+    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
+    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
+}
+
+
 // Deploy ethereum smart contracts - RelayRegistry, Master, add notaries wallets to Master and lock Master.
 task runPreDeployEthereum(type: JavaExec) {
     main = 'deploy.EthPreDeployMain'

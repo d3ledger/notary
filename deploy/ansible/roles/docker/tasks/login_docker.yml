@@ -6,5 +6,3 @@
     password: "{{ docker_password }}"
     reauthorize: yes
   become: no
-
-#  ToLr?D}7#HXqu/;bq4!h6

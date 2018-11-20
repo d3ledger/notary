@@ -8,6 +8,7 @@ import config.loadEthPasswords
 import mu.KLogging
 import sidechain.eth.util.DeployHelper
 import java.io.File
+import java.math.BigInteger
 
 private val logger = KLogging().logger
 
@@ -24,11 +25,15 @@ fun main(args: Array<String>) {
 
     val ethereumConfig = loadConfigs("predeploy.ethereum", EthereumConfig::class.java, "/eth/predeploy.properties")
     val passwordConfig = loadEthPasswords("predeploy", "/eth/ethereum_password.properties")
+    println(passwordConfig.credentialsPassword)
     val deployHelper = DeployHelper(ethereumConfig, passwordConfig)
 
     val relayRegistry = deployHelper.deployRelayRegistrySmartContract()
     val master = deployHelper.deployMasterSmartContract(relayRegistry.contractAddress)
 
+    // Send 0.1 ETH
+    deployHelper.sendEthereum(BigInteger.valueOf(100000000000000000), master.contractAddress)
+    deployHelper.sendEthereum(BigInteger.valueOf(100000000000000000), relayRegistry.contractAddress)
 
     var result = master.addPeers(args.toList()).send().isStatusOK
     logger.info { "Peers were added" }

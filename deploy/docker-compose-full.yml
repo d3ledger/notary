@@ -17,6 +17,9 @@ services:
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
       - CLASS=registration.eth.EthRegistrationMain
+      - ETH_CREDENTIALS_PASSWORD
+      - ETH_RELAY_REGISTRY
+      - ETH_MASTER_WALLET
 
   d3-notary:
     image: nexus.iroha.tech:19002/d3-deploy/notary:${TAG:-master}
@@ -34,6 +37,7 @@ services:
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
       - CLASS=notary.eth.EthNotaryMain
+      - ETH_CREDENTIALS_PASSWORD
     networks:
       - d3-network
 

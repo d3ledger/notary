@@ -15,7 +15,7 @@
     state: latest
   with_items:
     - docker
-    - docker-compose
+    - docker-compose==1.22.0
 
 
 - include_tasks: install_docker.yml
