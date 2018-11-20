@@ -13,7 +13,7 @@ import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import provider.btc.address.BtcRegisteredAddressesProvider
+import provider.btc.address.BtcAddressesProvider
 import util.hex
 
 /*
@@ -21,7 +21,7 @@ import util.hex
  */
 @Component
 class TransactionSigner(
-    @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider
+    @Autowired private val btcRegisteredAddressesProvider: BtcAddressesProvider
 ) {
     /**
      * Signs transaction using available private keys from wallet
@@ -52,7 +52,7 @@ class TransactionSigner(
      * @return - result with list full of public keys that were used in [btcAddress] creation
      */
     fun getUsedPubKeys(btcAddress: String): Result<List<String>, Exception> {
-        return btcRegisteredAddressesProvider.getRegisteredAddresses()
+        return btcRegisteredAddressesProvider.getAddresses()
             .map { registeredAddresses ->
                 registeredAddresses.find { registeredAddress -> registeredAddress.address == btcAddress }!!.info.notaryKeys
             }

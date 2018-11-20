@@ -374,7 +374,7 @@
               },
               {
                 "createAccount": {
-                  "accountName": "pregen_btc_pk_trigger",
+                  "accountName": "gen_btc_pk_trigger",
                   "domainId": "notary",
                   "publicKey": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
                 }

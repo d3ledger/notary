@@ -2,11 +2,10 @@ package withdrawal.btc.config
 
 import config.loadConfigs
 import model.IrohaCredential
-import org.bitcoinj.core.Address
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import provider.btc.address.BtcAddressesProvider
 import provider.btc.address.BtcRegisteredAddressesProvider
-import provider.btc.network.BtcNetworkConfigProvider
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
@@ -22,6 +21,13 @@ class BtcWithdrawalAppConfiguration {
         withdrawalConfig.withdrawalCredential.pubkeyPath,
         withdrawalConfig.withdrawalCredential.privkeyPath
     ).fold({ keypair -> keypair }, { ex -> throw ex })
+
+    private val btcRegistrationCredential = ModelUtil.loadKeypair(
+        withdrawalConfig.registrationCredential.pubkeyPath,
+        withdrawalConfig.registrationCredential.privkeyPath
+    ).fold({ keypair ->
+        IrohaCredential(withdrawalConfig.registrationCredential.accountId, keypair)
+    }, { ex -> throw ex })
 
     @Bean
     fun withdrawalCredential() =
@@ -41,31 +47,32 @@ class BtcWithdrawalAppConfiguration {
     )
 
     @Bean
-    fun changeAddress(btcNetworkConfigProvider: BtcNetworkConfigProvider) =
-        Address.fromBase58(btcNetworkConfigProvider.getConfig(), withdrawalConfig.changeAddress)
-
-    @Bean
     fun irohaNetwork() = IrohaNetworkImpl(withdrawalConfig.iroha.hostname, withdrawalConfig.iroha.port)
 
     @Bean
     fun btcRegisteredAddressesProvider(): BtcRegisteredAddressesProvider {
-        ModelUtil.loadKeypair(
-            withdrawalConfig.notaryCredential.pubkeyPath,
-            withdrawalConfig.notaryCredential.privkeyPath
-        ).fold({ keypair ->
-            return BtcRegisteredAddressesProvider(
-                IrohaCredential(withdrawalConfig.notaryCredential.accountId, keypair),
-                irohaNetwork(),
-                withdrawalConfig.registrationAccount,
-                withdrawalConfig.notaryCredential.accountId
-            )
-        }, { ex -> throw ex })
+        return BtcRegisteredAddressesProvider(
+            btcRegistrationCredential,
+            irohaNetwork(),
+            withdrawalConfig.registrationCredential.accountId,
+            withdrawalConfig.notaryCredential.accountId
+        )
+    }
+
+    @Bean
+    fun btcAddressesProvider(): BtcAddressesProvider {
+        return BtcAddressesProvider(
+            btcRegistrationCredential,
+            irohaNetwork(),
+            withdrawalConfig.mstRegistrationAccount,
+            withdrawalConfig.notaryCredential.accountId
+        )
     }
 
     @Bean
     fun whiteListProvider(): BtcWhiteListProvider {
         return BtcWhiteListProvider(
-            withdrawalConfig.registrationAccount,
+            withdrawalConfig.registrationCredential.accountId,
             withdrawalCredential(),
             irohaNetwork()
         )

@@ -238,7 +238,7 @@ class IntegrationHelperUtil : Closeable {
      * @param addressesToGenerate - number of addresses to generate
      * @return result of operation
      */
-    fun preGenBtcAddresses(walletFilePath: String, addressesToGenerate: Int): Result<Unit, Exception> {
+    fun preGenFreeBtcAddresses(walletFilePath: String, addressesToGenerate: Int): Result<Unit, Exception> {
         return Result.of {
             val irohaTxList = ArrayList<IrohaTransaction>()
             for (i in 1..addressesToGenerate) {
@@ -268,17 +268,32 @@ class IntegrationHelperUtil : Closeable {
     }
 
     /**
-     * Pregenerates one BTC address that can be registered later
+     * Generates one BTC address that can be registered later
      * @param walletFilePath - path to wallet file
      * @return randomly generated BTC address
      */
-    fun preGenBtcAddress(walletFilePath: String): Result<Address, Exception> {
+    fun genFreeBtcAddress(walletFilePath: String): Result<Address, Exception> {
         val (key, address) = generateKeyAndAddress(walletFilePath)
         return ModelUtil.setAccountDetail(
             mstRegistrationIrohaConsumer,
             accountHelper.notaryAccount.accountId,
             address.toBase58(),
             AddressInfo.createFreeAddressInfo(listOf(key.publicKeyAsHex)).toJson()
+        ).map { address }
+    }
+
+    /**
+     * Generates one BTC address that can be registered later
+     * @param walletFilePath - path to wallet file
+     * @return randomly generated BTC address
+     */
+    fun genChangeBtcAddress(walletFilePath: String): Result<Address, Exception> {
+        val (key, address) = generateKeyAndAddress(walletFilePath)
+        return ModelUtil.setAccountDetail(
+            mstRegistrationIrohaConsumer,
+            accountHelper.notaryAccount.accountId,
+            address.toBase58(),
+            AddressInfo.createChangeAddressInfo(listOf(key.publicKeyAsHex)).toJson()
         ).map { address }
     }
 
@@ -290,6 +305,7 @@ class IntegrationHelperUtil : Closeable {
         val address = createMstAddress(listOf(key))
         wallet.addWatchedAddress(address)
         wallet.saveToFile(walletFile)
+        logger.info { "generated address $address" }
         return Pair(key, address)
     }
 
@@ -305,13 +321,13 @@ class IntegrationHelperUtil : Closeable {
         irohaAccountName: String,
         keypair: Keypair = ModelCrypto().generateKeypair()
     ): String {
-        preGenBtcAddress(walletFilePath).fold({
+        genFreeBtcAddress(walletFilePath).fold({
             return registerBtcAddressNoPreGen(irohaAccountName, keypair)
         }, { ex -> throw ex })
     }
 
     /**
-     * Registers BTC client with no pregeneration
+     * Registers BTC client with no generation
      * @param irohaAccountName - client account in Iroha
      * @param keypair - key pair of new client in Iroha
      * @param whitelist - list available addresses to send money to

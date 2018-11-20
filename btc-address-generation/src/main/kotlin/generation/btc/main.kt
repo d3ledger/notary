@@ -1,6 +1,6 @@
-@file:JvmName("BtcPreGenerationMain")
+@file:JvmName("BtcAddressGenerationMain")
 
-package pregeneration.btc
+package generation.btc
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
@@ -10,31 +10,31 @@ import mu.KLogging
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.ComponentScan
-import pregeneration.btc.config.btcPreGenConfig
+import generation.btc.config.btcAddressGenerationConfig
 import sidechain.iroha.IrohaInitialization
 
 @SpringBootApplication
-@ComponentScan(basePackages = ["pregeneration", "healthcheck", "provider.btc"])
-class BtcPreGenerationApplication
+@ComponentScan(basePackages = ["generation", "healthcheck", "provider.btc"])
+class BtcAddressGenerationApplication
 
 private val logger = KLogging().logger
 
 fun main(args: Array<String>) {
     IrohaInitialization.loadIrohaLibrary().map {
-        val app = SpringApplication(BtcPreGenerationApplication::class.java)
+        val app = SpringApplication(BtcAddressGenerationApplication::class.java)
         app.setAdditionalProfiles(getProfile())
         app.setDefaultProperties(webPortProperties())
         app.run(*args)
     }.flatMap { context ->
-        context.getBean(BtcPreGenInitialization::class.java).init()
+        context.getBean(BtcAddressGenerationInitialization::class.java).init()
     }.failure { ex ->
-        logger.error("cannot run btc address pregeneration", ex)
+        logger.error("cannot run btc address generation", ex)
         System.exit(1)
     }
 }
 
 private fun webPortProperties(): Map<String, String> {
     val properties = HashMap<String, String>()
-    properties["server.port"] = btcPreGenConfig.healthCheckPort.toString()
+    properties["server.port"] = btcAddressGenerationConfig.healthCheckPort.toString()
     return properties
 }

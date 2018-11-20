@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import provider.NotaryPeerListProvider
 import provider.btc.address.AddressInfo
+import provider.btc.address.BtcAddressType
 import provider.btc.network.BtcNetworkConfigProvider
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.util.ModelUtil
@@ -67,9 +68,13 @@ class BtcPublicKeyProvider(
     /**
      * Creates multisignature address if enough public keys are provided
      * @param notaryKeys - list of all notaries public keys
+     * @param addressType - type of address to create
      * @return Result of operation
      */
-    fun checkAndCreateMultiSigAddress(notaryKeys: Collection<String>): Result<Unit, Exception> {
+    fun checkAndCreateMultiSigAddress(
+        notaryKeys: Collection<String>,
+        addressType: BtcAddressType
+    ): Result<Unit, Exception> {
         return Result.of {
             val peers = notaryPeerListProvider.getPeerList().size
             if (peers == 0) {
@@ -81,11 +86,21 @@ class BtcPublicKeyProvider(
                     throw IllegalStateException("BTC address $msAddress was not added to wallet")
                 }
                 logger.info { "Address $msAddress was added to wallet. Current wallet state:\n${walletFile.wallet}" }
+                val addressInfo = when (addressType) {
+                    BtcAddressType.CHANGE -> {
+                        logger.info { "Creating change address" }
+                        AddressInfo.createChangeAddressInfo(ArrayList<String>(notaryKeys))
+                    }
+                    BtcAddressType.FREE -> {
+                        logger.info { "Creating free address" }
+                        AddressInfo.createFreeAddressInfo(ArrayList<String>(notaryKeys))
+                    }
+                }
                 ModelUtil.setAccountDetail(
                     multiSigConsumer,
                     notaryAccount,
                     msAddress.toBase58(),
-                    AddressInfo.createFreeAddressInfo(ArrayList<String>(notaryKeys)).toJson()
+                    addressInfo.toJson()
                 ).fold({
                     //TODO this save will probably corrupt the wallet file
                     walletFile.save()
@@ -100,12 +115,9 @@ class BtcPublicKeyProvider(
      * @param notaryKeys - public keys of notaries
      * @return true if at least one current notary key is among given notaryKeys
      */
-    private fun hasMyKey(notaryKeys: Collection<String>): Boolean {
-        val hasMyKey = notaryKeys.find { key ->
-            walletFile.wallet.issuedReceiveKeys.find { ecKey -> ecKey.publicKeyAsHex == key } != null
-        } != null
-        return hasMyKey
-    }
+    private fun hasMyKey(notaryKeys: Collection<String>) = notaryKeys.find { key ->
+        walletFile.wallet.issuedReceiveKeys.find { ecKey -> ecKey.publicKeyAsHex == key } != null
+    } != null
 
     /**
      * Creates multi signature bitcoin address

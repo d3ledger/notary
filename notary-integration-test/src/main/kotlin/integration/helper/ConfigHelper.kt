@@ -5,7 +5,7 @@ import integration.TestConfig
 import notary.btc.config.BtcNotaryConfig
 import notary.eth.EthNotaryConfig
 import notary.eth.RefundConfig
-import pregeneration.btc.config.BtcPreGenConfig
+import generation.btc.config.BtcAddressGenerationConfig
 import registration.btc.config.BtcRegistrationConfig
 import registration.eth.EthRegistrationConfig
 import registration.eth.relay.RelayRegistrationConfig
@@ -62,11 +62,11 @@ class ConfigHelper(
     }
 
     /** Creates config for BTC multisig addresses generation */
-    fun createBtcPreGenConfig(): BtcPreGenConfig {
+    fun createBtcAddressGenerationConfig(): BtcAddressGenerationConfig {
         val btcPkPreGenConfig =
-            loadConfigs("btc-pregen", BtcPreGenConfig::class.java, "/btc/pregeneration.properties")
+            loadConfigs("btc-address-generation", BtcAddressGenerationConfig::class.java, "/btc/address_generation.properties")
 
-        return object : BtcPreGenConfig {
+        return object : BtcAddressGenerationConfig {
             override val healthCheckPort = btcPkPreGenConfig.healthCheckPort
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
             override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
@@ -85,9 +85,10 @@ class ConfigHelper(
         val btcWithdrawalConfig =
             loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties")
         return object : BtcWithdrawalConfig {
-            override val registrationAccount = accountHelper.registrationAccount.accountId
+            override val registrationCredential =
+                accountHelper.createCredentialConfig(accountHelper.registrationAccount)
+            override val mstRegistrationAccount = accountHelper.mstRegistrationAccount.accountId
             override val bitcoin = createBitcoinConfig(btcWithdrawalConfig.bitcoin)
-            override val changeAddress = btcWithdrawalConfig.changeAddress
             override val notaryCredential = accountHelper.createCredentialConfig(accountHelper.notaryAccount)
             override val healthCheckPort = btcWithdrawalConfig.healthCheckPort
             override val withdrawalCredential = accountHelper.createCredentialConfig(accountHelper.btcWithdrawalAccount)
