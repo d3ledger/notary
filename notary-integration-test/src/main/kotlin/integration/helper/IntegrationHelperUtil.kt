@@ -12,14 +12,19 @@ import jp.co.soramitsu.iroha.PublicKey
 import kotlinx.coroutines.experimental.runBlocking
 import model.IrohaCredential
 import mu.KLogging
+import notary.IrohaCommand
+import notary.IrohaOrderedBatch
+import notary.IrohaTransaction
 import notary.eth.EthNotaryConfig
 import notary.eth.executeNotary
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.ECKey
+import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
 import org.web3j.crypto.WalletUtils
+import provider.btc.account.IrohaBtcAccountCreator
 import provider.btc.address.AddressInfo
 import provider.btc.address.BtcAddressesProvider
 import provider.btc.address.BtcRegisteredAddressesProvider
@@ -28,7 +33,6 @@ import provider.eth.EthRelayProviderIrohaImpl
 import provider.eth.EthTokensProviderImpl
 import registration.ETH_WHITE_LIST_KEY
 import registration.btc.BtcRegistrationStrategyImpl
-import provider.btc.account.IrohaBtcAccountCreator
 import registration.eth.EthRegistrationConfig
 import registration.eth.EthRegistrationStrategyImpl
 import registration.eth.relay.RelayRegistration
@@ -36,6 +40,7 @@ import sidechain.eth.EthChainListener
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
+import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountAsset
@@ -235,9 +240,25 @@ class IntegrationHelperUtil : Closeable {
      */
     fun preGenBtcAddresses(walletFilePath: String, addressesToGenerate: Int): Result<Unit, Exception> {
         return Result.of {
+            val irohaTxList = ArrayList<IrohaTransaction>()
             for (i in 1..addressesToGenerate) {
-                preGenBtcAddress(walletFilePath).failure { ex -> throw ex }
+                val (key, address) = generateKeyAndAddress(walletFilePath)
+                val irohaTx = IrohaTransaction(
+                    mstRegistrationIrohaConsumer.creator,
+                    ModelUtil.getCurrentTime(),
+                    1,
+                    arrayListOf(
+                        IrohaCommand.CommandSetAccountDetail(
+                            accountHelper.notaryAccount.accountId,
+                            address.toBase58(),
+                            AddressInfo.createFreeAddressInfo(listOf(key.publicKeyAsHex)).toJson()
+                        )
+                    )
+                )
+                irohaTxList.add(irohaTx)
             }
+            val utx = IrohaConverterImpl().convert(IrohaOrderedBatch(irohaTxList))
+            mstRegistrationIrohaConsumer.sendAndCheck(utx).failure { ex -> throw ex }
         }
     }
 
@@ -252,18 +273,24 @@ class IntegrationHelperUtil : Closeable {
      * @return randomly generated BTC address
      */
     fun preGenBtcAddress(walletFilePath: String): Result<Address, Exception> {
-        val walletFile = File(walletFilePath)
-        val wallet = Wallet.loadFromFile(walletFile)
-        val key = wallet.freshReceiveKey()
-        val address = createMstAddress(listOf(key))
-        wallet.addWatchedAddress(address)
-        wallet.saveToFile(walletFile)
+        val (key, address) = generateKeyAndAddress(walletFilePath)
         return ModelUtil.setAccountDetail(
             mstRegistrationIrohaConsumer,
             accountHelper.notaryAccount.accountId,
             address.toBase58(),
             AddressInfo.createFreeAddressInfo(listOf(key.publicKeyAsHex)).toJson()
         ).map { address }
+    }
+
+    // Generates key and key based address
+    private fun generateKeyAndAddress(walletFilePath: String): Pair<DeterministicKey, Address> {
+        val walletFile = File(walletFilePath)
+        val wallet = Wallet.loadFromFile(walletFile)
+        val key = wallet.freshReceiveKey()
+        val address = createMstAddress(listOf(key))
+        wallet.addWatchedAddress(address)
+        wallet.saveToFile(walletFile)
+        return Pair(key, address)
     }
 
     /**

@@ -79,9 +79,6 @@
   delegate_to: localhost
   run_once: yes
 
-- debug:
-    msg:  "{{ addrs.stdout.split(' ') | select('match', '0x.*') | list | join(' ') }}"
-
 
 - name: Deploy relay registry and master contract
   shell: "./gradlew runPreDeployEthereum --args='{{ addrs.stdout.split(' ') | select('match', '0x.*') | list | join(' ') }}'"

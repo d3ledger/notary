@@ -120,7 +120,6 @@ class BtcWithdrawalIntegrationTest {
         //Recreate folder
         blockStorageFolder.mkdirs()
         integrationHelper.generateBtcBlocks()
-        //TODO make it faster
         integrationHelper.preGenBtcAddresses(btcWithdrawalConfig.bitcoin.walletPath, TOTAL_TESTS * 2)
             .failure { ex -> throw ex }
         btcWithdrawalInitialization.init()
