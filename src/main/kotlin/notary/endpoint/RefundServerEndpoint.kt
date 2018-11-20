@@ -20,8 +20,10 @@ data class Response(val code: HttpStatusCode, val message: String)
  * Class is waiting for custodian's intention for rollback
  */
 class RefundServerEndpoint(
-    private val serverBundle: ServerInitializationBundle,
-    private val ethStrategy: EthRefundStrategy
+    private val refundServerBundle: ServerInitializationBundle,
+    private val wdRollbackServerBundle: ServerInitializationBundle,
+    private val ethStrategy: EthRefundStrategy,
+    private val irohaStrategy: IrohaRefundStrategy
 ) {
 
     private val moshi = Moshi
@@ -32,18 +34,23 @@ class RefundServerEndpoint(
     private val ethNotaryAdapter = moshi.adapter(EthNotaryResponse::class.java)!!
 
     init {
-        logger.info { "Start refund server on port ${serverBundle.port}" }
+        logger.info { "Start refund server on port ${refundServerBundle.port}" }
 
-        val server = embeddedServer(Netty, port = serverBundle.port) {
+        val server = embeddedServer(Netty, port = refundServerBundle.port) {
             install(CORS)
             {
                 anyHost()
                 allowCredentials = true
             }
             routing {
-                get(serverBundle.ethRefund + "/{tx_hash}") {
+                get(refundServerBundle.path + "/{tx_hash}") {
                     logger.info { "Eth refund invoked with parameters:${call.parameters}" }
                     val response = onCallEthRefund(call.parameters["tx_hash"])
+                    call.respondText(response.message, status = response.code)
+                }
+                get(wdRollbackServerBundle.path + "/{tx_hash}") {
+                    logger.info { "Eth withdrawal rollback invoked with parameters:${call.parameters}" }
+                    val response = onCallEthWdRollback(call.parameters["tx_hash"])
                     call.respondText(response.message, status = response.code)
                 }
             }
@@ -63,6 +70,23 @@ class RefundServerEndpoint(
                 is EthNotaryResponse.Error -> {
                     logger.error { response.reason }
                     Response(HttpStatusCode.BadRequest, ethNotaryAdapter.toJson(response))
+                }
+            }
+        } ?: onErrorPipelineCall()
+    }
+
+    /**
+     * Method for internal Iroha ETH rollback transaction request
+     * @param rawRequest - raw string of request
+     */
+    fun onCallEthWdRollback(rawRequest: String?): Response {
+        return rawRequest?.let { request ->
+            val response = irohaStrategy.performRefund(IrohaRefundRequest(request))
+            when (response) {
+                is IrohaNotaryResponse.Successful -> Response(HttpStatusCode.OK, response.irohaResultingTx)
+                is IrohaNotaryResponse.Error -> {
+                    logger.error { response.reason }
+                    Response(HttpStatusCode.BadRequest, response.reason)
                 }
             }
         } ?: onErrorPipelineCall()

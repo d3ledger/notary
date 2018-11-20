@@ -1,21 +1,15 @@
 package wdrollbackservice
 
 import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.failure
-import com.github.kittinunf.result.flatMap
-import com.github.kittinunf.result.map
-import model.IrohaCredential
+import io.reactivex.Observable
 import mu.KLogging
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaNetwork
-import sidechain.iroha.util.ModelUtil
+import provider.NotaryPeerListProvider
 import withdrawalservice.WithdrawalTxDAO
+import java.util.stream.Collectors
 
 class WdRollbackServiceImpl(
-    private val irohaNetwork: IrohaNetwork,
-    private val credential: IrohaCredential,
-    private val withdrawalTransactionsDAO: WithdrawalTxDAO<String, String?>,
-    private val notaryAccount: String
+    private val withdrawalTransactionsDAO: WithdrawalTxDAO<String, String>,
+    private val notaryPeerListProvider: NotaryPeerListProvider
 ) : WdRollbackService {
 
     /**
@@ -27,11 +21,13 @@ class WdRollbackServiceImpl(
     private fun processIrohaEvent(
         withdrawalIrohaEventHash: String,
         ethTxStatus: String?
-    ): Result<WdRollbackServiceOutputEvent, Exception> {
+    ): Result<List<WdRollbackServiceOutputEvent>, Exception> {
         return Result.of {
-            WdRollbackServiceOutputEvent(
-                withdrawalIrohaEventHash,
-                ethTxStatus == null || ethTxStatus == ETH_STATUS_FAIL
+            listOf(
+                WdRollbackServiceOutputEvent(
+                    withdrawalIrohaEventHash,
+                    ethFailedStatuses.contains(ethTxStatus)
+                )
             )
         }
     }
@@ -41,65 +37,39 @@ class WdRollbackServiceImpl(
      * @param wdRollbackServiceOutputEvent - Ethereum event outcome for a given Iroha withdrawal transaction
      * @return hex representation of Iroha transaction hash or an empty string if rollback was not required
      */
-    private fun initiateRollback(wdRollbackServiceOutputEvent: WdRollbackServiceOutputEvent): Result<String, Exception> {
+    override fun initiateRollback(wdRollbackServiceOutputEvent: WdRollbackServiceOutputEvent): Result<String, Exception> {
         if (!wdRollbackServiceOutputEvent.isRollbackRequired) {
             return Result.of("")
         }
-
-        var rollbackIrohaTxHash: Result<String, Exception>
-
-        return ModelUtil.getTransaction(
-            irohaNetwork,
-            credential,
-            wdRollbackServiceOutputEvent.irohaTxHash
-        )
-            .map { tx ->
-                tx.payload.reducedPayload.commandsList.first { command ->
-                    val transferAsset = command.transferAsset
-                    transferAsset?.srcAccountId != "" && transferAsset?.destAccountId == notaryAccount
+        val irohaTxHash = wdRollbackServiceOutputEvent.irohaTxHash
+        return Result.of {
+            notaryPeerListProvider.getPeerList().stream().map {
+                val res = khttp.get("$it/ethwdrb/$irohaTxHash")
+                if (res.statusCode == 200) {
+                    logger.info("Received correct response status of withdrawal rollback for $irohaTxHash")
+                    withdrawalTransactionsDAO.remove(irohaTxHash)
+                } else {
+                    logger.error("Received invalid response status code for $irohaTxHash")
+                    throw Exception("Invalid response status code")
                 }
-            }
-            .flatMap { transferCommand ->
-                val destAccountId = transferCommand?.transferAsset?.srcAccountId
-                        ?: throw IllegalStateException("Unable to identify primary Iroha transaction data")
-
-                rollbackIrohaTxHash = ModelUtil.transferAssetIroha(
-                    IrohaConsumerImpl(credential, irohaNetwork),
-                    notaryAccount,
-                    destAccountId,
-                    transferCommand.transferAsset.assetId,
-                    "Rollback transaction in Iroha for $destAccountId due to error during withdrawal in Ethereum",
-                    transferCommand.transferAsset.amount
-                )
-                withdrawalTransactionsDAO.remove(wdRollbackServiceOutputEvent.irohaTxHash)
-                rollbackIrohaTxHash
-            }
+                // TODO: Rewrite when implementing quorum
+            }.collect(Collectors.toList())[0].toString()
+        }
     }
 
-    override fun monitorWithdrawal(): Result<Unit, Exception> {
+
+    override fun monitorWithdrawal(): Observable<Result<List<WdRollbackServiceOutputEvent>, Exception>> {
         // TODO: provide synchronization if rollback service is not singleton
-        return Result.of {
-            withdrawalTransactionsDAO.getObservable().subscribe({ res ->
-                processIrohaEvent(res.key, res.value)
-                    .map { outcome ->
-                        initiateRollback(outcome)
-                    }
-                    .failure { ex ->
-                        logger.error("Error during Iroha rollback initiation for ${res.key}", ex)
-                        throw ex
-                    }
-            }, { ex ->
-                logger.error("Withdrawal observable error", ex)
+        return withdrawalTransactionsDAO.getObservable()
+            .map {
+                processIrohaEvent(it.key, it.value)
             }
-            )
-            Unit
-        }
     }
 
     /**
      * Logger
      */
     companion object : KLogging() {
-        private const val ETH_STATUS_FAIL = "0x0"
+        private val ethFailedStatuses = setOf("0x0", "null")
     }
 }

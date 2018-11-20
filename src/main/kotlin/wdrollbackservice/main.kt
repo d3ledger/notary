@@ -18,9 +18,10 @@ private val logger = KLogging().logger
  * Main entry point of Withdrawal Rollback Service app
  */
 fun main(args: Array<String>) {
-    val wdRollbackConfig = loadConfigs("wdrollback", WdRollbackServiceConfig::class.java, "/eth/wdrollback.properties")
+    val wdRollbackServiceConfig =
+        loadConfigs("withdrawal", WdRollbackServiceConfig::class.java, "/eth/withdrawal.properties")
 
-    executeWithdrawalRollback(wdRollbackConfig)
+    executeWithdrawalRollback(wdRollbackServiceConfig)
 }
 
 fun executeWithdrawalRollback(

@@ -4,12 +4,12 @@ import io.reactivex.Observable
 
 interface WithdrawalTxDAO<SourceTranscationDescription, TargetTranscationDescription> {
 
-    fun store(
+    fun put(
         sourceTranscationDescription: SourceTranscationDescription,
         targetTranscationDescription: TargetTranscationDescription
     )
 
-    fun getTarget(sourceTranscationDescription: SourceTranscationDescription): TargetTranscationDescription
+    fun get(sourceTranscationDescription: SourceTranscationDescription): TargetTranscationDescription
 
     fun remove(sourceTranscationDescription: SourceTranscationDescription)
 

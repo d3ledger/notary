@@ -1,12 +1,17 @@
 package wdrollbackservice
 
 import com.github.kittinunf.result.Result
-import sidechain.SideChainEvent
+import io.reactivex.Observable
 
 interface WdRollbackService {
 
     /**
-     * Process internal events and initiate rollback if needed
+     * Process internal events and form an output event describing rollback need
      */
-    fun monitorWithdrawal(): Result<Unit, Exception>
+    fun monitorWithdrawal(): Observable<Result<List<WdRollbackServiceOutputEvent>, Exception>>
+
+    /**
+     * Process an output event describing rollback need and perform a rollback
+     */
+    fun initiateRollback(wdRollbackServiceOutputEvent: WdRollbackServiceOutputEvent): Result<String, Exception>
 }

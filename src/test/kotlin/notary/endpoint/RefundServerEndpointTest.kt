@@ -18,7 +18,8 @@ import java.math.BigInteger
 class RefundServerEndpointTest {
 
     /** Server initialization bundle */
-    val serverBundle = ServerInitializationBundle(8080, "eth")
+    val serverEthBundle = ServerInitializationBundle(8080, "eth")
+    val serverIrohaBundle = ServerInitializationBundle(8080, "ethwdrb")
 
     /** JSON adapter */
     val moshi =
@@ -42,7 +43,14 @@ class RefundServerEndpointTest {
         } doReturn successResponse
     }
 
-    val server = RefundServerEndpoint(serverBundle, ethRefundStrategyMock)
+    private val irohaRefundStrategyMock = mock<IrohaRefundStrategy> {
+        val request = any<IrohaRefundRequest>()
+        on {
+            performRefund(request)
+        } doReturn IrohaNotaryResponse.Successful("someHashHere")
+    }
+
+    val server = RefundServerEndpoint(serverEthBundle, serverIrohaBundle, ethRefundStrategyMock, irohaRefundStrategyMock)
 
     /**
      * @given initialized server class

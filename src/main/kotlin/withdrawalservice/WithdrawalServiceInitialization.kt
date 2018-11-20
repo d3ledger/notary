@@ -63,7 +63,7 @@ class WithdrawalServiceInitialization(
                     IrohaConsumerImpl(credential, irohaNetwork),
                     credential,
                     irohaNetwork,
-                    withdrawalConfig.notaryIrohaAccount
+                    withdrawalConfig.withdrawalTxStorageAccount
                 )
             )
             withdrawalService.output()

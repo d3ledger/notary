@@ -1,17 +1,20 @@
 package withdrawalservice
 
+import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
+import com.beust.klaxon.Parser
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.toObservable
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
 import model.IrohaCredential
+import mu.KLogging
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountDetails
+import util.irohaEscape
+import java.util.*
 import kotlin.collections.set
 
 class WithdrawalTxDAOImpl(
@@ -19,76 +22,65 @@ class WithdrawalTxDAOImpl(
     private val credential: IrohaCredential,
     private val irohaNetwork: IrohaNetwork,
     private val accountId: String
-) : WithdrawalTxDAO<String, String?> {
+) : WithdrawalTxDAO<String, String> {
     // TODO: make write operations atomic, think about data consistency inside acc details
     private val klaxon = Klaxon()
-    private val txMap = hashMapOf<String, String?>()
+    private val parser = Parser()
 
-    init {
-        launch {
-            delay(UPDATE_DELAY)
-            txMap.putAll(pullTransactionsMap().get())
-        }
-    }
-
-    override fun store(sourceTranscationDescription: String, targetTranscationDescription: String?) {
-        getMutableTransactions()
+    override fun put(sourceTranscationDescription: String, targetTranscationDescription: String) {
+        pullTransactionsMap()
             .map { transactions ->
                 transactions[sourceTranscationDescription] = targetTranscationDescription
                 pushTransactionsMap(transactions)
             }
     }
 
-    override fun getTarget(sourceTranscationDescription: String): String? {
-        return pullTransactionsMap().get()[sourceTranscationDescription]
+    override fun get(sourceTranscationDescription: String): String {
+        return pullTransactionsMap().get()[sourceTranscationDescription].toString()
     }
 
     override fun remove(sourceTranscationDescription: String) {
-        txMap.remove(sourceTranscationDescription)
-        getMutableTransactions()
+        pullTransactionsMap()
             .map { transactions ->
                 transactions.remove(sourceTranscationDescription)
                 pushTransactionsMap(transactions)
             }
     }
 
-    override fun getObservable(): Observable<Map.Entry<String, String?>> {
-        return txMap.entries.toObservable()
+    override fun getObservable(): Observable<Map.Entry<String, String>> {
+        return pullTransactionsMap().get().entries.toObservable()
     }
 
-    private fun pushTransactionsMap(transactions: Map<String, String?>) {
+    private fun pushTransactionsMap(transactions: Map<String, String>) {
+        val value = String.irohaEscape(klaxon.toJsonString(transactions as HashMap<*, *>))
         ModelUtil.setAccountDetail(
             irohaConsumer,
             accountId,
             STORAGE_KEY,
-            klaxon.toJsonString(transactions)
+            value
         )
     }
 
-    private fun pullTransactionsMap(): Result<Map<String, String?>, Exception> {
+    private fun pullTransactionsMap(): Result<MutableMap<String, String>, Exception> {
         return getAccountDetails(
             credential,
             irohaNetwork,
             accountId,
-            accountId
+            irohaConsumer.creator
         ).map { details ->
-            details[STORAGE_KEY].let { mapInString ->
-                mapInString?.let {
-                    klaxon.parse<MutableMap<String, String?>>(it)
-                }!!
-            }
+            Result.of {
+                val jsonObject = parser.parse(StringBuilder(details[STORAGE_KEY] ?: "{}")) as JsonObject
+                jsonObject.map as MutableMap<String, String>
+            }.fold({ map ->
+                map
+            }, { ex: Exception ->
+                logger.error("Withdrawal storage map parsing error", ex)
+                hashMapOf()
+            })
         }
     }
-
-    private fun getMutableTransactions(): Result<MutableMap<String, String?>, Exception> {
-        return pullTransactionsMap()
-            .map {
-                it.toMutableMap()
-            }
-    }
-
-    companion object {
+    
+    companion object : KLogging() {
         private const val STORAGE_KEY = "ETH_WITHDRAWALS"
-        private const val UPDATE_DELAY = 2000L
     }
 }
