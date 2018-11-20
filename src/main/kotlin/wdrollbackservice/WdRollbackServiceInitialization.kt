@@ -3,6 +3,7 @@ package wdrollbackservice
 import com.github.kittinunf.result.Result
 import model.IrohaCredential
 import mu.KLogging
+import provider.NotaryPeerListProviderImpl
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetwork
 import withdrawalservice.WithdrawalServiceConfig
@@ -36,7 +37,7 @@ class WdRollbackServiceInitialization(
                     credential,
                     irohaNetwork,
                     notaryAccount
-                ).getObservable(),
+                ),
                 notaryAccount
             )
         }

@@ -17,7 +17,7 @@ class EthConsumer(
     ethereumConfig: EthereumConfig,
     ethereumPasswords: EthereumPasswords,
     private val relayVacuumConfig: RelayVacuumConfig,
-    private val txCorrespondaceHolder: WithdrawalTxDAO<String, TransactionReceipt?>
+    private val txCorrespondaceHolder: WithdrawalTxDAO<String, String?>
 ) {
     private val deployHelper = DeployHelper(ethereumConfig, ethereumPasswords)
 
@@ -84,7 +84,9 @@ class EthConsumer(
         } catch (ex: Exception) {
             logger.error("An error occurred during eth withdrawal transaction execution or creation", ex)
         } finally {
-            txCorrespondaceHolder.store(outputEvent.proof.irohaHash, ethReceipt)
+            val status = ethReceipt?.status
+            if (status != ETH_STATUS_SUCCESS)
+                txCorrespondaceHolder.store(outputEvent.proof.irohaHash, status)
             return ethReceipt
         }
     }
@@ -92,5 +94,7 @@ class EthConsumer(
     /**
      * Logger
      */
-    companion object : KLogging()
+    companion object : KLogging() {
+        const val ETH_STATUS_SUCCESS = "0x1"
+    }
 }

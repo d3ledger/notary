@@ -8,7 +8,6 @@ import io.reactivex.rxkotlin.toObservable
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
 import model.IrohaCredential
-import org.web3j.protocol.core.methods.response.TransactionReceipt
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
@@ -21,11 +20,10 @@ class WithdrawalTxDAOImpl(
     private val irohaNetwork: IrohaNetwork,
     private val accountId: String
 
-) : WithdrawalTxDAO<String, TransactionReceipt?> {
+) : WithdrawalTxDAO<String, String?> {
     // TODO: make write operations atomic, think about data consistency inside acc details
-    // TODO: think about removal from txMap
     private val klaxon = Klaxon()
-    private val txMap = hashMapOf<String, TransactionReceipt?>()
+    private val txMap = hashMapOf<String, String?>()
 
     init {
         launch {
@@ -34,7 +32,7 @@ class WithdrawalTxDAOImpl(
         }
     }
 
-    override fun store(sourceTranscationDescription: String, targetTranscationDescription: TransactionReceipt?) {
+    override fun store(sourceTranscationDescription: String, targetTranscationDescription: String?) {
         getMutableTransactions()
             .map { transactions ->
                 transactions[sourceTranscationDescription] = targetTranscationDescription
@@ -42,11 +40,12 @@ class WithdrawalTxDAOImpl(
             }
     }
 
-    override fun getTarget(sourceTranscationDescription: String): TransactionReceipt? {
+    override fun getTarget(sourceTranscationDescription: String): String? {
         return pullTransactionsMap().get()[sourceTranscationDescription]
     }
 
     override fun remove(sourceTranscationDescription: String) {
+        txMap.remove(sourceTranscationDescription)
         getMutableTransactions()
             .map { transactions ->
                 transactions.remove(sourceTranscationDescription)
@@ -54,11 +53,11 @@ class WithdrawalTxDAOImpl(
             }
     }
 
-    override fun getObservable(): Observable<Map.Entry<String, TransactionReceipt?>> {
+    override fun getObservable(): Observable<Map.Entry<String, String?>> {
         return txMap.entries.toObservable()
     }
 
-    private fun pushTransactionsMap(transactions: Map<String, TransactionReceipt?>) {
+    private fun pushTransactionsMap(transactions: Map<String, String?>) {
         ModelUtil.setAccountDetail(
             irohaConsumer,
             accountId,
@@ -67,7 +66,7 @@ class WithdrawalTxDAOImpl(
         )
     }
 
-    private fun pullTransactionsMap(): Result<Map<String, TransactionReceipt?>, Exception> {
+    private fun pullTransactionsMap(): Result<Map<String, String?>, Exception> {
         return getAccountDetails(
             credential,
             irohaNetwork,
@@ -76,13 +75,13 @@ class WithdrawalTxDAOImpl(
         ).map { details ->
             details[STORAGE_KEY].let { mapInString ->
                 mapInString?.let {
-                    klaxon.parse<MutableMap<String, TransactionReceipt?>>(it)
+                    klaxon.parse<MutableMap<String, String?>>(it)
                 }!!
             }
         }
     }
 
-    private fun getMutableTransactions(): Result<MutableMap<String, TransactionReceipt?>, Exception> {
+    private fun getMutableTransactions(): Result<MutableMap<String, String?>, Exception> {
         return pullTransactionsMap()
             .map {
                 it.toMutableMap()
@@ -91,6 +90,7 @@ class WithdrawalTxDAOImpl(
 
     companion object {
         private const val STORAGE_KEY = "ETH_WITHDRAWALS"
+        // TODO: move to the config file D3-608
         private const val delayMs = 2000L
     }
 }
