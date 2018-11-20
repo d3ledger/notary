@@ -31,9 +31,9 @@ fun main(args: Array<String>) {
     val relayRegistry = deployHelper.deployRelayRegistrySmartContract()
     val master = deployHelper.deployMasterSmartContract(relayRegistry.contractAddress)
 
-    // Send 0.1 ETH
-    deployHelper.sendEthereum(BigInteger.valueOf(100000000000000000), master.contractAddress)
-    deployHelper.sendEthereum(BigInteger.valueOf(100000000000000000), relayRegistry.contractAddress)
+    // Send 0.02 ETH
+    deployHelper.sendEthereum(BigInteger.valueOf(20000000000000000), master.contractAddress)
+    deployHelper.sendEthereum(BigInteger.valueOf(20000000000000000), relayRegistry.contractAddress)
 
     var result = master.addPeers(args.toList()).send().isStatusOK
     logger.info { "Peers were added" }

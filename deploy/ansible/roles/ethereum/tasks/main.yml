@@ -132,7 +132,7 @@
 - name: Send eth to relay registration, registration and withdrawal
   shell:
     _raw_params: >
-      ./gradlew runSendEther --args="{{ item.address }} 0.1"
+      ./gradlew runSendEther --args="{{ item.address }} 0.02"
     chdir: "{{ playbook_dir }}/../../"
   with_items:
     - "{{ relay_registration.stdout }}"
