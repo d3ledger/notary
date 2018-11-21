@@ -49,7 +49,6 @@
     chdir: "{{ role_path }}"
   with_items:
     - withdrawal
-    - registration
     - relay_registration
     - vacuum
   become: no
@@ -115,13 +114,6 @@
   run_once: yes
   become: no
 
-- name: Read registration address
-  shell: "cat {{ role_path }}/files/registration.key"
-  register: registration
-  delegate_to: localhost
-  run_once: yes
-  become: no
-
 - name: Read withdrawal address
   shell: "cat {{ role_path }}/files/withdrawal.key"
   register: withdrawal
@@ -129,15 +121,37 @@
   run_once: yes
   become: no
 
-- name: Send eth to relay registration, registration and withdrawal
+- name: Read master address
+  shell: "cat {{ role_path }}/files/master_eth_address"
+  register: master_eth_address
+  delegate_to: localhost
+  run_once: yes
+  become: no
+
+
+- name: Send eth to master and withdrawal
   shell:
     _raw_params: >
-      ./gradlew runSendEther --args="{{ item.address }} 0.02"
+      ./gradlew runSendEther --args="{{ item }} 0.03"
     chdir: "{{ playbook_dir }}/../../"
   with_items:
-    - "{{ relay_registration.stdout }}"
-    - "{{ registration.stdout }}"
-    - "{{ withdrawal.stdout }}"
+    - "{{ withdrawal.stdout | from_json | json_query('address')  }}"
+    - "{{ master_eth_address.stdout }}"
+  environment:
+    PROFILE: testnet
+  register: file
+  delegate_to: localhost
+  become: no
+  run_once: yes
+
+
+- name: Send eth to relay registration
+  shell:
+    _raw_params: >
+      ./gradlew runSendEther --args="{{ item }} 0.05"
+    chdir: "{{ playbook_dir }}/../../"
+  with_items:
+  - "{{ relay_registration.stdout | from_json | json_query('address') }}"
   environment:
     PROFILE: testnet
   register: file

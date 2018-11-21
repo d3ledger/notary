@@ -66,10 +66,6 @@
   shell: cat /opt/notary/iroha/keys/node0.pub
   register: key
 
-- debug: msg="{{ key.stdout | b64encode}}"
-
-
-
 
 - name: Copy iroha notary private key
   copy:
