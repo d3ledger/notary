@@ -11,7 +11,6 @@ import org.bitcoinj.core.Address
 import org.bitcoinj.core.TransactionOutput
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertNotNull
-import provider.btc.address.BtcAddressesProvider
 import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.btc.network.BtcNetworkConfigProvider
 import provider.btc.network.BtcRegTestConfigProvider
@@ -75,15 +74,13 @@ class BtcWithdrawalIntegrationTest {
         btcWithdrawalConfig.notaryCredential.accountId
     )
 
-    private val btcAddressesProvider = BtcAddressesProvider(
+    private val btcNetworkConfigProvider = BtcRegTestConfigProvider()
+    private val btcChangeAddressProvider = BtcChangeAddressProvider(
         integrationHelper.testCredential,
         integrationHelper.irohaNetwork,
         btcWithdrawalConfig.mstRegistrationAccount,
-        btcWithdrawalConfig.notaryCredential.accountId
+        btcWithdrawalConfig.changeAddressesStorageAccount
     )
-
-    private val btcNetworkConfigProvider = BtcRegTestConfigProvider()
-    private val btcChangeAddressProvider = BtcChangeAddressProvider(btcAddressesProvider, btcNetworkConfigProvider)
     private val transactionHelper =
         BlackListableTransactionHelper(
             btcNetworkConfigProvider,
@@ -92,7 +89,7 @@ class BtcWithdrawalIntegrationTest {
         )
     private val transactionCreator =
         TransactionCreator(btcChangeAddressProvider, btcNetworkConfigProvider, transactionHelper)
-    private val transactionSigner = TransactionSigner(btcAddressesProvider)
+    private val transactionSigner = TransactionSigner(btcRegisteredAddressesProvider, btcChangeAddressProvider)
     private val signCollector =
         SignCollector(
             irohaNetwork,
@@ -138,7 +135,6 @@ class BtcWithdrawalIntegrationTest {
         integrationHelper.generateBtcBlocks()
         integrationHelper.genChangeBtcAddress(btcWithdrawalConfig.bitcoin.walletPath)
             .fold({ address -> changeAddress = address }, { ex -> throw  ex })
-        //TODO make it faster
         integrationHelper.preGenFreeBtcAddresses(btcWithdrawalConfig.bitcoin.walletPath, TOTAL_TESTS * 2)
             .failure { ex -> throw ex }
         btcWithdrawalInitialization.init().failure { ex -> throw ex }

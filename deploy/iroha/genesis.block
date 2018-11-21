@@ -360,6 +360,13 @@
                 }
               },
               {
+                "createAccount": {
+                  "accountName": "btc_change_addresses",
+                  "domainId": "notary",
+                  "publicKey": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+                }
+              },
+              {
                 "appendRole": {
                   "accountId": "notaries@notary",
                   "roleName": "notary_list_holder"

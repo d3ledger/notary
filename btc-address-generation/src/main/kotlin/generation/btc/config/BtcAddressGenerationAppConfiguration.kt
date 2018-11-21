@@ -83,6 +83,9 @@ class BtcAddressGenerationAppConfiguration {
     fun notaryAccount() = btcAddressGenerationConfig.notaryAccount
 
     @Bean
+    fun changeAddressStorageAccount() = btcAddressGenerationConfig.changeAddressesStorageAccount
+
+    @Bean
     fun irohaChainListener() = IrohaChainListener(
         btcAddressGenerationConfig.iroha.hostname,
         btcAddressGenerationConfig.iroha.port,

@@ -109,7 +109,7 @@ class TransactionHelper(
             .fanout { btcChangeAddressProvider.getChangeAddress() }
             .map { (availableAddresses, changeAddress) ->
                 //Change address is also available to use
-                availableAddresses.add(changeAddress.toBase58())
+                availableAddresses.add(changeAddress.address)
                 availableAddresses
             }
     }

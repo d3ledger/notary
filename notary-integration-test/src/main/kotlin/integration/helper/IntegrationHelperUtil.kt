@@ -262,7 +262,7 @@ class IntegrationHelperUtil : Closeable {
         }
     }
 
-    private fun createMstAddress(keys: List<ECKey>): Address {
+    private fun createMsAddress(keys: List<ECKey>): Address {
         val script = ScriptBuilder.createP2SHOutputScript(1, keys)
         return script.getToAddress(RegTestParams.get())
     }
@@ -291,7 +291,7 @@ class IntegrationHelperUtil : Closeable {
         val (key, address) = generateKeyAndAddress(walletFilePath)
         return ModelUtil.setAccountDetail(
             mstRegistrationIrohaConsumer,
-            accountHelper.notaryAccount.accountId,
+            accountHelper.changeAddressesStorageAccount.accountId,
             address.toBase58(),
             AddressInfo.createChangeAddressInfo(listOf(key.publicKeyAsHex)).toJson()
         ).map { address }
@@ -302,7 +302,7 @@ class IntegrationHelperUtil : Closeable {
         val walletFile = File(walletFilePath)
         val wallet = Wallet.loadFromFile(walletFile)
         val key = wallet.freshReceiveKey()
-        val address = createMstAddress(listOf(key))
+        val address = createMsAddress(listOf(key))
         wallet.addWatchedAddress(address)
         wallet.saveToFile(walletFile)
         logger.info { "generated address $address" }

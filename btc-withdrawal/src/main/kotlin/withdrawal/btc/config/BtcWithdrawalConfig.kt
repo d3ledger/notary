@@ -13,6 +13,8 @@ interface BtcWithdrawalConfig {
     val registrationCredential: IrohaCredentialConfig
     // Account that stores created addresses
     val mstRegistrationAccount: String
+    // Account that stores change addresses
+    val changeAddressesStorageAccount: String
     // Iroha configurations
     val iroha: IrohaConfig
     //Bitcoin configurations

@@ -4,6 +4,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
+import org.bitcoinj.core.Address
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
@@ -47,7 +48,7 @@ class TransactionCreator(
                 unspents,
                 destinationAddress,
                 amount,
-                changeAddress
+                Address.fromBase58(btcNetworkConfigProvider.getConfig(), changeAddress.address)
             )
             transactionHelper.registerUnspents(unspents)
         }.map { transaction }

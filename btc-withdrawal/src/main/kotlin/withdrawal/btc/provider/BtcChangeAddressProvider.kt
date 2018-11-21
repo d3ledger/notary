@@ -2,32 +2,36 @@ package withdrawal.btc.provider
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import org.bitcoinj.core.Address
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
-import provider.btc.address.BtcAddressesProvider
-import provider.btc.network.BtcNetworkConfigProvider
+import model.IrohaCredential
+import provider.btc.address.AddressInfo
+import provider.btc.address.BtcAddress
+import sidechain.iroha.consumer.IrohaNetwork
+import sidechain.iroha.util.getAccountDetails
 
 /*
     Class that is used to get change address
  */
-@Component
-class BtcChangeAddressProvider(
-    @Autowired private val btcAddressesProvider: BtcAddressesProvider,
-    @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider
+
+open class BtcChangeAddressProvider(
+    private val credential: IrohaCredential,
+    private val irohaNetwork: IrohaNetwork,
+    private val mstRegistrationAccount: String,
+    private val changeAddressesStorageAccount: String
 ) {
     /**
      * Returns change address
      * @return - result with change address object
      */
-    fun getChangeAddress(): Result<Address, Exception> {
-        return btcAddressesProvider.getAddresses()
-            .map { addresses ->
-                Address.fromBase58(
-                    btcNetworkConfigProvider.getConfig(),
-                    addresses.find { address -> address.isChange() }!!.address
-                )
-            }
+    fun getChangeAddress(): Result<BtcAddress, Exception> {
+        return getAccountDetails(
+            credential,
+            irohaNetwork,
+            changeAddressesStorageAccount,
+            mstRegistrationAccount
+        ).map { addresses ->
+            val changeAddressEntry = addresses.entries.first()
+            BtcAddress(changeAddressEntry.key, AddressInfo.fromJson(changeAddressEntry.value)!!)
+        }
     }
 
     /**
@@ -35,9 +39,13 @@ class BtcChangeAddressProvider(
      * @return result with 'true' value, if change address was set
      */
     fun isAddressPresent(): Result<Boolean, Exception> {
-        return btcAddressesProvider.getAddresses()
-            .map { addresses ->
-                addresses.find { address -> address.isChange() } != null
-            }
+        return getAccountDetails(
+            credential,
+            irohaNetwork,
+            changeAddressesStorageAccount,
+            mstRegistrationAccount
+        ).map { addresses ->
+            addresses.keys.firstOrNull() != null
+        }
     }
 }

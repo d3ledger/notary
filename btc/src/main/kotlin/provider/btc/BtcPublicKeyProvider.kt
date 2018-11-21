@@ -24,7 +24,8 @@ import wallet.WalletFile
  *  Bitcoin keys provider
  *  @param walletFile - bitcoin wallet
  *  @param notaryPeerListProvider - provider to query all current notaries
- *  @param notaryAccount - Iroha account of notary service. Used to store BTC addresses
+ *  @param notaryAccount - Iroha account of notary service. Used to store free BTC addresses that can be registered by clients later
+ *  @param changeAddressStorageAccount - Iroha account used to store change addresses
  *  @param multiSigConsumer - consumer of multisignature Iroha account. Used to create multisignature transactions.
  *  @param sessionConsumer - consumer of session Iroha account. Used to store session data.
  *  @param btcNetworkConfigProvider - provider of network configuration
@@ -35,6 +36,8 @@ class BtcPublicKeyProvider(
     @Autowired private val notaryPeerListProvider: NotaryPeerListProvider,
     @Qualifier("notaryAccount")
     @Autowired private val notaryAccount: String,
+    @Qualifier("changeAddressStorageAccount")
+    @Autowired private val changeAddressStorageAccount: String,
     @Qualifier("multiSigConsumer")
     @Autowired private val multiSigConsumer: IrohaConsumer,
     @Qualifier("sessionConsumer")
@@ -86,25 +89,29 @@ class BtcPublicKeyProvider(
                     throw IllegalStateException("BTC address $msAddress was not added to wallet")
                 }
                 logger.info { "Address $msAddress was added to wallet. Current wallet state:\n${walletFile.wallet}" }
-                val addressInfo = when (addressType) {
+
+                val (addressInfo, storageAccount) = when (addressType) {
                     BtcAddressType.CHANGE -> {
                         logger.info { "Creating change address" }
-                        AddressInfo.createChangeAddressInfo(ArrayList<String>(notaryKeys))
+                        Pair(
+                            AddressInfo.createChangeAddressInfo(ArrayList<String>(notaryKeys)),
+                            changeAddressStorageAccount
+                        )
                     }
                     BtcAddressType.FREE -> {
                         logger.info { "Creating free address" }
-                        AddressInfo.createFreeAddressInfo(ArrayList<String>(notaryKeys))
+                        Pair(AddressInfo.createFreeAddressInfo(ArrayList<String>(notaryKeys)), notaryAccount)
                     }
                 }
                 ModelUtil.setAccountDetail(
                     multiSigConsumer,
-                    notaryAccount,
+                    storageAccount,
                     msAddress.toBase58(),
                     addressInfo.toJson()
                 ).fold({
                     //TODO this save will probably corrupt the wallet file
                     walletFile.save()
-                    logger.info { "New BTC multisignature address $msAddress was created " }
+                    logger.info { "New BTC ${addressType.title} address $msAddress was created " }
                 }, { ex -> throw ex })
             }
         }

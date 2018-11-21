@@ -18,7 +18,7 @@ open class BtcRegisteredAddressesProvider(
      * Get all registered btc addresses
      * @return list full of registered BTC addresses
      */
-    fun getRegisteredAddresses(): Result<List<BtcAddress>, Exception> {
+    fun getRegisteredAddresses(): Result<MutableList<BtcAddress>, Exception> {
         return getAccountDetails(
             credential,
             irohaNetwork,
@@ -27,7 +27,7 @@ open class BtcRegisteredAddressesProvider(
         ).map { addresses ->
             addresses.map { entry ->
                 BtcAddress(entry.key, AddressInfo.fromJson(entry.value)!!)
-            }
+            }.toMutableList()
         }
     }
 }

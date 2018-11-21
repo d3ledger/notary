@@ -27,6 +27,9 @@ interface BtcAddressGenerationConfig {
     //Account that stores all registered notaries
     val notaryListStorageAccount: String
 
+    //Account that stores change addresses
+    val changeAddressesStorageAccount: String
+
     //Account that sets registered notaries
     val notaryListSetterAccount: String
 
