@@ -17,24 +17,10 @@
     become: no
     delegate_to: localhost
 
-  - name: Compile kotlin script
-    shell:
-      _raw_params: >
-       kotlinc -cp {{ projectRoot }}/iroha_bindings/iroha-bindings-example.jar generateKeypair.kt
-       -include-runtime -d GenerateKeypair.jar
-      chdir: "{{ role_path }}"
-    run_once: yes
-    become: no
-    delegate_to: localhost
-
   - name: Generate iroha node keypairs
     shell:
       _raw_params: >
-        kotlin
-        -classpath {{ projectRoot }}/iroha_bindings/iroha-bindings-example.jar
-        -classpath GenerateKeypair.jar
-        -Djava.library.path={{ projectRoot }}/iroha_bindings/mac
-        GenerateKeypairKt
+        python3 generate_keypair.py
       chdir: "{{ role_path }}"
     register: "keys"
     become: no
@@ -90,11 +76,7 @@
   - name: Generate notary signatories
     shell:
       _raw_params: >
-        kotlin
-        -classpath {{ projectRoot }}/iroha_bindings/iroha-bindings-example.jar
-        -classpath GenerateKeypair.jar
-        -Djava.library.path={{ projectRoot }}/iroha_bindings/mac
-        GenerateKeypairKt
+        python3 generate_keypair.py
       chdir: "{{ role_path }}"
     register: "signatories"
     become: no
