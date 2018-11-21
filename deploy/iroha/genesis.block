@@ -86,7 +86,8 @@
                     "can_get_all_accounts",
                     "can_get_blocks",
                     "can_read_assets",
-                    "can_receive"
+                    "can_receive",
+                    "can_set_detail"
                   ]
                 }
               },
@@ -382,6 +383,13 @@
               {
                 "createAccount": {
                   "accountName": "gen_btc_pk_trigger",
+                  "domainId": "notary",
+                  "publicKey": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "withdrawal_tx_storage",
                   "domainId": "notary",
                   "publicKey": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
                 }

@@ -11,7 +11,6 @@ import mu.KLogging
 import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
-import withdrawalservice.WithdrawalServiceConfig
 
 private val logger = KLogging().logger
 
@@ -19,28 +18,28 @@ private val logger = KLogging().logger
  * Main entry point of Withdrawal Rollback Service app
  */
 fun main(args: Array<String>) {
-    val withdrawalConfig = loadConfigs("withdrawal", WithdrawalServiceConfig::class.java, "/eth/withdrawal.properties")
+    val wdRollbackConfig = loadConfigs("wdrollback", WdRollbackServiceConfig::class.java, "/eth/wdrollback.properties")
 
-    executeWithdrawal(withdrawalConfig)
+    executeWithdrawalRollback(wdRollbackConfig)
 }
 
-fun executeWithdrawal(
-    withdrawalConfig: WithdrawalServiceConfig
+fun executeWithdrawalRollback(
+    wdRollbackServiceConfig: WdRollbackServiceConfig
 ) {
     logger.info { "Run withdrawal rollback service" }
-    val irohaNetwork = IrohaNetworkImpl(withdrawalConfig.iroha.hostname, withdrawalConfig.iroha.port)
+    val irohaNetwork = IrohaNetworkImpl(wdRollbackServiceConfig.iroha.hostname, wdRollbackServiceConfig.iroha.port)
 
     IrohaInitialization.loadIrohaLibrary()
         .flatMap {
             ModelUtil.loadKeypair(
-                withdrawalConfig.withdrawalCredential.pubkeyPath,
-                withdrawalConfig.withdrawalCredential.privkeyPath
+                wdRollbackServiceConfig.withdrawalCredential.pubkeyPath,
+                wdRollbackServiceConfig.withdrawalCredential.privkeyPath
             )
         }
-        .map { keypair -> IrohaCredential(withdrawalConfig.withdrawalCredential.accountId, keypair) }
+        .map { keypair -> IrohaCredential(wdRollbackServiceConfig.withdrawalCredential.accountId, keypair) }
         .flatMap { credential ->
             WdRollbackServiceInitialization(
-                withdrawalConfig,
+                wdRollbackServiceConfig,
                 irohaNetwork,
                 credential
             ).init()

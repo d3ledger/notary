@@ -3,17 +3,15 @@ package wdrollbackservice
 import com.github.kittinunf.result.Result
 import model.IrohaCredential
 import mu.KLogging
-import provider.NotaryPeerListProviderImpl
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetwork
-import withdrawalservice.WithdrawalServiceConfig
 import withdrawalservice.WithdrawalTxDAOImpl
 
 /**
  * @param withdrawalConfig - configuration for withdrawal service
  */
 class WdRollbackServiceInitialization(
-    private val withdrawalServiceConfig: WithdrawalServiceConfig,
+    private val wdRollbackServiceConfig: WdRollbackServiceConfig,
     private val irohaNetwork: IrohaNetwork,
     private val credential: IrohaCredential
 ) {
@@ -25,31 +23,32 @@ class WdRollbackServiceInitialization(
         irohaNetwork: IrohaNetwork,
         credential: IrohaCredential,
         notaryAccount: String
-    ): Result<WdRollbackService, Exception> {
+    ): WdRollbackService {
         logger.info { "Init Withdrawal Rollback Service" }
 
-        return Result.of {
-            WdRollbackServiceImpl(
-                irohaNetwork,
-                credential,
-                WithdrawalTxDAOImpl(
-                    IrohaConsumerImpl(credential, irohaNetwork),
-                    credential,
-                    irohaNetwork,
-                    notaryAccount
-                ),
-                notaryAccount
-            )
-        }
-    }
-
-    fun init(): Result<WdRollbackService, Exception> {
-        logger.info { "Start withdrawal rollback service init at iroha ${withdrawalServiceConfig.iroha.hostname} : ${withdrawalServiceConfig.iroha.port}" }
-        return initWithdrawalService(
+        return WdRollbackServiceImpl(
             irohaNetwork,
             credential,
-            withdrawalServiceConfig.notaryIrohaAccount
+            WithdrawalTxDAOImpl(
+                IrohaConsumerImpl(credential, irohaNetwork),
+                credential,
+                irohaNetwork,
+                notaryAccount
+            ),
+            notaryAccount
         )
+    }
+
+    fun init(): Result<Unit, Exception> {
+        logger.info { "Start withdrawal rollback service init at iroha ${wdRollbackServiceConfig.iroha.hostname} : ${wdRollbackServiceConfig.iroha.port}" }
+
+        val wdRollbackService = initWithdrawalService(
+            irohaNetwork,
+            credential,
+            wdRollbackServiceConfig.withdrawalTxStorageAccount
+        )
+
+        return wdRollbackService.monitorWithdrawal()
     }
 
     /**

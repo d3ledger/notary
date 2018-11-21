@@ -6,7 +6,6 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import model.IrohaCredential
 import mu.KLogging
-import sidechain.SideChainEvent
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
@@ -62,7 +61,7 @@ class WdRollbackServiceImpl(
             }
             .flatMap { transferCommand ->
                 val destAccountId = transferCommand?.transferAsset?.srcAccountId
-                    ?: throw IllegalStateException("Unable to identify primary Iroha transaction data")
+                        ?: throw IllegalStateException("Unable to identify primary Iroha transaction data")
 
                 rollbackIrohaTxHash = ModelUtil.transferAssetIroha(
                     IrohaConsumerImpl(credential, irohaNetwork),
@@ -101,6 +100,6 @@ class WdRollbackServiceImpl(
      * Logger
      */
     companion object : KLogging() {
-        const val ETH_STATUS_FAIL = "0x0"
+        private const val ETH_STATUS_FAIL = "0x0"
     }
 }

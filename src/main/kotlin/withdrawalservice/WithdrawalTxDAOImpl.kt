@@ -19,7 +19,6 @@ class WithdrawalTxDAOImpl(
     private val credential: IrohaCredential,
     private val irohaNetwork: IrohaNetwork,
     private val accountId: String
-
 ) : WithdrawalTxDAO<String, String?> {
     // TODO: make write operations atomic, think about data consistency inside acc details
     private val klaxon = Klaxon()
@@ -27,7 +26,7 @@ class WithdrawalTxDAOImpl(
 
     init {
         launch {
-            delay(delayMs)
+            delay(UPDATE_DELAY)
             txMap.putAll(pullTransactionsMap().get())
         }
     }
@@ -90,7 +89,6 @@ class WithdrawalTxDAOImpl(
 
     companion object {
         private const val STORAGE_KEY = "ETH_WITHDRAWALS"
-        // TODO: move to the config file D3-608
-        private const val delayMs = 2000L
+        private const val UPDATE_DELAY = 2000L
     }
 }
