@@ -1,26 +1,6 @@
 version: '3'
 
 services:
-  d3-registration:
-    image: nexus.iroha.tech:19002/d3-deploy/registration:${TAG}
-    container_name: d3-registration
-    depends_on:
-      - d3-iroha
-     # - d3-eth-node0
-    ports:
-      - 8083:8083
-    volumes:
-      - ./:/opt/notary/deploy
-      - ../configs:/opt/notary/configs
-    environment:
-      - PROFILE
-      - IROHA_HOST=d3-iroha
-      - IROHA_PORT=50051
-      - CLASS=registration.eth.EthRegistrationMain
-      - ETH_CREDENTIALS_PASSWORD
-      - ETH_RELAY_REGISTRY
-      - ETH_MASTER_WALLET
-
   d3-notary:
     image: nexus.iroha.tech:19002/d3-deploy/notary:${TAG:-master}
     container_name: d3-notary
