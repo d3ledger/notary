@@ -1,0 +1,294 @@
+# D3ledger API
+
+D3ledger is built on top of Iroha chain and every action is done by Iroha
+account and signed by Iroha key. Every D3 client has an account in Iroha
+and should use API provided by Iroha. Iroha provides a set of libraries on
+different languages to communicate with Iroha (see 
+[Iroha docs](https://iroha.readthedocs.io/en/latest/api/index.html)).
+The only one thing related to user that cannot be done by user itself is 
+registration. That's why  D3 services provide registration of new client via
+HTTP.
+
+## Registration
+
+Registration of a new user is done with POST request. 
+
+    POST /users
+
+* **Parameters:**
+
+    * ***name*** - client name
+    * ***whitelist*** - comma separated list of addresses where withdrawal is possible
+    * ***pubkey*** - Iroha public key of client. Client should generate keypair herself
+
+* **Successfull Response:**
+
+  * **Code:** `200` <br />
+    **Content:** `:client_relay_address`
+    
+    client_relay_address - is Ethereum address associated to the user. All assets sent to
+    the relay address will be added to the client account
+    
+* **Example:**
+  
+      curl -F "name=myname" \
+      -F "pubkey=e48e003991142b90a3569d6804738c69296f339216166a3e6d20d6380afb25b1" \
+      -F "whitelist=0x6826d84158e516f631bBf14586a9BE7e255b2D23" \
+      http://localhost:8083/users
+
+## Iroha API
+
+### Get balance
+
+Client balance can be queried with Iroha query 
+[GetAccountAssets](https://iroha.readthedocs.io/en/latest/api/queries.html#get-account-assets).
+
+**Request schema:**
+
+    message GetAccountAssets {
+        string account_id = 1;
+    }
+    
+**Response schema:**
+
+    message AccountAssetResponse {
+        repeated AccountAsset acct_assets = 1;
+    }
+    
+    message AccountAsset {
+        string asset_id = 1;
+        string account_id = 2;
+        Amount balance = 3;
+    }
+
+### Get Ethereum relay address
+
+Client Ethereum relay address can be queried with 
+[GetAccountDetail](https://iroha.readthedocs.io/en/latest/api/queries.html#get-account-detail)
+on client account. Relay address is accessed by key `ethereum_wallet`, detail
+setter `eth_registration_service@notary`.
+
+**Request schema:**
+
+    message GetAccountDetail {
+        oneof opt_account_id {
+            string account_id = 1;
+        }
+        oneof opt_key {
+            string key = 2;
+        }
+        oneof opt_writer {
+            string writer = 3;
+        }
+    }
+
+**Response schema:**
+
+    message AccountDetailResponse {
+        string detail = 1;
+    }
+    
+**Response example:**
+
+    {
+        "eth_registration_service@notary": {
+            "ethereum_wallet": "0x6826d84158e516f631bBf14586a9BE7e255b2D23"
+        }
+    }
+
+### Get whitelist
+
+Client Ethereum whitelist can be queried with 
+[GetAccountDetail](https://iroha.readthedocs.io/en/latest/api/queries.html#get-account-detail)
+on client account. Whitelist is accessed by key `eth_whitelist`, detail
+setter `eth_registration_service@notary`.
+
+**Request schema:**
+
+    message GetAccountDetail {
+        oneof opt_account_id {
+            string account_id = 1;
+        }
+        oneof opt_key {
+            string key = 2;
+        }
+        oneof opt_writer {
+            string writer = 3;
+        }
+    }
+
+**Response schema:**
+
+    message AccountDetailResponse {
+        string detail = 1;
+    }
+    
+**Response example:**
+
+    {
+        "eth_registration_service@notary": {
+            "eth_whitelist": "0x6826d84158e516f631bBf14586a9BE7e255b2D23"
+        }
+    }
+
+### Get asset transactions
+
+Get all transactions associated with given account and asset. See
+[GetAccountAssetTransactions](https://iroha.readthedocs.io/en/latest/api/queries.html#get-account-asset-transactions).
+
+**Request schema:**
+
+    message GetAccountAssetTransactions {
+        string account_id = 1;
+        string asset_id = 2;
+    }
+
+**Response schema:**
+
+    message TransactionsResponse {
+        repeated Transaction transactions = 1;
+    }
+
+### Get transactions
+
+Get information about transactions based on their hashes. See
+[GetTransactions](https://iroha.readthedocs.io/en/latest/api/queries.html#get-transactions).
+
+**Request schema:**
+
+    message GetTransactions {
+        repeated bytes tx_hashes = 1;
+    }
+   
+**Response schema:**
+ 
+    message TransactionsResponse {
+        repeated Transaction transactions = 1;
+    }
+    
+### Get pending transactions
+
+Retrieve a list of pending (not dully signed) multisignature transactions or
+batches of transactions issued by account of query creator. See
+[GetPeningTransactions](https://iroha.readthedocs.io/en/latest/api/queries.html#get-pending-transactions).
+
+**Request schema:**
+
+    message GetPendingTransactions {
+    }
+   
+**Response schema:**
+ 
+    message TransactionsResponse {
+        repeated Transaction transactions = 1;
+    }
+
+### Withdraw
+
+To initiate a process of withdrawal a client should send transfer transaction
+to `notary@notary` account. In `description` the client should specify withdrawal
+address. See
+[TransferAsset](https://iroha.readthedocs.io/en/latest/api/commands.html#transfer-asset).
+
+**Schema:**
+
+    message TransferAsset {
+        string src_account_id = 1;
+        string dest_account_id = 2;
+        string asset_id = 3;
+        string description = 4;
+        Amount amount = 5;
+    }
+    
+| Field            | Description               |
+| ---              | ---                       |    
+| **src_account**  | client account            |
+| **dest_account** | `notary@notary`           |
+| **asset_id**     | asset to withdraw         |
+| **description**  | address where to withdraw |
+| **amount**       | amount to withdraw        |
+
+### Transfer
+
+Transfer assets to another client. Description field contains any text message
+for the client. See
+[TransferAsset](https://iroha.readthedocs.io/en/latest/api/commands.html#transfer-asset).
+
+**Schema:**
+
+    message TransferAsset {
+        string src_account_id = 1;
+        string dest_account_id = 2;
+        string asset_id = 3;
+        string description = 4;
+        Amount amount = 5;
+    }
+    
+| Field            | Description       |
+| ---              | ---               |    
+| **src_account**  | sender account    |
+| **dest_account** | client to send to |
+| **asset_id**     | asset to send     |
+| **description**  | message           |
+| **amount**       | amount to send    |
+
+### Settlement
+
+For settlement client should send atomic
+[batch transaction](https://iroha.readthedocs.io/en/latest/core_concepts/glossary.html?highlight=batch#atomic-batch)
+with two transfer transactions. The first transaction is transfer for counterparty
+signed by the user and the second is transfer from counterparty without signature.
+The counterparty should sign it to accept settlement.
+
+**Schema:**
+
+    message Transaction {
+      message Payload {
+        message BatchMeta{
+          enum BatchType{
+            ATOMIC = 0;
+            ORDERED = 1;
+          }
+          BatchType type = 1;
+          // array of reduced hashes of all txs from the batch
+          repeated bytes reduced_hashes = 2;
+        }
+        message ReducedPayload{
+          repeated Command commands = 1;
+          string creator_account_id = 2;
+          uint64 created_time = 3;
+          uint32 quorum = 4;
+        }
+        // transcation fields
+        ReducedPayload reduced_payload = 1;
+        // batch meta fields if tx belong to any batch
+        oneof optional_batch_meta{
+          BatchMeta batch = 5;
+        }
+      }
+    
+      Payload payload = 1;
+      repeated Signature signatures = 2;
+    }
+
+### Accept settlement
+
+To accept a settlement a client should get pending settlement transaction and
+sign it in
+[batch transaction](https://iroha.readthedocs.io/en/latest/core_concepts/glossary.html?highlight=batch#atomic-batch)
+with his private key and send it again.
+
+### Cancel settlement
+
+To cancel a settlement a client should get pending settlement transaction and
+sign it in
+[batch transaction](https://iroha.readthedocs.io/en/latest/core_concepts/glossary.html?highlight=batch#atomic-batch)
+with any invalid key and send it again to remove the transaction from Iroha list
+of pending transactions.
+
+### Reject settlement
+
+To reject a settlement a client should get pending settlement transaction and sign it in
+[batch transaction](https://iroha.readthedocs.io/en/latest/core_concepts/glossary.html?highlight=batch#atomic-batch)
+with any invalid key and send it again to remove the transaction from Iroha list
+of pending transactions.
