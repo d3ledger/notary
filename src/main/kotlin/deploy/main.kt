@@ -8,7 +8,6 @@ import config.loadEthPasswords
 import mu.KLogging
 import sidechain.eth.util.DeployHelper
 import java.io.File
-import java.math.BigInteger
 
 private val logger = KLogging().logger
 
@@ -25,7 +24,6 @@ fun main(args: Array<String>) {
 
     val ethereumConfig = loadConfigs("predeploy.ethereum", EthereumConfig::class.java, "/eth/predeploy.properties")
     val passwordConfig = loadEthPasswords("predeploy", "/eth/ethereum_password.properties")
-    println(passwordConfig.credentialsPassword)
     val deployHelper = DeployHelper(ethereumConfig, passwordConfig)
 
     val relayRegistry = deployHelper.deployRelayRegistrySmartContract()
