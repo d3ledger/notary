@@ -31,3 +31,21 @@ fun getPeerGroup(wallet: Wallet, networkParameters: NetworkParameters, blockStor
     val blockChain = BlockChain(networkParameters, wallet, blockStore)
     return PeerGroup(networkParameters, blockChain)
 }
+
+/**
+ * Adds listener to peer group that listens to peer connection/disconnection events
+ * @param peerGroup - group of peers
+ * @param onNoPeersLeft - function that is called, when no peers left in a given peer group
+ * @param onNewPeerConnected - function that is called, when new peer appears
+ */
+fun addPeerConnectionStatusListener(peerGroup: PeerGroup, onNoPeersLeft: () -> Unit, onNewPeerConnected: () -> Unit) {
+    peerGroup.addDisconnectedEventListener { peer, peerCount ->
+        //If no peers left
+        if (peerCount == 0) {
+            logger.warn { "Out of peers" }
+            onNoPeersLeft()
+        }
+    }
+    // If new peer connected
+    peerGroup.addConnectedEventListener { peer, peerCount -> onNewPeerConnected() }
+}
