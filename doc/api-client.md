@@ -38,6 +38,47 @@ Registration of a new user is done with POST request.
 
 ## Iroha API
 
+Iroha API is provided via gRPC. Iroha provides libraries for the following languages:
+- Java
+- Objective-C
+- Swift
+- Python
+- NodeJS
+
+Libraries help build and send protobuf objects. Here is an example in Kotlin that
+uses Iroha Java library:
+
+    // build transaction object
+    var unsignedTx = ModelTransactionBuilder()
+        .creatorAccountId(transaction.creator)
+        .createdTime(transaction.createdTime)
+        .transferAsset(
+            cmd.srcAccountId,
+            cmd.destAccountId,
+            cmd.assetId,
+            cmd.description,
+            cmd.amount
+        )
+        .build()
+                
+    // sign transaction
+    var tx = unsignedTx.signAndAddSignature(keys)
+        .finish()
+        
+    // serialize to protobuf 
+    val blob = tx.blob()
+    val bs = blob.toByteArray()
+    val protoTx = Transaction.parseFrom(bs)
+    
+    // get gRPC stub endpoint
+    val toriiStub = CommandServiceGrpc.newBlockingStub(channel)
+    
+    // and send
+    toriiStub.torii(protoTx)
+    
+You can find more examples on [Iroha documentation](https://iroha.readthedocs.io/en/latest/overview.html)
+page.
+
 ### Get balance
 
 Client balance can be queried with Iroha query 
