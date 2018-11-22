@@ -60,8 +60,7 @@ class TransactionSigner(
             .fanout {
                 btcChangeAddressesProvider.getChangeAddress()
             }.map { (registeredAddresses, changeAddress) ->
-                registeredAddresses.add(changeAddress)
-                registeredAddresses
+                registeredAddresses + changeAddress
             }.map { availableAddresses ->
                 availableAddresses.find { availableAddress -> availableAddress.address == btcAddress }!!.info.notaryKeys
             }
