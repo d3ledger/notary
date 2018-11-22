@@ -11,9 +11,13 @@ import config.loadEthPasswords
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.IrohaInitialization
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
+import vacuum.RelayVacuumConfig
 
 private val logger = KLogging().logger
+
+private const val RELAY_VACUUM_PREFIX = "relay-vacuum"
 
 /**
  * Main entry point of Withdrawal Service app
@@ -21,11 +25,19 @@ private val logger = KLogging().logger
 fun main(args: Array<String>) {
     val withdrawalConfig = loadConfigs("withdrawal", WithdrawalServiceConfig::class.java, "/eth/withdrawal.properties")
     val passwordConfig = loadEthPasswords("withdrawal", "/eth/ethereum_password.properties", args)
-    executeWithdrawal(withdrawalConfig, passwordConfig)
+    val relayVacuumConfig =
+        loadConfigs(RELAY_VACUUM_PREFIX, RelayVacuumConfig::class.java, "/eth/vacuum.properties")
+    executeWithdrawal(withdrawalConfig, passwordConfig, relayVacuumConfig)
 }
 
-fun executeWithdrawal(withdrawalConfig: WithdrawalServiceConfig, passwordConfig: EthereumPasswords) {
+fun executeWithdrawal(
+    withdrawalConfig: WithdrawalServiceConfig,
+    passwordConfig: EthereumPasswords,
+    relayVacuumConfig: RelayVacuumConfig
+) {
     logger.info { "Run withdrawal service" }
+    val irohaNetwork = IrohaNetworkImpl(withdrawalConfig.iroha.hostname, withdrawalConfig.iroha.port)
+
     IrohaInitialization.loadIrohaLibrary()
         .flatMap {
             ModelUtil.loadKeypair(
@@ -34,9 +46,18 @@ fun executeWithdrawal(withdrawalConfig: WithdrawalServiceConfig, passwordConfig:
             )
         }
         .map { keypair -> IrohaCredential(withdrawalConfig.withdrawalCredential.accountId, keypair) }
-        .flatMap { credential -> WithdrawalServiceInitialization(withdrawalConfig, credential, passwordConfig).init() }
+        .flatMap { credential ->
+            WithdrawalServiceInitialization(
+                withdrawalConfig,
+                credential,
+                irohaNetwork,
+                passwordConfig,
+                relayVacuumConfig
+            ).init()
+        }
         .failure { ex ->
             logger.error("Cannot run withdrawal service", ex)
+            irohaNetwork.close()
             System.exit(1)
         }
 }

@@ -1,10 +1,12 @@
 package integration.eth
 
 import integration.helper.IntegrationHelperUtil
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import provider.eth.ETH_PRECISION
+import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -23,11 +25,12 @@ class DepositIntegrationTest {
     init {
         // run notary
         integrationHelper.runEthNotary()
+        integrationHelper.lockEthMasterSmartcontract()
     }
 
     /** Iroha client account */
     private val clientIrohaAccount = String.getRandomString(9)
-    private val clientIrohaAccountId = "$clientIrohaAccount@notary"
+    private val clientIrohaAccountId = "$clientIrohaAccount@$CLIENT_DOMAIN"
 
     /** Ethereum address to transfer to */
     private val relayWallet = registerRelay()
@@ -35,7 +38,12 @@ class DepositIntegrationTest {
     private fun registerRelay(): String {
         integrationHelper.deployRelays(1)
         // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
-        return integrationHelper.registerClient(clientIrohaAccount, listOf("0x0"))
+        return integrationHelper.registerClient(clientIrohaAccount, listOf())
+    }
+
+    @AfterAll
+    fun dropDown() {
+        integrationHelper.close()
     }
 
     /**

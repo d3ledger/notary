@@ -23,8 +23,9 @@ import sidechain.eth.EthChainHandler
 import sidechain.eth.EthChainListener
 import sidechain.eth.util.BasicAuthenticator
 import sidechain.iroha.consumer.IrohaNetwork
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import java.math.BigInteger
+
+const val ENDPOINT_ETHEREUM = "eth"
 
 /**
  * Class for notary instantiation
@@ -33,14 +34,11 @@ import java.math.BigInteger
  */
 class EthNotaryInitialization(
     private val notaryCredential: IrohaCredential,
+    private val irohaNetwork: IrohaNetwork,
     private val ethNotaryConfig: EthNotaryConfig,
     private val passwordsConfig: EthereumPasswords,
     private val ethRelayProvider: EthRelayProvider,
-    private val ethTokensProvider: EthTokensProvider,
-    private val irohaNetwork: IrohaNetwork = IrohaNetworkImpl(
-        ethNotaryConfig.iroha.hostname,
-        ethNotaryConfig.iroha.port
-    )
+    private val ethTokensProvider: EthTokensProvider
 ) {
     /**
      * Init notary
@@ -83,16 +81,16 @@ class EthNotaryInitialization(
     private fun initNotary(
         ethEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>
     ): Notary {
-        logger.info { "Init Notary notary" }
+        logger.info { "Init ethereum notary" }
 
         val peerListProvider = NotaryPeerListProviderImpl(
-            ethNotaryConfig.iroha,
             notaryCredential,
+            irohaNetwork,
             ethNotaryConfig.notaryListStorageAccount,
             ethNotaryConfig.notaryListSetterAccount
         )
 
-        return createEthNotary(ethNotaryConfig, ethEvents, peerListProvider)
+        return createEthNotary(notaryCredential, irohaNetwork, ethEvents, peerListProvider)
     }
 
     /**
@@ -101,7 +99,7 @@ class EthNotaryInitialization(
     private fun initRefund() {
         logger.info { "Init Refund endpoint" }
         RefundServerEndpoint(
-            ServerInitializationBundle(ethNotaryConfig.refund.port, ethNotaryConfig.refund.endpointEthereum),
+            ServerInitializationBundle(ethNotaryConfig.refund.port, ENDPOINT_ETHEREUM),
             EthRefundStrategyImpl(
                 ethNotaryConfig,
                 irohaNetwork,

@@ -5,36 +5,40 @@ package registration.btc
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import config.loadConfigs
-import model.IrohaCredential
+import config.getProfile
 import mu.KLogging
+import org.springframework.boot.SpringApplication
+import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.context.annotation.ComponentScan
+import registration.btc.config.btcRegistrationConfig
 import sidechain.iroha.IrohaInitialization
-import sidechain.iroha.util.ModelUtil
 
 private val logger = KLogging().logger
+
+@SpringBootApplication
+@ComponentScan(basePackages = ["registration"])
+class BtcRegistrationApplication
 
 /**
  * Entry point for Registration Service
  */
 fun main(args: Array<String>) {
-    val registrationConfig =
-        loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/registration.properties")
-    executeRegistration(registrationConfig)
-}
-
-fun executeRegistration(registrationConfig: BtcRegistrationConfig) {
-    logger.info { "Run BTC client registration" }
     IrohaInitialization.loadIrohaLibrary()
-        .flatMap {
-            ModelUtil.loadKeypair(
-                registrationConfig.registrationCredential.pubkeyPath,
-                registrationConfig.registrationCredential.privkeyPath
-            )
-        }
-        .map { keypair -> IrohaCredential(registrationConfig.registrationCredential.accountId, keypair)}
-        .flatMap {credential ->  BtcRegistrationServiceInitialization(registrationConfig, credential).init() }
-        .failure { ex ->
+        .map {
+            val app = SpringApplication(BtcRegistrationApplication::class.java)
+            app.setAdditionalProfiles(getProfile())
+            app.setDefaultProperties(webPortProperties())
+            app.run(*args)
+        }.flatMap { context ->
+            context.getBean(BtcRegistrationServiceInitialization::class.java).init()
+        }.failure { ex ->
             logger.error("Cannot run btc registration", ex)
             System.exit(1)
         }
+}
+
+private fun webPortProperties(): Map<String, String> {
+    val properties = HashMap<String, String>()
+    properties["server.port"] = btcRegistrationConfig.healthCheckPort.toString()
+    return properties
 }

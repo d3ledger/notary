@@ -10,7 +10,7 @@ import mu.KLogging
 import provider.eth.EthRelayProviderIrohaImpl
 import provider.eth.EthTokensProviderImpl
 import sidechain.eth.util.DeployHelper
-import sidechain.iroha.consumer.IrohaNetworkImpl
+import sidechain.iroha.consumer.IrohaNetwork
 
 /**
  * Class is responsible for relay contracts vacuum
@@ -19,20 +19,16 @@ import sidechain.iroha.consumer.IrohaNetworkImpl
 class RelayVacuum(
     relayVacuumConfig: RelayVacuumConfig,
     relayVacuumEthereumPasswords: EthereumPasswords,
-    credential: IrohaCredential
+    credential: IrohaCredential,
+    irohaNetwork: IrohaNetwork
 ) {
     private val ethTokenAddress = "0x0000000000000000000000000000000000000000"
-
-    val irohaNetwork = IrohaNetworkImpl(
-        relayVacuumConfig.iroha.hostname,
-        relayVacuumConfig.iroha.port
-    )
 
     /** Ethereum endpoint */
     private val deployHelper = DeployHelper(relayVacuumConfig.ethereum, relayVacuumEthereumPasswords)
     private val ethTokensProvider = EthTokensProviderImpl(
-        relayVacuumConfig.iroha,
         credential,
+        irohaNetwork,
         relayVacuumConfig.tokenStorageAccount,
         relayVacuumConfig.tokenSetterAccount
     )

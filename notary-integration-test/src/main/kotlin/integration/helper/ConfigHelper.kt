@@ -6,12 +6,16 @@ import notary.btc.config.BtcNotaryConfig
 import notary.eth.EthNotaryConfig
 import notary.eth.RefundConfig
 import pregeneration.btc.config.BtcPreGenConfig
-import registration.btc.BtcRegistrationConfig
+import registration.btc.config.BtcRegistrationConfig
 import registration.eth.EthRegistrationConfig
 import registration.eth.relay.RelayRegistrationConfig
 import token.ERC20TokenRegistrationConfig
 import vacuum.RelayVacuumConfig
+import withdrawal.btc.config.BtcWithdrawalConfig
 import withdrawalservice.WithdrawalServiceConfig
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -71,9 +75,41 @@ class ConfigHelper(
             override val pubKeyTriggerAccount = btcPkPreGenConfig.pubKeyTriggerAccount
             override val notaryAccount = accountHelper.notaryAccount.accountId
             override val iroha = createIrohaConfig()
-            override val btcWalletFilePath = btcPkPreGenConfig.btcWalletFilePath
+            override val btcWalletFilePath = createTempWalletFile(btcPkPreGenConfig.btcWalletFilePath)
             override val registrationAccount = accountHelper.createCredentialConfig(accountHelper.registrationAccount)
         }
+    }
+
+    /** Creates config for BTC withdrawal service */
+    fun createBtcWithdrawalConfig(): BtcWithdrawalConfig {
+        val btcWithdrawalConfig =
+            loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties")
+        return object : BtcWithdrawalConfig {
+            override val registrationAccount = accountHelper.registrationAccount.accountId
+            override val bitcoin = createBitcoinConfig(btcWithdrawalConfig.bitcoin)
+            override val changeAddress = btcWithdrawalConfig.changeAddress
+            override val notaryCredential = accountHelper.createCredentialConfig(accountHelper.notaryAccount)
+            override val healthCheckPort = btcWithdrawalConfig.healthCheckPort
+            override val withdrawalCredential = accountHelper.createCredentialConfig(accountHelper.btcWithdrawalAccount)
+            override val iroha = btcWithdrawalConfig.iroha
+        }
+    }
+
+    /*
+        Creates temporary copy of wallet file just for testing
+     */
+    fun createTempWalletFile(btcWalletPath: String): String {
+        val newWalletFilePath = btcWalletPath.replaceFirst(".wallet", "-test.wallet")
+        val walletFile = File(newWalletFilePath)
+        if (!walletFile.exists()) {
+            FileInputStream(btcWalletPath).use { src ->
+                FileOutputStream(newWalletFilePath).use { dest ->
+                    val srcChannel = src.channel
+                    dest.channel.transferFrom(srcChannel, 0, srcChannel.size())
+                }
+            }
+        }
+        return newWalletFilePath
     }
 
     /** Creates config for ETH relays registration */
@@ -106,7 +142,6 @@ class ConfigHelper(
      */
     fun createRefundConfig(): RefundConfig {
         return object : RefundConfig {
-            override val endpointEthereum = ethNotaryConfig.refund.endpointEthereum
             override val port = portCounter.incrementAndGet()
         }
     }
@@ -118,23 +153,32 @@ class ConfigHelper(
             override val healthCheckPort = btcNotaryConfig.healthCheckPort
             override val registrationAccount = accountHelper.registrationAccount.accountId
             override val iroha = createIrohaConfig()
-            override val bitcoin = btcNotaryConfig.bitcoin
+            override val bitcoin = createBitcoinConfig(btcNotaryConfig.bitcoin)
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
             override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
             override val notaryCredential = accountHelper.createCredentialConfig(accountHelper.notaryAccount)
         }
     }
 
+    private fun createBitcoinConfig(bitcoinConfig: BitcoinConfig): BitcoinConfig {
+        return object : BitcoinConfig {
+            override val walletPath = createTempWalletFile(bitcoinConfig.walletPath)
+            override val blockStoragePath = bitcoinConfig.blockStoragePath
+            override val confidenceLevel = bitcoinConfig.confidenceLevel
+            override val host = bitcoinConfig.host
+        }
+    }
+
     fun createBtcRegistrationConfig(): BtcRegistrationConfig {
         val btcRegistrationConfig =
             loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/btc/registration.properties")
-
         return object : BtcRegistrationConfig {
+            override val healthCheckPort = btcRegistrationConfig.healthCheckPort
+            override val notaryAccount = accountHelper.notaryAccount.accountId
             override val mstRegistrationAccount = accountHelper.mstRegistrationAccount.accountId
             override val port = btcRegistrationConfig.port
             override val registrationCredential = btcRegistrationConfig.registrationCredential
             override val iroha = createIrohaConfig()
-            override val btcWalletPath = btcRegistrationConfig.btcWalletPath
         }
     }
 
@@ -152,7 +196,7 @@ class ConfigHelper(
             override val tokenSetterAccount = accountHelper.tokenSetterAccount.accountId
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
             override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
-            override val whitelistSetter = accountHelper.whitelistSetter.accountId
+            override val whitelistSetter = accountHelper.registrationAccount.accountId
             override val notaryCredential = notaryCredential_
             override val refund = createRefundConfig()
             override val iroha = irohaConfig
@@ -180,8 +224,6 @@ class ConfigHelper(
 
     /** Test configuration of Registration with runtime dependencies */
     fun createEthRegistrationConfig(ethereumConfig: EthereumConfig): EthRegistrationConfig {
-        val ethRegistrationConfig =
-            loadConfigs("eth-registration", EthRegistrationConfig::class.java, "/eth/registration.properties")
         return object : EthRegistrationConfig {
             override val ethRelayRegistryAddress = relayRegistryContractAddress
             override val ethereum = ethereumConfig

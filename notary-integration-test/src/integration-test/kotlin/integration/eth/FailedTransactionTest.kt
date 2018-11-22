@@ -1,12 +1,14 @@
 package integration.eth
 
 import integration.helper.IntegrationHelperUtil
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.web3j.protocol.exceptions.TransactionException
-import java.math.BigInteger
+import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
 import java.math.BigDecimal
+import java.math.BigInteger
 import kotlin.test.assertEquals
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -15,6 +17,13 @@ class FailedTransactionTest {
 
     init {
         integrationHelper.runEthNotary()
+
+        integrationHelper.lockEthMasterSmartcontract()
+    }
+
+    @AfterAll
+    fun dropDown() {
+        integrationHelper.close()
     }
 
     /**
@@ -29,11 +38,11 @@ class FailedTransactionTest {
         val failerAddress = integrationHelper.deployFailer()
         integrationHelper.registerRelayByAddress(failerAddress)
         val clientAccount = String.getRandomString(9)
-        integrationHelper.registerClientWithoutRelay(clientAccount, listOf("0x0"))
+        integrationHelper.registerClientWithoutRelay(clientAccount, listOf())
         integrationHelper.sendEth(BigInteger.valueOf(1), failerAddress)
         integrationHelper.waitOneEtherBlock()
         assertEquals(BigInteger.ZERO, integrationHelper.getEthBalance(failerAddress))
-        val irohaBalance = integrationHelper.getIrohaAccountBalance("$clientAccount@notary", "ether#ethereum")
+        val irohaBalance = integrationHelper.getIrohaAccountBalance("$clientAccount@$CLIENT_DOMAIN", "ether#ethereum")
         assertEquals(BigDecimal.ZERO, BigDecimal(irohaBalance))
     }
 
@@ -51,7 +60,7 @@ class FailedTransactionTest {
         val anotherFailerAddress = integrationHelper.deployFailer()
         integrationHelper.registerRelayByAddress(failerAddress)
         val clientAccount = String.getRandomString(9)
-        integrationHelper.registerClientWithoutRelay(clientAccount, listOf("0x0"))
+        integrationHelper.registerClientWithoutRelay(clientAccount, listOf())
         val coinName = String.getRandomString(9)
         integrationHelper.addERC20Token(anotherFailerAddress, coinName, 0)
 
@@ -68,7 +77,8 @@ class FailedTransactionTest {
         // it's probably impossible to get some money deposit to iroha
         // because logs are empty for reverted transactions
         // but let's leave it for a rainy day
-        val irohaBalance = integrationHelper.getIrohaAccountBalance("$clientAccount@notary", "$coinName#ethereum")
+        val irohaBalance =
+            integrationHelper.getIrohaAccountBalance("$clientAccount@$CLIENT_DOMAIN", "$coinName#ethereum")
         assertEquals(BigDecimal.ZERO, BigDecimal(irohaBalance))
     }
 }

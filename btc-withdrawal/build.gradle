@@ -1,0 +1,32 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        //Spring-boot
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:$spring_boot_version"
+    }
+}
+apply plugin: 'application'
+apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
+apply plugin: 'org.springframework.boot'
+mainClassName = "withdrawal.btc.BtcWithdrawalMain"
+
+dependencies {
+    compile project(":btc")
+}
+
+task runBtcWithdrawal(type: JavaExec) {
+    main = 'withdrawal.btc.BtcWithdrawalMain'
+    classpath = sourceSets.main.runtimeClasspath
+    setWorkingDir("$rootDir/")
+    systemProperty 'java.library.path', getIrohaLibPath()
+    environment "LD_LIBRARY_PATH", getIrohaLibPath()
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "notary:btc-withdrawal"
+    }
+}

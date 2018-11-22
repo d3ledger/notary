@@ -7,6 +7,7 @@ import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.launch
 import org.junit.jupiter.api.*
 import provider.eth.ETH_PRECISION
+import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -30,31 +31,26 @@ class WithdrawalPipelineIntegrationTest {
     /** Test Registration configuration */
     private val registrationConfig = integrationHelper.ethRegistrationConfig
 
-    /** Test Withdrawal configuration */
-    private val withdrawalServiceConfig = integrationHelper.configHelper.createWithdrawalConfig()
-
-    /** Ethereum password configs */
-    private val passwordConfig = integrationHelper.configHelper.ethPasswordConfig
-
     /** Ethereum test address where we want to withdraw to */
     private val toAddress = integrationHelper.configHelper.testConfig.ethTestAccount
 
     /** Notary account in Iroha */
-    private val notaryAccount = withdrawalServiceConfig.notaryIrohaAccount
+    private val notaryAccount = integrationHelper.accountHelper.notaryAccount.accountId
 
     private val registrationService: Job
 
     private val withdrawalService: Job
 
     init {
-        integrationHelper.runEthNotary(notaryConfig)
+        integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig)
         registrationService = launch {
-            registration.eth.executeRegistration(registrationConfig, passwordConfig)
+            integrationHelper.runRegistrationService(registrationConfig)
         }
         withdrawalService = launch {
-            withdrawalservice.executeWithdrawal(withdrawalServiceConfig, passwordConfig)
+            integrationHelper.runEthWithdrawalService()
         }
-        Thread.sleep(10_000)
+
+        integrationHelper.lockEthMasterSmartcontract()
     }
 
     lateinit var clientName: String
@@ -65,12 +61,13 @@ class WithdrawalPipelineIntegrationTest {
     fun setup() {
         // generate client name and key
         clientName = String.getRandomString(9)
-        clientId = "$clientName@notary"
+        clientId = "$clientName@$CLIENT_DOMAIN"
         keypair = ModelCrypto().generateKeypair()
     }
 
     @AfterAll
     fun dropDown() {
+        integrationHelper.close()
         registrationService.cancel()
         withdrawalService.cancel()
     }
@@ -160,8 +157,6 @@ class WithdrawalPipelineIntegrationTest {
         )
         Assertions.assertEquals(200, res.statusCode)
 
-        integrationHelper.setWhitelist(clientId, listOf(toAddress))
-
         val initialBalance = integrationHelper.getERC20TokenBalance(tokenAddress, toAddress)
 
         // add assets to user
@@ -194,7 +189,6 @@ class WithdrawalPipelineIntegrationTest {
     @Test
     fun testWithdrawInWhitelist() {
         integrationHelper.registerClient(clientName, listOf(toAddress, "0x123"), keypair)
-        integrationHelper.setWhitelist(clientId, listOf(toAddress, "0x123"))
 
         val amount = "125"
         val assetId = "ether#ethereum"
@@ -228,7 +222,7 @@ class WithdrawalPipelineIntegrationTest {
     @Test
     fun testWithdrawEmptyWhitelist() {
         // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
-        integrationHelper.registerClient(clientName, listOf("0x0"), keypair)
+        integrationHelper.registerClient(clientName, listOf(), keypair)
 
         val withdrawalEthAddress = "0x123"
 

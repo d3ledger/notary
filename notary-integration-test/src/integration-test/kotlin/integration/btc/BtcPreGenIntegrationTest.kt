@@ -4,30 +4,36 @@ import integration.helper.IntegrationHelperUtil
 import kotlinx.coroutines.experimental.launch
 import model.IrohaCredential
 import mu.KLogging
+import org.bitcoinj.core.Address
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Utils
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
 import pregeneration.btc.BtcPreGenInitialization
 import provider.NotaryPeerListProviderImpl
 import provider.TriggerProvider
 import provider.btc.BtcPublicKeyProvider
 import provider.btc.BtcSessionProvider
+import provider.btc.address.AddressInfo
+import provider.btc.network.BtcRegTestConfigProvider
 import sidechain.iroha.IrohaChainListener
+import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
+import wallet.WalletFile
 import java.io.File
 
 private const val WAIT_PREGEN_INIT_MILLIS = 10_000L
 private const val WAIT_PREGEN_PROCESS_MILLIS = 15_000L
 
-@Disabled
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcPreGenIntegrationTest {
 
     private val integrationHelper = IntegrationHelperUtil()
@@ -36,14 +42,19 @@ class BtcPreGenIntegrationTest {
         integrationHelper.configHelper.createBtcPreGenConfig()
 
     private val triggerProvider = TriggerProvider(
-        btcPreGenConfig.iroha,
         integrationHelper.testCredential,
+        integrationHelper.irohaNetwork,
         btcPreGenConfig.pubKeyTriggerAccount
     )
     private val btcKeyGenSessionProvider = BtcSessionProvider(
-        btcPreGenConfig.iroha,
-        integrationHelper.accountHelper.registrationAccount
+        integrationHelper.accountHelper.registrationAccount,
+        integrationHelper.irohaNetwork
     )
+
+    @AfterAll
+    fun dropDown() {
+        integrationHelper.close()
+    }
 
     /**
      * Test US-001 btc addresses pregeneration
@@ -56,12 +67,19 @@ class BtcPreGenIntegrationTest {
     fun testGenerateKey() {
         integrationHelper.addNotary("test_notary", "test_notary_address")
         launch {
-            BtcPreGenInitialization(
-                registrationCredential,
-                btcPreGenConfig,
-                btcPublicKeyProvider(),
-                irohaChainListener()
-            ).init()
+            IrohaChainListener(
+                btcPreGenConfig.iroha.hostname,
+                btcPreGenConfig.iroha.port,
+                registrationCredential
+            ).use { irohaListener ->
+                BtcPreGenInitialization(
+                    registrationCredential,
+                    integrationHelper.irohaNetwork,
+                    btcPreGenConfig,
+                    btcPublicKeyProvider(),
+                    irohaListener
+                ).init()
+            }
         }
         Thread.sleep(WAIT_PREGEN_INIT_MILLIS)
         val sessionAccountName = String.getRandomString(9)
@@ -85,7 +103,9 @@ class BtcPreGenIntegrationTest {
                 btcPreGenConfig.mstRegistrationAccount.accountId
             )
         val expectedMsAddress = createMstAddress(sessionDetails.values)
-        assertEquals("free", notaryAccountDetails.get(expectedMsAddress))
+        val generatedAddress = AddressInfo.fromJson(notaryAccountDetails[expectedMsAddress]!!)!!
+        assertEquals("free", generatedAddress.irohaClient)
+        assertEquals(sessionDetails.values.toList(), generatedAddress.notaryKeys.toList())
     }
 
     private fun createMstAddress(notaryKeys: Collection<String>): String {
@@ -117,35 +137,33 @@ class BtcPreGenIntegrationTest {
             keypair
         }, { ex -> throw ex })
 
-    private val mstRegistrationCredential =
-        IrohaCredential(btcPreGenConfig.mstRegistrationAccount.accountId, mstRegistrationKeyPair)
+    private val sessionConsumer =
+        IrohaConsumerImpl(registrationCredential, integrationHelper.irohaNetwork)
 
+    private val multiSigConsumer = IrohaConsumerImpl(
+        IrohaCredential(btcPreGenConfig.mstRegistrationAccount.accountId, mstRegistrationKeyPair),
+        integrationHelper.irohaNetwork
+    )
 
     fun btcPublicKeyProvider(): BtcPublicKeyProvider {
-        val walletFile = File(btcPreGenConfig.btcWalletFilePath)
-        val wallet = Wallet.loadFromFile(walletFile)
+        val file = File(btcPreGenConfig.btcWalletFilePath)
+        val wallet = Wallet.loadFromFile(file)
+        val walletFile = WalletFile(wallet, file)
         val notaryPeerListProvider = NotaryPeerListProviderImpl(
-            btcPreGenConfig.iroha,
             registrationCredential,
+            integrationHelper.irohaNetwork,
             btcPreGenConfig.notaryListStorageAccount,
             btcPreGenConfig.notaryListSetterAccount
         )
         return BtcPublicKeyProvider(
-            wallet,
             walletFile,
-            btcPreGenConfig.iroha,
             notaryPeerListProvider,
-            registrationCredential,
-            mstRegistrationCredential,
-            btcPreGenConfig.notaryAccount
+            btcPreGenConfig.notaryAccount,
+            multiSigConsumer,
+            sessionConsumer,
+            BtcRegTestConfigProvider()
         )
     }
-
-    fun irohaChainListener() = IrohaChainListener(
-        btcPreGenConfig.iroha.hostname,
-        btcPreGenConfig.iroha.port,
-        registrationCredential
-    )
 
     /**
      * Logger

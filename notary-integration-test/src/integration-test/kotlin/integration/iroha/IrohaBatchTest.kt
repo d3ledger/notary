@@ -12,7 +12,10 @@ import notary.IrohaCommand
 import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
 import notary.eth.EthNotaryConfig
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
@@ -25,6 +28,7 @@ import util.getRandomString
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class IrohaBatchTest {
 
     init {
@@ -35,14 +39,30 @@ class IrohaBatchTest {
         loadConfigs("test", EthNotaryConfig::class.java, "/test.properties")
     }
 
-    private val testCredential = IntegrationHelperUtil().testCredential
+    private val integrationHelper = IntegrationHelperUtil()
 
-    private val keypair = testCredential.keyPair
+    private val testCredential = integrationHelper.testCredential
+
     private val tester = testCredential.accountId
+
+    val assetDomain = "notary"
 
     private val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
 
+    val listener = IrohaChainListener(
+        testConfig.iroha.hostname,
+        testConfig.iroha.port,
+        testCredential
+    )
+
     private fun randomString() = String.getRandomString(10)
+
+    @AfterAll
+    fun dropDown() {
+        integrationHelper.close()
+        irohaNetwork.close()
+        listener.close()
+    }
 
     /**
      * @given A batch
@@ -55,7 +75,10 @@ class IrohaBatchTest {
         val user = randomString()
         val asset_name = randomString()
 
-        val irohaConsumer = IrohaConsumerImpl(testCredential, testConfig.iroha)
+        val irohaConsumer = IrohaConsumerImpl(testCredential, irohaNetwork)
+
+        val userId = "$user@$CLIENT_DOMAIN"
+
 
         val txList =
             listOf(
@@ -66,7 +89,7 @@ class IrohaBatchTest {
                     listOf(
                         IrohaCommand.CommandCreateAccount(
                             user,
-                            "notary",
+                            CLIENT_DOMAIN,
                             ModelCrypto().generateKeypair().publicKey().hex()
                         )
                     )
@@ -77,7 +100,7 @@ class IrohaBatchTest {
                     1,
                     listOf(
                         IrohaCommand.CommandSetAccountDetail(
-                            "$user@notary",
+                            userId,
                             "key",
                             "value"
                         )
@@ -90,17 +113,17 @@ class IrohaBatchTest {
                     listOf(
                         IrohaCommand.CommandCreateAsset(
                             asset_name,
-                            "notary",
+                            assetDomain,
                             0
                         ),
                         IrohaCommand.CommandAddAssetQuantity(
-                            "$asset_name#notary",
+                            "$asset_name#$assetDomain",
                             "100"
                         ),
                         IrohaCommand.CommandTransferAsset(
                             tester,
-                            "$user@notary",
-                            "$asset_name#notary",
+                            userId,
+                            "$asset_name#$assetDomain",
                             "desc",
                             "27"
                         )
@@ -113,12 +136,6 @@ class IrohaBatchTest {
         val lst = IrohaConverterImpl().convert(batch)
         val hashes = lst.map { it.hash().hex() }
 
-        val listener = IrohaChainListener(
-            testConfig.iroha.hostname,
-            testConfig.iroha.port,
-            testCredential
-        )
-
         val blockHashes = async {
             listener.getBlock().payload.transactionsList.map {
                 Blob(iroha.hashTransaction(it.toByteArray().toByteVector())).hex()
@@ -127,13 +144,13 @@ class IrohaBatchTest {
 
         val successHash = irohaConsumer.sendAndCheck(lst).get()
 
-        val accountJson = getAccountData(testCredential, irohaNetwork, "$user@notary").get().toJsonString()
-        val tester_amount = getAccountAsset(testCredential, irohaNetwork, tester, "$asset_name#notary").get()
+        val accountJson = getAccountData(testCredential, irohaNetwork, userId).get().toJsonString()
+        val tester_amount = getAccountAsset(testCredential, irohaNetwork, tester, "$asset_name#$assetDomain").get()
         val u1_amount =
-            getAccountAsset(testCredential, irohaNetwork, "$user@notary", "$asset_name#notary").get()
+            getAccountAsset(testCredential, irohaNetwork, userId, "$asset_name#$assetDomain").get()
 
         assertEquals(hashes, successHash)
-        assertEquals("{\"test@notary\":{\"key\":\"value\"}}", accountJson)
+        assertEquals("{\"$tester\":{\"key\":\"value\"}}", accountJson)
         assertEquals(73, tester_amount.toInt())
         assertEquals(27, u1_amount.toInt())
 
@@ -154,7 +171,10 @@ class IrohaBatchTest {
         val user = randomString()
         val asset_name = randomString()
 
-        val irohaConsumer = IrohaConsumerImpl(testCredential, testConfig.iroha)
+        val irohaConsumer = IrohaConsumerImpl(testCredential, irohaNetwork)
+
+        val userId = "$user@$CLIENT_DOMAIN"
+        val assetId = "$asset_name#$assetDomain"
 
         val txList =
             listOf(
@@ -165,7 +185,7 @@ class IrohaBatchTest {
                     listOf(
                         IrohaCommand.CommandCreateAccount(
                             user,
-                            "notary",
+                            CLIENT_DOMAIN,
                             ModelCrypto().generateKeypair().publicKey().hex()
                         )
                     )
@@ -176,7 +196,7 @@ class IrohaBatchTest {
                     1,
                     listOf(
                         IrohaCommand.CommandSetAccountDetail(
-                            "$user@notary",
+                            userId,
                             "key",
                             "value"
                         )
@@ -189,17 +209,17 @@ class IrohaBatchTest {
                     listOf(
                         IrohaCommand.CommandCreateAsset(
                             asset_name,
-                            "notary",
+                            assetDomain,
                             0
                         ),
                         IrohaCommand.CommandAddAssetQuantity(
-                            "$asset_name#notary",
+                            assetId,
                             "100"
                         ),
                         IrohaCommand.CommandTransferAsset(
                             tester,
-                            "$user@notary",
-                            "$asset_name#notary",
+                            userId,
+                            assetId,
                             "desc",
                             "27"
                         )
@@ -212,8 +232,8 @@ class IrohaBatchTest {
                     listOf(
                         IrohaCommand.CommandTransferAsset(
                             tester,
-                            "$user@notary",
-                            "$asset_name#notary",
+                            userId,
+                            assetId,
                             "",
                             "1234"
                         )
@@ -227,12 +247,6 @@ class IrohaBatchTest {
         val hashes = lst.map { it.hash().hex() }
         val expectedHashes = hashes.subList(0, hashes.size - 1)
 
-        val listener = IrohaChainListener(
-            testConfig.iroha.hostname,
-            testConfig.iroha.port,
-            testCredential
-        )
-
         val blockHashes = async {
             listener.getBlock().payload.transactionsList.map {
                 Blob(iroha.hashTransaction(it.toByteArray().toByteVector())).hex()
@@ -241,13 +255,13 @@ class IrohaBatchTest {
 
         val successHash = irohaConsumer.sendAndCheck(lst).get()
 
-        val accountJson = getAccountData(testCredential, irohaNetwork, "$user@notary").get().toJsonString()
-        val tester_amount = getAccountAsset(testCredential, irohaNetwork, tester, "$asset_name#notary").get()
+        val accountJson = getAccountData(testCredential, irohaNetwork, userId).get().toJsonString()
+        val tester_amount = getAccountAsset(testCredential, irohaNetwork, tester, assetId).get()
         val u1_amount =
-            getAccountAsset(testCredential, irohaNetwork, "$user@notary", "$asset_name#notary").get()
+            getAccountAsset(testCredential, irohaNetwork, userId, assetId).get()
 
         assertEquals(expectedHashes, successHash)
-        assertEquals("{\"test@notary\":{\"key\":\"value\"}}", accountJson)
+        assertEquals("{\"$tester\":{\"key\":\"value\"}}", accountJson)
         assertEquals(73, tester_amount.toInt())
         assertEquals(27, u1_amount.toInt())
 

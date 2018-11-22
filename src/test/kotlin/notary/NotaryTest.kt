@@ -6,11 +6,14 @@ import config.IrohaConfig
 import config.IrohaCredentialConfig
 import io.reactivex.Observable
 import io.reactivex.observers.TestObserver
+import jp.co.soramitsu.iroha.Keypair
+import model.IrohaCredential
 import notary.eth.EthNotaryConfig
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import provider.NotaryPeerListProvider
 import sidechain.SideChainEvent
+import sidechain.iroha.consumer.IrohaNetwork
 import java.math.BigInteger
 import kotlin.test.assertEquals
 
@@ -26,10 +29,13 @@ class NotaryTest {
     }
 
     private val credentialConfig = mock<IrohaCredentialConfig>(){
-        on {privkeyPath} doReturn "deploy/iroha/keys/admin@notary.priv"
-        on {pubkeyPath} doReturn "deploy/iroha/keys/admin@notary.pub"
+        on { privkeyPath } doReturn "deploy/iroha/keys/test@notary.priv"
+        on { pubkeyPath } doReturn "deploy/iroha/keys/test@notary.pub"
         on {accountId} doReturn "creator@iroha"
     }
+
+    private val irohaCredential = IrohaCredential("creator@iroha", mock<Keypair>())
+    private val irohaNetwork = mock<IrohaNetwork>()
 
     /** Configuration for notary */
     private val notaryConfig = mock<EthNotaryConfig>() {
@@ -143,7 +149,7 @@ class NotaryTest {
 
         // source of events from side chains
         val obsEth = Observable.just<SideChainEvent.PrimaryBlockChainEvent>(custodianIntention)
-        val notary = createEthNotary(notaryConfig, obsEth, peerListProvider)
+        val notary = createEthNotary(irohaCredential, irohaNetwork, obsEth, peerListProvider)
         val res = notary.irohaOutput()
         checkEthereumDepositResult(
             expectedAmount,
@@ -184,7 +190,7 @@ class NotaryTest {
 
         // source of events from side chains
         val obsEth = Observable.just<SideChainEvent.PrimaryBlockChainEvent>(custodianIntention)
-        val notary = createEthNotary(notaryConfig, obsEth, peerListProvider)
+        val notary = createEthNotary(irohaCredential, irohaNetwork, obsEth, peerListProvider)
         val res = notary.irohaOutput()
             checkEthereumDepositResult(
             expectedAmount,

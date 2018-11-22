@@ -6,7 +6,9 @@ import model.IrohaCredential
 import mu.KLogging
 import sidechain.eth.util.DeployHelper
 import sidechain.iroha.consumer.IrohaConsumerImpl
+import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
+import java.io.File
 
 /**
  * Class is responsible for relay addresses registration.
@@ -15,13 +17,14 @@ import sidechain.iroha.util.ModelUtil
 class RelayRegistration(
     private val relayRegistrationConfig: RelayRegistrationConfig,
     relayCredential: IrohaCredential,
+    irohaNetwork: IrohaNetwork,
     relayRegistrationEthereumPasswords: EthereumPasswords
 ) {
     /** Ethereum endpoint */
     private val deployHelper = DeployHelper(relayRegistrationConfig.ethereum, relayRegistrationEthereumPasswords)
 
     /** Iroha endpoint */
-    private val irohaConsumer = IrohaConsumerImpl(relayCredential, relayRegistrationConfig.iroha)
+    private val irohaConsumer = IrohaConsumerImpl(relayCredential, irohaNetwork)
 
     private val notaryIrohaAccount = relayRegistrationConfig.notaryIrohaAccount
 
@@ -57,13 +60,27 @@ class RelayRegistration(
         ethMasterWallet: String
     ): Result<Unit, Exception> {
         return Result.of {
-            (1..relaysToDeploy).forEach {
+            (1..relaysToDeploy).forEach { _ ->
                 val relayWallet = deployRelaySmartContract(ethMasterWallet)
                 registerRelayIroha(relayWallet).fold(
                     { logger.info("Relay $relayWallet was deployed") },
                     { ex -> logger.error("Cannot deploy relay $relayWallet", ex) })
             }
         }
+    }
+
+    fun import(filename: String): Result<Unit, Exception> {
+        return Result.of {
+            getRelaysFromFile(filename).forEach { relay ->
+                registerRelayIroha(relay).fold(
+                    { logger.info("Relay $relay was imported") },
+                    { ex -> logger.error("Cannot import relay $relay", ex) })
+            }
+        }
+    }
+
+    private fun getRelaysFromFile(filename: String): List<String> {
+        return File(filename).readLines()
     }
 
     /**

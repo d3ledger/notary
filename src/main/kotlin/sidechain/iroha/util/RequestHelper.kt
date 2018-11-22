@@ -5,6 +5,8 @@ import com.beust.klaxon.Parser
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
+import iroha.protocol.BlockOuterClass
+import iroha.protocol.Commands
 import iroha.protocol.QryResponses
 import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.ModelQueryBuilder
@@ -15,8 +17,7 @@ import java.math.BigInteger
 /**
  * Get asset precision
  *
- * @param irohaConfig - Iroha configuration parameters
- * @param keypair - iroha keypair
+ * @param credential - iroha credential
  * @param irohaNetwork - iroha network layer
  * @param assetId asset id in Iroha
  */
@@ -43,8 +44,7 @@ fun getAssetPrecision(
 /**
  * Get asset info
  *
- * @param irohaConfig - Iroha configuration parameters
- * @param keypair - iroha keypair
+ * @param credential - iroha credential
  * @param irohaNetwork - iroha network layer
  * @param assetId asset id in Iroha
  */
@@ -70,8 +70,7 @@ fun getAssetInfo(
 /**
  * Get asset balance
  *
- * @param irohaConfig - Iroha configuration parameters
- * @param keypair - iroha keypair
+ * @param credential - iroha credential
  * @param irohaNetwork - iroha network layer
  * @param accountId - iroha account
  *
@@ -105,8 +104,7 @@ fun getAccountAsset(
 
 /**
  * Retrieves account JSON data from Iroha
- * @param irohaConfig - Iroha configuration parameters
- * @param keypair - iroha keypair
+ * @param credential - iroha credential
  * @param irohaNetwork - iroha network layer
  * @param acc account to retrieve relays from
  * @return Map with account details
@@ -134,8 +132,7 @@ fun getAccountData(
 
 /**
  * Retrieves account details by setter from Iroha
- * @param irohaConfig - Iroha configuration parameters
- * @param keypair - iroha keypair
+ * @param credential - iroha credential
  * @param irohaNetwork - iroha network layer
  * @param acc account to retrieve relays from
  * @param detailSetterAccount - account that has set the details
@@ -173,6 +170,27 @@ fun getFirstTransaction(queryResponse: QryResponses.QueryResponse): Result<Trans
         // return transaction
         queryResponse.transactionsResponse.transactionsList[0]
     }
+}
+
+/**
+ * Return all "set account detail" commands from Iroha block
+ * @param block - Iroha block
+ * @return list full of "set account detail" commands
+ */
+fun getSetDetailCommands(block: BlockOuterClass.Block): List<Commands.Command> {
+    return block.payload.transactionsList.flatMap { tx ->
+        tx.payload.reducedPayload.commandsList
+    }.filter { command -> command.hasSetAccountDetail() }
+}
+
+/**
+ * Return all "transfer asset" commands from Iroha block
+ * @param block - Iroha block
+ * @return list full of "transfer asset" commands
+ */
+fun getTransferCommands(block: BlockOuterClass.Block): List<Commands.Command> {
+    return block.payload.transactionsList.flatMap { tx -> tx.payload.reducedPayload.commandsList }
+        .filter { command -> command.hasTransferAsset() }
 }
 
 /**

@@ -2,46 +2,47 @@ package provider.btc
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import config.IrohaConfig
-import model.IrohaCredential
+import helper.address.getSignThreshold
 import mu.KLogging
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Utils
-import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.script.ScriptBuilder
-import org.bitcoinj.wallet.Wallet
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.stereotype.Component
 import provider.NotaryPeerListProvider
-import sidechain.iroha.consumer.IrohaConsumerImpl
+import provider.btc.address.AddressInfo
+import provider.btc.network.BtcNetworkConfigProvider
+import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.util.ModelUtil
 import util.getRandomId
-import java.io.File
+import wallet.WalletFile
 
 /**
  *  Bitcoin keys provider
- *  @param wallet - bitcoinJ wallet class
- *  @param walletFile - file where to save wallet
- *  @param irohaConfig - configutation to start Iroha client
- *  @param notaryPeerListProvider - class to query all current notaries
+ *  @param walletFile - bitcoin wallet
+ *  @param notaryPeerListProvider - provider to query all current notaries
+ *  @param notaryAccount - Iroha account of notary service. Used to store BTC addresses
+ *  @param multiSigConsumer - consumer of multisignature Iroha account. Used to create multisignature transactions.
+ *  @param sessionConsumer - consumer of session Iroha account. Used to store session data.
+ *  @param btcNetworkConfigProvider - provider of network configuration
  */
+@Component
 class BtcPublicKeyProvider(
-    //BTC wallet
-    private val wallet: Wallet,
-    //BTC wallet file storage
-    private val walletFile: File,
-    private val irohaConfig: IrohaConfig,
-    //Provider that helps us fetching all the peers registered in the network
-    private val notaryPeerListProvider: NotaryPeerListProvider,
-    //BTC registration account
-    btcRegistrationCredential: IrohaCredential,
-    //BTC registration account, that works in MST fashion
-    mstBtcRegistrationCredential: IrohaCredential,
-    //Notary account to store BTC addresses
-    private val notaryAccount: String
+    @Autowired private val walletFile: WalletFile,
+    @Autowired private val notaryPeerListProvider: NotaryPeerListProvider,
+    @Qualifier("notaryAccount")
+    @Autowired private val notaryAccount: String,
+    @Qualifier("multiSigConsumer")
+    @Autowired private val multiSigConsumer: IrohaConsumer,
+    @Qualifier("sessionConsumer")
+    @Autowired private val sessionConsumer: IrohaConsumer,
+    @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider
 ) {
-
-    private val sessionConsumer = IrohaConsumerImpl(btcRegistrationCredential, irohaConfig)
-    private val multiSigConsumer = IrohaConsumerImpl(mstBtcRegistrationCredential, irohaConfig)
+    init {
+        logger.info { "BtcPublicKeyProvider was successfully initialized. Current wallet state:\n${walletFile.wallet}" }
+    }
 
     /**
      * Creates notary public key and sets it into session account details
@@ -50,7 +51,7 @@ class BtcPublicKeyProvider(
      */
     fun createKey(sessionAccountName: String): Result<String, Exception> {
         // Generate new key from wallet
-        val key = wallet.freshReceiveKey()
+        val key = walletFile.wallet.freshReceiveKey()
         val pubKey = key.publicKeyAsHex
         return ModelUtil.setAccountDetail(
             sessionConsumer,
@@ -58,7 +59,7 @@ class BtcPublicKeyProvider(
             String.getRandomId(),
             pubKey
         ).map {
-            wallet.saveToFile(walletFile)
+            walletFile.save()
             pubKey
         }
     }
@@ -74,16 +75,20 @@ class BtcPublicKeyProvider(
             if (peers == 0) {
                 throw IllegalStateException("No peers to create btc multisignature address")
             } else if (notaryKeys.size == peers && hasMyKey(notaryKeys)) {
-                val threshold = getThreshold(peers)
+                val threshold = getSignThreshold(peers)
                 val msAddress = createMsAddress(notaryKeys, threshold)
-                wallet.addWatchedAddress(msAddress)
+                if (!walletFile.wallet.addWatchedAddress(msAddress)) {
+                    throw IllegalStateException("BTC address $msAddress was not added to wallet")
+                }
+                logger.info { "Address $msAddress was added to wallet. Current wallet state:\n${walletFile.wallet}" }
                 ModelUtil.setAccountDetail(
                     multiSigConsumer,
                     notaryAccount,
                     msAddress.toBase58(),
-                    "free"
+                    AddressInfo.createFreeAddressInfo(ArrayList<String>(notaryKeys)).toJson()
                 ).fold({
-                    wallet.saveToFile(walletFile)
+                    //TODO this save will probably corrupt the wallet file
+                    walletFile.save()
                     logger.info { "New BTC multisignature address $msAddress was created " }
                 }, { ex -> throw ex })
             }
@@ -97,7 +102,7 @@ class BtcPublicKeyProvider(
      */
     private fun hasMyKey(notaryKeys: Collection<String>): Boolean {
         val hasMyKey = notaryKeys.find { key ->
-            wallet.issuedReceiveKeys.find { ecKey -> ecKey.publicKeyAsHex == key } != null
+            walletFile.wallet.issuedReceiveKeys.find { ecKey -> ecKey.publicKeyAsHex == key } != null
         } != null
         return hasMyKey
     }
@@ -114,16 +119,8 @@ class BtcPublicKeyProvider(
             keys.add(ecKey)
         }
         val script = ScriptBuilder.createP2SHOutputScript(threshold, keys)
-        return script.getToAddress(RegTestParams.get())
-    }
-
-    /**
-     * Calculate threshold
-     * @param peers - total number of peers
-     * @return minimal number of signatures required
-     */
-    private fun getThreshold(peers: Int): Int {
-        return (peers * 2 / 3) + 1;
+        logger.info { "New BTC multisignature script $script" }
+        return script.getToAddress(btcNetworkConfigProvider.getConfig())
     }
 
     /**

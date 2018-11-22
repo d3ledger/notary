@@ -5,6 +5,8 @@ import integration.helper.IntegrationHelperUtil
 import notary.endpoint.eth.BigIntegerMoshiAdapter
 import notary.endpoint.eth.EthNotaryResponse
 import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
+import notary.eth.ENDPOINT_ETHEREUM
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -13,6 +15,7 @@ import provider.eth.EthRelayProviderIrohaImpl
 import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
+import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import util.getRandomString
 import java.math.BigDecimal
@@ -31,7 +34,8 @@ class WithdrawalIntegrationTest {
     private val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig()
 
     init {
-        integrationHelper.runEthNotary(notaryConfig)
+        integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig)
+        integrationHelper.lockEthMasterSmartcontract()
     }
 
     /** Ethereum private key **/
@@ -44,6 +48,12 @@ class WithdrawalIntegrationTest {
         notaryConfig.iroha.hostname,
         notaryConfig.iroha.port
     )
+
+    @AfterAll
+    fun dropDown() {
+        integrationHelper.close()
+        irohaNetwork.close()
+    }
 
     /**
      * Test US-003 Withdrawal of ETH token
@@ -62,7 +72,7 @@ class WithdrawalIntegrationTest {
 
         // create
         val client = String.getRandomString(9)
-        val clientId = "$client@notary"
+        val clientId = "$client@$CLIENT_DOMAIN"
         integrationHelper.registerClient(client, listOf(ethWallet), integrationHelper.testCredential.keyPair)
         integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
         val relay = EthRelayProviderIrohaImpl(
@@ -87,7 +97,7 @@ class WithdrawalIntegrationTest {
 
         // query
         val res =
-            khttp.get("http://127.0.0.1:${notaryConfig.refund.port}/${notaryConfig.refund.endpointEthereum}/$hash")
+            khttp.get("http://127.0.0.1:${notaryConfig.refund.port}/$ENDPOINT_ETHEREUM/$hash")
 
         val moshi = Moshi
             .Builder()

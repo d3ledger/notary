@@ -54,6 +54,10 @@ class EthChainListener(
         return getBlockObservable().get().blockingFirst()
     }
 
+    override fun close() {
+        web3.shutdown()
+    }
+    
     /**
      * Logger
      */

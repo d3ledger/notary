@@ -1,8 +1,6 @@
 package notary
 
 import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.map
-import config.IrohaConfig
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import model.IrohaCredential
@@ -11,7 +9,7 @@ import provider.NotaryPeerListProvider
 import sidechain.SideChainEvent
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
-import sidechain.iroha.util.ModelUtil
+import sidechain.iroha.consumer.IrohaNetwork
 import java.math.BigInteger
 import java.util.concurrent.Executors
 
@@ -19,8 +17,8 @@ import java.util.concurrent.Executors
  * Implementation of [Notary] business logic
  */
 class NotaryImpl(
-    private val irohaConfig: IrohaConfig,
     private val notaryCredential: IrohaCredential,
+    private val irohaNetwork: IrohaNetwork,
     private val primaryChainEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>,
     private val domain: String,
     private val peerListProvider: NotaryPeerListProvider
@@ -117,7 +115,7 @@ class NotaryImpl(
     override fun initIrohaConsumer(): Result<Unit, Exception> {
         logger.info { "Init Iroha consumer" }
         return Result.of {
-            val irohaConsumer = IrohaConsumerImpl(notaryCredential, irohaConfig)
+            val irohaConsumer = IrohaConsumerImpl(notaryCredential, irohaNetwork)
 
             // Init Iroha Consumer pipeline
             irohaOutput()

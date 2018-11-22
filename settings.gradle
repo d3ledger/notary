@@ -1,2 +1,26 @@
 rootProject.name = 'notary'
-include 'notary-integration-test', 'btc', 'btc-deposit', 'btc-registration', 'btc-pregeneration'
+
+include 'btc'
+project(':btc').projectDir = 'btc' as File
+
+include 'btc-deposit'
+project(':btc-deposit').projectDir = 'btc-deposit' as File
+
+include 'btc-registration'
+project(':btc-registration').projectDir = 'btc-registration' as File
+
+include 'btc-pregeneration'
+project(':btc-pregeneration').projectDir = 'btc-pregeneration' as File
+
+include 'btc-withdrawal'
+project(':btc-withdrawal').projectDir = 'btc-withdrawal' as File
+
+include 'notary-integration-test'
+project(':notary-integration-test').projectDir = 'notary-integration-test' as File
+
+include 'test-longevity'
+project(':test-longevity').projectDir = 'test-longevity' as File
+
+include 'd3testreport'
+project(':d3testreport').projectDir = 'd3testreport' as File
+

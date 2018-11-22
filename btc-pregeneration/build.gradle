@@ -21,7 +21,7 @@ dependencies {
 task runBtcPreGen(type: JavaExec) {
     main = 'pregeneration.btc.BtcPreGenerationMain'
     classpath = sourceSets.main.runtimeClasspath
-
+    setWorkingDir("$rootDir/")
     systemProperty 'java.library.path', getIrohaLibPath()
     environment "LD_LIBRARY_PATH", getIrohaLibPath()
 }
@@ -29,7 +29,13 @@ task runBtcPreGen(type: JavaExec) {
 task runBtcPreGenTrigger(type: JavaExec) {
     main = 'pregeneration.btc.trigger.BtcPreGenerationTriggerMain'
     classpath = sourceSets.main.runtimeClasspath
-
+    setWorkingDir("$rootDir/")
     systemProperty 'java.library.path', getIrohaLibPath()
     environment "LD_LIBRARY_PATH", getIrohaLibPath()
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "notary:btc-pregeneration"
+    }
 }

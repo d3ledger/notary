@@ -12,6 +12,8 @@ dependencies {
     // unit tests
     testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
     testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
+    // https://mvnrepository.com/artifact/com.github.jleskovar/btc-rpc-client
+    compile group: 'com.github.jleskovar', name: 'btc-rpc-client', version: '1.1.0'
 }
 
 sourceSets {
@@ -20,6 +22,9 @@ sourceSets {
             compileClasspath += main.output + test.output
             runtimeClasspath += main.output + test.output
             srcDirs += 'src/integration-test/kotlin'
+        }
+        resources {
+            srcDirs= ["src/integration-test/resources"]
         }
     }
 }
@@ -55,4 +60,11 @@ dependencies {
     compile project(":btc-registration")
     compile project(":btc-pregeneration")
     compile project(":btc-deposit")
+    compile project(":btc-withdrawal")
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "notary:notary-integration-test"
+    }
 }

@@ -1,0 +1,37 @@
+import java.nio.file.Paths
+
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        //Spring-boot
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:$spring_boot_version"
+    }
+}
+
+apply plugin: 'application'
+apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
+apply plugin: 'org.springframework.boot'
+mainClassName = "LongevityMain"
+
+task longevityTest(type: JavaExec) {
+    main = 'longevity.LongevityMain'
+    classpath = sourceSets.main.runtimeClasspath
+    setWorkingDir("$rootDir/")
+
+    args getEthPasswordsArgs()
+    systemProperty 'java.library.path', getIrohaLibPath()
+    environment "LD_LIBRARY_PATH", getIrohaLibPath()
+}
+
+dependencies {
+    compile project(":notary-integration-test")
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "notary:test-longevity"
+    }
+}

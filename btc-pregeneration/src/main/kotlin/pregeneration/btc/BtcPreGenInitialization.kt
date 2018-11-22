@@ -4,10 +4,9 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import healthcheck.HealthyServiceInitializer
+import healthcheck.HealthyService
 import io.reactivex.Observable
 import iroha.protocol.BlockOuterClass
-import iroha.protocol.Commands
 import model.IrohaCredential
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,9 +15,9 @@ import org.springframework.stereotype.Component
 import pregeneration.btc.config.BtcPreGenConfig
 import provider.btc.BtcPublicKeyProvider
 import sidechain.iroha.IrohaChainListener
-import sidechain.iroha.consumer.IrohaNetworkImpl
+import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
-import java.util.concurrent.atomic.AtomicBoolean
+import sidechain.iroha.util.getSetDetailCommands
 
 /*
    This class listens to special account to be triggered and starts pregeneration process
@@ -27,12 +26,11 @@ import java.util.concurrent.atomic.AtomicBoolean
 class BtcPreGenInitialization(
     @Qualifier("registrationCredential")
     @Autowired private val registrationCredential: IrohaCredential,
+    @Autowired private val irohaNetwork: IrohaNetwork,
     @Autowired private val btcPreGenConfig: BtcPreGenConfig,
     @Autowired private val btcPublicKeyProvider: BtcPublicKeyProvider,
     @Autowired private val irohaChainListener: IrohaChainListener
-) : HealthyServiceInitializer {
-    private val healthy = AtomicBoolean(true)
-    private val irohaNetwork = IrohaNetworkImpl(btcPreGenConfig.iroha.hostname, btcPreGenConfig.iroha.port)
+) : HealthyService() {
 
     /*
     Initiates listener that listens to events in trigger account.
@@ -63,15 +61,11 @@ class BtcPreGenInitialization(
                 }
             }
         }, { ex ->
-            healthy.set(false)
+            notHealthy()
             logger.error("Error on subscribe", ex)
         })
     }
 
-    private fun getSetDetailCommands(block: BlockOuterClass.Block): List<Commands.Command> {
-        return block.payload.transactionsList.flatMap { tx -> tx.payload.reducedPayload.commandsList }
-            .filter { command -> command.hasSetAccountDetail() }
-    }
 
     private fun onGenerateKey(sessionAccountName: String): Result<String, Exception> {
         return btcPublicKeyProvider.createKey(sessionAccountName)
@@ -88,8 +82,6 @@ class BtcPreGenInitialization(
             btcPublicKeyProvider.checkAndCreateMultiSigAddress(notaryKeys)
         }
     }
-
-    override fun isHealthy() = healthy.get()
 
     /**
      * Logger

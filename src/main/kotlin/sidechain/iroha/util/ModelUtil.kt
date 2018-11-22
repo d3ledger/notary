@@ -2,7 +2,6 @@ package sidechain.iroha.util
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
-import com.github.kittinunf.result.map
 import com.google.protobuf.InvalidProtocolBufferException
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.CommandServiceGrpc
@@ -55,7 +54,7 @@ object ModelUtil {
      * @port to connect
      * @return managed channel
      */
-    fun getChannel(host: String, port: Int) = ManagedChannelBuilder.forAddress(host, port).usePlaintext(true).build()
+    fun getChannel(host: String, port: Int) = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build()
 
     /**
      * Creates a stub for commands
@@ -334,21 +333,4 @@ object ModelUtil {
         }
     }
 
-    /**
-     * Create new Iroha account with [accountName].
-     */
-    fun createAccount(
-        irohaConsumer: IrohaConsumer,
-        irohaKeyPair: Keypair,
-        accountName: String
-    ): Result<String, Exception> {
-        val domain = "notary"
-        return irohaConsumer.sendAndCheck(
-            ModelTransactionBuilder()
-                .creatorAccountId(irohaConsumer.creator)
-                .createdTime(ModelUtil.getCurrentTime())
-                .createAccount(accountName, domain, irohaKeyPair.publicKey())
-                .build()
-        ).map { "$accountName@$domain" }
-    }
 }

@@ -3,16 +3,21 @@ package pregeneration.btc.config
 import config.loadConfigs
 import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import provider.NotaryPeerListProvider
 import provider.NotaryPeerListProviderImpl
-import provider.btc.BtcPublicKeyProvider
 import sidechain.iroha.IrohaChainListener
+import sidechain.iroha.consumer.IrohaConsumerImpl
+import sidechain.iroha.consumer.IrohaNetwork
+import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
+import wallet.WalletFile
 import java.io.File
 
 val btcPreGenConfig =
-    loadConfigs("btc-pregen", BtcPreGenConfig::class.java, "/pregeneration.properties")
+    loadConfigs("btc-pregen", BtcPreGenConfig::class.java, "/btc/pregeneration.properties")
 
 @Configuration
 class BtcPreGenerationAppConfiguration {
@@ -40,28 +45,42 @@ class BtcPreGenerationAppConfiguration {
         IrohaCredential(btcPreGenConfig.mstRegistrationAccount.accountId, mstRegistrationKeyPair)
 
     @Bean
+    fun irohaNetwork() = IrohaNetworkImpl(
+        btcPreGenConfig.iroha.hostname,
+        btcPreGenConfig.iroha.port
+    )
+
+    @Bean
     fun preGenConfig() = btcPreGenConfig
 
     @Bean
-    fun btcPublicKeyProvider(): BtcPublicKeyProvider {
+    fun walletFile(): WalletFile {
         val walletFile = File(btcPreGenConfig.btcWalletFilePath)
         val wallet = Wallet.loadFromFile(walletFile)
-        val notaryPeerListProvider = NotaryPeerListProviderImpl(
-            btcPreGenConfig.iroha,
+        return WalletFile(wallet, walletFile)
+    }
+
+    @Bean
+    @Autowired
+    fun notaryPeerListProvider(irohaNetwork: IrohaNetwork): NotaryPeerListProvider {
+        return NotaryPeerListProviderImpl(
             registrationCredential,
+            irohaNetwork,
             btcPreGenConfig.notaryListStorageAccount,
             btcPreGenConfig.notaryListSetterAccount
         )
-        return BtcPublicKeyProvider(
-            wallet,
-            walletFile,
-            btcPreGenConfig.iroha,
-            notaryPeerListProvider,
-            registrationCredential,
-            mstRegistrationCredential,
-            btcPreGenConfig.notaryAccount
-        )
     }
+
+    @Bean
+    @Autowired
+    fun sessionConsumer(irohaNetwork: IrohaNetwork) = IrohaConsumerImpl(registrationCredential, irohaNetwork)
+
+    @Bean
+    @Autowired
+    fun multiSigConsumer(irohaNetwork: IrohaNetwork) = IrohaConsumerImpl(mstRegistrationCredential, irohaNetwork)
+
+    @Bean
+    fun notaryAccount() = btcPreGenConfig.notaryAccount
 
     @Bean
     fun irohaChainListener() = IrohaChainListener(
@@ -69,13 +88,6 @@ class BtcPreGenerationAppConfiguration {
         btcPreGenConfig.iroha.port,
         registrationCredential
     )
-
-    @Bean
-    fun healthCheckIrohaConfig() = btcPreGenConfig.iroha
-
-    //TODO dedicate a special account for performing Iroha health checks
-    @Bean
-    fun irohaHealthCheckCredential() = registrationCredential
 
     @Bean
     fun registrationCredential() = registrationCredential

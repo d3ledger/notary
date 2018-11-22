@@ -7,6 +7,7 @@ import mu.KLogging
 import okhttp3.*
 import org.web3j.crypto.WalletUtils
 import org.web3j.protocol.Web3j
+import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.http.HttpService
 import org.web3j.tx.RawTransactionManager
 import org.web3j.tx.Transfer
@@ -31,8 +32,6 @@ class BasicAuthenticator(private val ethereumPasswords: EthereumPasswords) : Aut
  * @param ethereumPasswords config with Ethereum passwords
  */
 class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPasswords) {
-
-    val url: String = ethereumConfig.url
     val web3: Web3j
 
     init {
@@ -155,10 +154,20 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      * Get ERC20 balance
      * @param tokenAddress - address of token smart contract
      * @param whoAddress - user address to check
+     * @return user balance
      */
     fun getERC20Balance(tokenAddress: String, whoAddress: String): BigInteger {
         val token = contract.BasicCoin.load(tokenAddress, web3, credentials, gasPrice, gasLimit)
         return token.balanceOf(whoAddress).send()
+    }
+
+    /**
+     * Get ETH balance
+     * @param whoAddress - user address to check
+     * @return user balance
+     */
+    fun getETHBalance(whoAddress: String): BigInteger {
+        return web3.ethGetBalance(whoAddress, DefaultBlockParameterName.LATEST).send().balance
     }
 
     /**
