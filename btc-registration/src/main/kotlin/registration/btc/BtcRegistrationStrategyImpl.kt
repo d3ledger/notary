@@ -30,9 +30,10 @@ class BtcRegistrationStrategyImpl(
             .flatMap { (addresses, takenAddresses) ->
                 try {
                     //TODO Warning. Race condition ahead. Multiple threads/nodes can register the same BTC address twice.
-                    //It fetches all BTC addresses and takes one that was not registered
+                    //It fetches all free BTC addresses and takes one that was not registered
                     val freeAddress =
-                        addresses.first { btcAddress -> !takenAddresses.any { takenAddress -> takenAddress.address == btcAddress.address } }
+                        addresses.filter { address -> address.isFree() }
+                            .first { btcAddress -> !takenAddresses.any { takenAddress -> takenAddress.address == btcAddress.address } }
                     irohaBtcAccountCreator.create(
                         freeAddress.address,
                         whitelist,

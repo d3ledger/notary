@@ -23,6 +23,7 @@ import sidechain.iroha.util.getTransferCommands
 import withdrawal.btc.config.BtcWithdrawalConfig
 import withdrawal.btc.handler.NewSignatureEventHandler
 import withdrawal.btc.handler.WithdrawalTransferEventHandler
+import withdrawal.btc.provider.BtcChangeAddressProvider
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -32,6 +33,7 @@ import java.util.concurrent.Executors
 @Component
 class BtcWithdrawalInitialization(
     @Autowired private val btcWithdrawalConfig: BtcWithdrawalConfig,
+    @Autowired private val btcChangeAddressProvider: BtcChangeAddressProvider,
     @Autowired private val irohaChainListener: IrohaChainListener,
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider,
     @Autowired private val withdrawalTransferEventHandler: WithdrawalTransferEventHandler,
@@ -40,7 +42,13 @@ class BtcWithdrawalInitialization(
 
     fun init(): Result<Unit, Exception> {
         val wallet = Wallet.loadFromFile(File(btcWithdrawalConfig.bitcoin.walletPath))
-        return initBtcBlockChain(wallet).flatMap { peerGroup ->
+        return btcChangeAddressProvider.isAddressPresent().map { addressIsPresent ->
+            if (!addressIsPresent) {
+                throw IllegalStateException("No address for change storage was set")
+            }
+        }.flatMap {
+            initBtcBlockChain(wallet)
+        }.flatMap { peerGroup ->
             initWithdrawalTransferListener(
                 wallet,
                 irohaChainListener,

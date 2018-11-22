@@ -1,4 +1,4 @@
-package pregeneration.btc.config
+package generation.btc.config
 
 import config.loadConfigs
 import model.IrohaCredential
@@ -16,46 +16,46 @@ import sidechain.iroha.util.ModelUtil
 import wallet.WalletFile
 import java.io.File
 
-val btcPreGenConfig =
-    loadConfigs("btc-pregen", BtcPreGenConfig::class.java, "/btc/pregeneration.properties")
+val btcAddressGenerationConfig =
+    loadConfigs("btc-address-generation", BtcAddressGenerationConfig::class.java, "/btc/address_generation.properties")
 
 @Configuration
-class BtcPreGenerationAppConfiguration {
+class BtcAddressGenerationAppConfiguration {
 
     private val registrationKeyPair =
         ModelUtil.loadKeypair(
-            btcPreGenConfig.registrationAccount.pubkeyPath,
-            btcPreGenConfig.registrationAccount.privkeyPath
+            btcAddressGenerationConfig.registrationAccount.pubkeyPath,
+            btcAddressGenerationConfig.registrationAccount.privkeyPath
         ).fold({ keypair ->
             keypair
         }, { ex -> throw ex })
 
     private val registrationCredential =
-        IrohaCredential(btcPreGenConfig.registrationAccount.accountId, registrationKeyPair)
+        IrohaCredential(btcAddressGenerationConfig.registrationAccount.accountId, registrationKeyPair)
 
     private val mstRegistrationKeyPair =
         ModelUtil.loadKeypair(
-            btcPreGenConfig.mstRegistrationAccount.pubkeyPath,
-            btcPreGenConfig.mstRegistrationAccount.privkeyPath
+            btcAddressGenerationConfig.mstRegistrationAccount.pubkeyPath,
+            btcAddressGenerationConfig.mstRegistrationAccount.privkeyPath
         ).fold({ keypair ->
             keypair
         }, { ex -> throw ex })
 
     private val mstRegistrationCredential =
-        IrohaCredential(btcPreGenConfig.mstRegistrationAccount.accountId, mstRegistrationKeyPair)
+        IrohaCredential(btcAddressGenerationConfig.mstRegistrationAccount.accountId, mstRegistrationKeyPair)
 
     @Bean
     fun irohaNetwork() = IrohaNetworkImpl(
-        btcPreGenConfig.iroha.hostname,
-        btcPreGenConfig.iroha.port
+        btcAddressGenerationConfig.iroha.hostname,
+        btcAddressGenerationConfig.iroha.port
     )
 
     @Bean
-    fun preGenConfig() = btcPreGenConfig
+    fun btcAddressGenerationConfig() = btcAddressGenerationConfig
 
     @Bean
     fun walletFile(): WalletFile {
-        val walletFile = File(btcPreGenConfig.btcWalletFilePath)
+        val walletFile = File(btcAddressGenerationConfig.btcWalletFilePath)
         val wallet = Wallet.loadFromFile(walletFile)
         return WalletFile(wallet, walletFile)
     }
@@ -66,8 +66,8 @@ class BtcPreGenerationAppConfiguration {
         return NotaryPeerListProviderImpl(
             registrationCredential,
             irohaNetwork,
-            btcPreGenConfig.notaryListStorageAccount,
-            btcPreGenConfig.notaryListSetterAccount
+            btcAddressGenerationConfig.notaryListStorageAccount,
+            btcAddressGenerationConfig.notaryListSetterAccount
         )
     }
 
@@ -80,12 +80,15 @@ class BtcPreGenerationAppConfiguration {
     fun multiSigConsumer(irohaNetwork: IrohaNetwork) = IrohaConsumerImpl(mstRegistrationCredential, irohaNetwork)
 
     @Bean
-    fun notaryAccount() = btcPreGenConfig.notaryAccount
+    fun notaryAccount() = btcAddressGenerationConfig.notaryAccount
+
+    @Bean
+    fun changeAddressStorageAccount() = btcAddressGenerationConfig.changeAddressesStorageAccount
 
     @Bean
     fun irohaChainListener() = IrohaChainListener(
-        btcPreGenConfig.iroha.hostname,
-        btcPreGenConfig.iroha.port,
+        btcAddressGenerationConfig.iroha.hostname,
+        btcAddressGenerationConfig.iroha.port,
         registrationCredential
     )
 

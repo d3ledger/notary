@@ -1,12 +1,12 @@
-package pregeneration.btc.config
+package generation.btc.config
 
 import config.IrohaConfig
 import config.IrohaCredentialConfig
 
-interface BtcPreGenConfig {
+interface BtcAddressGenerationConfig {
     /*
     Account for triggering.
-    Triggering this account means starting BTC addresses pregeneration
+    Triggering this account means starting BTC addresses generation
     */
     val pubKeyTriggerAccount: String
 
@@ -26,6 +26,9 @@ interface BtcPreGenConfig {
 
     //Account that stores all registered notaries
     val notaryListStorageAccount: String
+
+    //Account that stores change addresses
+    val changeAddressesStorageAccount: String
 
     //Account that sets registered notaries
     val notaryListSetterAccount: String

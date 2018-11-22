@@ -1,6 +1,7 @@
 package withdrawal.btc.transaction
 
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.map
 import helper.address.outPutToBase58Address
 import mu.KLogging
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.btc.network.BtcNetworkConfigProvider
+import withdrawal.btc.provider.BtcChangeAddressProvider
 
 //TODO make it configurable
 //Fee rate per byte in SAT
@@ -29,7 +31,8 @@ private const val BYTES_PER_OUTPUT = 34
 @Component
 class TransactionHelper(
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider,
-    @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider
+    @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
+    @Autowired private val btcChangeAddressProvider: BtcChangeAddressProvider
 ) {
 
     private val usedOutputs = HashSet<TransactionOutput>()
@@ -101,7 +104,13 @@ class TransactionHelper(
                             btcAddress.address
                         )
                     )
-                }.map { btcAddress -> btcAddress.address }.toSet()
+                }.map { btcAddress -> btcAddress.address }.toMutableSet()
+            }
+            .fanout { btcChangeAddressProvider.getChangeAddress() }
+            .map { (availableAddresses, changeAddress) ->
+                //Change address is also available to use
+                availableAddresses.add(changeAddress.address)
+                availableAddresses
             }
     }
 

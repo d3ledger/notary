@@ -37,9 +37,9 @@ hs_err_pid*
 /btc-registration/build/
 /btc-registration/gradle/
 /btc-registration/gradlew
-/btc-pregeneration/build/
-/btc-pregeneration/gradle/
-/btc-pregeneration/gradlew
+/btc-address-generation/build/
+/btc-address-generation/gradle/
+/btc-address-generation/gradlew
 /d3testreport/gradle
 /d3testreport/gradlew
 /d3testreport/gradlew.bat
