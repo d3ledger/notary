@@ -27,14 +27,32 @@ services:
 
   # ethereum
   d3-eth-node0:
-    build: 
-      context: ./ethereum
-      dockerfile: ganache.dockerfile
+    image: parity/parity:stable
     container_name: d3-eth-node0
     volumes:
       - ./ethereum:/eth
-    environment:
-      - NODE=0
+    command:
+      --config dev
+      --chain /eth/genesis.block
+      --cache-size 4096
+      --interface all
+      --jsonrpc-interface all
+      --jsonrpc-port 8545
+      --jsonrpc-apis all
+      --jsonrpc-cors all
+      --tracing on
+      --max-peers 50
+      --unsafe-expose
+
+#  d3-eth-node0:
+#    build:
+#      context: ./ethereum
+#      dockerfile: ganache.dockerfile
+#    container_name: d3-eth-node0
+#    volumes:
+#      - ./ethereum:/eth
+#    environment:
+#      - NODE=0
 
   grpcwebproxy:
     build:
