@@ -38,7 +38,7 @@ class EthConsumer(
             // If its true then we start vacuum process
             for (log in call!!.logs) {
                 if (log.topics.contains("0x33d1e0301846de1496df73b1da3d17c85b7266dd832d21e10ff21a1f143ef293")
-                    && event.proof.account == "0x" + log.data.subSequence(90, 130)
+                    && event.proof.account.toLowerCase() == "0x" + log.data.toLowerCase().subSequence(90, 130)
                 ) {
                     executeVacuum(relayVacuumConfig).fold(
                         {
