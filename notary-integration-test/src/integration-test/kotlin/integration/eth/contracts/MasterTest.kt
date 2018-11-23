@@ -145,6 +145,49 @@ class MasterTest {
     }
 
     /**
+     * @given deployed master contract
+     * @when one peer added to master, 5000 Wei transferred to master,
+     * request to withdraw 10000 Wei is sent to master - withdrawal fails
+     * then add 5000 Wei to master (simulate vacuum process) and
+     * request to withdraw 10000 Wei is sent to master
+     * @then the second call to withdraw succeeded
+     */
+    @Test
+    fun secondWithdrawAfterVacuum() {
+        val initialBalance = cth.getETHBalance(accGreen)
+        cth.sendAddPeer(accMain)
+        master.disableAddingNewPeers().send()
+        cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
+        val call =
+            cth.withdraw(
+                BigInteger.valueOf(10000),
+                accGreen,
+                etherAddress
+            )
+        Assertions.assertEquals(
+            "0x" + "0".repeat(24) +
+                    etherAddress.slice(2 until etherAddress.length),
+            call.logs[0].data.subSequence(0, 66)
+        )
+        Assertions.assertEquals(accGreen, "0x" + call.logs[0].data.subSequence(90, 130))
+
+        cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
+        cth.withdraw(
+            BigInteger.valueOf(10000),
+            accGreen,
+            etherAddress
+        )
+        Assertions.assertEquals(
+            BigInteger.valueOf(0),
+            cth.getETHBalance(master.contractAddress)
+        )
+        Assertions.assertEquals(
+            initialBalance + BigInteger.valueOf(10000),
+            cth.getETHBalance(accGreen)
+        )
+    }
+
+    /**
      * @given deployed master and token contracts
      * @when 5 tokens transferred to master,
      * request to withdraw 1 token is sent to master
