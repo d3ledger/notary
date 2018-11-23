@@ -11,11 +11,11 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
+import provider.btc.account.IrohaBtcAccountCreator
 import provider.btc.address.BtcAddressesProvider
 import provider.btc.address.BtcRegisteredAddressesProvider
 import registration.btc.BtcRegistrationServiceInitialization
 import registration.btc.BtcRegistrationStrategyImpl
-import provider.btc.account.IrohaBtcAccountCreator
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
@@ -74,7 +74,7 @@ class BtcRegistrationIntegrationTest {
      */
     @Test
     fun testRegistration() {
-        integrationHelper.preGenBtcAddress(btcNotaryConfig.bitcoin.walletPath)
+        integrationHelper.genFreeBtcAddress(btcNotaryConfig.bitcoin.walletPath)
         val keypair = ModelCrypto().generateKeypair()
         val userName = String.getRandomString(9)
         val res = khttp.post(
@@ -106,9 +106,7 @@ class BtcRegistrationIntegrationTest {
     fun testRegistrationMultiple() {
         val takenAddresses = HashSet<String>()
         val addressesToRegister = 3
-        for (i in 1..addressesToRegister) {
-            integrationHelper.preGenBtcAddress(btcNotaryConfig.bitcoin.walletPath)
-        }
+        integrationHelper.preGenFreeBtcAddresses(btcNotaryConfig.bitcoin.walletPath, addressesToRegister)
         for (i in 1..addressesToRegister) {
             val keypair = ModelCrypto().generateKeypair()
             val userName = String.getRandomString(9)
@@ -151,7 +149,26 @@ class BtcRegistrationIntegrationTest {
         )
         assertEquals(400, res.statusCode)
         assertEquals(clientsBeforeRegistration, btcTakenAddressesProvider.getRegisteredAddresses().get().size)
+    }
 
+    /**
+     * Note: Iroha must be deployed to pass the test.
+     * @given only one "change" address is generated
+     * @when client name is passed to registration service
+     * @then client stays unregistered, because there are no "free" Bitcoin addresses
+     */
+    @Test
+    fun testRegistrationOnlyChangeAddresses() {
+        val clientsBeforeRegistration = btcTakenAddressesProvider.getRegisteredAddresses().get().size
+        integrationHelper.genChangeBtcAddress(btcNotaryConfig.bitcoin.walletPath)
+        val keypair = ModelCrypto().generateKeypair()
+        val userName = String.getRandomString(9)
+        val res = khttp.post(
+            "http://127.0.0.1:${btcRegistrationConfig.port}/users",
+            data = mapOf("name" to userName, "pubkey" to keypair.publicKey().hex())
+        )
+        assertEquals(400, res.statusCode)
+        assertEquals(clientsBeforeRegistration, btcTakenAddressesProvider.getRegisteredAddresses().get().size)
     }
 
     private fun btcAddressesProvider(): BtcAddressesProvider {

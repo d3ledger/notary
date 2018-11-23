@@ -12,22 +12,30 @@ buildscript {
 apply plugin: 'application'
 apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
 apply plugin: 'org.springframework.boot'
-mainClassName = "pregeneration.btc.BtcPreGenerationMain"
+mainClassName = "generation.btc.BtcAddressGenerationMain"
 
 dependencies {
     compile project(":btc")
 }
 
-task runBtcPreGen(type: JavaExec) {
-    main = 'pregeneration.btc.BtcPreGenerationMain'
+task runBtcAddressGeneration(type: JavaExec) {
+    main = 'generation.btc.BtcAddressGenerationMain'
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
     systemProperty 'java.library.path', getIrohaLibPath()
     environment "LD_LIBRARY_PATH", getIrohaLibPath()
 }
 
-task runBtcPreGenTrigger(type: JavaExec) {
-    main = 'pregeneration.btc.trigger.BtcPreGenerationTriggerMain'
+task generateBtcChangeAddress(type: JavaExec) {
+    main = 'generation.btc.trigger.BtcChangeAddressGeneration'
+    classpath = sourceSets.main.runtimeClasspath
+    setWorkingDir("$rootDir/")
+    systemProperty 'java.library.path', getIrohaLibPath()
+    environment "LD_LIBRARY_PATH", getIrohaLibPath()
+}
+
+task generateBtcFreeAddress(type: JavaExec) {
+    main = 'generation.btc.trigger.BtcFreeAddressGeneration'
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
     systemProperty 'java.library.path', getIrohaLibPath()
@@ -36,6 +44,6 @@ task runBtcPreGenTrigger(type: JavaExec) {
 
 sonarqube {
     properties {
-        property "sonar.projectKey", "notary:btc-pregeneration"
+        property "sonar.projectKey", "notary:btc-addres-generation"
     }
 }

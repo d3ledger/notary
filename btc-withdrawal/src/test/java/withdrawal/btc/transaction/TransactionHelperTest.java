@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import provider.btc.address.BtcRegisteredAddressesProvider;
 import provider.btc.network.BtcRegTestConfigProvider;
+import withdrawal.btc.provider.BtcChangeAddressProvider;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,7 +24,7 @@ import static org.mockito.Mockito.*;
 public class TransactionHelperTest {
 
     private static final int CONFIDENCE_LEVEL = 6;
-    private static TransactionHelper transactionHelper = spy(new TransactionHelper(new BtcRegTestConfigProvider(), mock(BtcRegisteredAddressesProvider.class)));
+    private static TransactionHelper transactionHelper = spy(new TransactionHelper(new BtcRegTestConfigProvider(), mock(BtcRegisteredAddressesProvider.class), mock(BtcChangeAddressProvider.class)));
 
     @BeforeClass
     public static void setUp() {

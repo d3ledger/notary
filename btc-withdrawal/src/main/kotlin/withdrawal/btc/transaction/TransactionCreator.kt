@@ -1,6 +1,7 @@
 package withdrawal.btc.transaction
 
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import org.bitcoinj.core.Address
@@ -9,13 +10,14 @@ import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import provider.btc.network.BtcNetworkConfigProvider
+import withdrawal.btc.provider.BtcChangeAddressProvider
 
 /*
     Class that is used to create BTC transactions
  */
 @Component
 class TransactionCreator(
-    @Autowired private val changeAddress: Address,
+    @Autowired private val btcChangeAddressProvider: BtcChangeAddressProvider,
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider,
     @Autowired private val transactionHelper: TransactionHelper
 ) {
@@ -37,9 +39,17 @@ class TransactionCreator(
         val transaction = Transaction(btcNetworkConfigProvider.getConfig())
         return transactionHelper.getAvailableAddresses(wallet).flatMap { availableAddresses ->
             transactionHelper.collectUnspents(availableAddresses, wallet, amount, confidenceLevel)
-        }.map { unspents ->
+        }.fanout {
+            btcChangeAddressProvider.getChangeAddress()
+        }.map { (unspents, changeAddress) ->
             unspents.forEach { unspent -> transaction.addInput(unspent) }
-            transactionHelper.addOutputs(transaction, unspents, destinationAddress, amount, changeAddress)
+            transactionHelper.addOutputs(
+                transaction,
+                unspents,
+                destinationAddress,
+                amount,
+                Address.fromBase58(btcNetworkConfigProvider.getConfig(), changeAddress.address)
+            )
             transactionHelper.registerUnspents(unspents)
         }.map { transaction }
     }

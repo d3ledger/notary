@@ -64,6 +64,8 @@ class AccountHelper(private val irohaNetwork: IrohaNetwork) {
 
     val notaryListStorageAccount by lazy { createTesterAccount("notary_storage", "notary_list_holder") }
 
+    val changeAddressesStorageAccount by lazy { createTesterAccount("change_addresses") }
+
     fun createCredentialConfig(credential: IrohaCredential): IrohaCredentialConfig {
         return object : IrohaCredentialConfig {
             override val pubkeyPath: String

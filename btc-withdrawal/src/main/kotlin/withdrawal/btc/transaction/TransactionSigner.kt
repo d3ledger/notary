@@ -1,6 +1,7 @@
 package withdrawal.btc.transaction
 
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.map
 import helper.address.getSignThreshold
 import helper.address.outPutToBase58Address
@@ -13,15 +14,18 @@ import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import provider.btc.address.BtcAddressesProvider
 import provider.btc.address.BtcRegisteredAddressesProvider
 import util.hex
+import withdrawal.btc.provider.BtcChangeAddressProvider
 
 /*
    Class that is used to sign transactions using available private keys
  */
 @Component
 class TransactionSigner(
-    @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider
+    @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
+    @Autowired private val btcChangeAddressesProvider: BtcChangeAddressProvider
 ) {
     /**
      * Signs transaction using available private keys from wallet
@@ -53,8 +57,12 @@ class TransactionSigner(
      */
     fun getUsedPubKeys(btcAddress: String): Result<List<String>, Exception> {
         return btcRegisteredAddressesProvider.getRegisteredAddresses()
-            .map { registeredAddresses ->
-                registeredAddresses.find { registeredAddress -> registeredAddress.address == btcAddress }!!.info.notaryKeys
+            .fanout {
+                btcChangeAddressesProvider.getChangeAddress()
+            }.map { (registeredAddresses, changeAddress) ->
+                registeredAddresses + changeAddress
+            }.map { availableAddresses ->
+                availableAddresses.find { availableAddress -> availableAddress.address == btcAddress }!!.info.notaryKeys
             }
     }
 
