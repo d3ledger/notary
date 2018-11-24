@@ -1,17 +1,15 @@
 # D3ledger API
 
-D3ledger is built on top of Iroha chain and every action is done by Iroha
+D3ledger is built on top of Iroha chain and every action is done via Iroha
 account and signed by Iroha key. Every D3 client has an account in Iroha
 and should use API provided by Iroha. Iroha provides a set of libraries on
 different languages to communicate with Iroha (see 
 [Iroha docs](https://iroha.readthedocs.io/en/latest/api/index.html)).
-The only one thing related to user that cannot be done by user itself is 
-registration. That's why  D3 services provide registration of new client via
-HTTP.
 
 ## Registration
 
-Registration of a new user is done with POST request. 
+A registration of the client is responsibility of D3 service.
+That's why D3 services provide registration of new client via HTTP POST request. 
 
     POST /users
 
@@ -275,11 +273,13 @@ for the client. See
 
 ### Settlement
 
-For settlement client should send atomic
+For a settlement the client should send an atomic
 [batch transaction](https://iroha.readthedocs.io/en/latest/core_concepts/glossary.html?highlight=batch#atomic-batch)
-with two transfer transactions. The first transaction is transfer for counterparty
-signed by the user and the second is transfer from counterparty without signature.
-The counterparty should sign it to accept settlement.
+with two transfer transactions. The first transaction is a transfer for counterparty
+signed by the user and the second is a transfer from counterparty without the signature.
+The counterparty should sign it to accept the settlement. If the batch transaction
+is not signed in 24 hours, it is removed from the list of pending transactions
+(cancelled). 
 
 **Schema:**
 
@@ -314,14 +314,14 @@ The counterparty should sign it to accept settlement.
 
 ### Accept settlement
 
-To accept a settlement a client should get pending settlement transaction and
+To accept the settlement the client should get pending settlement transaction and
 sign it in
 [batch transaction](https://iroha.readthedocs.io/en/latest/core_concepts/glossary.html?highlight=batch#atomic-batch)
 with his private key and send it again.
 
 ### Cancel settlement
 
-To cancel a settlement a client should get pending settlement transaction and
+To cancel the settlement the client should get pending settlement transaction and
 sign it in
 [batch transaction](https://iroha.readthedocs.io/en/latest/core_concepts/glossary.html?highlight=batch#atomic-batch)
 with any invalid key and send it again to remove the transaction from Iroha list
@@ -329,7 +329,7 @@ of pending transactions.
 
 ### Reject settlement
 
-To reject a settlement a client should get pending settlement transaction and sign it in
+To reject the settlement the client should get pending settlement transaction and sign it in
 [batch transaction](https://iroha.readthedocs.io/en/latest/core_concepts/glossary.html?highlight=batch#atomic-batch)
 with any invalid key and send it again to remove the transaction from Iroha list
 of pending transactions.
