@@ -168,8 +168,6 @@ contract Master {
         uint needSigs = peersCount - f;
         require(s.length >= needSigs);
 
-        used[txHash] = true;
-
         address[] memory recoveredAddresses = new address[](s.length);
         for (uint i = 0; i < s.length; ++i) {
             recoveredAddresses[i] = recoverAddress(
@@ -187,6 +185,7 @@ contract Master {
             if (address(this).balance < amount) {
                 emit InsufficientFundsForWithdrawal(0, to);
             } else {
+                used[txHash] = true;
                 // untrusted transfer, relies on provided cryptographic proof
                 to.transfer(amount);
             }
@@ -195,6 +194,7 @@ contract Master {
             if (coin.balanceOf(this) < amount) {
                 emit InsufficientFundsForWithdrawal(tokenAddress, to);
             } else {
+                used[txHash] = true;
                 // untrusted call, relies on provided cryptographic proof
                 coin.transfer(to, amount);
             }
