@@ -62,7 +62,7 @@ class ContractTestHelper {
     }
 
     fun transferTokensToMaster(amount: BigInteger) {
-        token.transfer(master.contractAddress, amount, BigInteger.ZERO).send()
+        token.transfer(master.contractAddress, amount).send()
         assertEquals(amount, token.balanceOf(master.contractAddress).send())
     }
 

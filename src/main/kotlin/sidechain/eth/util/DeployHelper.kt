@@ -78,7 +78,6 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
                 web3,
                 credentials,
                 provider,
-                BigInteger.ZERO,
                 BigInteger.valueOf(Long.MAX_VALUE),
                 credentials.address
         ).send()
@@ -148,7 +147,7 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      */
     fun sendERC20(tokenAddress: String, toAddress: String, amount: BigInteger) {
         val token = contract.BasicCoin.load(tokenAddress, web3, credentials, gasPrice, gasLimit)
-        token.transfer(toAddress, amount, BigInteger.ZERO).send()
+        token.transfer(toAddress, amount).send()
         logger.info { "ERC20 $amount with address $tokenAddress were sent to $toAddress" }
     }
 

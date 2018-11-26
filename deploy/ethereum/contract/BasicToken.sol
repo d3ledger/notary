@@ -73,11 +73,7 @@ contract BasicCoin is Owned, Token {
 		_;
 	}
 
-	// no ETH should be sent with the transaction
-	modifier when_no_eth {
-		if (msg.value > 0) revert();
-		_;
-	}
+
 
 	// a value should be > 0
 	modifier when_non_zero(uint _value) {
@@ -97,7 +93,7 @@ contract BasicCoin is Owned, Token {
 	mapping (address => Account) accounts;
 
 	// constructor sets the parameters of execution, _totalSupply is all units
-	constructor(uint _totalSupply, address _owner) public payable when_no_eth when_non_zero(_totalSupply) {
+	constructor(uint _totalSupply, address _owner) public   when_non_zero(_totalSupply) {
 		totalSupply = _totalSupply;
 		owner = _owner;
 		accounts[_owner].balance = totalSupply;
@@ -109,7 +105,7 @@ contract BasicCoin is Owned, Token {
 	}
 
 	// transfer
-	function transfer(address _to, uint256 _value) public payable when_no_eth when_owns(msg.sender, _value) returns (bool) {
+	function transfer(address _to, uint256 _value) public   when_owns(msg.sender, _value) returns (bool) {
 		emit Transfer(msg.sender, _to, _value);
 		accounts[msg.sender].balance -= _value;
 		accounts[_to].balance += _value;
@@ -118,7 +114,7 @@ contract BasicCoin is Owned, Token {
 	}
 
 	// transfer via allowance
-	function transferFrom(address _from, address _to, uint256 _value) public payable when_no_eth when_owns(_from, _value) when_has_allowance(_from, msg.sender, _value) returns (bool) {
+	function transferFrom(address _from, address _to, uint256 _value) public   when_owns(_from, _value) when_has_allowance(_from, msg.sender, _value) returns (bool) {
 		called = true;
 		emit Transfer(_from, _to, _value);
 		accounts[_from].allowanceOf[msg.sender] -= _value;
@@ -129,7 +125,7 @@ contract BasicCoin is Owned, Token {
 	}
 
 	// approve allowances
-	function approve(address _spender, uint256 _value) public payable when_no_eth returns (bool) {
+	function approve(address _spender, uint256 _value) public   returns (bool) {
 		emit Approval(msg.sender, _spender, _value);
 		accounts[msg.sender].allowanceOf[_spender] += _value;
 
