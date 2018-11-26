@@ -11,6 +11,7 @@ import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.http.HttpService
 import org.web3j.tx.RawTransactionManager
 import org.web3j.tx.Transfer
+import org.web3j.tx.gas.StaticGasProvider
 import org.web3j.utils.Convert
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -63,7 +64,7 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
     fun sendEthereum(amount: BigInteger, to: String) {
         val transfer = Transfer(web3, rawTransactionManager)
         val transactionHash =
-            transfer.sendFunds(to, BigDecimal(amount), Convert.Unit.WEI, gasPrice, gasLimit).send().transactionHash
+                transfer.sendFunds(to, BigDecimal(amount), Convert.Unit.WEI, gasPrice, gasLimit).send().transactionHash
         logger.info("ETH $amount were sent to $to; tx hash $transactionHash")
     }
 
@@ -72,13 +73,14 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      * @return token smart contract object
      */
     fun deployERC20TokenSmartContract(): BasicCoin {
+        val provider = StaticGasProvider(gasPrice, gasLimit)
         val tokenContract = contract.BasicCoin.deploy(
-            web3,
-            credentials,
-            gasPrice,
-            gasLimit,
-            BigInteger.valueOf(Long.MAX_VALUE),
-            credentials.address
+                web3,
+                credentials,
+                provider,
+                BigInteger.ZERO,
+                BigInteger.valueOf(Long.MAX_VALUE),
+                credentials.address
         ).send()
         logger.info { "ERC20 token smart contract ${tokenContract.contractAddress} was deployed" }
         return tokenContract
@@ -90,10 +92,10 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      */
     fun deployRelayRegistrySmartContract(): RelayRegistry {
         val relayRegistry = contract.RelayRegistry.deploy(
-            web3,
-            credentials,
-            gasPrice,
-            gasLimit
+                web3,
+                credentials,
+                gasPrice,
+                gasLimit
         ).send()
         logger.info { "Relay Registry smart contract ${relayRegistry.contractAddress} was deployed" }
         return relayRegistry
@@ -105,11 +107,11 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      */
     fun deployMasterSmartContract(relayRegistry: String): Master {
         val master = contract.Master.deploy(
-            web3,
-            credentials,
-            gasPrice,
-            gasLimit,
-            relayRegistry
+                web3,
+                credentials,
+                gasPrice,
+                gasLimit,
+                relayRegistry
         ).send()
         logger.info { "Master smart contract ${master.contractAddress} was deployed" }
         return master
@@ -122,11 +124,11 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      */
     fun deployRelaySmartContract(master: String): Relay {
         val replay = contract.Relay.deploy(
-            web3,
-            credentials,
-            gasPrice,
-            gasLimit,
-            master
+                web3,
+                credentials,
+                gasPrice,
+                gasLimit,
+                master
         ).send()
         logger.info { "Relay smart contract ${replay.contractAddress} was deployed" }
         return replay
@@ -146,7 +148,7 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      */
     fun sendERC20(tokenAddress: String, toAddress: String, amount: BigInteger) {
         val token = contract.BasicCoin.load(tokenAddress, web3, credentials, gasPrice, gasLimit)
-        token.transfer(toAddress, amount).send()
+        token.transfer(toAddress, amount, BigInteger.ZERO).send()
         logger.info { "ERC20 $amount with address $tokenAddress were sent to $toAddress" }
     }
 

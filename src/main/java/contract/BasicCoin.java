@@ -1,9 +1,18 @@
 package contract;
 
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import org.web3j.abi.EventEncoder;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.TypeReference;
-import org.web3j.abi.datatypes.*;
+import org.web3j.abi.datatypes.Address;
+import org.web3j.abi.datatypes.Bool;
+import org.web3j.abi.datatypes.Event;
+import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
@@ -18,12 +27,6 @@ import org.web3j.tx.gas.ContractGasProvider;
 import rx.Observable;
 import rx.functions.Func1;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 /**
  * <p>Auto generated code.
  * <p><strong>Do not modify!</strong>
@@ -34,7 +37,7 @@ import java.util.List;
  * <p>Generated with web3j version 3.6.0.
  */
 public class BasicCoin extends Contract {
-    private static final String BINARY = "60806040526000805460a060020a60ff0219600160a060020a0319909116331716905534801561002e57600080fd5b5060405160408061066a833981016040528051602090910151600034111561005557600080fd5b8180151561006257600080fd5b50600182905560008054600160a060020a03909216600160a060020a031990921682178155908152600260205260409020556105c7806100a36000396000f3006080604052600436106100a35763ffffffff7c0100000000000000000000000000000000000000000000000000000000600035041663095ea7b381146100b557806313af4035146100ed57806318160ddd1461011057806323b872dd146101375780635001f3b51461016157806350f9b6cd1461017657806370a082311461018b5780638da5cb5b146101ac578063a9059cbb146101dd578063dd62ed3e14610201575b3480156100af57600080fd5b50600080fd5b3480156100c157600080fd5b506100d9600160a060020a0360043516602435610228565b604080519115158252519081900360200190f35b3480156100f957600080fd5b5061010e600160a060020a03600435166102ad565b005b34801561011c57600080fd5b5061012561032c565b60408051918252519081900360200190f35b34801561014357600080fd5b506100d9600160a060020a0360043581169060243516604435610332565b34801561016d57600080fd5b50610125610476565b34801561018257600080fd5b506100d961047d565b34801561019757600080fd5b50610125600160a060020a036004351661049e565b3480156101b857600080fd5b506101c16104b9565b60408051600160a060020a039092168252519081900360200190f35b3480156101e957600080fd5b506100d9600160a060020a03600435166024356104c8565b34801561020d57600080fd5b50610125600160a060020a036004358116906024351661056c565b60008034111561023757600080fd5b604080518381529051600160a060020a0385169133917f8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b9259181900360200190a350336000908152600260209081526040808320600160a060020a0386168452600190810190925290912080548301905592915050565b600054600160a060020a031633146102c457600080fd5b60008054604051600160a060020a03808516939216917f70aea8d848e8a90fb7661b227dc522eb6395c3dac71b63cb59edd5c9899b236491a36000805473ffffffffffffffffffffffffffffffffffffffff1916600160a060020a0392909216919091179055565b60015481565b60008034111561034157600080fd5b600160a060020a0384166000908152600260205260409020548490839081111561036a57600080fd5b600160a060020a03861660009081526002602090815260408083203380855260019091019092529091205487919086908111156103a657600080fd5b6000805474ff0000000000000000000000000000000000000000191674010000000000000000000000000000000000000000179055604080518881529051600160a060020a03808b1692908c16917fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef9181900360200190a3600160a060020a03808a1660009081526002602081815260408084203385526001808201845282862080548f900390559390925281548c9003909155928b168252919020805489019055955050505050509392505050565b620f424081565b60005474010000000000000000000000000000000000000000900460ff1681565b600160a060020a031660009081526002602052604090205490565b600054600160a060020a031681565b6000803411156104d757600080fd5b3360008181526002602052604090205483908111156104f557600080fd5b604080518581529051600160a060020a0387169133917fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef9181900360200190a33360009081526002602052604080822080548790039055600160a060020a0387168252902080548501905560019250505092915050565b600160a060020a03918216600090815260026020908152604080832093909416825260019092019091522054905600a165627a7a72305820d0dcc5a744f45a433642d795fe656b5d4ba5d45340e4761a18d5dac8d63078280029";
+    private static final String BINARY = "608060408181526000805460a060020a60ff0219600160a060020a03199091163317169055806106be8339810180604052604081101561003e57600080fd5b508051602090910151600034111561005557600080fd5b8180151561006257600080fd5b50600182905560008054600160a060020a03909216600160a060020a0319909216821781559081526002602052604090205561061b806100a36000396000f3fe6080604052600436106100a35763ffffffff7c0100000000000000000000000000000000000000000000000000000000600035041663095ea7b381146100b557806313af4035146100f557806318160ddd1461012a57806323b872dd146101515780635001f3b51461018757806350f9b6cd1461019c57806370a08231146101b15780638da5cb5b146101e4578063a9059cbb14610215578063dd62ed3e14610241575b3480156100af57600080fd5b50600080fd5b6100e1600480360360408110156100cb57600080fd5b50600160a060020a03813516906020013561027c565b604080519115158252519081900360200190f35b34801561010157600080fd5b506101286004803603602081101561011857600080fd5b5035600160a060020a0316610301565b005b34801561013657600080fd5b5061013f610380565b60408051918252519081900360200190f35b6100e16004803603606081101561016757600080fd5b50600160a060020a03813581169160208101359091169060400135610386565b34801561019357600080fd5b5061013f6104ca565b3480156101a857600080fd5b506100e16104d1565b3480156101bd57600080fd5b5061013f600480360360208110156101d457600080fd5b5035600160a060020a03166104f2565b3480156101f057600080fd5b506101f961050d565b60408051600160a060020a039092168252519081900360200190f35b6100e16004803603604081101561022b57600080fd5b50600160a060020a03813516906020013561051c565b34801561024d57600080fd5b5061013f6004803603604081101561026457600080fd5b50600160a060020a03813581169160200135166105c0565b60008034111561028b57600080fd5b604080518381529051600160a060020a0385169133917f8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b9259181900360200190a350336000908152600260209081526040808320600160a060020a0386168452600190810190925290912080548301905592915050565b600054600160a060020a0316331461031857600080fd5b60008054604051600160a060020a03808516939216917f70aea8d848e8a90fb7661b227dc522eb6395c3dac71b63cb59edd5c9899b236491a36000805473ffffffffffffffffffffffffffffffffffffffff1916600160a060020a0392909216919091179055565b60015481565b60008034111561039557600080fd5b600160a060020a038416600090815260026020526040902054849083908111156103be57600080fd5b600160a060020a03861660009081526002602090815260408083203380855260019091019092529091205487919086908111156103fa57600080fd5b6000805474ff0000000000000000000000000000000000000000191674010000000000000000000000000000000000000000179055604080518881529051600160a060020a03808b1692908c16917fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef9181900360200190a3600160a060020a03808a1660009081526002602081815260408084203385526001808201845282862080548f900390559390925281548c9003909155928b168252919020805489019055955050505050509392505050565b620f424081565b60005474010000000000000000000000000000000000000000900460ff1681565b600160a060020a031660009081526002602052604090205490565b600054600160a060020a031681565b60008034111561052b57600080fd5b33600081815260026020526040902054839081111561054957600080fd5b604080518581529051600160a060020a0387169133917fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef9181900360200190a33360009081526002602052604080822080548790039055600160a060020a0387168252902080548501905560019250505092915050565b600160a060020a039182166000908152600260209081526040808320939094168252600190920190915220549056fea165627a7a723058205c8c74b19181dcef07a60ae79cb78d4c01d6f514beb193aa1c392c17cee55fc90029";
 
     public static final String FUNC_APPROVE = "approve";
 
@@ -86,18 +89,18 @@ public class BasicCoin extends Contract {
         super(BINARY, contractAddress, web3j, transactionManager, contractGasProvider);
     }
 
-    public RemoteCall<TransactionReceipt> approve(String _spender, BigInteger _value) {
+    public RemoteCall<TransactionReceipt> approve(String _spender, BigInteger _value, BigInteger weiValue) {
         final Function function = new Function(
-                FUNC_APPROVE,
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_spender),
-                        new org.web3j.abi.datatypes.generated.Uint256(_value)),
+                FUNC_APPROVE, 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_spender), 
+                new org.web3j.abi.datatypes.generated.Uint256(_value)), 
                 Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function);
+        return executeRemoteCallTransaction(function, weiValue);
     }
 
     public RemoteCall<TransactionReceipt> setOwner(String _new) {
         final Function function = new Function(
-                FUNC_SETOWNER,
+                FUNC_SETOWNER, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_new)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
@@ -110,14 +113,14 @@ public class BasicCoin extends Contract {
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
-    public RemoteCall<TransactionReceipt> transferFrom(String _from, String _to, BigInteger _value) {
+    public RemoteCall<TransactionReceipt> transferFrom(String _from, String _to, BigInteger _value, BigInteger weiValue) {
         final Function function = new Function(
-                FUNC_TRANSFERFROM,
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_from),
-                        new org.web3j.abi.datatypes.Address(_to),
-                        new org.web3j.abi.datatypes.generated.Uint256(_value)),
+                FUNC_TRANSFERFROM, 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_from), 
+                new org.web3j.abi.datatypes.Address(_to), 
+                new org.web3j.abi.datatypes.generated.Uint256(_value)), 
                 Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function);
+        return executeRemoteCallTransaction(function, weiValue);
     }
 
     public RemoteCall<BigInteger> base() {
@@ -135,7 +138,7 @@ public class BasicCoin extends Contract {
     }
 
     public RemoteCall<BigInteger> balanceOf(String _who) {
-        final Function function = new Function(FUNC_BALANCEOF,
+        final Function function = new Function(FUNC_BALANCEOF, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_who)), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
@@ -148,47 +151,47 @@ public class BasicCoin extends Contract {
         return executeRemoteCallSingleValueReturn(function, String.class);
     }
 
-    public RemoteCall<TransactionReceipt> transfer(String _to, BigInteger _value) {
+    public RemoteCall<TransactionReceipt> transfer(String _to, BigInteger _value, BigInteger weiValue) {
         final Function function = new Function(
-                FUNC_TRANSFER,
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_to),
-                        new org.web3j.abi.datatypes.generated.Uint256(_value)),
+                FUNC_TRANSFER, 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_to), 
+                new org.web3j.abi.datatypes.generated.Uint256(_value)), 
                 Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function);
+        return executeRemoteCallTransaction(function, weiValue);
     }
 
     public RemoteCall<BigInteger> allowance(String _owner, String _spender) {
-        final Function function = new Function(FUNC_ALLOWANCE,
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_owner),
-                        new org.web3j.abi.datatypes.Address(_spender)),
+        final Function function = new Function(FUNC_ALLOWANCE, 
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_owner), 
+                new org.web3j.abi.datatypes.Address(_spender)), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
-    public static RemoteCall<BasicCoin> deploy(Web3j web3j, Credentials credentials, ContractGasProvider contractGasProvider, BigInteger _totalSupply, String _owner) {
-        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_totalSupply),
+    public static RemoteCall<BasicCoin> deploy(Web3j web3j, Credentials credentials, ContractGasProvider contractGasProvider, BigInteger initialWeiValue, BigInteger _totalSupply, String _owner) {
+        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_totalSupply), 
                 new org.web3j.abi.datatypes.Address(_owner)));
-        return deployRemoteCall(BasicCoin.class, web3j, credentials, contractGasProvider, BINARY, encodedConstructor);
+        return deployRemoteCall(BasicCoin.class, web3j, credentials, contractGasProvider, BINARY, encodedConstructor, initialWeiValue);
     }
 
-    public static RemoteCall<BasicCoin> deploy(Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider, BigInteger _totalSupply, String _owner) {
-        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_totalSupply),
+    public static RemoteCall<BasicCoin> deploy(Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider, BigInteger initialWeiValue, BigInteger _totalSupply, String _owner) {
+        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_totalSupply), 
                 new org.web3j.abi.datatypes.Address(_owner)));
-        return deployRemoteCall(BasicCoin.class, web3j, transactionManager, contractGasProvider, BINARY, encodedConstructor);
-    }
-
-    @Deprecated
-    public static RemoteCall<BasicCoin> deploy(Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit, BigInteger _totalSupply, String _owner) {
-        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_totalSupply),
-                new org.web3j.abi.datatypes.Address(_owner)));
-        return deployRemoteCall(BasicCoin.class, web3j, credentials, gasPrice, gasLimit, BINARY, encodedConstructor);
+        return deployRemoteCall(BasicCoin.class, web3j, transactionManager, contractGasProvider, BINARY, encodedConstructor, initialWeiValue);
     }
 
     @Deprecated
-    public static RemoteCall<BasicCoin> deploy(Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit, BigInteger _totalSupply, String _owner) {
-        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_totalSupply),
+    public static RemoteCall<BasicCoin> deploy(Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit, BigInteger initialWeiValue, BigInteger _totalSupply, String _owner) {
+        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_totalSupply), 
                 new org.web3j.abi.datatypes.Address(_owner)));
-        return deployRemoteCall(BasicCoin.class, web3j, transactionManager, gasPrice, gasLimit, BINARY, encodedConstructor);
+        return deployRemoteCall(BasicCoin.class, web3j, credentials, gasPrice, gasLimit, BINARY, encodedConstructor, initialWeiValue);
+    }
+
+    @Deprecated
+    public static RemoteCall<BasicCoin> deploy(Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit, BigInteger initialWeiValue, BigInteger _totalSupply, String _owner) {
+        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_totalSupply), 
+                new org.web3j.abi.datatypes.Address(_owner)));
+        return deployRemoteCall(BasicCoin.class, web3j, transactionManager, gasPrice, gasLimit, BINARY, encodedConstructor, initialWeiValue);
     }
 
     public List<TransferEventResponse> getTransferEvents(TransactionReceipt transactionReceipt) {

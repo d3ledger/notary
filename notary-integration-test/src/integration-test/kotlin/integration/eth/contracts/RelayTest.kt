@@ -101,7 +101,7 @@ class RelayTest {
     @Test
     fun vacuumTokenTest() {
         master.addToken(token.contractAddress).send()
-        token.transfer(relay.contractAddress, BigInteger.valueOf(987_654)).send()
+        token.transfer(relay.contractAddress, BigInteger.valueOf(987_654), BigInteger.ZERO).send()
         Assertions.assertEquals(BigInteger.valueOf(0), token.balanceOf(master.contractAddress).send())
         Assertions.assertEquals(BigInteger.valueOf(987_654), token.balanceOf(relay.contractAddress).send())
         relay.sendToMaster(token.contractAddress).send()
@@ -117,7 +117,7 @@ class RelayTest {
      */
     @Test
     fun vacuumInvalidTokenTest() {
-        token.transfer(relay.contractAddress, BigInteger.valueOf(987_654)).send()
+        token.transfer(relay.contractAddress, BigInteger.valueOf(987_654), BigInteger.ZERO).send()
         Assertions.assertEquals(BigInteger.valueOf(0), token.balanceOf(master.contractAddress).send())
         Assertions.assertEquals(BigInteger.valueOf(987_654), token.balanceOf(relay.contractAddress).send())
         Assertions.assertThrows(TransactionException::class.java) { relay.sendToMaster(token.contractAddress).send() }
