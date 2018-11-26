@@ -43,11 +43,13 @@ class RefundServerEndpointTest {
         } doReturn successResponse
     }
 
+    private val successIrohaTxHash = "someHashHere"
+
     private val irohaRefundStrategyMock = mock<IrohaRefundStrategy> {
         val request = any<IrohaRefundRequest>()
         on {
             performRefund(request)
-        } doReturn IrohaNotaryResponse.Successful("someHashHere")
+        } doReturn IrohaNotaryResponse.Successful(successIrohaTxHash)
     }
 
     val server = RefundServerEndpoint(serverEthBundle, serverIrohaBundle, ethRefundStrategyMock, irohaRefundStrategyMock)
@@ -76,6 +78,35 @@ class RefundServerEndpointTest {
         val failureResponse = EthNotaryResponse.Error("Request has been failed. Error in URL")
 
         val refundAnswer = server.onCallEthRefund(null)
+
+        assertEquals(HttpStatusCode.BadRequest, refundAnswer.code)
+        assertEquals(failureResponse.reason, refundAnswer.message)
+    }
+
+    /**
+     * @given initialized server class
+     * @when  call onCallEthWdRollback()
+     * @then  check that answer returns success
+     */
+    @Test
+    fun onIrohaEthRollbackCallTest() {
+        val request = "someInitialIrohaTxHash"
+        val result = server.onCallEthWdRollback(request)
+
+        assertEquals(HttpStatusCode.OK, result.code)
+        assertEquals(successIrohaTxHash, result.message)
+    }
+
+    /**
+     * @given initialized server class
+     * @when  call onCallEthWdRollback() with null parameter
+     * @then  check that answer returns key not found
+     */
+    @Test
+    fun emptyIrohaRefundCall() {
+        val failureResponse = IrohaNotaryResponse.Error("Request has been failed. Error in URL")
+
+        val refundAnswer = server.onCallEthWdRollback(null)
 
         assertEquals(HttpStatusCode.BadRequest, refundAnswer.code)
         assertEquals(failureResponse.reason, refundAnswer.message)
