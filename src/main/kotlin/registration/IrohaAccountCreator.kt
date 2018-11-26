@@ -116,14 +116,7 @@ open class IrohaAccountCreator(
                             notaryIrohaAccount,
                             currencyAddress,
                             notaryStorageStrategy()
-                        )
-                    )
-                ),
-                IrohaTransaction(
-                    creator,
-                    getCurrentTime(),
-                    1,
-                    arrayListOf(
+                        ),
                         //set whitelist
                         IrohaCommand.CommandSetAccountDetail(
                             "$userName@$CLIENT_DOMAIN",
