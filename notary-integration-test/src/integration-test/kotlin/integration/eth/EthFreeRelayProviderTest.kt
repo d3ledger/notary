@@ -2,9 +2,11 @@ package integration.eth
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.success
+import integration.helper.ConfigHelper
 import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
@@ -13,6 +15,7 @@ import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil.setAccountDetail
 import java.io.File
+import java.time.Duration
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class EthFreeRelayProviderTest {
@@ -30,6 +33,8 @@ class EthFreeRelayProviderTest {
     /** Iroha transaction creator */
     val creator = integrationHelper.testCredential.accountId
 
+    private val timeoutDuration = Duration.ofMinutes(ConfigHelper.timeoutMinutes)
+
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
@@ -43,21 +48,28 @@ class EthFreeRelayProviderTest {
      */
     @Test
     fun getFreeWallet() {
-        val ethFreeWallet = "eth_free_wallet_stub"
+        assertTimeoutPreemptively(timeoutDuration) {
+            val ethFreeWallet = "eth_free_wallet_stub"
 
-        setAccountDetail(irohaConsumer, integrationHelper.accountHelper.notaryAccount.accountId, ethFreeWallet, "free")
-            .failure { fail(it) }
-
-        val freeWalletsProvider =
-            EthFreeRelayProvider(
-                integrationHelper.testCredential,
-                irohaNetwork,
+            setAccountDetail(
+                irohaConsumer,
                 integrationHelper.accountHelper.notaryAccount.accountId,
-                creator
+                ethFreeWallet,
+                "free"
             )
-        val result = freeWalletsProvider.getRelay()
+                .failure { fail(it) }
 
-        assertEquals(ethFreeWallet, result.get())
+            val freeWalletsProvider =
+                EthFreeRelayProvider(
+                    integrationHelper.testCredential,
+                    irohaNetwork,
+                    integrationHelper.accountHelper.notaryAccount.accountId,
+                    creator
+                )
+            val result = freeWalletsProvider.getRelay()
+
+            assertEquals(ethFreeWallet, result.get())
+        }
     }
 
     /**
@@ -82,29 +94,31 @@ class EthFreeRelayProviderTest {
      */
     @Test
     fun testStorageFromFile() {
-        val relayHolder = File.createTempFile("relay", "free")
-        relayHolder.deleteOnExit()
-        val existingRelays = setOf(
-            "0x6fab8fe8e0e5f4a3e8b2ff794e023fd359137f35",
-            "0x2d864560b9b48c99c633427c67020c8f883be360",
-            "0x20d0b61725d279c0e4fd73e059ab163f2aea0761"
-        )
-        existingRelays.map { relayHolder.appendText(it + System.lineSeparator()) }
-
-        integrationHelper.importRelays(relayHolder.absolutePath)
-
-        val freeWalletsProvider =
-            EthFreeRelayProvider(
-                integrationHelper.testCredential,
-                irohaNetwork,
-                integrationHelper.accountHelper.notaryAccount.accountId,
-                integrationHelper.accountHelper.registrationAccount.accountId
+        assertTimeoutPreemptively(timeoutDuration) {
+            val relayHolder = File.createTempFile("relay", "free")
+            relayHolder.deleteOnExit()
+            val existingRelays = setOf(
+                "0x6fab8fe8e0e5f4a3e8b2ff794e023fd359137f35",
+                "0x2d864560b9b48c99c633427c67020c8f883be360",
+                "0x20d0b61725d279c0e4fd73e059ab163f2aea0761"
             )
+            existingRelays.map { relayHolder.appendText(it + System.lineSeparator()) }
 
-        freeWalletsProvider.getRelays()
-            .fold(
-                { assertEquals(existingRelays, it) },
-                { ex -> fail("result has exception", ex) }
-            )
+            integrationHelper.importRelays(relayHolder.absolutePath)
+
+            val freeWalletsProvider =
+                EthFreeRelayProvider(
+                    integrationHelper.testCredential,
+                    irohaNetwork,
+                    integrationHelper.accountHelper.notaryAccount.accountId,
+                    integrationHelper.accountHelper.registrationAccount.accountId
+                )
+
+            freeWalletsProvider.getRelays()
+                .fold(
+                    { assertEquals(existingRelays, it) },
+                    { ex -> fail("result has exception", ex) }
+                )
+        }
     }
 }

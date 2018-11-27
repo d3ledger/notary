@@ -2,6 +2,7 @@ package integration.eth
 
 import config.IrohaCredentialConfig
 import config.loadEthPasswords
+import integration.helper.ConfigHelper
 import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
@@ -13,6 +14,7 @@ import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.time.Duration
 
 /**
  * Integration tests with multiple notaries for deposit case.
@@ -43,6 +45,8 @@ class DepositMultiIntegrationTest {
 
     /** Path to private key of 2nd instance of notary */
     private val privkeyPath2 = "deploy/iroha/keys/notary1@notary.priv"
+
+    private val timeoutDuration = Duration.ofMinutes(ConfigHelper.timeoutMinutes)
 
     init {
         // run notary
@@ -90,16 +94,18 @@ class DepositMultiIntegrationTest {
      */
     @Test
     fun depositMultisig() {
-        val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId)
-        val amount = BigInteger.valueOf(1_234_000_000_000)
-        // send ETH
-        integrationHelper.sendEth(amount, relayWallet)
-        integrationHelper.waitOneIrohaBlock()
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId)
+            val amount = BigInteger.valueOf(1_234_000_000_000)
+            // send ETH
+            integrationHelper.sendEth(amount, relayWallet)
+            integrationHelper.waitOneIrohaBlock()
 
-        Assertions.assertEquals(
-            BigDecimal(amount, ETH_PRECISION.toInt()).add(BigDecimal(initialAmount)),
-            BigDecimal(integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId))
-        )
+            Assertions.assertEquals(
+                BigDecimal(amount, ETH_PRECISION.toInt()).add(BigDecimal(initialAmount)),
+                BigDecimal(integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId))
+            )
+        }
     }
 
     /**
@@ -112,19 +118,20 @@ class DepositMultiIntegrationTest {
      */
     @Test
     fun depositMultisigERC20() {
-        val (tokenInfo, tokenAddress) = integrationHelper.deployRandomERC20Token(2)
-        val assetId = "${tokenInfo.name}#ethereum"
-        val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId)
-        val amount = BigInteger.valueOf(51)
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            val (tokenInfo, tokenAddress) = integrationHelper.deployRandomERC20Token(2)
+            val assetId = "${tokenInfo.name}#ethereum"
+            val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId)
+            val amount = BigInteger.valueOf(51)
 
-        // send ETH
-        integrationHelper.sendERC20Token(tokenAddress, amount, relayWallet)
-        integrationHelper.waitOneIrohaBlock()
+            // send ETH
+            integrationHelper.sendERC20Token(tokenAddress, amount, relayWallet)
+            integrationHelper.waitOneIrohaBlock()
 
-        Assertions.assertEquals(
-            BigDecimal(amount, tokenInfo.precision.toInt()).add(BigDecimal(initialAmount)),
-            BigDecimal(integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId))
-        )
+            Assertions.assertEquals(
+                BigDecimal(amount, tokenInfo.precision.toInt()).add(BigDecimal(initialAmount)),
+                BigDecimal(integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId))
+            )
+        }
     }
-
 }

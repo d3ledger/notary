@@ -282,5 +282,6 @@ class ConfigHelper(
     companion object {
         /** Port counter, so new port is generated for each run */
         private val portCounter = AtomicInteger(19_999)
+        const val timeoutMinutes = 5L
     }
 }

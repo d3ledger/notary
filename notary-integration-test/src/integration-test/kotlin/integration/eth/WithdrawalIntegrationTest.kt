@@ -1,6 +1,7 @@
 package integration.eth
 
 import com.squareup.moshi.Moshi
+import integration.helper.ConfigHelper
 import integration.helper.IntegrationHelperUtil
 import notary.endpoint.eth.BigIntegerMoshiAdapter
 import notary.endpoint.eth.EthNotaryResponse
@@ -8,6 +9,7 @@ import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
 import notary.eth.ENDPOINT_ETHEREUM
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import provider.eth.ETH_PRECISION
@@ -20,6 +22,7 @@ import sidechain.iroha.consumer.IrohaNetworkImpl
 import util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.time.Duration
 
 /**
  * Class for Ethereum sidechain infrastructure deployment and communication.
@@ -32,6 +35,8 @@ class WithdrawalIntegrationTest {
 
     /** Test Notary configuration */
     private val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig()
+
+    private val timeoutDuration = Duration.ofMinutes(ConfigHelper.timeoutMinutes)
 
     init {
         integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig)
@@ -64,68 +69,69 @@ class WithdrawalIntegrationTest {
      */
     @Test
     fun testRefund() {
-        val masterAccount = notaryConfig.notaryCredential.accountId
-        val amount = "64203"
-        val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(ETH_PRECISION.toInt()).toPlainString()
-        val assetId = "ether#ethereum"
-        val ethWallet = "0x1334"
+        assertTimeoutPreemptively(timeoutDuration) {
+            val masterAccount = notaryConfig.notaryCredential.accountId
+            val amount = "64203"
+            val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(ETH_PRECISION.toInt()).toPlainString()
+            val assetId = "ether#ethereum"
+            val ethWallet = "0x1334"
 
-        // create
-        val client = String.getRandomString(9)
-        val clientId = "$client@$CLIENT_DOMAIN"
-        integrationHelper.registerClient(client, listOf(ethWallet), integrationHelper.testCredential.keyPair)
-        integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
-        val relay = EthRelayProviderIrohaImpl(
-            irohaNetwork,
-            integrationHelper.testCredential,
-            masterAccount,
-            integrationHelper.accountHelper.registrationAccount.accountId
-        ).getRelays().get().filter {
-            it.value == clientId
-        }.keys.first()
+            // create
+            val client = String.getRandomString(9)
+            val clientId = "$client@$CLIENT_DOMAIN"
+            integrationHelper.registerClient(client, listOf(ethWallet), integrationHelper.testCredential.keyPair)
+            integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
+            val relay = EthRelayProviderIrohaImpl(
+                irohaNetwork,
+                integrationHelper.testCredential,
+                masterAccount,
+                integrationHelper.accountHelper.registrationAccount.accountId
+            ).getRelays().get().filter {
+                it.value == clientId
+            }.keys.first()
 
-        // transfer assets from user to notary master account
-        val hash = integrationHelper.transferAssetIrohaFromClient(
-            clientId,
-            integrationHelper.testCredential.keyPair,
-            clientId,
-            masterAccount,
-            assetId,
-            ethWallet,
-            amount
-        )
+            // transfer assets from user to notary master account
+            val hash = integrationHelper.transferAssetIrohaFromClient(
+                clientId,
+                integrationHelper.testCredential.keyPair,
+                clientId,
+                masterAccount,
+                assetId,
+                ethWallet,
+                amount
+            )
 
-        // query
-        val res =
-            khttp.get("http://127.0.0.1:${notaryConfig.refund.port}/$ENDPOINT_ETHEREUM/$hash")
+            // query
+            val res =
+                khttp.get("http://127.0.0.1:${notaryConfig.refund.port}/$ENDPOINT_ETHEREUM/$hash")
 
-        val moshi = Moshi
-            .Builder()
-            .add(EthNotaryResponseMoshiAdapter())
-            .add(BigInteger::class.java, BigIntegerMoshiAdapter())
-            .build()!!
-        val ethNotaryAdapter = moshi.adapter(EthNotaryResponse::class.java)!!
-        val response = ethNotaryAdapter.fromJson(res.jsonObject.toString())
+            val moshi = Moshi
+                .Builder()
+                .add(EthNotaryResponseMoshiAdapter())
+                .add(BigInteger::class.java, BigIntegerMoshiAdapter())
+                .build()!!
+            val ethNotaryAdapter = moshi.adapter(EthNotaryResponse::class.java)!!
+            val response = ethNotaryAdapter.fromJson(res.jsonObject.toString())
 
-        assert(response is EthNotaryResponse.Successful)
-        response as EthNotaryResponse.Successful
+            assert(response is EthNotaryResponse.Successful)
+            response as EthNotaryResponse.Successful
 
-        assertEquals(decimalAmount, response.ethRefund.amount)
-        assertEquals(ethWallet, response.ethRefund.address)
-        assertEquals("0x0000000000000000000000000000000000000000", response.ethRefund.assetId)
+            assertEquals(decimalAmount, response.ethRefund.amount)
+            assertEquals(ethWallet, response.ethRefund.address)
+            assertEquals("0x0000000000000000000000000000000000000000", response.ethRefund.assetId)
 
-        assertEquals(
-            signUserData(
-                keypair,
-                hashToWithdraw(
-                    "0x0000000000000000000000000000000000000000",
-                    decimalAmount,
-                    ethWallet,
-                    hash,
-                    relay
-                )
-            ), response.ethSignature
-        )
+            assertEquals(
+                signUserData(
+                    keypair,
+                    hashToWithdraw(
+                        "0x0000000000000000000000000000000000000000",
+                        decimalAmount,
+                        ethWallet,
+                        hash,
+                        relay
+                    )
+                ), response.ethSignature
+            )
+        }
     }
-
 }

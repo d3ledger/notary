@@ -1,5 +1,6 @@
 package integration.eth
 
+import integration.helper.ConfigHelper
 import integration.helper.IntegrationHelperUtil
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelCrypto
@@ -12,6 +13,7 @@ import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.time.Duration
 import kotlin.test.assertEquals
 
 /**
@@ -37,6 +39,8 @@ class WithdrawalPipelineIntegrationTest {
 
     /** Notary account in Iroha */
     private val notaryAccount = integrationHelper.accountHelper.notaryAccount.accountId
+
+    private val timeoutDuration = Duration.ofMinutes(ConfigHelper.timeoutMinutes)
 
     private val registrationService: Job
 
@@ -81,46 +85,48 @@ class WithdrawalPipelineIntegrationTest {
      */
     @Test
     fun testFullWithdrawalPipeline() {
-        val amount = BigInteger.valueOf(1251400000000)
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            val amount = BigInteger.valueOf(1251400000000)
 
-        // deploy free relay
-        integrationHelper.deployRelays(1)
+            // deploy free relay
+            integrationHelper.deployRelays(1)
 
-        // make sure master has enough assets
-        integrationHelper.sendEth(amount, integrationHelper.masterContract.contractAddress)
+            // make sure master has enough assets
+            integrationHelper.sendEth(amount, integrationHelper.masterContract.contractAddress)
 
-        // register client
-        val res = integrationHelper.sendRegistrationRequest(
-            clientName,
-            listOf(toAddress).toString(),
-            keypair.publicKey(),
-            registrationConfig.port
-        )
-        Assertions.assertEquals(200, res.statusCode)
+            // register client
+            val res = integrationHelper.sendRegistrationRequest(
+                clientName,
+                listOf(toAddress).toString(),
+                keypair.publicKey(),
+                registrationConfig.port
+            )
+            Assertions.assertEquals(200, res.statusCode)
 
-        val initialBalance = integrationHelper.getEthBalance(toAddress)
-        val decimalAmount = BigDecimal(amount, ETH_PRECISION.toInt()).toPlainString()
-        val assetId = "ether#ethereum"
+            val initialBalance = integrationHelper.getEthBalance(toAddress)
+            val decimalAmount = BigDecimal(amount, ETH_PRECISION.toInt()).toPlainString()
+            val assetId = "ether#ethereum"
 
-        // add assets to user
-        integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
+            // add assets to user
+            integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
 
-        // transfer assets from user to notary master account
-        integrationHelper.transferAssetIrohaFromClient(
-            clientId,
-            keypair,
-            clientId,
-            notaryAccount,
-            assetId,
-            toAddress,
-            decimalAmount
-        )
-        Thread.sleep(15_000)
+            // transfer assets from user to notary master account
+            integrationHelper.transferAssetIrohaFromClient(
+                clientId,
+                keypair,
+                clientId,
+                notaryAccount,
+                assetId,
+                toAddress,
+                decimalAmount
+            )
+            Thread.sleep(15_000)
 
-        Assertions.assertEquals(
-            initialBalance.add(amount),
-            integrationHelper.getEthBalance(toAddress)
-        )
+            Assertions.assertEquals(
+                initialBalance.add(amount),
+                integrationHelper.getEthBalance(toAddress)
+            )
+        }
     }
 
     /**
@@ -131,54 +137,56 @@ class WithdrawalPipelineIntegrationTest {
      */
     @Test
     fun testFullWithdrawalPipelineErc20() {
-        val precision: Short = 2
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            val precision: Short = 2
 
-        // deploy free relay
-        integrationHelper.deployRelays(1)
+            // deploy free relay
+            integrationHelper.deployRelays(1)
 
-        // create ERC20 token and transfer to master
-        val (assetInfo, tokenAddress) = integrationHelper.deployRandomERC20Token(precision)
+            // create ERC20 token and transfer to master
+            val (assetInfo, tokenAddress) = integrationHelper.deployRandomERC20Token(precision)
 
-        integrationHelper.sendERC20Token(
-            tokenAddress,
-            BigInteger.valueOf(125),
-            integrationHelper.masterContract.contractAddress
-        )
+            integrationHelper.sendERC20Token(
+                tokenAddress,
+                BigInteger.valueOf(125),
+                integrationHelper.masterContract.contractAddress
+            )
 
-        val amount = "1.25"
-        val domain = "ethereum"
-        val assetId = "${assetInfo.name}#$domain"
+            val amount = "1.25"
+            val domain = "ethereum"
+            val assetId = "${assetInfo.name}#$domain"
 
-        // register client
-        val res = integrationHelper.sendRegistrationRequest(
-            clientName,
-            listOf(toAddress).toString(),
-            keypair.publicKey(),
-            registrationConfig.port
-        )
-        Assertions.assertEquals(200, res.statusCode)
+            // register client
+            val res = integrationHelper.sendRegistrationRequest(
+                clientName,
+                listOf(toAddress).toString(),
+                keypair.publicKey(),
+                registrationConfig.port
+            )
+            Assertions.assertEquals(200, res.statusCode)
 
-        val initialBalance = integrationHelper.getERC20TokenBalance(tokenAddress, toAddress)
+            val initialBalance = integrationHelper.getERC20TokenBalance(tokenAddress, toAddress)
 
-        // add assets to user
-        integrationHelper.addIrohaAssetTo(clientId, assetId, amount)
+            // add assets to user
+            integrationHelper.addIrohaAssetTo(clientId, assetId, amount)
 
-        // transfer assets from user to notary master account
-        integrationHelper.transferAssetIrohaFromClient(
-            clientId,
-            keypair,
-            clientId,
-            notaryAccount,
-            assetId,
-            toAddress,
-            amount
-        )
-        Thread.sleep(15_000)
+            // transfer assets from user to notary master account
+            integrationHelper.transferAssetIrohaFromClient(
+                clientId,
+                keypair,
+                clientId,
+                notaryAccount,
+                assetId,
+                toAddress,
+                amount
+            )
+            Thread.sleep(15_000)
 
-        Assertions.assertEquals(
-            initialBalance.add(BigDecimal(amount).scaleByPowerOfTen(precision.toInt()).toBigInteger()),
-            integrationHelper.getERC20TokenBalance(tokenAddress, toAddress)
-        )
+            Assertions.assertEquals(
+                initialBalance.add(BigDecimal(amount).scaleByPowerOfTen(precision.toInt()).toBigInteger()),
+                integrationHelper.getERC20TokenBalance(tokenAddress, toAddress)
+            )
+        }
     }
 
     /**
@@ -189,29 +197,31 @@ class WithdrawalPipelineIntegrationTest {
      */
     @Test
     fun testWithdrawInWhitelist() {
-        integrationHelper.registerClient(clientName, listOf(toAddress, "0x123"), keypair)
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.registerClient(clientName, listOf(toAddress, "0x123"), keypair)
 
-        val amount = "125"
-        val assetId = "ether#ethereum"
+            val amount = "125"
+            val assetId = "ether#ethereum"
 
-        // add assets to user
-        integrationHelper.addIrohaAssetTo(clientId, assetId, amount)
+            // add assets to user
+            integrationHelper.addIrohaAssetTo(clientId, assetId, amount)
 
-        // make transfer to notaryAccount to initiate withdrawal
-        val hash = integrationHelper.transferAssetIrohaFromClient(
-            clientId,
-            keypair,
-            clientId,
-            notaryAccount,
-            assetId,
-            toAddress,
-            amount
-        )
+            // make transfer to notaryAccount to initiate withdrawal
+            val hash = integrationHelper.transferAssetIrohaFromClient(
+                clientId,
+                keypair,
+                clientId,
+                notaryAccount,
+                assetId,
+                toAddress,
+                amount
+            )
 
-        // try get proof from peer
-        val res = khttp.get("$refundAddress/eth/$hash")
+            // try get proof from peer
+            val res = khttp.get("$refundAddress/eth/$hash")
 
-        assertEquals(200, res.statusCode)
+            assertEquals(200, res.statusCode)
+        }
     }
 
     /**
@@ -222,31 +232,33 @@ class WithdrawalPipelineIntegrationTest {
      */
     @Test
     fun testWithdrawEmptyWhitelist() {
-        // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
-        integrationHelper.registerClient(clientName, listOf(), keypair)
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
+            integrationHelper.registerClient(clientName, listOf(), keypair)
 
-        val withdrawalEthAddress = "0x123"
+            val withdrawalEthAddress = "0x123"
 
-        val amount = "125"
-        val assetId = "ether#ethereum"
+            val amount = "125"
+            val assetId = "ether#ethereum"
 
-        // add assets to user
-        integrationHelper.addIrohaAssetTo(clientId, assetId, amount)
+            // add assets to user
+            integrationHelper.addIrohaAssetTo(clientId, assetId, amount)
 
-        // make transfer trx
-        val hash = integrationHelper.transferAssetIrohaFromClient(
-            clientId,
-            keypair,
-            clientId,
-            notaryAccount,
-            assetId,
-            withdrawalEthAddress,
-            amount
-        )
+            // make transfer trx
+            val hash = integrationHelper.transferAssetIrohaFromClient(
+                clientId,
+                keypair,
+                clientId,
+                notaryAccount,
+                assetId,
+                withdrawalEthAddress,
+                amount
+            )
 
-        val res = khttp.get("$refundAddress/eth/$hash")
+            val res = khttp.get("$refundAddress/eth/$hash")
 
-        assertEquals(200, res.statusCode)
+            assertEquals(200, res.statusCode)
+        }
     }
 
     /**
@@ -257,34 +269,36 @@ class WithdrawalPipelineIntegrationTest {
      */
     @Test
     fun testWithdrawNotInWhitelist() {
-        integrationHelper.registerClient(clientName, listOf("0x123"), keypair)
-        integrationHelper.setWhitelist(clientId, listOf("0x123"))
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.registerClient(clientName, listOf("0x123"), keypair)
+            integrationHelper.setWhitelist(clientId, listOf("0x123"))
 
-        val withdrawalEthAddress = "0x321"
+            val withdrawalEthAddress = "0x321"
 
-        val amount = "125"
-        val assetId = "ether#ethereum"
+            val amount = "125"
+            val assetId = "ether#ethereum"
 
-        // add assets to user
-        integrationHelper.addIrohaAssetTo(clientId, assetId, amount)
+            // add assets to user
+            integrationHelper.addIrohaAssetTo(clientId, assetId, amount)
 
-        // make transfer trx
-        val hash = integrationHelper.transferAssetIrohaFromClient(
-            clientId,
-            keypair,
-            clientId,
-            notaryAccount,
-            assetId,
-            withdrawalEthAddress,
-            amount
-        )
+            // make transfer trx
+            val hash = integrationHelper.transferAssetIrohaFromClient(
+                clientId,
+                keypair,
+                clientId,
+                notaryAccount,
+                assetId,
+                withdrawalEthAddress,
+                amount
+            )
 
-        val res = khttp.get("$refundAddress/eth/$hash")
+            val res = khttp.get("$refundAddress/eth/$hash")
 
-        assertEquals(400, res.statusCode)
-        assertEquals(
-            "notary.endpoint.eth.NotaryException: ${withdrawalEthAddress} not in whitelist",
-            res.jsonObject.get("reason")
-        )
+            assertEquals(400, res.statusCode)
+            assertEquals(
+                "notary.endpoint.eth.NotaryException: ${withdrawalEthAddress} not in whitelist",
+                res.jsonObject.get("reason")
+            )
+        }
     }
 }
