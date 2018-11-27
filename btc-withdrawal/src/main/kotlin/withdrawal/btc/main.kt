@@ -15,7 +15,7 @@ import withdrawal.btc.config.withdrawalConfig
 import java.util.*
 
 @SpringBootApplication
-@ComponentScan(basePackages = ["withdrawal", "healthcheck", "provider.btc.network"])
+@ComponentScan(basePackages = ["withdrawal", "healthcheck", "provider.btc.network", "listener.btc"])
 class BtcWithdrawalApplication
 
 private val logger = KLogging().logger

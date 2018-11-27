@@ -3,6 +3,7 @@ package withdrawal.btc
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
+import handler.btc.NewBtcClientRegistrationHandler
 import healthcheck.HealthyService
 import helper.network.addPeerConnectionStatusListener
 import helper.network.getPeerGroup
@@ -37,7 +38,8 @@ class BtcWithdrawalInitialization(
     @Autowired private val irohaChainListener: IrohaChainListener,
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider,
     @Autowired private val withdrawalTransferEventHandler: WithdrawalTransferEventHandler,
-    @Autowired private val newSignatureEventHandler: NewSignatureEventHandler
+    @Autowired private val newSignatureEventHandler: NewSignatureEventHandler,
+    @Autowired private val newBtcClientRegistrationHandler: NewBtcClientRegistrationHandler
 ) : HealthyService() {
 
     fun init(): Result<Unit, Exception> {
@@ -70,12 +72,14 @@ class BtcWithdrawalInitialization(
         return irohaChainListener.getBlockObservable().map { irohaObservable ->
             irohaObservable.subscribeOn(Schedulers.from(Executors.newSingleThreadExecutor()))
                 .subscribe({ block ->
+                    // Handle transfer commands
                     getTransferCommands(block).forEach { command ->
                         withdrawalTransferEventHandler.handleTransferCommand(
                             wallet,
                             command.transferAsset
                         )
                     }
+                    // Handle signature appearance commands
                     getSetDetailCommands(block).filter { command -> isNewWithdrawalSignature(command) }
                         .forEach { command ->
                             newSignatureEventHandler.handleNewSignatureCommand(
@@ -83,6 +87,10 @@ class BtcWithdrawalInitialization(
                                 peerGroup
                             )
                         }
+                    // Handle newly registered Bitcoin addresses. We need it to update wallet object.
+                    getSetDetailCommands(block).forEach { command ->
+                        newBtcClientRegistrationHandler.handleNewClientCommand(command, wallet)
+                    }
                 }, { ex ->
                     notHealthy()
                     logger.error("Error on transfer events subscription", ex)

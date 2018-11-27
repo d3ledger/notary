@@ -91,7 +91,7 @@ class WithdrawalTransferEventHandler(
             transaction
         }.map { transaction ->
             logger.info { "Tx to sign\n$transaction" }
-            signCollector.collectSignatures(transaction, wallet)
+            signCollector.collectSignatures(transaction, btcWithdrawalConfig.bitcoin.walletPath)
             transaction
         }.map { transaction ->
             unsignedTransactions.markAsUnsigned(transaction)
