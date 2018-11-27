@@ -6,6 +6,7 @@ import org.bitcoinj.core.PeerGroup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
+import withdrawal.btc.statistics.WithdrawalStatistics
 import withdrawal.btc.transaction.SignCollector
 import withdrawal.btc.transaction.UnsignedTransactions
 
@@ -14,6 +15,7 @@ import withdrawal.btc.transaction.UnsignedTransactions
  */
 @Component
 class NewSignatureEventHandler(
+    @Autowired private val withdrawalStatistics: WithdrawalStatistics,
     @Autowired private val signCollector: SignCollector,
     @Autowired private val unsignedTransactions: UnsignedTransactions
 ) {
@@ -44,10 +46,16 @@ class NewSignatureEventHandler(
                 .fold({
                     peerGroup.broadcastTransaction(tx)
                     unsignedTransactions.remove(shortTxHash)
-                }, { ex -> logger.error("Cannot complete tx $originalHash", ex) })
+                    withdrawalStatistics.incSucceededTransfers()
+                }, { ex ->
+                    withdrawalStatistics.incFailedTransfers()
+                    logger.error("Cannot complete tx $originalHash", ex)
+                })
 
-
-        }, { ex -> logger.error("Cannot get signatures for tx $originalHash", ex) })
+        }, { ex ->
+            withdrawalStatistics.incFailedTransfers()
+            logger.error("Cannot get signatures for tx $originalHash", ex)
+        })
     }
 
     /**

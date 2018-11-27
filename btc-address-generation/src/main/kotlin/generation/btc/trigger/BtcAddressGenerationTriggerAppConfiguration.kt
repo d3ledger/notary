@@ -6,7 +6,7 @@ import model.IrohaCredential
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import provider.TriggerProvider
-import provider.btc.BtcSessionProvider
+import provider.btc.generation.BtcSessionProvider
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 

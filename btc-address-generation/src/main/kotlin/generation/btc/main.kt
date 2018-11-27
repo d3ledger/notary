@@ -14,7 +14,7 @@ import generation.btc.config.btcAddressGenerationConfig
 import sidechain.iroha.IrohaInitialization
 
 @SpringBootApplication
-@ComponentScan(basePackages = ["generation", "healthcheck", "provider.btc"])
+@ComponentScan(basePackages = ["generation", "healthcheck", "provider.btc.generation", "provider.btc.network"])
 class BtcAddressGenerationApplication
 
 private val logger = KLogging().logger

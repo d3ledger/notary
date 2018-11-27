@@ -23,8 +23,8 @@ def getSendBtcArgs() {
     if (project.hasProperty("address")) {
         args.add(project.property("address").toString())
     }
-    if (project.hasProperty("amount")) {
-        args.add(project.property("amount").toString())
+    if (project.hasProperty("amountSat")) {
+        args.add(project.property("amountSat").toString())
     }
     return args
 }

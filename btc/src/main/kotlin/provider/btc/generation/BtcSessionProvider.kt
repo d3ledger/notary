@@ -1,4 +1,4 @@
-package provider.btc
+package provider.btc.generation
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap

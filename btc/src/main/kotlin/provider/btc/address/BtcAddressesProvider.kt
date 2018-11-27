@@ -3,6 +3,7 @@ package provider.btc.address
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import model.IrohaCredential
+import monitoring.Monitoring
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
 
@@ -12,7 +13,8 @@ class BtcAddressesProvider(
     private val irohaNetwork: IrohaNetwork,
     private val mstRegistrationAccount: String,
     private val notaryAccount: String
-) {
+) : Monitoring() {
+    override fun monitor() = getAddresses()
 
     /**
      * Get all created btc addresses

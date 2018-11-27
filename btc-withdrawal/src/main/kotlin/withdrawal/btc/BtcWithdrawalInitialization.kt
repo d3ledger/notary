@@ -34,6 +34,7 @@ import java.util.concurrent.Executors
  */
 @Component
 class BtcWithdrawalInitialization(
+    @Autowired private val wallet: Wallet,
     @Autowired private val btcWithdrawalConfig: BtcWithdrawalConfig,
     @Autowired private val btcChangeAddressProvider: BtcChangeAddressProvider,
     @Autowired private val irohaChainListener: IrohaChainListener,
