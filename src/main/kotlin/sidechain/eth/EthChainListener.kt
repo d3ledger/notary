@@ -32,7 +32,7 @@ class EthChainListener(
     override fun getBlockObservable(): Result<Observable<EthBlock>, Exception> {
         return Result.of {
             // convert rx1 to rx2
-            RxJavaInterop.toV2Observable(web3.blockObservable(false))
+            web3.blockFlowable(false).toObservable()
                 // skip up to confirmationPeriod blocks in case of chain reorganisation
                 .filter { lastBlock < it.block.number }
                 .map {
