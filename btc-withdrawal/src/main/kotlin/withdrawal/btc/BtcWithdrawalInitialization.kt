@@ -10,6 +10,7 @@ import helper.network.startChainDownload
 import io.reactivex.schedulers.Schedulers
 import iroha.protocol.Commands
 import mu.KLogging
+import org.bitcoinj.core.Address
 import org.bitcoinj.core.PeerGroup
 import org.bitcoinj.utils.BriefLogFormatter
 import org.bitcoinj.wallet.Wallet
@@ -42,10 +43,10 @@ class BtcWithdrawalInitialization(
 
     fun init(): Result<Unit, Exception> {
         val wallet = Wallet.loadFromFile(File(btcWithdrawalConfig.bitcoin.walletPath))
-        return btcChangeAddressProvider.isAddressPresent().map { addressIsPresent ->
-            if (!addressIsPresent) {
-                throw IllegalStateException("No address for change storage was set")
-            }
+        return btcChangeAddressProvider.getChangeAddress().map { changeAddress ->
+            wallet.addWatchedAddress(
+                Address.fromBase58(btcNetworkConfigProvider.getConfig(), changeAddress.address)
+            )
         }.flatMap {
             initBtcBlockChain(wallet)
         }.flatMap { peerGroup ->
