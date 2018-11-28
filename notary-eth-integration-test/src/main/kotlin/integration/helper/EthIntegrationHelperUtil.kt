@@ -36,9 +36,9 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
 
     override val configHelper by lazy {
         EthConfigHelper(
-            accountHelper,
-            relayRegistryContract.contractAddress,
-            masterContract.contractAddress
+                accountHelper,
+                relayRegistryContract.contractAddress,
+                masterContract.contractAddress
         )
     }
 
@@ -48,8 +48,8 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     private val contractTestHelper by lazy { ContractTestHelper() }
 
     val ethListener = EthChainListener(
-        contractTestHelper.deployHelper.web3,
-        BigInteger.valueOf(testConfig.ethereum.confirmationPeriod)
+            contractTestHelper.deployHelper.web3,
+            BigInteger.valueOf(testConfig.ethereum.confirmationPeriod)
     )
 
     private val tokenProviderIrohaConsumer by lazy {
@@ -72,49 +72,49 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /** Provider that is used to store/fetch tokens*/
     val ethTokensProvider by lazy {
         EthTokensProviderImpl(
-            testCredential,
-            irohaNetwork,
-            accountHelper.tokenStorageAccount.accountId,
-            accountHelper.tokenSetterAccount.accountId
+                testCredential,
+                irohaNetwork,
+                accountHelper.tokenStorageAccount.accountId,
+                accountHelper.tokenSetterAccount.accountId
         )
     }
 
     /** Provider that is used to get free registered relays*/
     private val ethFreeRelayProvider by lazy {
         EthFreeRelayProvider(
-            accountHelper.registrationAccount,
-            irohaNetwork,
-            accountHelper.notaryAccount.accountId,
-            accountHelper.registrationAccount.accountId
+                accountHelper.registrationAccount,
+                irohaNetwork,
+                accountHelper.notaryAccount.accountId,
+                accountHelper.registrationAccount.accountId
         )
     }
 
     /** Provider of ETH wallets created by registrationAccount*/
     private val ethRelayProvider by lazy {
         EthRelayProviderIrohaImpl(
-            irohaNetwork,
-            accountHelper.registrationAccount,
-            accountHelper.notaryAccount.accountId,
-            accountHelper.registrationAccount.accountId
+                irohaNetwork,
+                accountHelper.registrationAccount,
+                accountHelper.notaryAccount.accountId,
+                accountHelper.registrationAccount.accountId
         )
     }
 
     private val ethRegistrationStrategy by lazy {
         EthRegistrationStrategyImpl(
-            ethFreeRelayProvider,
-            ethRegistrationConfig,
-            configHelper.ethPasswordConfig,
-            registrationConsumer,
-            accountHelper.notaryAccount.accountId
+                ethFreeRelayProvider,
+                ethRegistrationConfig,
+                configHelper.ethPasswordConfig,
+                registrationConsumer,
+                accountHelper.notaryAccount.accountId
         )
     }
 
     private val relayRegistration by lazy {
         RelayRegistration(
-            configHelper.createRelayRegistrationConfig(),
-            accountHelper.registrationAccount,
-            irohaNetwork,
-            configHelper.ethPasswordConfig
+                configHelper.createRelayRegistrationConfig(),
+                accountHelper.registrationAccount,
+                irohaNetwork,
+                configHelper.ethPasswordConfig
         )
     }
 
@@ -165,10 +165,10 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     fun addERC20Token(tokenAddress: String, tokenName: String, precision: Short) {
         ModelUtil.createAsset(irohaConsumer, tokenName, "ethereum", precision)
         ModelUtil.setAccountDetail(
-            tokenProviderIrohaConsumer,
-            accountHelper.tokenStorageAccount.accountId,
-            tokenAddress,
-            tokenName
+                tokenProviderIrohaConsumer,
+                accountHelper.tokenStorageAccount.accountId,
+                tokenAddress,
+                tokenName
         ).success {
             logger.info { "token $tokenName was added to ${accountHelper.tokenStorageAccount} by ${tokenProviderIrohaConsumer.creator}" }
         }
@@ -215,14 +215,14 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      */
     fun deployRelays(relaysToDeploy: Int) {
         relayRegistration.deploy(relaysToDeploy, masterContract.contractAddress)
-            .fold(
-                {
-                    logger.info("Relays were deployed by ${accountHelper.registrationAccount}")
-                },
-                {
-                    logger.error("Relays were not deployed.", it)
-                }
-            )
+                .fold(
+                        {
+                            logger.info("Relays were deployed by ${accountHelper.registrationAccount}")
+                        },
+                        {
+                            logger.error("Relays were not deployed.", it)
+                        }
+                )
     }
 
     /**
@@ -230,14 +230,14 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      */
     fun importRelays(filename: String) {
         relayRegistration.import(filename)
-            .fold(
-                {
-                    logger.info("Relays were imported by ${accountHelper.registrationAccount}")
-                },
-                {
-                    logger.error("Relays were not imported.", it)
-                }
-            )
+                .fold(
+                        {
+                            logger.info("Relays were imported by ${accountHelper.registrationAccount}")
+                        },
+                        {
+                            logger.error("Relays were not imported.", it)
+                        }
+                )
     }
 
     /**
@@ -253,9 +253,9 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      * Deploys relay and registers first free relay contract in Iroha to the client with given [name] and public key
      */
     fun registerClient(
-        name: String,
-        whitelist: List<String>,
-        keypair: Keypair = ModelCrypto().generateKeypair()
+            name: String,
+            whitelist: List<String>,
+            keypair: Keypair = ModelCrypto().generateKeypair()
     ): String {
         deployRelays(1)
         return registerClientWithoutRelay(name, whitelist, keypair)
@@ -265,16 +265,16 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      * Registers first free relay contract in Iroha to the client with given [name] and public key
      */
     fun registerClientWithoutRelay(
-        name: String,
-        whitelist: List<String>,
-        keypair: Keypair = ModelCrypto().generateKeypair()
+            name: String,
+            whitelist: List<String>,
+            keypair: Keypair = ModelCrypto().generateKeypair()
     ): String {
         ethRegistrationStrategy.register(name, whitelist, keypair.publicKey().hex())
-            .fold({ registeredEthWallet ->
-                logger.info("registered client $name with relay $registeredEthWallet")
-                return registeredEthWallet
-            },
-                { ex -> throw RuntimeException("$name was not registered", ex) })
+                .fold({ registeredEthWallet ->
+                    logger.info("registered client $name with relay $registeredEthWallet")
+                    return registeredEthWallet
+                },
+                        { ex -> throw RuntimeException("$name was not registered", ex) })
     }
 
     /**
@@ -306,13 +306,6 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      */
     fun getRegisteredEthWallets(): Set<String> = ethRelayProvider.getRelays().get().keys
 
-    private fun singularOrPluralBlocks(blocks: Int): String {
-        if (blocks == 1) {
-            return "block was"
-        }
-        return "blocks were"
-    }
-
     /**
      * Add Ethrereum addresses to client whitelist, so that she can withdraw only for that addresses
      * @param clientAccount - client account id in Iroha network
@@ -323,10 +316,10 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         logger.info { "Set whitelist $text to $clientAccount by ${registrationConsumer.creator}" }
 
         ModelUtil.setAccountDetail(
-            registrationConsumer,
-            clientAccount,
-            ETH_WHITE_LIST_KEY,
-            text
+                registrationConsumer,
+                clientAccount,
+                ETH_WHITE_LIST_KEY,
+                text
         )
     }
 
@@ -338,10 +331,10 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         relays.map {
             // Set ethereum wallet as occupied by user id
             ModelUtil.setAccountDetail(
-                registrationConsumer,
-                accountHelper.notaryAccount.accountId,
-                it.key,
-                it.value
+                    registrationConsumer,
+                    accountHelper.notaryAccount.accountId,
+                    it.key,
+                    it.value
             )
         }
     }
@@ -353,14 +346,14 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      * @param port - port of registration service
      */
     fun sendRegistrationRequest(
-        name: String,
-        whitelist: String,
-        pubkey: PublicKey,
-        port: Int
+            name: String,
+            whitelist: String,
+            pubkey: PublicKey,
+            port: Int
     ): khttp.responses.Response {
         return khttp.post(
-            "http://127.0.0.1:${port}/users",
-            data = mapOf("name" to name, "whitelist" to whitelist.trim('[').trim(']'), "pubkey" to pubkey.hex())
+                "http://127.0.0.1:${port}/users",
+                data = mapOf("name" to name, "whitelist" to whitelist.trim('[').trim(']'), "pubkey" to pubkey.hex())
         )
     }
 
@@ -368,15 +361,15 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      * Run Ethereum notary process
      */
     fun runEthNotary(
-        ethereumPasswords: EthereumPasswords = configHelper.ethPasswordConfig,
-        ethNotaryConfig: EthNotaryConfig = configHelper.createEthNotaryConfig()
+            ethereumPasswords: EthereumPasswords = configHelper.ethPasswordConfig,
+            ethNotaryConfig: EthNotaryConfig = configHelper.createEthNotaryConfig()
     ) {
         val name = String.getRandomString(9)
         val address = "http://localhost:${ethNotaryConfig.refund.port}"
         addNotary(name, address)
 
         val ethCredential =
-            WalletUtils.loadCredentials(ethereumPasswords.credentialsPassword, ethNotaryConfig.ethereum.credentialsPath)
+                WalletUtils.loadCredentials(ethereumPasswords.credentialsPassword, ethNotaryConfig.ethereum.credentialsPath)
         masterContract.addPeer(ethCredential.address).send()
 
         executeNotary(ethereumPasswords, ethNotaryConfig)
@@ -395,8 +388,8 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      * Run withdrawal service
      */
     fun runEthWithdrawalService(
-        withdrawalServiceConfig: WithdrawalServiceConfig = configHelper.createWithdrawalConfig(),
-        relayVacuumConfig: RelayVacuumConfig = configHelper.createRelayVacuumConfig()
+            withdrawalServiceConfig: WithdrawalServiceConfig = configHelper.createWithdrawalConfig(),
+            relayVacuumConfig: RelayVacuumConfig = configHelper.createRelayVacuumConfig()
     ) {
         withdrawalservice.executeWithdrawal(withdrawalServiceConfig, configHelper.ethPasswordConfig, relayVacuumConfig)
     }
