@@ -64,11 +64,11 @@ class WdRollbackServiceInitialization(
                 wdRollbackService.monitorWithdrawal()
                     .subscribe(
                         { res ->
-                            res.map { rollbackEventDescriptions ->
-                                rollbackEventDescriptions.map { description ->
-                                    wdRollbackService.initiateRollback(description)
+                            res
+                                .map { rollbackEventDescription ->
+                                    wdRollbackService.initiateRollback(rollbackEventDescription)
+
                                 }
-                            }
                                 .failure { ex ->
                                     logger.error("Error during Iroha transaction", ex)
                                     throw ex

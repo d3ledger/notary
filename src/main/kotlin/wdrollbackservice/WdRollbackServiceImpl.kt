@@ -21,13 +21,11 @@ class WdRollbackServiceImpl(
     private fun processIrohaEvent(
         withdrawalIrohaEventHash: String,
         ethTxStatus: String?
-    ): Result<List<WdRollbackServiceOutputEvent>, Exception> {
+    ): Result<WdRollbackServiceOutputEvent, Exception> {
         return Result.of {
-            listOf(
-                WdRollbackServiceOutputEvent(
-                    withdrawalIrohaEventHash,
-                    ethFailedStatuses.contains(ethTxStatus)
-                )
+            WdRollbackServiceOutputEvent(
+                withdrawalIrohaEventHash,
+                ethFailedStatuses.contains(ethTxStatus)
             )
         }
     }
@@ -58,7 +56,7 @@ class WdRollbackServiceImpl(
     }
 
 
-    override fun monitorWithdrawal(): Observable<Result<List<WdRollbackServiceOutputEvent>, Exception>> {
+    override fun monitorWithdrawal(): Observable<Result<WdRollbackServiceOutputEvent, Exception>> {
         // TODO: provide synchronization if rollback service is not singleton
         return withdrawalTransactionsDAO.getObservable()
             .map {
