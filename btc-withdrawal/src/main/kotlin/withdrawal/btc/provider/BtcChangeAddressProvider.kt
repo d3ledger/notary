@@ -33,19 +33,4 @@ open class BtcChangeAddressProvider(
             BtcAddress(changeAddressEntry.key, AddressInfo.fromJson(changeAddressEntry.value)!!)
         }
     }
-
-    /**
-     * Checks if change address was set
-     * @return result with 'true' value, if change address was set
-     */
-    fun isAddressPresent(): Result<Boolean, Exception> {
-        return getAccountDetails(
-            credential,
-            irohaNetwork,
-            changeAddressesStorageAccount,
-            mstRegistrationAccount
-        ).map { addresses ->
-            addresses.keys.firstOrNull() != null
-        }
-    }
 }
