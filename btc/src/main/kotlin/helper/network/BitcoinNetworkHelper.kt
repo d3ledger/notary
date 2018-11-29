@@ -39,7 +39,7 @@ fun getPeerGroup(wallet: Wallet, networkParameters: NetworkParameters, blockStor
  * @param onNewPeerConnected - function that is called, when new peer appears
  */
 fun addPeerConnectionStatusListener(peerGroup: PeerGroup, onNoPeersLeft: () -> Unit, onNewPeerConnected: () -> Unit) {
-    peerGroup.addDisconnectedEventListener { peer, peerCount ->
+    peerGroup.addDisconnectedEventListener { _, peerCount ->
         //If no peers left
         if (peerCount == 0) {
             logger.warn { "Out of peers" }
@@ -47,5 +47,5 @@ fun addPeerConnectionStatusListener(peerGroup: PeerGroup, onNoPeersLeft: () -> U
         }
     }
     // If new peer connected
-    peerGroup.addConnectedEventListener { peer, peerCount -> onNewPeerConnected() }
+    peerGroup.addConnectedEventListener { _, _ -> onNewPeerConnected() }
 }

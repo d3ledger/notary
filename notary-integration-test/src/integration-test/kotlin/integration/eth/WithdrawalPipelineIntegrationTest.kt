@@ -3,8 +3,9 @@ package integration.eth
 import integration.helper.IntegrationHelperUtil
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelCrypto
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.junit.jupiter.api.*
 import provider.eth.ETH_PRECISION
 import sidechain.iroha.CLIENT_DOMAIN
@@ -43,10 +44,10 @@ class WithdrawalPipelineIntegrationTest {
 
     init {
         integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig)
-        registrationService = launch {
+        registrationService = GlobalScope.launch {
             integrationHelper.runRegistrationService(registrationConfig)
         }
-        withdrawalService = launch {
+        withdrawalService = GlobalScope.launch {
             integrationHelper.runEthWithdrawalService()
         }
 

@@ -15,8 +15,8 @@
 @file:DependsOn("org.jetbrains.kotlinx:kotlinx-coroutines-core:0.21")
 
 import io.grpc.ManagedChannelBuilder
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 
 if (args.size < 2) {
     System.exit(3)

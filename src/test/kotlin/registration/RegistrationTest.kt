@@ -4,10 +4,7 @@ import com.github.kittinunf.result.Result
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.*
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -45,7 +42,7 @@ open class RegistrationTest {
     private val registrationService: Job
 
     init {
-        registrationService = launch {
+        registrationService = GlobalScope.launch {
             RegistrationServiceEndpoint(port, strategy)
         }
 

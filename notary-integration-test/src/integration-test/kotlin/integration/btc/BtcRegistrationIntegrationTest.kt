@@ -2,8 +2,8 @@ package integration.btc
 
 import integration.helper.IntegrationHelperUtil
 import jp.co.soramitsu.iroha.ModelCrypto
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import model.IrohaCredential
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals

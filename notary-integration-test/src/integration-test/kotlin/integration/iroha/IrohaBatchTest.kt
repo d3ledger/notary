@@ -5,9 +5,10 @@ import integration.helper.IntegrationHelperUtil
 import jp.co.soramitsu.iroha.Blob
 import jp.co.soramitsu.iroha.ModelCrypto
 import jp.co.soramitsu.iroha.iroha
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.runBlocking
-import kotlinx.coroutines.experimental.withTimeout
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import notary.IrohaCommand
 import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
@@ -136,7 +137,7 @@ class IrohaBatchTest {
         val lst = IrohaConverterImpl().convert(batch)
         val hashes = lst.map { it.hash().hex() }
 
-        val blockHashes = async {
+        val blockHashes = GlobalScope.async {
             listener.getBlock().payload.transactionsList.map {
                 Blob(iroha.hashTransaction(it.toByteArray().toByteVector())).hex()
             }
@@ -155,7 +156,7 @@ class IrohaBatchTest {
         assertEquals(27, u1_amount.toInt())
 
         runBlocking {
-            withTimeout(10, TimeUnit.SECONDS) {
+            withTimeout(10_000) {
                 assertEquals(hashes, blockHashes.await())
             }
         }
@@ -247,7 +248,7 @@ class IrohaBatchTest {
         val hashes = lst.map { it.hash().hex() }
         val expectedHashes = hashes.subList(0, hashes.size - 1)
 
-        val blockHashes = async {
+        val blockHashes = GlobalScope.async {
             listener.getBlock().payload.transactionsList.map {
                 Blob(iroha.hashTransaction(it.toByteArray().toByteVector())).hex()
             }
@@ -266,7 +267,7 @@ class IrohaBatchTest {
         assertEquals(27, u1_amount.toInt())
 
         runBlocking {
-            withTimeout(10, TimeUnit.SECONDS) {
+            withTimeout(10_000) {
                 assertEquals(expectedHashes, blockHashes.await())
             }
         }

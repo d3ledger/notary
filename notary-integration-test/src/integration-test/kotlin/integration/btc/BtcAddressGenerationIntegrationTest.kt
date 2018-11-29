@@ -2,7 +2,8 @@ package integration.btc
 
 import generation.btc.BtcAddressGenerationInitialization
 import integration.helper.IntegrationHelperUtil
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import model.IrohaCredential
 import mu.KLogging
 import org.bitcoinj.core.ECKey
@@ -94,7 +95,7 @@ class BtcAddressGenerationIntegrationTest {
 
     init {
         integrationHelper.addNotary("test_notary", "test_notary_address")
-        launch {
+        GlobalScope.launch {
             IrohaChainListener(
                 btcGenerationConfig.iroha.hostname,
                 btcGenerationConfig.iroha.port,
