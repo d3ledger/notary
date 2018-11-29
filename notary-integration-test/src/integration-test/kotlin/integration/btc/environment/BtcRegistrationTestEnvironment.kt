@@ -9,11 +9,13 @@ import registration.btc.BtcRegistrationServiceInitialization
 import registration.btc.BtcRegistrationStrategyImpl
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
+import java.io.Closeable
 
 /**
  * Bitcoin client registration service testing environment
  */
-class BtcRegistrationTestEnvironment(private val integrationHelper: IntegrationHelperUtil) {
+class BtcRegistrationTestEnvironment(private val integrationHelper: IntegrationHelperUtil) : Closeable {
+
     val btcRegistrationConfig = integrationHelper.configHelper.createBtcRegistrationConfig()
 
     val btcNotaryConfig = integrationHelper.configHelper.createBtcNotaryConfig()
@@ -66,4 +68,8 @@ class BtcRegistrationTestEnvironment(private val integrationHelper: IntegrationH
         btcRegistrationConfig.registrationCredential.accountId,
         integrationHelper.accountHelper.notaryAccount.accountId
     )
+
+    override fun close() {
+        integrationHelper.close()
+    }
 }

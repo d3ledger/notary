@@ -18,12 +18,14 @@ import withdrawal.btc.handler.WithdrawalTransferEventHandler
 import withdrawal.btc.provider.BtcChangeAddressProvider
 import withdrawal.btc.provider.BtcWhiteListProvider
 import withdrawal.btc.transaction.*
+import java.io.Closeable
+import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Bitcoin withdrawal service testing environment
  */
-class BtcWithdrawalTestEnvironment(private val integrationHelper: IntegrationHelperUtil) {
+class BtcWithdrawalTestEnvironment(private val integrationHelper: IntegrationHelperUtil) : Closeable {
 
     val createdTransactions = ConcurrentHashMap<String, TimedTx>()
 
@@ -130,4 +132,9 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: IntegrationHel
         }
     }
 
+    override fun close() {
+        integrationHelper.close()
+        irohaChainListener.close()
+        File(btcWithdrawalConfig.bitcoin.blockStoragePath).deleteRecursively()
+    }
 }

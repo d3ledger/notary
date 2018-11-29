@@ -12,6 +12,7 @@ import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelCrypto
 import kotlinx.coroutines.experimental.launch
 import mu.KLogging
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -87,6 +88,14 @@ class BtcFullPipelineTest {
         }
 
         Thread.sleep(10_000)
+    }
+
+    @AfterAll
+    fun closeEnvironments() {
+        addressGenerationEnvironment.close()
+        registrationEnvironment.close()
+        notaryEnvironment.close()
+        withdrawalEnvironment.close()
     }
 
     /**

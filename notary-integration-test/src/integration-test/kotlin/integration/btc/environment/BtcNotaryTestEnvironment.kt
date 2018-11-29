@@ -9,12 +9,14 @@ import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.btc.network.BtcRegTestConfigProvider
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.util.ModelUtil
+import java.io.Closeable
+import java.io.File
 
 
 /**
  * Bitcoin notary service testing environment
  */
-class BtcNotaryTestEnvironment(integrationHelper: IntegrationHelperUtil) {
+class BtcNotaryTestEnvironment(private val integrationHelper: IntegrationHelperUtil) : Closeable {
 
     val notaryConfig = integrationHelper.configHelper.createBtcNotaryConfig()
 
@@ -52,4 +54,11 @@ class BtcNotaryTestEnvironment(integrationHelper: IntegrationHelperUtil) {
             newBtcClientRegistrationListener,
             btcNetworkConfigProvider
         )
+
+    override fun close() {
+        integrationHelper.close()
+        irohaChainListener.close()
+        //Clear bitcoin blockchain folder
+        File(notaryConfig.bitcoin.blockStoragePath).deleteRecursively()
+    }
 }

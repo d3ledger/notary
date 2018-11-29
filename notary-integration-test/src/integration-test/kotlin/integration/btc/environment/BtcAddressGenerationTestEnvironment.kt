@@ -11,12 +11,13 @@ import provider.btc.network.BtcRegTestConfigProvider
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import wallet.WalletFile
+import java.io.Closeable
 import java.io.File
 
 /**
  * Bitcoin address generation service testing environment
  */
-class BtcAddressGenerationTestEnvironment(private val integrationHelper: IntegrationHelperUtil) {
+class BtcAddressGenerationTestEnvironment(private val integrationHelper: IntegrationHelperUtil) : Closeable {
 
     val btcGenerationConfig =
         integrationHelper.configHelper.createBtcAddressGenerationConfig()
@@ -79,4 +80,7 @@ class BtcAddressGenerationTestEnvironment(private val integrationHelper: Integra
         )
     }
 
+    override fun close() {
+        integrationHelper.close()
+    }
 }
