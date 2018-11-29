@@ -25,9 +25,15 @@ hs_err_pid*
 ### Gradle template
 .gradle
 /build/
-/notary-integration-test/build/
-/notary-integration-test/gradle/
-/notary-integration-test/gradlew
+/notary-btc-integration-test/build/
+/notary-btc-integration-test/gradle/
+/notary-btc-integration-test/gradlew
+/notary-eth-integration-test/build/
+/notary-eth-integration-test/gradle/
+/notary-eth-integration-test/gradlew
+/notary-iroha-integration-test/build/
+/notary-iroha-integration-test/gradle/
+/notary-iroha-integration-test/gradlew
 /btc/build/
 /btc/gradle/
 /btc/gradlew
