@@ -50,10 +50,10 @@ class SignCollector(
      * 2) Create special account named after tx hash for signature storing
      * 3) Save signatures in recently created account details
      * @param tx - transaction to sign
-     * @param wallet - current wallet. Used to get private keys
+     * @param walletPath - path to current wallet. Used to get private keys
      */
-    fun collectSignatures(tx: Transaction, wallet: Wallet) {
-        transactionSigner.sign(tx, wallet).flatMap { signedInputs ->
+    fun collectSignatures(tx: Transaction, walletPath: String) {
+        transactionSigner.sign(tx, walletPath).flatMap { signedInputs ->
             if (signedInputs.isEmpty()) {
                 throw IllegalStateException("No inputs were signed")
             }

@@ -1,8 +1,10 @@
 package integration.btc
 
 import com.github.kittinunf.result.failure
+import handler.btc.NewBtcClientRegistrationHandler
 import integration.helper.IntegrationHelperUtil
 import integration.helper.btcAsset
+import listener.btc.NewBtcClientRegistrationListener
 import model.IrohaCredential
 import notary.btc.BtcNotaryInitialization
 import org.bitcoinj.core.Address
@@ -47,6 +49,9 @@ class BtcNotaryIntegrationTest {
 
     private val btcNetworkConfigProvider = BtcRegTestConfigProvider()
 
+    private val newBtcClientRegistrationListener =
+        NewBtcClientRegistrationListener(NewBtcClientRegistrationHandler(btcNetworkConfigProvider))
+
     private val btcNotaryInitialization =
         BtcNotaryInitialization(
             notaryConfig,
@@ -54,6 +59,7 @@ class BtcNotaryIntegrationTest {
             integrationHelper.irohaNetwork,
             btcRegisteredAddressesProvider,
             irohaChainListener,
+            newBtcClientRegistrationListener,
             btcNetworkConfigProvider
         )
 
