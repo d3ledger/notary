@@ -1,7 +1,6 @@
 package sidechain.eth
 
 import com.github.kittinunf.result.Result
-import hu.akarnokd.rxjava.interop.RxJavaInterop
 import io.reactivex.Observable
 import mu.KLogging
 import org.web3j.protocol.Web3j
@@ -31,7 +30,6 @@ class EthChainListener(
 
     override fun getBlockObservable(): Result<Observable<EthBlock>, Exception> {
         return Result.of {
-            // convert rx1 to rx2
             web3.blockFlowable(false).toObservable()
                 // skip up to confirmationPeriod blocks in case of chain reorganisation
                 .filter { lastBlock < it.block.number }
