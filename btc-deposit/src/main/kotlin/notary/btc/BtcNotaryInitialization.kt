@@ -2,6 +2,7 @@ package notary.btc
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
+import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import healthcheck.HealthyService
 import helper.network.addPeerConnectionStatusListener
@@ -53,6 +54,19 @@ class BtcNotaryInitialization(
         return irohaChainListener.getBlockObservable().map { irohaObservable ->
             newBtcClientRegistrationListener.listenToRegisteredClients(wallet, irohaObservable)
             logger.info { "Registration service listener was successfully initialized" }
+        }.flatMap {
+            btcRegisteredAddressesProvider.getRegisteredAddresses()
+        }.map { registeredAddresses ->
+            // Adding previously registered addresses to the wallet
+            registeredAddresses.map { btcAddress ->
+                Address.fromBase58(
+                    btcNetworkConfigProvider.getConfig(),
+                    btcAddress.address
+                )
+            }.forEach { address ->
+                wallet.addWatchedAddress(address)
+            }
+            logger.info { "Previously registered addresses were added to the wallet" }
         }.map {
             getBtcEvents(peerGroup, btcNotaryConfig.bitcoin.confidenceLevel)
         }.map { btcEvents ->

@@ -17,6 +17,7 @@ import org.bitcoinj.utils.BriefLogFormatter
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.btc.network.BtcNetworkConfigProvider
 import sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
 import sidechain.iroha.IrohaChainListener
@@ -41,15 +42,28 @@ class BtcWithdrawalInitialization(
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider,
     @Autowired private val withdrawalTransferEventHandler: WithdrawalTransferEventHandler,
     @Autowired private val newSignatureEventHandler: NewSignatureEventHandler,
-    @Autowired private val newBtcClientRegistrationHandler: NewBtcClientRegistrationHandler
+    @Autowired private val newBtcClientRegistrationHandler: NewBtcClientRegistrationHandler,
+    @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider
 ) : HealthyService() {
 
     fun init(): Result<Unit, Exception> {
-        val wallet = Wallet.loadFromFile(File(btcWithdrawalConfig.bitcoin.walletPath))
         return btcChangeAddressProvider.getChangeAddress().map { changeAddress ->
             wallet.addWatchedAddress(
                 Address.fromBase58(btcNetworkConfigProvider.getConfig(), changeAddress.address)
             )
+        }.flatMap {
+            btcRegisteredAddressesProvider.getRegisteredAddresses()
+        }.map { registeredAddresses ->
+            // Adding previously registered addresses to the wallet
+            registeredAddresses.map { btcAddress ->
+                Address.fromBase58(
+                    btcNetworkConfigProvider.getConfig(),
+                    btcAddress.address
+                )
+            }.forEach { address ->
+                wallet.addWatchedAddress(address)
+            }
+            logger.info { "Previously registered addresses were added to the wallet" }
         }.flatMap {
             initBtcBlockChain(wallet)
         }.flatMap { peerGroup ->
