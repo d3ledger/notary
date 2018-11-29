@@ -33,9 +33,9 @@ class BtcFullPipelineTest {
 
     private val registrationEnvironment = BtcRegistrationTestEnvironment(integrationHelper)
 
-    private val notaryEnvironment = BtcNotaryTestEnvironment(integrationHelper)
+    private val notaryEnvironment = BtcNotaryTestEnvironment(integrationHelper, "full_pipeline")
 
-    private val withdrawalEnvironment = BtcWithdrawalTestEnvironment(integrationHelper)
+    private val withdrawalEnvironment = BtcWithdrawalTestEnvironment(integrationHelper, "full_pipeline")
 
     init {
         integrationHelper.addNotary("test_notary", "test_notary_address")

@@ -25,11 +25,12 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * Bitcoin withdrawal service testing environment
  */
-class BtcWithdrawalTestEnvironment(private val integrationHelper: IntegrationHelperUtil) : Closeable {
+class BtcWithdrawalTestEnvironment(private val integrationHelper: IntegrationHelperUtil, testName: String = "") :
+    Closeable {
 
     val createdTransactions = ConcurrentHashMap<String, TimedTx>()
 
-    val btcWithdrawalConfig = integrationHelper.configHelper.createBtcWithdrawalConfig()
+    val btcWithdrawalConfig = integrationHelper.configHelper.createBtcWithdrawalConfig(testName)
 
     val withdrawalKeypair = ModelUtil.loadKeypair(
         btcWithdrawalConfig.withdrawalCredential.pubkeyPath,

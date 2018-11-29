@@ -16,9 +16,10 @@ import java.io.File
 /**
  * Bitcoin notary service testing environment
  */
-class BtcNotaryTestEnvironment(private val integrationHelper: IntegrationHelperUtil) : Closeable {
+class BtcNotaryTestEnvironment(private val integrationHelper: IntegrationHelperUtil, testName: String = "") :
+    Closeable {
 
-    val notaryConfig = integrationHelper.configHelper.createBtcNotaryConfig()
+    val notaryConfig = integrationHelper.configHelper.createBtcNotaryConfig(testName)
 
     private val irohaCredential = IrohaCredential(
         notaryConfig.notaryCredential.accountId,
