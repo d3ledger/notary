@@ -11,7 +11,6 @@ import registration.eth.EthRegistrationConfig
 import registration.eth.relay.RelayRegistrationConfig
 import token.ERC20TokenRegistrationConfig
 import vacuum.RelayVacuumConfig
-import wdrollbackservice.WithdrawalRollbackServiceConfig
 import withdrawal.btc.config.BtcWithdrawalConfig
 import withdrawalservice.WithdrawalServiceConfig
 import java.io.File
@@ -209,13 +208,17 @@ class ConfigHelper(
             override val refund = createRefundConfig()
             override val iroha = irohaConfig
             override val ethereum = ethereumConfig
+            override val withdrawalAccountId = ethNotaryConfig.withdrawalAccountId
         }
     }
 
     /** Test configuration of Withdrawal service with runtime dependencies */
-    fun createWithdrawalConfig(): WithdrawalServiceConfig {
+    fun createWithdrawalConfig(useValidEthereum: Boolean = true): WithdrawalServiceConfig {
         val withdrawalConfig =
             loadConfigs("withdrawal", WithdrawalServiceConfig::class.java, "/eth/withdrawal.properties")
+
+        val ethereumConfig =
+            if (useValidEthereum) withdrawalConfig.ethereum else getBrokenEthereumConfig(withdrawalConfig)
 
         return object : WithdrawalServiceConfig {
             override val notaryIrohaAccount = accountHelper.notaryAccount.accountId
@@ -226,22 +229,17 @@ class ConfigHelper(
             override val registrationIrohaAccount = accountHelper.registrationAccount.accountId
             override val withdrawalCredential = withdrawalConfig.withdrawalCredential
             override val iroha = createIrohaConfig()
-            override val ethereum = withdrawalConfig.ethereum
-            override val withdrawalTxStorageAccount = accountHelper.withdrawalTxStorageAccount.accountId
+            override val ethereum = ethereumConfig
         }
     }
 
-    /** Test configuration of Withdrawal Rollback service with runtime dependencies */
-    fun createWdRollbackConfig(): WithdrawalRollbackServiceConfig {
-        val wdRollbackConfig =
-            loadConfigs("withdrawal_rollback", WithdrawalRollbackServiceConfig::class.java, "/eth/withdrawal_rollback.properties")
-
-        return object : WithdrawalRollbackServiceConfig {
-            override val withdrawalTxStorageAccount = accountHelper.withdrawalTxStorageAccount.accountId
-            override val withdrawalCredential = wdRollbackConfig.withdrawalCredential
-            override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
-            override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
-            override val iroha = createIrohaConfig()
+    fun getBrokenEthereumConfig(withdrawalServiceConfig: WithdrawalServiceConfig): EthereumConfig {
+        return object : EthereumConfig {
+            override val url = withdrawalServiceConfig.ethereum.url
+            override val credentialsPath = withdrawalServiceConfig.ethereum.credentialsPath
+            override val gasPrice = 0L
+            override val gasLimit = 0L
+            override val confirmationPeriod = 0L
         }
     }
 

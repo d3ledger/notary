@@ -30,13 +30,9 @@ class WithdrawalRollbackIntegrationTest {
     /** Notary account in Iroha */
     private val notaryAccount = integrationHelper.accountHelper.notaryAccount.accountId
 
-    private val txStorage = integrationHelper.getTestingWithdrawalTxStorage()
-
     private val registrationService: Job
 
     private val withdrawalService: Job
-
-    private val wdRollbackService: Job
 
     init {
         integrationHelper.runEthNotary()
@@ -44,10 +40,7 @@ class WithdrawalRollbackIntegrationTest {
             integrationHelper.runRegistrationService(registrationConfig)
         }
         withdrawalService = launch {
-            integrationHelper.runEthWithdrawalService()
-        }
-        wdRollbackService = launch {
-            integrationHelper.runWdRollbackService()
+            integrationHelper.runEthWithdrawalService(integrationHelper.configHelper.createWithdrawalConfig(false))
         }
 
         integrationHelper.lockEthMasterSmartcontract()
@@ -70,17 +63,16 @@ class WithdrawalRollbackIntegrationTest {
         integrationHelper.close()
         registrationService.cancel()
         withdrawalService.cancel()
-        wdRollbackService.cancel()
     }
 
     /**
-     * Full withdrawal pipeline test
-     * @given iroha, withdrawal and rollback services are running, free relays available, user account has 250 Wei in Iroha
+     * Full withdrawal rollback pipeline test
+     * @given iroha and withdrawal services are running, free relays available, user account has 250 Wei in Iroha
      * @when user transfers 250 Wei to Iroha master account and that withdrawal crashes
      * @then balance of user's wallet in Iroha becomes the initial one
      */
     @Test
-    fun testFullWithdrawalRollbackPipeline() {
+    fun testWithdrawalRollbackPipeline() {
         val amount = BigInteger.valueOf(2502800000000)
 
         // deploy free relay
@@ -107,7 +99,7 @@ class WithdrawalRollbackIntegrationTest {
         val initialBalance = integrationHelper.getIrohaAccountBalance(clientId, assetId)
 
         // transfer assets from user to notary master account
-        val txHash = integrationHelper.transferAssetIrohaFromClient(
+        integrationHelper.transferAssetIrohaFromClient(
             clientId,
             keypair,
             clientId,
@@ -116,12 +108,8 @@ class WithdrawalRollbackIntegrationTest {
             toAddress,
             decimalAmount
         )
-        Thread.sleep(10_000)
 
-        // simulate withdrawal failure
-        txStorage.put(txHash, "null")
-
-        Thread.sleep(10_000)
+        Thread.sleep(20_000)
 
         Assertions.assertEquals(
             initialBalance,

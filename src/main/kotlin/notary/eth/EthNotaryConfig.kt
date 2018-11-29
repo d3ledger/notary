@@ -36,4 +36,7 @@ interface EthNotaryConfig {
     val iroha: IrohaConfig
 
     val ethereum: EthereumConfig
+
+    /** Iroha withdrawal account grant permission to */
+    val withdrawalAccountId: String
 }

@@ -5,6 +5,8 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.EthereumPasswords
 import io.reactivex.Observable
+import jp.co.soramitsu.iroha.Grantable
+import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import model.IrohaCredential
 import mu.KLogging
 import notary.Notary
@@ -12,7 +14,6 @@ import notary.createEthNotary
 import notary.endpoint.RefundServerEndpoint
 import notary.endpoint.ServerInitializationBundle
 import notary.endpoint.eth.EthRefundStrategyImpl
-import notary.endpoint.eth.IrohaRefundStrategyImpl
 import okhttp3.OkHttpClient
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
@@ -25,10 +26,10 @@ import sidechain.eth.EthChainListener
 import sidechain.eth.util.BasicAuthenticator
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetwork
+import sidechain.iroha.util.ModelUtil
 import java.math.BigInteger
 
 const val ENDPOINT_ETHEREUM = "eth"
-const val ENDPOINT_ETHEREUM_WD_ROLLBACK = "ethwdrb"
 
 /**
  * Class for notary instantiation
@@ -86,6 +87,14 @@ class EthNotaryInitialization(
     ): Notary {
         logger.info { "Init ethereum notary" }
 
+        IrohaConsumerImpl(notaryCredential, irohaNetwork).sendAndCheck(
+            ModelTransactionBuilder()
+                .creatorAccountId(notaryCredential.accountId)
+                .createdTime(ModelUtil.getCurrentTime())
+                .grantPermission(ethNotaryConfig.withdrawalAccountId, Grantable.kTransferMyAssets)
+                .build()
+        )
+
         val peerListProvider = NotaryPeerListProviderImpl(
             notaryCredential,
             irohaNetwork,
@@ -103,7 +112,6 @@ class EthNotaryInitialization(
         logger.info { "Init Refund endpoint" }
         RefundServerEndpoint(
             ServerInitializationBundle(ethNotaryConfig.refund.port, ENDPOINT_ETHEREUM),
-            ServerInitializationBundle(ethNotaryConfig.refund.port, ENDPOINT_ETHEREUM_WD_ROLLBACK),
             EthRefundStrategyImpl(
                 ethNotaryConfig,
                 irohaNetwork,
@@ -111,15 +119,6 @@ class EthNotaryInitialization(
                 ethNotaryConfig.ethereum,
                 passwordsConfig,
                 ethTokensProvider
-            ),
-            IrohaRefundStrategyImpl(
-                irohaNetwork,
-                notaryCredential,
-                notaryCredential.accountId,
-                IrohaConsumerImpl(
-                    notaryCredential,
-                    irohaNetwork
-                )
             )
         )
     }

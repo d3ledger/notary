@@ -32,7 +32,4 @@ interface WithdrawalServiceConfig {
 
     /** Ethereum config */
     val ethereum: EthereumConfig
-
-    /** Account who stores and sets tx storage details */
-    val withdrawalTxStorageAccount: String
 }
