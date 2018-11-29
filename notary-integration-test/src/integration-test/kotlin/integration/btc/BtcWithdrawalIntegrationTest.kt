@@ -112,17 +112,7 @@ class BtcWithdrawalIntegrationTest {
     private val newSignatureEventHandler =
         NewSignatureEventHandler(withdrawalStatistics, signCollector, unsignedTransactions)
 
-    private val btcWithdrawalInitialization =
-        BtcWithdrawalInitialization(
-            Wallet.loadFromFile(File(btcWithdrawalConfig.bitcoin.walletPath)),
-            btcWithdrawalConfig,
-            btcChangeAddressProvider,
-            irohaChainListener,
-            btcNetworkConfigProvider,
-            withdrawalTransferEventHandler,
-            newSignatureEventHandler,
-            NewBtcClientRegistrationHandler(btcNetworkConfigProvider)
-        )
+    private lateinit var btcWithdrawalInitialization: BtcWithdrawalInitialization
 
     private lateinit var changeAddress: Address
 
@@ -145,6 +135,18 @@ class BtcWithdrawalIntegrationTest {
             .fold({ address -> changeAddress = address }, { ex -> throw  ex })
         integrationHelper.preGenFreeBtcAddresses(btcWithdrawalConfig.bitcoin.walletPath, TOTAL_TESTS * 2)
             .failure { ex -> throw ex }
+
+        btcWithdrawalInitialization =
+                BtcWithdrawalInitialization(
+                    Wallet.loadFromFile(File(btcWithdrawalConfig.bitcoin.walletPath)),
+                    btcWithdrawalConfig,
+                    btcChangeAddressProvider,
+                    irohaChainListener,
+                    btcNetworkConfigProvider,
+                    withdrawalTransferEventHandler,
+                    newSignatureEventHandler,
+                    NewBtcClientRegistrationHandler(btcNetworkConfigProvider)
+                )
         btcWithdrawalInitialization.init().failure { ex -> throw ex }
         withdrawalTransferEventHandler.addNewBtcTransactionListener { tx ->
             createdTransactions[tx.hashAsString] = TimedTx.create(tx)
