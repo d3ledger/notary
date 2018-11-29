@@ -4,7 +4,7 @@ import config.IrohaConfig
 import config.IrohaCredentialConfig
 
 /** Configuration of withdrawal rollback service */
-interface WdRollbackServiceConfig {
+interface WithdrawalRollbackServiceConfig {
 
     /** Notary storage account in Iroha */
     val notaryListStorageAccount: String

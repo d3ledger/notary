@@ -7,10 +7,10 @@ import provider.NotaryPeerListProvider
 import withdrawalservice.WithdrawalTxDAO
 import java.util.stream.Collectors
 
-class WdRollbackServiceImpl(
+class WithdrawalRollbackServiceImpl(
     private val withdrawalTransactionsDAO: WithdrawalTxDAO<String, String>,
     private val notaryPeerListProvider: NotaryPeerListProvider
-) : WdRollbackService {
+) : WithdrawalRollbackService {
 
     /**
      * Handle withdrawal event to check its success
@@ -21,9 +21,9 @@ class WdRollbackServiceImpl(
     private fun processIrohaEvent(
         withdrawalIrohaEventHash: String,
         ethTxStatus: String?
-    ): Result<WdRollbackServiceOutputEvent, Exception> {
+    ): Result<WithdrawalRollbackServiceOutputEvent, Exception> {
         return Result.of {
-            WdRollbackServiceOutputEvent(
+            WithdrawalRollbackServiceOutputEvent(
                 withdrawalIrohaEventHash,
                 ethFailedStatuses.contains(ethTxStatus)
             )
@@ -32,14 +32,14 @@ class WdRollbackServiceImpl(
 
     /**
      * Create and send transaction for assets refunding in Iroha in case of rollback
-     * @param wdRollbackServiceOutputEvent - Ethereum event outcome for a given Iroha withdrawal transaction
+     * @param withdrawalRollbackServiceOutputEvent - Ethereum event outcome for a given Iroha withdrawal transaction
      * @return hex representation of Iroha transaction hash or an empty string if rollback was not required
      */
-    override fun initiateRollback(wdRollbackServiceOutputEvent: WdRollbackServiceOutputEvent): Result<String, Exception> {
-        if (!wdRollbackServiceOutputEvent.isRollbackRequired) {
+    override fun initiateRollback(withdrawalRollbackServiceOutputEvent: WithdrawalRollbackServiceOutputEvent): Result<String, Exception> {
+        if (!withdrawalRollbackServiceOutputEvent.isRollbackRequired) {
             return Result.of("")
         }
-        val irohaTxHash = wdRollbackServiceOutputEvent.irohaTxHash
+        val irohaTxHash = withdrawalRollbackServiceOutputEvent.irohaTxHash
         return Result.of {
             notaryPeerListProvider.getPeerList().stream().map {
                 val res = khttp.get("$it/ethwdrb/$irohaTxHash")
@@ -56,7 +56,7 @@ class WdRollbackServiceImpl(
     }
 
 
-    override fun monitorWithdrawal(): Observable<Result<WdRollbackServiceOutputEvent, Exception>> {
+    override fun monitorWithdrawal(): Observable<Result<WithdrawalRollbackServiceOutputEvent, Exception>> {
         // TODO: provide synchronization if rollback service is not singleton
         return withdrawalTransactionsDAO.getObservable()
             .map {

@@ -47,7 +47,7 @@ import sidechain.iroha.util.getAccountAsset
 import token.EthTokenInfo
 import util.getRandomString
 import vacuum.RelayVacuumConfig
-import wdrollbackservice.WdRollbackServiceConfig
+import wdrollbackservice.WithdrawalRollbackServiceConfig
 import withdrawalservice.WithdrawalServiceConfig
 import withdrawalservice.WithdrawalTxDAOImpl
 import java.io.Closeable
@@ -749,22 +749,22 @@ class IntegrationHelperUtil : Closeable {
      * Run withdrawal rollback service
      */
     fun runWdRollbackService(
-        wdRollbackServiceConfig: WdRollbackServiceConfig = configHelper.createWdRollbackConfig()
+        withdrawalRollbackServiceConfig: WithdrawalRollbackServiceConfig = configHelper.createWdRollbackConfig()
     ) {
-        wdrollbackservice.executeWithdrawalRollback(wdRollbackServiceConfig)
+        wdrollbackservice.executeWithdrawalRollback(withdrawalRollbackServiceConfig)
     }
 
     /**
      * Get the withdrawal tx storage with the same account as withdrawal service uses
      */
     fun getTestingWithdrawalTxStorage(
-        wdRollbackServiceConfig: WdRollbackServiceConfig = configHelper.createWdRollbackConfig()
+        withdrawalRollbackServiceConfig: WithdrawalRollbackServiceConfig = configHelper.createWdRollbackConfig()
     ): WithdrawalTxDAOImpl {
         return ModelUtil.loadKeypair(
-            wdRollbackServiceConfig.withdrawalCredential.pubkeyPath,
-            wdRollbackServiceConfig.withdrawalCredential.privkeyPath
+            withdrawalRollbackServiceConfig.withdrawalCredential.pubkeyPath,
+            withdrawalRollbackServiceConfig.withdrawalCredential.privkeyPath
         )
-            .map { keypair -> IrohaCredential(wdRollbackServiceConfig.withdrawalCredential.accountId, keypair) }
+            .map { keypair -> IrohaCredential(withdrawalRollbackServiceConfig.withdrawalCredential.accountId, keypair) }
             .map { credential ->
                 WithdrawalTxDAOImpl(
                     IrohaConsumerImpl(credential, irohaNetwork),

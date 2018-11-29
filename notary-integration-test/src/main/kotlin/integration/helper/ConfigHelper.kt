@@ -11,7 +11,7 @@ import registration.eth.EthRegistrationConfig
 import registration.eth.relay.RelayRegistrationConfig
 import token.ERC20TokenRegistrationConfig
 import vacuum.RelayVacuumConfig
-import wdrollbackservice.WdRollbackServiceConfig
+import wdrollbackservice.WithdrawalRollbackServiceConfig
 import withdrawal.btc.config.BtcWithdrawalConfig
 import withdrawalservice.WithdrawalServiceConfig
 import java.io.File
@@ -232,11 +232,11 @@ class ConfigHelper(
     }
 
     /** Test configuration of Withdrawal Rollback service with runtime dependencies */
-    fun createWdRollbackConfig(): WdRollbackServiceConfig {
+    fun createWdRollbackConfig(): WithdrawalRollbackServiceConfig {
         val wdRollbackConfig =
-            loadConfigs("wdrollback", WdRollbackServiceConfig::class.java, "/eth/wdrollback.properties")
+            loadConfigs("withdrawal_rollback", WithdrawalRollbackServiceConfig::class.java, "/eth/withdrawal_rollback.properties")
 
-        return object : WdRollbackServiceConfig {
+        return object : WithdrawalRollbackServiceConfig {
             override val withdrawalTxStorageAccount = accountHelper.withdrawalTxStorageAccount.accountId
             override val withdrawalCredential = wdRollbackConfig.withdrawalCredential
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId

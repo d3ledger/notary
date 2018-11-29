@@ -12,11 +12,8 @@ import withdrawalservice.WithdrawalTxDAOImpl
 import java.util.*
 import kotlin.concurrent.timerTask
 
-/**
- * @param withdrawalConfig - configuration for withdrawal service
- */
-class WdRollbackServiceInitialization(
-    private val wdRollbackServiceConfig: WdRollbackServiceConfig,
+class WithdrawalRollbackServiceInitialization(
+    private val withdrawalRollbackServiceConfig: WithdrawalRollbackServiceConfig,
     private val irohaNetwork: IrohaNetwork,
     private val credential: IrohaCredential
 ) {
@@ -24,16 +21,16 @@ class WdRollbackServiceInitialization(
     /**
      * Init Withdrawal Rollback Service
      */
-    private fun initWithdrawalService(
+    private fun initWithdrawalRollbackService(
         irohaNetwork: IrohaNetwork,
         credential: IrohaCredential,
         storageAccount: String,
         notaryListStorageAccount: String,
         notaryListSetterAccount: String
-    ): WdRollbackService {
+    ): WithdrawalRollbackService {
         logger.info { "Init Withdrawal Rollback Service" }
 
-        return WdRollbackServiceImpl(
+        return WithdrawalRollbackServiceImpl(
             WithdrawalTxDAOImpl(
                 IrohaConsumerImpl(credential, irohaNetwork),
                 credential,
@@ -50,23 +47,23 @@ class WdRollbackServiceInitialization(
     }
 
     fun init(): Result<Unit, Exception> {
-        logger.info { "Start withdrawal rollback service init at iroha ${wdRollbackServiceConfig.iroha.hostname} : ${wdRollbackServiceConfig.iroha.port}" }
+        logger.info { "Start withdrawal rollback service init at iroha ${withdrawalRollbackServiceConfig.iroha.hostname} : ${withdrawalRollbackServiceConfig.iroha.port}" }
 
         return Result.of {
-            val wdRollbackService = initWithdrawalService(
+            val withdrawalRollbackService = initWithdrawalRollbackService(
                 irohaNetwork,
                 credential,
-                wdRollbackServiceConfig.withdrawalTxStorageAccount,
-                wdRollbackServiceConfig.notaryListStorageAccount,
-                wdRollbackServiceConfig.notaryListSetterAccount
+                withdrawalRollbackServiceConfig.withdrawalTxStorageAccount,
+                withdrawalRollbackServiceConfig.notaryListStorageAccount,
+                withdrawalRollbackServiceConfig.notaryListSetterAccount
             )
             Timer().schedule(timerTask {
-                wdRollbackService.monitorWithdrawal()
+                withdrawalRollbackService.monitorWithdrawal()
                     .subscribe(
                         { res ->
                             res
                                 .map { rollbackEventDescription ->
-                                    wdRollbackService.initiateRollback(rollbackEventDescription)
+                                    withdrawalRollbackService.initiateRollback(rollbackEventDescription)
 
                                 }
                                 .failure { ex ->

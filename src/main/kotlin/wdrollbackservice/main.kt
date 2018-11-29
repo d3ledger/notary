@@ -18,29 +18,29 @@ private val logger = KLogging().logger
  * Main entry point of Withdrawal Rollback Service app
  */
 fun main(args: Array<String>) {
-    val wdRollbackServiceConfig =
-        loadConfigs("withdrawal", WdRollbackServiceConfig::class.java, "/eth/withdrawal.properties")
+    val withdrawalRollbackServiceConfig =
+        loadConfigs("withdrawal_rollback", WithdrawalRollbackServiceConfig::class.java, "/eth/withdrawal_rollback.properties")
 
-    executeWithdrawalRollback(wdRollbackServiceConfig)
+    executeWithdrawalRollback(withdrawalRollbackServiceConfig)
 }
 
 fun executeWithdrawalRollback(
-    wdRollbackServiceConfig: WdRollbackServiceConfig
+    withdrawalRollbackServiceConfig: WithdrawalRollbackServiceConfig
 ) {
     logger.info { "Run withdrawal rollback service" }
-    val irohaNetwork = IrohaNetworkImpl(wdRollbackServiceConfig.iroha.hostname, wdRollbackServiceConfig.iroha.port)
+    val irohaNetwork = IrohaNetworkImpl(withdrawalRollbackServiceConfig.iroha.hostname, withdrawalRollbackServiceConfig.iroha.port)
 
     IrohaInitialization.loadIrohaLibrary()
         .flatMap {
             ModelUtil.loadKeypair(
-                wdRollbackServiceConfig.withdrawalCredential.pubkeyPath,
-                wdRollbackServiceConfig.withdrawalCredential.privkeyPath
+                withdrawalRollbackServiceConfig.withdrawalCredential.pubkeyPath,
+                withdrawalRollbackServiceConfig.withdrawalCredential.privkeyPath
             )
         }
-        .map { keypair -> IrohaCredential(wdRollbackServiceConfig.withdrawalCredential.accountId, keypair) }
+        .map { keypair -> IrohaCredential(withdrawalRollbackServiceConfig.withdrawalCredential.accountId, keypair) }
         .flatMap { credential ->
-            WdRollbackServiceInitialization(
-                wdRollbackServiceConfig,
+            WithdrawalRollbackServiceInitialization(
+                withdrawalRollbackServiceConfig,
                 irohaNetwork,
                 credential
             ).init()

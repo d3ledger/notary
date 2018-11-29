@@ -16,7 +16,7 @@ import java.math.BigInteger
  * Integration tests for withdrawal rollback service.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class WdRollbackIntegrationTest {
+class WithdrawalRollbackIntegrationTest {
 
     /** Integration tests util */
     private val integrationHelper = IntegrationHelperUtil()
