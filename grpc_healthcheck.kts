@@ -3,7 +3,7 @@
 /**
  * Checks if grpc service is ready to accept connections
  * Was designed to check if iroha is up
- * Usage: python3 iroha_healthcheck.py <host> <port>
+ * Usage: ./grpc_healthcheck <host> <port>
  * Possible exit codes:
  * 0: iroha is up
  * 1: iroha is down
@@ -15,8 +15,8 @@
 @file:DependsOn("org.jetbrains.kotlinx:kotlinx-coroutines-core:0.21")
 
 import io.grpc.ManagedChannelBuilder
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 
 if (args.size < 2) {
     System.exit(3)

@@ -1,5 +1,6 @@
 package util
 
+import com.google.gson.GsonBuilder
 import java.util.*
 import javax.xml.bind.DatatypeConverter
 
@@ -8,6 +9,9 @@ private const val CHAR = "abcdefghijklmnopqrstuvwxyz"
 
 //Iroha can't stand unescaped quote symbols
 private const val IROHA_FRIENDLY_QUOTE = "\\\""
+
+//JSON formatter
+private val gson = GsonBuilder().setPrettyPrinting().create()
 
 /**
  * Extension function to convert hexidecimal string to text
@@ -53,3 +57,7 @@ fun String.Companion.unHex(s: String): ByteArray {
 fun String.Companion.irohaEscape(text: String): String {
     return text.replace("\"", IROHA_FRIENDLY_QUOTE)
 }
+
+//TODO can we get rid of klaxon and moshi? Gson is much easier thing to use.
+// Turns any object to JSON
+fun String.Companion.toJson(obj: Any) = gson.toJson(obj)

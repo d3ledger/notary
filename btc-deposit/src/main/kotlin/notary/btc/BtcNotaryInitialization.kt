@@ -8,9 +8,7 @@ import helper.network.addPeerConnectionStatusListener
 import helper.network.getPeerGroup
 import helper.network.startChainDownload
 import io.reactivex.Observable
-import io.reactivex.schedulers.Schedulers
-import iroha.protocol.BlockOuterClass
-import iroha.protocol.Commands
+import listener.btc.NewBtcClientRegistrationListener
 import model.IrohaCredential
 import mu.KLogging
 import notary.btc.config.BtcNotaryConfig
@@ -25,24 +23,21 @@ import provider.NotaryPeerListProviderImpl
 import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.btc.network.BtcNetworkConfigProvider
 import sidechain.SideChainEvent
-import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaNetwork
-import sidechain.iroha.util.getSetDetailCommands
-import java.io.File
-import java.util.concurrent.Executors
+
 
 @Component
 class BtcNotaryInitialization(
+    @Autowired private val wallet: Wallet,
     @Autowired private val btcNotaryConfig: BtcNotaryConfig,
     @Autowired private val irohaCredential: IrohaCredential,
     @Autowired private val irohaNetwork: IrohaNetwork,
     @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
     @Autowired private val irohaChainListener: IrohaChainListener,
+    @Autowired private val newBtcClientRegistrationListener: NewBtcClientRegistrationListener,
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider
 ) : HealthyService() {
-
-    private val wallet = Wallet.loadFromFile(File(btcNotaryConfig.bitcoin.walletPath))
 
     /**
      * Init notary
@@ -56,7 +51,7 @@ class BtcNotaryInitialization(
             getPeerGroup(wallet, btcNetworkConfigProvider.getConfig(), btcNotaryConfig.bitcoin.blockStoragePath)
         addPeerConnectionStatusListener(peerGroup, ::notHealthy, ::cured)
         return irohaChainListener.getBlockObservable().map { irohaObservable ->
-            listenToRegisteredClients(wallet, irohaObservable)
+            newBtcClientRegistrationListener.listenToRegisteredClients(wallet, irohaObservable)
             logger.info { "Registration service listener was successfully initialized" }
         }.map {
             getBtcEvents(peerGroup, btcNotaryConfig.bitcoin.confidenceLevel)
@@ -77,37 +72,6 @@ class BtcNotaryInitialization(
     //Checks if address is watched by notary
     fun isWatchedAddress(btcAddress: String) =
         wallet.isAddressWatched(Address.fromBase58(btcNetworkConfigProvider.getConfig(), btcAddress))
-
-    /**
-     * Listens to newly registered bitcoin addresses and adds addresses to current wallet object
-     */
-    private fun listenToRegisteredClients(wallet: Wallet, irohaObservable: Observable<BlockOuterClass.Block>) {
-        irohaObservable.subscribeOn(Schedulers.from(Executors.newSingleThreadExecutor()))
-            .subscribe({ block ->
-                getSetDetailCommands(block).forEach { command ->
-                    if (isNewClientWasRegistered(command)) {
-                        val address = Address.fromBase58(
-                            btcNetworkConfigProvider.getConfig(),
-                            command.setAccountDetail.value
-                        )
-                        //Add new registered address to wallet
-                        if (wallet.addWatchedAddress(address)) {
-                            logger.info { "New BTC address ${command.setAccountDetail.value} was added to wallet" }
-                        } else {
-                            logger.error { "Address $address was not added to wallet" }
-                        }
-                    }
-                }
-            }, { ex ->
-                logger.error("Error on subscribe", ex)
-            })
-    }
-
-    // Checks if new btc client was registered
-    private fun isNewClientWasRegistered(command: Commands.Command): Boolean {
-        return command.setAccountDetail.accountId.endsWith("@$CLIENT_DOMAIN")
-                && command.setAccountDetail.key == "bitcoin"
-    }
 
     /**
      * Returns observable object full of deposit events

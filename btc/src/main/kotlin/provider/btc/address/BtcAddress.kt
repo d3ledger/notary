@@ -3,7 +3,6 @@ package provider.btc.address
 import com.squareup.moshi.Moshi
 import util.irohaEscape
 
-
 private val addressInfoJsonAdapter = Moshi.Builder().build().adapter(AddressInfo::class.java)
 
 data class BtcAddress(val address: String, val info: AddressInfo) {

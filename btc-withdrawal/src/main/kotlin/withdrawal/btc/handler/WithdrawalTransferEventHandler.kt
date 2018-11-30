@@ -2,7 +2,9 @@ package withdrawal.btc.handler
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
+import helper.address.isValidBtcAddress
 import iroha.protocol.Commands
+import monitoring.Monitoring
 import mu.KLogging
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.wallet.Wallet
@@ -10,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import withdrawal.btc.config.BtcWithdrawalConfig
 import withdrawal.btc.provider.BtcWhiteListProvider
+import withdrawal.btc.statistics.WithdrawalStatistics
 import withdrawal.btc.transaction.SignCollector
 import withdrawal.btc.transaction.TransactionCreator
 import withdrawal.btc.transaction.UnsignedTransactions
@@ -19,12 +22,15 @@ import withdrawal.btc.transaction.UnsignedTransactions
  */
 @Component
 class WithdrawalTransferEventHandler(
+    @Autowired private val withdrawalStatistics: WithdrawalStatistics,
     @Autowired private val whiteListProvider: BtcWhiteListProvider,
     @Autowired private val btcWithdrawalConfig: BtcWithdrawalConfig,
     @Autowired private val transactionCreator: TransactionCreator,
     @Autowired private val signCollector: SignCollector,
     @Autowired private val unsignedTransactions: UnsignedTransactions
-) {
+) : Monitoring() {
+    override fun monitor() = withdrawalStatistics
+
     private val newBtcTransactionListeners = ArrayList<(tx: Transaction) -> Unit>()
 
     /**
@@ -45,12 +51,17 @@ class WithdrawalTransferEventHandler(
             return
         }
         val destinationAddress = transferCommand.description
+        if (!isValidBtcAddress(destinationAddress)) {
+            logger.warn { "Cannot execute transfer. Destination $destinationAddress is not a valid base58 address." }
+            return
+        }
         logger.info {
             "Withdrawal event(" +
                     "from:${transferCommand.srcAccountId} " +
                     "to:$destinationAddress " +
                     "amount:${transferCommand.amount})"
         }
+        withdrawalStatistics.incTotalTransfers()
         whiteListProvider.checkWithdrawalAddress(transferCommand.srcAccountId, destinationAddress)
             .fold({ ableToWithdraw ->
                 if (ableToWithdraw) {
@@ -59,6 +70,7 @@ class WithdrawalTransferEventHandler(
                     logger.warn { "Cannot withdraw to $destinationAddress, because it's not in ${transferCommand.srcAccountId} whitelist" }
                 }
             }, { ex ->
+                withdrawalStatistics.incFailedTransfers()
                 logger.error("Cannot check ability to withdraw", ex)
             })
     }
@@ -86,12 +98,15 @@ class WithdrawalTransferEventHandler(
             transaction
         }.map { transaction ->
             logger.info { "Tx to sign\n$transaction" }
-            signCollector.collectSignatures(transaction, wallet)
+            signCollector.collectSignatures(transaction, btcWithdrawalConfig.bitcoin.walletPath)
             transaction
         }.map { transaction ->
             unsignedTransactions.markAsUnsigned(transaction)
             logger.info { "Tx ${transaction.hashAsString} was added to collection of unsigned transactions" }
-        }.failure { ex -> logger.error("Cannot create withdrawal transaction", ex) }
+        }.failure { ex ->
+            withdrawalStatistics.incFailedTransfers()
+            logger.error("Cannot create withdrawal transaction", ex)
+        }
     }
 
     /**

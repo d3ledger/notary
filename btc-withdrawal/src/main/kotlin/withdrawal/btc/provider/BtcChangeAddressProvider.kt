@@ -3,6 +3,7 @@ package withdrawal.btc.provider
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import model.IrohaCredential
+import monitoring.Monitoring
 import provider.btc.address.AddressInfo
 import provider.btc.address.BtcAddress
 import sidechain.iroha.consumer.IrohaNetwork
@@ -11,13 +12,14 @@ import sidechain.iroha.util.getAccountDetails
 /*
     Class that is used to get change address
  */
-
 open class BtcChangeAddressProvider(
     private val credential: IrohaCredential,
     private val irohaNetwork: IrohaNetwork,
     private val mstRegistrationAccount: String,
     private val changeAddressesStorageAccount: String
-) {
+) : Monitoring() {
+    override fun monitor() = getChangeAddress()
+
     /**
      * Returns change address
      * @return - result with change address object
@@ -31,21 +33,6 @@ open class BtcChangeAddressProvider(
         ).map { addresses ->
             val changeAddressEntry = addresses.entries.first()
             BtcAddress(changeAddressEntry.key, AddressInfo.fromJson(changeAddressEntry.value)!!)
-        }
-    }
-
-    /**
-     * Checks if change address was set
-     * @return result with 'true' value, if change address was set
-     */
-    fun isAddressPresent(): Result<Boolean, Exception> {
-        return getAccountDetails(
-            credential,
-            irohaNetwork,
-            changeAddressesStorageAccount,
-            mstRegistrationAccount
-        ).map { addresses ->
-            addresses.keys.firstOrNull() != null
         }
     }
 }

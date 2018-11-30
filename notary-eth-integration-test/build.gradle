@@ -1,0 +1,53 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+}
+
+sourceSets {
+    integrationTest {
+        kotlin {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDirs += 'src/integration-test/kotlin'
+        }
+        resources {
+            srcDirs= ["src/integration-test/resources"]
+        }
+    }
+}
+
+configurations {
+    integrationTestImplementation.extendsFrom testImplementation
+    integrationTestCompile.extendsFrom testCompile
+    integrationTestRuntime.extendsFrom testRuntime
+}
+
+task integrationTest(type: Test) {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = 'Runs the integration tests.'
+
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    setWorkingDir("$rootDir/")
+    // Enable JUnit5 tests
+    useJUnitPlatform {
+    }
+
+    systemProperty 'java.library.path', getIrohaLibPath()
+    environment "LD_LIBRARY_PATH", getIrohaLibPath()
+
+    mustRunAfter test
+}
+check.dependsOn integrationTest
+
+dependencies {
+    compile project(":notary-iroha-integration-test")
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "notary:notary-integration-test"
+    }
+}
