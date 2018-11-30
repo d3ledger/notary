@@ -8,6 +8,7 @@ import listener.btc.NewBtcClientRegistrationListener
 import model.IrohaCredential
 import notary.btc.BtcNotaryInitialization
 import org.bitcoinj.core.Address
+import org.bitcoinj.wallet.Wallet
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -54,6 +55,7 @@ class BtcNotaryIntegrationTest {
 
     private val btcNotaryInitialization =
         BtcNotaryInitialization(
+            Wallet.loadFromFile(File(notaryConfig.bitcoin.walletPath)),
             notaryConfig,
             irohaCredential,
             integrationHelper.irohaNetwork,

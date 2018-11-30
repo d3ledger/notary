@@ -25,10 +25,11 @@ import provider.btc.network.BtcNetworkConfigProvider
 import sidechain.SideChainEvent
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaNetwork
-import java.io.File
+
 
 @Component
 class BtcNotaryInitialization(
+    @Autowired private val wallet: Wallet,
     @Autowired private val btcNotaryConfig: BtcNotaryConfig,
     @Autowired private val irohaCredential: IrohaCredential,
     @Autowired private val irohaNetwork: IrohaNetwork,
@@ -37,8 +38,6 @@ class BtcNotaryInitialization(
     @Autowired private val newBtcClientRegistrationListener: NewBtcClientRegistrationListener,
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider
 ) : HealthyService() {
-
-    private val wallet = Wallet.loadFromFile(File(btcNotaryConfig.bitcoin.walletPath))
 
     /**
      * Init notary

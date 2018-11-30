@@ -19,8 +19,8 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
 import provider.NotaryPeerListProviderImpl
 import provider.TriggerProvider
-import provider.btc.BtcPublicKeyProvider
-import provider.btc.BtcSessionProvider
+import provider.btc.generation.BtcPublicKeyProvider
+import provider.btc.generation.BtcSessionProvider
 import provider.btc.address.AddressInfo
 import provider.btc.address.BtcAddressType
 import provider.btc.network.BtcRegTestConfigProvider

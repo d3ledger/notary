@@ -2,6 +2,7 @@ package withdrawal.btc.config
 
 import config.loadConfigs
 import model.IrohaCredential
+import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import provider.btc.address.BtcRegisteredAddressesProvider
@@ -11,6 +12,8 @@ import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import withdrawal.btc.provider.BtcChangeAddressProvider
 import withdrawal.btc.provider.BtcWhiteListProvider
+import withdrawal.btc.statistics.WithdrawalStatistics
+import java.io.File
 
 val withdrawalConfig = loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties")
 
@@ -28,6 +31,12 @@ class BtcWithdrawalAppConfiguration {
     ).fold({ keypair ->
         IrohaCredential(withdrawalConfig.registrationCredential.accountId, keypair)
     }, { ex -> throw ex })
+
+    @Bean
+    fun withdrawalStatistics() = WithdrawalStatistics.create()
+
+    @Bean
+    fun wallet() = Wallet.loadFromFile(File(withdrawalConfig.bitcoin.walletPath))
 
     @Bean
     fun withdrawalCredential() =

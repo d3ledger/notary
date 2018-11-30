@@ -14,7 +14,7 @@ import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
-import provider.btc.BtcPublicKeyProvider
+import provider.btc.generation.BtcPublicKeyProvider
 import provider.btc.address.BtcAddressType
 import provider.btc.address.getAddressTypeByAccountId
 import sidechain.iroha.IrohaChainListener

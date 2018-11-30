@@ -10,6 +10,7 @@ import model.IrohaCredential
 import mu.KLogging
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.TransactionOutput
+import org.bitcoinj.wallet.Wallet
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertNotNull
 import provider.btc.address.BtcRegisteredAddressesProvider
@@ -26,6 +27,7 @@ import withdrawal.btc.handler.NewSignatureEventHandler
 import withdrawal.btc.handler.WithdrawalTransferEventHandler
 import withdrawal.btc.provider.BtcChangeAddressProvider
 import withdrawal.btc.provider.BtcWhiteListProvider
+import withdrawal.btc.statistics.WithdrawalStatistics
 import withdrawal.btc.transaction.*
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
@@ -100,23 +102,17 @@ class BtcWithdrawalIntegrationTest {
         )
 
     private val unsignedTransactions = UnsignedTransactions(signCollector)
+    private val withdrawalStatistics = WithdrawalStatistics.create()
     private val withdrawalTransferEventHandler = WithdrawalTransferEventHandler(
+        withdrawalStatistics,
         BtcWhiteListProvider(
             btcWithdrawalConfig.registrationCredential.accountId, withdrawalCredential, irohaNetwork
         ), btcWithdrawalConfig, transactionCreator, signCollector, unsignedTransactions
     )
-    private val newSignatureEventHandler = NewSignatureEventHandler(signCollector, unsignedTransactions)
+    private val newSignatureEventHandler =
+        NewSignatureEventHandler(withdrawalStatistics, signCollector, unsignedTransactions)
 
-    private val btcWithdrawalInitialization =
-        BtcWithdrawalInitialization(
-            btcWithdrawalConfig,
-            btcChangeAddressProvider,
-            irohaChainListener,
-            btcNetworkConfigProvider,
-            withdrawalTransferEventHandler,
-            newSignatureEventHandler,
-            NewBtcClientRegistrationHandler(btcNetworkConfigProvider)
-        )
+    private lateinit var btcWithdrawalInitialization: BtcWithdrawalInitialization
 
     private lateinit var changeAddress: Address
 
@@ -139,6 +135,18 @@ class BtcWithdrawalIntegrationTest {
             .fold({ address -> changeAddress = address }, { ex -> throw  ex })
         integrationHelper.preGenFreeBtcAddresses(btcWithdrawalConfig.bitcoin.walletPath, TOTAL_TESTS * 2)
             .failure { ex -> throw ex }
+
+        btcWithdrawalInitialization =
+                BtcWithdrawalInitialization(
+                    Wallet.loadFromFile(File(btcWithdrawalConfig.bitcoin.walletPath)),
+                    btcWithdrawalConfig,
+                    btcChangeAddressProvider,
+                    irohaChainListener,
+                    btcNetworkConfigProvider,
+                    withdrawalTransferEventHandler,
+                    newSignatureEventHandler,
+                    NewBtcClientRegistrationHandler(btcNetworkConfigProvider)
+                )
         btcWithdrawalInitialization.init().failure { ex -> throw ex }
         withdrawalTransferEventHandler.addNewBtcTransactionListener { tx ->
             createdTransactions[tx.hashAsString] = TimedTx.create(tx)

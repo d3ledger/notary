@@ -5,7 +5,7 @@ import com.github.kittinunf.result.flatMap
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import provider.TriggerProvider
-import provider.btc.BtcSessionProvider
+import provider.btc.generation.BtcSessionProvider
 import provider.btc.address.BtcAddressType
 
 /*
