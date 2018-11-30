@@ -5,9 +5,10 @@ import config.IrohaCredentialConfig
 import config.loadEthPasswords
 import integration.helper.IntegrationHelperUtil
 import integration.helper.NotaryClient
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import mu.KLogging
 import provider.eth.ETH_PRECISION
 import sidechain.iroha.util.ModelUtil
@@ -81,8 +82,8 @@ class LongevityTest {
      */
     private fun runServices() {
         runNotaries()
-        launch { integrationHelper.runRegistrationService() }
-        launch { integrationHelper.runEthWithdrawalService() }
+        GlobalScope.launch { integrationHelper.runRegistrationService() }
+        GlobalScope.launch { integrationHelper.runEthWithdrawalService() }
 
         // wait until services are up
         Thread.sleep(10_000)
@@ -109,14 +110,14 @@ class LongevityTest {
         logger.info { "client count ${clients.size}" }
 
         clients.forEach { client ->
-            async { delay(3_000) }
-            launch {
+            GlobalScope.launch { delay(3_000) }
+            GlobalScope.launch {
                 logger.info { "start client ${client.accountId}" }
                 while (true) {
                     val amount = BigInteger.valueOf(12_000_000_000)
                     logger.info { "Client ${client.name} perform deposit of $amount wei" }
                     client.deposit(amount)
-                    async { delay(20_000) }
+                    launch { delay(20_000) }
 
 
                     val ethBalanceBefore = client.getEthBalance()
@@ -132,7 +133,7 @@ class LongevityTest {
 
                     logger.info { "Client ${client.name} perform withdrawal of ${decimalAmount.toPlainString()}" }
                     client.withdraw(decimalAmount.toPlainString())
-                    async { delay(20_000) }
+                    launch { delay(20_000) }
 
                     val ethBalanceAfter = client.getEthBalance()
                     val irohaBalanceAfter = client.getIrohaBalance()

@@ -5,9 +5,10 @@ import config.loadConfigs
 import integration.TestConfig
 import integration.helper.IntegrationHelperUtil
 import io.reactivex.schedulers.Schedulers
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
@@ -82,7 +83,7 @@ class IrohaBlockStreamingTest {
 
         IrohaConsumerImpl(testCredential, irohaNetwork).sendAndCheck(utx)
         runBlocking {
-            delay(5000, TimeUnit.MILLISECONDS)
+            delay(5000)
         }
 
         assertEquals(1, cmds.size)
@@ -98,7 +99,7 @@ class IrohaBlockStreamingTest {
      */
     @Test
     fun irohaGetBlockTest() {
-        val block = async {
+        val block = GlobalScope.async {
             listener.getBlock()
         }
 
