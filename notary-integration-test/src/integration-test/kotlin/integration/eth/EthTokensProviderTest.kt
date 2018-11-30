@@ -1,10 +1,12 @@
 package integration.eth
 
 import com.github.kittinunf.result.success
+import integration.helper.ConfigHelper
 import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
@@ -13,6 +15,7 @@ import provider.eth.ETH_NAME
 import provider.eth.ETH_PRECISION
 import token.EthTokenInfo
 import util.getRandomString
+import java.time.Duration
 
 /**
  * Test Iroha Ethereum ERC20 tokens provider
@@ -22,6 +25,8 @@ class EthTokensProviderTest {
     private val integrationHelper = IntegrationHelperUtil()
 
     private val ethTokensProvider = integrationHelper.ethTokensProvider
+
+    private val timeoutDuration = Duration.ofMinutes(ConfigHelper.timeoutMinutes)
 
     @AfterAll
     fun dropDown() {
@@ -37,27 +42,29 @@ class EthTokensProviderTest {
      */
     @Test
     fun testGetTokens() {
-        val tokensToAdd = 3
-        val expectedTokens = mutableMapOf<String, EthTokenInfo>()
-        (1..tokensToAdd).forEach { i ->
-            val ethWallet = "0x$i"
-            val tokenName = String.getRandomString(9)
-            val tokenPrecision = i.toShort()
-            expectedTokens[ethWallet] = EthTokenInfo(tokenName, tokenPrecision)
-            integrationHelper.addERC20Token(ethWallet, tokenName, tokenPrecision)
+        assertTimeoutPreemptively(timeoutDuration) {
+            val tokensToAdd = 3
+            val expectedTokens = mutableMapOf<String, EthTokenInfo>()
+            (1..tokensToAdd).forEach { i ->
+                val ethWallet = "0x$i"
+                val tokenName = String.getRandomString(9)
+                val tokenPrecision = i.toShort()
+                expectedTokens[ethWallet] = EthTokenInfo(tokenName, tokenPrecision)
+                integrationHelper.addERC20Token(ethWallet, tokenName, tokenPrecision)
+            }
+            ethTokensProvider.getTokens()
+                .fold(
+                    { tokens ->
+                        assertFalse(tokens.isEmpty())
+                        expectedTokens.forEach { (expectedEthWallet, expectedTokenInfo) ->
+                            val (expectedName, expectedPrecision) = expectedTokenInfo
+                            assertEquals(expectedName, tokens.get(expectedEthWallet))
+                            assertEquals(expectedPrecision, ethTokensProvider.getTokenPrecision(expectedName).get())
+                            assertEquals(expectedEthWallet, ethTokensProvider.getTokenAddress(expectedName).get())
+                        }
+                    },
+                    { ex -> fail("Cannot get tokens", ex) })
         }
-        ethTokensProvider.getTokens()
-            .fold(
-                { tokens ->
-                    assertFalse(tokens.isEmpty())
-                    expectedTokens.forEach { (expectedEthWallet, expectedTokenInfo) ->
-                        val (expectedName, expectedPrecision) = expectedTokenInfo
-                        assertEquals(expectedName, tokens.get(expectedEthWallet))
-                        assertEquals(expectedPrecision, ethTokensProvider.getTokenPrecision(expectedName).get())
-                        assertEquals(expectedEthWallet, ethTokensProvider.getTokenAddress(expectedName).get())
-                    }
-                },
-                { ex -> fail("Cannot get tokens", ex) })
     }
 
     /**
@@ -67,17 +74,19 @@ class EthTokensProviderTest {
      */
     @Test
     fun getNonexistentToken() {
-        ethTokensProvider.getTokenPrecision("nonexist")
-            .fold(
-                { fail("Result returned success while failure is expected.") },
-                { Unit }
-            )
+        assertTimeoutPreemptively(timeoutDuration) {
+            ethTokensProvider.getTokenPrecision("nonexist")
+                .fold(
+                    { fail("Result returned success while failure is expected.") },
+                    { Unit }
+                )
 
-        ethTokensProvider.getTokenAddress("nonexist")
-            .fold(
-                { fail("Result returned success while failure is expected.") },
-                { assertEquals("Collection is empty.", it.message) }
-            )
+            ethTokensProvider.getTokenAddress("nonexist")
+                .fold(
+                    { fail("Result returned success while failure is expected.") },
+                    { assertEquals("Collection is empty.", it.message) }
+                )
+        }
     }
 
     /**
@@ -88,10 +97,12 @@ class EthTokensProviderTest {
      */
     @Test
     fun getEthereum() {
-        ethTokensProvider.getTokenPrecision(ETH_NAME)
-            .success { assertEquals(ETH_PRECISION, it) }
+        assertTimeoutPreemptively(timeoutDuration) {
+            ethTokensProvider.getTokenPrecision(ETH_NAME)
+                .success { assertEquals(ETH_PRECISION, it) }
 
-        ethTokensProvider.getTokenAddress(ETH_NAME)
-            .success { assertEquals(ETH_ADDRESS, it) }
+            ethTokensProvider.getTokenAddress(ETH_NAME)
+                .success { assertEquals(ETH_ADDRESS, it) }
+        }
     }
 }

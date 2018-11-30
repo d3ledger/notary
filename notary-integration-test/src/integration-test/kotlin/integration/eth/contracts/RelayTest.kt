@@ -3,12 +3,14 @@ package integration.eth.contracts
 import contract.BasicCoin
 import contract.Master
 import contract.Relay
+import integration.helper.ConfigHelper
 import integration.helper.ContractTestHelper
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.web3j.protocol.exceptions.TransactionException
 import java.math.BigInteger
+import java.time.Duration
 
 class RelayTest {
     private lateinit var cth: ContractTestHelper
@@ -18,6 +20,8 @@ class RelayTest {
     private lateinit var accMain: String
     private lateinit var accGreen: String
     private lateinit var etherAddress: String
+
+    private val timeoutDuration = Duration.ofMinutes(ConfigHelper.timeoutMinutes)
 
     @BeforeEach
     fun setup() {
@@ -38,18 +42,20 @@ class RelayTest {
      */
     @Test
     fun singleCorrectSignatureEtherTestRelay() {
-        val initialBalance = cth.getETHBalance(accGreen)
-        cth.sendAddPeer(accMain)
-        master.disableAddingNewPeers().send()
-        cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
-        cth.withdraw(
-            BigInteger.valueOf(1000),
-            etherAddress,
-            accGreen,
-            false
-        )
-        Assertions.assertEquals(BigInteger.valueOf(4000), cth.getETHBalance(master.contractAddress))
-        Assertions.assertEquals(initialBalance + BigInteger.valueOf(1000), cth.getETHBalance(accGreen))
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            val initialBalance = cth.getETHBalance(accGreen)
+            cth.sendAddPeer(accMain)
+            master.disableAddingNewPeers().send()
+            cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
+            cth.withdraw(
+                BigInteger.valueOf(1000),
+                etherAddress,
+                accGreen,
+                false
+            )
+            Assertions.assertEquals(BigInteger.valueOf(4000), cth.getETHBalance(master.contractAddress))
+            Assertions.assertEquals(initialBalance + BigInteger.valueOf(1000), cth.getETHBalance(accGreen))
+        }
     }
 
     /**
@@ -60,21 +66,23 @@ class RelayTest {
      */
     @Test
     fun singleCorrectSignatureEtherTestRelayToRelay() {
-        val initialBalance = cth.getETHBalance(relay.contractAddress)
-        cth.sendAddPeer(accMain)
-        master.disableAddingNewPeers().send()
-        cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
-        cth.withdraw(
-            BigInteger.valueOf(1000),
-            etherAddress,
-            relay.contractAddress,
-            false
-        )
-        Assertions.assertEquals(BigInteger.valueOf(4000), cth.getETHBalance(master.contractAddress))
-        Assertions.assertEquals(
-            initialBalance + BigInteger.valueOf(1000),
-            cth.getETHBalance(relay.contractAddress)
-        )
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            val initialBalance = cth.getETHBalance(relay.contractAddress)
+            cth.sendAddPeer(accMain)
+            master.disableAddingNewPeers().send()
+            cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
+            cth.withdraw(
+                BigInteger.valueOf(1000),
+                etherAddress,
+                relay.contractAddress,
+                false
+            )
+            Assertions.assertEquals(BigInteger.valueOf(4000), cth.getETHBalance(master.contractAddress))
+            Assertions.assertEquals(
+                initialBalance + BigInteger.valueOf(1000),
+                cth.getETHBalance(relay.contractAddress)
+            )
+        }
     }
 
     /**
@@ -84,12 +92,14 @@ class RelayTest {
      */
     @Test
     fun vacuumEtherTest() {
-        cth.sendEthereum(BigInteger.valueOf(100_000), relay.contractAddress)
-        Assertions.assertEquals(BigInteger.valueOf(0), cth.getETHBalance(master.contractAddress))
-        Assertions.assertEquals(BigInteger.valueOf(100_000), cth.getETHBalance(relay.contractAddress))
-        relay.sendToMaster(etherAddress).send()
-        Assertions.assertEquals(BigInteger.valueOf(100_000), cth.getETHBalance(master.contractAddress))
-        Assertions.assertEquals(BigInteger.valueOf(0), cth.getETHBalance(relay.contractAddress))
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            cth.sendEthereum(BigInteger.valueOf(100_000), relay.contractAddress)
+            Assertions.assertEquals(BigInteger.valueOf(0), cth.getETHBalance(master.contractAddress))
+            Assertions.assertEquals(BigInteger.valueOf(100_000), cth.getETHBalance(relay.contractAddress))
+            relay.sendToMaster(etherAddress).send()
+            Assertions.assertEquals(BigInteger.valueOf(100_000), cth.getETHBalance(master.contractAddress))
+            Assertions.assertEquals(BigInteger.valueOf(0), cth.getETHBalance(relay.contractAddress))
+        }
     }
 
     /**
@@ -100,13 +110,15 @@ class RelayTest {
      */
     @Test
     fun vacuumTokenTest() {
-        master.addToken(token.contractAddress).send()
-        token.transfer(relay.contractAddress, BigInteger.valueOf(987_654)).send()
-        Assertions.assertEquals(BigInteger.valueOf(0), token.balanceOf(master.contractAddress).send())
-        Assertions.assertEquals(BigInteger.valueOf(987_654), token.balanceOf(relay.contractAddress).send())
-        relay.sendToMaster(token.contractAddress).send()
-        Assertions.assertEquals(BigInteger.valueOf(987_654), token.balanceOf(master.contractAddress).send())
-        Assertions.assertEquals(BigInteger.valueOf(0), token.balanceOf(relay.contractAddress).send())
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            master.addToken(token.contractAddress).send()
+            token.transfer(relay.contractAddress, BigInteger.valueOf(987_654)).send()
+            Assertions.assertEquals(BigInteger.valueOf(0), token.balanceOf(master.contractAddress).send())
+            Assertions.assertEquals(BigInteger.valueOf(987_654), token.balanceOf(relay.contractAddress).send())
+            relay.sendToMaster(token.contractAddress).send()
+            Assertions.assertEquals(BigInteger.valueOf(987_654), token.balanceOf(master.contractAddress).send())
+            Assertions.assertEquals(BigInteger.valueOf(0), token.balanceOf(relay.contractAddress).send())
+        }
     }
 
     /**
@@ -117,9 +129,13 @@ class RelayTest {
      */
     @Test
     fun vacuumInvalidTokenTest() {
-        token.transfer(relay.contractAddress, BigInteger.valueOf(987_654)).send()
-        Assertions.assertEquals(BigInteger.valueOf(0), token.balanceOf(master.contractAddress).send())
-        Assertions.assertEquals(BigInteger.valueOf(987_654), token.balanceOf(relay.contractAddress).send())
-        Assertions.assertThrows(TransactionException::class.java) { relay.sendToMaster(token.contractAddress).send() }
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            token.transfer(relay.contractAddress, BigInteger.valueOf(987_654)).send()
+            Assertions.assertEquals(BigInteger.valueOf(0), token.balanceOf(master.contractAddress).send())
+            Assertions.assertEquals(BigInteger.valueOf(987_654), token.balanceOf(relay.contractAddress).send())
+            Assertions.assertThrows(TransactionException::class.java) {
+                relay.sendToMaster(token.contractAddress).send()
+            }
+        }
     }
 }

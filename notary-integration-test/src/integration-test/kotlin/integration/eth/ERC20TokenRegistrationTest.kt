@@ -3,16 +3,19 @@ package integration.eth
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import com.google.gson.Gson
+import integration.helper.ConfigHelper
 import integration.helper.IntegrationHelperUtil
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
 import provider.eth.EthTokensProviderImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import token.EthTokenInfo
 import token.executeTokenRegistration
 import util.getRandomString
 import java.io.File
+import java.time.Duration
 
 /**
  * Requires Iroha is running
@@ -32,6 +35,8 @@ class ERC20TokenRegistrationTest {
         tokenRegistrationConfig.tokenStorageAccount,
         tokenRegistrationConfig.irohaCredential.accountId
     )
+
+    private val timeoutDuration = Duration.ofMinutes(ConfigHelper.timeoutMinutes)
 
     @AfterEach
     fun clearFile() {
@@ -53,22 +58,24 @@ class ERC20TokenRegistrationTest {
      */
     @Test
     fun testTokenRegistration() {
-        val tokens = createRandomTokens()
-        createTokensFile(tokens, tokensFilePath)
-        executeTokenRegistration(tokenRegistrationConfig)
-        ethTokensProvider.getTokens()
-            .map { tokensFromProvider ->
-                val expected = tokensFromProvider
-                    .map { (ethAddress, name) ->
-                        Pair(ethAddress, EthTokenInfo(name, ethTokensProvider.getTokenPrecision(name).get()))
-                    }.sortedBy { it.first }
+        assertTimeoutPreemptively(timeoutDuration) {
+            val tokens = createRandomTokens()
+            createTokensFile(tokens, tokensFilePath)
+            executeTokenRegistration(tokenRegistrationConfig)
+            ethTokensProvider.getTokens()
+                .map { tokensFromProvider ->
+                    val expected = tokensFromProvider
+                        .map { (ethAddress, name) ->
+                            Pair(ethAddress, EthTokenInfo(name, ethTokensProvider.getTokenPrecision(name).get()))
+                        }.sortedBy { it.first }
 
-                assertEquals(
-                    tokens.toList().sortedBy { it.first },
-                    expected
-                )
-            }
-            .failure { ex -> fail("cannot fetch tokens", ex) }
+                    assertEquals(
+                        tokens.toList().sortedBy { it.first },
+                        expected
+                    )
+                }
+                .failure { ex -> fail("cannot fetch tokens", ex) }
+        }
     }
 
     /**
@@ -80,11 +87,13 @@ class ERC20TokenRegistrationTest {
      */
     @Test
     fun testTokenRegistrationEmptyTokenFile() {
-        createTokensFile(HashMap(), tokensFilePath)
-        executeTokenRegistration(tokenRegistrationConfig)
-        ethTokensProvider.getTokens().fold({ tokensFromProvider ->
-            assertTrue(tokensFromProvider.isEmpty())
-        }, { ex -> fail("cannot fetch tokens", ex) })
+        assertTimeoutPreemptively(timeoutDuration) {
+            createTokensFile(HashMap(), tokensFilePath)
+            executeTokenRegistration(tokenRegistrationConfig)
+            ethTokensProvider.getTokens().fold({ tokensFromProvider ->
+                assertTrue(tokensFromProvider.isEmpty())
+            }, { ex -> fail("cannot fetch tokens", ex) })
+        }
     }
 
     //Creates json file full of ERC20 tokens
