@@ -24,10 +24,10 @@ open class IrohaIntegrationHelperUtil : Closeable {
 
     init {
         IrohaInitialization.loadIrohaLibrary()
-            .failure { ex ->
-                logger.error("Cannot load Iroha library", ex)
-                System.exit(1)
-            }
+                .failure { ex ->
+                    logger.error("Cannot load Iroha library", ex)
+                    System.exit(1)
+                }
     }
 
     override fun close() {
@@ -38,11 +38,11 @@ open class IrohaIntegrationHelperUtil : Closeable {
     val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
 
     val testCredential = IrohaCredential(
-        testConfig.testCredentialConfig.accountId,
-        ModelUtil.loadKeypair(
-            testConfig.testCredentialConfig.pubkeyPath,
-            testConfig.testCredentialConfig.privkeyPath
-        ).get()
+            testConfig.testCredentialConfig.accountId,
+            ModelUtil.loadKeypair(
+                    testConfig.testCredentialConfig.pubkeyPath,
+                    testConfig.testCredentialConfig.privkeyPath
+            ).get()
     )
 
     open val accountHelper by lazy { IrohaAccountHelper(irohaNetwork) }
@@ -60,9 +60,9 @@ open class IrohaIntegrationHelperUtil : Closeable {
     }
 
     protected val irohaListener = IrohaChainListener(
-        testConfig.iroha.hostname,
-        testConfig.iroha.port,
-        testCredential
+            testConfig.iroha.hostname,
+            testConfig.iroha.port,
+            testCredential
     )
 
     protected val registrationConsumer by lazy {
@@ -85,10 +85,10 @@ open class IrohaIntegrationHelperUtil : Closeable {
 
     fun getAccountDetails(accountDetailHolder: String, accountDetailSetter: String): Map<String, String> {
         return sidechain.iroha.util.getAccountDetails(
-            testCredential,
-            irohaNetwork,
-            accountDetailHolder,
-            accountDetailSetter
+                testCredential,
+                irohaNetwork,
+                accountDetailHolder,
+                accountDetailSetter
         ).get()
     }
 
@@ -114,10 +114,10 @@ open class IrohaIntegrationHelperUtil : Closeable {
      */
     fun getIrohaAccountBalance(accountId: String, assetId: String): String {
         return getAccountAsset(
-            testCredential,
-            irohaNetwork,
-            accountId,
-            assetId
+                testCredential,
+                irohaNetwork,
+                accountId,
+                assetId
         ).get()
     }
 
@@ -126,10 +126,10 @@ open class IrohaIntegrationHelperUtil : Closeable {
      */
     fun addNotary(name: String, address: String) {
         ModelUtil.setAccountDetail(
-            notaryListIrohaConsumer,
-            accountHelper.notaryListStorageAccount.accountId,
-            name,
-            address
+                notaryListIrohaConsumer,
+                accountHelper.notaryListStorageAccount.accountId,
+                name,
+                address
         )
     }
 
@@ -145,23 +145,23 @@ open class IrohaIntegrationHelperUtil : Closeable {
      * @return hex representation of transaction hash
      */
     fun transferAssetIrohaFromClient(
-        creator: String,
-        kp: Keypair,
-        srcAccountId: String,
-        destAccountId: String,
-        assetId: String,
-        description: String,
-        amount: String
+            creator: String,
+            kp: Keypair,
+            srcAccountId: String,
+            destAccountId: String,
+            assetId: String,
+            description: String,
+            amount: String
     ): String {
         val utx = ModelTransactionBuilder()
-            .creatorAccountId(creator)
-            .createdTime(ModelUtil.getCurrentTime())
-            .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
-            .build()
+                .creatorAccountId(creator)
+                .createdTime(ModelUtil.getCurrentTime())
+                .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
+                .build()
         val hash = utx.hash()
         return ModelUtil.prepareTransaction(utx, kp)
-            .flatMap { tx -> irohaNetwork.sendAndCheck(tx, hash) }
-            .get()
+                .flatMap { tx -> irohaNetwork.sendAndCheck(tx, hash) }
+                .get()
     }
 
     /**

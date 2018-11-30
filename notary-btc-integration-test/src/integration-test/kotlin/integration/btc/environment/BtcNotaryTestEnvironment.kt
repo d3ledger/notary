@@ -5,6 +5,7 @@ import integration.helper.BtcIntegrationHelperUtil
 import listener.btc.NewBtcClientRegistrationListener
 import model.IrohaCredential
 import notary.btc.BtcNotaryInitialization
+import org.web3j.crypto.Wallet
 import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.btc.network.BtcRegTestConfigProvider
 import sidechain.iroha.IrohaChainListener
@@ -16,8 +17,7 @@ import java.io.File
 /**
  * Bitcoin notary service testing environment
  */
-class BtcNotaryTestEnvironment(private val integrationHelper: BtcIntegrationHelperUtil, testName: String = "") :
-        Closeable {
+class BtcNotaryTestEnvironment(private val integrationHelper: BtcIntegrationHelperUtil, testName: String = "") : Closeable {
 
     val notaryConfig = integrationHelper.configHelper.createBtcNotaryConfig(testName)
 

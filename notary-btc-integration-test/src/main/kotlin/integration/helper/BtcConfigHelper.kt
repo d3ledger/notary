@@ -134,7 +134,7 @@ class BtcConfigHelper(
             override val healthCheckPort = btcRegistrationConfig.healthCheckPort
             override val notaryAccount = accountHelper.notaryAccount.accountId
             override val mstRegistrationAccount = accountHelper.mstRegistrationAccount.accountId
-            override val port = btcRegistrationConfig.port
+            override val port = portCounter.incrementAndGet()
             override val registrationCredential =
                     accountHelper.createCredentialConfig(accountHelper.registrationAccount)
             override val iroha = createIrohaConfig()

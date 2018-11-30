@@ -27,8 +27,7 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * Bitcoin withdrawal service testing environment
  */
-class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegrationHelperUtil, testName: String = "") :
-        Closeable {
+class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegrationHelperUtil, testName: String = "") : Closeable {
 
     val createdTransactions = ConcurrentHashMap<String, TimedTx>()
 
