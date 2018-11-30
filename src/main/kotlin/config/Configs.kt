@@ -96,7 +96,7 @@ fun <T : Any> loadConfigs(
     filename: String,
     vararg validators: ConfigValidationRule<T>
 ): Result<T, Exception> {
-    return Result.of(loadValidatedConfigs(prefix, type, filename, *validators))
+    return Result.of { loadValidatedConfigs(prefix, type, filename, *validators) }
 }
 
 private fun <T : Any> loadValidatedConfigs(
