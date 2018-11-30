@@ -3,7 +3,8 @@ package longevity
 import com.github.kittinunf.result.Result
 import config.IrohaCredentialConfig
 import config.loadEthPasswords
-import integration.helper.IntegrationHelperUtil
+import integration.helper.EthIntegrationHelperUtil
+import integration.helper.IrohaIntegrationHelperUtil
 import integration.helper.NotaryClient
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -20,7 +21,7 @@ import java.math.BigInteger
  * It is supposed to be used for long-running tests.
  */
 class LongevityTest {
-    private val integrationHelper = IntegrationHelperUtil()
+    private val integrationHelper = EthIntegrationHelperUtil()
 
     private val masterContract = integrationHelper.masterContract.contractAddress
 
