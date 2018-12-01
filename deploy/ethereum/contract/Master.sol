@@ -29,10 +29,13 @@ contract Master {
     /**
      * Constructor. Sets contract owner to contract creator.
      */
-    constructor(address relayRegistry) public {
+    constructor(address relayRegistry, address[] memory initialPeers) public {
         owner = msg.sender;
         relayRegistryAddress = relayRegistry;
         relayRegistryInstance = IRelayRegistry(relayRegistryAddress);
+        for (uint8 i = 0; i < initialPeers.length; i++) {
+            addPeer(initialPeers[i]);
+        }
     }
 
     /**
@@ -65,12 +68,11 @@ contract Master {
         return tokens;
     }
 
-
     /**
      * Adds new peers to list of signature verifiers. Can be called only by contract owner.
      * @param newAddresses addresses of new peers
      */
-    function addPeers(address[] memory newAddresses) public onlyOwner returns (uint){
+    function addPeers(address[] memory newAddresses) public onlyOwner returns (uint) {
         for (uint i = 0; i < newAddresses.length; i++) {
             addPeer(newAddresses[i]);
         }
@@ -81,13 +83,83 @@ contract Master {
      * Adds new peer to list of signature verifiers. Can be called only by contract owner.
      * @param newAddress address of new peer
      */
-    function addPeer(address newAddress) public onlyOwner returns(uint){
+    function addPeer(address newAddress) private returns (uint) {
         // TODO: For development purpose only, https://soramitsu.atlassian.net/browse/D3-418
         require(!isLockAddPeer);
         require(peers[newAddress] == false);
         peers[newAddress] = true;
         ++peersCount;
         return peersCount;
+    }
+
+    function removePeer(address peerAddress) private {
+        require(peers[peerAddress] == true);
+        peers[peerAddress] = false;
+        --peersCount;
+    }
+
+    function addPeerByPeer(
+        address newPeerAddress,
+        bytes32 txHash,
+        uint8[] memory v,
+        bytes32[] memory r,
+        bytes32[] memory s
+    )
+    public
+    {
+        require(used[txHash] == false);
+        require(peersCount >= 1);
+        require(v.length == r.length);
+        require(r.length == s.length);
+        uint f = (peersCount - 1) / 3;
+        uint needSigs = peersCount - f;
+        require(s.length >= needSigs);
+
+        address[] memory recoveredAddresses = new address[](s.length);
+        for (uint i = 0; i < s.length; ++i) {
+            recoveredAddresses[i] = recoverAddress(
+                keccak256(abi.encodePacked(newPeerAddress, txHash)),
+                v[i],
+                r[i],
+                s[i]
+            );
+            // recovered address should be in peers_
+            require(peers[recoveredAddresses[i]] == true);
+        }
+        require(checkForUniqueness(recoveredAddresses));
+        addPeer(newPeerAddress);
+    }
+
+    function removePeerByPeer(
+        address peerAddress,
+        bytes32 txHash,
+        uint8[] memory v,
+        bytes32[] memory r,
+        bytes32[] memory s
+    )
+    public
+    {
+        require(used[txHash] == false);
+        require(peersCount >= 1);
+        require(v.length == r.length);
+        require(r.length == s.length);
+        uint f = (peersCount - 1) / 3;
+        uint needSigs = peersCount - f;
+        require(s.length >= needSigs);
+
+        address[] memory recoveredAddresses = new address[](s.length);
+        for (uint i = 0; i < s.length; ++i) {
+            recoveredAddresses[i] = recoverAddress(
+                keccak256(abi.encodePacked(peerAddress, txHash)),
+                v[i],
+                r[i],
+                s[i]
+            );
+            // recovered address should be in peers_
+            require(peers[recoveredAddresses[i]] == true);
+        }
+        require(checkForUniqueness(recoveredAddresses));
+        removePeer(peerAddress);
     }
 
     /**
