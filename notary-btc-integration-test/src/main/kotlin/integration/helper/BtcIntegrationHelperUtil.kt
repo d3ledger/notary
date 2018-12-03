@@ -190,6 +190,7 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      * Sends btc to a given address
      */
     fun sendBtc(address: String, amount: Int, confirmations: Int = 6) {
+        logger.info { "Send $amount BTC to $address" }
         rpcClient.sendToAddress(address = address, amount = BigDecimal(amount))
         generateBtcBlocks(confirmations)
     }

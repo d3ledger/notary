@@ -8,7 +8,6 @@ import registration.eth.relay.RelayRegistrationConfig
 import token.ERC20TokenRegistrationConfig
 import vacuum.RelayVacuumConfig
 import withdrawalservice.WithdrawalServiceConfig
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
  *Class that handles all the configuration objects.
@@ -166,8 +165,4 @@ open class EthConfigHelper(
         }
     }
 
-    companion object {
-        /** Port counter, so new port is generated for each run */
-        private val portCounter = AtomicInteger(19_999)
-    }
 }
