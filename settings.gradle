@@ -15,6 +15,9 @@ project(':btc-address-generation').projectDir = 'btc-address-generation' as File
 include 'btc-withdrawal'
 project(':btc-withdrawal').projectDir = 'btc-withdrawal' as File
 
+include 'eth'
+project(':eth').projectDir = 'eth' as File
+
 include 'eth-erc20-registration'
 project(':eth-erc20-registration').projectDir = 'eth-erc20-registration' as File
 
