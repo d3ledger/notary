@@ -27,8 +27,6 @@ services:
       - POSTGRES_PASSWORD=mysecretpassword
     expose:
       - 5432
-    volumes:
-      - /var/lib/postgresql/data
     networks:
       - d3-network
 

@@ -6,11 +6,37 @@
   become: no
   delegate_to: localhost
 
+- name: Create files dir
+  file:
+    path: "{{ role_path }}/files/"
+    state: directory
+  run_once: yes
+  become: no
+  delegate_to: localhost
+
+
+
+- name: Generate ethereum accounts password
+  debug:
+    msg: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') }}"
+  run_once: yes
+  delegate_to: localhost
+  register: eth_pass
+
+- name: Write eth pass to file
+  copy:
+    content: "{{ eth_pass.msg }}"
+    dest: "{{role_path}}/files/eth_pass"
+  run_once: yes
+  delegate_to: localhost
+  become: no
+
+
 
 - name: Create notary accounts
   shell:
     _raw_params: >
-      ./create_account.sh notary_{{ inventory_hostname}} {{ eth_pass }}
+      ./create_account.sh notary_{{ inventory_hostname}} {{ eth_pass.msg }}
     chdir: "{{ role_path }}"
   become: no
   delegate_to: localhost
@@ -19,11 +45,10 @@
 - name: Create other ethereum accounts
   shell:
     _raw_params: >
-      ./create_account.sh {{ item }} {{ eth_pass }}
+      ./create_account.sh {{ item }} {{ eth_pass.msg }}
     chdir: "{{ role_path }}"
   with_items:
     - withdrawal
-    - registration
     - relay_registration
     - vacuum
   become: no
@@ -55,9 +80,8 @@
 
 
 - name: Deploy relay registry and master contract
-  shell:
-    _raw_params: >
-      ./gradlew runPreDeployEthereum --args='{{ addrs.stdout }}'
+  shell: "./gradlew runPreDeployEthereum --args='{{ addrs.stdout.split(' ') | select('match', '0x.*') | list | join(' ') }}'"
+  args:
     chdir: "{{ playbook_dir }}/../../"
   environment:
     PROFILE: testnet
@@ -83,3 +107,54 @@
   run_once: yes
   delegate_to: localhost
 
+- name: Read relay registration address
+  shell: "cat {{ role_path }}/files/relay_registration.key"
+  register: relay_registration
+  delegate_to: localhost
+  run_once: yes
+  become: no
+
+- name: Read withdrawal address
+  shell: "cat {{ role_path }}/files/withdrawal.key"
+  register: withdrawal
+  delegate_to: localhost
+  run_once: yes
+  become: no
+
+- name: Read master address
+  shell: "cat {{ role_path }}/files/master_eth_address"
+  register: master_eth_address
+  delegate_to: localhost
+  run_once: yes
+  become: no
+
+
+- name: Send eth to master and withdrawal
+  shell:
+    _raw_params: >
+      ./gradlew runSendEther --args="{{ item }} 0.03"
+    chdir: "{{ playbook_dir }}/../../"
+  with_items:
+    - "{{ withdrawal.stdout | from_json | json_query('address')  }}"
+    - "{{ master_eth_address.stdout }}"
+  environment:
+    PROFILE: testnet
+  register: file
+  delegate_to: localhost
+  become: no
+  run_once: yes
+
+
+- name: Send eth to relay registration
+  shell:
+    _raw_params: >
+      ./gradlew runSendEther --args="{{ item }} 0.05"
+    chdir: "{{ playbook_dir }}/../../"
+  with_items:
+  - "{{ relay_registration.stdout | from_json | json_query('address') }}"
+  environment:
+    PROFILE: testnet
+  register: file
+  delegate_to: localhost
+  become: no
+  run_once: yes

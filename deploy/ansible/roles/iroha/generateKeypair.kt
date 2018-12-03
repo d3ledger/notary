@@ -5,7 +5,7 @@ fun main(args: Array<String>) {
     val crypto = ModelCrypto()
     val keypair = crypto.generateKeypair()
 
-    val (priv, pub) = listOf(keypair.publicKey(), keypair.privateKey()).map { it.hex() }
+    val (priv, pub) = listOf(keypair.privateKey(), keypair.publicKey()).map { it.hex() }
     println("$priv;$pub")
 }
 

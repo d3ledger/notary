@@ -29,7 +29,6 @@ fun main(args: Array<String>) {
     val relayRegistry = deployHelper.deployRelayRegistrySmartContract()
     val master = deployHelper.deployMasterSmartContract(relayRegistry.contractAddress)
 
-
     var result = master.addPeers(args.toList()).send().isStatusOK
     logger.info { "Peers were added" }
 

@@ -27,9 +27,9 @@ Then there is a section with variables for this group, in this case we have only
 After `inventory.list` inventory file is configured one could launch the playbook.
 
 ```
-ansible-playbook -i inventory.list main.yml --key-file "~/.ssh/<key>" --extra-vars "docker_password=<nexus_password>" 
+PROFILE=testnet TAG=develop ansible-playbook -i inventory.list main.yml --key-file "~/.ssh/<key>" --extra-vars "docker_password=<nexus_password>" 
 ```
-, where you should specify your SSH key and the password for accessing our Docker Hub on nexus.
+, where you should specify profile that you want to run, docker image tag and your SSH key and the password for accessing our Docker Hub on nexus.
 
 
 
@@ -60,8 +60,8 @@ Then there is a section with variables for this group, in this case we have only
 After `inventory_local.list` inventory file is configured one could launch the playbook.
 
 ```
-ansible-playbook -i inventory.list main.yml  --extra-vars "docker_password=<nexus_password>" 
+PROFILE=testnet TAG=develop ansible-playbook -i inventory_local.list main.yml  --extra-vars "docker_password=<nexus_password>" 
 ```
-, where you should the password for accessing our Docker Hub on nexus.
+, where you should specify profile that you want to run, docker image tag and the password for accessing our Docker Hub on nexus.
 Here you don't need to tell the SSH key to use, because it is written in inventory file.
 

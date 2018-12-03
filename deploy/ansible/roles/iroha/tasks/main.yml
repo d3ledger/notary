@@ -1,108 +1,108 @@
 ---
 
+
   - name: Clean files dir
-    local_action:
-      module: file
+    file:
       path: "{{ role_path }}/files/"
       state: absent
     run_once: yes
     become: no
+    delegate_to: localhost
 
-  - name: Compile kotlin script
-    local_action:
-      module: shell
-      _raw_params: >
-       kotlinc -cp {{ projectRoot }}/iroha_bindings/iroha-bindings-example.jar generateKeypair.kt
-       -include-runtime -d GenerateKeypair.jar
-      chdir: "{{ role_path }}"
+  - name: Create files dir
+    file:
+      path: "{{ role_path }}/files/"
+      state: directory
     run_once: yes
     become: no
+    delegate_to: localhost
 
-  - name: Generate iroha keypairs
-    local_action:
-      module: shell
+  - name: Generate iroha node keypairs
+    shell:
       _raw_params: >
-        kotlin
-        -classpath {{ projectRoot }}/iroha_bindings/iroha-bindings-example.jar
-        -classpath GenerateKeypair.jar
-        -Djava.library.path={{ projectRoot }}/iroha_bindings/mac
-        GenerateKeypairKt
+        python3 generate_keypair.py
       chdir: "{{ role_path }}"
     register: "keys"
-    with_inventory_hostnames:
-      - all
-    run_once: yes
     become: no
-
-  - name: Remove nodes.csv file
-    local_action:
-      module: file
-      path: "{{ role_path }}/files/nodes.csv"
-      state: absent
-    become: no
+    delegate_to: localhost
 
 
   - name: Write nodes to file
-    local_action:
-      module: lineinfile
+    lineinfile:
       path: "{{ role_path }}/files/nodes.csv"
-      line: "{{ hostvars[item.0]['ansible_host'] }};10001;{{ item.1.stdout }}"
+      line: "{{ hostvars[item]['ansible_host'] }};10001;{{ hostvars[item]['keys'].stdout }}"
+      insertafter: EOF
       create: yes
-    with_together:
-      - "{{ play_hosts }}"
-      - "{{ keys.results }}"
+    loop: "{{ ansible_play_hosts }}"
+    delegate_to: localhost
     run_once: yes
     become: no
 
+
+  - name: Write iroha nodes private keys to files
+    copy:
+      content: "{{ keys.stdout.split(';')[0] }}"
+      dest: "{{ role_path }}/files/node_{{inventory_hostname}}.priv"
+    become: no
+    delegate_to: localhost
+
+
+  - name: Write iroha nodes public keys to files
+    copy:
+      content: "{{ keys.stdout.split(';')[1] }}"
+      dest: "{{ role_path }}/files/node_{{inventory_hostname}}.pub"
+    become: no
+    delegate_to: localhost
+
+
+
   - name: Copy genesis block
-    local_action:
-      module: copy
+    copy:
       src: "{{ projectRoot }}/deploy/iroha/genesis.block"
       dest: "{{ role_path }}/files"
     run_once: yes
     become: no
+    delegate_to: localhost
 
-  - name: Add peers to genesis block
-    local_action:
-      module: shell
+  - name: Add peers and notaries to genesis block
+    shell:
       _raw_params: "python add_peers_and_notaries.py nodes.csv"
       chdir: "{{ role_path }}"
     run_once: yes
     become: no
+    delegate_to: localhost
+
 
   - name: Generate notary signatories
-    local_action:
-      module: shell
+    shell:
       _raw_params: >
-        kotlin
-        -classpath {{ projectRoot }}/iroha_bindings/iroha-bindings-example.jar
-        -classpath GenerateKeypair.jar
-        -Djava.library.path={{ projectRoot }}/iroha_bindings/mac
-        GenerateKeypairKt
+        python3 generate_keypair.py
       chdir: "{{ role_path }}"
     register: "signatories"
     become: no
+    delegate_to: localhost
 
 
   - name: Write notary signatories private key to files
-    local_action:
-      module: copy
+    copy:
       content: "{{ signatories.stdout.split(';')[0] }}"
       dest: "{{ role_path }}/files/notary_{{inventory_hostname}}.priv"
     become: no
+    delegate_to: localhost
 
 
   - name: Write notary signatories public key to files
-    local_action:
-      module: copy
+    copy:
       content: "{{ signatories.stdout.split(';')[1] }}"
       dest: "{{ role_path }}/files/notary_{{inventory_hostname}}.pub"
     become: no
+    delegate_to: localhost
 
   - name: Add notary signatories to genesis block
-    local_action:
-      module: shell
+    shell:
       _raw_params: "python3 add_signatories.py  {{play_hosts | map('regex_replace', '^(.*)$', 'notary_\\1.pub') |  join(' ') }}"
       chdir: "{{ role_path }}"
     run_once: yes
     become: no
+    delegate_to: localhost
+

@@ -31,7 +31,7 @@ def parse_peers(peers_csv_fp):
     with open(peers_csv_fp) as csvfile:
         peersreader = csv.reader(csvfile, delimiter=';')
         for peer in peersreader:
-            peers.append(Peer(peer[0], peer[1], peer[3], peer[2]))
+            peers.append(Peer(peer[0], peer[1], peer[2], peer[3]))
     return peers
 
 
@@ -91,4 +91,3 @@ if __name__ == "__main__":
     peers_csv = sys.argv[1]
     peers = parse_peers(peers_csv)
     genesis_add_peers(peers, "genesis.block")
-    make_keys(peers)

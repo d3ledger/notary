@@ -5,3 +5,4 @@
     username: d3-deploy
     password: "{{ docker_password }}"
     reauthorize: yes
+  become: no
