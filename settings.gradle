@@ -21,6 +21,9 @@ project(':eth-erc20-registration').projectDir = 'eth-erc20-registration' as File
 include 'eth-registration'
 project(':eth-registration').projectDir = 'eth-registration' as File
 
+include 'eth-withdrawal'
+project(':eth-withdrawal').projectDir = 'eth-withdrawal' as File
+
 include 'notary-btc-integration-test'
 project(':notary-btc-integration-test').projectDir = 'notary-btc-integration-test' as File
 
@@ -35,4 +38,3 @@ project(':test-longevity').projectDir = 'test-longevity' as File
 
 include 'd3testreport'
 project(':d3testreport').projectDir = 'd3testreport' as File
-
