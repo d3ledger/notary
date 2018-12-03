@@ -134,7 +134,7 @@ fun getAccountData(
  * Retrieves account details by setter from Iroha
  * @param credential - iroha credential
  * @param irohaNetwork - iroha network layer
- * @param acc account to retrieve relays from
+ * @param acc - account to read details from
  * @param detailSetterAccount - account that has set the details
  * @return Map with account details
  */

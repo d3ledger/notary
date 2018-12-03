@@ -3,7 +3,7 @@
 /**
  * Checks if grpc service is ready to accept connections
  * Was designed to check if iroha is up
- * Usage: python3 iroha_healthcheck.py <host> <port>
+ * Usage: ./grpc_healthcheck <host> <port>
  * Possible exit codes:
  * 0: iroha is up
  * 1: iroha is down

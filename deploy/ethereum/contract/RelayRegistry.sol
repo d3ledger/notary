@@ -1,4 +1,4 @@
-pragma solidity 0.4.25;
+pragma solidity 0.5.0;
 
 import "./IRelayRegistry.sol";
 
@@ -19,7 +19,7 @@ contract RelayRegistry is IRelayRegistry {
      * @param relay contract address
      * @param whiteList white list
      */
-    function addNewRelayAddress(address relay, address[] whiteList) external {
+    function addNewRelayAddress(address relay, address[] calldata whiteList) external {
         require(msg.sender == owner_);
         require(_relayWhiteList[relay].length == 0);
         _relayWhiteList[relay] = whiteList;
@@ -51,7 +51,7 @@ contract RelayRegistry is IRelayRegistry {
      * @param relay contract address
      * @return array of the whitelist
      */
-    function getWhiteListByRelay(address relay) external view returns (address[]) {
+    function getWhiteListByRelay(address relay) external view returns (address[] memory ) {
         require(relay != address(0));
         require(_relayWhiteList[relay].length != 0);
         return _relayWhiteList[relay];

@@ -1,4 +1,4 @@
-pragma solidity 0.4.25;
+pragma solidity 0.5.0;
 
 import "./IRelayRegistry.sol";
 import "./IERC20.sol";
@@ -61,7 +61,7 @@ contract Master {
      * Return array of listed tokens
      * @return array of tokens
      */
-    function getTokens() public view returns (address[]) {
+    function getTokens() public view returns (address[] memory) {
         return tokens;
     }
 
@@ -70,7 +70,7 @@ contract Master {
      * Adds new peers to list of signature verifiers. Can be called only by contract owner.
      * @param newAddresses addresses of new peers
      */
-    function addPeers(address[] newAddresses) public onlyOwner returns (uint){
+    function addPeers(address[] memory newAddresses) public onlyOwner returns (uint){
         for (uint i = 0; i < newAddresses.length; i++) {
             addPeer(newAddresses[i]);
         }
@@ -116,7 +116,7 @@ contract Master {
      */
     function checkTokenAddress(address tokenAddress) public view returns (bool) {
         // 0 means ether which is definitely in whitelist
-        if (tokenAddress == 0) {
+        if (tokenAddress == address (0)) {
             return true;
         }
         bool token_found = false;
@@ -143,11 +143,11 @@ contract Master {
     function withdraw(
         address tokenAddress,
         uint256 amount,
-        address to,
+        address payable to,
         bytes32 txHash,
-        uint8[] v,
-        bytes32[] r,
-        bytes32[] s,
+        uint8[] memory v,
+        bytes32[] memory r,
+        bytes32[] memory s,
         address from
     )
     public
@@ -168,8 +168,6 @@ contract Master {
         uint needSigs = peersCount - f;
         require(s.length >= needSigs);
 
-        used[txHash] = true;
-
         address[] memory recoveredAddresses = new address[](s.length);
         for (uint i = 0; i < s.length; ++i) {
             recoveredAddresses[i] = recoverAddress(
@@ -183,18 +181,20 @@ contract Master {
         }
         require(checkForUniqueness(recoveredAddresses));
 
-        if (tokenAddress == 0) {
+        if (tokenAddress == address (0)) {
             if (address(this).balance < amount) {
-                emit InsufficientFundsForWithdrawal(0, to);
+                emit InsufficientFundsForWithdrawal(tokenAddress, to);
             } else {
+                used[txHash] = true;
                 // untrusted transfer, relies on provided cryptographic proof
                 to.transfer(amount);
             }
         } else {
             IERC20 coin = IERC20(tokenAddress);
-            if (coin.balanceOf(this) < amount) {
+            if (coin.balanceOf(address (this)) < amount) {
                 emit InsufficientFundsForWithdrawal(tokenAddress, to);
             } else {
+                used[txHash] = true;
                 // untrusted call, relies on provided cryptographic proof
                 coin.transfer(to, amount);
             }

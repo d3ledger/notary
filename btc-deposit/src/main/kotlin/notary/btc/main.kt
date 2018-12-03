@@ -15,7 +15,7 @@ import sidechain.iroha.IrohaInitialization
 import java.util.*
 
 @SpringBootApplication
-@ComponentScan(basePackages = ["notary", "healthcheck", "provider.btc.network"])
+@ComponentScan(basePackages = ["notary", "healthcheck", "provider.btc.network", "listener.btc", "handler.btc"])
 class BtcNotaryApplication
 
 private val logger = KLogging().logger

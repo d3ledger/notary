@@ -1,4 +1,4 @@
-pragma solidity 0.4.25;
+pragma solidity 0.5.0;
 
 /**
  * @title Relay registry interface
@@ -11,7 +11,7 @@ interface IRelayRegistry {
      * @param whiteList with allowed addresses
      * @return true if data was stored
      */
-    function addNewRelayAddress(address relay, address[] whiteList) external;
+    function addNewRelayAddress(address relay, address[] calldata whiteList) external;
 
     /**
      * Check if some address is in the whitelist
@@ -26,7 +26,7 @@ interface IRelayRegistry {
      * @param relay contract address
      * @return array of the whitelist
      */
-    function getWhiteListByRelay(address relay) external view returns (address[]);
+    function getWhiteListByRelay(address relay) external view returns (address[] memory);
 
     event AddNewRelay (
         address indexed relayAddress,

@@ -3,13 +3,17 @@ package withdrawal.btc
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
+import handler.btc.NewBtcClientRegistrationHandler
 import healthcheck.HealthyService
+import helper.network.addPeerConnectionStatusListener
 import helper.network.getPeerGroup
 import helper.network.startChainDownload
 import io.reactivex.schedulers.Schedulers
 import iroha.protocol.Commands
 import mu.KLogging
+import org.bitcoinj.core.Address
 import org.bitcoinj.core.PeerGroup
+import org.bitcoinj.utils.BriefLogFormatter
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -21,6 +25,7 @@ import sidechain.iroha.util.getTransferCommands
 import withdrawal.btc.config.BtcWithdrawalConfig
 import withdrawal.btc.handler.NewSignatureEventHandler
 import withdrawal.btc.handler.WithdrawalTransferEventHandler
+import withdrawal.btc.provider.BtcChangeAddressProvider
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -30,15 +35,23 @@ import java.util.concurrent.Executors
 @Component
 class BtcWithdrawalInitialization(
     @Autowired private val btcWithdrawalConfig: BtcWithdrawalConfig,
+    @Autowired private val btcChangeAddressProvider: BtcChangeAddressProvider,
     @Autowired private val irohaChainListener: IrohaChainListener,
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider,
     @Autowired private val withdrawalTransferEventHandler: WithdrawalTransferEventHandler,
-    @Autowired private val newSignatureEventHandler: NewSignatureEventHandler
+    @Autowired private val newSignatureEventHandler: NewSignatureEventHandler,
+    @Autowired private val newBtcClientRegistrationHandler: NewBtcClientRegistrationHandler
 ) : HealthyService() {
 
     fun init(): Result<Unit, Exception> {
         val wallet = Wallet.loadFromFile(File(btcWithdrawalConfig.bitcoin.walletPath))
-        return initBtcBlockChain(wallet).flatMap { peerGroup ->
+        return btcChangeAddressProvider.getChangeAddress().map { changeAddress ->
+            wallet.addWatchedAddress(
+                Address.fromBase58(btcNetworkConfigProvider.getConfig(), changeAddress.address)
+            )
+        }.flatMap {
+            initBtcBlockChain(wallet)
+        }.flatMap { peerGroup ->
             initWithdrawalTransferListener(
                 wallet,
                 irohaChainListener,
@@ -60,12 +73,14 @@ class BtcWithdrawalInitialization(
         return irohaChainListener.getBlockObservable().map { irohaObservable ->
             irohaObservable.subscribeOn(Schedulers.from(Executors.newSingleThreadExecutor()))
                 .subscribe({ block ->
+                    // Handle transfer commands
                     getTransferCommands(block).forEach { command ->
                         withdrawalTransferEventHandler.handleTransferCommand(
                             wallet,
                             command.transferAsset
                         )
                     }
+                    // Handle signature appearance commands
                     getSetDetailCommands(block).filter { command -> isNewWithdrawalSignature(command) }
                         .forEach { command ->
                             newSignatureEventHandler.handleNewSignatureCommand(
@@ -73,6 +88,10 @@ class BtcWithdrawalInitialization(
                                 peerGroup
                             )
                         }
+                    // Handle newly registered Bitcoin addresses. We need it to update wallet object.
+                    getSetDetailCommands(block).forEach { command ->
+                        newBtcClientRegistrationHandler.handleNewClientCommand(command, wallet)
+                    }
                 }, { ex ->
                     notHealthy()
                     logger.error("Error on transfer events subscription", ex)
@@ -87,7 +106,8 @@ class BtcWithdrawalInitialization(
      * @param wallet - wallet object that will be enriched with block chain data: sent, unspent transactions, last processed block and etc
      */
     private fun initBtcBlockChain(wallet: Wallet): Result<PeerGroup, Exception> {
-        //TODO add peer group health check later
+        //Enables short log format for Bitcoin events
+        BriefLogFormatter.init()
         return Result.of {
             getPeerGroup(
                 wallet,
@@ -96,6 +116,7 @@ class BtcWithdrawalInitialization(
             )
         }.map { peerGroup ->
             startChainDownload(peerGroup, btcWithdrawalConfig.bitcoin.host)
+            addPeerConnectionStatusListener(peerGroup, ::notHealthy, ::cured)
             peerGroup
         }
     }

@@ -2,6 +2,7 @@ package withdrawal.btc.handler
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
+import helper.address.isValidBtcAddress
 import iroha.protocol.Commands
 import mu.KLogging
 import org.bitcoinj.core.Transaction
@@ -45,6 +46,10 @@ class WithdrawalTransferEventHandler(
             return
         }
         val destinationAddress = transferCommand.description
+        if (!isValidBtcAddress(destinationAddress)) {
+            logger.warn { "Cannot execute transfer. Destination $destinationAddress is not a valid base58 address." }
+            return
+        }
         logger.info {
             "Withdrawal event(" +
                     "from:${transferCommand.srcAccountId} " +
@@ -86,7 +91,7 @@ class WithdrawalTransferEventHandler(
             transaction
         }.map { transaction ->
             logger.info { "Tx to sign\n$transaction" }
-            signCollector.collectSignatures(transaction, wallet)
+            signCollector.collectSignatures(transaction, btcWithdrawalConfig.bitcoin.walletPath)
             transaction
         }.map { transaction ->
             unsignedTransactions.markAsUnsigned(transaction)

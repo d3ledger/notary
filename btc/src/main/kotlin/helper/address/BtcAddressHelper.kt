@@ -1,5 +1,7 @@
 package helper.address
 
+import org.bitcoinj.core.AddressFormatException
+import org.bitcoinj.core.Base58
 import org.bitcoinj.core.ScriptException
 import org.bitcoinj.core.TransactionOutput
 
@@ -33,4 +35,18 @@ fun getSignThreshold(peers: Int): Int {
  */
 fun getSignThreshold(pubKeys: List<String>): Int {
     return getSignThreshold(pubKeys.size)
+}
+
+/**
+ * Checks if address is valid base58 Bitcoin address
+ * @param address - address to check
+ * @return 'true' if address is valid base58 address
+ */
+fun isValidBtcAddress(address: String): Boolean {
+    try {
+        Base58.decodeChecked(address)
+        return true
+    } catch (expected: AddressFormatException) {
+        return false;
+    }
 }
