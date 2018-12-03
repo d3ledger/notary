@@ -3,7 +3,7 @@ package provider
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import model.IrohaCredential
-import notary.endpoint.eth.EthRefundStrategyImpl
+import mu.KLogging
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
 
@@ -29,11 +29,16 @@ abstract class WhiteListProvider protected constructor(
         ).map { details ->
             val whitelist = details[whiteListKey]
             if (whitelist == null || whitelist.isEmpty()) {
-                EthRefundStrategyImpl.logger.debug { "Whitelist is empty. Allow." }
+                logger.debug { "Whitelist is empty. Allow." }
                 true
             } else {
                 whitelist.split(", ").contains(address)
             }
         }
     }
+
+    /**
+     * Logger
+     */
+    companion object : KLogging()
 }

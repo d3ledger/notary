@@ -59,7 +59,10 @@ class RefundServerEndpoint(
         return rawRequest?.let { request ->
             val response = ethStrategy.performRefund(EthRefundRequest(request))
             when (response) {
-                is EthNotaryResponse.Successful -> Response(HttpStatusCode.OK, ethNotaryAdapter.toJson(response))
+                is EthNotaryResponse.Successful -> Response(
+                    HttpStatusCode.OK,
+                    ethNotaryAdapter.toJson(response)
+                )
                 is EthNotaryResponse.Error -> {
                     logger.error { response.reason }
                     Response(HttpStatusCode.BadRequest, ethNotaryAdapter.toJson(response))

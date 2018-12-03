@@ -2,7 +2,6 @@ package sidechain
 
 import com.google.protobuf.ByteString
 import iroha.protocol.Commands
-import notary.endpoint.eth.AmountType
 import java.math.BigInteger
 
 /**
@@ -52,7 +51,7 @@ sealed class SideChainEvent {
             val srcAccount: String,
             val dstAccount: String,
             val asset: String,
-            val amount: AmountType,
+            val amount: String,
             val description: String,
             val hash: String
         ) : IrohaEvent() {

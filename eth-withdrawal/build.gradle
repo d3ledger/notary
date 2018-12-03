@@ -1,0 +1,9 @@
+dependencies {
+    compile project(":eth-vacuum")
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "notary:eth-withdrawal"
+    }
+}

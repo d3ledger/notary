@@ -1,9 +1,5 @@
 package config
 
-import config.EthereumConfig
-import config.IrohaConfig
-import config.IrohaCredentialConfig
-
 interface TestConfig {
     val ethTestAccount: String
     val ethereum: EthereumConfig

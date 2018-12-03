@@ -1,7 +1,6 @@
 package notary
 
 import com.github.kittinunf.result.Result
-import notary.IrohaOrderedBatch
 import sidechain.SideChainEvent
 
 /**

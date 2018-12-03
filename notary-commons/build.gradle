@@ -1,0 +1,5 @@
+sonarqube {
+    properties {
+        property "sonar.projectKey", "notary:notary-commons"
+    }
+}

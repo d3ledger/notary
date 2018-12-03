@@ -2,7 +2,6 @@ package provider.eth
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import config.IrohaConfig
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.consumer.IrohaNetwork

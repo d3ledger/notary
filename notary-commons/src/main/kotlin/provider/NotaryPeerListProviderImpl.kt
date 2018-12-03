@@ -2,7 +2,6 @@ package provider
 
 import model.IrohaCredential
 import mu.KLogging
-import provider.eth.EthRelayProviderIrohaImpl
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
 
@@ -17,7 +16,7 @@ class NotaryPeerListProviderImpl(
 ) : NotaryPeerListProvider {
 
     init {
-        EthRelayProviderIrohaImpl.logger.info {
+        logger.info {
             "Init notary peer list provider with notary list storage account '$notaryListStorageAccount'" +
                     " and notary list setter account '$notaryListSetterAccount'"
         }

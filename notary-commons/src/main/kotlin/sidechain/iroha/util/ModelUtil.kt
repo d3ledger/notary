@@ -15,7 +15,6 @@ import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.consumer.IrohaNetwork
-import token.EthTokenInfo
 import java.io.IOException
 import java.math.BigInteger
 import java.nio.file.Files
@@ -305,32 +304,4 @@ object ModelUtil {
                 .build()
         )
     }
-
-    /**
-     * Registers ERC20 tokens in Iroha
-     * @param tokens - map of tokens to register(address->token info
-     * @param tokenStorageAccount - account that holds tokens
-     * @param irohaConsumer - iroha network layer
-     * @return hex representation of transaction hash
-     */
-    fun registerERC20Tokens(
-        tokens: Map<String, EthTokenInfo>,
-        tokenStorageAccount: String,
-        irohaConsumer: IrohaConsumer
-    ): Result<String, Exception> {
-        return Result.of {
-            var utx = ModelTransactionBuilder()
-                .creatorAccountId(irohaConsumer.creator)
-                .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
-            tokens.forEach { ethWallet, ethTokenInfo ->
-                utx = utx.createAsset(ethTokenInfo.name, "ethereum", ethTokenInfo.precision)
-                utx = utx.setAccountDetail(tokenStorageAccount, ethWallet, ethTokenInfo.name)
-            }
-
-            utx.build()
-        }.flatMap { utx ->
-            irohaConsumer.sendAndCheck(utx)
-        }
-    }
-
 }

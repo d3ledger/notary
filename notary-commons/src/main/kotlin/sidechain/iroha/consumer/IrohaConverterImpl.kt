@@ -5,7 +5,6 @@ import mu.KLogging
 import notary.IrohaCommand
 import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
-import java.math.BigInteger
 
 /**
  * Class converts Notary [notary.IrohaOrderedBatch] to Iroha [UnsignedTx]

@@ -7,7 +7,6 @@ import com.squareup.moshi.Moshi
 import io.reactivex.Observable
 import model.IrohaCredential
 import mu.KLogging
-import notary.endpoint.eth.AmountType
 import notary.endpoint.eth.BigIntegerMoshiAdapter
 import notary.endpoint.eth.EthNotaryResponse
 import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
@@ -37,7 +36,7 @@ import java.math.BigInteger
  */
 data class RollbackApproval(
     val tokenContractAddress: String,
-    val amount: AmountType,
+    val amount: String,
     val account: String,
     val irohaHash: String,
     val r: ArrayList<ByteArray>,

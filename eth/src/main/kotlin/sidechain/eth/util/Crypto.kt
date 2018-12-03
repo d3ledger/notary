@@ -1,6 +1,5 @@
 package sidechain.eth.util
 
-import notary.endpoint.eth.AmountType
 import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Hash
 import org.web3j.crypto.Sign
@@ -37,7 +36,7 @@ fun signUserData(ecKeyPair: ECKeyPair, toSign: String): String {
  * @param from address of the relay contract
  * @return keccak-256 hash of all provided fields
  */
-fun hashToWithdraw(tokenAddress: String, amount: AmountType, accountAddress: String, irohaHash: String, from: String): String {
+fun hashToWithdraw(tokenAddress: String, amount: String, accountAddress: String, irohaHash: String, from: String): String {
     return Hash.sha3(
         tokenAddress.replace("0x", "")
                 + String.format("%064x", BigInteger(amount)).replace("0x", "")

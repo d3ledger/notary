@@ -16,17 +16,12 @@ typealias EthereumAddress = String
 typealias CoinType = String
 
 /**
- * Type of amount in Ethereum
- */
-typealias AmountType = String
-
-/**
  * Refund structure
  */
 data class EthRefund(
     val address: EthereumAddress,
     val assetId: CoinType,
-    val amount: AmountType,
+    val amount: String,
     val irohaTxHash: IrohaTransactionHashType,
     val relayAddress: String
 )

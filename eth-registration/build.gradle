@@ -1,0 +1,9 @@
+dependencies {
+    compile project(":eth")
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "notary:eth-registration"
+    }
+}
