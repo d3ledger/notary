@@ -27,97 +27,99 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * Bitcoin withdrawal service testing environment
  */
-class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegrationHelperUtil, testName: String = "") : Closeable {
+class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegrationHelperUtil, testName: String = "") :
+    Closeable {
 
     val createdTransactions = ConcurrentHashMap<String, TimedTx>()
 
     val btcWithdrawalConfig = integrationHelper.configHelper.createBtcWithdrawalConfig(testName)
 
     val withdrawalKeypair = ModelUtil.loadKeypair(
-            btcWithdrawalConfig.withdrawalCredential.pubkeyPath,
-            btcWithdrawalConfig.withdrawalCredential.privkeyPath
+        btcWithdrawalConfig.withdrawalCredential.pubkeyPath,
+        btcWithdrawalConfig.withdrawalCredential.privkeyPath
     ).fold({ keypair -> keypair }, { ex -> throw ex })
 
     val withdrawalCredential =
-            IrohaCredential(btcWithdrawalConfig.withdrawalCredential.accountId, withdrawalKeypair)
+        IrohaCredential(btcWithdrawalConfig.withdrawalCredential.accountId, withdrawalKeypair)
 
     val irohaNetwork = IrohaNetworkImpl(btcWithdrawalConfig.iroha.hostname, btcWithdrawalConfig.iroha.port)
 
     val withdrawalIrohaConsumer = IrohaConsumerImpl(
-            withdrawalCredential,
-            irohaNetwork
+        withdrawalCredential,
+        irohaNetwork
     )
 
     val irohaChainListener = IrohaChainListener(
-            btcWithdrawalConfig.iroha.hostname,
-            btcWithdrawalConfig.iroha.port,
-            withdrawalCredential
+        btcWithdrawalConfig.iroha.hostname,
+        btcWithdrawalConfig.iroha.port,
+        withdrawalCredential
     )
 
     val btcRegisteredAddressesProvider = BtcRegisteredAddressesProvider(
-            integrationHelper.testCredential,
-            integrationHelper.irohaNetwork,
-            btcWithdrawalConfig.registrationCredential.accountId,
-            btcWithdrawalConfig.notaryCredential.accountId
+        integrationHelper.testCredential,
+        integrationHelper.irohaNetwork,
+        btcWithdrawalConfig.registrationCredential.accountId,
+        btcWithdrawalConfig.notaryCredential.accountId
     )
 
     val btcNetworkConfigProvider = BtcRegTestConfigProvider()
     val btcChangeAddressProvider = BtcChangeAddressProvider(
-            integrationHelper.testCredential,
-            integrationHelper.irohaNetwork,
-            btcWithdrawalConfig.mstRegistrationAccount,
-            btcWithdrawalConfig.changeAddressesStorageAccount
+        integrationHelper.testCredential,
+        integrationHelper.irohaNetwork,
+        btcWithdrawalConfig.mstRegistrationAccount,
+        btcWithdrawalConfig.changeAddressesStorageAccount
     )
 
     val transactionHelper =
-            BlackListableTransactionHelper(
-                    btcNetworkConfigProvider,
-                    btcRegisteredAddressesProvider,
-                    btcChangeAddressProvider
-            )
+        BlackListableTransactionHelper(
+            btcNetworkConfigProvider,
+            btcRegisteredAddressesProvider,
+            btcChangeAddressProvider
+        )
     val transactionCreator =
-            TransactionCreator(btcChangeAddressProvider, btcNetworkConfigProvider, transactionHelper)
+        TransactionCreator(btcChangeAddressProvider, btcNetworkConfigProvider, transactionHelper)
     val transactionSigner = TransactionSigner(btcRegisteredAddressesProvider, btcChangeAddressProvider)
     val signCollector =
-            SignCollector(
-                    irohaNetwork,
-                    withdrawalCredential,
-                    withdrawalIrohaConsumer,
-                    transactionSigner
-            )
+        SignCollector(
+            irohaNetwork,
+            withdrawalCredential,
+            withdrawalIrohaConsumer,
+            transactionSigner
+        )
 
     private val withdrawalStatistics = WithdrawalStatistics.create()
     val unsignedTransactions = UnsignedTransactions(signCollector)
-    val withdrawalTransferEventHandler = WithdrawalTransferEventHandler(withdrawalStatistics,
-            BtcWhiteListProvider(
-                    btcWithdrawalConfig.registrationCredential.accountId, withdrawalCredential, irohaNetwork
-            ), btcWithdrawalConfig, transactionCreator, signCollector, unsignedTransactions
+    val withdrawalTransferEventHandler = WithdrawalTransferEventHandler(
+        withdrawalStatistics,
+        BtcWhiteListProvider(
+            btcWithdrawalConfig.registrationCredential.accountId, withdrawalCredential, irohaNetwork
+        ), btcWithdrawalConfig, transactionCreator, signCollector, unsignedTransactions
     )
     val newSignatureEventHandler = NewSignatureEventHandler(withdrawalStatistics, signCollector, unsignedTransactions)
 
     val btcWithdrawalInitialization by lazy {
         BtcWithdrawalInitialization(
-                Wallet.loadFromFile(File(btcWithdrawalConfig.bitcoin.walletPath)),
-                btcWithdrawalConfig,
-                btcChangeAddressProvider,
-                irohaChainListener,
-                btcNetworkConfigProvider,
-                withdrawalTransferEventHandler,
-                newSignatureEventHandler,
-                NewBtcClientRegistrationHandler(btcNetworkConfigProvider)
+            Wallet.loadFromFile(File(btcWithdrawalConfig.bitcoin.walletPath)),
+            btcWithdrawalConfig,
+            btcChangeAddressProvider,
+            irohaChainListener,
+            btcNetworkConfigProvider,
+            withdrawalTransferEventHandler,
+            newSignatureEventHandler,
+            NewBtcClientRegistrationHandler(btcNetworkConfigProvider)
         )
     }
 
     fun getLastCreatedTxHash() =
-            createdTransactions.maxBy { createdTransactionEntry -> createdTransactionEntry.value.creationTime }!!.key
+        createdTransactions.maxBy { createdTransactionEntry -> createdTransactionEntry.value.creationTime }!!.key
 
     fun getLastCreatedTx() =
-            createdTransactions.maxBy { createdTransactionEntry -> createdTransactionEntry.value.creationTime }!!.value.tx
+        createdTransactions.maxBy { createdTransactionEntry -> createdTransactionEntry.value.creationTime }!!.value.tx
 
     class BlackListableTransactionHelper(
-            btcNetworkConfigProvider: BtcNetworkConfigProvider,
-            btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
-            btcChangeAddressProvider: BtcChangeAddressProvider
+        btcNetworkConfigProvider: BtcNetworkConfigProvider,
+        btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
+        btcChangeAddressProvider: BtcChangeAddressProvider
     ) : TransactionHelper(btcNetworkConfigProvider, btcRegisteredAddressesProvider, btcChangeAddressProvider) {
         //Collection of "blacklisted" addresses. For testing purposes only
         private val btcAddressBlackList = HashSet<String>()

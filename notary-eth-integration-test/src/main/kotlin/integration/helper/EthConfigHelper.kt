@@ -13,9 +13,9 @@ import withdrawalservice.WithdrawalServiceConfig
  *Class that handles all the configuration objects.
  */
 open class EthConfigHelper(
-        private val accountHelper: IrohaAccountHelper,
-        open val relayRegistryContractAddress: String,
-        open val masterContractAddress: String
+    private val accountHelper: IrohaAccountHelper,
+    open val relayRegistryContractAddress: String,
+    open val masterContractAddress: String
 ) : IrohaConfigHelper() {
 
     /** Ethereum password configs */
@@ -24,9 +24,9 @@ open class EthConfigHelper(
     /** Configuration for notary instance */
     private val ethNotaryConfig by lazy {
         loadConfigs(
-                "eth-notary",
-                EthNotaryConfig::class.java,
-                "/eth/notary.properties"
+            "eth-notary",
+            EthNotaryConfig::class.java,
+            "/eth/notary.properties"
         )
     }
 
@@ -37,9 +37,9 @@ open class EthConfigHelper(
     /** Creates config for ERC20 tokens registration */
     fun createERC20TokenRegistrationConfig(tokensFilePath_: String): ERC20TokenRegistrationConfig {
         val ethTokenRegistrationConfig = loadConfigs(
-                "token-registration",
-                ERC20TokenRegistrationConfig::class.java,
-                "/eth/token_registration.properties"
+            "token-registration",
+            ERC20TokenRegistrationConfig::class.java,
+            "/eth/token_registration.properties"
         )
 
         return object : ERC20TokenRegistrationConfig {
@@ -53,7 +53,7 @@ open class EthConfigHelper(
     /** Creates config for ETH relays registration */
     fun createRelayRegistrationConfig(): RelayRegistrationConfig {
         val relayRegistrationConfig =
-                loadConfigs("relay-registration", RelayRegistrationConfig::class.java, "/eth/relay_registration.properties")
+            loadConfigs("relay-registration", RelayRegistrationConfig::class.java, "/eth/relay_registration.properties")
 
         return object : RelayRegistrationConfig {
             override val number = relayRegistrationConfig.number
@@ -77,11 +77,11 @@ open class EthConfigHelper(
 
     /** Test configuration of Notary with runtime dependencies */
     fun createEthNotaryConfig(
-            irohaConfig: IrohaConfig = createIrohaConfig(),
-            ethereumConfig: EthereumConfig = ethNotaryConfig.ethereum,
-            notaryCredential_: IrohaCredentialConfig = accountHelper.createCredentialConfig(
-                    accountHelper.notaryAccount
-            )
+        irohaConfig: IrohaConfig = createIrohaConfig(),
+        ethereumConfig: EthereumConfig = ethNotaryConfig.ethereum,
+        notaryCredential_: IrohaCredentialConfig = accountHelper.createCredentialConfig(
+            accountHelper.notaryAccount
+        )
     ): EthNotaryConfig {
         return object : EthNotaryConfig {
             override val registrationServiceIrohaAccount = accountHelper.registrationAccount.accountId
@@ -100,7 +100,7 @@ open class EthConfigHelper(
     /** Test configuration of Withdrawal service with runtime dependencies */
     fun createWithdrawalConfig(): WithdrawalServiceConfig {
         val withdrawalConfig =
-                loadConfigs("withdrawal", WithdrawalServiceConfig::class.java, "/eth/withdrawal.properties")
+            loadConfigs("withdrawal", WithdrawalServiceConfig::class.java, "/eth/withdrawal.properties")
 
         return object : WithdrawalServiceConfig {
             override val notaryIrohaAccount = accountHelper.notaryAccount.accountId
@@ -125,13 +125,13 @@ open class EthConfigHelper(
             override val notaryIrohaAccount = accountHelper.notaryAccount.accountId
             override val iroha = createIrohaConfig()
             override val registrationCredential =
-                    accountHelper.createCredentialConfig(accountHelper.registrationAccount)
+                accountHelper.createCredentialConfig(accountHelper.registrationAccount)
         }
     }
 
     fun createRelayVacuumConfig(): RelayVacuumConfig {
         val vacuumConfig =
-                loadConfigs("relay-vacuum", RelayVacuumConfig::class.java, "/eth/vacuum.properties")
+            loadConfigs("relay-vacuum", RelayVacuumConfig::class.java, "/eth/vacuum.properties")
         return object : RelayVacuumConfig {
             override val registrationServiceIrohaAccount = accountHelper.registrationAccount.accountId
             override val tokenStorageAccount = accountHelper.tokenStorageAccount.accountId

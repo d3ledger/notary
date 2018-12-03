@@ -23,43 +23,43 @@ class BtcAddressGenerationTestEnvironment(private val integrationHelper: BtcInte
 
 
     val btcGenerationConfig =
-            integrationHelper.configHelper.createBtcAddressGenerationConfig()
+        integrationHelper.configHelper.createBtcAddressGenerationConfig()
 
     val triggerProvider = TriggerProvider(
-            integrationHelper.testCredential,
-            integrationHelper.irohaNetwork,
-            btcGenerationConfig.pubKeyTriggerAccount
+        integrationHelper.testCredential,
+        integrationHelper.irohaNetwork,
+        btcGenerationConfig.pubKeyTriggerAccount
     )
     val btcKeyGenSessionProvider = BtcSessionProvider(
-            integrationHelper.accountHelper.registrationAccount,
-            integrationHelper.irohaNetwork
+        integrationHelper.accountHelper.registrationAccount,
+        integrationHelper.irohaNetwork
     )
 
     private val registrationKeyPair =
-            ModelUtil.loadKeypair(
-                    btcGenerationConfig.registrationAccount.pubkeyPath,
-                    btcGenerationConfig.registrationAccount.privkeyPath
-            ).fold({ keypair ->
-                keypair
-            }, { ex -> throw ex })
+        ModelUtil.loadKeypair(
+            btcGenerationConfig.registrationAccount.pubkeyPath,
+            btcGenerationConfig.registrationAccount.privkeyPath
+        ).fold({ keypair ->
+            keypair
+        }, { ex -> throw ex })
 
     val registrationCredential =
-            IrohaCredential(btcGenerationConfig.registrationAccount.accountId, registrationKeyPair)
+        IrohaCredential(btcGenerationConfig.registrationAccount.accountId, registrationKeyPair)
 
     private val mstRegistrationKeyPair =
-            ModelUtil.loadKeypair(
-                    btcGenerationConfig.mstRegistrationAccount.pubkeyPath,
-                    btcGenerationConfig.mstRegistrationAccount.privkeyPath
-            ).fold({ keypair ->
-                keypair
-            }, { ex -> throw ex })
+        ModelUtil.loadKeypair(
+            btcGenerationConfig.mstRegistrationAccount.pubkeyPath,
+            btcGenerationConfig.mstRegistrationAccount.privkeyPath
+        ).fold({ keypair ->
+            keypair
+        }, { ex -> throw ex })
 
     private val sessionConsumer =
-            IrohaConsumerImpl(registrationCredential, integrationHelper.irohaNetwork)
+        IrohaConsumerImpl(registrationCredential, integrationHelper.irohaNetwork)
 
     private val multiSigConsumer = IrohaConsumerImpl(
-            IrohaCredential(btcGenerationConfig.mstRegistrationAccount.accountId, mstRegistrationKeyPair),
-            integrationHelper.irohaNetwork
+        IrohaCredential(btcGenerationConfig.mstRegistrationAccount.accountId, mstRegistrationKeyPair),
+        integrationHelper.irohaNetwork
     )
 
     fun btcPublicKeyProvider(): BtcPublicKeyProvider {
@@ -67,33 +67,34 @@ class BtcAddressGenerationTestEnvironment(private val integrationHelper: BtcInte
         val wallet = Wallet.loadFromFile(file)
         val walletFile = WalletFile(wallet, file)
         val notaryPeerListProvider = NotaryPeerListProviderImpl(
-                registrationCredential,
-                integrationHelper.irohaNetwork,
-                btcGenerationConfig.notaryListStorageAccount,
-                btcGenerationConfig.notaryListSetterAccount
+            registrationCredential,
+            integrationHelper.irohaNetwork,
+            btcGenerationConfig.notaryListStorageAccount,
+            btcGenerationConfig.notaryListSetterAccount
         )
         return BtcPublicKeyProvider(
-                walletFile,
-                notaryPeerListProvider,
-                btcGenerationConfig.notaryAccount,
-                btcGenerationConfig.changeAddressesStorageAccount,
-                multiSigConsumer,
-                sessionConsumer,
-                BtcRegTestConfigProvider()
+            walletFile,
+            notaryPeerListProvider,
+            btcGenerationConfig.notaryAccount,
+            btcGenerationConfig.changeAddressesStorageAccount,
+            multiSigConsumer,
+            sessionConsumer,
+            BtcRegTestConfigProvider()
         )
     }
 
     private val irohaListener = IrohaChainListener(
-            btcGenerationConfig.iroha.hostname,
-            btcGenerationConfig.iroha.port,
-            registrationCredential)
+        btcGenerationConfig.iroha.hostname,
+        btcGenerationConfig.iroha.port,
+        registrationCredential
+    )
 
     val btcAddressGenerationInitialization = BtcAddressGenerationInitialization(
-            registrationCredential,
-            integrationHelper.irohaNetwork,
-            btcGenerationConfig,
-            btcPublicKeyProvider(),
-            irohaListener
+        registrationCredential,
+        integrationHelper.irohaNetwork,
+        btcGenerationConfig,
+        btcPublicKeyProvider(),
+        irohaListener
     )
 
     override fun close() {

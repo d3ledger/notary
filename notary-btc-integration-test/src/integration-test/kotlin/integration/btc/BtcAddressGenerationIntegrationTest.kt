@@ -65,24 +65,24 @@ class BtcAddressGenerationIntegrationTest {
     fun testGenerateFreeAddress() {
         val sessionAccountName = BtcAddressType.FREE.createSessionAccountName()
         environment.btcKeyGenSessionProvider.createPubKeyCreationSession(sessionAccountName)
-                .fold({ logger.info { "session $sessionAccountName was created" } },
-                        { ex -> fail("cannot create session", ex) })
+            .fold({ logger.info { "session $sessionAccountName was created" } },
+                { ex -> fail("cannot create session", ex) })
         environment.triggerProvider.trigger(sessionAccountName)
         Thread.sleep(WAIT_PREGEN_PROCESS_MILLIS)
         val sessionDetails =
-                integrationHelper.getAccountDetails(
-                        "$sessionAccountName@btcSession",
-                        environment.btcGenerationConfig.registrationAccount.accountId
-                )
+            integrationHelper.getAccountDetails(
+                "$sessionAccountName@btcSession",
+                environment.btcGenerationConfig.registrationAccount.accountId
+            )
         val pubKey = sessionDetails.values.iterator().next()
         assertNotNull(pubKey)
         val wallet = Wallet.loadFromFile(File(environment.btcGenerationConfig.btcWalletFilePath))
         assertNotNull(wallet.issuedReceiveKeys.find { ecKey -> ecKey.publicKeyAsHex == pubKey })
         val notaryAccountDetails =
-                integrationHelper.getAccountDetails(
-                        environment.btcGenerationConfig.notaryAccount,
-                        environment.btcGenerationConfig.mstRegistrationAccount.accountId
-                )
+            integrationHelper.getAccountDetails(
+                environment.btcGenerationConfig.notaryAccount,
+                environment.btcGenerationConfig.mstRegistrationAccount.accountId
+            )
         val expectedMsAddress = createMsAddress(sessionDetails.values)
         val generatedAddress = AddressInfo.fromJson(notaryAccountDetails[expectedMsAddress]!!)!!
         assertEquals(BtcAddressType.FREE.title, generatedAddress.irohaClient)
@@ -99,24 +99,24 @@ class BtcAddressGenerationIntegrationTest {
     fun testGenerateChangeAddress() {
         val sessionAccountName = BtcAddressType.CHANGE.createSessionAccountName()
         environment.btcKeyGenSessionProvider.createPubKeyCreationSession(sessionAccountName)
-                .fold({ logger.info { "session $sessionAccountName was created" } },
-                        { ex -> fail("cannot create session", ex) })
+            .fold({ logger.info { "session $sessionAccountName was created" } },
+                { ex -> fail("cannot create session", ex) })
         environment.triggerProvider.trigger(sessionAccountName)
         Thread.sleep(WAIT_PREGEN_PROCESS_MILLIS)
         val sessionDetails =
-                integrationHelper.getAccountDetails(
-                        "$sessionAccountName@btcSession",
-                        environment.btcGenerationConfig.registrationAccount.accountId
-                )
+            integrationHelper.getAccountDetails(
+                "$sessionAccountName@btcSession",
+                environment.btcGenerationConfig.registrationAccount.accountId
+            )
         val pubKey = sessionDetails.values.iterator().next()
         assertNotNull(pubKey)
         val wallet = Wallet.loadFromFile(File(environment.btcGenerationConfig.btcWalletFilePath))
         assertNotNull(wallet.issuedReceiveKeys.find { ecKey -> ecKey.publicKeyAsHex == pubKey })
         val changeAddressStorageAccountDetails =
-                integrationHelper.getAccountDetails(
-                        environment.btcGenerationConfig.changeAddressesStorageAccount,
-                        environment.btcGenerationConfig.mstRegistrationAccount.accountId
-                )
+            integrationHelper.getAccountDetails(
+                environment.btcGenerationConfig.changeAddressesStorageAccount,
+                environment.btcGenerationConfig.mstRegistrationAccount.accountId
+            )
         val expectedMsAddress = createMsAddress(sessionDetails.values)
         val generatedAddress = AddressInfo.fromJson(changeAddressStorageAccountDetails[expectedMsAddress]!!)!!
         assertEquals(BtcAddressType.CHANGE.title, generatedAddress.irohaClient)

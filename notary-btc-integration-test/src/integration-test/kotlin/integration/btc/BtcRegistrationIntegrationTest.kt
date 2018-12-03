@@ -45,20 +45,20 @@ class BtcRegistrationIntegrationTest {
         val keypair = ModelCrypto().generateKeypair()
         val userName = String.getRandomString(9)
         val res = khttp.post(
-                "http://127.0.0.1:${environment.btcRegistrationConfig.port}/users",
-                data = mapOf("name" to userName, "pubkey" to keypair.publicKey().hex())
+            "http://127.0.0.1:${environment.btcRegistrationConfig.port}/users",
+            data = mapOf("name" to userName, "pubkey" to keypair.publicKey().hex())
         )
         assertEquals(200, res.statusCode)
         val registeredBtcAddress = String(res.content)
         environment.btcTakenAddressesProvider.getRegisteredAddresses().fold({ addresses ->
             assertEquals(
-                    "$userName@$CLIENT_DOMAIN",
-                    addresses.first { btcAddress -> btcAddress.address == registeredBtcAddress }.info.irohaClient
+                "$userName@$CLIENT_DOMAIN",
+                addresses.first { btcAddress -> btcAddress.address == registeredBtcAddress }.info.irohaClient
             )
         }, { ex -> fail("cannot get addresses", ex) })
         assertEquals(
-                BigInteger.ZERO.toString(),
-                integrationHelper.getIrohaAccountBalance("$userName@$CLIENT_DOMAIN", "btc#bitcoin")
+            BigInteger.ZERO.toString(),
+            integrationHelper.getIrohaAccountBalance("$userName@$CLIENT_DOMAIN", "btc#bitcoin")
         )
     }
 
@@ -78,8 +78,8 @@ class BtcRegistrationIntegrationTest {
             val keypair = ModelCrypto().generateKeypair()
             val userName = String.getRandomString(9)
             val res = khttp.post(
-                    "http://127.0.0.1:${environment.btcRegistrationConfig.port}/users",
-                    data = mapOf("name" to userName, "pubkey" to keypair.publicKey().hex())
+                "http://127.0.0.1:${environment.btcRegistrationConfig.port}/users",
+                data = mapOf("name" to userName, "pubkey" to keypair.publicKey().hex())
             )
             assertEquals(200, res.statusCode)
             val registeredBtcAddress = String(res.content)
@@ -87,13 +87,13 @@ class BtcRegistrationIntegrationTest {
             takenAddresses.add(registeredBtcAddress)
             environment.btcTakenAddressesProvider.getRegisteredAddresses().fold({ addresses ->
                 assertEquals(
-                        "$userName@$CLIENT_DOMAIN",
-                        addresses.first { btcAddress -> btcAddress.address == registeredBtcAddress }.info.irohaClient
+                    "$userName@$CLIENT_DOMAIN",
+                    addresses.first { btcAddress -> btcAddress.address == registeredBtcAddress }.info.irohaClient
                 )
             }, { ex -> fail("cannot get addresses", ex) })
             assertEquals(
-                    BigInteger.ZERO.toString(),
-                    integrationHelper.getIrohaAccountBalance("$userName@$CLIENT_DOMAIN", "btc#bitcoin")
+                BigInteger.ZERO.toString(),
+                integrationHelper.getIrohaAccountBalance("$userName@$CLIENT_DOMAIN", "btc#bitcoin")
             )
         }
     }
@@ -111,13 +111,13 @@ class BtcRegistrationIntegrationTest {
         val keypair = ModelCrypto().generateKeypair()
         val userName = String.getRandomString(9)
         val res = khttp.post(
-                "http://127.0.0.1:${environment.btcRegistrationConfig.port}/users",
-                data = mapOf("name" to userName, "pubkey" to keypair.publicKey().hex())
+            "http://127.0.0.1:${environment.btcRegistrationConfig.port}/users",
+            data = mapOf("name" to userName, "pubkey" to keypair.publicKey().hex())
         )
         assertEquals(400, res.statusCode)
         assertEquals(
-                clientsBeforeRegistration,
-                environment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
+            clientsBeforeRegistration,
+            environment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
         )
     }
 
@@ -134,13 +134,13 @@ class BtcRegistrationIntegrationTest {
         val keypair = ModelCrypto().generateKeypair()
         val userName = String.getRandomString(9)
         val res = khttp.post(
-                "http://127.0.0.1:${environment.btcRegistrationConfig.port}/users",
-                data = mapOf("name" to userName, "pubkey" to keypair.publicKey().hex())
+            "http://127.0.0.1:${environment.btcRegistrationConfig.port}/users",
+            data = mapOf("name" to userName, "pubkey" to keypair.publicKey().hex())
         )
         assertEquals(400, res.statusCode)
         assertEquals(
-                clientsBeforeRegistration,
-                environment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
+            clientsBeforeRegistration,
+            environment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
         )
     }
 

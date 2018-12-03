@@ -194,6 +194,7 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         rpcClient.sendToAddress(address = address, amount = BigDecimal(amount))
         generateBtcBlocks(confirmations)
     }
+
     /**
      * Creates blocks in bitcoin blockchain. May be used as transaction confirmation mechanism.
      */

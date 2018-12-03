@@ -14,17 +14,17 @@ import java.io.FileOutputStream
  * Class that handles all the configuration objects
  **/
 class BtcConfigHelper(
-        private val accountHelper: IrohaAccountHelper
+    private val accountHelper: IrohaAccountHelper
 ) : IrohaConfigHelper() {
 
     /** Creates config for BTC multisig addresses generation */
     fun createBtcAddressGenerationConfig(): BtcAddressGenerationConfig {
         val btcPkPreGenConfig =
-                loadConfigs(
-                        "btc-address-generation",
-                        BtcAddressGenerationConfig::class.java,
-                        "/btc/address_generation.properties"
-                )
+            loadConfigs(
+                "btc-address-generation",
+                BtcAddressGenerationConfig::class.java,
+                "/btc/address_generation.properties"
+            )
 
         return object : BtcAddressGenerationConfig {
             override val changeAddressesStorageAccount = accountHelper.changeAddressesStorageAccount.accountId
@@ -32,7 +32,7 @@ class BtcConfigHelper(
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
             override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
             override val mstRegistrationAccount =
-                    accountHelper.createCredentialConfig(accountHelper.mstRegistrationAccount)
+                accountHelper.createCredentialConfig(accountHelper.mstRegistrationAccount)
             override val pubKeyTriggerAccount = btcPkPreGenConfig.pubKeyTriggerAccount
             override val notaryAccount = accountHelper.notaryAccount.accountId
             override val iroha = createIrohaConfig()
@@ -48,11 +48,11 @@ class BtcConfigHelper(
      */
     fun createBtcWithdrawalConfig(testName: String = ""): BtcWithdrawalConfig {
         val btcWithdrawalConfig =
-                loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties")
+            loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties")
         return object : BtcWithdrawalConfig {
             override val changeAddressesStorageAccount = accountHelper.changeAddressesStorageAccount.accountId
             override val registrationCredential =
-                    accountHelper.createCredentialConfig(accountHelper.registrationAccount)
+                accountHelper.createCredentialConfig(accountHelper.registrationAccount)
             override val mstRegistrationAccount = accountHelper.mstRegistrationAccount.accountId
             override val bitcoin = createBitcoinConfig(btcWithdrawalConfig.bitcoin, testName)
             override val notaryCredential = accountHelper.createCredentialConfig(accountHelper.notaryAccount)
@@ -113,11 +113,11 @@ class BtcConfigHelper(
     */
     fun createTempBlockStorageFolder(btcBlockStorageFolder: String, postFix: String): String {
         val newBlockStorageFolder =
-                if (postFix.isEmpty()) {
-                    btcBlockStorageFolder
-                } else {
-                    "${btcBlockStorageFolder}_$postFix"
-                }
+            if (postFix.isEmpty()) {
+                btcBlockStorageFolder
+            } else {
+                "${btcBlockStorageFolder}_$postFix"
+            }
         val blockStorageFolder = File(newBlockStorageFolder)
         if (!blockStorageFolder.exists()) {
             if (!blockStorageFolder.mkdirs()) {
@@ -129,14 +129,14 @@ class BtcConfigHelper(
 
     fun createBtcRegistrationConfig(): BtcRegistrationConfig {
         val btcRegistrationConfig =
-                loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/btc/registration.properties")
+            loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/btc/registration.properties")
         return object : BtcRegistrationConfig {
             override val healthCheckPort = btcRegistrationConfig.healthCheckPort
             override val notaryAccount = accountHelper.notaryAccount.accountId
             override val mstRegistrationAccount = accountHelper.mstRegistrationAccount.accountId
             override val port = portCounter.incrementAndGet()
             override val registrationCredential =
-                    accountHelper.createCredentialConfig(accountHelper.registrationAccount)
+                accountHelper.createCredentialConfig(accountHelper.registrationAccount)
             override val iroha = createIrohaConfig()
         }
     }

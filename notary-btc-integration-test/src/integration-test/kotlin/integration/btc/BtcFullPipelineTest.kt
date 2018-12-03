@@ -114,21 +114,21 @@ class BtcFullPipelineTest {
 
         // Send 1 SAT from source to destination
         integrationHelper.transferAssetIrohaFromClient(
-                "$srcUserName@$CLIENT_DOMAIN",
-                srcKeypair,
-                "$srcUserName@$CLIENT_DOMAIN",
-                withdrawalEnvironment.btcWithdrawalConfig.withdrawalCredential.accountId,
-                btcAsset,
-                destBtcAddress,
-                amountOfSat
+            "$srcUserName@$CLIENT_DOMAIN",
+            srcKeypair,
+            "$srcUserName@$CLIENT_DOMAIN",
+            withdrawalEnvironment.btcWithdrawalConfig.withdrawalCredential.accountId,
+            btcAsset,
+            destBtcAddress,
+            amountOfSat
         )
         Thread.sleep(WITHDRAWAL_WAIT_MILLIS)
         integrationHelper.generateBtcBlocks(notaryEnvironment.notaryConfig.bitcoin.confidenceLevel)
         Thread.sleep(DEPOSIT_WAIT_MILLIS)
         assertEquals(amountOfSat, integrationHelper.getIrohaAccountBalance("$destUserName@$CLIENT_DOMAIN", btcAsset))
         assertEquals(
-                integrationHelper.btcToSat(1) - 1,
-                integrationHelper.getIrohaAccountBalance("$srcUserName@$CLIENT_DOMAIN", btcAsset).toLong()
+            integrationHelper.btcToSat(1) - 1,
+            integrationHelper.getIrohaAccountBalance("$srcUserName@$CLIENT_DOMAIN", btcAsset).toLong()
         )
     }
 
@@ -140,8 +140,8 @@ class BtcFullPipelineTest {
      */
     private fun registerClient(userName: String, keypair: Keypair): String {
         val res = khttp.post(
-                "http://127.0.0.1:${registrationEnvironment.btcRegistrationConfig.port}/users",
-                data = mapOf("name" to userName, "pubkey" to keypair.publicKey().hex(), "whitelist" to "")
+            "http://127.0.0.1:${registrationEnvironment.btcRegistrationConfig.port}/users",
+            data = mapOf("name" to userName, "pubkey" to keypair.publicKey().hex(), "whitelist" to "")
         )
         return String(res.content)
     }
@@ -170,8 +170,8 @@ class BtcFullPipelineTest {
     private fun generateAddress(addressType: BtcAddressType) {
         val sessionAccountName = addressType.createSessionAccountName()
         addressGenerationEnvironment.btcKeyGenSessionProvider.createPubKeyCreationSession(sessionAccountName)
-                .fold({ logger.info { "session $sessionAccountName was created" } },
-                        { ex -> fail("cannot create session", ex) })
+            .fold({ logger.info { "session $sessionAccountName was created" } },
+                { ex -> fail("cannot create session", ex) })
         addressGenerationEnvironment.triggerProvider.trigger(sessionAccountName)
         Thread.sleep(WAIT_PREGEN_PROCESS_MILLIS)
     }
