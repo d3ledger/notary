@@ -21,6 +21,9 @@ project(':eth-erc20-registration').projectDir = 'eth-erc20-registration' as File
 include 'eth-registration'
 project(':eth-registration').projectDir = 'eth-registration' as File
 
+include 'eth-vacuum'
+project(':eth-vacuum').projectDir = 'eth-vacuum' as File
+
 include 'eth-withdrawal'
 project(':eth-withdrawal').projectDir = 'eth-withdrawal' as File
 
