@@ -16,9 +16,6 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.InputStreamReader
 
-/** Information about token - token [name] and [precision] */
-data class EthTokenInfo(val name: String, val precision: Short)
-
 /**
  * ERC20 tokens registration class. [IrohaCredential] is used to sign Iroha txs.
  */
