@@ -8,7 +8,6 @@ import com.squareup.moshi.Types
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import model.IrohaCredential
 import mu.KLogging
-import provider.eth.EthTokensProviderImpl
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetwork
@@ -39,7 +38,7 @@ class ERC20TokenRegistration(
                 if (tokensToRegister.isEmpty()) {
                     Result.of { logger.warn { "No ERC20 tokens to register" } }
                 } else {
-                    EthTokensProviderImpl.logger.info { "ERC20 tokens to register $tokensToRegister" }
+                    logger.info { "ERC20 tokens to register $tokensToRegister" }
                     registerERC20Tokens(
                         tokensToRegister,
                         tokenRegistrationConfig.tokenStorageAccount,
