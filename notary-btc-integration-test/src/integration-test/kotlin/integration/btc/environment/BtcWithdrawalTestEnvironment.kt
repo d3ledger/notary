@@ -106,7 +106,8 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
             btcNetworkConfigProvider,
             withdrawalTransferEventHandler,
             newSignatureEventHandler,
-            NewBtcClientRegistrationHandler(btcNetworkConfigProvider)
+            NewBtcClientRegistrationHandler(btcNetworkConfigProvider),
+            btcRegisteredAddressesProvider
         )
     }
 
