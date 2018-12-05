@@ -8,5 +8,4 @@ import org.springframework.stereotype.Component
 @Component
 class BtcRegTestConfigProvider : BtcNetworkConfigProvider {
     override fun getConfig() = RegTestParams.get()
-
 }
