@@ -1,5 +1,11 @@
 dependencies {
     compile project(":notary-commons")
+    
+    // Eth library
+    compile 'org.web3j:core:4.0.0'
+
+    // Waves library
+    compile 'com.wavesplatform:wavesj:0.4'
 }
 
 sonarqube {
