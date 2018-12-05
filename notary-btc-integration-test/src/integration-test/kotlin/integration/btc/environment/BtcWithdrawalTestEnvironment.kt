@@ -144,5 +144,6 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
         integrationHelper.close()
         irohaChainListener.close()
         File(btcWithdrawalConfig.bitcoin.blockStoragePath).deleteRecursively()
+        btcWithdrawalInitialization.close()
     }
 }

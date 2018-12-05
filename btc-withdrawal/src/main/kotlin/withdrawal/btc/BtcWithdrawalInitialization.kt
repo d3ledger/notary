@@ -27,7 +27,7 @@ import withdrawal.btc.config.BtcWithdrawalConfig
 import withdrawal.btc.handler.NewSignatureEventHandler
 import withdrawal.btc.handler.WithdrawalTransferEventHandler
 import withdrawal.btc.provider.BtcChangeAddressProvider
-import java.io.File
+import java.io.Closeable
 import java.util.concurrent.Executors
 
 /*
@@ -44,7 +44,10 @@ class BtcWithdrawalInitialization(
     @Autowired private val newSignatureEventHandler: NewSignatureEventHandler,
     @Autowired private val newBtcClientRegistrationHandler: NewBtcClientRegistrationHandler,
     @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider
-) : HealthyService() {
+) : HealthyService(), Closeable {
+
+    private val peerGroup =
+        getPeerGroup(wallet, btcNetworkConfigProvider.getConfig(), btcWithdrawalConfig.bitcoin.blockStoragePath)
 
     fun init(): Result<Unit, Exception> {
         return btcChangeAddressProvider.getChangeAddress().map { changeAddress ->
@@ -65,7 +68,7 @@ class BtcWithdrawalInitialization(
             }
             logger.info { "Previously registered addresses were added to the wallet" }
         }.flatMap {
-            initBtcBlockChain(wallet)
+            initBtcBlockChain()
         }.flatMap { peerGroup ->
             initWithdrawalTransferListener(
                 wallet,
@@ -118,18 +121,11 @@ class BtcWithdrawalInitialization(
 
     /**
      * Starts Bitcoin block chain download process
-     * @param wallet - wallet object that will be enriched with block chain data: sent, unspent transactions, last processed block and etc
      */
-    private fun initBtcBlockChain(wallet: Wallet): Result<PeerGroup, Exception> {
+    private fun initBtcBlockChain(): Result<PeerGroup, Exception> {
         //Enables short log format for Bitcoin events
         BriefLogFormatter.init()
         return Result.of {
-            getPeerGroup(
-                wallet,
-                btcNetworkConfigProvider.getConfig(),
-                btcWithdrawalConfig.bitcoin.blockStoragePath
-            )
-        }.map { peerGroup ->
             startChainDownload(peerGroup, btcWithdrawalConfig.bitcoin.host)
             addPeerConnectionStatusListener(peerGroup, ::notHealthy, ::cured)
             peerGroup
@@ -138,6 +134,10 @@ class BtcWithdrawalInitialization(
 
     private fun isNewWithdrawalSignature(command: Commands.Command) =
         command.setAccountDetail.accountId.endsWith("@$BTC_SIGN_COLLECT_DOMAIN")
+
+    override fun close() {
+        peerGroup.stop()
+    }
 
     /**
      * Logger
