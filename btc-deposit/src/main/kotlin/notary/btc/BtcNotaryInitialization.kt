@@ -26,6 +26,7 @@ import provider.btc.network.BtcNetworkConfigProvider
 import sidechain.SideChainEvent
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaNetwork
+import java.io.Closeable
 
 
 @Component
@@ -38,7 +39,10 @@ class BtcNotaryInitialization(
     @Autowired private val irohaChainListener: IrohaChainListener,
     @Autowired private val newBtcClientRegistrationListener: NewBtcClientRegistrationListener,
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider
-) : HealthyService() {
+) : HealthyService(), Closeable {
+
+    private val peerGroup =
+        getPeerGroup(wallet, btcNetworkConfigProvider.getConfig(), btcNotaryConfig.bitcoin.blockStoragePath)
 
     /**
      * Init notary
@@ -48,8 +52,6 @@ class BtcNotaryInitialization(
         //Enables short log format for Bitcoin events
         BriefLogFormatter.init()
         logger.info { "Current wallet state $wallet" }
-        val peerGroup =
-            getPeerGroup(wallet, btcNetworkConfigProvider.getConfig(), btcNotaryConfig.bitcoin.blockStoragePath)
         addPeerConnectionStatusListener(peerGroup, ::notHealthy, ::cured)
         return irohaChainListener.getBlockObservable().map { irohaObservable ->
             newBtcClientRegistrationListener.listenToRegisteredClients(wallet, irohaObservable)
@@ -103,6 +105,10 @@ class BtcNotaryInitialization(
                 )
             )
         }
+    }
+
+    override fun close() {
+        peerGroup.stop()
     }
 
     /**
