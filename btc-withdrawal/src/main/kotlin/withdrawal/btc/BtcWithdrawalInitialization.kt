@@ -3,6 +3,7 @@ package withdrawal.btc
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
+import config.BitcoinConfig
 import handler.btc.NewBtcClientRegistrationHandler
 import healthcheck.HealthyService
 import helper.network.addPeerConnectionStatusListener
@@ -27,6 +28,7 @@ import withdrawal.btc.config.BtcWithdrawalConfig
 import withdrawal.btc.handler.NewSignatureEventHandler
 import withdrawal.btc.handler.WithdrawalTransferEventHandler
 import withdrawal.btc.provider.BtcChangeAddressProvider
+
 import java.io.Closeable
 import java.util.concurrent.Executors
 
@@ -126,7 +128,7 @@ class BtcWithdrawalInitialization(
         //Enables short log format for Bitcoin events
         BriefLogFormatter.init()
         return Result.of {
-            startChainDownload(peerGroup, btcWithdrawalConfig.bitcoin.host)
+            startChainDownload(peerGroup, BitcoinConfig.extractHosts(btcWithdrawalConfig.bitcoin))
             addPeerConnectionStatusListener(peerGroup, ::notHealthy, ::cured)
             peerGroup
         }

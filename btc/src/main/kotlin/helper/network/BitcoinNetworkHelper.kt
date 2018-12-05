@@ -15,9 +15,12 @@ private val logger = KLogging().logger
 /**
  * Starts bitcoin blockchain downloading process
  */
-fun startChainDownload(peerGroup: PeerGroup, host: String) {
+fun startChainDownload(peerGroup: PeerGroup, hosts: List<String>) {
     logger.info { "Start bitcoin blockchain download" }
-    peerGroup.addAddress(InetAddress.getByName(host))
+    hosts.forEach { host ->
+        peerGroup.addAddress(InetAddress.getByName(host))
+        logger.info { "$host was added to peer group" }
+    }
     peerGroup.startAsync()
     peerGroup.downloadBlockChain()
 }
