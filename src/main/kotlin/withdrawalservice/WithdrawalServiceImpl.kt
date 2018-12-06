@@ -16,7 +16,10 @@ import provider.eth.EthTokensProvider
 import provider.eth.EthTokensProviderImpl
 import sidechain.SideChainEvent
 import sidechain.eth.util.extractVRS
+import sidechain.iroha.consumer.IrohaConsumer
+import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetwork
+import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountDetails
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -65,7 +68,10 @@ class WithdrawalServiceImpl(
         withdrawalServiceConfig.tokenStorageAccount,
         withdrawalServiceConfig.tokenSetterAccount
     )
+
     private val masterAccount = withdrawalServiceConfig.notaryIrohaAccount
+
+    private val irohaConsumer: IrohaConsumer by lazy { IrohaConsumerImpl(credential, irohaNetwork) }
 
     private fun findInAccDetail(acc: String, name: String): Result<String, Exception> {
         return getAccountDetails(
@@ -163,7 +169,7 @@ class WithdrawalServiceImpl(
             is SideChainEvent.IrohaEvent.SideChainTransfer -> {
                 logger.info { "Iroha transfer event to ${irohaEvent.dstAccount}" }
 
-                if (irohaEvent.dstAccount == withdrawalServiceConfig.notaryIrohaAccount) {
+                if (irohaEvent.dstAccount == masterAccount) {
                     logger.info { "Withdrawal event" }
                     return requestNotary(irohaEvent)
                         .map { listOf(WithdrawalServiceOutputEvent.EthRefund(it)) }
@@ -183,6 +189,41 @@ class WithdrawalServiceImpl(
             .map {
                 onIrohaEvent(it)
             }
+    }
+
+    override fun returnIrohaAssets(event: WithdrawalServiceOutputEvent): Result<Unit, Exception> {
+        if (event !is WithdrawalServiceOutputEvent.EthRefund) {
+            return Result.error(IllegalArgumentException("Unsupported output event type"))
+        }
+
+        logger.info("Withdrawal rollback initiated: ${event.proof.irohaHash}")
+        return ModelUtil.getTransaction(irohaNetwork, credential, event.proof.irohaHash)
+            .map { tx ->
+                tx.payload.reducedPayload.commandsList.first { command ->
+                    val transferAsset = command.transferAsset
+                    transferAsset?.srcAccountId != "" && transferAsset?.destAccountId == masterAccount
+                }
+            }
+            .map { transferCommand ->
+                val destAccountId = transferCommand?.transferAsset?.srcAccountId
+                        ?: throw IllegalStateException("Unable to identify primary Iroha transaction data")
+
+                ModelUtil.transferAssetIroha(
+                    irohaConsumer,
+                    masterAccount,
+                    destAccountId,
+                    transferCommand.transferAsset.assetId,
+                    "Rollback transaction due to failed withdrawal in Ethereum",
+                    transferCommand.transferAsset.amount
+                )
+                    .fold({ txHash ->
+                        logger.info("Successfully sent rollback transaction to Iroha, hash: $txHash")
+                    }, { ex: Exception ->
+                        logger.error("Error during rollback transfer transaction", ex)
+                        throw ex
+                    })
+            }
+
     }
 
     /**

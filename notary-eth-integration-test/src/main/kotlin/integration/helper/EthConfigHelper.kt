@@ -94,13 +94,17 @@ open class EthConfigHelper(
             override val refund = createRefundConfig()
             override val iroha = irohaConfig
             override val ethereum = ethereumConfig
+            override val withdrawalAccountId = ethNotaryConfig.withdrawalAccountId
         }
     }
 
     /** Test configuration of Withdrawal service with runtime dependencies */
-    fun createWithdrawalConfig(): WithdrawalServiceConfig {
+    fun createWithdrawalConfig(useValidEthereum: Boolean = true): WithdrawalServiceConfig {
         val withdrawalConfig =
             loadConfigs("withdrawal", WithdrawalServiceConfig::class.java, "/eth/withdrawal.properties")
+
+        val ethereumConfig =
+            if (useValidEthereum) withdrawalConfig.ethereum else getBrokenEthereumConfig(withdrawalConfig)
 
         return object : WithdrawalServiceConfig {
             override val notaryIrohaAccount = accountHelper.notaryAccount.accountId
@@ -111,7 +115,17 @@ open class EthConfigHelper(
             override val registrationIrohaAccount = accountHelper.registrationAccount.accountId
             override val withdrawalCredential = withdrawalConfig.withdrawalCredential
             override val iroha = createIrohaConfig()
-            override val ethereum = withdrawalConfig.ethereum
+            override val ethereum = ethereumConfig
+        }
+    }
+
+    fun getBrokenEthereumConfig(withdrawalServiceConfig: WithdrawalServiceConfig): EthereumConfig {
+        return object : EthereumConfig {
+            override val url = withdrawalServiceConfig.ethereum.url
+            override val credentialsPath = withdrawalServiceConfig.ethereum.credentialsPath
+            override val gasPrice = 0L
+            override val gasLimit = 0L
+            override val confirmationPeriod = 0L
         }
     }
 

@@ -54,13 +54,21 @@ class WithdrawalServiceInitialization(
         logger.info { "Init Ether withdrawal consumer" }
 
         return Result.of {
-            val ethConsumer = EthConsumer(withdrawalConfig.ethereum, withdrawalEthereumPasswords, relayVacuumConfig)
+            val ethConsumer = EthConsumer(
+                withdrawalConfig.ethereum,
+                withdrawalEthereumPasswords,
+                relayVacuumConfig
+            )
             withdrawalService.output()
                 .subscribe(
                     { res ->
                         res.map { withdrawalEvents ->
                             withdrawalEvents.map { event ->
-                                ethConsumer.consume(event)
+                                val transactionReceipt = ethConsumer.consume(event)
+                                // TODO: Add subtraction of assets from master account in Iroha in 'else'
+                                if (transactionReceipt == null || transactionReceipt.status == FAILED_STATUS) {
+                                    withdrawalService.returnIrohaAssets(event)
+                                }
                             }
                         }.failure { ex ->
                             logger.error("Cannot consume withdrawal event", ex)
@@ -85,5 +93,7 @@ class WithdrawalServiceInitialization(
     /**
      * Logger
      */
-    companion object : KLogging()
+    companion object : KLogging(){
+        private const val FAILED_STATUS = "0x0"
+    }
 }
