@@ -1,3 +1,5 @@
+import java.nio.file.Paths
+
 dependencies {
     compile project(":eth-vacuum")
 }
@@ -6,4 +8,14 @@ sonarqube {
     properties {
         property "sonar.projectKey", "notary:eth-withdrawal"
     }
+}
+
+task runWithdrawal(type: JavaExec) {
+    main = 'withdrawalservice.WithdrawalServiceMain'
+    classpath = sourceSets.main.runtimeClasspath
+
+    args getEthPasswordsArgs()
+    setWorkingDir("$rootDir/")
+    systemProperty 'java.library.path', getIrohaLibPath()
+    environment "LD_LIBRARY_PATH", getIrohaLibPath()
 }
