@@ -86,7 +86,7 @@ public class RelayRegistry extends Contract {
 
     public RemoteCall<List> getWhiteListByRelay(String relay) {
         final Function function = new Function(FUNC_GETWHITELISTBYRELAY, 
-                Arrays.<Type>asList(new Address(relay)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(relay)), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<DynamicArray<Address>>() {}));
         return new RemoteCall<List>(
                 new Callable<List>() {
@@ -101,16 +101,16 @@ public class RelayRegistry extends Contract {
 
     public RemoteCall<Boolean> isWhiteListed(String relay, String who) {
         final Function function = new Function(FUNC_ISWHITELISTED, 
-                Arrays.<Type>asList(new Address(relay),
-                new Address(who)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(relay), 
+                new org.web3j.abi.datatypes.Address(who)), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
         return executeRemoteCallSingleValueReturn(function, Boolean.class);
     }
 
     public List<AddNewRelayEventResponse> getAddNewRelayEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = extractEventParametersWithLog(ADDNEWRELAY_EVENT, transactionReceipt);
+        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(ADDNEWRELAY_EVENT, transactionReceipt);
         ArrayList<AddNewRelayEventResponse> responses = new ArrayList<AddNewRelayEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
+        for (Contract.EventValuesWithLog eventValues : valueList) {
             AddNewRelayEventResponse typedResponse = new AddNewRelayEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.relayAddress = (String) eventValues.getIndexedValues().get(0).getValue();
@@ -124,7 +124,7 @@ public class RelayRegistry extends Contract {
         return web3j.ethLogFlowable(filter).map(new io.reactivex.functions.Function<Log, AddNewRelayEventResponse>() {
             @Override
             public AddNewRelayEventResponse apply(Log log) {
-                EventValuesWithLog eventValues = extractEventParametersWithLog(ADDNEWRELAY_EVENT, log);
+                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(ADDNEWRELAY_EVENT, log);
                 AddNewRelayEventResponse typedResponse = new AddNewRelayEventResponse();
                 typedResponse.log = log;
                 typedResponse.relayAddress = (String) eventValues.getIndexedValues().get(0).getValue();

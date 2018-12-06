@@ -85,8 +85,8 @@ public class Master extends Contract {
     public RemoteCall<TransactionReceipt> addPeers(List<String> newAddresses) {
         final Function function = new Function(
                 FUNC_ADDPEERS, 
-                Arrays.<Type>asList(new DynamicArray<Address>(
-                        org.web3j.abi.Utils.typeMap(newAddresses, Address.class))),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.Address>(
+                        org.web3j.abi.Utils.typeMap(newAddresses, org.web3j.abi.datatypes.Address.class))), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
@@ -101,7 +101,7 @@ public class Master extends Contract {
     public RemoteCall<TransactionReceipt> addPeer(String newAddress) {
         final Function function = new Function(
                 FUNC_ADDPEER, 
-                Arrays.<Type>asList(new Address(newAddress)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(newAddress)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
@@ -115,7 +115,7 @@ public class Master extends Contract {
 
     public RemoteCall<Boolean> checkTokenAddress(String tokenAddress) {
         final Function function = new Function(FUNC_CHECKTOKENADDRESS, 
-                Arrays.<Type>asList(new Address(tokenAddress)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(tokenAddress)), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
         return executeRemoteCallSingleValueReturn(function, Boolean.class);
     }
@@ -153,7 +153,7 @@ public class Master extends Contract {
     public RemoteCall<TransactionReceipt> addToken(String newToken) {
         final Function function = new Function(
                 FUNC_ADDTOKEN, 
-                Arrays.<Type>asList(new Address(newToken)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(newToken)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
@@ -161,25 +161,25 @@ public class Master extends Contract {
     public RemoteCall<TransactionReceipt> withdraw(String tokenAddress, BigInteger amount, String to, byte[] txHash, List<BigInteger> v, List<byte[]> r, List<byte[]> s, String from) {
         final Function function = new Function(
                 FUNC_WITHDRAW, 
-                Arrays.<Type>asList(new Address(tokenAddress),
-                new Uint256(amount),
-                new Address(to),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(tokenAddress), 
+                new org.web3j.abi.datatypes.generated.Uint256(amount), 
+                new org.web3j.abi.datatypes.Address(to), 
                 new org.web3j.abi.datatypes.generated.Bytes32(txHash), 
-                new DynamicArray<org.web3j.abi.datatypes.generated.Uint8>(
+                new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.generated.Uint8>(
                         org.web3j.abi.Utils.typeMap(v, org.web3j.abi.datatypes.generated.Uint8.class)), 
-                new DynamicArray<org.web3j.abi.datatypes.generated.Bytes32>(
+                new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.generated.Bytes32>(
                         org.web3j.abi.Utils.typeMap(r, org.web3j.abi.datatypes.generated.Bytes32.class)), 
-                new DynamicArray<org.web3j.abi.datatypes.generated.Bytes32>(
+                new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.generated.Bytes32>(
                         org.web3j.abi.Utils.typeMap(s, org.web3j.abi.datatypes.generated.Bytes32.class)), 
-                new Address(from)),
+                new org.web3j.abi.datatypes.Address(from)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
     public List<InsufficientFundsForWithdrawalEventResponse> getInsufficientFundsForWithdrawalEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = extractEventParametersWithLog(INSUFFICIENTFUNDSFORWITHDRAWAL_EVENT, transactionReceipt);
+        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(INSUFFICIENTFUNDSFORWITHDRAWAL_EVENT, transactionReceipt);
         ArrayList<InsufficientFundsForWithdrawalEventResponse> responses = new ArrayList<InsufficientFundsForWithdrawalEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
+        for (Contract.EventValuesWithLog eventValues : valueList) {
             InsufficientFundsForWithdrawalEventResponse typedResponse = new InsufficientFundsForWithdrawalEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.asset = (String) eventValues.getNonIndexedValues().get(0).getValue();
@@ -193,7 +193,7 @@ public class Master extends Contract {
         return web3j.ethLogFlowable(filter).map(new io.reactivex.functions.Function<Log, InsufficientFundsForWithdrawalEventResponse>() {
             @Override
             public InsufficientFundsForWithdrawalEventResponse apply(Log log) {
-                EventValuesWithLog eventValues = extractEventParametersWithLog(INSUFFICIENTFUNDSFORWITHDRAWAL_EVENT, log);
+                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(INSUFFICIENTFUNDSFORWITHDRAWAL_EVENT, log);
                 InsufficientFundsForWithdrawalEventResponse typedResponse = new InsufficientFundsForWithdrawalEventResponse();
                 typedResponse.log = log;
                 typedResponse.asset = (String) eventValues.getNonIndexedValues().get(0).getValue();
@@ -228,24 +228,24 @@ public class Master extends Contract {
     }
 
     public static RemoteCall<Master> deploy(Web3j web3j, Credentials credentials, ContractGasProvider contractGasProvider, String relayRegistry) {
-        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new Address(relayRegistry)));
+        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(relayRegistry)));
         return deployRemoteCall(Master.class, web3j, credentials, contractGasProvider, BINARY, encodedConstructor);
     }
 
     public static RemoteCall<Master> deploy(Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider, String relayRegistry) {
-        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new Address(relayRegistry)));
+        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(relayRegistry)));
         return deployRemoteCall(Master.class, web3j, transactionManager, contractGasProvider, BINARY, encodedConstructor);
     }
 
     @Deprecated
     public static RemoteCall<Master> deploy(Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit, String relayRegistry) {
-        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new Address(relayRegistry)));
+        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(relayRegistry)));
         return deployRemoteCall(Master.class, web3j, credentials, gasPrice, gasLimit, BINARY, encodedConstructor);
     }
 
     @Deprecated
     public static RemoteCall<Master> deploy(Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit, String relayRegistry) {
-        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new Address(relayRegistry)));
+        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(relayRegistry)));
         return deployRemoteCall(Master.class, web3j, transactionManager, gasPrice, gasLimit, BINARY, encodedConstructor);
     }
 

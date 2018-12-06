@@ -80,7 +80,7 @@ public class Relay extends Contract {
     public RemoteCall<TransactionReceipt> sendToMaster(String tokenAddress) {
         final Function function = new Function(
                 FUNC_SENDTOMASTER, 
-                Arrays.<Type>asList(new Address(tokenAddress)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(tokenAddress)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
@@ -88,25 +88,25 @@ public class Relay extends Contract {
     public RemoteCall<TransactionReceipt> withdraw(String tokenAddress, BigInteger amount, String to, byte[] tx_hash, List<BigInteger> v, List<byte[]> r, List<byte[]> s, String from) {
         final Function function = new Function(
                 FUNC_WITHDRAW, 
-                Arrays.<Type>asList(new Address(tokenAddress),
-                new Uint256(amount),
-                new Address(to),
-                new Bytes32(tx_hash),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(tokenAddress), 
+                new org.web3j.abi.datatypes.generated.Uint256(amount), 
+                new org.web3j.abi.datatypes.Address(to), 
+                new org.web3j.abi.datatypes.generated.Bytes32(tx_hash), 
                 new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.generated.Uint8>(
                         org.web3j.abi.Utils.typeMap(v, org.web3j.abi.datatypes.generated.Uint8.class)), 
-                new org.web3j.abi.datatypes.DynamicArray<Bytes32>(
-                        org.web3j.abi.Utils.typeMap(r, Bytes32.class)),
-                new org.web3j.abi.datatypes.DynamicArray<Bytes32>(
-                        org.web3j.abi.Utils.typeMap(s, Bytes32.class)),
-                new Address(from)),
+                new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.generated.Bytes32>(
+                        org.web3j.abi.Utils.typeMap(r, org.web3j.abi.datatypes.generated.Bytes32.class)), 
+                new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.generated.Bytes32>(
+                        org.web3j.abi.Utils.typeMap(s, org.web3j.abi.datatypes.generated.Bytes32.class)), 
+                new org.web3j.abi.datatypes.Address(from)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
 
     public List<AddressEventEventResponse> getAddressEventEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = extractEventParametersWithLog(ADDRESSEVENT_EVENT, transactionReceipt);
+        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(ADDRESSEVENT_EVENT, transactionReceipt);
         ArrayList<AddressEventEventResponse> responses = new ArrayList<AddressEventEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
+        for (Contract.EventValuesWithLog eventValues : valueList) {
             AddressEventEventResponse typedResponse = new AddressEventEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.input = (String) eventValues.getNonIndexedValues().get(0).getValue();
@@ -119,7 +119,7 @@ public class Relay extends Contract {
         return web3j.ethLogFlowable(filter).map(new io.reactivex.functions.Function<Log, AddressEventEventResponse>() {
             @Override
             public AddressEventEventResponse apply(Log log) {
-                EventValuesWithLog eventValues = extractEventParametersWithLog(ADDRESSEVENT_EVENT, log);
+                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(ADDRESSEVENT_EVENT, log);
                 AddressEventEventResponse typedResponse = new AddressEventEventResponse();
                 typedResponse.log = log;
                 typedResponse.input = (String) eventValues.getNonIndexedValues().get(0).getValue();
@@ -135,9 +135,9 @@ public class Relay extends Contract {
     }
 
     public List<StringEventEventResponse> getStringEventEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = extractEventParametersWithLog(STRINGEVENT_EVENT, transactionReceipt);
+        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(STRINGEVENT_EVENT, transactionReceipt);
         ArrayList<StringEventEventResponse> responses = new ArrayList<StringEventEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
+        for (Contract.EventValuesWithLog eventValues : valueList) {
             StringEventEventResponse typedResponse = new StringEventEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.input = (String) eventValues.getNonIndexedValues().get(0).getValue();
@@ -150,7 +150,7 @@ public class Relay extends Contract {
         return web3j.ethLogFlowable(filter).map(new io.reactivex.functions.Function<Log, StringEventEventResponse>() {
             @Override
             public StringEventEventResponse apply(Log log) {
-                EventValuesWithLog eventValues = extractEventParametersWithLog(STRINGEVENT_EVENT, log);
+                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(STRINGEVENT_EVENT, log);
                 StringEventEventResponse typedResponse = new StringEventEventResponse();
                 typedResponse.log = log;
                 typedResponse.input = (String) eventValues.getNonIndexedValues().get(0).getValue();
@@ -166,9 +166,9 @@ public class Relay extends Contract {
     }
 
     public List<BytesEventEventResponse> getBytesEventEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = extractEventParametersWithLog(BYTESEVENT_EVENT, transactionReceipt);
+        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(BYTESEVENT_EVENT, transactionReceipt);
         ArrayList<BytesEventEventResponse> responses = new ArrayList<BytesEventEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
+        for (Contract.EventValuesWithLog eventValues : valueList) {
             BytesEventEventResponse typedResponse = new BytesEventEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.input = (byte[]) eventValues.getNonIndexedValues().get(0).getValue();
@@ -181,7 +181,7 @@ public class Relay extends Contract {
         return web3j.ethLogFlowable(filter).map(new io.reactivex.functions.Function<Log, BytesEventEventResponse>() {
             @Override
             public BytesEventEventResponse apply(Log log) {
-                EventValuesWithLog eventValues = extractEventParametersWithLog(BYTESEVENT_EVENT, log);
+                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(BYTESEVENT_EVENT, log);
                 BytesEventEventResponse typedResponse = new BytesEventEventResponse();
                 typedResponse.log = log;
                 typedResponse.input = (byte[]) eventValues.getNonIndexedValues().get(0).getValue();
@@ -197,9 +197,9 @@ public class Relay extends Contract {
     }
 
     public List<NumberEventEventResponse> getNumberEventEvents(TransactionReceipt transactionReceipt) {
-        List<EventValuesWithLog> valueList = extractEventParametersWithLog(NUMBEREVENT_EVENT, transactionReceipt);
+        List<Contract.EventValuesWithLog> valueList = extractEventParametersWithLog(NUMBEREVENT_EVENT, transactionReceipt);
         ArrayList<NumberEventEventResponse> responses = new ArrayList<NumberEventEventResponse>(valueList.size());
-        for (EventValuesWithLog eventValues : valueList) {
+        for (Contract.EventValuesWithLog eventValues : valueList) {
             NumberEventEventResponse typedResponse = new NumberEventEventResponse();
             typedResponse.log = eventValues.getLog();
             typedResponse.input = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
@@ -212,7 +212,7 @@ public class Relay extends Contract {
         return web3j.ethLogFlowable(filter).map(new io.reactivex.functions.Function<Log, NumberEventEventResponse>() {
             @Override
             public NumberEventEventResponse apply(Log log) {
-                EventValuesWithLog eventValues = extractEventParametersWithLog(NUMBEREVENT_EVENT, log);
+                Contract.EventValuesWithLog eventValues = extractEventParametersWithLog(NUMBEREVENT_EVENT, log);
                 NumberEventEventResponse typedResponse = new NumberEventEventResponse();
                 typedResponse.log = log;
                 typedResponse.input = (BigInteger) eventValues.getNonIndexedValues().get(0).getValue();
@@ -246,24 +246,24 @@ public class Relay extends Contract {
     }
 
     public static RemoteCall<Relay> deploy(Web3j web3j, Credentials credentials, ContractGasProvider contractGasProvider, String master) {
-        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new Address(master)));
+        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(master)));
         return deployRemoteCall(Relay.class, web3j, credentials, contractGasProvider, BINARY, encodedConstructor);
     }
 
     public static RemoteCall<Relay> deploy(Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider, String master) {
-        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new Address(master)));
+        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(master)));
         return deployRemoteCall(Relay.class, web3j, transactionManager, contractGasProvider, BINARY, encodedConstructor);
     }
 
     @Deprecated
     public static RemoteCall<Relay> deploy(Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit, String master) {
-        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new Address(master)));
+        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(master)));
         return deployRemoteCall(Relay.class, web3j, credentials, gasPrice, gasLimit, BINARY, encodedConstructor);
     }
 
     @Deprecated
     public static RemoteCall<Relay> deploy(Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit, String master) {
-        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new Address(master)));
+        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(master)));
         return deployRemoteCall(Relay.class, web3j, transactionManager, gasPrice, gasLimit, BINARY, encodedConstructor);
     }
 
