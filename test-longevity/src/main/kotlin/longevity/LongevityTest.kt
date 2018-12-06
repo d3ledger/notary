@@ -4,10 +4,8 @@ import com.github.kittinunf.result.Result
 import config.IrohaCredentialConfig
 import config.loadEthPasswords
 import integration.helper.EthIntegrationHelperUtil
-import integration.helper.IrohaIntegrationHelperUtil
 import integration.helper.NotaryClient
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import mu.KLogging
