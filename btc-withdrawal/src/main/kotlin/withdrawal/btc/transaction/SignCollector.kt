@@ -16,7 +16,6 @@ import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.crypto.TransactionSignature
 import org.bitcoinj.script.ScriptBuilder
-import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN

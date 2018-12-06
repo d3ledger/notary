@@ -43,6 +43,9 @@ task integrationTest(type: Test) {
 check.dependsOn integrationTest
 
 dependencies {
+    compile project(":eth-erc20-registration")
+    compile project(":eth-registration")
+    compile project(":eth-withdrawal")
     compile project(":notary-iroha-integration-test")
 }
 
