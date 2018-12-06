@@ -5,6 +5,8 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.EthereumPasswords
 import io.reactivex.Observable
+import jp.co.soramitsu.iroha.Grantable
+import jp.co.soramitsu.iroha.ModelTransactionBuilder
 import model.IrohaCredential
 import mu.KLogging
 import notary.Notary
@@ -22,7 +24,9 @@ import sidechain.SideChainEvent
 import sidechain.eth.EthChainHandler
 import sidechain.eth.EthChainListener
 import sidechain.eth.util.BasicAuthenticator
+import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetwork
+import sidechain.iroha.util.ModelUtil
 import java.math.BigInteger
 
 const val ENDPOINT_ETHEREUM = "eth"
@@ -82,6 +86,14 @@ class EthNotaryInitialization(
         ethEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>
     ): Notary {
         logger.info { "Init ethereum notary" }
+
+        IrohaConsumerImpl(notaryCredential, irohaNetwork).sendAndCheck(
+            ModelTransactionBuilder()
+                .creatorAccountId(notaryCredential.accountId)
+                .createdTime(ModelUtil.getCurrentTime())
+                .grantPermission(ethNotaryConfig.withdrawalAccountId, Grantable.kTransferMyAssets)
+                .build()
+        )
 
         val peerListProvider = NotaryPeerListProviderImpl(
             notaryCredential,

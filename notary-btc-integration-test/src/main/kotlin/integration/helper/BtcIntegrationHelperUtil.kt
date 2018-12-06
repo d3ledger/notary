@@ -4,6 +4,7 @@ import com.github.jleskovar.btcrpc.BitcoinRpcClientFactory
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
+import config.BitcoinConfig
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelCrypto
 import mu.KLogging
@@ -41,7 +42,7 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         BitcoinRpcClientFactory.createClient(
             user = "test",
             password = "test",
-            host = configHelper.createBtcNotaryConfig().bitcoin.host,
+            host = BitcoinConfig.extractHosts(configHelper.createBtcNotaryConfig().bitcoin)[0],
             port = 8332,
             secure = false
         )
@@ -190,6 +191,7 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      * Sends btc to a given address
      */
     fun sendBtc(address: String, amount: Int, confirmations: Int = 6) {
+        logger.info { "Send $amount BTC to $address" }
         rpcClient.sendToAddress(address = address, amount = BigDecimal(amount))
         generateBtcBlocks(confirmations)
     }

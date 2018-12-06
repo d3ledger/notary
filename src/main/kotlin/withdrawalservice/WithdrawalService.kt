@@ -21,4 +21,8 @@ interface WithdrawalService {
      */
     fun output(): io.reactivex.Observable<Result<List<WithdrawalServiceOutputEvent>, Exception>>
 
+    /**
+     * Behavior in case of rollback failure
+     */
+    fun returnIrohaAssets(event: WithdrawalServiceOutputEvent): Result<Unit, Exception>
 }

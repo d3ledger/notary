@@ -306,13 +306,6 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      */
     fun getRegisteredEthWallets(): Set<String> = ethRelayProvider.getRelays().get().keys
 
-    private fun singularOrPluralBlocks(blocks: Int): String {
-        if (blocks == 1) {
-            return "block was"
-        }
-        return "blocks were"
-    }
-
     /**
      * Add Ethrereum addresses to client whitelist, so that she can withdraw only for that addresses
      * @param clientAccount - client account id in Iroha network
