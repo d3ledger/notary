@@ -10,7 +10,6 @@ import iroha.protocol.Queries.BlocksQuery
 import iroha.protocol.Queries.Query
 import iroha.protocol.QueryServiceGrpc
 import iroha.protocol.TransactionOuterClass.Transaction
-import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import jp.co.soramitsu.iroha.*
 import model.IrohaCredential
 import mu.KLogging
