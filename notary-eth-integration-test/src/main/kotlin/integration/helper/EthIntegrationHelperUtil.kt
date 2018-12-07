@@ -2,9 +2,6 @@ package integration.helper
 
 import com.github.kittinunf.result.success
 import config.EthereumPasswords
-import jp.co.soramitsu.iroha.Keypair
-import jp.co.soramitsu.iroha.ModelCrypto
-import jp.co.soramitsu.iroha.PublicKey
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import notary.eth.EthNotaryConfig
@@ -25,6 +22,7 @@ import util.getRandomString
 import vacuum.RelayVacuumConfig
 import withdrawalservice.WithdrawalServiceConfig
 import java.math.BigInteger
+import java.security.KeyPair
 
 /**
  * Utility class that makes testing more comfortable.
@@ -255,7 +253,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     fun registerClient(
         name: String,
         whitelist: List<String>,
-        keypair: Keypair = ModelCrypto().generateKeypair()
+        keypair: KeyPair = ModelUtil.generateKeypair()
     ): String {
         deployRelays(1)
         return registerClientWithoutRelay(name, whitelist, keypair)
@@ -267,9 +265,9 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     fun registerClientWithoutRelay(
         name: String,
         whitelist: List<String>,
-        keypair: Keypair = ModelCrypto().generateKeypair()
+        keypair: KeyPair = ModelUtil.generateKeypair()
     ): String {
-        ethRegistrationStrategy.register(name, whitelist, keypair.publicKey().hex())
+        ethRegistrationStrategy.register(name, whitelist, ModelUtil.bytesToHex(keypair.public.encoded))
             .fold({ registeredEthWallet ->
                 logger.info("registered client $name with relay $registeredEthWallet")
                 return registeredEthWallet
@@ -342,18 +340,22 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /**
      * Send HTTP POST request to registration service to register user
      * @param name - user name
-     * @param pubkey - user public key
+     * @param pubkey - user public key in hexidecimal representation
      * @param port - port of registration service
      */
     fun sendRegistrationRequest(
         name: String,
         whitelist: String,
-        pubkey: PublicKey,
+        pubkey: String,
         port: Int
     ): khttp.responses.Response {
         return khttp.post(
             "http://127.0.0.1:${port}/users",
-            data = mapOf("name" to name, "whitelist" to whitelist.trim('[').trim(']'), "pubkey" to pubkey.hex())
+            data = mapOf(
+                "name" to name,
+                "whitelist" to whitelist.trim('[').trim(']'),
+                "pubkey" to pubkey
+            )
         )
     }
 

@@ -150,6 +150,10 @@ object ModelUtil {
         }
     }
 
+    fun generateKeypair(): KeyPair {
+        return Ed25519Sha3().generateKeypair()
+    }
+
     /**
      * Prepares query before sending it to a peer
      * @param uquery - unsigned model query
@@ -370,13 +374,13 @@ object ModelUtil {
     fun setAccountQuorum(
         irohaConsumer: IrohaConsumer,
         accountId: String,
-        qourum: Int
+        quorum: Int
     ): Result<String, Exception> {
         return Result.of {
             ModelTransactionBuilder()
                 .creatorAccountId(irohaConsumer.creator)
                 .createdTime(getCurrentTime())
-                .setAccountQuorum(accountId, qourum)
+                .setAccountQuorum(accountId, quorum)
                 .build()
         }.flatMap { utx ->
             irohaConsumer.sendAndCheck(utx)

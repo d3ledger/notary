@@ -1,12 +1,8 @@
 package provider.btc.generation
 
 import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.flatMap
 import model.IrohaCredential
-import notary.IrohaCommand
-import notary.IrohaTransaction
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
 
@@ -24,22 +20,12 @@ class BtcSessionProvider(
      * @return Result of account creation process
      */
     fun createPubKeyCreationSession(sessionId: String): Result<String, Exception> {
-        return Result.of {
-            IrohaTransaction(
-                credential.accountId,
-                ModelUtil.getCurrentTime(),
-                1,
-                arrayListOf(
-                    IrohaCommand.CommandCreateAccount(
-                        sessionId, "btcSession", credential.keyPair.publicKey().hex()
-                    )
-                )
-            )
-        }.flatMap { irohaTx ->
-            val utx = IrohaConverterImpl().convert(irohaTx)
-            irohaConsumer.sendAndCheck(utx)
-
-        }
+        return ModelUtil.createAccount(
+            irohaConsumer,
+            sessionId,
+            "btcSession",
+            credential.keyPair.public
+        )
     }
 
 }

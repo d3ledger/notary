@@ -2,10 +2,10 @@ package integration.helper
 
 import config.EthereumConfig
 import config.EthereumPasswords
-import jp.co.soramitsu.iroha.ModelCrypto
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.eth.util.DeployHelper
+import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import java.math.BigInteger
 
@@ -19,7 +19,7 @@ class NotaryClient(
     ethPasswordConfig: EthereumPasswords,
     val name: String = "client_${String.getRandomString(6)}"
 ) {
-    private val irohaCredential = IrohaCredential("$name@notary", ModelCrypto().generateKeypair())
+    private val irohaCredential = IrohaCredential("$name@notary", ModelUtil.generateKeypair())
 
     private val etherHelper = DeployHelper(ethConfig, ethPasswordConfig)
 
@@ -49,7 +49,7 @@ class NotaryClient(
         val response = integrationHelper.sendRegistrationRequest(
             name,
             whitelist.toString(),
-            irohaCredential.keyPair.publicKey(),
+            ModelUtil.bytesToHex(irohaCredential.keyPair.public.encoded),
             integrationHelper.ethRegistrationConfig.port
         )
         relay = response.text

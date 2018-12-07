@@ -1,17 +1,17 @@
 package integration.eth
 
 import integration.helper.EthIntegrationHelperUtil
-import jp.co.soramitsu.iroha.Keypair
-import jp.co.soramitsu.iroha.ModelCrypto
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.junit.jupiter.api.*
 import provider.eth.ETH_PRECISION
 import sidechain.iroha.CLIENT_DOMAIN
+import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.security.KeyPair
 
 /**
  * Integration tests for withdrawal rollback service.
@@ -49,14 +49,14 @@ class WithdrawalRollbackIntegrationTest {
 
     lateinit var clientName: String
     lateinit var clientId: String
-    lateinit var keypair: Keypair
+    lateinit var keypair: KeyPair
 
     @BeforeEach
     fun setup() {
         // generate client name and key
         clientName = String.getRandomString(9)
         clientId = "$clientName@$CLIENT_DOMAIN"
-        keypair = ModelCrypto().generateKeypair()
+        keypair = ModelUtil.generateKeypair()
     }
 
     @AfterAll
@@ -86,7 +86,7 @@ class WithdrawalRollbackIntegrationTest {
         val res = integrationHelper.sendRegistrationRequest(
             clientName,
             listOf(toAddress).toString(),
-            keypair.publicKey(),
+            ModelUtil.bytesToHex(keypair.public.encoded),
             registrationConfig.port
         )
         Assertions.assertEquals(200, res.statusCode)
