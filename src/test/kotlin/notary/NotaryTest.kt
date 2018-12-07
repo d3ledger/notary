@@ -6,7 +6,6 @@ import config.IrohaConfig
 import config.IrohaCredentialConfig
 import io.reactivex.Observable
 import io.reactivex.observers.TestObserver
-import jp.co.soramitsu.iroha.Keypair
 import model.IrohaCredential
 import notary.eth.EthNotaryConfig
 import org.junit.jupiter.api.Test
@@ -28,13 +27,13 @@ class NotaryTest {
         on { hostname } doReturn "localhost"
     }
 
-    private val credentialConfig = mock<IrohaCredentialConfig>(){
+    private val credentialConfig = mock<IrohaCredentialConfig>() {
         on { privkeyPath } doReturn "deploy/iroha/keys/test@notary.priv"
         on { pubkeyPath } doReturn "deploy/iroha/keys/test@notary.pub"
-        on {accountId} doReturn "creator@iroha"
+        on { accountId } doReturn "creator@iroha"
     }
 
-    private val irohaCredential = IrohaCredential("creator@iroha", mock<Keypair>())
+    private val irohaCredential = IrohaCredential("creator@iroha", mock())
     private val irohaNetwork = mock<IrohaNetwork>()
 
     /** Configuration for notary */
@@ -42,7 +41,7 @@ class NotaryTest {
         on { iroha } doReturn irohaConfig
         on { notaryListStorageAccount } doReturn "listener@notary"
         on { notaryListSetterAccount } doReturn "setter@notary"
-        on {notaryCredential} doReturn credentialConfig
+        on { notaryCredential } doReturn credentialConfig
     }
 
     private val peerListProvider = mock<NotaryPeerListProvider>()
@@ -192,7 +191,7 @@ class NotaryTest {
         val obsEth = Observable.just<SideChainEvent.PrimaryBlockChainEvent>(custodianIntention)
         val notary = createEthNotary(irohaCredential, irohaNetwork, obsEth, peerListProvider)
         val res = notary.irohaOutput()
-            checkEthereumDepositResult(
+        checkEthereumDepositResult(
             expectedAmount,
             expectedAssetId,
             expectedCreatorId,

@@ -40,6 +40,7 @@ allprojects {
         // for Ktor
         jcenter()
         maven { url = 'https://dl.bintray.com/kotlin/ktor' }
+        maven { url 'https://jitpack.io' }
     }
 }
 
@@ -87,6 +88,8 @@ dependencies {
     def iroha_bindings_dir = Paths.get(projectDir.toString(), "iroha_bindings").toString()
     compile fileTree(dir: iroha_bindings_dir, include: '*.jar')
 
+    compile 'com.github.warchant:iroha-pure-java:0.6.0'
+
     // Eth library
     compile 'org.web3j:core:4.0.0'
 
@@ -122,9 +125,6 @@ dependencies {
 
     // Configuration
     compile group: 'com.jdiazcano.cfg4k', name: 'cfg4k-core', version: '0.8'
-
-    // ------------------| Test dependencies |------------------
-
 }
 
 allprojects{
