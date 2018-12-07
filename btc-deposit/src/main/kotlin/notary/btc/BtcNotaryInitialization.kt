@@ -2,7 +2,9 @@ package notary.btc
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
+import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
+import config.BitcoinConfig
 import healthcheck.HealthyService
 import helper.network.addPeerConnectionStatusListener
 import helper.network.getPeerGroup
@@ -25,6 +27,7 @@ import provider.btc.network.BtcNetworkConfigProvider
 import sidechain.SideChainEvent
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaNetwork
+import java.io.Closeable
 
 
 @Component
@@ -37,7 +40,10 @@ class BtcNotaryInitialization(
     @Autowired private val irohaChainListener: IrohaChainListener,
     @Autowired private val newBtcClientRegistrationListener: NewBtcClientRegistrationListener,
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider
-) : HealthyService() {
+) : HealthyService(), Closeable {
+
+    private val peerGroup =
+        getPeerGroup(wallet, btcNetworkConfigProvider.getConfig(), btcNotaryConfig.bitcoin.blockStoragePath)
 
     /**
      * Init notary
@@ -47,12 +53,23 @@ class BtcNotaryInitialization(
         //Enables short log format for Bitcoin events
         BriefLogFormatter.init()
         logger.info { "Current wallet state $wallet" }
-        val peerGroup =
-            getPeerGroup(wallet, btcNetworkConfigProvider.getConfig(), btcNotaryConfig.bitcoin.blockStoragePath)
         addPeerConnectionStatusListener(peerGroup, ::notHealthy, ::cured)
         return irohaChainListener.getBlockObservable().map { irohaObservable ->
             newBtcClientRegistrationListener.listenToRegisteredClients(wallet, irohaObservable)
             logger.info { "Registration service listener was successfully initialized" }
+        }.flatMap {
+            btcRegisteredAddressesProvider.getRegisteredAddresses()
+        }.map { registeredAddresses ->
+            // Adding previously registered addresses to the wallet
+            registeredAddresses.map { btcAddress ->
+                Address.fromBase58(
+                    btcNetworkConfigProvider.getConfig(),
+                    btcAddress.address
+                )
+            }.forEach { address ->
+                wallet.addWatchedAddress(address)
+            }
+            logger.info { "Previously registered addresses were added to the wallet" }
         }.map {
             getBtcEvents(peerGroup, btcNotaryConfig.bitcoin.confidenceLevel)
         }.map { btcEvents ->
@@ -65,7 +82,7 @@ class BtcNotaryInitialization(
             val notary = createBtcNotary(irohaCredential, irohaNetwork, btcEvents, peerListProvider)
             notary.initIrohaConsumer().failure { ex -> throw ex }
         }.map {
-            startChainDownload(peerGroup, btcNotaryConfig.bitcoin.host)
+            startChainDownload(peerGroup, BitcoinConfig.extractHosts(btcNotaryConfig.bitcoin))
         }
     }
 
@@ -89,6 +106,10 @@ class BtcNotaryInitialization(
                 )
             )
         }
+    }
+
+    override fun close() {
+        peerGroup.stop()
     }
 
     /**

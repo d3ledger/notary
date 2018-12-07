@@ -63,5 +63,6 @@ class BtcNotaryTestEnvironment(private val integrationHelper: BtcIntegrationHelp
         irohaChainListener.close()
         //Clear bitcoin blockchain folder
         File(notaryConfig.bitcoin.blockStoragePath).deleteRecursively()
+        btcNotaryInitialization.close()
     }
 }

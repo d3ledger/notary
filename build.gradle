@@ -45,9 +45,6 @@ allprojects {
 }
 
 subprojects {
-    dependencies {
-        compile project(':')
-    }
     dokka {
         outputFormat = 'html' 
         outputDirectory = "build/reports/dokka"
@@ -67,65 +64,7 @@ subprojects {
 
 sourceCompatibility = 1.8
 
-dependencies {
-    // protobuf
-    compile 'com.google.protobuf:protobuf-java:3.5.1'
-    compile 'io.grpc:grpc-netty:1.14.0'
-    compile 'io.grpc:grpc-protobuf:1.14.0'
-    compile 'io.grpc:grpc-stub:1.14.0'
-
-    // ------------------| Src dependencies |------------------
-
-    // kotlin related
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1'
-
-    // rx2
-    compile "io.reactivex.rxjava2:rxjava:2.0.0"
-    compile "io.reactivex.rxjava2:rxkotlin:2.0.0"
-
-    // Iroha bindings
-    def iroha_bindings_dir = Paths.get(projectDir.toString(), "iroha_bindings").toString()
-    compile fileTree(dir: iroha_bindings_dir, include: '*.jar')
-
-    compile 'com.github.warchant:iroha-pure-java:0.6.0'
-
-    // Eth library
-    compile 'org.web3j:core:4.0.0'
-
-    // Waves library
-    compile 'com.wavesplatform:wavesj:0.4'
-
-    // logging
-    compile 'io.github.microutils:kotlin-logging:1.4.9'
-    // https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12
-    compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.8.0-beta2'
-
-    // CLI arguments
-    compile group: 'com.xenomachina', name: 'kotlin-argparser', version: '2.0.6'
-
-    // Kyber
-    // TODO @muratovv: add lib
-
-    // Ktor - http
-    compile "io.ktor:ktor-server-core:$ktor_version"
-    compile "io.ktor:ktor-server-netty:$ktor_version"
-
-    // khttp - consume http
-    compile 'khttp:khttp:0.1.0'
-
-    // JSON parser
-    compile 'com.beust:klaxon:3.0.1'
-
-    // JSON converter
-    compile 'com.squareup.moshi:moshi-kotlin:1.5.0'
-
-    // for Result
-    compile group: 'com.github.kittinunf.result', name: 'result', version: '1.4.0'
-
-    // Configuration
-    compile group: 'com.jdiazcano.cfg4k', name: 'cfg4k-core', version: '0.8'
-}
+// ------------------| Test dependencies |------------------
 
 allprojects{
     dependencies{
@@ -169,9 +108,9 @@ allprojects {
     test {
         setWorkingDir("$rootDir/")
         useJUnitPlatform()
-        systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
+        systemProperty 'java.library.path', Paths.get(projectDir.getParent().toString(), "iroha_bindings", getCurrentOs()).toString()
         println "Runtime Iroha library path:${systemProperties}"
-        environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
+        environment "LD_LIBRARY_PATH", Paths.get(projectDir.getParent().toString(), "iroha_bindings", getCurrentOs()).toString()
     }
 }
 
@@ -283,71 +222,6 @@ def getIrohaLibPath() {
 retrieveIrohaBindings.dependsOn(osInfo)
 
 // -------------------------| End Iroha bindings |-------------------------
-
-// -------------------------| Run services |-------------------------
-
-// Deploy ethereum smart contracts - RelayRegistry, Master, add notaries wallets to Master and lock Master.
-task runPreDeployEthereum(type: JavaExec) {
-    main = 'deploy.EthPreDeployMain'
-    classpath = sourceSets.main.runtimeClasspath
-
-    args getEthPasswordsArgs()
-    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-}
-
-task runEthNotary(type: JavaExec) {
-    main = 'notary.eth.EthNotaryMain'
-    classpath = sourceSets.main.runtimeClasspath
-
-    args getEthPasswordsArgs()
-    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-}
-
-task runEthRegistration(type: JavaExec) {
-    main = 'registration.eth.EthRegistrationMain'
-    classpath = sourceSets.main.runtimeClasspath
-
-    args getEthPasswordsArgs()
-    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-}
-
-task runERC20TokenRegistration(type: JavaExec) {
-    main = 'token.ERC20TokenRegistrationMain'
-    classpath = sourceSets.main.runtimeClasspath
-
-    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-}
-
-task runDeployRelay(type: JavaExec) {
-    main = 'registration.eth.relay.DeployRelayMain'
-    classpath = sourceSets.main.runtimeClasspath
-
-    args getEthPasswordsArgs()
-    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-}
-
-task runVacuumRelay(type: JavaExec) {
-    main = 'vacuum.VacuumRelayMain'
-    classpath = sourceSets.main.runtimeClasspath
-
-    args getEthPasswordsArgs()
-    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-}
-
-task runWithdrawal(type: JavaExec) {
-    main = 'withdrawalservice.WithdrawalServiceMain'
-    classpath = sourceSets.main.runtimeClasspath
-
-    args getEthPasswordsArgs()
-    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-}
 
 // -------------------------| PIT mutation testing |-------------------------
 

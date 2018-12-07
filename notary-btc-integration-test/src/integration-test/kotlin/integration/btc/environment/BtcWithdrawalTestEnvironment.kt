@@ -106,7 +106,8 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
             btcNetworkConfigProvider,
             withdrawalTransferEventHandler,
             newSignatureEventHandler,
-            NewBtcClientRegistrationHandler(btcNetworkConfigProvider)
+            NewBtcClientRegistrationHandler(btcNetworkConfigProvider),
+            btcRegisteredAddressesProvider
         )
     }
 
@@ -143,5 +144,6 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
         integrationHelper.close()
         irohaChainListener.close()
         File(btcWithdrawalConfig.bitcoin.blockStoragePath).deleteRecursively()
+        btcWithdrawalInitialization.close()
     }
 }

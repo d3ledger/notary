@@ -13,6 +13,8 @@ apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compi
 apply plugin: 'org.springframework.boot'
 
 dependencies {
+    compile project(":notary-commons")
+    
     //bitcoin
     compile 'org.bitcoinj:bitcoinj-core:0.14.7'
     // https://mvnrepository.com/artifact/org.iq80.leveldb/leveldb

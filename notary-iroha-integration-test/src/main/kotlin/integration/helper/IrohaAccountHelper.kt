@@ -98,7 +98,7 @@ class IrohaAccountHelper(private val irohaNetwork: IrohaNetwork) {
     }
 
     /**
-     * Create notary account and grant set_my_quorum and add_my_signatory permissions to test account
+     * Create notary account and grant set_my_quorum, transfer_my_assets and add_my_signatory permissions to test account
      */
     private fun createNotaryAccount(): IrohaCredential {
         val credential = createTesterAccount("eth_notary_${String.getRandomString(9)}", "notary")
@@ -107,7 +107,8 @@ class IrohaAccountHelper(private val irohaNetwork: IrohaNetwork) {
             IrohaConsumerImpl(credential, irohaNetwork),
             testCredential.accountId,
             Grantable.kSetMyQuorum,
-            Grantable.kAddMySignatory
+            Grantable.kAddMySignatory,
+            Grantable.kTransferMyAssets
         ).failure { throw it }
 
         return credential
