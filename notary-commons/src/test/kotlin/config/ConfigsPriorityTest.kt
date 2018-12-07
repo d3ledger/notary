@@ -21,7 +21,7 @@ class ConfigsPriorityTest {
     @Test
     fun testLoadEthPasswordsArgs() {
         val args = arrayOf("argCredentialsPassword", "argNodeLogin", "argNodePassword")
-        val ethPasswords = loadEthPasswords("test", "/eth/test_eth_credentials.properties", args)
+        val ethPasswords = loadEthPasswords("test", "/eth/test_eth_credentials.properties", args).get()
         assertEquals(args[0], ethPasswords.credentialsPassword)
         assertEquals(args[1], ethPasswords.nodeLogin)
         assertEquals(args[2], ethPasswords.nodePassword)
@@ -36,7 +36,7 @@ class ConfigsPriorityTest {
     fun testLoadEthPasswordsArgsWithEnvVariables() {
         setEnvVariables()
         val args = arrayOf("argCredentialsPassword", "argNodeLogin", "argNodePassword")
-        val ethPasswords = loadEthPasswords("test", "/eth/test_eth_credentials.properties", args)
+        val ethPasswords = loadEthPasswords("test", "/eth/test_eth_credentials.properties", args).get()
         assertEquals(args[0], ethPasswords.credentialsPassword)
         assertEquals(args[1], ethPasswords.nodeLogin)
         assertEquals(args[2], ethPasswords.nodePassword)
@@ -53,7 +53,7 @@ class ConfigsPriorityTest {
         val envCredentialsPassword = System.getenv(ETH_CREDENTIALS_PASSWORD_ENV)
         val envNodeLogin = System.getenv(ETH_NODE_LOGIN_ENV)
         val envNodePassword = System.getenv(ETH_NODE_PASSWORD_ENV)
-        val ethPasswords = loadEthPasswords("test", "/eth/test_eth_credentials.properties")
+        val ethPasswords = loadEthPasswords("test", "/eth/test_eth_credentials.properties").get()
         assertEquals(envCredentialsPassword, ethPasswords.credentialsPassword)
         assertEquals(envNodeLogin, ethPasswords.nodeLogin)
         assertEquals(envNodePassword, ethPasswords.nodePassword)

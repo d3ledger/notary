@@ -25,7 +25,7 @@ class ConfigValidationTest {
                 TestConfig::class.java,
                 "/test.properties",
                 validationRule
-            )
+            ).get()
         }
     }
 
@@ -46,7 +46,7 @@ class ConfigValidationTest {
                 TestConfig::class.java,
                 "/test.properties",
                 validationRuleSuccess, validationRuleFail
-            )
+            ).get()
         }
     }
 
@@ -63,7 +63,7 @@ class ConfigValidationTest {
             TestConfig::class.java,
             "/test.properties",
             validationRuleSuccess
-        )
+        ).get()
         assertEquals("test@notary", config.testCredentialConfig.accountId)
     }
 
@@ -78,7 +78,7 @@ class ConfigValidationTest {
             "test",
             TestConfig::class.java,
             "/test.properties"
-        )
+        ).get()
         assertEquals("test@notary", config.testCredentialConfig.accountId)
     }
 }

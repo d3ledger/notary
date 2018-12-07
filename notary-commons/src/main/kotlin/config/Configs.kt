@@ -1,5 +1,6 @@
 package config
 
+import com.github.kittinunf.result.Result
 import com.jdiazcano.cfg4k.loaders.PropertyConfigLoader
 import com.jdiazcano.cfg4k.providers.ProxyConfigProvider
 import com.jdiazcano.cfg4k.sources.ConfigSource
@@ -98,6 +99,15 @@ fun <T : Any> loadConfigs(
     type: Class<T>,
     filename: String,
     vararg validators: ConfigValidationRule<T>
+): Result<T, Exception> {
+    return Result.of { loadValidatedConfigs(prefix, type, filename, *validators) }
+}
+
+private fun <T : Any> loadValidatedConfigs(
+    prefix: String,
+    type: Class<T>,
+    filename: String,
+    vararg validators: ConfigValidationRule<T>
 ): T {
     val profile = getProfile()
     val (file, extension) = filename.split(".")
@@ -125,16 +135,20 @@ fun <T : Any> loadRawConfigs(prefix: String, type: Class<T>, filename: String): 
 /**
  * Loads ETH passwords. Lookup priority: command line args>environment variables>property file
  */
-fun loadEthPasswords(prefix: String, filename: String, args: Array<String> = emptyArray()): EthereumPasswords {
+fun loadEthPasswords(
+    prefix: String,
+    filename: String,
+    args: Array<String> = emptyArray()
+): Result<EthereumPasswords, Exception> {
     val ethPasswordsFromArgs = createEthPasswordsFromArgs(args)
     if (ethPasswordsFromArgs != null) {
         logger.info { "eth passwords configuration was taken from command line arguments" }
-        return ethPasswordsFromArgs
+        return Result.of(ethPasswordsFromArgs)
     }
     val ethPasswordsFromEnv = createEthPasswordsFromEnv()
     if (ethPasswordsFromEnv != null) {
         logger.info { "eth passwords configuration was taken from env variables" }
-        return ethPasswordsFromEnv
+        return Result.of(ethPasswordsFromEnv)
     }
     logger.info { "eth passwords configuration was taken from properties file" }
     return loadConfigs(prefix, EthereumPasswords::class.java, filename)

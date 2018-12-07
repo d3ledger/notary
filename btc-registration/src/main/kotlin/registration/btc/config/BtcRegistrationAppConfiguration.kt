@@ -12,7 +12,7 @@ import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
 val btcRegistrationConfig =
-    loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/btc/registration.properties")
+    loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/btc/registration.properties").get()
 
 @Configuration
 class BtcRegistrationAppConfiguration {

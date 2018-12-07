@@ -15,7 +15,8 @@ import withdrawal.btc.provider.BtcWhiteListProvider
 import withdrawal.btc.statistics.WithdrawalStatistics
 import java.io.File
 
-val withdrawalConfig = loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties")
+val withdrawalConfig =
+    loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties").get()
 
 @Configuration
 class BtcWithdrawalAppConfiguration {

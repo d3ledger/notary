@@ -2,10 +2,7 @@
 
 package notary.eth
 
-import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.failure
-import com.github.kittinunf.result.flatMap
-import com.github.kittinunf.result.map
+import com.github.kittinunf.result.*
 import config.EthereumPasswords
 import config.loadConfigs
 import config.loadEthPasswords
@@ -23,10 +20,15 @@ private val logger = KLogging().logger
  * Application entry point
  */
 fun main(args: Array<String>) {
-    val notaryConfig = loadConfigs("eth-notary", EthNotaryConfig::class.java, "/eth/notary.properties")
-    val passwordConfig = loadEthPasswords("eth-notary", "/eth/ethereum_password.properties", args)
-
-    executeNotary(passwordConfig, notaryConfig)
+    loadConfigs("eth-notary", EthNotaryConfig::class.java, "/eth/notary.properties")
+        .fanout { loadEthPasswords("eth-notary", "/eth/ethereum_password.properties", args) }
+        .map { (notaryConfig, ethereumPasswords) ->
+            executeNotary(ethereumPasswords, notaryConfig)
+        }
+        .failure { ex ->
+            logger.error("Cannot run eth notary", ex)
+            System.exit(1)
+        }
 }
 
 fun executeNotary(
