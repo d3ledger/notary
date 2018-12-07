@@ -29,10 +29,16 @@ fun startChainDownload(peerGroup: PeerGroup, hosts: List<String>) {
  * Returns group of peers
  */
 fun getPeerGroup(wallet: Wallet, networkParameters: NetworkParameters, blockStoragePath: String): PeerGroup {
+    return PeerGroup(networkParameters, getBlockChain(wallet, networkParameters, blockStoragePath))
+}
+
+/**
+ * Returns Bitcoin blockchain
+ */
+fun getBlockChain(wallet: Wallet, networkParameters: NetworkParameters, blockStoragePath: String): BlockChain {
     val levelDbFolder = File(blockStoragePath)
     val blockStore = LevelDBBlockStore(Context(networkParameters), levelDbFolder)
-    val blockChain = BlockChain(networkParameters, wallet, blockStore)
-    return PeerGroup(networkParameters, blockChain)
+    return BlockChain(networkParameters, wallet, blockStore)
 }
 
 /**

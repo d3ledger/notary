@@ -8,6 +8,7 @@ import com.github.kittinunf.result.map
 import config.getProfile
 import mu.KLogging
 import notary.btc.config.notaryConfig
+import notary.btc.init.BtcNotaryInitialization
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.ComponentScan
@@ -15,7 +16,7 @@ import sidechain.iroha.IrohaInitialization
 import java.util.*
 
 @SpringBootApplication
-@ComponentScan(basePackages = ["notary", "healthcheck", "provider.btc.network", "provider.btc.wallet", "listener.btc", "handler.btc"])
+@ComponentScan(basePackages = ["notary", "healthcheck", "provider.btc.network", "provider.btc.wallet", "listener.btc", "handler.btc", "peer"])
 class BtcNotaryApplication
 
 private val logger = KLogging().logger

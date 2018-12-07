@@ -5,8 +5,8 @@ import model.IrohaCredential
 import provider.btc.account.IrohaBtcAccountCreator
 import provider.btc.address.BtcAddressesProvider
 import provider.btc.address.BtcRegisteredAddressesProvider
-import registration.btc.BtcRegistrationServiceInitialization
-import registration.btc.BtcRegistrationStrategyImpl
+import registration.btc.init.BtcRegistrationServiceInitialization
+import registration.btc.strategy.BtcRegistrationStrategyImpl
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import java.io.Closeable
@@ -34,7 +34,11 @@ class BtcRegistrationTestEnvironment(private val integrationHelper: BtcIntegrati
 
     val btcRegistrationServiceInitialization = BtcRegistrationServiceInitialization(
         btcRegistrationConfig,
-        BtcRegistrationStrategyImpl(btcAddressesProvider(), btcRegisteredAddressesProvider(), irohaBtcAccountCreator())
+        BtcRegistrationStrategyImpl(
+            btcAddressesProvider(),
+            btcRegisteredAddressesProvider(),
+            irohaBtcAccountCreator()
+        )
     )
 
     private fun btcAddressesProvider(): BtcAddressesProvider {

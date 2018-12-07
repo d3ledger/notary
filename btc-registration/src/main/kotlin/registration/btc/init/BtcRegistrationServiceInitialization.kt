@@ -1,4 +1,4 @@
-package registration.btc
+package registration.btc.init
 
 import com.github.kittinunf.result.Result
 import mu.KLogging

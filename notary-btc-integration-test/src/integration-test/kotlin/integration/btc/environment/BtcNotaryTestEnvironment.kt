@@ -1,10 +1,11 @@
 package integration.btc.environment
 
 import handler.btc.NewBtcClientRegistrationHandler
+import helper.network.getPeerGroup
 import integration.helper.BtcIntegrationHelperUtil
 import listener.btc.NewBtcClientRegistrationListener
 import model.IrohaCredential
-import notary.btc.BtcNotaryInitialization
+import notary.btc.init.BtcNotaryInitialization
 import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.btc.network.BtcRegTestConfigProvider
 import sidechain.iroha.IrohaChainListener
@@ -46,8 +47,12 @@ class BtcNotaryTestEnvironment(private val integrationHelper: BtcIntegrationHelp
 
     private val wallet = org.bitcoinj.wallet.Wallet.loadFromFile(File(notaryConfig.bitcoin.walletPath))
 
+    private val peerGroup =
+        getPeerGroup(wallet, btcNetworkConfigProvider.getConfig(), notaryConfig.bitcoin.blockStoragePath)
+
     val btcNotaryInitialization =
         BtcNotaryInitialization(
+            peerGroup,
             wallet,
             notaryConfig,
             irohaCredential,

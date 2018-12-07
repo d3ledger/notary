@@ -7,6 +7,7 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.getProfile
 import generation.btc.config.btcAddressGenerationConfig
+import generation.btc.init.BtcAddressGenerationInitialization
 import mu.KLogging
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication

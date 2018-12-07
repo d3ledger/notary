@@ -6,6 +6,9 @@ project(':btc').projectDir = 'btc' as File
 include 'btc-deposit'
 project(':btc-deposit').projectDir = 'btc-deposit' as File
 
+include 'btc-dw-bridge'
+project(':btc-dw-bridge').projectDir = 'btc-dw-bridge' as File
+
 include 'btc-registration'
 project(':btc-registration').projectDir = 'btc-registration' as File
 

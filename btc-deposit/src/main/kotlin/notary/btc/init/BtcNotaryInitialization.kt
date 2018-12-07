@@ -1,4 +1,4 @@
-package notary.btc
+package notary.btc.init
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
@@ -7,19 +7,20 @@ import com.github.kittinunf.result.map
 import config.BitcoinConfig
 import healthcheck.HealthyService
 import helper.network.addPeerConnectionStatusListener
-import helper.network.getPeerGroup
 import helper.network.startChainDownload
 import io.reactivex.Observable
 import listener.btc.NewBtcClientRegistrationListener
 import model.IrohaCredential
 import mu.KLogging
 import notary.btc.config.BtcNotaryConfig
+import notary.btc.factory.createBtcNotary
 import notary.btc.listener.BitcoinBlockChainListener
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.PeerGroup
 import org.bitcoinj.utils.BriefLogFormatter
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import provider.NotaryPeerListProviderImpl
 import provider.btc.address.BtcRegisteredAddressesProvider
@@ -32,18 +33,18 @@ import java.io.Closeable
 
 @Component
 class BtcNotaryInitialization(
+    @Autowired private val peerGroup: PeerGroup,
     @Autowired private val wallet: Wallet,
     @Autowired private val btcNotaryConfig: BtcNotaryConfig,
+    @Qualifier("notaryCredential")
     @Autowired private val irohaCredential: IrohaCredential,
     @Autowired private val irohaNetwork: IrohaNetwork,
     @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
+    @Qualifier("depositIrohaChainListener")
     @Autowired private val irohaChainListener: IrohaChainListener,
     @Autowired private val newBtcClientRegistrationListener: NewBtcClientRegistrationListener,
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider
 ) : HealthyService(), Closeable {
-
-    private val peerGroup =
-        getPeerGroup(wallet, btcNetworkConfigProvider.getConfig(), btcNotaryConfig.bitcoin.blockStoragePath)
 
     /**
      * Init notary

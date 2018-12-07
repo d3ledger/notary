@@ -1,4 +1,4 @@
-package generation.btc
+package generation.btc.init
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure

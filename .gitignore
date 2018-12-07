@@ -61,6 +61,10 @@ hs_err_pid*
 /notary-iroha-integration-test/gradle/
 /notary-iroha-integration-test/gradlew
 /test-longevity/build/
+/btc-dw-bridge/build
+/btc-dw-bridge/gradle
+/btc-dw-bridge/gradlew
+/btc-dw-bridge/gradlew.bat
 *gradlew.bat
 
 # Ignore Gradle GUI config

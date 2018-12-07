@@ -1,4 +1,4 @@
-package withdrawal.btc
+package withdrawal.btc.init
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
@@ -7,7 +7,6 @@ import config.BitcoinConfig
 import handler.btc.NewBtcClientRegistrationHandler
 import healthcheck.HealthyService
 import helper.network.addPeerConnectionStatusListener
-import helper.network.getPeerGroup
 import helper.network.startChainDownload
 import io.reactivex.schedulers.Schedulers
 import iroha.protocol.Commands
@@ -17,6 +16,7 @@ import org.bitcoinj.core.PeerGroup
 import org.bitcoinj.utils.BriefLogFormatter
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.btc.network.BtcNetworkConfigProvider
@@ -28,7 +28,6 @@ import withdrawal.btc.config.BtcWithdrawalConfig
 import withdrawal.btc.handler.NewSignatureEventHandler
 import withdrawal.btc.handler.WithdrawalTransferEventHandler
 import withdrawal.btc.provider.BtcChangeAddressProvider
-
 import java.io.Closeable
 import java.util.concurrent.Executors
 
@@ -37,9 +36,11 @@ import java.util.concurrent.Executors
  */
 @Component
 class BtcWithdrawalInitialization(
+    @Autowired private val peerGroup: PeerGroup,
     @Autowired private val wallet: Wallet,
     @Autowired private val btcWithdrawalConfig: BtcWithdrawalConfig,
     @Autowired private val btcChangeAddressProvider: BtcChangeAddressProvider,
+    @Qualifier("withdrawalIrohaChainListener")
     @Autowired private val irohaChainListener: IrohaChainListener,
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider,
     @Autowired private val withdrawalTransferEventHandler: WithdrawalTransferEventHandler,
@@ -47,9 +48,6 @@ class BtcWithdrawalInitialization(
     @Autowired private val newBtcClientRegistrationHandler: NewBtcClientRegistrationHandler,
     @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider
 ) : HealthyService(), Closeable {
-
-    private val peerGroup =
-        getPeerGroup(wallet, btcNetworkConfigProvider.getConfig(), btcWithdrawalConfig.bitcoin.blockStoragePath)
 
     fun init(): Result<Unit, Exception> {
         return btcChangeAddressProvider.getChangeAddress().map { changeAddress ->

@@ -1,4 +1,4 @@
-package registration.btc
+package registration.btc.strategy
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout

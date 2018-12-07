@@ -21,7 +21,7 @@ import provider.btc.account.IrohaBtcAccountCreator
 import provider.btc.address.AddressInfo
 import provider.btc.address.BtcAddressesProvider
 import provider.btc.address.BtcRegisteredAddressesProvider
-import registration.btc.BtcRegistrationStrategyImpl
+import registration.btc.strategy.BtcRegistrationStrategyImpl
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.util.ModelUtil

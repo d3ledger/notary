@@ -49,9 +49,13 @@ class BtcNotaryAppConfiguration {
     fun notaryCredential() = notaryCredential
 
     @Bean
-    fun irohaChainListener() = IrohaChainListener(
+    fun depositIrohaChainListener() = IrohaChainListener(
         notaryConfig.iroha.hostname,
         notaryConfig.iroha.port,
         notaryCredential
     )
+
+    @Bean
+    fun blockStoragePath() = notaryConfig().bitcoin.blockStoragePath
+
 }

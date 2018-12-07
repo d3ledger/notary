@@ -13,11 +13,12 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.EnableMBeanExport
 import sidechain.iroha.IrohaInitialization
 import withdrawal.btc.config.withdrawalConfig
+import withdrawal.btc.init.BtcWithdrawalInitialization
 import java.util.*
 
 @EnableMBeanExport
 @SpringBootApplication
-@ComponentScan(basePackages = ["withdrawal", "healthcheck", "provider.btc.network", "handler.btc", "provider.btc.address", "provider.btc.wallet"])
+@ComponentScan(basePackages = ["withdrawal", "healthcheck", "provider.btc.network", "handler.btc", "provider.btc.address", "provider.btc.wallet", "peer"])
 class BtcWithdrawalApplication
 
 private val logger = KLogging().logger
