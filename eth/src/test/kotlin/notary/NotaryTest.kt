@@ -13,6 +13,7 @@ import org.junit.jupiter.api.fail
 import provider.NotaryPeerListProvider
 import sidechain.SideChainEvent
 import sidechain.iroha.consumer.IrohaNetwork
+import sidechain.iroha.util.ModelUtil
 import java.math.BigInteger
 import kotlin.test.assertEquals
 
@@ -33,7 +34,7 @@ class NotaryTest {
         on { accountId } doReturn "creator@iroha"
     }
 
-    private val irohaCredential = IrohaCredential("creator@iroha", mock())
+    private val irohaCredential = IrohaCredential("creator@iroha", ModelUtil.generateKeypair())
     private val irohaNetwork = mock<IrohaNetwork>()
 
     /** Configuration for notary */
