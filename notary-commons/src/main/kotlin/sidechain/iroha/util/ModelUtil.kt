@@ -85,7 +85,7 @@ object ModelUtil {
 
     // TODO temprorary function, should be removed after move to Iroha Pure Java Lib
     // is used to convert iroha keys from Iroha Bindings lib representation to Iroha Pure Java lib
-    fun hexToByte(hexString: String): Byte {
+    private fun hexToByte(hexString: String): Byte {
         val firstDigit = toDigit(hexString[0])
         val secondDigit = toDigit(hexString[1])
         return ((firstDigit shl 4) + secondDigit).toByte()
@@ -105,7 +105,7 @@ object ModelUtil {
 
     // TODO temprorary function, should be removed after move to Iroha Pure Java Lib
     // is used to convert iroha keys from Iroha Bindings lib representation to Iroha Pure Java lib
-    fun decodeHexString(hexString: String): ByteArray {
+    private fun decodeHexString(hexString: String): ByteArray {
         if (hexString.length % 2 == 1) {
             throw IllegalArgumentException(
                 "Invalid hexadecimal String supplied."
@@ -123,7 +123,7 @@ object ModelUtil {
 
     // TODO temprorary function, should be removed after move to Iroha Pure Java Lib
     // is used to convert iroha keys from Iroha Bindings lib representation to Iroha Pure Java lib
-    fun bytesToHex(bytes: ByteArray): String {
+    private fun bytesToHex(bytes: ByteArray): String {
         var str = ""
         for (b in bytes) {
             str = str + String.format("%02X", b)

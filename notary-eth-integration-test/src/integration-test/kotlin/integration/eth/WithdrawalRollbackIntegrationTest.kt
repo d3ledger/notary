@@ -9,6 +9,7 @@ import provider.eth.ETH_PRECISION
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
+import util.toHexString
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.security.KeyPair
@@ -86,7 +87,7 @@ class WithdrawalRollbackIntegrationTest {
         val res = integrationHelper.sendRegistrationRequest(
             clientName,
             listOf(toAddress).toString(),
-            ModelUtil.bytesToHex(keypair.public.encoded),
+            keypair.public.toHexString(),
             registrationConfig.port
         )
         Assertions.assertEquals(200, res.statusCode)

@@ -19,6 +19,7 @@ import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import token.EthTokenInfo
 import util.getRandomString
+import util.toHexString
 import vacuum.RelayVacuumConfig
 import withdrawalservice.WithdrawalServiceConfig
 import java.math.BigInteger
@@ -267,7 +268,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         whitelist: List<String>,
         keypair: KeyPair = ModelUtil.generateKeypair()
     ): String {
-        ethRegistrationStrategy.register(name, whitelist, ModelUtil.bytesToHex(keypair.public.encoded))
+        ethRegistrationStrategy.register(name, whitelist, keypair.public.toHexString())
             .fold({ registeredEthWallet ->
                 logger.info("registered client $name with relay $registeredEthWallet")
                 return registeredEthWallet

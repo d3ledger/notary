@@ -7,6 +7,7 @@ import mu.KLogging
 import sidechain.eth.util.DeployHelper
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
+import util.toHexString
 import java.math.BigInteger
 
 /**
@@ -49,7 +50,7 @@ class NotaryClient(
         val response = integrationHelper.sendRegistrationRequest(
             name,
             whitelist.toString(),
-            ModelUtil.bytesToHex(irohaCredential.keyPair.public.encoded),
+            irohaCredential.keyPair.public.toHexString(),
             integrationHelper.ethRegistrationConfig.port
         )
         relay = response.text

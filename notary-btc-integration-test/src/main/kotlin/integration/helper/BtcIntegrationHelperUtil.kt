@@ -23,6 +23,7 @@ import registration.btc.BtcRegistrationStrategyImpl
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.util.ModelUtil
+import util.toHexString
 import java.io.File
 import java.math.BigDecimal
 import java.security.KeyPair
@@ -179,7 +180,7 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         keypair: KeyPair = ModelUtil.generateKeypair(),
         whitelist: List<String> = emptyList()
     ): String {
-        btcRegistrationStrategy.register(irohaAccountName, whitelist, ModelUtil.bytesToHex(keypair.public.encoded))
+        btcRegistrationStrategy.register(irohaAccountName, whitelist, keypair.public.toHexString())
             .fold({ btcAddress ->
                 logger.info { "BTC address $btcAddress was registered by $irohaAccountName" }
                 return btcAddress

@@ -19,6 +19,7 @@ import provider.btc.address.BtcAddressType
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
+import util.toHexString
 import withdrawal.btc.transaction.TimedTx
 import java.io.File
 import java.security.KeyPair
@@ -143,7 +144,7 @@ class BtcFullPipelineTest {
             "http://127.0.0.1:${registrationEnvironment.btcRegistrationConfig.port}/users",
             data = mapOf(
                 "name" to userName,
-                "pubkey" to ModelUtil.bytesToHex(keypair.public.encoded),
+                "pubkey" to keypair.public.toHexString(),
                 "whitelist" to ""
             )
         )
