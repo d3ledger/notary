@@ -26,14 +26,14 @@ private val logger = KLogging().logger
 fun main(args: Array<String>) {
     logger.info { "Run relay deployment" }
     loadConfigs("relay-registration", RelayRegistrationConfig::class.java, "/eth/relay_registration.properties")
-        .map {
+        .map {relayRegistrationConfig ->
             object : RelayRegistrationConfig {
-                override val number = it.number
-                override val ethMasterWallet = System.getenv(ETH_MASTER_WALLET_ENV) ?: it.ethMasterWallet
-                override val notaryIrohaAccount = it.notaryIrohaAccount
-                override val relayRegistrationCredential = it.relayRegistrationCredential
-                override val iroha = it.iroha
-                override val ethereum = it.ethereum
+                override val number = relayRegistrationConfig.number
+                override val ethMasterWallet = System.getenv(ETH_MASTER_WALLET_ENV) ?: relayRegistrationConfig.ethMasterWallet
+                override val notaryIrohaAccount = relayRegistrationConfig.notaryIrohaAccount
+                override val relayRegistrationCredential = relayRegistrationConfig.relayRegistrationCredential
+                override val iroha = relayRegistrationConfig.iroha
+                override val ethereum = relayRegistrationConfig.ethereum
             }
         }
         .fanout { loadEthPasswords("relay-registration", "/eth/ethereum_password.properties", args) }

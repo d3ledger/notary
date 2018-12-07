@@ -21,16 +21,16 @@ private val logger = KLogging().logger
  */
 fun main(args: Array<String>) {
     loadConfigs("eth-registration", EthRegistrationConfig::class.java, "/eth/registration.properties")
-        .map {
+        .map {ethRegistrationConfig ->
             object : EthRegistrationConfig {
                 override val ethRelayRegistryAddress = System.getenv(ETH_RELAY_REGISTRY_ENV)
-                    ?: it.ethRelayRegistryAddress
-                override val ethereum = it.ethereum
-                override val port = it.port
-                override val relayRegistrationIrohaAccount = it.relayRegistrationIrohaAccount
-                override val notaryIrohaAccount = it.notaryIrohaAccount
-                override val iroha = it.iroha
-                override val registrationCredential = it.registrationCredential
+                    ?: ethRegistrationConfig.ethRelayRegistryAddress
+                override val ethereum = ethRegistrationConfig.ethereum
+                override val port = ethRegistrationConfig.port
+                override val relayRegistrationIrohaAccount = ethRegistrationConfig.relayRegistrationIrohaAccount
+                override val notaryIrohaAccount = ethRegistrationConfig.notaryIrohaAccount
+                override val iroha = ethRegistrationConfig.iroha
+                override val registrationCredential = ethRegistrationConfig.registrationCredential
             }
         }
         .fanout { loadEthPasswords("eth-registration", "/eth/ethereum_password.properties", args) }
