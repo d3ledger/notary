@@ -17,13 +17,11 @@ private val logger = KLogging().logger
  * ERC20 tokens registration entry point
  */
 fun main(args: Array<String>) {
-    val tokenRegistrationConfig =
         loadConfigs(
             "token-registration",
             ERC20TokenRegistrationConfig::class.java,
             "/eth/token_registration.properties"
-        )
-    executeTokenRegistration(tokenRegistrationConfig)
+        ).map { executeTokenRegistration(it) }
 }
 
 fun executeTokenRegistration(tokenRegistrationConfig: ERC20TokenRegistrationConfig) {

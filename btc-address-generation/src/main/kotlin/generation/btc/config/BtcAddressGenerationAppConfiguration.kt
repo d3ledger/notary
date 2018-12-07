@@ -17,7 +17,11 @@ import wallet.WalletFile
 import java.io.File
 
 val btcAddressGenerationConfig =
-    loadConfigs("btc-address-generation", BtcAddressGenerationConfig::class.java, "/btc/address_generation.properties")
+    loadConfigs(
+        "btc-address-generation",
+        BtcAddressGenerationConfig::class.java,
+        "/btc/address_generation.properties"
+    ).get()
 
 @Configuration
 class BtcAddressGenerationAppConfiguration {

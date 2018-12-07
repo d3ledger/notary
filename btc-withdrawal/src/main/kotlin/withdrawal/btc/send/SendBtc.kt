@@ -31,11 +31,11 @@ private val logger = KLogging().logger
 fun main(args: Array<String>) {
     val destAddress = args[0]
     val satAmount = args[1].toInt()
-    val withdrawalConfig = loadConfigs(
-        "btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties"
-    )
     IrohaInitialization.loadIrohaLibrary()
-        .map {
+        .flatMap {
+            loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties")
+        }
+        .map { withdrawalConfig ->
             val irohaNetwork = IrohaNetworkImpl(withdrawalConfig.iroha.hostname, withdrawalConfig.iroha.port)
             sendBtc(
                 destAddress, satAmount,

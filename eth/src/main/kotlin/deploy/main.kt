@@ -2,6 +2,9 @@
 
 package deploy
 
+import com.github.kittinunf.result.failure
+import com.github.kittinunf.result.fanout
+import com.github.kittinunf.result.map
 import config.EthereumConfig
 import config.loadConfigs
 import config.loadEthPasswords
@@ -21,27 +24,31 @@ fun main(args: Array<String>) {
         System.exit(1)
     }
 
-    val ethereumConfig = loadConfigs("predeploy.ethereum", EthereumConfig::class.java, "/eth/predeploy.properties")
-    val passwordConfig = loadEthPasswords("predeploy", "/eth/ethereum_password.properties")
-    val deployHelper = DeployHelper(ethereumConfig, passwordConfig)
+    loadConfigs("predeploy.ethereum", EthereumConfig::class.java, "/eth/predeploy.properties")
+        .fanout { loadEthPasswords("predeploy", "/eth/ethereum_password.properties") }
+        .map { (ethereumConfig, passwordConfig) -> DeployHelper(ethereumConfig, passwordConfig) }
+        .map { deployHelper ->
+            val relayRegistry = deployHelper.deployRelayRegistrySmartContract()
+            val master = deployHelper.deployMasterSmartContract(relayRegistry.contractAddress)
 
-    val relayRegistry = deployHelper.deployRelayRegistrySmartContract()
-    val master = deployHelper.deployMasterSmartContract(relayRegistry.contractAddress)
 
+            var result = master.addPeers(args.toList()).send().isStatusOK
+            logger.info { "Peers were added" }
 
-    var result = master.addPeers(args.toList()).send().isStatusOK
-    logger.info { "Peers were added" }
+            result = result && master.disableAddingNewPeers().send().isStatusOK
 
-    result = result && master.disableAddingNewPeers().send().isStatusOK
+            logger.info { "Master account has been locked" }
 
-    logger.info { "Master account has been locked" }
+            if (!result) {
+                logger.error("Error: failed to call master smart contract")
+                System.exit(1)
+            }
 
-    if (!result) {
-        logger.error("Error: failed to call master smart contract")
-        System.exit(1)
-    }
-
-    logger.info { "master_eth_address::: ${master.contractAddress}" }
-    logger.info { "relay_registry_eth_address::: ${relayRegistry.contractAddress}" }
-
+            logger.info { "master_eth_address::: ${master.contractAddress}" }
+            logger.info { "relay_registry_eth_address::: ${relayRegistry.contractAddress}" }
+        }
+        .failure { ex ->
+            logger.error("Cannot deploy smart contract", ex)
+            System.exit(1)
+        }
 }

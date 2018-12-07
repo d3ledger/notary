@@ -48,12 +48,12 @@ class WithdrawalMultinotaryIntegrationTest {
 
     private val keypair2: ECKeyPair
 
-    private val ethereumPasswords = loadEthPasswords("eth-notary", "/eth/ethereum_password.properties")
+    private val ethereumPasswords = loadEthPasswords("eth-notary", "/eth/ethereum_password.properties").get()
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
 
     init {
-        val notaryConfig = loadConfigs("eth-notary", EthNotaryConfig::class.java, "/eth/notary.properties")
+        val notaryConfig = loadConfigs("eth-notary", EthNotaryConfig::class.java, "/eth/notary.properties").get()
         val ethKeyPath = notaryConfig.ethereum.credentialsPath
 
         // create 1st notary config

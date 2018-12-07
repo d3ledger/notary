@@ -19,7 +19,7 @@ open class EthConfigHelper(
 ) : IrohaConfigHelper() {
 
     /** Ethereum password configs */
-    val ethPasswordConfig = loadEthPasswords("test", "/eth/ethereum_password.properties")
+    val ethPasswordConfig = loadEthPasswords("test", "/eth/ethereum_password.properties").get()
 
     /** Configuration for notary instance */
     private val ethNotaryConfig by lazy {
@@ -27,7 +27,7 @@ open class EthConfigHelper(
             "eth-notary",
             EthNotaryConfig::class.java,
             "/eth/notary.properties"
-        )
+        ).get()
     }
 
     fun getTestCredentialConfig(): IrohaCredentialConfig {
@@ -40,7 +40,7 @@ open class EthConfigHelper(
             "token-registration",
             ERC20TokenRegistrationConfig::class.java,
             "/eth/token_registration.properties"
-        )
+        ).get()
 
         return object : ERC20TokenRegistrationConfig {
             override val irohaCredential = ethTokenRegistrationConfig.irohaCredential
@@ -53,7 +53,11 @@ open class EthConfigHelper(
     /** Creates config for ETH relays registration */
     fun createRelayRegistrationConfig(): RelayRegistrationConfig {
         val relayRegistrationConfig =
-            loadConfigs("relay-registration", RelayRegistrationConfig::class.java, "/eth/relay_registration.properties")
+            loadConfigs(
+                "relay-registration",
+                RelayRegistrationConfig::class.java,
+                "/eth/relay_registration.properties"
+            ).get()
 
         return object : RelayRegistrationConfig {
             override val number = relayRegistrationConfig.number
@@ -101,7 +105,7 @@ open class EthConfigHelper(
     /** Test configuration of Withdrawal service with runtime dependencies */
     fun createWithdrawalConfig(useValidEthereum: Boolean = true): WithdrawalServiceConfig {
         val withdrawalConfig =
-            loadConfigs("withdrawal", WithdrawalServiceConfig::class.java, "/eth/withdrawal.properties")
+            loadConfigs("withdrawal", WithdrawalServiceConfig::class.java, "/eth/withdrawal.properties").get()
 
         val ethereumConfig =
             if (useValidEthereum) withdrawalConfig.ethereum else getBrokenEthereumConfig(withdrawalConfig)
@@ -145,7 +149,7 @@ open class EthConfigHelper(
 
     fun createRelayVacuumConfig(): RelayVacuumConfig {
         val vacuumConfig =
-            loadConfigs("relay-vacuum", RelayVacuumConfig::class.java, "/eth/vacuum.properties")
+            loadConfigs("relay-vacuum", RelayVacuumConfig::class.java, "/eth/vacuum.properties").get()
         return object : RelayVacuumConfig {
             override val registrationServiceIrohaAccount = accountHelper.registrationAccount.accountId
             override val tokenStorageAccount = accountHelper.tokenStorageAccount.accountId

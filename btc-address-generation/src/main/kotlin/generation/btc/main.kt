@@ -6,11 +6,11 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.getProfile
+import generation.btc.config.btcAddressGenerationConfig
 import mu.KLogging
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.ComponentScan
-import generation.btc.config.btcAddressGenerationConfig
 import sidechain.iroha.IrohaInitialization
 
 @SpringBootApplication

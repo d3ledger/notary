@@ -2,10 +2,7 @@
 
 package vacuum
 
-import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.failure
-import com.github.kittinunf.result.flatMap
-import com.github.kittinunf.result.map
+import com.github.kittinunf.result.*
 import config.loadConfigs
 import config.loadEthPasswords
 import model.IrohaCredential
@@ -20,8 +17,10 @@ private val logger = KLogging().logger
  * Entry point for moving all currency from relay contracts to master contract
  */
 fun main(args: Array<String>) {
-    val relayVacuumConfig = loadConfigs(RELAY_VACUUM_PREFIX, RelayVacuumConfig::class.java, "/eth/vacuum.properties")
-    executeVacuum(relayVacuumConfig, args)
+    loadConfigs(RELAY_VACUUM_PREFIX, RelayVacuumConfig::class.java, "/eth/vacuum.properties")
+        .map {relayVacuumConfig ->
+            executeVacuum(relayVacuumConfig, args)
+        }
         .failure { ex ->
             logger.error("Cannot run vacuum", ex)
             System.exit(1)
@@ -30,7 +29,6 @@ fun main(args: Array<String>) {
 
 fun executeVacuum(relayVacuumConfig: RelayVacuumConfig, args: Array<String> = emptyArray()): Result<Unit, Exception> {
     logger.info { "Run relay vacuum" }
-    val passwordConfig = loadEthPasswords(RELAY_VACUUM_PREFIX, "/eth/ethereum_password.properties", args)
     return IrohaInitialization.loadIrohaLibrary()
         .flatMap {
             ModelUtil.loadKeypair(
@@ -39,7 +37,8 @@ fun executeVacuum(relayVacuumConfig: RelayVacuumConfig, args: Array<String> = em
             )
         }
         .map { keypair -> IrohaCredential(relayVacuumConfig.vacuumCredential.accountId, keypair) }
-        .flatMap { credential ->
+        .fanout { loadEthPasswords(RELAY_VACUUM_PREFIX, "/eth/ethereum_password.properties", args) }
+        .flatMap { (credential, passwordConfig) ->
             IrohaNetworkImpl(relayVacuumConfig.iroha.hostname, relayVacuumConfig.iroha.port).use { irohaNetwork ->
                 RelayVacuum(relayVacuumConfig, passwordConfig, credential, irohaNetwork).vacuum()
             }
