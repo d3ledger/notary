@@ -295,7 +295,7 @@ object ModelUtil {
         vararg roleName: String
     ): Result<String, Exception> {
         return Result.of {
-            val oldPubkey = jp.co.soramitsu.iroha.PublicKey(bytesToHex(publicKey.encoded))
+            val oldPubkey = PublicKey(jp.co.soramitsu.iroha.PublicKey.fromHexString(bytesToHex(publicKey.encoded)))
 
             var txBuilder = ModelTransactionBuilder()
                 .creatorAccountId(irohaConsumer.creator)
@@ -352,7 +352,7 @@ object ModelUtil {
         publicKey: PublicKey
     ): Result<String, Exception> {
         return Result.of {
-            val oldPubkey = jp.co.soramitsu.iroha.PublicKey(bytesToHex(publicKey.encoded))
+            val oldPubkey = PublicKey(jp.co.soramitsu.iroha.PublicKey.fromHexString(bytesToHex(publicKey.encoded)))
 
             ModelTransactionBuilder()
                 .creatorAccountId(irohaConsumer.creator)
