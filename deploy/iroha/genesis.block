@@ -403,6 +403,12 @@
                   "domainId": "notary",
                   "publicKey": "CS5xsDGlGtrpJPfNlE8Dca6LhQJGnjJpOIUzTe3MYAE="
                 }
+              },
+              {
+                "appendRole": {
+                  "accountId": "admin@notary",
+                  "roleName": "admin"
+                }
               }
             ],
             "creatorAccountId": "notary@notary",
