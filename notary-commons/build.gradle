@@ -19,9 +19,13 @@ dependencies {
     compile "io.reactivex.rxjava2:rxjava:2.0.0"
     compile "io.reactivex.rxjava2:rxkotlin:2.0.0"
 
+    // TODO remove it
     // Iroha bindings
     def iroha_bindings_dir = Paths.get(projectDir.getParent().toString(), "iroha_bindings").toString()
     compile fileTree(dir: iroha_bindings_dir, include: '*.jar')
+
+    // Iroha Pure Java library
+    compile 'com.github.warchant:iroha-pure-java:0.6.0'
 
     // logging
     compile 'io.github.microutils:kotlin-logging:1.4.9'
@@ -30,9 +34,6 @@ dependencies {
 
     // CLI arguments
     compile group: 'com.xenomachina', name: 'kotlin-argparser', version: '2.0.6'
-
-    // Kyber
-    // TODO @muratovv: add lib
 
     // Ktor - http
     compile "io.ktor:ktor-server-core:$ktor_version"

@@ -9,6 +9,7 @@ import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
+import util.hex
 
 private const val BTC_SESSION_DOMAIN = "btcSession"
 const val ADDRESS_GENERATION_TIME_KEY = "addressGenerationTime"
@@ -35,7 +36,7 @@ class BtcSessionProvider(
                 arrayListOf(
                     //Creating session account
                     IrohaCommand.CommandCreateAccount(
-                        sessionId, BTC_SESSION_DOMAIN, credential.keyPair.publicKey().hex()
+                        sessionId, BTC_SESSION_DOMAIN, String.hex(credential.keyPair.public.encoded)
                     ),
                     //Setting address generation time
                     IrohaCommand.CommandSetAccountDetail(

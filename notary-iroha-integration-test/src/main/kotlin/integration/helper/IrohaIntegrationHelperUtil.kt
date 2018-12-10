@@ -4,9 +4,7 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import config.loadConfigs
 import integration.TestConfig
-import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
-import jp.co.soramitsu.iroha.PublicKey
 import kotlinx.coroutines.runBlocking
 import model.IrohaCredential
 import mu.KLogging
@@ -18,6 +16,8 @@ import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountAssetBalance
 import java.io.Closeable
 import java.math.BigDecimal
+import java.security.KeyPair
+import java.security.PublicKey
 
 /**
  * Utility class that makes testing more comfortable
@@ -164,7 +164,7 @@ open class IrohaIntegrationHelperUtil : Closeable {
      */
     fun transferAssetIrohaFromClient(
         creator: String,
-        kp: Keypair,
+        kp: KeyPair,
         srcAccountId: String,
         destAccountId: String,
         assetId: String,
@@ -195,7 +195,7 @@ open class IrohaIntegrationHelperUtil : Closeable {
      */
     fun transferAssetIrohaFromClient(
         creator: String,
-        kp: Keypair,
+        kp: KeyPair,
         srcAccountId: String,
         destAccountId: String,
         assetId: String,

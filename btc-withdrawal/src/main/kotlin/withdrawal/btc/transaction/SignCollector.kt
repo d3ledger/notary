@@ -25,6 +25,7 @@ import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountDetails
 import util.getRandomId
+import util.hex
 import util.irohaEscape
 import util.unHex
 
@@ -203,7 +204,7 @@ class SignCollector(
                 IrohaCommand.CommandCreateAccount(
                     txShortHash,
                     BTC_SIGN_COLLECT_DOMAIN,
-                    signatureCollectorCredential.keyPair.publicKey().hex()
+                    String.hex(signatureCollectorCredential.keyPair.public.encoded)
                 )
             )
         )

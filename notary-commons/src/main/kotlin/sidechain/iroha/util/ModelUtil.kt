@@ -10,6 +10,7 @@ import iroha.protocol.Queries.BlocksQuery
 import iroha.protocol.Queries.Query
 import iroha.protocol.QueryServiceGrpc
 import iroha.protocol.TransactionOuterClass.Transaction
+import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import jp.co.soramitsu.iroha.*
 import model.IrohaCredential
 import mu.KLogging
@@ -19,15 +20,11 @@ import java.io.IOException
 import java.math.BigInteger
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.security.KeyPair
+import java.security.PublicKey
 
 object ModelUtil {
     val logger = KLogging().logger
-
-    /**
-     * Get iroha crypto library
-     * @return cryptograpty module
-     */
-    fun getModelCrypto() = ModelCrypto()
 
     /**
      * Get iroha transaction builder
@@ -86,34 +83,75 @@ object ModelUtil {
         }
     }
 
-    /**
-     * Gets keys for a concrete user
-     * @param path to get keys from
-     * @param user which keys to read
-     * @return user's keypair
-     */
-    fun getKeys(path: String, user: String) = getModelCrypto().convertFromExisting(
-        readKeyFromFile("$path/$user.pub"),
-        readKeyFromFile("$path/$user.priv")
-    )
+    // TODO temprorary function, should be removed after move to Iroha Pure Java Lib
+    // is used to convert iroha keys from Iroha Bindings lib representation to Iroha Pure Java lib
+    private fun hexToByte(hexString: String): Byte {
+        val firstDigit = toDigit(hexString[0])
+        val secondDigit = toDigit(hexString[1])
+        return ((firstDigit shl 4) + secondDigit).toByte()
+    }
+
+    // TODO temprorary function, should be removed after move to Iroha Pure Java Lib
+    // is used to convert iroha keys from Iroha Bindings lib representation to Iroha Pure Java lib
+    private fun toDigit(hexChar: Char): Int {
+        val digit = Character.digit(hexChar, 16)
+        if (digit == -1) {
+            throw IllegalArgumentException(
+                "Invalid Hexadecimal Character: $hexChar"
+            )
+        }
+        return digit
+    }
+
+    // TODO temprorary function, should be removed after move to Iroha Pure Java Lib
+    // is used to convert iroha keys from Iroha Bindings lib representation to Iroha Pure Java lib
+    private fun decodeHexString(hexString: String): ByteArray {
+        if (hexString.length % 2 == 1) {
+            throw IllegalArgumentException(
+                "Invalid hexadecimal String supplied."
+            )
+        }
+
+        val bytes = ByteArray(hexString.length / 2)
+        var i = 0
+        while (i < hexString.length) {
+            bytes[i / 2] = hexToByte(hexString.substring(i, i + 2))
+            i += 2
+        }
+        return bytes
+    }
+
+    // TODO temprorary function, should be removed after move to Iroha Pure Java Lib
+    // is used to convert iroha keys from Iroha Bindings lib representation to Iroha Pure Java lib
+    private fun bytesToHex(bytes: ByteArray): String {
+        var str = ""
+        for (b in bytes) {
+            str = str + String.format("%02X", b)
+        }
+
+        return str
+    }
 
     /**
      * Load keypair from existing files
      * @param pubkeyPath path to file with public key
      * @param privkeyPath path to file with private key
      */
-    fun loadKeypair(pubkeyPath: String, privkeyPath: String): Result<Keypair, Exception> {
-        val crypto = ModelCrypto()
+    fun loadKeypair(pubkeyPath: String, privkeyPath: String): Result<KeyPair, Exception> {
         return Result.of {
             try {
-                crypto.convertFromExisting(
-                    String(java.nio.file.Files.readAllBytes(Paths.get(pubkeyPath))),
-                    String(java.nio.file.Files.readAllBytes(Paths.get(privkeyPath)))
+                Ed25519Sha3.keyPairFromBytes(
+                    decodeHexString(readKeyFromFile(privkeyPath)!!),
+                    decodeHexString(readKeyFromFile(pubkeyPath)!!)
                 )
             } catch (e: IOException) {
                 throw Exception("Unable to read Iroha key files. Public key: $pubkeyPath, Private key: $privkeyPath", e)
             }
         }
+    }
+
+    fun generateKeypair(): KeyPair {
+        return Ed25519Sha3().generateKeypair()
     }
 
     /**
@@ -122,10 +160,13 @@ object ModelUtil {
      * @param keys used to sign query
      * @return proto query, if succeeded
      */
-    fun prepareQuery(uquery: UnsignedQuery, keys: Keypair): Result<Query, Exception> {
+    fun prepareQuery(uquery: UnsignedQuery, keys: KeyPair): Result<Query, Exception> {
+        val modelKeys =
+            ModelCrypto().convertFromExisting(bytesToHex(keys.public.encoded), bytesToHex(keys.private.encoded))
+
         return Result.of {
             val bquery = ModelProtoQuery(uquery)
-                .signAndAddSignature(keys)
+                .signAndAddSignature(modelKeys)
                 .finish()
                 .blob()
                 .toByteArray()
@@ -139,10 +180,12 @@ object ModelUtil {
      * @param keys used to sign blocks query
      * @return proto blocks query, if succeeded
      */
-    fun prepareBlocksQuery(uquery: UnsignedBlockQuery, keys: Keypair): BlocksQuery? {
+    fun prepareBlocksQuery(uquery: UnsignedBlockQuery, keys: KeyPair): BlocksQuery? {
+        val modelKeys =
+            ModelCrypto().convertFromExisting(bytesToHex(keys.public.encoded), bytesToHex(keys.private.encoded))
 
         val queryBlob = ModelProtoBlocksQuery(uquery)
-            .signAndAddSignature(keys)
+            .signAndAddSignature(modelKeys)
             .finish()
             .blob()
         val bquery = queryBlob.toByteArray()
@@ -162,14 +205,16 @@ object ModelUtil {
      * @param keys used to sign transaction
      * @return proto transaction, if succeeded
      */
-    fun prepareTransaction(utx: UnsignedTx, keys: Keypair): Result<Transaction, Exception> {
+    fun prepareTransaction(utx: UnsignedTx, keys: KeyPair): Result<Transaction, Exception> {
+        val modelKeys =
+            ModelCrypto().convertFromExisting(bytesToHex(keys.public.encoded), bytesToHex(keys.private.encoded))
+
         return Result.of {
             // sign transaction and get its binary representation (Blob)
             val tx = ModelProtoTransaction(utx)
-                .signAndAddSignature(keys)
+                .signAndAddSignature(modelKeys)
                 .finish()
             val blob = tx.blob()
-
 
             // Convert ByteVector to byte array
             val bs = blob.toByteArray()
@@ -234,6 +279,114 @@ object ModelUtil {
             .setAccountDetail(accountId, key, value)
             .build()
         return irohaConsumer.sendAndCheck(tx)
+    }
+
+    /**
+     * Send CreateAccount to Iroha
+     * @param irohaConsumer - iroha network layer
+     * @param name - account to be created
+     * @param domain - domain for account
+     * @param publicKey - public key of the account
+     * @return hex representation of transaction hash
+     */
+    fun createAccount(
+        irohaConsumer: IrohaConsumer,
+        name: String,
+        domain: String,
+        publicKey: PublicKey,
+        vararg roleName: String
+    ): Result<String, Exception> {
+        return Result.of {
+            val oldPubkey = PublicKey(jp.co.soramitsu.iroha.PublicKey.fromHexString(bytesToHex(publicKey.encoded)))
+
+            var txBuilder = ModelTransactionBuilder()
+                .creatorAccountId(irohaConsumer.creator)
+                .createdTime(getCurrentTime())
+                .createAccount(name, domain, oldPubkey)
+
+            roleName.forEach {
+                txBuilder = txBuilder.appendRole("$name@$domain", it)
+            }
+
+            txBuilder.build()
+        }.flatMap { utx ->
+            irohaConsumer.sendAndCheck(utx)
+        }
+    }
+
+    /**
+     * Send GrantPermission to Iroha
+     * @param irohaConsumer - iroha network layer
+     * @param accountId - account to be granted
+     * @param permissions - permissions to be granted
+     * @return hex representation of transaction hash
+     */
+    fun grantPermission(
+        irohaConsumer: IrohaConsumer,
+        accountId: String,
+        vararg permissions: Grantable
+    ): Result<String, Exception> {
+        return Result.of {
+            var txBuilder = ModelTransactionBuilder()
+                .creatorAccountId(irohaConsumer.creator)
+                .createdTime(getCurrentTime())
+
+            permissions.forEach { permission ->
+                txBuilder = txBuilder.grantPermission(accountId, permission)
+            }
+
+            txBuilder.build()
+        }.flatMap { utx ->
+            irohaConsumer.sendAndCheck(utx)
+        }
+    }
+
+    /**
+     * Send AddSignatory to Iroha
+     * @param irohaConsumer - iroha network layer
+     * @param accountId - account to add key
+     * @param publicKey - key to be added
+     * @return hex representation of transaction hash
+     */
+    fun addSignatory(
+        irohaConsumer: IrohaConsumer,
+        accountId: String,
+        publicKey: PublicKey
+    ): Result<String, Exception> {
+        return Result.of {
+            val oldPubkey = PublicKey(jp.co.soramitsu.iroha.PublicKey.fromHexString(bytesToHex(publicKey.encoded)))
+
+            ModelTransactionBuilder()
+                .creatorAccountId(irohaConsumer.creator)
+                .createdTime(getCurrentTime())
+                .addSignatory(accountId, oldPubkey)
+                .build()
+        }.flatMap { utx ->
+            irohaConsumer.sendAndCheck(utx)
+        }
+    }
+
+    /**
+     * Send SetAccountQourum to Iroha
+     * @param irohaConsumer - iroha network layer
+     * @param accountId - account to set quorum to
+     * @param quorum - quorum to be set
+     * @return hex representation of transaction hash
+     */
+    fun setAccountQuorum(
+        irohaConsumer: IrohaConsumer,
+        accountId: String,
+        quorum: Int
+    ): Result<String, Exception> {
+        return Result.of {
+            ModelTransactionBuilder()
+                .creatorAccountId(irohaConsumer.creator)
+                .createdTime(getCurrentTime())
+                .setAccountQuorum(accountId, quorum)
+                .build()
+        }.flatMap { utx ->
+            irohaConsumer.sendAndCheck(utx)
+        }
     }
 
     /**
