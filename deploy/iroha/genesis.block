@@ -82,6 +82,14 @@
               },
               {
                 "createRole": {
+                  "roleName": "admin",
+                  "permissions": [
+                    "can_get_all_accounts"
+                  ]
+                }
+              },
+              {
+                "createRole": {
                   "roleName": "withdrawal",
                   "permissions": [
                     "can_get_all_accounts",
@@ -387,6 +395,13 @@
                   "accountName": "gen_btc_pk_trigger",
                   "domainId": "notary",
                   "publicKey": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "admin",
+                  "domainId": "admin",
+                  "publicKey": "CS5xsDGlGtrpJPfNlE8Dca6LhQJGnjJpOIUzTe3MYAE="
                 }
               }
             ],
