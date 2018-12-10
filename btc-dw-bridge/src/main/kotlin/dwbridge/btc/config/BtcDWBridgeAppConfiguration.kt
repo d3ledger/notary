@@ -1,11 +1,12 @@
 package dwbridge.btc.config
 
+import config.BitcoinConfig
 import config.loadConfigs
 import model.IrohaCredential
 import notary.btc.config.BtcNotaryConfig
 import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
-import org.springframework.stereotype.Component
+import org.springframework.context.annotation.Configuration
 import provider.btc.address.BtcRegisteredAddressesProvider
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
@@ -22,7 +23,7 @@ val withdrawalConfig =
 val notaryConfig = loadConfigs("btc-notary", BtcNotaryConfig::class.java, "/btc/notary.properties").get()
 val dwBridgeConfig = loadConfigs("btc-dw-bridge", BtcDWBridgeConfig::class.java, "/btc/dw-bridge.properties").get()
 
-@Component
+@Configuration
 class BtcDWBridgeAppConfiguration {
 
     private val withdrawalKeypair = ModelUtil.loadKeypair(
@@ -115,5 +116,8 @@ class BtcDWBridgeAppConfiguration {
 
     @Bean
     fun blockStoragePath() = dwBridgeConfig.bitcoin.blockStoragePath
+
+    @Bean
+    fun btcHosts() = BitcoinConfig.extractHosts(dwBridgeConfig.bitcoin)
 
 }

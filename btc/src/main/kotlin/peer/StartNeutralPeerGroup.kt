@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import provider.btc.network.BtcNetworkConfigProvider
+import java.net.InetAddress
 
 /**
  * This is a peer group implementation that can be used in multiple services simultaneously with no fear of get exception while calling 'startAsync()' twice
@@ -19,12 +20,21 @@ class StartNeutralPeerGroup(
     @Autowired btcNetworkConfigProvider: BtcNetworkConfigProvider,
     @Autowired wallet: Wallet,
     @Qualifier("blockStoragePath")
-    @Autowired blockStoragePath: String
+    @Autowired blockStoragePath: String,
+    @Qualifier("btcHosts")
+    @Autowired hosts: List<String>
 ) :
     PeerGroup(
         btcNetworkConfigProvider.getConfig(),
         getBlockChain(wallet, btcNetworkConfigProvider.getConfig(), blockStoragePath)
     ) {
+
+    init {
+        hosts.forEach { host ->
+            this.addAddress(InetAddress.getByName(host))
+            logger.info { "$host was added to peer group" }
+        }
+    }
 
     private var started = false
 

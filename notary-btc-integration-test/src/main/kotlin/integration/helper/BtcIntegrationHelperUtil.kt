@@ -5,6 +5,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import config.BitcoinConfig
+import helper.network.getBlockChain
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelCrypto
 import mu.KLogging
@@ -13,6 +14,8 @@ import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.ECKey
+import org.bitcoinj.core.NetworkParameters
+import org.bitcoinj.core.PeerGroup
 import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.script.ScriptBuilder
@@ -102,6 +105,13 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
             val utx = IrohaConverterImpl().convert(IrohaOrderedBatch(irohaTxList))
             mstRegistrationIrohaConsumer.sendAndCheck(utx).failure { ex -> throw ex }
         }
+    }
+
+    /**
+     * Returns group of peers
+     */
+    fun getPeerGroup(wallet: Wallet, networkParameters: NetworkParameters, blockStoragePath: String): PeerGroup {
+        return PeerGroup(networkParameters, getBlockChain(wallet, networkParameters, blockStoragePath))
     }
 
     private fun createMsAddress(keys: List<ECKey>): Address {

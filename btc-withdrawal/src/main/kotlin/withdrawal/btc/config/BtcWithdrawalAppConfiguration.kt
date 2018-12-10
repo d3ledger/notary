@@ -1,5 +1,6 @@
 package withdrawal.btc.config
 
+import config.BitcoinConfig
 import config.loadConfigs
 import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
@@ -90,4 +91,7 @@ class BtcWithdrawalAppConfiguration {
 
     @Bean
     fun blockStoragePath() = withdrawalConfig().bitcoin.blockStoragePath
+
+    @Bean
+    fun btcHosts() = BitcoinConfig.extractHosts(withdrawalConfig().bitcoin)
 }

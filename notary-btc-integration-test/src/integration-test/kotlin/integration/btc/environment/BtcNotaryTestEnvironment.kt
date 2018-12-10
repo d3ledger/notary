@@ -1,7 +1,7 @@
 package integration.btc.environment
 
+import config.BitcoinConfig
 import handler.btc.NewBtcClientRegistrationHandler
-import helper.network.getPeerGroup
 import integration.helper.BtcIntegrationHelperUtil
 import listener.btc.NewBtcClientRegistrationListener
 import model.IrohaCredential
@@ -12,6 +12,7 @@ import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.util.ModelUtil
 import java.io.Closeable
 import java.io.File
+import java.net.InetAddress
 
 
 /**
@@ -47,9 +48,17 @@ class BtcNotaryTestEnvironment(private val integrationHelper: BtcIntegrationHelp
 
     private val wallet = org.bitcoinj.wallet.Wallet.loadFromFile(File(notaryConfig.bitcoin.walletPath))
 
-    private val peerGroup =
-        getPeerGroup(wallet, btcNetworkConfigProvider.getConfig(), notaryConfig.bitcoin.blockStoragePath)
-
+    private val peerGroup by lazy {
+        val peerGroup = integrationHelper.getPeerGroup(
+            wallet,
+            btcNetworkConfigProvider.getConfig(),
+            notaryConfig.bitcoin.blockStoragePath
+        )
+        BitcoinConfig.extractHosts(notaryConfig.bitcoin).forEach { host ->
+            peerGroup.addAddress(InetAddress.getByName(host))
+        }
+        peerGroup
+    }
     val btcNotaryInitialization =
         BtcNotaryInitialization(
             peerGroup,

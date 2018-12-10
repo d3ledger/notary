@@ -4,7 +4,6 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import config.BitcoinConfig
 import healthcheck.HealthyService
 import helper.network.addPeerConnectionStatusListener
 import helper.network.startChainDownload
@@ -83,7 +82,7 @@ class BtcNotaryInitialization(
             val notary = createBtcNotary(irohaCredential, irohaNetwork, btcEvents, peerListProvider)
             notary.initIrohaConsumer().failure { ex -> throw ex }
         }.map {
-            startChainDownload(peerGroup, BitcoinConfig.extractHosts(btcNotaryConfig.bitcoin))
+            startChainDownload(peerGroup)
         }
     }
 

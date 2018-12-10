@@ -1,8 +1,8 @@
 package integration.btc.environment
 
+import config.BitcoinConfig
 import handler.btc.NewBtcClientRegistrationHandler
 import helper.address.outPutToBase58Address
-import helper.network.getPeerGroup
 import integration.helper.BtcIntegrationHelperUtil
 import model.IrohaCredential
 import org.bitcoinj.core.TransactionOutput
@@ -14,15 +14,16 @@ import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
-import withdrawal.btc.init.BtcWithdrawalInitialization
 import withdrawal.btc.handler.NewSignatureEventHandler
 import withdrawal.btc.handler.WithdrawalTransferEventHandler
+import withdrawal.btc.init.BtcWithdrawalInitialization
 import withdrawal.btc.provider.BtcChangeAddressProvider
 import withdrawal.btc.provider.BtcWhiteListProvider
 import withdrawal.btc.statistics.WithdrawalStatistics
 import withdrawal.btc.transaction.*
 import java.io.Closeable
 import java.io.File
+import java.net.InetAddress
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -103,7 +104,15 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
     }
 
     private val peerGroup by lazy {
-        getPeerGroup(wallet, btcNetworkConfigProvider.getConfig(), btcWithdrawalConfig.bitcoin.blockStoragePath)
+        val peerGroup = integrationHelper.getPeerGroup(
+            wallet,
+            btcNetworkConfigProvider.getConfig(),
+            btcWithdrawalConfig.bitcoin.blockStoragePath
+        )
+        BitcoinConfig.extractHosts(btcWithdrawalConfig.bitcoin).forEach { host ->
+            peerGroup.addAddress(InetAddress.getByName(host))
+        }
+        peerGroup
     }
 
     val btcWithdrawalInitialization by lazy {
