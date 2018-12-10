@@ -2,17 +2,18 @@ package integration.eth
 
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
-import jp.co.soramitsu.iroha.Keypair
-import jp.co.soramitsu.iroha.ModelCrypto
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.junit.jupiter.api.*
 import provider.eth.ETH_PRECISION
 import sidechain.iroha.CLIENT_DOMAIN
+import sidechain.iroha.util.ModelUtil
 import util.getRandomString
+import util.toHexString
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.security.KeyPair
 import java.time.Duration
 import kotlin.test.assertEquals
 
@@ -60,14 +61,14 @@ class WithdrawalPipelineIntegrationTest {
 
     lateinit var clientName: String
     lateinit var clientId: String
-    lateinit var keypair: Keypair
+    lateinit var keypair: KeyPair
 
     @BeforeEach
     fun setup() {
         // generate client name and key
         clientName = String.getRandomString(9)
         clientId = "$clientName@$CLIENT_DOMAIN"
-        keypair = ModelCrypto().generateKeypair()
+        keypair = ModelUtil.generateKeypair()
     }
 
     @AfterAll
@@ -98,7 +99,7 @@ class WithdrawalPipelineIntegrationTest {
             val res = integrationHelper.sendRegistrationRequest(
                 clientName,
                 listOf(toAddress).toString(),
-                keypair.publicKey(),
+                keypair.public.toHexString(),
                 registrationConfig.port
             )
             Assertions.assertEquals(200, res.statusCode)
@@ -160,7 +161,7 @@ class WithdrawalPipelineIntegrationTest {
             val res = integrationHelper.sendRegistrationRequest(
                 clientName,
                 listOf(toAddress).toString(),
-                keypair.publicKey(),
+                keypair.public.toHexString(),
                 registrationConfig.port
             )
             Assertions.assertEquals(200, res.statusCode)

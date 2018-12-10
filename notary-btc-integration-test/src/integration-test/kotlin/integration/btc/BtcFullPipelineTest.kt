@@ -7,8 +7,6 @@ import integration.btc.environment.BtcRegistrationTestEnvironment
 import integration.btc.environment.BtcWithdrawalTestEnvironment
 import integration.helper.BtcIntegrationHelperUtil
 import integration.helper.btcAsset
-import jp.co.soramitsu.iroha.Keypair
-import jp.co.soramitsu.iroha.ModelCrypto
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import mu.KLogging
@@ -19,9 +17,12 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
 import provider.btc.address.BtcAddressType
 import sidechain.iroha.CLIENT_DOMAIN
+import sidechain.iroha.util.ModelUtil
 import util.getRandomString
+import util.toHexString
 import withdrawal.btc.transaction.TimedTx
 import java.io.File
+import java.security.KeyPair
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcFullPipelineTest {
@@ -99,12 +100,12 @@ class BtcFullPipelineTest {
         generateFreeAddress(2)
 
         // Register source account
-        val srcKeypair = ModelCrypto().generateKeypair()
+        val srcKeypair = ModelUtil.generateKeypair()
         val srcUserName = "src_${String.getRandomString(9)}"
         val srcBtcAddress = registerClient(srcUserName, srcKeypair)
 
         // Register destination account
-        val destKeypair = ModelCrypto().generateKeypair()
+        val destKeypair = ModelUtil.generateKeypair()
         val destUserName = "dest_${String.getRandomString(9)}"
         val destBtcAddress = registerClient(destUserName, destKeypair)
 
@@ -138,10 +139,14 @@ class BtcFullPipelineTest {
      * @param keypair - registered user key pair
      * @return registered Bitcoin address
      */
-    private fun registerClient(userName: String, keypair: Keypair): String {
+    private fun registerClient(userName: String, keypair: KeyPair): String {
         val res = khttp.post(
             "http://127.0.0.1:${registrationEnvironment.btcRegistrationConfig.port}/users",
-            data = mapOf("name" to userName, "pubkey" to keypair.publicKey().hex(), "whitelist" to "")
+            data = mapOf(
+                "name" to userName,
+                "pubkey" to keypair.public.toHexString(),
+                "whitelist" to ""
+            )
         )
         return String(res.content)
     }

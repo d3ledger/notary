@@ -1,7 +1,6 @@
 package model
 
-import jp.co.soramitsu.iroha.Keypair
-
+import java.security.KeyPair
 
 /**
  * Class that represents account in Iroha
@@ -10,5 +9,5 @@ import jp.co.soramitsu.iroha.Keypair
  */
 data class IrohaCredential(
     val accountId: String,
-    val keyPair: Keypair
+    val keyPair: KeyPair
 )
