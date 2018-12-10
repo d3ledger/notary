@@ -400,7 +400,7 @@
               {
                 "createAccount": {
                   "accountName": "admin",
-                  "domainId": "admin",
+                  "domainId": "notary",
                   "publicKey": "CS5xsDGlGtrpJPfNlE8Dca6LhQJGnjJpOIUzTe3MYAE="
                 }
               }
