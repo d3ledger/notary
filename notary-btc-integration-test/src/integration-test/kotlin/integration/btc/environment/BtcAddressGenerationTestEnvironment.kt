@@ -1,6 +1,6 @@
 package integration.btc.environment
 
-import generation.btc.BtcAddressGenerationInitialization
+import generation.btc.init.BtcAddressGenerationInitialization
 import integration.helper.BtcIntegrationHelperUtil
 import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet

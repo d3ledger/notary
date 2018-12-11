@@ -1,5 +1,6 @@
 package integration.btc.environment
 
+import config.BitcoinConfig
 import handler.btc.NewBtcClientRegistrationHandler
 import helper.address.outPutToBase58Address
 import integration.helper.BtcIntegrationHelperUtil
@@ -13,15 +14,16 @@ import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
-import withdrawal.btc.BtcWithdrawalInitialization
 import withdrawal.btc.handler.NewSignatureEventHandler
 import withdrawal.btc.handler.WithdrawalTransferEventHandler
+import withdrawal.btc.init.BtcWithdrawalInitialization
 import withdrawal.btc.provider.BtcChangeAddressProvider
 import withdrawal.btc.provider.BtcWhiteListProvider
 import withdrawal.btc.statistics.WithdrawalStatistics
 import withdrawal.btc.transaction.*
 import java.io.Closeable
 import java.io.File
+import java.net.InetAddress
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -97,9 +99,26 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
     )
     val newSignatureEventHandler = NewSignatureEventHandler(withdrawalStatistics, signCollector, unsignedTransactions)
 
+    private val wallet by lazy {
+        Wallet.loadFromFile(File(btcWithdrawalConfig.bitcoin.walletPath))
+    }
+
+    private val peerGroup by lazy {
+        val peerGroup = integrationHelper.getPeerGroup(
+            wallet,
+            btcNetworkConfigProvider.getConfig(),
+            btcWithdrawalConfig.bitcoin.blockStoragePath
+        )
+        BitcoinConfig.extractHosts(btcWithdrawalConfig.bitcoin).forEach { host ->
+            peerGroup.addAddress(InetAddress.getByName(host))
+        }
+        peerGroup
+    }
+
     val btcWithdrawalInitialization by lazy {
         BtcWithdrawalInitialization(
-            Wallet.loadFromFile(File(btcWithdrawalConfig.bitcoin.walletPath)),
+            peerGroup,
+            wallet,
             btcWithdrawalConfig,
             btcChangeAddressProvider,
             irohaChainListener,

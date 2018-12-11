@@ -1,4 +1,4 @@
-package notary.btc
+package notary.btc.factory
 
 import io.reactivex.Observable
 import model.IrohaCredential

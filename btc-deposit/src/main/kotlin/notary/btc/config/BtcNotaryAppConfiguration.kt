@@ -1,5 +1,6 @@
 package notary.btc.config
 
+import config.BitcoinConfig
 import config.loadConfigs
 import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
@@ -49,9 +50,15 @@ class BtcNotaryAppConfiguration {
     fun notaryCredential() = notaryCredential
 
     @Bean
-    fun irohaChainListener() = IrohaChainListener(
+    fun depositIrohaChainListener() = IrohaChainListener(
         notaryConfig.iroha.hostname,
         notaryConfig.iroha.port,
         notaryCredential
     )
+
+    @Bean
+    fun blockStoragePath() = notaryConfig().bitcoin.blockStoragePath
+
+    @Bean
+    fun btcHosts() = BitcoinConfig.extractHosts(notaryConfig().bitcoin)
 }
