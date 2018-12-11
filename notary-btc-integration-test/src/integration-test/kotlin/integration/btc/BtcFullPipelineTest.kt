@@ -1,6 +1,7 @@
 package integration.btc
 
 import com.github.kittinunf.result.failure
+import helper.currency.satToBtc
 import integration.btc.environment.BtcAddressGenerationTestEnvironment
 import integration.btc.environment.BtcNotaryTestEnvironment
 import integration.btc.environment.BtcRegistrationTestEnvironment
@@ -22,6 +23,7 @@ import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
 import withdrawal.btc.transaction.TimedTx
 import java.io.File
+import java.math.BigDecimal
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcFullPipelineTest {
@@ -93,7 +95,7 @@ class BtcFullPipelineTest {
      */
     @Test
     fun testFullPipeline() {
-        val amountOfSat = "1"
+        val amount = satToBtc(1)
 
         // Trigger address generation. Source and destination addresses
         generateFreeAddress(2)
@@ -120,15 +122,18 @@ class BtcFullPipelineTest {
             withdrawalEnvironment.btcWithdrawalConfig.withdrawalCredential.accountId,
             btcAsset,
             destBtcAddress,
-            amountOfSat
+            amount.toPlainString()
         )
         Thread.sleep(WITHDRAWAL_WAIT_MILLIS)
         integrationHelper.generateBtcBlocks(notaryEnvironment.notaryConfig.bitcoin.confidenceLevel)
         Thread.sleep(DEPOSIT_WAIT_MILLIS)
-        assertEquals(amountOfSat, integrationHelper.getIrohaAccountBalance("$destUserName@$CLIENT_DOMAIN", btcAsset))
         assertEquals(
-            integrationHelper.btcToSat(1) - 1,
-            integrationHelper.getIrohaAccountBalance("$srcUserName@$CLIENT_DOMAIN", btcAsset).toLong()
+            amount.toPlainString(),
+            integrationHelper.getIrohaAccountBalance("$destUserName@$CLIENT_DOMAIN", btcAsset)
+        )
+        assertEquals(
+            BigDecimal(1).subtract(satToBtc(1)).toPlainString(),
+            integrationHelper.getIrohaAccountBalance("$srcUserName@$CLIENT_DOMAIN", btcAsset)
         )
     }
 

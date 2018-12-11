@@ -210,7 +210,7 @@
                 "createAsset": {
                   "assetName": "btc",
                   "domainId": "bitcoin",
-                  "precision": 0
+                  "precision": 8
                 }
               },
               {
