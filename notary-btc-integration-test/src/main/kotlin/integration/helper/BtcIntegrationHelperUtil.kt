@@ -223,11 +223,6 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         return "blocks were"
     }
 
-    // Converts Bitcoins to Satoshi
-    fun btcToSat(btc: Int): Long {
-        return btc * 100_000_000L
-    }
-
     /**
      * Logger
      */

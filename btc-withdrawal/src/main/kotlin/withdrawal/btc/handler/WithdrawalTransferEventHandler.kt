@@ -3,6 +3,7 @@ package withdrawal.btc.handler
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import helper.address.isValidBtcAddress
+import helper.currency.btcToSat
 import iroha.protocol.Commands
 import monitoring.Monitoring
 import mu.KLogging
@@ -16,6 +17,7 @@ import withdrawal.btc.statistics.WithdrawalStatistics
 import withdrawal.btc.transaction.SignCollector
 import withdrawal.btc.transaction.TransactionCreator
 import withdrawal.btc.transaction.UnsignedTransactions
+import java.math.BigDecimal
 
 /*
     Class that is used to handle withdrawal events
@@ -55,17 +57,18 @@ class WithdrawalTransferEventHandler(
             logger.warn { "Cannot execute transfer. Destination $destinationAddress is not a valid base58 address." }
             return
         }
+        val btcAmount = BigDecimal(transferCommand.amount)
         logger.info {
             "Withdrawal event(" +
                     "from:${transferCommand.srcAccountId} " +
                     "to:$destinationAddress " +
-                    "amount:${transferCommand.amount})"
+                    "amount:${btcAmount.toPlainString()})"
         }
         withdrawalStatistics.incTotalTransfers()
         whiteListProvider.checkWithdrawalAddress(transferCommand.srcAccountId, destinationAddress)
             .fold({ ableToWithdraw ->
                 if (ableToWithdraw) {
-                    withdraw(wallet, destinationAddress, transferCommand.amount.toLong())
+                    withdraw(wallet, destinationAddress, btcToSat(btcAmount))
                 } else {
                     logger.warn { "Cannot withdraw to $destinationAddress, because it's not in ${transferCommand.srcAccountId} whitelist" }
                 }
