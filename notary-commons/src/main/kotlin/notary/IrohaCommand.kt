@@ -1,5 +1,7 @@
 package notary
 
+import java.security.PublicKey
+
 /**
  * Class represents commands that [Notary] can send to [sidechain.iroha.consumer.IrohaConsumer]
  */
@@ -24,7 +26,7 @@ sealed class IrohaCommand {
     data class CommandCreateAccount(
         val accountName: String,
         val domainId: String,
-        val mainPubkey: String
+        val mainPubkey: PublicKey
     ) : IrohaCommand()
 
     /**
@@ -48,7 +50,7 @@ sealed class IrohaCommand {
     data class CommandCreateAsset(
         val assetName: String,
         val domainId: String,
-        val precision: Short
+        val precision: Int
     ) : IrohaCommand()
 
     /**
@@ -74,7 +76,7 @@ sealed class IrohaCommand {
      */
     data class CommandAddSignatory(
         val accountId: String,
-        val publicKey: String
+        val publicKey: PublicKey
     ) : IrohaCommand()
 
     /**
@@ -84,6 +86,6 @@ sealed class IrohaCommand {
      */
     data class CommandAddPeer(
         val address: String,
-        val peerKey: String
+        val peerKey: PublicKey
     ) : IrohaCommand()
 }

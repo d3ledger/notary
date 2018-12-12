@@ -1,10 +1,10 @@
 package integration.iroha
 
 import integration.helper.IrohaIntegrationHelperUtil
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.getAccountAsset
 import kotlin.test.assertEquals
 
@@ -16,20 +16,16 @@ import kotlin.test.assertEquals
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RequestHelperTest {
 
-    init {
-        System.loadLibrary("irohajava")
-    }
-
     val integrationHelper = IrohaIntegrationHelperUtil()
     val credential = integrationHelper.testCredential
     val irohaConfig = integrationHelper.configHelper.createIrohaConfig()
 
-    private val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
+    private val irohaAPI = IrohaAPI(irohaConfig.hostname, irohaConfig.port)
 
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
-        irohaNetwork.close()
+        irohaAPI.close()
     }
 
     /**
@@ -42,7 +38,6 @@ class RequestHelperTest {
         val accountId = credential.accountId
         val assetId = "nonexist#nonexist"
 
-        assertEquals("0", getAccountAsset(credential, irohaNetwork, accountId, assetId).get())
+        assertEquals("0", getAccountAsset(irohaAPI, credential, accountId, assetId).get())
     }
-
 }

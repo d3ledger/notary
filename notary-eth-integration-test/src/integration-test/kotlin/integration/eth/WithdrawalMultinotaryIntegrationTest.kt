@@ -5,6 +5,7 @@ import config.loadConfigs
 import config.loadEthPasswords
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import khttp.get
 import notary.endpoint.eth.BigIntegerMoshiAdapter
 import notary.endpoint.eth.EthNotaryResponse
@@ -22,7 +23,6 @@ import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
 import sidechain.iroha.CLIENT_DOMAIN
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import java.math.BigDecimal
@@ -80,7 +80,7 @@ class WithdrawalMultinotaryIntegrationTest {
         integrationHelper.lockEthMasterSmartcontract()
     }
 
-    val irohaNetwork = IrohaNetworkImpl(
+    val irohaAPI = IrohaAPI(
         notaryConfig1.iroha.hostname,
         notaryConfig1.iroha.port
     )
@@ -88,7 +88,7 @@ class WithdrawalMultinotaryIntegrationTest {
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
-        irohaNetwork.close()
+        irohaAPI.close()
     }
 
     /**
@@ -103,7 +103,7 @@ class WithdrawalMultinotaryIntegrationTest {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             val masterAccount = integrationHelper.accountHelper.notaryAccount.accountId
             val amount = "64203"
-            val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(ETH_PRECISION.toInt()).toPlainString()
+            val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(ETH_PRECISION)
             val assetId = "ether#ethereum"
             val ethWallet = "0x1334"
 
@@ -113,7 +113,7 @@ class WithdrawalMultinotaryIntegrationTest {
             integrationHelper.registerClient(client, listOf(ethWallet), integrationHelper.testCredential.keyPair)
             integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
             val relay = EthRelayProviderIrohaImpl(
-                irohaNetwork,
+                irohaAPI,
                 integrationHelper.testCredential,
                 masterAccount,
                 integrationHelper.accountHelper.registrationAccount.accountId
@@ -157,9 +157,9 @@ class WithdrawalMultinotaryIntegrationTest {
                     keypair1,
                     hashToWithdraw(
                         "0x0000000000000000000000000000000000000000",
-                        decimalAmount,
+                        decimalAmount.toPlainString(),
                         ethWallet,
-                        hash,
+                        hash.toString(),
                         relay
                     )
                 ), response1.ethSignature
@@ -184,9 +184,9 @@ class WithdrawalMultinotaryIntegrationTest {
                     keypair2,
                     hashToWithdraw(
                         "0x0000000000000000000000000000000000000000",
-                        decimalAmount,
+                        decimalAmount.toPlainString(),
                         ethWallet,
-                        hash,
+                        hash.toString(),
                         relay
                     )
                 ), response2.ethSignature

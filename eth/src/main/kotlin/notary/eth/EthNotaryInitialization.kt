@@ -5,8 +5,9 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.EthereumPasswords
 import io.reactivex.Observable
-import jp.co.soramitsu.iroha.Grantable
-import jp.co.soramitsu.iroha.ModelTransactionBuilder
+import iroha.protocol.Primitive
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.Transaction
 import model.IrohaCredential
 import mu.KLogging
 import notary.Notary
@@ -24,9 +25,6 @@ import sidechain.SideChainEvent
 import sidechain.eth.EthChainHandler
 import sidechain.eth.EthChainListener
 import sidechain.eth.util.BasicAuthenticator
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaNetwork
-import sidechain.iroha.util.ModelUtil
 import java.math.BigInteger
 
 const val ENDPOINT_ETHEREUM = "eth"
@@ -38,7 +36,7 @@ const val ENDPOINT_ETHEREUM = "eth"
  */
 class EthNotaryInitialization(
     private val notaryCredential: IrohaCredential,
-    private val irohaNetwork: IrohaNetwork,
+    private val irohaAPI: IrohaAPI,
     private val ethNotaryConfig: EthNotaryConfig,
     private val passwordsConfig: EthereumPasswords,
     private val ethRelayProvider: EthRelayProvider,
@@ -87,22 +85,24 @@ class EthNotaryInitialization(
     ): Notary {
         logger.info { "Init ethereum notary" }
 
-        IrohaConsumerImpl(notaryCredential, irohaNetwork).sendAndCheck(
-            ModelTransactionBuilder()
-                .creatorAccountId(notaryCredential.accountId)
-                .createdTime(ModelUtil.getCurrentTime())
-                .grantPermission(ethNotaryConfig.withdrawalAccountId, Grantable.kTransferMyAssets)
+        irohaAPI.transaction(
+            Transaction.builder(notaryCredential.accountId)
+                .grantPermission(
+                    ethNotaryConfig.withdrawalAccountId,
+                    Primitive.GrantablePermission.can_transfer_my_assets
+                )
+                .sign(notaryCredential.keyPair)
                 .build()
         )
 
         val peerListProvider = NotaryPeerListProviderImpl(
+            irohaAPI,
             notaryCredential,
-            irohaNetwork,
             ethNotaryConfig.notaryListStorageAccount,
             ethNotaryConfig.notaryListSetterAccount
         )
 
-        return createEthNotary(notaryCredential, irohaNetwork, ethEvents, peerListProvider)
+        return createEthNotary(notaryCredential, irohaAPI, ethEvents, peerListProvider)
     }
 
     /**
@@ -114,7 +114,7 @@ class EthNotaryInitialization(
             ServerInitializationBundle(ethNotaryConfig.refund.port, ENDPOINT_ETHEREUM),
             EthRefundStrategyImpl(
                 ethNotaryConfig,
-                irohaNetwork,
+                irohaAPI,
                 notaryCredential,
                 ethNotaryConfig.ethereum,
                 passwordsConfig,

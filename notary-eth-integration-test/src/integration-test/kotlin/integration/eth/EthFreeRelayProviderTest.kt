@@ -4,6 +4,7 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.success
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
@@ -12,7 +13,6 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
 import provider.eth.EthFreeRelayProvider
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil.setAccountDetail
 import java.io.File
 import java.time.Duration
@@ -25,10 +25,10 @@ class EthFreeRelayProviderTest {
 
     val testConfig = integrationHelper.configHelper.testConfig
 
-    private val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
+    private val irohaAPI = IrohaAPI(testConfig.iroha.hostname, testConfig.iroha.port)
 
     /** Iroha consumer */
-    private val irohaConsumer = IrohaConsumerImpl(integrationHelper.testCredential, irohaNetwork)
+    private val irohaConsumer = IrohaConsumerImpl(integrationHelper.testCredential, irohaAPI)
 
     /** Iroha transaction creator */
     val creator = integrationHelper.testCredential.accountId
@@ -38,7 +38,7 @@ class EthFreeRelayProviderTest {
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
-        irohaNetwork.close()
+        irohaAPI.close()
     }
 
     /**
@@ -62,7 +62,7 @@ class EthFreeRelayProviderTest {
             val freeWalletsProvider =
                 EthFreeRelayProvider(
                     integrationHelper.testCredential,
-                    irohaNetwork,
+                    irohaAPI,
                     integrationHelper.accountHelper.notaryAccount.accountId,
                     creator
                 )
@@ -82,7 +82,7 @@ class EthFreeRelayProviderTest {
         val wrongMasterAccount = "wrong@account"
 
         val freeWalletsProvider =
-            EthFreeRelayProvider(integrationHelper.testCredential, irohaNetwork, creator, wrongMasterAccount)
+            EthFreeRelayProvider(integrationHelper.testCredential, irohaAPI, creator, wrongMasterAccount)
         freeWalletsProvider.getRelay()
             .success { fail { "should return Exception" } }
     }
@@ -109,7 +109,7 @@ class EthFreeRelayProviderTest {
             val freeWalletsProvider =
                 EthFreeRelayProvider(
                     integrationHelper.testCredential,
-                    irohaNetwork,
+                    irohaAPI,
                     integrationHelper.accountHelper.notaryAccount.accountId,
                     integrationHelper.accountHelper.registrationAccount.accountId
                 )

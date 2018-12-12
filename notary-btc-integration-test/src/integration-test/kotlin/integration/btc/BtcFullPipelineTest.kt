@@ -128,7 +128,7 @@ class BtcFullPipelineTest {
         Thread.sleep(DEPOSIT_WAIT_MILLIS)
         assertEquals(amountOfSat, integrationHelper.getIrohaAccountBalance("$destUserName@$CLIENT_DOMAIN", btcAsset))
         assertEquals(
-            integrationHelper.btcToSat(1) - 1,
+            integrationHelper.btcToSat(1).toLong() - 1,
             integrationHelper.getIrohaAccountBalance("$srcUserName@$CLIENT_DOMAIN", btcAsset).toLong()
         )
     }

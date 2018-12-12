@@ -3,6 +3,7 @@ package registration
 import com.github.kittinunf.result.Result
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumer
+import java.security.PublicKey
 
 const val ETH_WHITE_LIST_KEY = "eth_whitelist"
 
@@ -28,7 +29,7 @@ class IrohaEthAccountCreator(
         walletAddress: String,
         whitelist: List<String>,
         userName: String,
-        pubkey: String
+        pubkey: PublicKey
     ): Result<String, Exception> {
         return irohaAccountCreator.create(
             walletAddress,

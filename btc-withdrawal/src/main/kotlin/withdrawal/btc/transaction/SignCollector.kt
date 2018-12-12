@@ -8,6 +8,7 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import helper.address.getSignThreshold
 import helper.address.outPutToBase58Address
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import mu.KLogging
 import org.bitcoinj.core.ECKey
@@ -18,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumer
-import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountDetails
 import util.getRandomId
@@ -30,7 +30,7 @@ import util.unHex
  */
 @Component
 class SignCollector(
-    @Autowired private val irohaNetwork: IrohaNetwork,
+    @Autowired private val irohaAPI: IrohaAPI,
     @Autowired private val withdrawalCredential: IrohaCredential,
     @Autowired private val withdrawalConsumer: IrohaConsumer,
     @Autowired private val transactionSigner: TransactionSigner
@@ -76,8 +76,8 @@ class SignCollector(
         */
         val signCollectionAccountId = "${shortTxHash(txHash)}@$BTC_SIGN_COLLECT_DOMAIN"
         return getAccountDetails(
+            irohaAPI,
             withdrawalCredential,
-            irohaNetwork,
             signCollectionAccountId,
             withdrawalCredential.accountId
         ).map { signatureDetails ->
@@ -182,7 +182,7 @@ class SignCollector(
     fun shortTxHash(tx: Transaction) = shortTxHash(tx.hashAsString)
 
     //Creates Iroha transaction to create signature storing account
-    private fun createSignCollectionAccountTx(txShortHash: String): Result<String, Exception> {
+    private fun createSignCollectionAccountTx(txShortHash: String): Result<ByteArray, Exception> {
         return ModelUtil.createAccount(
             withdrawalConsumer,
             txShortHash,
@@ -195,7 +195,7 @@ class SignCollector(
     private fun setSignatureDetailsTx(
         txShortHash: String,
         signedInputs: List<InputSignature>
-    ): Result<String, Exception> {
+    ): Result<ByteArray, Exception> {
         val signCollectionAccountId = "$txShortHash@$BTC_SIGN_COLLECT_DOMAIN"
         val signaturesJson = String.irohaEscape(inputSignatureJsonAdapter.toJson(signedInputs))
 

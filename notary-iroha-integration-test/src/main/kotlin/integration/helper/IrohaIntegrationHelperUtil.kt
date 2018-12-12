@@ -1,20 +1,19 @@
 package integration.helper
 
-import com.github.kittinunf.result.failure
-import com.github.kittinunf.result.flatMap
 import config.loadConfigs
 import integration.TestConfig
-import jp.co.soramitsu.iroha.ModelTransactionBuilder
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.Transaction
+import jp.co.soramitsu.iroha.java.Utils
 import kotlinx.coroutines.runBlocking
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.IrohaChainListener
-import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountAsset
 import java.io.Closeable
+import java.math.BigDecimal
 import java.security.KeyPair
 
 /**
@@ -22,16 +21,8 @@ import java.security.KeyPair
  */
 open class IrohaIntegrationHelperUtil : Closeable {
 
-    init {
-        IrohaInitialization.loadIrohaLibrary()
-            .failure { ex ->
-                logger.error("Cannot load Iroha library", ex)
-                System.exit(1)
-            }
-    }
-
     override fun close() {
-        irohaNetwork.close()
+        irohaAPI.close()
         irohaListener.close()
     }
 
@@ -45,18 +36,18 @@ open class IrohaIntegrationHelperUtil : Closeable {
         ).get()
     )
 
-    open val accountHelper by lazy { IrohaAccountHelper(irohaNetwork) }
+    open val accountHelper by lazy { IrohaAccountHelper(irohaAPI) }
 
     open val configHelper by lazy {
         IrohaConfigHelper()
     }
 
-    val irohaNetwork by lazy {
-        IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
+    val irohaAPI by lazy {
+        IrohaAPI(testConfig.iroha.hostname, testConfig.iroha.port)
     }
 
-    protected val irohaConsumer by lazy {
-        IrohaConsumerImpl(testCredential, irohaNetwork)
+    val irohaConsumer by lazy {
+        IrohaConsumerImpl(testCredential, irohaAPI)
     }
 
     protected val irohaListener = IrohaChainListener(
@@ -66,11 +57,11 @@ open class IrohaIntegrationHelperUtil : Closeable {
     )
 
     protected val registrationConsumer by lazy {
-        IrohaConsumerImpl(accountHelper.registrationAccount, irohaNetwork)
+        IrohaConsumerImpl(accountHelper.registrationAccount, irohaAPI)
     }
 
     protected val notaryListIrohaConsumer by lazy {
-        IrohaConsumerImpl(accountHelper.notaryListSetterAccount, irohaNetwork)
+        IrohaConsumerImpl(accountHelper.notaryListSetterAccount, irohaAPI)
     }
 
     /**
@@ -85,8 +76,8 @@ open class IrohaIntegrationHelperUtil : Closeable {
 
     fun getAccountDetails(accountDetailHolder: String, accountDetailSetter: String): Map<String, String> {
         return sidechain.iroha.util.getAccountDetails(
+            irohaAPI,
             testCredential,
-            irohaNetwork,
             accountDetailHolder,
             accountDetailSetter
         ).get()
@@ -99,10 +90,17 @@ open class IrohaIntegrationHelperUtil : Closeable {
      * @param assetId - asset to add
      * @param amount - amount to add
      */
-    fun addIrohaAssetTo(accountId: String, assetId: String, amount: String) {
+    fun addIrohaAssetTo(accountId: String, assetId: String, amount: BigDecimal) {
         ModelUtil.addAssetIroha(irohaConsumer, assetId, amount)
         if (irohaConsumer.creator != accountId)
-            ModelUtil.transferAssetIroha(irohaConsumer, irohaConsumer.creator, accountId, assetId, "", amount)
+            ModelUtil.transferAssetIroha(
+                irohaConsumer,
+                irohaConsumer.creator,
+                accountId,
+                assetId,
+                "",
+                amount.toPlainString()
+            )
     }
 
     /**
@@ -114,8 +112,8 @@ open class IrohaIntegrationHelperUtil : Closeable {
      */
     fun getIrohaAccountBalance(accountId: String, assetId: String): String {
         return getAccountAsset(
+            irohaAPI,
             testCredential,
-            irohaNetwork,
             accountId,
             assetId
         ).get()
@@ -152,16 +150,13 @@ open class IrohaIntegrationHelperUtil : Closeable {
         assetId: String,
         description: String,
         amount: String
-    ): String {
-        val utx = ModelTransactionBuilder()
-            .creatorAccountId(creator)
-            .createdTime(ModelUtil.getCurrentTime())
+    ): ByteArray? {
+        val tx = Transaction.builder(creator)
             .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
+            .sign(kp)
             .build()
-        val hash = utx.hash()
-        return ModelUtil.prepareTransaction(utx, kp)
-            .flatMap { tx -> irohaNetwork.sendAndCheck(tx, hash) }
-            .get()
+        irohaAPI.transaction(tx)
+        return Utils.hash(tx)
     }
 
     /**

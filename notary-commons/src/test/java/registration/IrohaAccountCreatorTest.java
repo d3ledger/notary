@@ -1,17 +1,20 @@
 package registration;
 
 import com.github.kittinunf.result.Result;
-import jp.co.soramitsu.iroha.Hash;
-import jp.co.soramitsu.iroha.UnsignedTx;
+import jp.co.soramitsu.iroha.java.Transaction;
 import kotlin.jvm.functions.Function0;
 import notary.IrohaOrderedBatch;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import sidechain.iroha.consumer.IrohaConsumer;
+import sidechain.iroha.consumer.IrohaConverter;
+import sidechain.iroha.util.ModelUtil;
 
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,12 +24,14 @@ public class IrohaAccountCreatorTest {
 
     private IrohaAccountCreator irohaAccountCreator;
     private IrohaConsumer irohaConsumer;
+    private IrohaConverter irohaConverter;
 
     @BeforeEach
     public void setUp() {
         irohaConsumer = mock(IrohaConsumer.class);
         when(irohaConsumer.getCreator()).thenReturn("creator");
         irohaAccountCreator = spy(new IrohaAccountCreator(irohaConsumer, "notary_account", "currency_name"));
+        irohaConverter = IrohaConverter.INSTANCE;
     }
 
     /**
@@ -36,7 +41,10 @@ public class IrohaAccountCreatorTest {
      */
     @Test
     public void testIsAccountCreationBatchFailedNoPassed() {
-        List<UnsignedTx> unsignedTransactions = Arrays.asList(mock(UnsignedTx.class), mock(UnsignedTx.class));
+        List<Transaction> unsignedTransactions = Arrays.asList(
+                mock(Transaction.class),
+                mock(Transaction.class)
+        );
         assertTrue(irohaAccountCreator.isAccountCreationBatchFailed(unsignedTransactions, new ArrayList<>()));
     }
 
@@ -47,19 +55,19 @@ public class IrohaAccountCreatorTest {
      */
     @Test
     public void testIsAccountCreationBatchFailedAllPassed() {
-        Hash firstHash = mock(Hash.class);
-        when(firstHash.hex()).thenReturn("123");
-        UnsignedTx firstUnsignedTx = mock(UnsignedTx.class);
+        byte[] firstHash = mock(byte[].class);
+        when(firstHash).thenReturn("123".getBytes());
+        Transaction firstUnsignedTx = mock(Transaction.class);
         when(firstUnsignedTx.hash()).thenReturn(firstHash);
 
-        Hash secondHash = mock(Hash.class);
-        when(secondHash.hex()).thenReturn("456");
-        UnsignedTx secondUnsignedTx = mock(UnsignedTx.class);
+        byte[] secondHash = mock(byte[].class);
+        when(secondHash).thenReturn("456".getBytes());
+        Transaction secondUnsignedTx = mock(Transaction.class);
         when(secondUnsignedTx.hash()).thenReturn(secondHash);
 
-        List<String> passedTransactions = Arrays.asList("123", "456");
+        List<byte[]> passedTransactions = Arrays.asList("123".getBytes(), "456".getBytes());
 
-        List<UnsignedTx> unsignedTransactions = Arrays.asList(firstUnsignedTx, secondUnsignedTx);
+        List<Transaction> unsignedTransactions = Arrays.asList(firstUnsignedTx, secondUnsignedTx);
         assertFalse(irohaAccountCreator.isAccountCreationBatchFailed(unsignedTransactions, passedTransactions));
     }
 
@@ -70,19 +78,19 @@ public class IrohaAccountCreatorTest {
      */
     @Test
     public void testIsAccountCreationBatchFailedFirstNotPassed() {
-        Hash firstHash = mock(Hash.class);
-        when(firstHash.hex()).thenReturn("123");
-        UnsignedTx firstUnsignedTx = mock(UnsignedTx.class);
+        byte[] firstHash = mock(byte[].class);
+        when(firstHash).thenReturn("123".getBytes());
+        Transaction firstUnsignedTx = mock(Transaction.class);
         when(firstUnsignedTx.hash()).thenReturn(firstHash);
 
-        Hash secondHash = mock(Hash.class);
-        when(secondHash.hex()).thenReturn("456");
-        UnsignedTx secondUnsignedTx = mock(UnsignedTx.class);
+        byte[] secondHash = mock(byte[].class);
+        when(secondHash).thenReturn("456".getBytes());
+        Transaction secondUnsignedTx = mock(Transaction.class);
         when(secondUnsignedTx.hash()).thenReturn(secondHash);
 
-        List<String> passedTransactions = Arrays.asList("456");
+        List<byte[]> passedTransactions = Collections.singletonList("456".getBytes());
 
-        List<UnsignedTx> unsignedTransactions = Arrays.asList(firstUnsignedTx, secondUnsignedTx);
+        List<Transaction> unsignedTransactions = Arrays.asList(firstUnsignedTx, secondUnsignedTx);
         assertFalse(irohaAccountCreator.isAccountCreationBatchFailed(unsignedTransactions, passedTransactions));
     }
 
@@ -93,19 +101,19 @@ public class IrohaAccountCreatorTest {
      */
     @Test
     public void testIsAccountCreationBatchFailedSecondNotPassed() {
-        Hash firstHash = mock(Hash.class);
-        when(firstHash.hex()).thenReturn("123");
-        UnsignedTx firstUnsignedTx = mock(UnsignedTx.class);
+        byte[] firstHash = mock(byte[].class);
+        when(firstHash).thenReturn("123".getBytes());
+        Transaction firstUnsignedTx = mock(Transaction.class);
         when(firstUnsignedTx.hash()).thenReturn(firstHash);
 
-        Hash secondHash = mock(Hash.class);
-        when(secondHash.hex()).thenReturn("456");
-        UnsignedTx secondUnsignedTx = mock(UnsignedTx.class);
+        byte[] secondHash = mock(byte[].class);
+        when(secondHash).thenReturn("456".getBytes());
+        Transaction secondUnsignedTx = mock(Transaction.class);
         when(secondUnsignedTx.hash()).thenReturn(secondHash);
 
-        List<String> passedTransactions = Arrays.asList("123");
+        List<byte[]> passedTransactions = Collections.singletonList("123".getBytes());
 
-        List<UnsignedTx> unsignedTransactions = Arrays.asList(firstUnsignedTx, secondUnsignedTx);
+        List<Transaction> unsignedTransactions = Arrays.asList(firstUnsignedTx, secondUnsignedTx);
         assertTrue(irohaAccountCreator.isAccountCreationBatchFailed(unsignedTransactions, passedTransactions));
     }
 
@@ -121,16 +129,16 @@ public class IrohaAccountCreatorTest {
         String whitelistKey = "white_list_key";
         List<String> whitelist = new ArrayList<>();
         String userName = "user_name";
-        String pubKey = "pub_key";
-        List<UnsignedTx> unsignedTransactions = new ArrayList<>();
-        List<String> passedTransactions = new ArrayList<>();
+        PublicKey pubKey = ModelUtil.INSTANCE.generateKeypair().getPublic();
+        List<Transaction> unsignedTransactions = new ArrayList<>();
+        List<byte[]> passedTransactions = new ArrayList<>();
         IrohaOrderedBatch batch = new IrohaOrderedBatch(new ArrayList<>());
 
         doReturn(batch).when(irohaAccountCreator)
                 .createAccountCreationBatch(currencyAddress, whitelistKey, whitelist, userName, pubKey, notaryStorageStrategy);
-        doReturn(unsignedTransactions).when(irohaAccountCreator)
-                .convertBatchToTx(batch);
-        when(irohaConsumer.sendAndCheck(unsignedTransactions)).thenReturn(Result.Companion.of(() -> passedTransactions));
+        doReturn(unsignedTransactions).when(irohaConverter)
+                .convert(batch, any());
+        when(irohaConsumer.send(unsignedTransactions)).thenReturn(Result.Companion.of(() -> passedTransactions));
         doReturn(false).when(irohaAccountCreator)
                 .isAccountCreationBatchFailed(unsignedTransactions, passedTransactions);
         irohaAccountCreator.create(currencyAddress, whitelistKey, whitelist, userName, pubKey, notaryStorageStrategy)
@@ -152,16 +160,16 @@ public class IrohaAccountCreatorTest {
         String whitelistKey = "white_list_key";
         List<String> whitelist = new ArrayList<>();
         String userName = "user_name";
-        String pubKey = "pub_key";
-        List<UnsignedTx> unsignedTransactions = new ArrayList<>();
-        List<String> passedTransactions = new ArrayList<>();
+        PublicKey pubKey = ModelUtil.INSTANCE.generateKeypair().getPublic();
+        List<Transaction> unsignedTransactions = new ArrayList<>();
+        List<byte[]> passedTransactions = new ArrayList<>();
         IrohaOrderedBatch batch = new IrohaOrderedBatch(new ArrayList<>());
 
         doReturn(batch).when(irohaAccountCreator)
                 .createAccountCreationBatch(currencyAddress, whitelistKey, whitelist, userName, pubKey, notaryStorageStrategy);
-        doReturn(unsignedTransactions).when(irohaAccountCreator)
-                .convertBatchToTx(batch);
-        when(irohaConsumer.sendAndCheck(unsignedTransactions)).thenReturn(Result.Companion.of(() -> passedTransactions));
+        doReturn(unsignedTransactions).when(irohaConverter)
+                .convert(batch, any());
+        when(irohaConsumer.send(unsignedTransactions)).thenReturn(Result.Companion.of(() -> passedTransactions));
         doReturn(true).when(irohaAccountCreator)
                 .isAccountCreationBatchFailed(unsignedTransactions, passedTransactions);
         irohaAccountCreator.create(currencyAddress, whitelistKey, whitelist, userName, pubKey, notaryStorageStrategy)

@@ -6,13 +6,13 @@ import config.IrohaConfig
 import config.IrohaCredentialConfig
 import io.reactivex.Observable
 import io.reactivex.observers.TestObserver
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import notary.eth.EthNotaryConfig
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import provider.NotaryPeerListProvider
 import sidechain.SideChainEvent
-import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
 import java.math.BigInteger
 import kotlin.test.assertEquals
@@ -35,7 +35,7 @@ class NotaryTest {
     }
 
     private val irohaCredential = IrohaCredential("creator@iroha", ModelUtil.generateKeypair())
-    private val irohaNetwork = mock<IrohaNetwork>()
+    private val irohaAPI = mock<IrohaAPI>()
 
     /** Configuration for notary */
     private val notaryConfig = mock<EthNotaryConfig>() {
@@ -149,7 +149,7 @@ class NotaryTest {
 
         // source of events from side chains
         val obsEth = Observable.just<SideChainEvent.PrimaryBlockChainEvent>(custodianIntention)
-        val notary = createEthNotary(irohaCredential, irohaNetwork, obsEth, peerListProvider)
+        val notary = createEthNotary(irohaCredential, irohaAPI, obsEth, peerListProvider)
         val res = notary.irohaOutput()
         checkEthereumDepositResult(
             expectedAmount,
@@ -190,7 +190,7 @@ class NotaryTest {
 
         // source of events from side chains
         val obsEth = Observable.just<SideChainEvent.PrimaryBlockChainEvent>(custodianIntention)
-        val notary = createEthNotary(irohaCredential, irohaNetwork, obsEth, peerListProvider)
+        val notary = createEthNotary(irohaCredential, irohaAPI, obsEth, peerListProvider)
         val res = notary.irohaOutput()
         checkEthereumDepositResult(
             expectedAmount,

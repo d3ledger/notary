@@ -2,6 +2,7 @@ package integration.eth
 
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
@@ -9,7 +10,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
 import provider.eth.EthRelayProviderIrohaImpl
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import java.time.Duration
 
 /**
@@ -28,7 +28,7 @@ class EthRelayProviderIrohaTest {
     /** Iroha account that has set details */
     private val relaySetter = integrationHelper.accountHelper.registrationAccount.accountId
 
-    val irohaNetwork = IrohaNetworkImpl(
+    val irohaAPI = IrohaAPI(
         testConfig.iroha.hostname,
         testConfig.iroha.port
     )
@@ -38,7 +38,7 @@ class EthRelayProviderIrohaTest {
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
-        irohaNetwork.close()
+        irohaAPI.close()
     }
 
     /**
@@ -65,7 +65,7 @@ class EthRelayProviderIrohaTest {
             val valid = entries.filter { it.value != "free" }
 
             EthRelayProviderIrohaImpl(
-                irohaNetwork,
+                irohaAPI,
                 integrationHelper.testCredential,
                 relayStorage,
                 relaySetter
@@ -86,7 +86,7 @@ class EthRelayProviderIrohaTest {
     fun testEmptyStorage() {
         assertTimeoutPreemptively(timeoutDuration) {
             EthRelayProviderIrohaImpl(
-                irohaNetwork,
+                irohaAPI,
                 integrationHelper.testCredential,
                 integrationHelper.testCredential.accountId,
                 relaySetter

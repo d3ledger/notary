@@ -1,16 +1,16 @@
 package provider
 
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import mu.KLogging
-import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
 
 /**
  * Provides with list of all notaries peers in the system
  */
 class NotaryPeerListProviderImpl(
+    private val irohaAPI: IrohaAPI,
     private val credential: IrohaCredential,
-    private val irohaNetwork: IrohaNetwork,
     private val notaryListStorageAccount: String,
     private val notaryListSetterAccount: String
 ) : NotaryPeerListProvider {
@@ -25,8 +25,8 @@ class NotaryPeerListProviderImpl(
     override fun getPeerList(
     ): List<PeerAddress> {
         return getAccountDetails(
+            irohaAPI,
             credential,
-            irohaNetwork,
             notaryListStorageAccount,
             notaryListSetterAccount
         ).fold(

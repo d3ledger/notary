@@ -5,6 +5,7 @@ import provider.btc.address.AddressInfo
 import registration.IrohaAccountCreator
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumer
+import java.security.PublicKey
 
 const val BTC_WHITE_LIST_KEY = "btc_whitelist"
 
@@ -30,7 +31,7 @@ class IrohaBtcAccountCreator(
         btcAddress: String,
         whitelist: List<String>,
         userName: String,
-        pubkey: String,
+        pubkey: PublicKey,
         notaryKeys: List<String>
     ): Result<String, Exception> {
         return irohaAccountCreator.create(

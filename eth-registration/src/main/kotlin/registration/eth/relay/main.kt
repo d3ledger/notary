@@ -9,10 +9,9 @@ import com.github.kittinunf.result.map
 import config.ETH_MASTER_WALLET_ENV
 import config.loadConfigs
 import config.loadEthPasswords
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import mu.KLogging
-import sidechain.iroha.IrohaInitialization
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
 private val logger = KLogging().logger
@@ -26,10 +25,11 @@ private val logger = KLogging().logger
 fun main(args: Array<String>) {
     logger.info { "Run relay deployment" }
     loadConfigs("relay-registration", RelayRegistrationConfig::class.java, "/eth/relay_registration.properties")
-        .map {relayRegistrationConfig ->
+        .map { relayRegistrationConfig ->
             object : RelayRegistrationConfig {
                 override val number = relayRegistrationConfig.number
-                override val ethMasterWallet = System.getenv(ETH_MASTER_WALLET_ENV) ?: relayRegistrationConfig.ethMasterWallet
+                override val ethMasterWallet =
+                    System.getenv(ETH_MASTER_WALLET_ENV) ?: relayRegistrationConfig.ethMasterWallet
                 override val notaryIrohaAccount = relayRegistrationConfig.notaryIrohaAccount
                 override val relayRegistrationCredential = relayRegistrationConfig.relayRegistrationCredential
                 override val iroha = relayRegistrationConfig.iroha
@@ -38,13 +38,10 @@ fun main(args: Array<String>) {
         }
         .fanout { loadEthPasswords("relay-registration", "/eth/ethereum_password.properties", args) }
         .map { (relayRegistrationConfig, passwordConfig) ->
-            IrohaInitialization.loadIrohaLibrary()
-                .flatMap {
-                    ModelUtil.loadKeypair(
-                        relayRegistrationConfig.relayRegistrationCredential.pubkeyPath,
-                        relayRegistrationConfig.relayRegistrationCredential.privkeyPath
-                    )
-                }
+            ModelUtil.loadKeypair(
+                relayRegistrationConfig.relayRegistrationCredential.pubkeyPath,
+                relayRegistrationConfig.relayRegistrationCredential.privkeyPath
+            )
                 .map { keypair ->
                     IrohaCredential(
                         relayRegistrationConfig.relayRegistrationCredential.accountId,
@@ -52,7 +49,7 @@ fun main(args: Array<String>) {
                     )
                 }
                 .flatMap { credential ->
-                    IrohaNetworkImpl(
+                    IrohaAPI(
                         relayRegistrationConfig.iroha.hostname,
                         relayRegistrationConfig.iroha.port
                     ).use { irohaNetwork ->

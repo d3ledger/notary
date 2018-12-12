@@ -5,12 +5,12 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
-import jp.co.soramitsu.iroha.ModelTransactionBuilder
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.Transaction
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaNetwork
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -23,12 +23,12 @@ import java.math.BigInteger
 class ERC20TokenRegistration(
     private val tokenRegistrationConfig: ERC20TokenRegistrationConfig,
     irohaCredential: IrohaCredential,
-    irohaNetwork: IrohaNetwork
+    irohaAPI: IrohaAPI
 ) {
     //For json serialization/deserialization
     private val moshi = Moshi.Builder().build()
 
-    private val irohaConsumer = IrohaConsumerImpl(irohaCredential, irohaNetwork)
+    private val irohaConsumer = IrohaConsumerImpl(irohaCredential, irohaAPI)
 
     //Initiates process of ERC20 tokens registration
     fun init(): Result<Unit, Exception> {
@@ -98,11 +98,9 @@ class ERC20TokenRegistration(
         tokens: Map<String, EthTokenInfo>,
         tokenStorageAccount: String,
         irohaConsumer: IrohaConsumer
-    ): Result<String, Exception> {
+    ): Result<ByteArray, Exception> {
         return Result.of {
-            var utx = ModelTransactionBuilder()
-                .creatorAccountId(irohaConsumer.creator)
-                .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
+            var utx = Transaction.builder(irohaConsumer.creator)
             tokens.forEach { ethWallet, ethTokenInfo ->
                 utx = utx.createAsset(ethTokenInfo.name, "ethereum", ethTokenInfo.precision)
                 utx = utx.setAccountDetail(tokenStorageAccount, ethWallet, ethTokenInfo.name)
@@ -110,7 +108,7 @@ class ERC20TokenRegistration(
 
             utx.build()
         }.flatMap { utx ->
-            irohaConsumer.sendAndCheck(utx)
+            irohaConsumer.send(utx)
         }
     }
 

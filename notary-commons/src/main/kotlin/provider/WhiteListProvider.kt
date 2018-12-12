@@ -2,15 +2,15 @@ package provider
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import mu.KLogging
-import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
 
 abstract class WhiteListProvider protected constructor(
     private val whiteListSetterAccount: String,
     private val credential: IrohaCredential,
-    private val irohaNetwork: IrohaNetwork,
+    private val irohaAPI: IrohaAPI,
     private val whiteListKey: String
 ) {
 
@@ -22,8 +22,8 @@ abstract class WhiteListProvider protected constructor(
      */
     fun checkWithdrawalAddress(srcAccountId: String, address: String): Result<Boolean, Exception> {
         return getAccountDetails(
+            irohaAPI,
             credential,
-            irohaNetwork,
             srcAccountId,
             whiteListSetterAccount
         ).map { details ->

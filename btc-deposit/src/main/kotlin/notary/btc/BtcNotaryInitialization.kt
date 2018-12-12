@@ -10,6 +10,7 @@ import helper.network.addPeerConnectionStatusListener
 import helper.network.getPeerGroup
 import helper.network.startChainDownload
 import io.reactivex.Observable
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import listener.btc.NewBtcClientRegistrationListener
 import model.IrohaCredential
 import mu.KLogging
@@ -26,7 +27,6 @@ import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.btc.network.BtcNetworkConfigProvider
 import sidechain.SideChainEvent
 import sidechain.iroha.IrohaChainListener
-import sidechain.iroha.consumer.IrohaNetwork
 import java.io.Closeable
 
 
@@ -35,7 +35,7 @@ class BtcNotaryInitialization(
     @Autowired private val wallet: Wallet,
     @Autowired private val btcNotaryConfig: BtcNotaryConfig,
     @Autowired private val irohaCredential: IrohaCredential,
-    @Autowired private val irohaNetwork: IrohaNetwork,
+    @Autowired private val irohaAPI: IrohaAPI,
     @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
     @Autowired private val irohaChainListener: IrohaChainListener,
     @Autowired private val newBtcClientRegistrationListener: NewBtcClientRegistrationListener,
@@ -74,12 +74,12 @@ class BtcNotaryInitialization(
             getBtcEvents(peerGroup, btcNotaryConfig.bitcoin.confidenceLevel)
         }.map { btcEvents ->
             val peerListProvider = NotaryPeerListProviderImpl(
+                irohaAPI,
                 irohaCredential,
-                irohaNetwork,
                 btcNotaryConfig.notaryListStorageAccount,
                 btcNotaryConfig.notaryListSetterAccount
             )
-            val notary = createBtcNotary(irohaCredential, irohaNetwork, btcEvents, peerListProvider)
+            val notary = createBtcNotary(irohaCredential, irohaAPI, btcEvents, peerListProvider)
             notary.initIrohaConsumer().failure { ex -> throw ex }
         }.map {
             startChainDownload(peerGroup, BitcoinConfig.extractHosts(btcNotaryConfig.bitcoin))

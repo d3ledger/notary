@@ -6,6 +6,7 @@ import com.github.kittinunf.result.flatMap
 import config.EthereumConfig
 import config.EthereumPasswords
 import iroha.protocol.TransactionOuterClass.Transaction
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import mu.KLogging
 import notary.eth.EthNotaryConfig
@@ -15,7 +16,6 @@ import provider.eth.EthTokensProvider
 import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
-import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
 import java.math.BigDecimal
 
@@ -26,7 +26,7 @@ class NotaryException(reason: String) : Exception(reason)
  */
 class EthRefundStrategyImpl(
     notaryConfig: EthNotaryConfig,
-    private val irohaNetwork: IrohaNetwork,
+    private val irohaAPI: IrohaAPI,
     private val credential: IrohaCredential,
     ethereumConfig: EthereumConfig,
     ethereumPasswords: EthereumPasswords,
@@ -34,14 +34,14 @@ class EthRefundStrategyImpl(
 ) : EthRefundStrategy {
 
     private val relayProvider = EthRelayProviderIrohaImpl(
-        irohaNetwork,
+        irohaAPI,
         credential,
         credential.accountId,
         notaryConfig.registrationServiceIrohaAccount
     )
 
     private val whiteListProvider = EthWhiteListProvider(
-        notaryConfig.whitelistSetter, credential, irohaNetwork
+        notaryConfig.whitelistSetter, credential, irohaAPI
     )
 
     private var ecKeyPair: ECKeyPair = DeployHelper(ethereumConfig, ethereumPasswords).credentials.ecKeyPair
@@ -49,7 +49,7 @@ class EthRefundStrategyImpl(
     override fun performRefund(request: EthRefundRequest): EthNotaryResponse {
         logger.info("Check tx ${request.irohaTx} for refund")
 
-        return ModelUtil.getTransaction(irohaNetwork, credential, request.irohaTx)
+        return ModelUtil.getTransaction(irohaAPI, credential, request.irohaTx)
             .flatMap { checkTransaction(it, request) }
             .flatMap { makeRefund(it) }
             .fold({ it },

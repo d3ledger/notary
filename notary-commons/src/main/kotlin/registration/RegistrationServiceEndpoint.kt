@@ -10,7 +10,9 @@ import io.ktor.routing.post
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import mu.KLogging
+import javax.xml.bind.DatatypeConverter
 
 data class Response(val code: HttpStatusCode, val message: String)
 
@@ -64,7 +66,11 @@ class RegistrationServiceEndpoint(
         if (name == null || whitelist == null || pubkey == null) {
             return responseError(HttpStatusCode.BadRequest, reason)
         }
-        registrationStrategy.register(name, whitelist.filter { it.isNotEmpty() }, pubkey).fold(
+        registrationStrategy.register(
+            name,
+            whitelist.filter { it.isNotEmpty() },
+            Ed25519Sha3.publicKeyFromBytes(DatatypeConverter.parseHexBinary(pubkey))
+        ).fold(
             { address ->
                 logger.info { "Client $name was successfully registered with address $address" }
                 return Response(HttpStatusCode.OK, address)

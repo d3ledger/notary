@@ -1,6 +1,7 @@
 package generation.btc.config
 
 import config.loadConfigs
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
@@ -10,8 +11,6 @@ import provider.NotaryPeerListProvider
 import provider.NotaryPeerListProviderImpl
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaNetwork
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import wallet.WalletFile
 import java.io.File
@@ -49,7 +48,7 @@ class BtcAddressGenerationAppConfiguration {
         IrohaCredential(btcAddressGenerationConfig.mstRegistrationAccount.accountId, mstRegistrationKeyPair)
 
     @Bean
-    fun irohaNetwork() = IrohaNetworkImpl(
+    fun irohaAPI() = IrohaAPI(
         btcAddressGenerationConfig.iroha.hostname,
         btcAddressGenerationConfig.iroha.port
     )
@@ -66,10 +65,10 @@ class BtcAddressGenerationAppConfiguration {
 
     @Bean
     @Autowired
-    fun notaryPeerListProvider(irohaNetwork: IrohaNetwork): NotaryPeerListProvider {
+    fun notaryPeerListProvider(irohaAPI: IrohaAPI): NotaryPeerListProvider {
         return NotaryPeerListProviderImpl(
+            irohaAPI,
             registrationCredential,
-            irohaNetwork,
             btcAddressGenerationConfig.notaryListStorageAccount,
             btcAddressGenerationConfig.notaryListSetterAccount
         )
@@ -77,11 +76,11 @@ class BtcAddressGenerationAppConfiguration {
 
     @Bean
     @Autowired
-    fun sessionConsumer(irohaNetwork: IrohaNetwork) = IrohaConsumerImpl(registrationCredential, irohaNetwork)
+    fun sessionConsumer(irohaAPI: IrohaAPI) = IrohaConsumerImpl(registrationCredential, irohaAPI)
 
     @Bean
     @Autowired
-    fun multiSigConsumer(irohaNetwork: IrohaNetwork) = IrohaConsumerImpl(mstRegistrationCredential, irohaNetwork)
+    fun multiSigConsumer(irohaAPI: IrohaAPI) = IrohaConsumerImpl(mstRegistrationCredential, irohaAPI)
 
     @Bean
     fun notaryAccount() = btcAddressGenerationConfig.notaryAccount

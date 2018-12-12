@@ -2,13 +2,12 @@
 
 package generation.btc.trigger
 
+import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
-import com.github.kittinunf.result.map
 import mu.KLogging
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.ComponentScan
 import provider.btc.address.BtcAddressType
-import sidechain.iroha.IrohaInitialization
 
 @ComponentScan(basePackages = ["generation.btc.trigger"])
 class BtcFreeAddressGenerationApplication
@@ -19,7 +18,7 @@ private val logger = KLogging().logger
  */
 fun main(args: Array<String>) {
     val addressType = BtcAddressType.FREE
-    IrohaInitialization.loadIrohaLibrary().map {
+    Result.of {
         AnnotationConfigApplicationContext(BtcFreeAddressGenerationApplication::class.java)
     }.flatMap { context ->
         context.getBean(AddressGenerationTrigger::class.java).startAddressGeneration(addressType)

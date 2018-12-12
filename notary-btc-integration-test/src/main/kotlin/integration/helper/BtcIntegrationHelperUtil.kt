@@ -21,7 +21,7 @@ import provider.btc.address.BtcAddressesProvider
 import provider.btc.address.BtcRegisteredAddressesProvider
 import registration.btc.BtcRegistrationStrategyImpl
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaConverterImpl
+import sidechain.iroha.consumer.IrohaConverter
 import sidechain.iroha.util.ModelUtil
 import util.toHexString
 import java.io.File
@@ -35,7 +35,7 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     override val configHelper by lazy { BtcConfigHelper(accountHelper) }
 
     private val mstRegistrationIrohaConsumer by lazy {
-        IrohaConsumerImpl(accountHelper.mstRegistrationAccount, irohaNetwork)
+        IrohaConsumerImpl(accountHelper.mstRegistrationAccount, irohaAPI)
     }
 
     private val rpcClient by lazy {
@@ -52,14 +52,14 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         val btcAddressesProvider =
             BtcAddressesProvider(
                 testCredential,
-                irohaNetwork,
+                irohaAPI,
                 accountHelper.mstRegistrationAccount.accountId,
                 accountHelper.notaryAccount.accountId
             )
         val btcTakenAddressesProvider =
             BtcRegisteredAddressesProvider(
                 testCredential,
-                irohaNetwork,
+                irohaAPI,
                 accountHelper.registrationAccount.accountId,
                 accountHelper.notaryAccount.accountId
             )
@@ -99,8 +99,11 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
                 )
                 irohaTxList.add(irohaTx)
             }
-            val utx = IrohaConverterImpl().convert(IrohaOrderedBatch(irohaTxList))
-            mstRegistrationIrohaConsumer.sendAndCheck(utx).failure { ex -> throw ex }
+            val utx = IrohaConverter.convert(
+                IrohaOrderedBatch(irohaTxList),
+                mstRegistrationIrohaConsumer.creator
+            )
+            mstRegistrationIrohaConsumer.send(utx).failure { ex -> throw ex }
         }
     }
 
@@ -180,7 +183,7 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         keypair: KeyPair = ModelUtil.generateKeypair(),
         whitelist: List<String> = emptyList()
     ): String {
-        btcRegistrationStrategy.register(irohaAccountName, whitelist, keypair.public.toHexString())
+        btcRegistrationStrategy.register(irohaAccountName, whitelist, keypair.public)
             .fold({ btcAddress ->
                 logger.info { "BTC address $btcAddress was registered by $irohaAccountName" }
                 return btcAddress
@@ -214,8 +217,8 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     }
 
     // Converts Bitcoins to Satoshi
-    fun btcToSat(btc: Int): Long {
-        return btc * 100_000_000L
+    fun btcToSat(btc: Int): BigDecimal {
+        return BigDecimal(btc * 100_000_000L)
     }
 
     /**

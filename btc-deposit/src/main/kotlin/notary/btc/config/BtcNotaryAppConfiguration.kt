@@ -1,13 +1,13 @@
 package notary.btc.config
 
 import config.loadConfigs
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import provider.btc.address.BtcRegisteredAddressesProvider
 import sidechain.iroha.IrohaChainListener
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import java.io.File
 
@@ -27,7 +27,7 @@ class BtcNotaryAppConfiguration {
     fun notaryConfig() = notaryConfig
 
     @Bean
-    fun irohaNetwork() = IrohaNetworkImpl(notaryConfig.iroha.hostname, notaryConfig.iroha.port)
+    fun irohaAPI() = IrohaAPI(notaryConfig.iroha.hostname, notaryConfig.iroha.port)
 
     @Bean
     fun btcRegisteredAddressesProvider(): BtcRegisteredAddressesProvider {
@@ -35,7 +35,7 @@ class BtcNotaryAppConfiguration {
             .fold({ keypair ->
                 return BtcRegisteredAddressesProvider(
                     IrohaCredential(notaryConfig.notaryCredential.accountId, keypair),
-                    irohaNetwork(),
+                    irohaAPI(),
                     notaryConfig.registrationAccount,
                     notaryConfig.notaryCredential.accountId
                 )

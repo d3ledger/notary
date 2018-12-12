@@ -2,15 +2,17 @@ package registration
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import jp.co.soramitsu.iroha.UnsignedTx
+import jp.co.soramitsu.iroha.java.Transaction
+import jp.co.soramitsu.iroha.java.Utils
 import mu.KLogging
 import notary.IrohaCommand
 import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumer
-import sidechain.iroha.consumer.IrohaConverterImpl
+import sidechain.iroha.consumer.IrohaConverter
 import sidechain.iroha.util.ModelUtil.getCurrentTime
+import java.security.PublicKey
 
 open class IrohaAccountCreator(
     private val irohaConsumer: IrohaConsumer,
@@ -34,7 +36,7 @@ open class IrohaAccountCreator(
         whitelistKey: String,
         whitelist: List<String>,
         userName: String,
-        pubkey: String,
+        pubkey: PublicKey,
         notaryStorageStrategy: () -> String
     ): Result<String, Exception> {
         return Result.of {
@@ -47,8 +49,8 @@ open class IrohaAccountCreator(
                 notaryStorageStrategy
             )
         }.map { irohaTx ->
-            val utx = convertBatchToTx(irohaTx)
-            irohaConsumer.sendAndCheck(utx).fold({ passedTransactions ->
+            val utx = IrohaConverter.convert(irohaTx, creator)
+            irohaConsumer.send(utx).fold({ passedTransactions ->
                 if (isAccountCreationBatchFailed(utx, passedTransactions)) {
                     throw IllegalStateException("Cannot create account")
                 }
@@ -58,13 +60,6 @@ open class IrohaAccountCreator(
             currencyAddress
         }
     }
-
-    /**
-     * Converts batch into single Iroha transaction
-     * @param batch - batch full of transactions
-     * @return single Iroha transaction
-     */
-    protected open fun convertBatchToTx(batch: IrohaOrderedBatch) = IrohaConverterImpl().convert(batch)
 
     /**
      * Creates account creation batch with the following commands
@@ -83,7 +78,7 @@ open class IrohaAccountCreator(
         whitelistKey: String,
         whitelist: List<String>,
         userName: String,
-        pubkey: String,
+        pubkey: PublicKey,
         notaryStorageStrategy: () -> String
     ): IrohaOrderedBatch {
         // TODO: implement https://soramitsu.atlassian.net/browse/D3-415
@@ -136,17 +131,23 @@ open class IrohaAccountCreator(
      * @return 'true' if all [unsignedTransactions] are in [passedTransactions] (except for first transaction, we can ignore it)
      */
     protected open fun isAccountCreationBatchFailed(
-        unsignedTransactions: List<UnsignedTx>,
-        passedTransactions: List<String>
+        unsignedTransactions: List<Transaction>,
+        passedTransactions: List<ByteArray>
     ): Boolean {
         var txCounter = 0
-        unsignedTransactions.forEach { unsignedTransaction ->
+        unsignedTransactions.map { it.build() }.forEach { unsignedTransaction ->
             /*
              It's ok for the first transaction(Create Account) to be failed.
              It may happen when we want to provide new crypto currency services to already created account
             */
             if (txCounter != 0
-                && !passedTransactions.any { passedTransaction -> passedTransaction == unsignedTransaction.hash().hex() }
+                && !passedTransactions.any { passedTransaction ->
+                    passedTransaction.contentEquals(
+                        Utils.hash(
+                            unsignedTransaction
+                        )
+                    )
+                }
             ) {
                 return true
             }

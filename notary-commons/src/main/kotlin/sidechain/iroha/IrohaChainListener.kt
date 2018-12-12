@@ -3,10 +3,11 @@ package sidechain.iroha
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import io.reactivex.Observable
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.ChainListener
-import sidechain.iroha.consumer.IrohaNetworkImpl
+import sidechain.iroha.util.ModelUtil
 
 /**
  * Dummy implementation of [ChainListener] with effective dependencies
@@ -16,14 +17,14 @@ class IrohaChainListener(
     irohaPort: Int,
     private val credential: IrohaCredential
 ) : ChainListener<iroha.protocol.BlockOuterClass.Block> {
-    val irohaNetwork = IrohaNetworkImpl(irohaHost, irohaPort)
+    val irohaApi = IrohaAPI(irohaHost, irohaPort)
 
     /**
      * Returns an observable that emits a new block every time it gets it from Iroha
      */
     override fun getBlockObservable(): Result<Observable<iroha.protocol.BlockOuterClass.Block>, Exception> {
         logger.info { "On subscribe to Iroha chain" }
-        return irohaNetwork.getBlockStreaming(credential).map { observable ->
+        return ModelUtil.getBlockStreaming(irohaApi, credential).map { observable ->
             observable.map { response ->
                 logger.info { "New Iroha block arrived. Height ${response.blockResponse.block.payload.height}" }
                 response.blockResponse.block
@@ -39,7 +40,7 @@ class IrohaChainListener(
     }
 
     override fun close() {
-        irohaNetwork.close()
+        irohaApi.close()
     }
 
     /**

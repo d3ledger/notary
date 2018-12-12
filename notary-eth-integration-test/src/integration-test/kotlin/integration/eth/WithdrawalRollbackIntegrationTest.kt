@@ -92,7 +92,7 @@ class WithdrawalRollbackIntegrationTest {
         )
         Assertions.assertEquals(200, res.statusCode)
 
-        val decimalAmount = BigDecimal(amount, ETH_PRECISION.toInt()).toPlainString()
+        val decimalAmount = BigDecimal(amount, ETH_PRECISION)
         val assetId = "ether#ethereum"
 
         // add assets to user
@@ -108,7 +108,7 @@ class WithdrawalRollbackIntegrationTest {
             notaryAccount,
             assetId,
             toAddress,
-            decimalAmount
+            decimalAmount.toPlainString()
         )
 
         Thread.sleep(20_000)

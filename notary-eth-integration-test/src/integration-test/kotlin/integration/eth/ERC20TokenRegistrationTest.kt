@@ -5,10 +5,10 @@ import com.github.kittinunf.result.map
 import com.google.gson.Gson
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import provider.eth.EthTokensProviderImpl
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import token.EthTokenInfo
 import token.executeTokenRegistration
 import util.getRandomString
@@ -25,11 +25,11 @@ class ERC20TokenRegistrationTest {
     private val tokenRegistrationConfig =
         integrationHelper.configHelper.createERC20TokenRegistrationConfig(tokensFilePath)
 
-    val irohaNetwork = IrohaNetworkImpl(tokenRegistrationConfig.iroha.hostname, tokenRegistrationConfig.iroha.port)
+    val irohaAPI = IrohaAPI(tokenRegistrationConfig.iroha.hostname, tokenRegistrationConfig.iroha.port)
 
     private val ethTokensProvider = EthTokensProviderImpl(
         integrationHelper.testCredential,
-        irohaNetwork,
+        irohaAPI,
         tokenRegistrationConfig.tokenStorageAccount,
         tokenRegistrationConfig.irohaCredential.accountId
     )
@@ -44,7 +44,7 @@ class ERC20TokenRegistrationTest {
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
-        irohaNetwork.close()
+        irohaAPI.close()
     }
 
     /**
@@ -111,7 +111,7 @@ class ERC20TokenRegistrationTest {
         val tokens = HashMap<String, EthTokenInfo>()
         for (i in 1..tokensToCreate) {
             val tokenName = String.getRandomString(9)
-            val tokenInfo = EthTokenInfo(tokenName, defaultPrecision.toShort())
+            val tokenInfo = EthTokenInfo(tokenName, defaultPrecision)
             val tokenAddress = String.getRandomString(16)
             tokens.put(tokenAddress, tokenInfo)
         }

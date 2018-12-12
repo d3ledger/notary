@@ -2,16 +2,15 @@
 
 package withdrawal.btc
 
+import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
-import com.github.kittinunf.result.map
 import config.getProfile
 import mu.KLogging
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.EnableMBeanExport
-import sidechain.iroha.IrohaInitialization
 import withdrawal.btc.config.withdrawalConfig
 import java.util.*
 
@@ -23,15 +22,14 @@ class BtcWithdrawalApplication
 private val logger = KLogging().logger
 
 fun main(args: Array<String>) {
-    IrohaInitialization.loadIrohaLibrary()
-        .map {
-            val app = SpringApplication(BtcWithdrawalApplication::class.java)
-            app.setAdditionalProfiles(getProfile())
-            app.setDefaultProperties(webPortProperties())
-            app.run(*args)
-        }.flatMap { context ->
-            context.getBean(BtcWithdrawalInitialization::class.java).init()
-        }
+    Result.of {
+        val app = SpringApplication(BtcWithdrawalApplication::class.java)
+        app.setAdditionalProfiles(getProfile())
+        app.setDefaultProperties(webPortProperties())
+        app.run(*args)
+    }.flatMap { context ->
+        context.getBean(BtcWithdrawalInitialization::class.java).init()
+    }
         .failure { ex ->
             logger.error("Cannot run btc withdrawal", ex)
             System.exit(1)

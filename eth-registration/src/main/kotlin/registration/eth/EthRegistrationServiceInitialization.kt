@@ -3,12 +3,12 @@ package registration.eth
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import config.EthereumPasswords
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import mu.KLogging
 import provider.eth.EthFreeRelayProvider
 import registration.RegistrationServiceEndpoint
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
 
 /**
@@ -19,7 +19,7 @@ import sidechain.iroha.util.ModelUtil
 class EthRegistrationServiceInitialization(
     private val ethRegistrationConfig: EthRegistrationConfig,
     private val passwordConfig: EthereumPasswords,
-    private val irohaNetwork: IrohaNetwork
+    private val irohaAPI: IrohaAPI
 ) {
 
     /**
@@ -39,11 +39,11 @@ class EthRegistrationServiceInitialization(
                 Pair(
                     EthFreeRelayProvider(
                         credential,
-                        irohaNetwork,
+                        irohaAPI,
                         ethRegistrationConfig.notaryIrohaAccount,
                         ethRegistrationConfig.relayRegistrationIrohaAccount
                     ),
-                    IrohaConsumerImpl(credential, irohaNetwork)
+                    IrohaConsumerImpl(credential, irohaAPI)
                 )
             }
             .map { (ethFreeRelayProvider, irohaConsumer) ->

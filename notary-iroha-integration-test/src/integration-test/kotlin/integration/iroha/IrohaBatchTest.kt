@@ -2,9 +2,9 @@ package integration.iroha
 
 import integration.helper.IrohaConfigHelper
 import integration.helper.IrohaIntegrationHelperUtil
-import jp.co.soramitsu.iroha.Blob
-import jp.co.soramitsu.iroha.ModelCrypto
-import jp.co.soramitsu.iroha.iroha
+import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.Utils
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
@@ -19,22 +19,18 @@ import org.junit.jupiter.api.TestInstance
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaConverterImpl
-import sidechain.iroha.consumer.IrohaNetworkImpl
+import sidechain.iroha.consumer.IrohaConverter
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountAsset
 import sidechain.iroha.util.getAccountData
-import sidechain.iroha.util.toByteVector
 import util.getRandomString
+import java.math.BigInteger
 import java.time.Duration
+import javax.xml.bind.DatatypeConverter
 import kotlin.test.assertEquals
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class IrohaBatchTest {
-
-    init {
-        System.loadLibrary("irohajava")
-    }
 
     private val integrationHelper = IrohaIntegrationHelperUtil()
 
@@ -46,7 +42,7 @@ class IrohaBatchTest {
 
     val assetDomain = "notary"
 
-    private val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
+    private val irohaAPI = IrohaAPI(testConfig.iroha.hostname, testConfig.iroha.port)
 
     val listener = IrohaChainListener(
         testConfig.iroha.hostname,
@@ -61,7 +57,7 @@ class IrohaBatchTest {
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
-        irohaNetwork.close()
+        irohaAPI.close()
         listener.close()
     }
 
@@ -77,28 +73,28 @@ class IrohaBatchTest {
             val user = randomString()
             val asset_name = randomString()
 
-            val irohaConsumer = IrohaConsumerImpl(testCredential, irohaNetwork)
+            val irohaConsumer = IrohaConsumerImpl(testCredential, irohaAPI)
 
             val userId = "$user@$CLIENT_DOMAIN"
 
-
+            val createdTime = ModelUtil.getCurrentTime()
             val txList =
                 listOf(
                     IrohaTransaction(
                         tester,
-                        ModelUtil.getCurrentTime(),
+                        createdTime,
                         1,
                         listOf(
                             IrohaCommand.CommandCreateAccount(
                                 user,
                                 CLIENT_DOMAIN,
-                                ModelCrypto().generateKeypair().publicKey().hex()
+                                Ed25519Sha3().generateKeypair().public
                             )
                         )
                     ),
                     IrohaTransaction(
                         tester,
-                        ModelUtil.getCurrentTime(),
+                        createdTime.add(BigInteger.ONE),
                         1,
                         listOf(
                             IrohaCommand.CommandSetAccountDetail(
@@ -110,7 +106,7 @@ class IrohaBatchTest {
                     ),
                     IrohaTransaction(
                         tester,
-                        ModelUtil.getCurrentTime(),
+                        createdTime.add(BigInteger.TEN),
                         1,
                         listOf(
                             IrohaCommand.CommandCreateAsset(
@@ -135,21 +131,23 @@ class IrohaBatchTest {
                 )
 
             val batch = IrohaOrderedBatch(txList)
-            val lst = IrohaConverterImpl().convert(batch)
-            val hashes = lst.map { it.hash().hex() }
+            val lst = IrohaConverter.convert(batch, irohaConsumer.creator)
+            val hashes = lst.map { DatatypeConverter.printHexBinary(it.hash()) }
 
             val blockHashes = GlobalScope.async {
                 listener.getBlock().payload.transactionsList.map {
-                    Blob(iroha.hashTransaction(it.toByteArray().toByteVector())).hex()
+                    Utils.hash(it)
                 }
             }
 
-            val successHash = irohaConsumer.sendAndCheck(lst).get()
+            val successHash = irohaConsumer.send(lst).get().map { DatatypeConverter.printHexBinary(it) }
 
-            val accountJson = getAccountData(testCredential, irohaNetwork, userId).get().toJsonString()
-            val tester_amount = getAccountAsset(testCredential, irohaNetwork, tester, "$asset_name#$assetDomain").get()
+            Thread.sleep(BATCH_TIME_WAIT)
+
+            val accountJson = getAccountData(irohaAPI, testCredential, userId).get().toJsonString()
+            val tester_amount = getAccountAsset(irohaAPI, testCredential, tester, "$asset_name#$assetDomain").get()
             val u1_amount =
-                getAccountAsset(testCredential, irohaNetwork, userId, "$asset_name#$assetDomain").get()
+                getAccountAsset(irohaAPI, testCredential, userId, "$asset_name#$assetDomain").get()
 
             assertEquals(hashes, successHash)
             assertEquals("{\"$tester\":{\"key\":\"value\"}}", accountJson)
@@ -158,7 +156,7 @@ class IrohaBatchTest {
 
             runBlocking {
                 withTimeout(10_000) {
-                    assertEquals(hashes, blockHashes.await())
+                    assertEquals(hashes, blockHashes.await().map { DatatypeConverter.printHexBinary(it) })
                 }
             }
         }
@@ -176,28 +174,29 @@ class IrohaBatchTest {
             val user = randomString()
             val asset_name = randomString()
 
-            val irohaConsumer = IrohaConsumerImpl(testCredential, irohaNetwork)
+            val irohaConsumer = IrohaConsumerImpl(testCredential, irohaAPI)
 
             val userId = "$user@$CLIENT_DOMAIN"
             val assetId = "$asset_name#$assetDomain"
 
+            val createdTime = ModelUtil.getCurrentTime()
             val txList =
                 listOf(
                     IrohaTransaction(
                         tester,
-                        ModelUtil.getCurrentTime(),
+                        createdTime,
                         1,
                         listOf(
                             IrohaCommand.CommandCreateAccount(
                                 user,
                                 CLIENT_DOMAIN,
-                                ModelCrypto().generateKeypair().publicKey().hex()
+                                Ed25519Sha3().generateKeypair().public
                             )
                         )
                     ),
                     IrohaTransaction(
                         tester,
-                        ModelUtil.getCurrentTime(),
+                        createdTime.add(BigInteger.ONE),
                         1,
                         listOf(
                             IrohaCommand.CommandSetAccountDetail(
@@ -209,7 +208,7 @@ class IrohaBatchTest {
                     ),
                     IrohaTransaction(
                         tester,
-                        ModelUtil.getCurrentTime(),
+                        createdTime.add(BigInteger.TEN),
                         1,
                         listOf(
                             IrohaCommand.CommandCreateAsset(
@@ -232,7 +231,7 @@ class IrohaBatchTest {
                     ),
                     IrohaTransaction(
                         tester,
-                        ModelUtil.getCurrentTime(),
+                        createdTime.add(BigInteger.TEN).add(BigInteger.TEN),
                         1,
                         listOf(
                             IrohaCommand.CommandTransferAsset(
@@ -248,22 +247,24 @@ class IrohaBatchTest {
                 )
 
             val batch = IrohaOrderedBatch(txList)
-            val lst = IrohaConverterImpl().convert(batch)
-            val hashes = lst.map { it.hash().hex() }
+            val lst = IrohaConverter.convert(batch, irohaConsumer.creator)
+            val hashes = lst.map { DatatypeConverter.printHexBinary(it.hash()) }
             val expectedHashes = hashes.subList(0, hashes.size - 1)
 
             val blockHashes = GlobalScope.async {
                 listener.getBlock().payload.transactionsList.map {
-                    Blob(iroha.hashTransaction(it.toByteArray().toByteVector())).hex()
+                    Utils.hash(it)
                 }
             }
 
-            val successHash = irohaConsumer.sendAndCheck(lst).get()
+            val successHash = irohaConsumer.send(lst).get().map { DatatypeConverter.printHexBinary(it) }
 
-            val accountJson = getAccountData(testCredential, irohaNetwork, userId).get().toJsonString()
-            val tester_amount = getAccountAsset(testCredential, irohaNetwork, tester, assetId).get()
+            Thread.sleep(BATCH_TIME_WAIT)
+
+            val accountJson = getAccountData(irohaAPI, testCredential, userId).get().toJsonString()
+            val tester_amount = getAccountAsset(irohaAPI, testCredential, tester, assetId).get()
             val u1_amount =
-                getAccountAsset(testCredential, irohaNetwork, userId, assetId).get()
+                getAccountAsset(irohaAPI, testCredential, userId, assetId).get()
 
             assertEquals(expectedHashes, successHash)
             assertEquals("{\"$tester\":{\"key\":\"value\"}}", accountJson)
@@ -272,9 +273,13 @@ class IrohaBatchTest {
 
             runBlocking {
                 withTimeout(10_000) {
-                    assertEquals(expectedHashes, blockHashes.await())
+                    assertEquals(expectedHashes, blockHashes.await().map { DatatypeConverter.printHexBinary(it) })
                 }
             }
         }
+    }
+
+    companion object {
+        private const val BATCH_TIME_WAIT = 5000L
     }
 }

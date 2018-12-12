@@ -46,7 +46,7 @@ allprojects {
 
 subprojects {
     dokka {
-        outputFormat = 'html' 
+        outputFormat = 'html'
         outputDirectory = "build/reports/dokka"
         reportUndocumented = true
         sourceDirs = files("${project.projectDir}/src/main/kotlin")
@@ -66,8 +66,8 @@ sourceCompatibility = 1.8
 
 // ------------------| Test dependencies |------------------
 
-allprojects{
-    dependencies{
+allprojects {
+    dependencies {
         // unit tests
         testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
         testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
@@ -101,16 +101,6 @@ allprojects {
     }
     compileTestKotlin {
         kotlinOptions.jvmTarget = "1.8"
-    }
-}
-
-allprojects {
-    test {
-        setWorkingDir("$rootDir/")
-        useJUnitPlatform()
-        systemProperty 'java.library.path', Paths.get(projectDir.getParent().toString(), "iroha_bindings", getCurrentOs()).toString()
-        println "Runtime Iroha library path:${systemProperties}"
-        environment "LD_LIBRARY_PATH", Paths.get(projectDir.getParent().toString(), "iroha_bindings", getCurrentOs()).toString()
     }
 }
 
@@ -169,18 +159,7 @@ buildEthereumContractsBindings.dependsOn ':buildEthereumContracts'
 
 import org.gradle.internal.os.OperatingSystem
 
-import java.nio.file.Paths
-
 import static org.apache.tools.ant.taskdefs.condition.Os.*
-
-static def getCurrentOs() {
-    if (OperatingSystem.current().isMacOsX()) {
-        return 'mac'
-    }
-    if (OperatingSystem.current().isLinux()) {
-        return 'linux'
-    }
-}
 
 //Forms a list of ETH passwords from command line arguments
 def getEthPasswordsArgs() {
@@ -197,14 +176,6 @@ def getEthPasswordsArgs() {
     return args
 }
 
-task retrieveIrohaBindings(type: Exec) {
-    description = 'Downloads Iroha binding for specific platform'
-
-    def bindings_invocation = ['sh', 'iroha_bindings.sh', getCurrentOs()]
-
-    commandLine bindings_invocation
-}
-
 task osInfo {
     description = 'Show information about the operating system'
     doLast {
@@ -214,12 +185,6 @@ task osInfo {
         println "Architecture: ${OS_ARCH}"
     }
 }
-
-def getIrohaLibPath() {
-    return Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-}
-
-retrieveIrohaBindings.dependsOn(osInfo)
 
 // -------------------------| End Iroha bindings |-------------------------
 
@@ -246,14 +211,14 @@ task codeCoverageReport(type: JacocoReport) {
 
     // Add all relevant sourcesets from the subprojects
     subprojects.each {
-       sourceSets it.sourceSets.main
+        sourceSets it.sourceSets.main
     }
 
     reports {
-      xml.enabled true
-      html.enabled true
-      html.destination "${buildDir}/reports/jacoco"
-      csv.enabled false
+        xml.enabled true
+        html.enabled true
+        html.destination "${buildDir}/reports/jacoco"
+        csv.enabled false
     }
 }
 

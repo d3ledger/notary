@@ -5,6 +5,7 @@ import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.map
 import com.squareup.moshi.Moshi
 import io.reactivex.Observable
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import mu.KLogging
 import notary.endpoint.eth.BigIntegerMoshiAdapter
@@ -17,7 +18,6 @@ import sidechain.SideChainEvent
 import sidechain.eth.util.extractVRS
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountDetails
 import java.math.BigDecimal
@@ -52,30 +52,30 @@ data class RollbackApproval(
 class WithdrawalServiceImpl(
     private val withdrawalServiceConfig: WithdrawalServiceConfig,
     val credential: IrohaCredential,
-    val irohaNetwork: IrohaNetwork,
+    val irohaAPI: IrohaAPI,
     private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
 ) : WithdrawalService {
     private val notaryPeerListProvider = NotaryPeerListProviderImpl(
+        irohaAPI,
         credential,
-        irohaNetwork,
         withdrawalServiceConfig.notaryListStorageAccount,
         withdrawalServiceConfig.notaryListSetterAccount
     )
     private val tokensProvider: EthTokensProvider = EthTokensProviderImpl(
         credential,
-        irohaNetwork,
+        irohaAPI,
         withdrawalServiceConfig.tokenStorageAccount,
         withdrawalServiceConfig.tokenSetterAccount
     )
 
     private val masterAccount = withdrawalServiceConfig.notaryIrohaAccount
 
-    private val irohaConsumer: IrohaConsumer by lazy { IrohaConsumerImpl(credential, irohaNetwork) }
+    private val irohaConsumer: IrohaConsumer by lazy { IrohaConsumerImpl(credential, irohaAPI) }
 
     private fun findInAccDetail(acc: String, name: String): Result<String, Exception> {
         return getAccountDetails(
+            irohaAPI,
             credential,
-            irohaNetwork,
             acc,
             withdrawalServiceConfig.registrationIrohaAccount
         ).map { relays ->
@@ -196,7 +196,7 @@ class WithdrawalServiceImpl(
         }
 
         logger.info("Withdrawal rollback initiated: ${event.proof.irohaHash}")
-        return ModelUtil.getTransaction(irohaNetwork, credential, event.proof.irohaHash)
+        return ModelUtil.getTransaction(irohaAPI, credential, event.proof.irohaHash)
             .map { tx ->
                 tx.payload.reducedPayload.commandsList.first { command ->
                     val transferAsset = command.transferAsset
@@ -205,7 +205,7 @@ class WithdrawalServiceImpl(
             }
             .map { transferCommand ->
                 val destAccountId = transferCommand?.transferAsset?.srcAccountId
-                        ?: throw IllegalStateException("Unable to identify primary Iroha transaction data")
+                    ?: throw IllegalStateException("Unable to identify primary Iroha transaction data")
 
                 ModelUtil.transferAssetIroha(
                     irohaConsumer,

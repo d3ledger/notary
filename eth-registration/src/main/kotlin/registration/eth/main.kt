@@ -4,15 +4,13 @@ package registration.eth
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.fanout
-import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.ETH_RELAY_REGISTRY_ENV
 import config.EthereumPasswords
 import config.loadConfigs
 import config.loadEthPasswords
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import mu.KLogging
-import sidechain.iroha.IrohaInitialization
-import sidechain.iroha.consumer.IrohaNetworkImpl
 
 private val logger = KLogging().logger
 
@@ -21,7 +19,7 @@ private val logger = KLogging().logger
  */
 fun main(args: Array<String>) {
     loadConfigs("eth-registration", EthRegistrationConfig::class.java, "/eth/registration.properties")
-        .map {ethRegistrationConfig ->
+        .map { ethRegistrationConfig ->
             object : EthRegistrationConfig {
                 override val ethRelayRegistryAddress = System.getenv(ETH_RELAY_REGISTRY_ENV)
                     ?: ethRegistrationConfig.ethRelayRegistryAddress
@@ -41,10 +39,9 @@ fun main(args: Array<String>) {
 
 fun executeRegistration(ethRegistrationConfig: EthRegistrationConfig, passwordConfig: EthereumPasswords) {
     logger.info { "Run ETH registration service" }
-    val irohaNetwork = IrohaNetworkImpl(ethRegistrationConfig.iroha.hostname, ethRegistrationConfig.iroha.port)
+    val irohaNetwork = IrohaAPI(ethRegistrationConfig.iroha.hostname, ethRegistrationConfig.iroha.port)
 
-    IrohaInitialization.loadIrohaLibrary()
-        .flatMap { EthRegistrationServiceInitialization(ethRegistrationConfig, passwordConfig, irohaNetwork).init() }
+    EthRegistrationServiceInitialization(ethRegistrationConfig, passwordConfig, irohaNetwork).init()
         .failure { ex ->
             logger.error("cannot run eth registration", ex)
             irohaNetwork.close()

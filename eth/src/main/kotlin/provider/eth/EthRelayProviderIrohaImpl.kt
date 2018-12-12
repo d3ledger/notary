@@ -2,9 +2,9 @@ package provider.eth
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import mu.KLogging
-import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
 
 /**
@@ -16,7 +16,7 @@ import sidechain.iroha.util.getAccountDetails
  * @param registrationAccount - account that has set details
  */
 class EthRelayProviderIrohaImpl(
-    private val irohaNetwork: IrohaNetwork,
+    private val irohaAPI: IrohaAPI,
     private val credential: IrohaCredential,
     private val notaryAccount: String,
     private val registrationAccount: String
@@ -35,8 +35,8 @@ class EthRelayProviderIrohaImpl(
      */
     override fun getRelays(): Result<Map<String, String>, Exception> {
         return getAccountDetails(
+            irohaAPI,
             credential,
-            irohaNetwork,
             notaryAccount,
             registrationAccount
         ).map { relays ->

@@ -2,14 +2,14 @@ package provider.eth
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import mu.KLogging
-import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
 import sidechain.iroha.util.getAssetPrecision
 
 const val ETH_NAME = "ether"
-const val ETH_PRECISION: Short = 18
+const val ETH_PRECISION: Int = 18
 const val ETH_ADDRESS = "0x0000000000000000000000000000000000000000"
 
 /**
@@ -22,7 +22,7 @@ const val ETH_ADDRESS = "0x0000000000000000000000000000000000000000"
  */
 class EthTokensProviderImpl(
     private val credential: IrohaCredential,
-    private val irohaNetwork: IrohaNetwork,
+    private val irohaAPI: IrohaAPI,
     private val tokenStorageAccount: String,
     private val tokenSetterAccount: String
 ) : EthTokensProvider {
@@ -36,8 +36,8 @@ class EthTokensProviderImpl(
      */
     override fun getTokens(): Result<Map<String, String>, Exception> {
         return getAccountDetails(
+            irohaAPI,
             credential,
-            irohaNetwork,
             tokenStorageAccount,
             tokenSetterAccount
         )
@@ -46,12 +46,12 @@ class EthTokensProviderImpl(
     /**
      * Get precision of [name] asset in Iroha.
      */
-    override fun getTokenPrecision(name: String): Result<Short, Exception> {
+    override fun getTokenPrecision(name: String): Result<Int, Exception> {
         return if (name == ETH_NAME)
             Result.of { ETH_PRECISION }
         else getAssetPrecision(
+            irohaAPI,
             credential,
-            irohaNetwork,
             "$name#ethereum"
         )
     }
@@ -63,8 +63,8 @@ class EthTokensProviderImpl(
         return if (name == ETH_NAME)
             Result.of { ETH_ADDRESS }
         else getAccountDetails(
+            irohaAPI,
             credential,
-            irohaNetwork,
             tokenStorageAccount,
             tokenSetterAccount
         ).map { tokens ->

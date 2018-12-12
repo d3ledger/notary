@@ -2,15 +2,15 @@ package provider.btc.address
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import monitoring.Monitoring
-import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
 
 //Class that provides all registered BTC addresses
 open class BtcRegisteredAddressesProvider(
     private val credential: IrohaCredential,
-    private val irohaNetwork: IrohaNetwork,
+    private val irohaAPI: IrohaAPI,
     private val registrationAccount: String,
     private val notaryAccount: String
 ) : Monitoring() {
@@ -22,8 +22,8 @@ open class BtcRegisteredAddressesProvider(
      */
     fun getRegisteredAddresses(): Result<List<BtcAddress>, Exception> {
         return getAccountDetails(
+            irohaAPI,
             credential,
-            irohaNetwork,
             notaryAccount,
             registrationAccount
         ).map { addresses ->

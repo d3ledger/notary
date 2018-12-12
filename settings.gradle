@@ -33,17 +33,17 @@ project(':eth-withdrawal').projectDir = 'eth-withdrawal' as File
 include 'notary-commons'
 project(':notary-commons').projectDir = 'notary-commons' as File
 
-include 'notary-btc-integration-test'
-project(':notary-btc-integration-test').projectDir = 'notary-btc-integration-test' as File
-
-include 'notary-eth-integration-test'
-project(':notary-eth-integration-test').projectDir = 'notary-eth-integration-test' as File
+//include 'notary-btc-integration-test'
+//project(':notary-btc-integration-test').projectDir = 'notary-btc-integration-test' as File
+//
+//include 'notary-eth-integration-test'
+//project(':notary-eth-integration-test').projectDir = 'notary-eth-integration-test' as File
 
 include 'notary-iroha-integration-test'
 project(':notary-iroha-integration-test').projectDir = 'notary-iroha-integration-test' as File
 
-include 'test-longevity'
-project(':test-longevity').projectDir = 'test-longevity' as File
+//include 'test-longevity'
+//project(':test-longevity').projectDir = 'test-longevity' as File
 
 include 'd3testreport'
 project(':d3testreport').projectDir = 'd3testreport' as File

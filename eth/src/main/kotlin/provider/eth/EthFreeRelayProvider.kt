@@ -2,9 +2,9 @@ package provider.eth
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import mu.KLogging
-import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
 
 /**
@@ -16,7 +16,7 @@ import sidechain.iroha.util.getAccountDetails
 // on provider side with some synchronization.
 class EthFreeRelayProvider(
     private val credential: IrohaCredential,
-    private val irohaNetwork: IrohaNetwork,
+    private val irohaAPI: IrohaAPI,
     private val notaryIrohaAccount: String,
     private val registrationIrohaAccount: String
 ) {
@@ -41,8 +41,8 @@ class EthFreeRelayProvider(
      */
     fun getRelays(): Result<Set<String>, Exception> {
         return getAccountDetails(
+            irohaAPI,
             credential,
-            irohaNetwork,
             notaryIrohaAccount,
             registrationIrohaAccount
         ).map { relays ->

@@ -2,11 +2,11 @@ package registration.eth.relay
 
 import com.github.kittinunf.result.Result
 import config.EthereumPasswords
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.eth.util.DeployHelper
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
 import java.io.File
 
@@ -17,14 +17,14 @@ import java.io.File
 class RelayRegistration(
     private val relayRegistrationConfig: RelayRegistrationConfig,
     relayCredential: IrohaCredential,
-    irohaNetwork: IrohaNetwork,
+    irohaAPI: IrohaAPI,
     relayRegistrationEthereumPasswords: EthereumPasswords
 ) {
     /** Ethereum endpoint */
     private val deployHelper = DeployHelper(relayRegistrationConfig.ethereum, relayRegistrationEthereumPasswords)
 
     /** Iroha endpoint */
-    private val irohaConsumer = IrohaConsumerImpl(relayCredential, irohaNetwork)
+    private val irohaConsumer = IrohaConsumerImpl(relayCredential, irohaAPI)
 
     private val notaryIrohaAccount = relayRegistrationConfig.notaryIrohaAccount
 
@@ -44,7 +44,7 @@ class RelayRegistration(
      * @param relayAddress - relay address to record into Iroha
      * @return Result with string representation of hash or possible failure
      */
-    fun registerRelayIroha(relayAddress: String): Result<String, Exception> {
+    fun registerRelayIroha(relayAddress: String): Result<ByteArray, Exception> {
         return ModelUtil.setAccountDetail(irohaConsumer, notaryIrohaAccount, relayAddress, "free")
     }
 

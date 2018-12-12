@@ -31,7 +31,7 @@ import java.security.KeyPair
  */
 class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
 
-    override val accountHelper by lazy { IrohaAccountHelper(irohaNetwork) }
+    override val accountHelper by lazy { IrohaAccountHelper(irohaAPI) }
 
     override val configHelper by lazy {
         EthConfigHelper(
@@ -52,7 +52,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     )
 
     private val tokenProviderIrohaConsumer by lazy {
-        IrohaConsumerImpl(accountHelper.tokenSetterAccount, irohaNetwork)
+        IrohaConsumerImpl(accountHelper.tokenSetterAccount, irohaAPI)
     }
 
     val relayRegistryContract by lazy {
@@ -72,7 +72,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     val ethTokensProvider by lazy {
         EthTokensProviderImpl(
             testCredential,
-            irohaNetwork,
+            irohaAPI,
             accountHelper.tokenStorageAccount.accountId,
             accountHelper.tokenSetterAccount.accountId
         )
@@ -82,7 +82,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     private val ethFreeRelayProvider by lazy {
         EthFreeRelayProvider(
             accountHelper.registrationAccount,
-            irohaNetwork,
+            irohaAPI,
             accountHelper.notaryAccount.accountId,
             accountHelper.registrationAccount.accountId
         )
@@ -91,7 +91,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /** Provider of ETH wallets created by registrationAccount*/
     private val ethRelayProvider by lazy {
         EthRelayProviderIrohaImpl(
-            irohaNetwork,
+            irohaAPI,
             accountHelper.registrationAccount,
             accountHelper.notaryAccount.accountId,
             accountHelper.registrationAccount.accountId
@@ -112,7 +112,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         RelayRegistration(
             configHelper.createRelayRegistrationConfig(),
             accountHelper.registrationAccount,
-            irohaNetwork,
+            irohaAPI,
             configHelper.ethPasswordConfig
         )
     }
@@ -128,7 +128,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      * Deploys randomly named ERC20 token
      * @return pair (tokenName, tokenAddress)
      */
-    fun deployRandomERC20Token(precision: Short = 0): Pair<EthTokenInfo, String> {
+    fun deployRandomERC20Token(precision: Int = 0): Pair<EthTokenInfo, String> {
         val name = String.getRandomString(5)
         return Pair(EthTokenInfo(name, precision), deployERC20Token(name, precision))
     }
@@ -140,7 +140,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      * - add to master contract
      * @return token name in iroha and address of ERC20 smart contract
      */
-    fun deployERC20Token(name: String, precision: Short): String {
+    fun deployERC20Token(name: String, precision: Int): String {
         logger.info { "create $name ERC20 token" }
         val tokenAddress = contractTestHelper.deployHelper.deployERC20TokenSmartContract().contractAddress
         addERC20Token(tokenAddress, name, precision)
@@ -161,7 +161,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      * @param tokenName - user defined token name
      * @param tokenAddress - token ERC20 smart contract address
      */
-    fun addERC20Token(tokenAddress: String, tokenName: String, precision: Short) {
+    fun addERC20Token(tokenAddress: String, tokenName: String, precision: Int) {
         ModelUtil.createAsset(irohaConsumer, tokenName, "ethereum", precision)
         ModelUtil.setAccountDetail(
             tokenProviderIrohaConsumer,
@@ -268,7 +268,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         whitelist: List<String>,
         keypair: KeyPair = ModelUtil.generateKeypair()
     ): String {
-        ethRegistrationStrategy.register(name, whitelist, keypair.public.toHexString())
+        ethRegistrationStrategy.register(name, whitelist, keypair.public)
             .fold({ registeredEthWallet ->
                 logger.info("registered client $name with relay $registeredEthWallet")
                 return registeredEthWallet
