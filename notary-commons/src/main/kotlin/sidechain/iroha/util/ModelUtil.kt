@@ -1,7 +1,6 @@
 package sidechain.iroha.util
 
 import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.flatMap
 import com.google.protobuf.InvalidProtocolBufferException
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.CommandServiceGrpc
@@ -11,10 +10,8 @@ import iroha.protocol.Queries.Query
 import iroha.protocol.QueryServiceGrpc
 import iroha.protocol.TransactionOuterClass.Transaction
 import jp.co.soramitsu.iroha.*
-import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.consumer.IrohaConsumer
-import sidechain.iroha.consumer.IrohaNetwork
 import java.io.IOException
 import java.math.BigInteger
 import java.nio.file.Files
@@ -189,30 +186,6 @@ object ModelUtil {
                 resp.errorResponse.reason.toString() == "STATELESS_INVALID")
 
     /**
-     * Get transaction from Iroha by [hash]
-     * @param hash - hash of transaction
-     * @return transaction
-     */
-    fun getTransaction(
-        irohaNetwork: IrohaNetwork,
-        credential: IrohaCredential,
-        hash: String
-    ): Result<Transaction, Exception> {
-        val hashes = HashVector()
-        hashes.add(Hash.fromHexString(hash))
-
-        val uquery = ModelQueryBuilder().creatorAccountId(credential.accountId)
-            .queryCounter(BigInteger.valueOf(1))
-            .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
-            .getTransactions(hashes)
-            .build()
-
-        return prepareQuery(uquery, credential.keyPair)
-            .flatMap { irohaNetwork.sendQuery(it) }
-            .flatMap { getFirstTransaction(it) }
-    }
-
-    /**
      * Send SetAccountDetail to Iroha
      * @param irohaConsumer - iroha network layer
      * @param accountId - account to set details
@@ -232,6 +205,28 @@ object ModelUtil {
             .setAccountDetail(accountId, key, value)
             .build()
         return irohaConsumer.sendAndCheck(tx)
+    }
+
+    /**
+     * Create account name@domain.
+     * @param name - account name
+     * @param domain - account domain
+     * @param pubkey - account pubkey
+     * @return hex representation of transaction hash
+     */
+    fun createAccount(
+        irohaConsumer: IrohaConsumer,
+        name: String,
+        domain: String,
+        pubkey: PublicKey
+    ): Result<String, Exception> {
+        return irohaConsumer.sendAndCheck(
+            ModelTransactionBuilder()
+                .creatorAccountId(irohaConsumer.creator)
+                .createdTime(getCurrentTime())
+                .createAccount(name, domain, pubkey)
+                .build()
+        )
     }
 
     /**

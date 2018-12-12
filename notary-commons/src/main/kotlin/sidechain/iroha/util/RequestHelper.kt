@@ -9,6 +9,8 @@ import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
 import iroha.protocol.QryResponses
 import iroha.protocol.TransactionOuterClass
+import jp.co.soramitsu.iroha.Hash
+import jp.co.soramitsu.iroha.HashVector
 import jp.co.soramitsu.iroha.ModelQueryBuilder
 import model.IrohaCredential
 import sidechain.iroha.consumer.IrohaNetwork
@@ -154,6 +156,30 @@ fun getAccountDetails(
         else
             json.map[detailSetterAccount] as Map<String, String>
     }
+}
+
+/**
+ * Get transaction from Iroha by [hash]
+ * @param hash - hash of transaction
+ * @return transaction
+ */
+fun getTransaction(
+    irohaNetwork: IrohaNetwork,
+    credential: IrohaCredential,
+    hash: String
+): Result<TransactionOuterClass.Transaction, Exception> {
+    val hashes = HashVector()
+    hashes.add(Hash.fromHexString(hash))
+
+    val uquery = ModelQueryBuilder().creatorAccountId(credential.accountId)
+        .queryCounter(BigInteger.valueOf(1))
+        .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
+        .getTransactions(hashes)
+        .build()
+
+    return ModelUtil.prepareQuery(uquery, credential.keyPair)
+        .flatMap { irohaNetwork.sendQuery(it) }
+        .flatMap { getFirstTransaction(it) }
 }
 
 /**
