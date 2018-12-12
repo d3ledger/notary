@@ -1,5 +1,6 @@
 package withdrawal.btc.handler
 
+import com.github.kittinunf.result.map
 import iroha.protocol.Commands
 import mu.KLogging
 import org.bitcoinj.core.PeerGroup
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Component
 import sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
 import withdrawal.btc.statistics.WithdrawalStatistics
 import withdrawal.btc.transaction.SignCollector
+import withdrawal.btc.transaction.TransactionHelper
 import withdrawal.btc.transaction.UnsignedTransactions
 
 /*
@@ -17,7 +19,8 @@ import withdrawal.btc.transaction.UnsignedTransactions
 class NewSignatureEventHandler(
     @Autowired private val withdrawalStatistics: WithdrawalStatistics,
     @Autowired private val signCollector: SignCollector,
-    @Autowired private val unsignedTransactions: UnsignedTransactions
+    @Autowired private val unsignedTransactions: UnsignedTransactions,
+    @Autowired private val transactionHelper: TransactionHelper
 ) {
 
     /**
@@ -43,11 +46,16 @@ class NewSignatureEventHandler(
             }
             logger.info { "Tx $originalHash has enough signatures" }
             signCollector.fillTxWithSignatures(tx, signatures)
-                .fold({
-                    peerGroup.broadcastTransaction(tx)
+                .map {
                     unsignedTransactions.remove(shortTxHash)
+                    logger.info { "Tx(originally known as $originalHash) is ready to be broadcasted $tx" }
+                    //Wait until it is broadcasted to all connected peers
+                    peerGroup.broadcastTransaction(tx).future().get()
+                }.fold({
+                    logger.info { "Tx ${tx.hashAsString} was successfully broadcasted" }
                     withdrawalStatistics.incSucceededTransfers()
                 }, { ex ->
+                    transactionHelper.unregisterUnspents(originalHash)
                     withdrawalStatistics.incFailedTransfers()
                     logger.error("Cannot complete tx $originalHash", ex)
                 })

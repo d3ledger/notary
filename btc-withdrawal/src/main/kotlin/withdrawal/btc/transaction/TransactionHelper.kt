@@ -35,7 +35,11 @@ class TransactionHelper(
     @Autowired private val btcChangeAddressProvider: BtcChangeAddressProvider
 ) {
 
-    private val usedOutputs = HashSet<TransactionOutput>()
+    /**
+     *  Map full of used transaction outputs. Key is tx hash, value is list of unspents.
+     *  We need it because Bitcoinj can't say if UTXO was spent until it was not broadcasted
+     *  */
+    private val usedOutputs = HashMap<String, List<TransactionOutput>>()
 
     /**
      * Adds outputs(destination and change addresses) to a given transaction
@@ -83,10 +87,19 @@ class TransactionHelper(
 
     /**
      * Registers given transaction outputs as "untouchable" to use in the future
+     * @param tx - transaction
      * @param unspents - transaction outputs to register as "untouchable"
      */
-    fun registerUnspents(unspents: List<TransactionOutput>) {
-        usedOutputs.addAll(unspents)
+    fun registerUnspents(tx: Transaction, unspents: List<TransactionOutput>) {
+        usedOutputs[tx.hashAsString] = unspents
+    }
+
+    /**
+     * Frees outputs, making them usable for other transactions
+     * @param txHash - hash of transaction which outputs/unspents must be freed
+     */
+    fun unregisterUnspents(txHash: String) {
+        usedOutputs.remove(txHash)
     }
 
     /**
@@ -138,7 +151,7 @@ class TransactionHelper(
             ArrayList<TransactionOutput>(wallet.unspents.filter { unspent ->
                 unspent.parentTransactionDepthInBlocks >= confidenceLevel
                         //Cannot use already used unspents
-                        && !usedOutputs.contains(unspent)
+                        && !usedOutputs.values.flatten().contains(unspent)
                         //Cannot use unspents from another level of recursion
                         && !recursivelyCollectedUnspents.contains(unspent)
             })

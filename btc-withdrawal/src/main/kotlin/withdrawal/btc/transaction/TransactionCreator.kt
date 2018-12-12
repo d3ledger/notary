@@ -6,6 +6,7 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.Transaction
+import org.bitcoinj.core.TransactionOutput
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -28,14 +29,14 @@ class TransactionCreator(
      * @param amount - amount of SAT to spend
      * @param destinationAddress - receiver's base58 Bitcoin address
      * @param confidenceLevel - minimum tx depth that will be used in unspents
-     * @return result with unsigned transaction full of input/output data
+     * @return result with unsigned transaction full of input/output data and used unspents
      */
     fun createTransaction(
         wallet: Wallet,
         amount: Long,
         destinationAddress: String,
         confidenceLevel: Int
-    ): Result<Transaction, Exception> {
+    ): Result<Pair<Transaction, List<TransactionOutput>>, Exception> {
         val transaction = Transaction(btcNetworkConfigProvider.getConfig())
         return transactionHelper.getAvailableAddresses(wallet).flatMap { availableAddresses ->
             transactionHelper.collectUnspents(availableAddresses, wallet, amount, confidenceLevel)
@@ -50,7 +51,7 @@ class TransactionCreator(
                 amount,
                 Address.fromBase58(btcNetworkConfigProvider.getConfig(), changeAddress.address)
             )
-            transactionHelper.registerUnspents(unspents)
-        }.map { transaction }
+            unspents
+        }.map { unspents -> Pair(transaction, unspents) }
     }
 }
