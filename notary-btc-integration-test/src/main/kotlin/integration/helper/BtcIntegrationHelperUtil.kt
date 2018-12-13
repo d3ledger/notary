@@ -5,6 +5,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import config.BitcoinConfig
+import helper.currency.satToBtc
 import helper.network.getBlockChain
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelCrypto
@@ -32,6 +33,7 @@ import java.io.File
 import java.math.BigDecimal
 
 const val btcAsset = "btc#bitcoin"
+private const val GENERATED_ADDRESSES_PER_BATCH = 5
 
 class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
 
@@ -78,33 +80,52 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     }
 
     /**
-     * Pregenerates multiple BTC address that can be registered later
+     * Pregenerates multiple BTC addresses that can be registered later
      * @param walletFilePath - path to wallet file
      * @param addressesToGenerate - number of addresses to generate
-     * @return result of operation
      */
-    fun preGenFreeBtcAddresses(walletFilePath: String, addressesToGenerate: Int): Result<Unit, Exception> {
-        return Result.of {
-            val irohaTxList = ArrayList<IrohaTransaction>()
-            for (i in 1..addressesToGenerate) {
-                val (key, address) = generateKeyAndAddress(walletFilePath)
-                val irohaTx = IrohaTransaction(
-                    mstRegistrationIrohaConsumer.creator,
-                    ModelUtil.getCurrentTime(),
-                    1,
-                    arrayListOf(
-                        IrohaCommand.CommandSetAccountDetail(
-                            accountHelper.notaryAccount.accountId,
-                            address.toBase58(),
-                            AddressInfo.createFreeAddressInfo(listOf(key.publicKeyAsHex)).toJson()
-                        )
+    fun preGenFreeBtcAddresses(walletFilePath: String, addressesToGenerate: Int) {
+        val totalBatches = Math.ceil(addressesToGenerate.div(GENERATED_ADDRESSES_PER_BATCH.toDouble())).toInt()
+        /*
+         Iroha dies if it sees too much of transactions in a batch.
+          */
+        for (batch in 1..totalBatches) {
+            if (batch == totalBatches) {
+                preGenFreeBtcAddressesBatch(
+                    walletFilePath,
+                    addressesToGenerate - (totalBatches - 1) * GENERATED_ADDRESSES_PER_BATCH
+                )
+            } else {
+                preGenFreeBtcAddressesBatch(walletFilePath, GENERATED_ADDRESSES_PER_BATCH)
+            }
+        }
+    }
+
+    /**
+     * Creates and executes a batch full of generated BTC addresses
+     * @param walletFilePath - path to wallet file
+     * @param addressesToGenerate - number of addresses to generate
+     */
+    private fun preGenFreeBtcAddressesBatch(walletFilePath: String, addressesToGenerate: Int) {
+        val irohaTxList = ArrayList<IrohaTransaction>()
+        for (i in 1..addressesToGenerate) {
+            val (key, address) = generateKeyAndAddress(walletFilePath)
+            val irohaTx = IrohaTransaction(
+                mstRegistrationIrohaConsumer.creator,
+                ModelUtil.getCurrentTime(),
+                1,
+                arrayListOf(
+                    IrohaCommand.CommandSetAccountDetail(
+                        accountHelper.notaryAccount.accountId,
+                        address.toBase58(),
+                        AddressInfo.createFreeAddressInfo(listOf(key.publicKeyAsHex)).toJson()
                     )
                 )
-                irohaTxList.add(irohaTx)
-            }
-            val utx = IrohaConverterImpl().convert(IrohaOrderedBatch(irohaTxList))
-            mstRegistrationIrohaConsumer.sendAndCheck(utx).failure { ex -> throw ex }
+            )
+            irohaTxList.add(irohaTx)
         }
+        val utx = IrohaConverterImpl().convert(IrohaOrderedBatch(irohaTxList))
+        mstRegistrationIrohaConsumer.sendAndCheck(utx).failure { ex -> throw ex }
     }
 
     /**
@@ -203,6 +224,15 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     fun sendBtc(address: String, amount: Int, confirmations: Int = 6) {
         logger.info { "Send $amount BTC to $address" }
         rpcClient.sendToAddress(address = address, amount = BigDecimal(amount))
+        generateBtcBlocks(confirmations)
+    }
+
+    /**
+     * Send sat to a given address
+     */
+    fun sendSat(address: String, amount: Int, confirmations: Int = 6) {
+        logger.info { "Send $amount SAT to $address" }
+        rpcClient.sendToAddress(address = address, amount = satToBtc(amount.toLong()))
         generateBtcBlocks(confirmations)
     }
 
