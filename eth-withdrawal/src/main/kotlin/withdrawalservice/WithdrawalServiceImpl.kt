@@ -20,6 +20,7 @@ import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountDetails
+import sidechain.iroha.util.getTransaction
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -196,7 +197,7 @@ class WithdrawalServiceImpl(
         }
 
         logger.info("Withdrawal rollback initiated: ${event.proof.irohaHash}")
-        return ModelUtil.getTransaction(irohaNetwork, credential, event.proof.irohaHash)
+        return getTransaction(irohaNetwork, credential, event.proof.irohaHash)
             .map { tx ->
                 tx.payload.reducedPayload.commandsList.first { command ->
                     val transferAsset = command.transferAsset
@@ -205,7 +206,7 @@ class WithdrawalServiceImpl(
             }
             .map { transferCommand ->
                 val destAccountId = transferCommand?.transferAsset?.srcAccountId
-                        ?: throw IllegalStateException("Unable to identify primary Iroha transaction data")
+                    ?: throw IllegalStateException("Unable to identify primary Iroha transaction data")
 
                 ModelUtil.transferAssetIroha(
                     irohaConsumer,

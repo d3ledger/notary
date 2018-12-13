@@ -16,7 +16,7 @@ import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
 import sidechain.iroha.consumer.IrohaNetwork
-import sidechain.iroha.util.ModelUtil
+import sidechain.iroha.util.getTransaction
 import java.math.BigDecimal
 
 class NotaryException(reason: String) : Exception(reason)
@@ -49,7 +49,7 @@ class EthRefundStrategyImpl(
     override fun performRefund(request: EthRefundRequest): EthNotaryResponse {
         logger.info("Check tx ${request.irohaTx} for refund")
 
-        return ModelUtil.getTransaction(irohaNetwork, credential, request.irohaTx)
+        return getTransaction(irohaNetwork, credential, request.irohaTx)
             .flatMap { checkTransaction(it, request) }
             .flatMap { makeRefund(it) }
             .fold({ it },

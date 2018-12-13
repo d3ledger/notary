@@ -46,7 +46,7 @@ open class RegistrationTest {
             RegistrationServiceEndpoint(port, strategy)
         }
 
-        runBlocking { delay(3_000) }
+        runBlocking { delay(10_000) }
     }
 
     @AfterAll
