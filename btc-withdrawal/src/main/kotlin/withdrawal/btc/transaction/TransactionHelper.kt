@@ -149,7 +149,10 @@ class TransactionHelper(
         //Only confirmed transactions must be used
         val unspents =
             ArrayList<TransactionOutput>(wallet.unspents.filter { unspent ->
-                unspent.parentTransactionDepthInBlocks >= confidenceLevel
+                // It's senseless to use 'dusty' transaction, because its fee will be higher than its value
+                !isDust(unspent.value.value) &&
+                        //Only confirmed unspents may be used
+                        unspent.parentTransactionDepthInBlocks >= confidenceLevel
                         //Cannot use already used unspents
                         && !usedOutputs.values.flatten().contains(unspent)
                         //Cannot use unspents from another level of recursion
@@ -221,6 +224,9 @@ class TransactionHelper(
 
     // Computes transaction fee based on inputs and outputs
     private fun getTxFee(inputs: Int, outputs: Int) = (getTxSizeInputs(inputs) + getTxSizeOutputs(outputs)) * FEE_RATE
+
+    // Checks if satValue is too low to spend
+    private fun isDust(satValue: Long) = satValue < (FEE_RATE * BYTES_PER_INPUT)
 
     // Checks if transaction output was addressed to available address
     protected fun isAvailableOutput(availableAddresses: Set<String>, output: TransactionOutput): Boolean {
