@@ -13,6 +13,7 @@ import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.ComponentScan
 import sidechain.iroha.IrohaInitialization
+import util.createFolderIfDoesntExist
 import java.util.*
 
 @SpringBootApplication
@@ -23,6 +24,10 @@ private val logger = KLogging().logger
 
 fun main(args: Array<String>) {
     IrohaInitialization.loadIrohaLibrary()
+        .map {
+            // Create block storage folder
+            createFolderIfDoesntExist(notaryConfig.bitcoin.blockStoragePath)
+        }
         .map {
             val app = SpringApplication(BtcNotaryApplication::class.java)
             app.setAdditionalProfiles(getProfile())
