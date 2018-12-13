@@ -60,7 +60,12 @@ class SignCollector(
             val shortTxHash = shortTxHash(tx)
             val createAccountTx = IrohaConverterImpl().convert(createSignCollectionAccountTx(shortTxHash))
             withdrawalConsumer.sendAndCheck(createAccountTx)
-                .failure { ex -> logger.warn("Cannot create signature storing account for tx ${tx.hashAsString}", ex) }
+                .failure { ex ->
+                    throw IllegalStateException(
+                        "Cannot create signature storing account for tx ${tx.hashAsString}",
+                        ex
+                    )
+                }
             val setSignaturesTx = IrohaConverterImpl().convert(setSignatureDetailsTx(shortTxHash, signedInputs))
             withdrawalConsumer.sendAndCheck(setSignaturesTx)
         }.fold(

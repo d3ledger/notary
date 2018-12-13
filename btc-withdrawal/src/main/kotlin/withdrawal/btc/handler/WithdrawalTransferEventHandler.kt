@@ -16,6 +16,7 @@ import withdrawal.btc.provider.BtcWhiteListProvider
 import withdrawal.btc.statistics.WithdrawalStatistics
 import withdrawal.btc.transaction.SignCollector
 import withdrawal.btc.transaction.TransactionCreator
+import withdrawal.btc.transaction.TransactionHelper
 import withdrawal.btc.transaction.UnsignedTransactions
 import java.math.BigDecimal
 
@@ -29,7 +30,8 @@ class WithdrawalTransferEventHandler(
     @Autowired private val btcWithdrawalConfig: BtcWithdrawalConfig,
     @Autowired private val transactionCreator: TransactionCreator,
     @Autowired private val signCollector: SignCollector,
-    @Autowired private val unsignedTransactions: UnsignedTransactions
+    @Autowired private val unsignedTransactions: UnsignedTransactions,
+    @Autowired private val transactionHelper: TransactionHelper
 ) : Monitoring() {
     override fun monitor() = withdrawalStatistics
 
@@ -49,6 +51,7 @@ class WithdrawalTransferEventHandler(
      * @param transferCommand - object with "transfer asset" data: source account, destination account, amount and etc
      */
     fun handleTransferCommand(wallet: Wallet, transferCommand: Commands.TransferAsset) {
+
         if (transferCommand.destAccountId != btcWithdrawalConfig.withdrawalCredential.accountId) {
             return
         }
@@ -94,17 +97,18 @@ class WithdrawalTransferEventHandler(
             amount,
             destinationAddress,
             btcWithdrawalConfig.bitcoin.confidenceLevel
-        ).map { transaction ->
+        ).map { (transaction, unspents) ->
             newBtcTransactionListeners.forEach { listener ->
                 listener(transaction)
             }
-            transaction
-        }.map { transaction ->
+            Pair(transaction, unspents)
+        }.map { (transaction, unspents) ->
             logger.info { "Tx to sign\n$transaction" }
             signCollector.collectSignatures(transaction, btcWithdrawalConfig.bitcoin.walletPath)
-            transaction
-        }.map { transaction ->
+            Pair(transaction, unspents)
+        }.map { (transaction, unspents) ->
             unsignedTransactions.markAsUnsigned(transaction)
+            transactionHelper.registerUnspents(transaction, unspents)
             logger.info { "Tx ${transaction.hashAsString} was added to collection of unsigned transactions" }
         }.failure { ex ->
             withdrawalStatistics.incFailedTransfers()
