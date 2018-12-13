@@ -20,8 +20,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
 const val WITHDRAWAL_WAIT_MILLIS = 15_000L
-private const val TOTAL_TESTS = 11
-private const val FAILED_WITHDRAW_AMOUNT = 666L
+private const val TOTAL_TESTS = 12
+private const val FAILED_WITHDRAW_AMOUNT = 6666L
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcWithdrawalIntegrationTest {
@@ -65,7 +65,7 @@ class BtcWithdrawalIntegrationTest {
      * Test US-001 Withdrawal
      * Note: Iroha and bitcoind must be deployed to pass the test.
      * @given two registered BTC clients. 1st client has 1 BTC in wallet.
-     * @when 1st client sends SAT 1000 to 2nd client
+     * @when 1st client sends SAT 10000 to 2nd client
      * @then new well constructed BTC transaction and one signature appear.
      * Transaction is properly signed, sent to Bitcoin network and not considered unsigned anymore
      */
@@ -143,7 +143,7 @@ class BtcWithdrawalIntegrationTest {
         )
         Thread.sleep(WITHDRAWAL_WAIT_MILLIS)
         assertEquals(initTxCount, environment.createdTransactions.size)
-        amount = satToBtc(10L)
+        amount = satToBtc(10000L)
         integrationHelper.addIrohaAssetTo(testClientSrc, btcAsset, amount)
         integrationHelper.transferAssetIrohaFromClient(
             testClientSrc,
@@ -164,7 +164,7 @@ class BtcWithdrawalIntegrationTest {
     /**
      * Note: Iroha and bitcoind must be deployed to pass the test.
      * @given two BTC clients are registered after withdrawal service being started. 1st client has 1 BTC in wallet.
-     * @when 1st client sends SAT 1000 to 2nd client
+     * @when 1st client sends SAT 10000 to 2nd client
      * @then new well constructed BTC transaction and one signature appear.
      * Transaction is properly signed, sent to Bitcoin network and not considered unsigned anymore
      */
@@ -340,7 +340,7 @@ class BtcWithdrawalIntegrationTest {
     /**
      * Note: Iroha and bitcoind must be deployed to pass the test.
      * @given two registered BTC clients. 1st client has 1 BTC in wallet. 1st client has some address in white list.
-     * @when 1st client sends SAT 1000 to 2nd client
+     * @when 1st client sends SAT 10000 to 2nd client
      * @then no tx is created, because 2nd client is not in 1st client white list
      */
     @Test
@@ -377,7 +377,7 @@ class BtcWithdrawalIntegrationTest {
     /**
      * Note: Iroha and bitcoind must be deployed to pass the test.
      * @given two registered BTC clients. 1st client has 1 BTC in wallet. 2nd client is in 1st client white list
-     * @when 1st client sends SAT 1000 to 2nd client
+     * @when 1st client sends SAT 10000 to 2nd client
      * @then new well constructed BTC transaction appears.
      * Transaction is properly signed, sent to Bitcoin network and not considered unsigned anymore
      */
@@ -429,7 +429,7 @@ class BtcWithdrawalIntegrationTest {
      * Test US-002 Withdrawal
      * Note: Iroha and bitcoind must be deployed to pass the test.
      * @given two registered BTC clients. 1st client has 1 BTC in wallet.
-     * @when 1st client sends SAT 1000 to 2nd client twice
+     * @when 1st client sends SAT 10000 to 2nd client twice
      * @then only first transaction is well constructed, because there is no unspent transactions left.
      * First transaction is properly signed, sent to Bitcoin network and not considered unsigned anymore
      */
@@ -494,7 +494,7 @@ class BtcWithdrawalIntegrationTest {
      * Test US-003 Withdrawal
      * Note: Iroha and bitcoind must be deployed to pass the test.
      * @given two registered BTC clients. 1st client has no BTC
-     * @when 1st client sends SAT 1000 to 2nd client
+     * @when 1st client sends SAT 10000 to 2nd client
      * @then no transaction is created, because 1st client has no money at all
      */
     @Test
@@ -559,13 +559,13 @@ class BtcWithdrawalIntegrationTest {
     /**
      * Note: Iroha and bitcoind must be deployed to pass the test.
      * @given two registered BTC clients. 1st client has 100 000 SAT as 100 UTXO in wallet.
-     * @when 1st client sends SAT 2000 to 2nd client
+     * @when 1st client sends SAT 10000 to 2nd client
      * @then transaction fails, because wallet fully consists of 'dusty' UTXOs
      */
     @Test
     fun testWithdrawalOnlyDustMoney() {
         val initTxCount = environment.createdTransactions.size
-        val amount = satToBtc(2000)
+        val amount = satToBtc(10000)
         val randomNameSrc = String.getRandomString(9)
         val testClientSrcKeypair = ModelCrypto().generateKeypair()
         val testClientSrc = "$randomNameSrc@$CLIENT_DOMAIN"
@@ -592,6 +592,39 @@ class BtcWithdrawalIntegrationTest {
         environment.transactionHelper.addToBlackList(btcAddressDest)
     }
 
+    /**
+     * Note: Iroha and bitcoind must be deployed to pass the test.
+     * @given two registered BTC clients. 1st client has 1 BTC in wallet.
+     * @when 1st client sends SAT 1 to 2nd client
+     * @then transaction fails, because SAT 1 is too small to spend
+     */
+    @Test
+    fun testWithdrawalSmallAmount() {
+        val initTxCount = environment.createdTransactions.size
+        val amount = satToBtc(1)
+        val randomNameSrc = String.getRandomString(9)
+        val testClientSrcKeypair = ModelCrypto().generateKeypair()
+        val testClientSrc = "$randomNameSrc@$CLIENT_DOMAIN"
+        val btcAddressSrc = integrationHelper.registerBtcAddressNoPreGen(randomNameSrc, testClientSrcKeypair)
+        integrationHelper.sendBtc(btcAddressSrc, 1)
+        val randomNameDest = String.getRandomString(9)
+        val btcAddressDest = integrationHelper.registerBtcAddressNoPreGen(randomNameDest)
+        integrationHelper.addIrohaAssetTo(testClientSrc, btcAsset, amount)
+        integrationHelper.transferAssetIrohaFromClient(
+            testClientSrc,
+            testClientSrcKeypair,
+            testClientSrc,
+            environment.btcWithdrawalConfig.withdrawalCredential.accountId,
+            btcAsset,
+            btcAddressDest,
+            amount
+        )
+        Thread.sleep(WITHDRAWAL_WAIT_MILLIS)
+        assertEquals(initTxCount, environment.createdTransactions.size)
+        environment.transactionHelper.addToBlackList(btcAddressSrc)
+        environment.transactionHelper.addToBlackList(btcAddressDest)
+    }
+    
     /**
      * Logger
      */

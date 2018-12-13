@@ -68,10 +68,15 @@ class WithdrawalTransferEventHandler(
                     "amount:${btcAmount.toPlainString()})"
         }
         withdrawalStatistics.incTotalTransfers()
+        val satAmount = btcToSat(btcAmount)
+        if (transactionHelper.isDust(satAmount)) {
+            logger.warn { "Can't spend SAT $satAmount, because it's considered a dust" }
+            return
+        }
         whiteListProvider.checkWithdrawalAddress(transferCommand.srcAccountId, destinationAddress)
             .fold({ ableToWithdraw ->
                 if (ableToWithdraw) {
-                    withdraw(wallet, destinationAddress, btcToSat(btcAmount))
+                    withdraw(wallet, destinationAddress, satAmount)
                 } else {
                     logger.warn { "Cannot withdraw to $destinationAddress, because it's not in ${transferCommand.srcAccountId} whitelist" }
                 }

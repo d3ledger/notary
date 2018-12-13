@@ -90,12 +90,12 @@ class BtcFullPipelineTest {
     /**
      * Note: Iroha must be deployed to pass the test.
      * @given all the services(notary, withdrawal, registration and address generation) are running. 2 clients are registered. 1st client has 1BTC.
-     * @when 1st client sends 1 SAT to 2nd client
+     * @when 1st client sends 10000 SAT to 2nd client
      * @then 1 SAT is subtracted from 1st client balance and 2nd client balance is increased by 1 SAT
      */
     @Test
     fun testFullPipeline() {
-        val amount = satToBtc(1)
+        val amount = satToBtc(10000L)
 
         // Trigger address generation. Source and destination addresses
         generateFreeAddress(2)
@@ -132,7 +132,7 @@ class BtcFullPipelineTest {
             integrationHelper.getIrohaAccountBalance("$destUserName@$CLIENT_DOMAIN", btcAsset)
         )
         assertEquals(
-            BigDecimal(1).subtract(satToBtc(1)).toPlainString(),
+            BigDecimal(1).subtract(amount).toPlainString(),
             integrationHelper.getIrohaAccountBalance("$srcUserName@$CLIENT_DOMAIN", btcAsset)
         )
     }
