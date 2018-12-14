@@ -2,7 +2,7 @@ version: '3'
 
 services:
   d3-iroha:
-    image: hyperledger/iroha:develop
+    image: hyperledger/iroha:snapshot-29a7517
     container_name: d3-iroha
     ports:
       - 50051:50051
