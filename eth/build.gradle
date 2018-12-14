@@ -10,11 +10,25 @@ dependencies {
     compile 'com.wavesplatform:wavesj:0.4'
 }
 
+
+apply plugin: 'com.github.johnrengelman.shadow'
+
 sonarqube {
     properties {
         property "sonar.projectKey", "notary:eth"
     }
 }
+
+task runSendEther(type: JavaExec) {
+    main = 'deploy.EthSendEther'
+    classpath = sourceSets.main.runtimeClasspath
+
+    args getEthPasswordsArgs()
+    setWorkingDir("$rootDir/")
+    systemProperty 'java.library.path', getIrohaLibPath()
+    environment "LD_LIBRARY_PATH", getIrohaLibPath()
+}
+
 
 // Deploy ethereum smart contracts - RelayRegistry, Master, add notaries wallets to Master and lock Master.
 task runPreDeployEthereum(type: JavaExec) {

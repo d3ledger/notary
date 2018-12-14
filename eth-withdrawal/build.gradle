@@ -4,6 +4,8 @@ dependencies {
     compile project(":eth-vacuum")
 }
 
+apply plugin: 'com.github.johnrengelman.shadow'
+
 sonarqube {
     properties {
         property "sonar.projectKey", "notary:eth-withdrawal"

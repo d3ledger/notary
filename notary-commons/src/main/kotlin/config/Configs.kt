@@ -141,7 +141,7 @@ fun loadEthPasswords(
     filename: String,
     args: Array<String> = emptyArray()
 ): Result<EthereumPasswords, Exception> {
-    var config = loadConfigs(prefix, EthereumPasswords::class.java, filename)
+    var config = loadConfigs(prefix, EthereumPasswords::class.java, filename).get()
 
     config = object : EthereumPasswords {
         override val credentialsPassword = System.getenv(ETH_CREDENTIALS_PASSWORD_ENV) ?: config.credentialsPassword

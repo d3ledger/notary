@@ -10,6 +10,7 @@ import config.loadConfigs
 import config.loadEthPasswords
 import mu.KLogging
 import sidechain.eth.util.DeployHelper
+import java.io.File
 
 private val logger = KLogging().logger
 
@@ -28,9 +29,9 @@ fun main(args: Array<String>) {
         .fanout { loadEthPasswords("predeploy", "/eth/ethereum_password.properties") }
         .map { (ethereumConfig, passwordConfig) -> DeployHelper(ethereumConfig, passwordConfig) }
         .map { deployHelper ->
+
             val relayRegistry = deployHelper.deployRelayRegistrySmartContract()
             val master = deployHelper.deployMasterSmartContract(relayRegistry.contractAddress)
-
 
             var result = master.addPeers(args.toList()).send().isStatusOK
             logger.info { "Peers were added" }
@@ -44,8 +45,12 @@ fun main(args: Array<String>) {
                 System.exit(1)
             }
 
-            logger.info { "master_eth_address::: ${master.contractAddress}" }
-            logger.info { "relay_registry_eth_address::: ${relayRegistry.contractAddress}" }
+            File("master_eth_address").printWriter().use {
+                it.print(master.contractAddress)
+            }
+            File("relay_registry_eth_address").printWriter().use {
+                it.print(relayRegistry.contractAddress)
+            }
         }
         .failure { ex ->
             logger.error("Cannot deploy smart contract", ex)
