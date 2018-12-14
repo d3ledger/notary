@@ -11,6 +11,8 @@ buildscript {
 
 apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
 apply plugin: 'org.springframework.boot'
+// TODO 'build' quickfix. better solution is to remove 'spring-boot' plugin from this project
+bootRepackage.enabled = false
 
 dependencies {
     compile project(":notary-commons")
