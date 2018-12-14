@@ -49,8 +49,6 @@ class IrohaConsumerImpl(
         }
         logger.info { "Send TX batch to IROHA" }
         irohaAPI.transactionListSync(batch)
-        // TODO: Fix later. Otherwise all transactions have status UNRECOGNIZED and filter is senseless
-        Thread.sleep(1000)
         return Result.of {
             batch.map {
                 Utils.hash(it)
@@ -77,6 +75,8 @@ class IrohaConsumerImpl(
      * @return byte representation of hash or failure
      */
     private fun checkTransactionStatus(hash: ByteArray): Result<ByteArray, Exception> {
+        // TODO: Fix later. Otherwise all transactions have status UNRECOGNIZED
+        Thread.sleep(2000)
         return Result.of {
             val response = irohaAPI.txStatusSync(hash)
             val status = response.txStatus
