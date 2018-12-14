@@ -6,12 +6,16 @@ import model.IrohaCredential
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import provider.TriggerProvider
-import provider.btc.BtcSessionProvider
+import provider.btc.generation.BtcSessionProvider
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
 val btcAddressGenerationTriggerConfig =
-    loadConfigs("btc-address-generation", BtcAddressGenerationConfig::class.java, "/btc/address_generation.properties")
+    loadConfigs(
+        "btc-address-generation",
+        BtcAddressGenerationConfig::class.java,
+        "/btc/address_generation.properties"
+    ).get()
 
 @Configuration
 class BtcAddressGenerationTriggerAppConfiguration {

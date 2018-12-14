@@ -15,21 +15,19 @@ private val logger = KLogging().logger
 /**
  * Starts bitcoin blockchain downloading process
  */
-fun startChainDownload(peerGroup: PeerGroup, host: String) {
+fun startChainDownload(peerGroup: PeerGroup) {
     logger.info { "Start bitcoin blockchain download" }
-    peerGroup.addAddress(InetAddress.getByName(host))
     peerGroup.startAsync()
     peerGroup.downloadBlockChain()
 }
 
 /**
- * Returns group of peers
+ * Returns Bitcoin blockchain
  */
-fun getPeerGroup(wallet: Wallet, networkParameters: NetworkParameters, blockStoragePath: String): PeerGroup {
+fun getBlockChain(wallet: Wallet, networkParameters: NetworkParameters, blockStoragePath: String): BlockChain {
     val levelDbFolder = File(blockStoragePath)
     val blockStore = LevelDBBlockStore(Context(networkParameters), levelDbFolder)
-    val blockChain = BlockChain(networkParameters, wallet, blockStore)
-    return PeerGroup(networkParameters, blockChain)
+    return BlockChain(networkParameters, wallet, blockStore)
 }
 
 /**
@@ -39,7 +37,7 @@ fun getPeerGroup(wallet: Wallet, networkParameters: NetworkParameters, blockStor
  * @param onNewPeerConnected - function that is called, when new peer appears
  */
 fun addPeerConnectionStatusListener(peerGroup: PeerGroup, onNoPeersLeft: () -> Unit, onNewPeerConnected: () -> Unit) {
-    peerGroup.addDisconnectedEventListener { peer, peerCount ->
+    peerGroup.addDisconnectedEventListener { _, peerCount ->
         //If no peers left
         if (peerCount == 0) {
             logger.warn { "Out of peers" }
@@ -47,5 +45,5 @@ fun addPeerConnectionStatusListener(peerGroup: PeerGroup, onNoPeersLeft: () -> U
         }
     }
     // If new peer connected
-    peerGroup.addConnectedEventListener { peer, peerCount -> onNewPeerConnected() }
+    peerGroup.addConnectedEventListener { _, _ -> onNewPeerConnected() }
 }

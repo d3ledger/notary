@@ -8,14 +8,15 @@ import org.springframework.stereotype.Component
 @Component
 class ServiceInitHealthCheck(
     @Autowired
-    private val healthyService: HealthyService
+    private val healthyServices: List<HealthyService>
 ) : HealthIndicator {
 
     override fun health(): Health {
-        if (healthyService.isHealthy()) {
-            return Health.up().build()
-        } else {
-            return Health.down().build()
+        healthyServices.forEach { healthyService ->
+            if (!healthyService.isHealthy()) {
+                return Health.down().build()
+            }
         }
+        return Health.up().build()
     }
 }

@@ -8,6 +8,7 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.IrohaCredentialConfig
 import config.loadConfigs
+import helper.currency.satToBtc
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.IrohaInitialization
@@ -16,6 +17,7 @@ import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import withdrawal.btc.config.BtcWithdrawalConfig
+import java.math.BigDecimal
 
 /*
     This is an utility file that may be used to send some money.
@@ -30,15 +32,15 @@ private val logger = KLogging().logger
  */
 fun main(args: Array<String>) {
     val destAddress = args[0]
-    val satAmount = args[1].toInt()
-    val withdrawalConfig = loadConfigs(
-        "btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties"
-    )
+    val amount = satToBtc(args[1].toLong())
     IrohaInitialization.loadIrohaLibrary()
-        .map {
+        .flatMap {
+            loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties")
+        }
+        .map { withdrawalConfig ->
             val irohaNetwork = IrohaNetworkImpl(withdrawalConfig.iroha.hostname, withdrawalConfig.iroha.port)
             sendBtc(
-                destAddress, satAmount,
+                destAddress, amount,
                 withdrawalConfig.withdrawalCredential.accountId,
                 IrohaConsumerImpl(createNotaryCredential(withdrawalConfig.notaryCredential), irohaNetwork)
             ).failure { ex ->
@@ -64,24 +66,24 @@ private fun createNotaryCredential(
 /**
  * Sends BTC
  * @param destinationAddress - base58 address to send money
- * @param satAmount - amount of SAT to send
+ * @param amount - amount of BTC to send
  * @param withdrawalAccountId - withdrawal account id
  * @param notaryConsumer - notary consumer object
  */
 private fun sendBtc(
     destinationAddress: String,
-    satAmount: Int,
+    amount: BigDecimal,
     withdrawalAccountId: String,
     notaryConsumer: IrohaConsumer
 ): Result<Unit, Exception> {
-    return ModelUtil.addAssetIroha(notaryConsumer, BTC_ASSET_ID, satAmount.toString()).flatMap {
+    return ModelUtil.addAssetIroha(notaryConsumer, BTC_ASSET_ID, amount.toPlainString()).flatMap {
         ModelUtil.transferAssetIroha(
             notaryConsumer,
             notaryConsumer.creator,
             withdrawalAccountId,
             BTC_ASSET_ID,
             destinationAddress,
-            satAmount.toString()
+            amount.toPlainString()
         )
     }.map { Unit }
 }

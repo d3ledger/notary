@@ -6,15 +6,16 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.getProfile
+import generation.btc.config.btcAddressGenerationConfig
+import generation.btc.init.BtcAddressGenerationInitialization
 import mu.KLogging
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.ComponentScan
-import generation.btc.config.btcAddressGenerationConfig
 import sidechain.iroha.IrohaInitialization
 
 @SpringBootApplication
-@ComponentScan(basePackages = ["generation", "healthcheck", "provider.btc"])
+@ComponentScan(basePackages = ["generation", "healthcheck", "provider.btc.generation", "provider.btc.network"])
 class BtcAddressGenerationApplication
 
 private val logger = KLogging().logger

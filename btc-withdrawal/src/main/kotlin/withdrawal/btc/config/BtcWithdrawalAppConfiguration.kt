@@ -1,7 +1,9 @@
 package withdrawal.btc.config
 
+import config.BitcoinConfig
 import config.loadConfigs
 import model.IrohaCredential
+import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import provider.btc.address.BtcRegisteredAddressesProvider
@@ -11,8 +13,11 @@ import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import withdrawal.btc.provider.BtcChangeAddressProvider
 import withdrawal.btc.provider.BtcWhiteListProvider
+import withdrawal.btc.statistics.WithdrawalStatistics
+import java.io.File
 
-val withdrawalConfig = loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties")
+val withdrawalConfig =
+    loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties").get()
 
 @Configuration
 class BtcWithdrawalAppConfiguration {
@@ -30,6 +35,12 @@ class BtcWithdrawalAppConfiguration {
     }, { ex -> throw ex })
 
     @Bean
+    fun withdrawalStatistics() = WithdrawalStatistics.create()
+
+    @Bean
+    fun wallet() = Wallet.loadFromFile(File(withdrawalConfig.bitcoin.walletPath))
+
+    @Bean
     fun withdrawalCredential() =
         IrohaCredential(withdrawalConfig.withdrawalCredential.accountId, withdrawalKeypair)
 
@@ -40,7 +51,7 @@ class BtcWithdrawalAppConfiguration {
     fun withdrawalConfig() = withdrawalConfig
 
     @Bean
-    fun irohaChainListener() = IrohaChainListener(
+    fun withdrawalIrohaChainListener() = IrohaChainListener(
         withdrawalConfig.iroha.hostname,
         withdrawalConfig.iroha.port,
         withdrawalCredential()
@@ -77,4 +88,10 @@ class BtcWithdrawalAppConfiguration {
             withdrawalConfig.changeAddressesStorageAccount
         )
     }
+
+    @Bean
+    fun blockStoragePath() = withdrawalConfig().bitcoin.blockStoragePath
+
+    @Bean
+    fun btcHosts() = BitcoinConfig.extractHosts(withdrawalConfig().bitcoin)
 }

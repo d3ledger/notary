@@ -85,7 +85,9 @@ pipeline {
             done < <(docker ps --filter "network=d3-${DOCKER_NETWORK}" --format "{{.ID}} {{.Names}}")
           """
           
-          sh "tar -zcvf build-logs/notaryIntegrationTest.gz -C notary-integration-test/build/reports/tests integrationTest || true"
+          sh "tar -zcvf build-logs/notaryIrohaIntegrationTest.gz -C notary-iroha-integration-test/build/reports/tests integrationTest || true"
+          sh "tar -zcvf build-logs/notaryEthIntegrationTest.gz -C notary-eth-integration-test/build/reports/tests integrationTest || true"
+          sh "tar -zcvf build-logs/notaryBtcIntegrationTest.gz -C notary-btc-integration-test/build/reports/tests integrationTest || true"
           sh "tar -zcvf build-logs/jacoco.gz -C build/reports jacoco || true"
           sh "tar -zcvf build-logs/dokka.gz -C build/reports dokka || true"
           archiveArtifacts artifacts: 'build-logs/*.gz'

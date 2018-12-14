@@ -1,0 +1,31 @@
+import java.nio.file.Paths
+
+dependencies {
+    compile project(":eth")
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "notary:eth-registration"
+    }
+}
+
+task runEthRegistration(type: JavaExec) {
+    main = 'registration.eth.EthRegistrationMain'
+    classpath = sourceSets.main.runtimeClasspath
+
+    args getEthPasswordsArgs()
+    setWorkingDir("$rootDir/")
+    systemProperty 'java.library.path', getIrohaLibPath()
+    environment "LD_LIBRARY_PATH", getIrohaLibPath()
+}
+
+task runDeployRelay(type: JavaExec) {
+    main = 'registration.eth.relay.DeployRelayMain'
+    classpath = sourceSets.main.runtimeClasspath
+
+    args getEthPasswordsArgs()
+    setWorkingDir("$rootDir/")
+    systemProperty 'java.library.path', getIrohaLibPath()
+    environment "LD_LIBRARY_PATH", getIrohaLibPath()
+}

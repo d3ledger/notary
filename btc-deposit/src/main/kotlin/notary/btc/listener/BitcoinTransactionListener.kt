@@ -1,6 +1,7 @@
 package notary.btc.listener
 
 import helper.address.outPutToBase58Address
+import helper.currency.satToBtc
 import io.reactivex.ObservableEmitter
 import mu.KLogging
 import org.bitcoinj.core.Transaction
@@ -57,6 +58,7 @@ class BitcoinTransactionListener(
             logger.info { "Tx ${tx.hashAsString} has output address $txBtcAddress" }
             val btcAddress = registeredAddresses.firstOrNull { btcAddress -> btcAddress.address == txBtcAddress }
             if (btcAddress != null) {
+                val btcValue = satToBtc(output.value.value)
                 val event = SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
                     tx.hashAsString,
                     /*
@@ -68,10 +70,10 @@ class BitcoinTransactionListener(
                     BigInteger.valueOf(blockTime.time - TWO_HOURS_MILLIS),
                     btcAddress.info.irohaClient,
                     BTC_ASSET_NAME,
-                    output.value.value.toString(),
+                    btcValue.toPlainString(),
                     ""
                 )
-                logger.info { "BTC deposit event(tx ${tx.hashAsString}, amount ${output.value.value}) was created. Related client is ${btcAddress.info.irohaClient}. " }
+                logger.info { "BTC deposit event(tx ${tx.hashAsString}, amount ${btcValue.toPlainString()}) was created. Related client is ${btcAddress.info.irohaClient}. " }
                 emitter.onNext(event)
             }
         }
