@@ -9,9 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import sidechain.iroha.consumer.IrohaConsumer;
 import sidechain.iroha.consumer.IrohaConverter;
-import sidechain.iroha.util.ModelUtil;
 
-import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -129,7 +127,7 @@ public class IrohaAccountCreatorTest {
         String whitelistKey = "white_list_key";
         List<String> whitelist = new ArrayList<>();
         String userName = "user_name";
-        PublicKey pubKey = ModelUtil.INSTANCE.generateKeypair().getPublic();
+        String pubKey = "pub_key";
         List<Transaction> unsignedTransactions = new ArrayList<>();
         List<byte[]> passedTransactions = new ArrayList<>();
         IrohaOrderedBatch batch = new IrohaOrderedBatch(new ArrayList<>());
@@ -160,7 +158,7 @@ public class IrohaAccountCreatorTest {
         String whitelistKey = "white_list_key";
         List<String> whitelist = new ArrayList<>();
         String userName = "user_name";
-        PublicKey pubKey = ModelUtil.INSTANCE.generateKeypair().getPublic();
+        String pubKey = "pub_key";
         List<Transaction> unsignedTransactions = new ArrayList<>();
         List<byte[]> passedTransactions = new ArrayList<>();
         IrohaOrderedBatch batch = new IrohaOrderedBatch(new ArrayList<>());

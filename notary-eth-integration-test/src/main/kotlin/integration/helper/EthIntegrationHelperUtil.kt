@@ -268,7 +268,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         whitelist: List<String>,
         keypair: KeyPair = ModelUtil.generateKeypair()
     ): String {
-        ethRegistrationStrategy.register(name, whitelist, keypair.public)
+        ethRegistrationStrategy.register(name, whitelist, keypair.public.toHexString())
             .fold({ registeredEthWallet ->
                 logger.info("registered client $name with relay $registeredEthWallet")
                 return registeredEthWallet

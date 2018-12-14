@@ -36,7 +36,7 @@ open class IrohaAccountCreator(
         whitelistKey: String,
         whitelist: List<String>,
         userName: String,
-        pubkey: PublicKey,
+        pubkey: String,
         notaryStorageStrategy: () -> String
     ): Result<String, Exception> {
         return Result.of {
@@ -78,7 +78,7 @@ open class IrohaAccountCreator(
         whitelistKey: String,
         whitelist: List<String>,
         userName: String,
-        pubkey: PublicKey,
+        pubkey: String,
         notaryStorageStrategy: () -> String
     ): IrohaOrderedBatch {
         // TODO: implement https://soramitsu.atlassian.net/browse/D3-415

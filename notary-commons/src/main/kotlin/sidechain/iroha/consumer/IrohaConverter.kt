@@ -4,6 +4,7 @@ import jp.co.soramitsu.iroha.java.Transaction
 import jp.co.soramitsu.iroha.java.TransactionBuilder
 import notary.IrohaCommand
 import notary.IrohaOrderedBatch
+import javax.xml.bind.DatatypeConverter
 
 /**
  * Class converts Notary [notary.IrohaOrderedBatch] to Iroha [UnsignedTx]
@@ -16,7 +17,7 @@ object IrohaConverter {
                 txBuilder.createAccount(
                     cmd.accountName,
                     cmd.domainId,
-                    cmd.mainPubkey
+                    DatatypeConverter.parseHexBinary(cmd.mainPubkey)
                 )
             is IrohaCommand.CommandAddAssetQuantity ->
                 txBuilder.addAssetQuantity(
@@ -26,7 +27,7 @@ object IrohaConverter {
             is IrohaCommand.CommandAddSignatory ->
                 txBuilder.addSignatory(
                     cmd.accountId,
-                    cmd.publicKey
+                    DatatypeConverter.parseHexBinary(cmd.publicKey)
                 )
             is IrohaCommand.CommandCreateAsset ->
                 txBuilder.createAsset(
@@ -51,7 +52,7 @@ object IrohaConverter {
             is IrohaCommand.CommandAddPeer ->
                 txBuilder.addPeer(
                     cmd.address,
-                    cmd.peerKey
+                    DatatypeConverter.parseHexBinary(cmd.peerKey)
                 )
         }
     }

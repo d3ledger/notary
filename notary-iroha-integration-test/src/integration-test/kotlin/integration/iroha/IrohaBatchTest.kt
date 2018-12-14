@@ -24,10 +24,13 @@ import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountAsset
 import sidechain.iroha.util.getAccountData
 import util.getRandomString
+import util.toHexString
 import java.math.BigInteger
 import java.time.Duration
 import javax.xml.bind.DatatypeConverter
 import kotlin.test.assertEquals
+
+private const val BATCH_TIME_WAIT = 5000L
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class IrohaBatchTest {
@@ -88,7 +91,7 @@ class IrohaBatchTest {
                             IrohaCommand.CommandCreateAccount(
                                 user,
                                 CLIENT_DOMAIN,
-                                Ed25519Sha3().generateKeypair().public
+                                Ed25519Sha3().generateKeypair().public.toHexString()
                             )
                         )
                     ),
@@ -190,7 +193,7 @@ class IrohaBatchTest {
                             IrohaCommand.CommandCreateAccount(
                                 user,
                                 CLIENT_DOMAIN,
-                                Ed25519Sha3().generateKeypair().public
+                                Ed25519Sha3().generateKeypair().public.toHexString()
                             )
                         )
                     ),
@@ -277,9 +280,5 @@ class IrohaBatchTest {
                 }
             }
         }
-    }
-
-    companion object {
-        private const val BATCH_TIME_WAIT = 5000L
     }
 }

@@ -183,7 +183,7 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         keypair: KeyPair = ModelUtil.generateKeypair(),
         whitelist: List<String> = emptyList()
     ): String {
-        btcRegistrationStrategy.register(irohaAccountName, whitelist, keypair.public)
+        btcRegistrationStrategy.register(irohaAccountName, whitelist, keypair.public.toHexString())
             .fold({ btcAddress ->
                 logger.info { "BTC address $btcAddress was registered by $irohaAccountName" }
                 return btcAddress

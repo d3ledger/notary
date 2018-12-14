@@ -15,7 +15,6 @@ import registration.RegistrationStrategy
 import sidechain.eth.util.BasicAuthenticator
 import sidechain.iroha.consumer.IrohaConsumer
 import java.math.BigInteger
-import java.security.PublicKey
 
 /**
  * Effective implementation of [RegistrationStrategy]
@@ -56,7 +55,7 @@ class EthRegistrationStrategyImpl(
      * @param whitelist - list of addresses from client
      * @return ethereum wallet has been registered
      */
-    override fun register(name: String, whitelist: List<String>, pubkey: PublicKey): Result<String, Exception> {
+    override fun register(name: String, whitelist: List<String>, pubkey: String): Result<String, Exception> {
         return ethFreeRelayProvider.getRelay()
             .flatMap { freeEthWallet ->
                 relayRegistry.addNewRelayAddress(freeEthWallet, whitelist).send()

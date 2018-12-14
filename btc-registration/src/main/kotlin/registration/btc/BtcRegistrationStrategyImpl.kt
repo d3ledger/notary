@@ -9,7 +9,6 @@ import provider.btc.account.IrohaBtcAccountCreator
 import provider.btc.address.BtcAddressesProvider
 import provider.btc.address.BtcRegisteredAddressesProvider
 import registration.RegistrationStrategy
-import java.security.PublicKey
 
 //Strategy for registering BTC addresses
 @Component
@@ -26,7 +25,7 @@ class BtcRegistrationStrategyImpl(
      * @param whitelist - list of bitcoin addresses
      * @return associated BTC address
      */
-    override fun register(name: String, whitelist: List<String>, pubkey: PublicKey): Result<String, Exception> {
+    override fun register(name: String, whitelist: List<String>, pubkey: String): Result<String, Exception> {
         return btcAddressesProvider.getAddresses().fanout { btcRegisteredAddressesProvider.getRegisteredAddresses() }
             .flatMap { (addresses, takenAddresses) ->
                 try {
