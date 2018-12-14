@@ -121,15 +121,16 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      * @return relay smart contract object
      */
     fun deployRelaySmartContract(master: String): Relay {
-        val replay = contract.Relay.deploy(
+        val relay = contract.Relay.deploy(
             web3,
             credentials,
             gasPrice,
             gasLimit,
             master
         ).send()
-        logger.info { "Relay smart contract ${replay.contractAddress} was deployed" }
-        return replay
+
+        logger.info { "Relay smart contract ${relay.contractAddress} was deployed" }
+        return relay
     }
 
     fun deployFailerContract(): Failer {
