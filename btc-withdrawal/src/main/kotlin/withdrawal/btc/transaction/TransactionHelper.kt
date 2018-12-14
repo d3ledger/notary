@@ -128,6 +128,13 @@ class TransactionHelper(
     }
 
     /**
+     * Checks if satValue is too low to spend
+     * @param satValue - amount of SAT to check if it's a dust
+     * @return true, if [satValue] is a dust
+     */
+    fun isDust(satValue: Long) = satValue < (FEE_RATE * BYTES_PER_INPUT)
+
+    /**
      * Collects previously sent transactions, that may be used as an input for newly created transaction.
      * It may go into recursion if not enough money for fee was collected.
      * @param availableAddresses - set of addresses which transactions will be available to spend
@@ -224,9 +231,6 @@ class TransactionHelper(
 
     // Computes transaction fee based on inputs and outputs
     private fun getTxFee(inputs: Int, outputs: Int) = (getTxSizeInputs(inputs) + getTxSizeOutputs(outputs)) * FEE_RATE
-
-    // Checks if satValue is too low to spend
-    private fun isDust(satValue: Long) = satValue < (FEE_RATE * BYTES_PER_INPUT)
 
     // Checks if transaction output was addressed to available address
     protected fun isAvailableOutput(availableAddresses: Set<String>, output: TransactionOutput): Boolean {
