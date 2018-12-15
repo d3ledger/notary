@@ -157,7 +157,7 @@ task buildEthereumContractsBindings(type: Exec) {
             'name=$(echo "$f" | cut -f 1 -d \'.\'); ' +
             'web3j solidity generate -b ${name}.bin --abiFile=${name}.abi -o <bin_path> -p contract \n'.replace("<bin_path>", bin_path) +
             'done \n' +
-            'cp deploy/ethereum/contract/bin/contract/* src/main/java/contract'
+            'cp deploy/ethereum/contract/bin/contract/* eth/src/main/java/contract'
 
     commandLine 'bash', '-c', cmd
 }
