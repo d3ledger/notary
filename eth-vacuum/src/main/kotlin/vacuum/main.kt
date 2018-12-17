@@ -18,7 +18,7 @@ private val logger = KLogging().logger
  */
 fun main(args: Array<String>) {
     loadConfigs(RELAY_VACUUM_PREFIX, RelayVacuumConfig::class.java, "/eth/vacuum.properties")
-        .map {relayVacuumConfig ->
+        .map { relayVacuumConfig ->
             executeVacuum(relayVacuumConfig, args)
         }
         .failure { ex ->

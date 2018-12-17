@@ -21,7 +21,7 @@ private val logger = KLogging().logger
  */
 fun main(args: Array<String>) {
     loadConfigs("eth-registration", EthRegistrationConfig::class.java, "/eth/registration.properties")
-        .map {ethRegistrationConfig ->
+        .map { ethRegistrationConfig ->
             object : EthRegistrationConfig {
                 override val ethRelayRegistryAddress = System.getenv(ETH_RELAY_REGISTRY_ENV)
                     ?: ethRegistrationConfig.ethRelayRegistryAddress

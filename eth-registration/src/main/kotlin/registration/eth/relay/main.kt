@@ -26,10 +26,11 @@ private val logger = KLogging().logger
 fun main(args: Array<String>) {
     logger.info { "Run relay deployment" }
     loadConfigs("relay-registration", RelayRegistrationConfig::class.java, "/eth/relay_registration.properties")
-        .map {relayRegistrationConfig ->
+        .map { relayRegistrationConfig ->
             object : RelayRegistrationConfig {
                 override val number = relayRegistrationConfig.number
-                override val ethMasterWallet = System.getenv(ETH_MASTER_WALLET_ENV) ?: relayRegistrationConfig.ethMasterWallet
+                override val ethMasterWallet =
+                    System.getenv(ETH_MASTER_WALLET_ENV) ?: relayRegistrationConfig.ethMasterWallet
                 override val notaryIrohaAccount = relayRegistrationConfig.notaryIrohaAccount
                 override val relayRegistrationCredential = relayRegistrationConfig.relayRegistrationCredential
                 override val iroha = relayRegistrationConfig.iroha

@@ -205,7 +205,7 @@ class WithdrawalServiceImpl(
             }
             .map { transferCommand ->
                 val destAccountId = transferCommand?.transferAsset?.srcAccountId
-                        ?: throw IllegalStateException("Unable to identify primary Iroha transaction data")
+                    ?: throw IllegalStateException("Unable to identify primary Iroha transaction data")
 
                 ModelUtil.transferAssetIroha(
                     irohaConsumer,

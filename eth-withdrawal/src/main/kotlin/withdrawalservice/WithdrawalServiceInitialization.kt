@@ -93,7 +93,7 @@ class WithdrawalServiceInitialization(
     /**
      * Logger
      */
-    companion object : KLogging(){
+    companion object : KLogging() {
         private const val FAILED_STATUS = "0x0"
     }
 }

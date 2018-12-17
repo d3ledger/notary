@@ -624,7 +624,7 @@ class BtcWithdrawalIntegrationTest {
         environment.transactionHelper.addToBlackList(btcAddressSrc)
         environment.transactionHelper.addToBlackList(btcAddressDest)
     }
-    
+
     /**
      * Logger
      */
