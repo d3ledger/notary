@@ -6,21 +6,47 @@ project(':btc').projectDir = 'btc' as File
 include 'btc-deposit'
 project(':btc-deposit').projectDir = 'btc-deposit' as File
 
+include 'btc-dw-bridge'
+project(':btc-dw-bridge').projectDir = 'btc-dw-bridge' as File
+
 include 'btc-registration'
 project(':btc-registration').projectDir = 'btc-registration' as File
 
-include 'btc-pregeneration'
-project(':btc-pregeneration').projectDir = 'btc-pregeneration' as File
+include 'btc-address-generation'
+project(':btc-address-generation').projectDir = 'btc-address-generation' as File
 
 include 'btc-withdrawal'
 project(':btc-withdrawal').projectDir = 'btc-withdrawal' as File
 
-include 'notary-integration-test'
-project(':notary-integration-test').projectDir = 'notary-integration-test' as File
+include 'eth'
+project(':eth').projectDir = 'eth' as File
+
+include 'eth-erc20-registration'
+project(':eth-erc20-registration').projectDir = 'eth-erc20-registration' as File
+
+include 'eth-registration'
+project(':eth-registration').projectDir = 'eth-registration' as File
+
+include 'eth-vacuum'
+project(':eth-vacuum').projectDir = 'eth-vacuum' as File
+
+include 'eth-withdrawal'
+project(':eth-withdrawal').projectDir = 'eth-withdrawal' as File
+
+include 'notary-commons'
+project(':notary-commons').projectDir = 'notary-commons' as File
+
+include 'notary-btc-integration-test'
+project(':notary-btc-integration-test').projectDir = 'notary-btc-integration-test' as File
+
+include 'notary-eth-integration-test'
+project(':notary-eth-integration-test').projectDir = 'notary-eth-integration-test' as File
+
+include 'notary-iroha-integration-test'
+project(':notary-iroha-integration-test').projectDir = 'notary-iroha-integration-test' as File
 
 include 'test-longevity'
 project(':test-longevity').projectDir = 'test-longevity' as File
 
 include 'd3testreport'
 project(':d3testreport').projectDir = 'd3testreport' as File
-

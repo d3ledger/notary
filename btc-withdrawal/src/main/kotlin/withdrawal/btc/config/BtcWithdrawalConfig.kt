@@ -9,14 +9,16 @@ interface BtcWithdrawalConfig {
     val healthCheckPort: Int
     // Account that handles withdrawal events
     val withdrawalCredential: IrohaCredentialConfig
-    // Account that stores registered addresses
-    val registrationAccount: String
+    // Account that is used to deal with registered accounts
+    val registrationCredential: IrohaCredentialConfig
+    // Account that stores created addresses
+    val mstRegistrationAccount: String
+    // Account that stores change addresses
+    val changeAddressesStorageAccount: String
     // Iroha configurations
     val iroha: IrohaConfig
     //Bitcoin configurations
     val bitcoin: BitcoinConfig
-    // Base58 formatted Bitcoin address that stores change
-    val changeAddress: String
 
     val notaryCredential: IrohaCredentialConfig
 }
