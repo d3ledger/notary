@@ -139,7 +139,7 @@ class WithdrawalPipelineIntegrationTest {
     @Test
     fun testFullWithdrawalPipelineErc20() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            val precision: Int = 2
+            val precision = 2
 
             // deploy free relay
             integrationHelper.deployRelays(1)
@@ -147,9 +147,10 @@ class WithdrawalPipelineIntegrationTest {
             // create ERC20 token and transfer to master
             val (assetInfo, tokenAddress) = integrationHelper.deployRandomERC20Token(precision)
 
+            val bigIntegerValue = BigInteger.valueOf(125)
             integrationHelper.sendERC20Token(
                 tokenAddress,
-                BigInteger.valueOf(125),
+                bigIntegerValue,
                 integrationHelper.masterContract.contractAddress
             )
 
@@ -184,7 +185,7 @@ class WithdrawalPipelineIntegrationTest {
             Thread.sleep(15_000)
 
             Assertions.assertEquals(
-                initialBalance.add(amount.toBigInteger()),
+                initialBalance.add(bigIntegerValue),
                 integrationHelper.getERC20TokenBalance(tokenAddress, toAddress)
             )
         }
@@ -217,6 +218,9 @@ class WithdrawalPipelineIntegrationTest {
                 toAddress,
                 amount.toPlainString()
             )
+
+            // TODO: Added because of statuses bug in Iroha
+            Thread.sleep(5000)
 
             // try get proof from peer
             val res = khttp.get("$refundAddress/eth/$hash")
@@ -256,6 +260,9 @@ class WithdrawalPipelineIntegrationTest {
                 amount.toPlainString()
             )
 
+            // TODO: Added because of statuses bug in Iroha
+            Thread.sleep(5000)
+
             val res = khttp.get("$refundAddress/eth/$hash")
 
             assertEquals(200, res.statusCode)
@@ -292,6 +299,9 @@ class WithdrawalPipelineIntegrationTest {
                 withdrawalEthAddress,
                 amount.toPlainString()
             )
+
+            // TODO: Added because of statuses bug in Iroha
+            Thread.sleep(5000)
 
             val res = khttp.get("$refundAddress/eth/$hash")
 

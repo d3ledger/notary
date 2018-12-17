@@ -14,6 +14,7 @@ import jp.co.soramitsu.iroha.java.Utils
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.consumer.IrohaConsumer
+import util.unHex
 import java.io.IOException
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -89,7 +90,7 @@ object ModelUtil {
         hash: String
     ): Result<Transaction, Exception> {
         val query = Query.builder(irohaCredential.accountId, 1)
-            .getTransactions(listOf(hash.toByteArray()))
+            .getTransactions(listOf(String.unHex(hash)))
             .buildSigned(irohaCredential.keyPair)
         return getFirstTransaction(iroha.query(query))
     }

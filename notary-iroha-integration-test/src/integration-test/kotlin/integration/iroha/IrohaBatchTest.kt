@@ -24,10 +24,10 @@ import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountAsset
 import sidechain.iroha.util.getAccountData
 import util.getRandomString
+import util.hex
 import util.toHexString
 import java.math.BigInteger
 import java.time.Duration
-import javax.xml.bind.DatatypeConverter
 import kotlin.test.assertEquals
 
 private const val BATCH_TIME_WAIT = 5000L
@@ -135,7 +135,7 @@ class IrohaBatchTest {
 
             val batch = IrohaOrderedBatch(txList)
             val lst = IrohaConverter.convert(batch, irohaConsumer.creator)
-            val hashes = lst.map { DatatypeConverter.printHexBinary(it.hash()) }
+            val hashes = lst.map { String.hex(it.hash()) }
 
             val blockHashes = GlobalScope.async {
                 listener.getBlock().blockV1.payload.transactionsList.map {
@@ -143,7 +143,7 @@ class IrohaBatchTest {
                 }
             }
 
-            val successHash = irohaConsumer.send(lst).get().map { DatatypeConverter.printHexBinary(it) }
+            val successHash = irohaConsumer.send(lst).get().map { String.hex(it) }
 
             Thread.sleep(BATCH_TIME_WAIT)
 
@@ -159,7 +159,7 @@ class IrohaBatchTest {
 
             runBlocking {
                 withTimeout(10_000) {
-                    assertEquals(hashes, blockHashes.await().map { DatatypeConverter.printHexBinary(it) })
+                    assertEquals(hashes, blockHashes.await().map { String.hex(it) })
                 }
             }
         }
@@ -251,7 +251,7 @@ class IrohaBatchTest {
 
             val batch = IrohaOrderedBatch(txList)
             val lst = IrohaConverter.convert(batch, irohaConsumer.creator)
-            val hashes = lst.map { DatatypeConverter.printHexBinary(it.hash()) }
+            val hashes = lst.map { String.hex(it.hash()) }
             val expectedHashes = hashes.subList(0, hashes.size - 1)
 
             val blockHashes = GlobalScope.async {
@@ -260,7 +260,7 @@ class IrohaBatchTest {
                 }
             }
 
-            val successHash = irohaConsumer.send(lst).get().map { DatatypeConverter.printHexBinary(it) }
+            val successHash = irohaConsumer.send(lst).get().map { String.hex(it) }
 
             Thread.sleep(BATCH_TIME_WAIT)
 
@@ -276,7 +276,7 @@ class IrohaBatchTest {
 
             runBlocking {
                 withTimeout(10_000) {
-                    assertEquals(expectedHashes, blockHashes.await().map { DatatypeConverter.printHexBinary(it) })
+                    assertEquals(expectedHashes, blockHashes.await().map { String.hex(it) })
                 }
             }
         }

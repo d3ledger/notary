@@ -9,7 +9,7 @@ import jp.co.soramitsu.iroha.java.Transaction
 import jp.co.soramitsu.iroha.java.Utils
 import model.IrohaCredential
 import mu.KLogging
-import javax.xml.bind.DatatypeConverter
+import util.hex
 
 /**
  * Endpoint of Iroha to write transactions
@@ -83,7 +83,7 @@ class IrohaConsumerImpl(
             logger.info(status.toString())
             if (status == Endpoint.TxStatus.STATEFUL_VALIDATION_FAILED) {
                 val message =
-                    "Iroha transaction ${DatatypeConverter.printHexBinary(hash)} received STATEFUL_VALIDATION_FAILED ${response.errOrCmdName}"
+                    "Iroha transaction ${String.hex(hash)} received STATEFUL_VALIDATION_FAILED ${response.errOrCmdName}"
                 logger.error { message }
                 throw Exception(message)
             }

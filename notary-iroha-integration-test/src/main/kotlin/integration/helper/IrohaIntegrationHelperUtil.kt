@@ -12,9 +12,11 @@ import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountAsset
+import util.hex
 import java.io.Closeable
 import java.math.BigDecimal
 import java.security.KeyPair
+import javax.xml.bind.DatatypeConverter
 
 /**
  * Utility class that makes testing more comfortable
@@ -150,13 +152,13 @@ open class IrohaIntegrationHelperUtil : Closeable {
         assetId: String,
         description: String,
         amount: String
-    ): ByteArray? {
+    ): String? {
         val tx = Transaction.builder(creator)
             .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
             .sign(kp)
             .build()
-        irohaAPI.transaction(tx)
-        return Utils.hash(tx)
+        irohaAPI.transactionSync(tx)
+        return String.hex(Utils.hash(tx))
     }
 
     /**

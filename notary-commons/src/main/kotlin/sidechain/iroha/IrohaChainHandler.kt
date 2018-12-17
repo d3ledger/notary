@@ -4,6 +4,7 @@ import jp.co.soramitsu.iroha.java.Utils
 import mu.KLogging
 import sidechain.ChainHandler
 import sidechain.SideChainEvent
+import util.hex
 
 /**
  * Implementation of [ChainHandler] to convert from Iroha protocol to [SideChainEvent.IrohaEvent]
@@ -19,7 +20,7 @@ class IrohaChainHandler : ChainHandler<iroha.protocol.BlockOuterClass.Block> {
         var hash = ""
         return block.blockV1.payload.transactionsList
             .map { tx ->
-                hash = String(Utils.hash(tx))
+                hash = String.hex(Utils.hash(tx))
                 tx
             }
             .flatMap { tx -> tx.payload.reducedPayload.commandsList }

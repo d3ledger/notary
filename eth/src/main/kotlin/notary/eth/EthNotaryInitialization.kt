@@ -85,7 +85,7 @@ class EthNotaryInitialization(
     ): Notary {
         logger.info { "Init ethereum notary" }
 
-        irohaAPI.transaction(
+        irohaAPI.transactionSync(
             Transaction.builder(notaryCredential.accountId)
                 .grantPermission(
                     ethNotaryConfig.withdrawalAccountId,
