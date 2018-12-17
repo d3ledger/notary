@@ -76,14 +76,14 @@ class IrohaConsumerImpl(
      */
     private fun checkTransactionStatus(hash: ByteArray): Result<ByteArray, Exception> {
         // TODO: Fix later. Otherwise all transactions have status UNRECOGNIZED
-        Thread.sleep(2000)
+        Thread.sleep(5000)
         return Result.of {
             val response = irohaAPI.txStatusSync(hash)
             val status = response.txStatus
             logger.info(status.toString())
             if (status == Endpoint.TxStatus.STATEFUL_VALIDATION_FAILED) {
                 val message =
-                    "Iroha transaction ${DatatypeConverter.printHexBinary(hash)} received STATEFUL_VALIDATION_FAILED ${response.errorMessage}"
+                    "Iroha transaction ${DatatypeConverter.printHexBinary(hash)} received STATEFUL_VALIDATION_FAILED ${response.errOrCmdName}"
                 logger.error { message }
                 throw Exception(message)
             }

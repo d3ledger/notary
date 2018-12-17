@@ -138,7 +138,7 @@ class IrohaBatchTest {
             val hashes = lst.map { DatatypeConverter.printHexBinary(it.hash()) }
 
             val blockHashes = GlobalScope.async {
-                listener.getBlock().payload.transactionsList.map {
+                listener.getBlock().blockV1.payload.transactionsList.map {
                     Utils.hash(it)
                 }
             }
@@ -255,7 +255,7 @@ class IrohaBatchTest {
             val expectedHashes = hashes.subList(0, hashes.size - 1)
 
             val blockHashes = GlobalScope.async {
-                listener.getBlock().payload.transactionsList.map {
+                listener.getBlock().blockV1.payload.transactionsList.map {
                     Utils.hash(it)
                 }
             }

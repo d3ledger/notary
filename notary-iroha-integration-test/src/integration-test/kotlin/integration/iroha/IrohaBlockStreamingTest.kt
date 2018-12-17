@@ -61,7 +61,7 @@ class IrohaBlockStreamingTest {
             listener.getBlockObservable()
                 .map { obs ->
                     obs.map { block ->
-                        cmds = block.payload.transactionsList
+                        cmds = block.blockV1.payload.transactionsList
                             .flatMap {
                                 it.payload.reducedPayload.commandsList
                             }
@@ -106,7 +106,7 @@ class IrohaBlockStreamingTest {
                 block.await()
             }
 
-            val cmds = bl.payload.transactionsList
+            val cmds = bl.blockV1.payload.transactionsList
                 .flatMap {
                     it.payload.reducedPayload.commandsList
                 }

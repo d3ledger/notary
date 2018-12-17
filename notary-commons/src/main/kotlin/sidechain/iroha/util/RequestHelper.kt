@@ -141,7 +141,7 @@ fun getFirstTransaction(queryResponse: QryResponses.QueryResponse): Result<Trans
  * @return list full of "set account detail" commands
  */
 fun getSetDetailCommands(block: BlockOuterClass.Block): List<Commands.Command> {
-    return block.payload.transactionsList.flatMap { tx ->
+    return block.blockV1.payload.transactionsList.flatMap { tx ->
         tx.payload.reducedPayload.commandsList
     }.filter { command -> command.hasSetAccountDetail() }
 }
@@ -152,7 +152,7 @@ fun getSetDetailCommands(block: BlockOuterClass.Block): List<Commands.Command> {
  * @return list full of "transfer asset" commands
  */
 fun getTransferCommands(block: BlockOuterClass.Block): List<Commands.Command> {
-    return block.payload.transactionsList.flatMap { tx -> tx.payload.reducedPayload.commandsList }
+    return block.blockV1.payload.transactionsList.flatMap { tx -> tx.payload.reducedPayload.commandsList }
         .filter { command -> command.hasTransferAsset() }
 }
 

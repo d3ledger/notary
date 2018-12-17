@@ -16,7 +16,7 @@ dependencies {
     compile "io.reactivex.rxjava2:rxkotlin:2.0.0"
 
     // Iroha Pure Java library
-    compile 'com.github.warchant:iroha-pure-java:v1.0.0_beta-4-ipj-1.3.0'
+    compile 'com.github.warchant:iroha-pure-java:v1.0.0_rc1-SNAPSHOT'
 
     // logging
     compile 'io.github.microutils:kotlin-logging:1.4.9'

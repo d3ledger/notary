@@ -26,7 +26,7 @@ class IrohaChainListener(
         logger.info { "On subscribe to Iroha chain" }
         return ModelUtil.getBlockStreaming(irohaApi, credential).map { observable ->
             observable.map { response ->
-                logger.info { "New Iroha block arrived. Height ${response.blockResponse.block.payload.height}" }
+                logger.info { "New Iroha block arrived. Height ${response.blockResponse.block.blockV1.payload.height}" }
                 response.blockResponse.block
             }
         }

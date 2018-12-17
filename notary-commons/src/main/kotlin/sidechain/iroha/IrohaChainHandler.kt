@@ -17,7 +17,7 @@ class IrohaChainHandler : ChainHandler<iroha.protocol.BlockOuterClass.Block> {
         logger.info { "Iroha chain handler" }
 
         var hash = ""
-        return block.payload.transactionsList
+        return block.blockV1.payload.transactionsList
             .map { tx ->
                 hash = String(Utils.hash(tx))
                 tx
