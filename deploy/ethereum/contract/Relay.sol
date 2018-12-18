@@ -1,4 +1,4 @@
-pragma solidity 0.4.25;
+pragma solidity ^0.5.0;
 
 import "./IMaster.sol";
 import "./IERC20.sol";
@@ -7,7 +7,7 @@ import "./IERC20.sol";
  * Provides functionality of relay contract
  */
 contract Relay {
-    address private masterAddress;
+    address payable private masterAddress;
     IMaster private masterInstance;
 
     event AddressEvent(address input);
@@ -19,7 +19,7 @@ contract Relay {
      * Relay constructor
      * @param master address of master contract
      */
-    constructor(address master) public {
+    constructor(address payable master) public {
         masterAddress = master;
         masterInstance = IMaster(masterAddress);
     }
@@ -39,7 +39,7 @@ contract Relay {
     function sendToMaster(address tokenAddress) public {
         // trusted call
         require(masterInstance.checkTokenAddress(tokenAddress));
-        if (tokenAddress == 0) {
+        if (tokenAddress == address(0)) {
             // trusted transfer
             masterAddress.transfer(address(this).balance);
         } else {
@@ -66,9 +66,9 @@ contract Relay {
         uint256 amount,
         address to,
         bytes32 tx_hash,
-        uint8[] v,
-        bytes32[] r,
-        bytes32[] s,
+        uint8[] memory v,
+        bytes32[] memory r,
+        bytes32[] memory s,
         address from
     )
     public

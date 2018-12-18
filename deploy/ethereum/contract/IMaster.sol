@@ -1,4 +1,4 @@
-pragma solidity 0.4.25;
+pragma solidity ^0.5.0;
 
 /**
  * Subset of master contract interface
@@ -9,9 +9,9 @@ contract IMaster {
         uint256 amount,
         address to,
         bytes32 txHash,
-        uint8[] v,
-        bytes32[] r,
-        bytes32[] s,
+        uint8[] memory v,
+        bytes32[] memory r,
+        bytes32[] memory s,
         address from
     )
     public;

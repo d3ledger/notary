@@ -1,5 +1,6 @@
 package withdrawal.btc.transaction
 
+import monitoring.Monitoring
 import org.bitcoinj.core.Transaction
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -12,7 +13,9 @@ import java.util.concurrent.ConcurrentHashMap
 @Component
 class UnsignedTransactions(
     @Autowired private val signCollector: SignCollector
-) {
+) : Monitoring() {
+    override fun monitor() = unsignedTransactions.values.map { timedTx -> timedTx.tx.toString() }
+
     //TODO create rollback mechanism
     private val unsignedTransactions = ConcurrentHashMap<String, TimedTx>()
 
