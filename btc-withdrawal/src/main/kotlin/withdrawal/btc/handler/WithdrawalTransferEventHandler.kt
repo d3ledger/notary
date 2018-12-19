@@ -14,10 +14,7 @@ import org.springframework.stereotype.Component
 import withdrawal.btc.config.BtcWithdrawalConfig
 import withdrawal.btc.provider.BtcWhiteListProvider
 import withdrawal.btc.statistics.WithdrawalStatistics
-import withdrawal.btc.transaction.SignCollector
-import withdrawal.btc.transaction.TransactionCreator
-import withdrawal.btc.transaction.TransactionHelper
-import withdrawal.btc.transaction.UnsignedTransactions
+import withdrawal.btc.transaction.*
 import java.math.BigDecimal
 
 /*
@@ -31,7 +28,8 @@ class WithdrawalTransferEventHandler(
     @Autowired private val transactionCreator: TransactionCreator,
     @Autowired private val signCollector: SignCollector,
     @Autowired private val unsignedTransactions: UnsignedTransactions,
-    @Autowired private val transactionHelper: TransactionHelper
+    @Autowired private val transactionHelper: TransactionHelper,
+    @Autowired private val btcRollbackService: BtcRollbackService
 ) : Monitoring() {
     override fun monitor() = withdrawalStatistics
 
@@ -50,37 +48,41 @@ class WithdrawalTransferEventHandler(
      * Handles "transfer asset" command
      * @param transferCommand - object with "transfer asset" data: source account, destination account, amount and etc
      */
-    fun handleTransferCommand(wallet: Wallet, transferCommand: Commands.TransferAsset) {
-
+    fun handleTransferCommand(wallet: Wallet, transferCommand: Commands.TransferAsset, withdrawalTime: Long) {
         if (transferCommand.destAccountId != btcWithdrawalConfig.withdrawalCredential.accountId) {
             return
         }
         val destinationAddress = transferCommand.description
-        if (!isValidBtcAddress(destinationAddress)) {
-            logger.warn { "Cannot execute transfer. Destination $destinationAddress is not a valid base58 address." }
-            return
-        }
+        val sourceAccountId = transferCommand.srcAccountId
         val btcAmount = BigDecimal(transferCommand.amount)
+        val satAmount = btcToSat(btcAmount)
         logger.info {
             "Withdrawal event(" +
                     "from:${transferCommand.srcAccountId} " +
                     "to:$destinationAddress " +
                     "amount:${btcAmount.toPlainString()})"
         }
-        withdrawalStatistics.incTotalTransfers()
-        val satAmount = btcToSat(btcAmount)
+        if (!isValidBtcAddress(destinationAddress)) {
+            logger.warn { "Cannot execute transfer. Destination $destinationAddress is not a valid base58 address." }
+            btcRollbackService.rollback(sourceAccountId, satAmount, withdrawalTime)
+            return
+        }
         if (transactionHelper.isDust(satAmount)) {
+            btcRollbackService.rollback(sourceAccountId, satAmount, withdrawalTime)
             logger.warn { "Can't spend SAT $satAmount, because it's considered a dust" }
             return
         }
-        whiteListProvider.checkWithdrawalAddress(transferCommand.srcAccountId, destinationAddress)
+        withdrawalStatistics.incTotalTransfers()
+        whiteListProvider.checkWithdrawalAddress(sourceAccountId, destinationAddress)
             .fold({ ableToWithdraw ->
                 if (ableToWithdraw) {
-                    withdraw(wallet, destinationAddress, satAmount)
+                    withdraw(wallet, destinationAddress, satAmount, sourceAccountId, withdrawalTime)
                 } else {
+                    btcRollbackService.rollback(sourceAccountId, satAmount, withdrawalTime)
                     logger.warn { "Cannot withdraw to $destinationAddress, because it's not in ${transferCommand.srcAccountId} whitelist" }
                 }
             }, { ex ->
+                btcRollbackService.rollback(sourceAccountId, satAmount, withdrawalTime)
                 withdrawalStatistics.incFailedTransfers()
                 logger.error("Cannot check ability to withdraw", ex)
             })
@@ -96,7 +98,13 @@ class WithdrawalTransferEventHandler(
      * @param destinationAddress - Bitcoin address to send money to
      * @param amount - amount of SAT to send
      * */
-    private fun withdraw(wallet: Wallet, destinationAddress: String, amount: Long) {
+    private fun withdraw(
+        wallet: Wallet,
+        destinationAddress: String,
+        amount: Long,
+        sourceAccountId: String,
+        withdrawalTime: Long
+    ) {
         transactionCreator.createTransaction(
             wallet,
             amount,
@@ -116,6 +124,7 @@ class WithdrawalTransferEventHandler(
             transactionHelper.registerUnspents(transaction, unspents)
             logger.info { "Tx ${transaction.hashAsString} was added to collection of unsigned transactions" }
         }.failure { ex ->
+            btcRollbackService.rollback(sourceAccountId, amount, withdrawalTime)
             withdrawalStatistics.incFailedTransfers()
             logger.error("Cannot create withdrawal transaction", ex)
         }

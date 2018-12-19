@@ -32,7 +32,7 @@ import sidechain.iroha.util.ModelUtil
 import java.io.File
 import java.math.BigDecimal
 
-const val btcAsset = "btc#bitcoin"
+const val BTC_ASSET = "btc#bitcoin"
 private const val GENERATED_ADDRESSES_PER_BATCH = 5
 
 class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {

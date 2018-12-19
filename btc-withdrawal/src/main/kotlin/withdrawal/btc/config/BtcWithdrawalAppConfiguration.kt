@@ -6,6 +6,8 @@ import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import provider.NotaryPeerListProvider
+import provider.NotaryPeerListProviderImpl
 import provider.btc.address.BtcRegisteredAddressesProvider
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
@@ -27,6 +29,11 @@ class BtcWithdrawalAppConfiguration {
         withdrawalConfig.withdrawalCredential.privkeyPath
     ).fold({ keypair -> keypair }, { ex -> throw ex })
 
+    private val signatureCollectorKeypair = ModelUtil.loadKeypair(
+        withdrawalConfig.signatureCollectorCredential.pubkeyPath,
+        withdrawalConfig.signatureCollectorCredential.privkeyPath
+    ).fold({ keypair -> keypair }, { ex -> throw ex })
+
     private val btcRegistrationCredential = ModelUtil.loadKeypair(
         withdrawalConfig.registrationCredential.pubkeyPath,
         withdrawalConfig.registrationCredential.privkeyPath
@@ -46,6 +53,13 @@ class BtcWithdrawalAppConfiguration {
 
     @Bean
     fun withdrawalConsumer() = IrohaConsumerImpl(withdrawalCredential(), irohaNetwork())
+
+    @Bean
+    fun signatureCollectorCredential() =
+        IrohaCredential(withdrawalConfig.signatureCollectorCredential.accountId, signatureCollectorKeypair)
+
+    @Bean
+    fun signatureCollectorConsumer() = IrohaConsumerImpl(signatureCollectorCredential(), irohaNetwork())
 
     @Bean
     fun withdrawalConfig() = withdrawalConfig
@@ -86,6 +100,16 @@ class BtcWithdrawalAppConfiguration {
             irohaNetwork(),
             withdrawalConfig.mstRegistrationAccount,
             withdrawalConfig.changeAddressesStorageAccount
+        )
+    }
+
+    @Bean
+    fun notaryListProvider(): NotaryPeerListProvider {
+        return NotaryPeerListProviderImpl(
+            withdrawalCredential(),
+            irohaNetwork(),
+            withdrawalConfig().notaryListStorageAccount,
+            withdrawalConfig().notaryListSetterAccount
         )
     }
 

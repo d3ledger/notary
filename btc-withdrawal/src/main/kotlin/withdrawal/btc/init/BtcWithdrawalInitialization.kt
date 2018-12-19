@@ -23,7 +23,6 @@ import sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.util.getSetDetailCommands
 import sidechain.iroha.util.getTransferCommands
-import withdrawal.btc.config.BtcWithdrawalConfig
 import withdrawal.btc.handler.NewSignatureEventHandler
 import withdrawal.btc.handler.WithdrawalTransferEventHandler
 import withdrawal.btc.provider.BtcChangeAddressProvider
@@ -37,7 +36,6 @@ import java.util.concurrent.Executors
 class BtcWithdrawalInitialization(
     @Autowired private val peerGroup: PeerGroup,
     @Autowired private val wallet: Wallet,
-    @Autowired private val btcWithdrawalConfig: BtcWithdrawalConfig,
     @Autowired private val btcChangeAddressProvider: BtcChangeAddressProvider,
     @Qualifier("withdrawalIrohaChainListener")
     @Autowired private val irohaChainListener: IrohaChainListener,
@@ -94,7 +92,8 @@ class BtcWithdrawalInitialization(
                     getTransferCommands(block).forEach { command ->
                         withdrawalTransferEventHandler.handleTransferCommand(
                             wallet,
-                            command.transferAsset
+                            command.transferAsset,
+                            block.payload.createdTime
                         )
                     }
                     // Handle signature appearance commands

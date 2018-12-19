@@ -171,6 +171,14 @@
               },
               {
                 "createRole": {
+                  "roleName": "rollback",
+                  "permissions": [
+                    "can_transfer"
+                  ]
+                }
+              },
+              {
+                "createRole": {
                   "roleName": "notary_list_holder",
                   "permissions": [
                     "can_set_detail"
@@ -340,6 +348,19 @@
               {
                 "appendRole": {
                   "accountId": "btc_withdrawal_service@notary",
+                  "roleName": "rollback"
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "btc_sign_collector",
+                  "domainId": "notary",
+                  "publicKey": "ZMySY3PLwOOuHnVsuJyqAP0wZglLcr+xwsbJnz0AhiY="
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "btc_sign_collector@notary",
                   "roleName": "signature_collector"
                 }
               },
