@@ -35,9 +35,9 @@ class BtcRollbackService(
             "rollback",
             satToBtc(amountSat).toPlainString(),
             BigInteger.valueOf(withdrawalTime)
-        )
-            .fold({ logger.info { "Rollback(accountId:$accountId, amount:${satToBtc(amountSat).toPlainString()}) was committed" } },
-                { ex -> logger.error("Cannot perform rollback", ex) })
+        ).fold(
+            { logger.info { "Rollback(accountId:$accountId, amount:${satToBtc(amountSat).toPlainString()}) was committed" } },
+            { ex -> logger.error("Cannot perform rollback", ex) })
     }
 
     /**

@@ -6,6 +6,8 @@ import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import provider.NotaryPeerListProvider
+import provider.NotaryPeerListProviderImpl
 import provider.btc.address.BtcRegisteredAddressesProvider
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
@@ -98,6 +100,16 @@ class BtcWithdrawalAppConfiguration {
             irohaNetwork(),
             withdrawalConfig.mstRegistrationAccount,
             withdrawalConfig.changeAddressesStorageAccount
+        )
+    }
+
+    @Bean
+    fun notaryListProvider(): NotaryPeerListProvider {
+        return NotaryPeerListProviderImpl(
+            withdrawalCredential(),
+            irohaNetwork(),
+            withdrawalConfig().notaryListStorageAccount,
+            withdrawalConfig().notaryListSetterAccount
         )
     }
 
