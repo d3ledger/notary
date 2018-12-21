@@ -5,6 +5,7 @@ import handler.btc.NewBtcClientRegistrationHandler
 import helper.address.outPutToBase58Address
 import integration.helper.BtcIntegrationHelperUtil
 import model.IrohaCredential
+import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.TransactionOutput
 import org.bitcoinj.wallet.Wallet
 import provider.btc.address.BtcRegisteredAddressesProvider
@@ -32,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap
 class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegrationHelperUtil, testName: String = "") :
     Closeable {
 
-    val createdTransactions = ConcurrentHashMap<String, TimedTx>()
+    val createdTransactions = ConcurrentHashMap<String, Pair<Long, Transaction>>()
 
     val btcWithdrawalConfig = integrationHelper.configHelper.createBtcWithdrawalConfig(testName)
 
@@ -113,8 +114,14 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
         , transactionHelper,
         btcRollbackService
     )
-    private val newSignatureEventHandler =
-        NewSignatureEventHandler(withdrawalStatistics, signCollector, unsignedTransactions, transactionHelper)
+    val newSignatureEventHandler =
+        NewSignatureEventHandler(
+            withdrawalStatistics,
+            signCollector,
+            unsignedTransactions,
+            transactionHelper,
+            btcRollbackService
+        )
 
     private val wallet by lazy {
         Wallet.loadFromFile(File(btcWithdrawalConfig.bitcoin.walletPath))
@@ -147,10 +154,10 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
     }
 
     fun getLastCreatedTxHash() =
-        createdTransactions.maxBy { createdTransactionEntry -> createdTransactionEntry.value.creationTime }!!.key
+        createdTransactions.maxBy { createdTransactionEntry -> createdTransactionEntry.value.first }!!.key
 
     fun getLastCreatedTx() =
-        createdTransactions.maxBy { createdTransactionEntry -> createdTransactionEntry.value.creationTime }!!.value.tx
+        createdTransactions.maxBy { createdTransactionEntry -> createdTransactionEntry.value.first }!!.value.second
 
     class BlackListableTransactionHelper(
         btcNetworkConfigProvider: BtcNetworkConfigProvider,

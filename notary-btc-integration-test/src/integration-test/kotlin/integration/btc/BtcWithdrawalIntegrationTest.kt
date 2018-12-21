@@ -13,15 +13,15 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertNotNull
 import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
-import withdrawal.btc.transaction.TimedTx
 import java.io.File
 import java.math.BigDecimal
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
-const val WITHDRAWAL_WAIT_MILLIS = 15_000L
-private const val TOTAL_TESTS = 12
+const val WITHDRAWAL_WAIT_MILLIS = 17_500L
+private const val TOTAL_TESTS = 13
 private const val FAILED_WITHDRAW_AMOUNT = 6666L
+private const val FAILED_BROADCAST_AMOUNT = 7777L
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcWithdrawalIntegrationTest {
@@ -55,8 +55,13 @@ class BtcWithdrawalIntegrationTest {
                 throw Exception("Failed withdraw test")
             }
         }
+        environment.newSignatureEventHandler.addBroadcastTransactionListeners { tx ->
+            if (tx.outputs.any { output -> output.value.value == FAILED_BROADCAST_AMOUNT }) {
+                throw Exception("Failed broadcast test")
+            }
+        }
         environment.withdrawalTransferEventHandler.addNewBtcTransactionListener { tx ->
-            environment.createdTransactions[tx.hashAsString] = TimedTx.create(tx)
+            environment.createdTransactions[tx.hashAsString] = Pair(System.currentTimeMillis(), tx)
         }
         environment.btcWithdrawalInitialization.init().failure { ex -> throw ex }
         environment.transactionHelper.addToBlackList(changeAddress.toBase58())
@@ -165,6 +170,56 @@ class BtcWithdrawalIntegrationTest {
         )
         Thread.sleep(WITHDRAWAL_WAIT_MILLIS)
         assertEquals(initTxCount + 1, environment.createdTransactions.size)
+        environment.transactionHelper.addToBlackList(btcAddressSrc)
+        environment.transactionHelper.addToBlackList(btcAddressDest)
+    }
+
+    /**
+     * Note: Iroha and bitcoind must be deployed to pass the test.
+     * @given two registered BTC clients. 1st client has 1 BTC as one UTXO in wallet.
+     * @when 1st client makes transaction that will cause broadcast failure(exception will be thrown)
+     * @then 1st transaction is considered failed, but it doesn't affect next transaction,
+     * meaning that UTXO that was used in failed transaction is free to use even after failure.
+     * 1st transaction money is restored.
+     */
+    @Test
+    fun testWithdrawalFailedNetworkResistance() {
+        val initTxCount = environment.createdTransactions.size
+        var amount = satToBtc(FAILED_BROADCAST_AMOUNT)
+        val randomNameSrc = String.getRandomString(9)
+        val testClientSrcKeypair = ModelCrypto().generateKeypair()
+        val testClientSrc = "$randomNameSrc@$CLIENT_DOMAIN"
+        val btcAddressSrc = integrationHelper.registerBtcAddressNoPreGen(randomNameSrc, testClientSrcKeypair)
+        integrationHelper.sendBtc(btcAddressSrc, 1, environment.btcWithdrawalConfig.bitcoin.confidenceLevel)
+        val randomNameDest = String.getRandomString(9)
+        val btcAddressDest = integrationHelper.registerBtcAddressNoPreGen(randomNameDest)
+        integrationHelper.addIrohaAssetTo(testClientSrc, BTC_ASSET, amount)
+        val initialSrcBalance = integrationHelper.getIrohaAccountBalance(testClientSrc, BTC_ASSET)
+        integrationHelper.transferAssetIrohaFromClient(
+            testClientSrc,
+            testClientSrcKeypair,
+            testClientSrc,
+            environment.btcWithdrawalConfig.withdrawalCredential.accountId,
+            BTC_ASSET,
+            btcAddressDest,
+            amount
+        )
+        Thread.sleep(WITHDRAWAL_WAIT_MILLIS)
+        assertEquals(initTxCount + 1, environment.createdTransactions.size)
+        assertEquals(initialSrcBalance, integrationHelper.getIrohaAccountBalance(testClientSrc, BTC_ASSET))
+        amount = satToBtc(10000L)
+        integrationHelper.addIrohaAssetTo(testClientSrc, BTC_ASSET, amount)
+        integrationHelper.transferAssetIrohaFromClient(
+            testClientSrc,
+            testClientSrcKeypair,
+            testClientSrc,
+            environment.btcWithdrawalConfig.withdrawalCredential.accountId,
+            BTC_ASSET,
+            btcAddressDest,
+            amount
+        )
+        Thread.sleep(WITHDRAWAL_WAIT_MILLIS)
+        assertEquals(initTxCount + 2, environment.createdTransactions.size)
         environment.transactionHelper.addToBlackList(btcAddressSrc)
         environment.transactionHelper.addToBlackList(btcAddressDest)
     }
