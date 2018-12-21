@@ -58,7 +58,7 @@ class EthRegistrationStrategyImpl(
     override fun register(name: String, whitelist: List<String>, pubkey: String): Result<String, Exception> {
         return ethFreeRelayProvider.getRelay()
             .flatMap { freeEthWallet ->
-                logger.info { "Call add new relay to relay registry relayRegistry=$relayRegistry, freeWallet=$freeEthWallet, whitelist=$whitelist, creator=${credentials.address}." }
+                logger.info { "Add new relay to relay registry relayRegistry=$relayRegistry, freeWallet=$freeEthWallet, whitelist=$whitelist, creator=${credentials.address}." }
                 relayRegistry.addNewRelayAddress(freeEthWallet, whitelist).send()
                 irohaEthAccountCreator.create(
                     freeEthWallet, whitelist, name, pubkey
