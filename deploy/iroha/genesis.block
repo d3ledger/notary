@@ -350,6 +350,11 @@
                   "accountId": "btc_withdrawal_service@notary",
                   "roleName": "rollback"
                 }
+              },{
+                "setAccountQuorum":{
+                  "accountId":"btc_withdrawal_service@notary",
+                  "quorum":1
+                }
               },
               {
                 "createAccount": {

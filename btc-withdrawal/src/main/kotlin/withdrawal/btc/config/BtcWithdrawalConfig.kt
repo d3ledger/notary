@@ -22,9 +22,5 @@ interface BtcWithdrawalConfig {
     //Bitcoin configurations
     val bitcoin: BitcoinConfig
 
-    val notaryListStorageAccount: String
-
-    val notaryListSetterAccount: String
-
     val notaryCredential: IrohaCredentialConfig
 }

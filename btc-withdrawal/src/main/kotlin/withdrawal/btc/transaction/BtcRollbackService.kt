@@ -5,7 +5,6 @@ import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
-import provider.NotaryPeerListProvider
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.util.ModelUtil
 import java.math.BigInteger
@@ -18,8 +17,7 @@ private const val BTC_ASSET_ID = "btc#bitcoin"
 @Component
 class BtcRollbackService(
     @Qualifier("withdrawalConsumer")
-    @Autowired private val withdrawalConsumer: IrohaConsumer,
-    @Autowired private val peerListProvider: NotaryPeerListProvider
+    @Autowired private val withdrawalConsumer: IrohaConsumer
 ) {
 
     /**
@@ -36,8 +34,7 @@ class BtcRollbackService(
             BTC_ASSET_ID,
             "rollback",
             satToBtc(amountSat).toPlainString(),
-            BigInteger.valueOf(withdrawalTime),
-            peerListProvider.getPeerList().size
+            BigInteger.valueOf(withdrawalTime)
         )
             .fold({ logger.info { "Rollback(accountId:$accountId, amount:${satToBtc(amountSat).toPlainString()}) was committed" } },
                 { ex -> logger.error("Cannot perform rollback", ex) })

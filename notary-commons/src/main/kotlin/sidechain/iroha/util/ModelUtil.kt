@@ -306,36 +306,4 @@ object ModelUtil {
                 .build()
         )
     }
-
-    /**
-     * Transfer asset in iroha
-     * @param irohaConsumer - iroha network layer
-     * @param srcAccountId - source account
-     * @param destAccountId - destination account
-     * @param assetId - asset id in Iroha
-     * @param description - transfer description
-     * @param amount - amount
-     * @param createdTime - time of transaction creation. Current time by default.
-     * @param quorum - quorum
-     * @return hex representation of transaction hash
-     */
-    fun transferAssetIroha(
-        irohaConsumer: IrohaConsumer,
-        srcAccountId: String,
-        destAccountId: String,
-        assetId: String,
-        description: String,
-        amount: String,
-        createdTime: BigInteger = getCurrentTime(),
-        quorum: Int
-    ): Result<String, Exception> {
-        return irohaConsumer.sendAndCheck(
-            ModelTransactionBuilder()
-                .creatorAccountId(irohaConsumer.creator)
-                .quorum(quorum)
-                .createdTime(createdTime)
-                .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
-                .build()
-        )
-    }
 }

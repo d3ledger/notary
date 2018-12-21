@@ -7,7 +7,6 @@ import integration.helper.BtcIntegrationHelperUtil
 import model.IrohaCredential
 import org.bitcoinj.core.TransactionOutput
 import org.bitcoinj.wallet.Wallet
-import provider.NotaryPeerListProviderImpl
 import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.btc.network.BtcNetworkConfigProvider
 import provider.btc.network.BtcRegTestConfigProvider
@@ -104,13 +103,7 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
         )
 
     private val withdrawalStatistics = WithdrawalStatistics.create()
-    private val peerListProvider = NotaryPeerListProviderImpl(
-        withdrawalCredential,
-        irohaNetwork,
-        btcWithdrawalConfig.notaryListStorageAccount,
-        btcWithdrawalConfig.notaryListSetterAccount
-    )
-    private val btcRollbackService = BtcRollbackService(withdrawalIrohaConsumer, peerListProvider)
+    private val btcRollbackService = BtcRollbackService(withdrawalIrohaConsumer)
     val unsignedTransactions = UnsignedTransactions(signCollector)
     val withdrawalTransferEventHandler = WithdrawalTransferEventHandler(
         withdrawalStatistics,
