@@ -7,7 +7,7 @@ import integration.btc.environment.BtcNotaryTestEnvironment
 import integration.btc.environment.BtcRegistrationTestEnvironment
 import integration.btc.environment.BtcWithdrawalTestEnvironment
 import integration.helper.BtcIntegrationHelperUtil
-import integration.helper.btcAsset
+import integration.helper.BTC_ASSET
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelCrypto
 import kotlinx.coroutines.GlobalScope
@@ -120,7 +120,7 @@ class BtcFullPipelineTest {
             srcKeypair,
             "$srcUserName@$CLIENT_DOMAIN",
             withdrawalEnvironment.btcWithdrawalConfig.withdrawalCredential.accountId,
-            btcAsset,
+            BTC_ASSET,
             destBtcAddress,
             amount.toPlainString()
         )
@@ -129,11 +129,11 @@ class BtcFullPipelineTest {
         Thread.sleep(DEPOSIT_WAIT_MILLIS)
         assertEquals(
             amount.toPlainString(),
-            integrationHelper.getIrohaAccountBalance("$destUserName@$CLIENT_DOMAIN", btcAsset)
+            integrationHelper.getIrohaAccountBalance("$destUserName@$CLIENT_DOMAIN", BTC_ASSET)
         )
         assertEquals(
             BigDecimal(1).subtract(amount).toPlainString(),
-            integrationHelper.getIrohaAccountBalance("$srcUserName@$CLIENT_DOMAIN", btcAsset)
+            integrationHelper.getIrohaAccountBalance("$srcUserName@$CLIENT_DOMAIN", BTC_ASSET)
         )
     }
 

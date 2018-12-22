@@ -44,10 +44,23 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
     private val withdrawalCredential =
         IrohaCredential(btcWithdrawalConfig.withdrawalCredential.accountId, withdrawalKeypair)
 
+    private val signaturesCollectorKeypair = ModelUtil.loadKeypair(
+        btcWithdrawalConfig.signatureCollectorCredential.pubkeyPath,
+        btcWithdrawalConfig.signatureCollectorCredential.privkeyPath
+    ).fold({ keypair -> keypair }, { ex -> throw ex })
+
+    private val signaturesCollectorCredential =
+        IrohaCredential(btcWithdrawalConfig.signatureCollectorCredential.accountId, signaturesCollectorKeypair)
+
     private val irohaNetwork = IrohaNetworkImpl(btcWithdrawalConfig.iroha.hostname, btcWithdrawalConfig.iroha.port)
 
     private val withdrawalIrohaConsumer = IrohaConsumerImpl(
         withdrawalCredential,
+        irohaNetwork
+    )
+
+    private val signaturesCollectorIrohaConsumer = IrohaConsumerImpl(
+        signaturesCollectorCredential,
         irohaNetwork
     )
 
@@ -84,19 +97,21 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
     val signCollector =
         SignCollector(
             irohaNetwork,
-            withdrawalCredential,
-            withdrawalIrohaConsumer,
+            signaturesCollectorCredential,
+            signaturesCollectorIrohaConsumer,
             transactionSigner
         )
 
     private val withdrawalStatistics = WithdrawalStatistics.create()
+    private val btcRollbackService = BtcRollbackService(withdrawalIrohaConsumer)
     val unsignedTransactions = UnsignedTransactions(signCollector)
     val withdrawalTransferEventHandler = WithdrawalTransferEventHandler(
         withdrawalStatistics,
         BtcWhiteListProvider(
             btcWithdrawalConfig.registrationCredential.accountId, withdrawalCredential, irohaNetwork
         ), btcWithdrawalConfig, transactionCreator, signCollector, unsignedTransactions
-        , transactionHelper
+        , transactionHelper,
+        btcRollbackService
     )
     private val newSignatureEventHandler =
         NewSignatureEventHandler(withdrawalStatistics, signCollector, unsignedTransactions, transactionHelper)
@@ -121,7 +136,6 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
         BtcWithdrawalInitialization(
             peerGroup,
             wallet,
-            btcWithdrawalConfig,
             btcChangeAddressProvider,
             irohaChainListener,
             btcNetworkConfigProvider,

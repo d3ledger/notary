@@ -27,6 +27,11 @@ class BtcWithdrawalAppConfiguration {
         withdrawalConfig.withdrawalCredential.privkeyPath
     ).fold({ keypair -> keypair }, { ex -> throw ex })
 
+    private val signatureCollectorKeypair = ModelUtil.loadKeypair(
+        withdrawalConfig.signatureCollectorCredential.pubkeyPath,
+        withdrawalConfig.signatureCollectorCredential.privkeyPath
+    ).fold({ keypair -> keypair }, { ex -> throw ex })
+
     private val btcRegistrationCredential = ModelUtil.loadKeypair(
         withdrawalConfig.registrationCredential.pubkeyPath,
         withdrawalConfig.registrationCredential.privkeyPath
@@ -46,6 +51,13 @@ class BtcWithdrawalAppConfiguration {
 
     @Bean
     fun withdrawalConsumer() = IrohaConsumerImpl(withdrawalCredential(), irohaNetwork())
+
+    @Bean
+    fun signatureCollectorCredential() =
+        IrohaCredential(withdrawalConfig.signatureCollectorCredential.accountId, signatureCollectorKeypair)
+
+    @Bean
+    fun signatureCollectorConsumer() = IrohaConsumerImpl(signatureCollectorCredential(), irohaNetwork())
 
     @Bean
     fun withdrawalConfig() = withdrawalConfig
