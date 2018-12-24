@@ -10,6 +10,9 @@ import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
 
+private const val BTC_SESSION_DOMAIN = "btcSession"
+const val ADDRESS_GENERATION_TIME_KEY = "addressGenerationTime"
+
 // Class for creating session accounts. Theses accounts are used to store BTC public keys.
 class BtcSessionProvider(
     private val credential: IrohaCredential,
@@ -30,16 +33,21 @@ class BtcSessionProvider(
                 ModelUtil.getCurrentTime(),
                 1,
                 arrayListOf(
+                    //Creating session account
                     IrohaCommand.CommandCreateAccount(
-                        sessionId, "btcSession", credential.keyPair.publicKey().hex()
+                        sessionId, BTC_SESSION_DOMAIN, credential.keyPair.publicKey().hex()
+                    ),
+                    //Setting address generation time
+                    IrohaCommand.CommandSetAccountDetail(
+                        "$sessionId@$BTC_SESSION_DOMAIN",
+                        ADDRESS_GENERATION_TIME_KEY,
+                        System.currentTimeMillis().toString()
                     )
                 )
             )
         }.flatMap { irohaTx ->
             val utx = IrohaConverterImpl().convert(irohaTx)
             irohaConsumer.sendAndCheck(utx)
-
         }
     }
-
 }
