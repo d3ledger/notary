@@ -86,7 +86,7 @@ class BtcPublicKeyProvider(
             if (peers == 0) {
                 throw IllegalStateException("No peers to create btc multisignature address")
             } else if (notaryKeys.size != peers) {
-                logger.info { "Not enough keys are collected to generate a multisig address(${notaryKeys.size} out of ${peers})" }
+                logger.info { "Not enough keys are collected to generate a multisig address(${notaryKeys.size} out of $peers)" }
                 return@of
             } else if (!hasMyKey(notaryKeys)) {
                 logger.info { "Cannot be involved in address generation. No access to $notaryKeys." }
@@ -119,7 +119,6 @@ class BtcPublicKeyProvider(
                 addressInfo.toJson(),
                 BigInteger.valueOf(generationTime)
             ).fold({
-                //TODO this save will probably corrupt the wallet file
                 walletFile.save()
                 logger.info { "New BTC ${addressType.title} address $msAddress was created " }
             }, { ex -> throw ex })

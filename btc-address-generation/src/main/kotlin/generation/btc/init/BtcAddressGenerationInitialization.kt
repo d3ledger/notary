@@ -95,9 +95,8 @@ class BtcAddressGenerationInitialization(
             btcAddressGenerationConfig.registrationAccount.accountId
         ).flatMap { details ->
             // Getting time
-            val time = details[ADDRESS_GENERATION_TIME_KEY]!!.toLong()
-            // Removing generation time. Only public keys remain
-            details.remove(ADDRESS_GENERATION_TIME_KEY)
+            val time = details.remove(ADDRESS_GENERATION_TIME_KEY)!!.toLong()
+            // Getting keys
             val notaryKeys = details.values
             btcPublicKeyProvider.checkAndCreateMultiSigAddress(notaryKeys, addressType, time)
         }
