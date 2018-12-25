@@ -1,7 +1,6 @@
 package withdrawal.btc.transaction
 
 import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import com.squareup.moshi.Moshi
@@ -62,13 +61,13 @@ class SignCollector(
             logger.info { "Tx ${tx.hashAsString} signatures to add in Iroha $signedInputs" }
             val shortTxHash = shortTxHash(tx)
             val createAccountTx = IrohaConverterImpl().convert(createSignCollectionAccountTx(shortTxHash))
+            /**
+             * We create a dedicated account on every withdrawal event.
+             * We need this account to store transaction signatures from all the nodes.
+             * Every node will try to create an account, but only one creation will succeed.
+             * The following Iroha command can fail.
+             */
             signatureCollectorConsumer.sendAndCheck(createAccountTx)
-                .failure { ex ->
-                    throw IllegalStateException(
-                        "Cannot create signature storing account for tx ${tx.hashAsString}",
-                        ex
-                    )
-                }
             val setSignaturesTx = IrohaConverterImpl().convert(setSignatureDetailsTx(shortTxHash, signedInputs))
             signatureCollectorConsumer.sendAndCheck(setSignaturesTx)
         }.fold(
