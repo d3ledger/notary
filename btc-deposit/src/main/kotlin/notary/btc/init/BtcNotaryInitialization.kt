@@ -54,7 +54,13 @@ class BtcNotaryInitialization(
         BriefLogFormatter.init()
         addPeerConnectionStatusListener(peerGroup, ::notHealthy, ::cured)
         return irohaChainListener.getBlockObservable().map { irohaObservable ->
-            newBtcClientRegistrationListener.listenToRegisteredClients(wallet, irohaObservable)
+            newBtcClientRegistrationListener.listenToRegisteredClients(
+                wallet, irohaObservable
+            ) {
+                // Kill deposit service if Iroha chain listener is not functioning
+                notHealthy()
+                close()
+            }
             logger.info { "Registration service listener was successfully initialized" }
         }.flatMap {
             btcRegisteredAddressesProvider.getRegisteredAddresses()

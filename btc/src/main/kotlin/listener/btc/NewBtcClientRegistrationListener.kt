@@ -21,7 +21,11 @@ class NewBtcClientRegistrationListener(
     /**
      * Listens to newly registered Bitcoin addresses and adds addresses to current wallet object
      */
-    fun listenToRegisteredClients(wallet: Wallet, irohaObservable: Observable<BlockOuterClass.Block>) {
+    fun listenToRegisteredClients(
+        wallet: Wallet,
+        irohaObservable: Observable<BlockOuterClass.Block>,
+        onChainListenerFail: () -> Unit
+    ) {
         irohaObservable.subscribeOn(Schedulers.from(Executors.newSingleThreadExecutor()))
             .subscribe({ block ->
                 getSetDetailCommands(block).forEach { command ->
@@ -29,6 +33,7 @@ class NewBtcClientRegistrationListener(
                 }
             }, { ex ->
                 logger.error("Error on subscribe", ex)
+                onChainListenerFail()
             })
     }
 
