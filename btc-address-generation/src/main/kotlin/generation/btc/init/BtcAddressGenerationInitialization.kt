@@ -14,9 +14,10 @@ import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
-import provider.btc.generation.BtcPublicKeyProvider
 import provider.btc.address.BtcAddressType
 import provider.btc.address.getAddressTypeByAccountId
+import provider.btc.generation.ADDRESS_GENERATION_TIME_KEY
+import provider.btc.generation.BtcPublicKeyProvider
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
@@ -74,13 +75,15 @@ class BtcAddressGenerationInitialization(
     private fun isAddressGenerationTriggered(command: Commands.Command) =
         command.setAccountDetail.accountId == btcAddressGenerationConfig.pubKeyTriggerAccount
 
-    // Check if new key was added
+    // Checks if new key was added
     private fun isNewKey(command: Commands.Command) = command.setAccountDetail.accountId.endsWith("btcSession")
 
+    // Generates new key
     private fun onGenerateKey(sessionAccountName: String): Result<String, Exception> {
         return btcPublicKeyProvider.createKey(sessionAccountName)
     }
 
+    // Generates multisig address
     private fun onGenerateMultiSigAddress(
         sessionAccount: String,
         addressType: BtcAddressType
@@ -91,8 +94,11 @@ class BtcAddressGenerationInitialization(
             sessionAccount,
             btcAddressGenerationConfig.registrationAccount.accountId
         ).flatMap { details ->
+            // Getting time
+            val time = details.remove(ADDRESS_GENERATION_TIME_KEY)!!.toLong()
+            // Getting keys
             val notaryKeys = details.values
-            btcPublicKeyProvider.checkAndCreateMultiSigAddress(notaryKeys, addressType)
+            btcPublicKeyProvider.checkAndCreateMultiSigAddress(notaryKeys, addressType, time)
         }
     }
 

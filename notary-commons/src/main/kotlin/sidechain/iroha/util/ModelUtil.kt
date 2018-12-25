@@ -218,17 +218,19 @@ object ModelUtil {
      * @param accountId - account to set details
      * @param key - key of detail
      * @param value - value of detail
+     * @param createdTime - time of tx creation. Current time by default
      * @return hex representation of transaction hash
      */
     fun setAccountDetail(
         irohaConsumer: IrohaConsumer,
         accountId: String,
         key: String,
-        value: String
+        value: String,
+        createdTime: BigInteger = getCurrentTime()
     ): Result<String, Exception> {
         val tx = ModelTransactionBuilder()
             .creatorAccountId(irohaConsumer.creator)
-            .createdTime(getCurrentTime())
+            .createdTime(createdTime)
             .setAccountDetail(accountId, key, value)
             .build()
         return irohaConsumer.sendAndCheck(tx)

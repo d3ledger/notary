@@ -143,16 +143,16 @@ fun getAccountDetails(
     irohaNetwork: IrohaNetwork,
     acc: String,
     detailSetterAccount: String
-): Result<Map<String, String>, Exception> {
+): Result<MutableMap<String, String>, Exception> {
     return getAccountData(
         credential,
         irohaNetwork,
         acc
     ).map { json ->
         if (json.map[detailSetterAccount] == null)
-            mapOf()
+            mutableMapOf()
         else
-            json.map[detailSetterAccount] as Map<String, String>
+            json.map[detailSetterAccount] as MutableMap<String, String>
     }
 }
 
