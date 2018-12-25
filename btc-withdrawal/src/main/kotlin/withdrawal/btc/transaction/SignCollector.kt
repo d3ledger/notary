@@ -62,10 +62,10 @@ class SignCollector(
             val shortTxHash = shortTxHash(tx)
             val createAccountTx = IrohaConverterImpl().convert(createSignCollectionAccountTx(shortTxHash))
             /**
-             * We create a dedicated account everytime a withdrawal transaction occurred.
+             * We create a dedicated account on every withdrawal event.
              * We need this account to store transaction signatures from all the nodes.
-             * Every node will try to create an account, but only one creation will be succeeded.
-             * So it's ok to fail the following Iroha command.
+             * Every node will try to create an account, but only one creation will succeed.
+             * The following Iroha command can fail.
              */
             signatureCollectorConsumer.sendAndCheck(createAccountTx)
             val setSignaturesTx = IrohaConverterImpl().convert(setSignatureDetailsTx(shortTxHash, signedInputs))
