@@ -21,7 +21,6 @@ import org.junit.jupiter.api.fail
 import provider.btc.address.BtcAddressType
 import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
-import withdrawal.btc.transaction.TimedTx
 import java.io.File
 import java.math.BigDecimal
 
@@ -71,9 +70,6 @@ class BtcFullPipelineTest {
             //Recreate folder
             blockStorageFolder.mkdirs()
             withdrawalEnvironment.btcWithdrawalInitialization.init().failure { ex -> throw ex }
-            withdrawalEnvironment.withdrawalTransferEventHandler.addNewBtcTransactionListener { tx ->
-                withdrawalEnvironment.createdTransactions[tx.hashAsString] = TimedTx.create(tx)
-            }
         }
 
         Thread.sleep(10_000)

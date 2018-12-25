@@ -16,6 +16,7 @@ import withdrawal.btc.provider.BtcWhiteListProvider
 import withdrawal.btc.statistics.WithdrawalStatistics
 import withdrawal.btc.transaction.*
 import java.math.BigDecimal
+import java.util.concurrent.CopyOnWriteArrayList
 
 /*
     Class that is used to handle withdrawal events
@@ -33,11 +34,11 @@ class WithdrawalTransferEventHandler(
 ) : Monitoring() {
     override fun monitor() = withdrawalStatistics
 
-    private val newBtcTransactionListeners = ArrayList<(tx: Transaction) -> Unit>()
+    private val newBtcTransactionListeners = CopyOnWriteArrayList<(tx: Transaction) -> Unit>()
 
     /**
      * Registers "new transaction was created" event listener
-     * Not thread safe. For testing purposes only.
+     * For testing purposes only.
      * @param listener - function that will be called when new transaction is created
      */
     fun addNewBtcTransactionListener(listener: (tx: Transaction) -> Unit) {
@@ -76,7 +77,7 @@ class WithdrawalTransferEventHandler(
         whiteListProvider.checkWithdrawalAddress(sourceAccountId, destinationAddress)
             .fold({ ableToWithdraw ->
                 if (ableToWithdraw) {
-                    withdraw(wallet, destinationAddress, satAmount, sourceAccountId, withdrawalTime)
+                    withdraw(wallet, destinationAddress, WithdrawalDetails(sourceAccountId, satAmount, withdrawalTime))
                 } else {
                     btcRollbackService.rollback(sourceAccountId, satAmount, withdrawalTime)
                     logger.warn { "Cannot withdraw to $destinationAddress, because it's not in ${transferCommand.srcAccountId} whitelist" }
@@ -101,13 +102,11 @@ class WithdrawalTransferEventHandler(
     private fun withdraw(
         wallet: Wallet,
         destinationAddress: String,
-        amount: Long,
-        sourceAccountId: String,
-        withdrawalTime: Long
+        withdrawalDetails: WithdrawalDetails
     ) {
         transactionCreator.createTransaction(
             wallet,
-            amount,
+            withdrawalDetails.amountSat,
             destinationAddress,
             btcWithdrawalConfig.bitcoin.confidenceLevel
         ).map { (transaction, unspents) ->
@@ -120,11 +119,15 @@ class WithdrawalTransferEventHandler(
             signCollector.collectSignatures(transaction, btcWithdrawalConfig.bitcoin.walletPath)
             Pair(transaction, unspents)
         }.map { (transaction, unspents) ->
-            unsignedTransactions.markAsUnsigned(transaction)
+            unsignedTransactions.markAsUnsigned(withdrawalDetails, transaction)
             transactionHelper.registerUnspents(transaction, unspents)
             logger.info { "Tx ${transaction.hashAsString} was added to collection of unsigned transactions" }
         }.failure { ex ->
-            btcRollbackService.rollback(sourceAccountId, amount, withdrawalTime)
+            btcRollbackService.rollback(
+                withdrawalDetails.sourceAccountId,
+                withdrawalDetails.amountSat,
+                withdrawalDetails.withdrawalTime
+            )
             withdrawalStatistics.incFailedTransfers()
             logger.error("Cannot create withdrawal transaction", ex)
         }
