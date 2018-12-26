@@ -3,6 +3,8 @@ package withdrawal.btc.transaction
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.map
+import fee.BYTES_PER_INPUT
+import fee.getTxFee
 import helper.address.outPutToBase58Address
 import mu.KLogging
 import org.bitcoinj.core.Address
@@ -14,16 +16,12 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.btc.network.BtcNetworkConfigProvider
+import withdrawal.btc.handler.CurrentFeeRate
 import withdrawal.btc.provider.BtcChangeAddressProvider
 
-//TODO make it configurable
-//Fee rate per byte in SAT
-private const val FEE_RATE = 10
 //Only two outputs are used: destination and change
 private const val OUTPUTS = 2
 
-private const val BYTES_PER_INPUT = 180
-private const val BYTES_PER_OUTPUT = 34
 
 /*
     Helper class that is used to collect inputs, outputs and etc
@@ -61,7 +59,7 @@ class TransactionHelper(
             Coin.valueOf(amount),
             Address.fromBase58(btcNetworkConfigProvider.getConfig(), destinationAddress)
         )
-        val change = totalAmount - amount - getTxFee(transaction.inputs.size, OUTPUTS)
+        val change = totalAmount - amount - getTxFee(transaction.inputs.size, OUTPUTS, CurrentFeeRate.get())
         //TODO create change address creation mechanism
         transaction.addOutput(Coin.valueOf(change), changeAddress)
     }
@@ -87,7 +85,7 @@ class TransactionHelper(
 
     /**
      * Registers given transaction outputs as "untouchable" to use in the future
-     * @param tx - transaction
+     * @param tx - transaction to register
      * @param unspents - transaction outputs to register as "untouchable"
      */
     fun registerUnspents(tx: Transaction, unspents: List<TransactionOutput>) {
@@ -132,7 +130,7 @@ class TransactionHelper(
      * @param satValue - amount of SAT to check if it's a dust
      * @return true, if [satValue] is a dust
      */
-    fun isDust(satValue: Long) = satValue < (FEE_RATE * BYTES_PER_INPUT)
+    fun isDust(satValue: Long) = satValue < (CurrentFeeRate.get() * BYTES_PER_INPUT)
 
     /**
      * Collects previously sent transactions, that may be used as an input for newly created transaction.
@@ -200,7 +198,7 @@ class TransactionHelper(
             throw IllegalStateException("Cannot get enough BTC amount(required $amountAndFee, collected $collectedAmount) using current unspent tx collection")
         }
         // Check if able to pay fee
-        val newFee = getTxFee(recursivelyCollectedUnspents.size, OUTPUTS)
+        val newFee = getTxFee(recursivelyCollectedUnspents.size, OUTPUTS, CurrentFeeRate.get())
         if (collectedAmount < amount + newFee) {
             logger.info { "Not enough BTC amount(required $amount, fee $newFee, collected $collectedAmount) was collected for fee" }
             // Try to collect more unspents if no money is left for fee
@@ -223,16 +221,8 @@ class TransactionHelper(
         return totalValue
     }
 
-    // Computes transaction size based on inputs
-    private fun getTxSizeInputs(inputs: Int) = inputs * BYTES_PER_INPUT
 
-    // Computes transaction size based on outputs
-    private fun getTxSizeOutputs(outputs: Int) = outputs * BYTES_PER_OUTPUT
-
-    // Computes transaction fee based on inputs and outputs
-    private fun getTxFee(inputs: Int, outputs: Int) = (getTxSizeInputs(inputs) + getTxSizeOutputs(outputs)) * FEE_RATE
-
-    // Checks if transaction output was addressed to available address
+    // Checks if fee output was addressed to available address
     protected fun isAvailableOutput(availableAddresses: Set<String>, output: TransactionOutput): Boolean {
         val btcAddress = outPutToBase58Address(output)
         return availableAddresses.contains(btcAddress)

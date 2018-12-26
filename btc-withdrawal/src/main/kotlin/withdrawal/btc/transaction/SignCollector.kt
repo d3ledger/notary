@@ -212,7 +212,7 @@ class SignCollector(
     //Creates Iroha transaction to store signatures as acount details
     private fun setSignatureDetailsTx(txShortHash: String, signedInputs: List<InputSignature>): IrohaTransaction {
         val signCollectionAccountId = "$txShortHash@$BTC_SIGN_COLLECT_DOMAIN"
-        val signaturesJson = String.irohaEscape(inputSignatureJsonAdapter.toJson(signedInputs))
+        val signaturesJson = inputSignatureJsonAdapter.toJson(signedInputs).irohaEscape()
         return IrohaTransaction(
             signatureCollectorCredential.accountId,
             ModelUtil.getCurrentTime(),

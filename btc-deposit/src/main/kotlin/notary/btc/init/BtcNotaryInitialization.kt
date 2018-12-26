@@ -13,7 +13,7 @@ import model.IrohaCredential
 import mu.KLogging
 import notary.btc.config.BtcNotaryConfig
 import notary.btc.factory.createBtcNotary
-import notary.btc.listener.BitcoinBlockChainListener
+import notary.btc.listener.BitcoinBlockChainDepositListener
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.PeerGroup
 import org.bitcoinj.utils.BriefLogFormatter
@@ -104,7 +104,7 @@ class BtcNotaryInitialization(
     ): Observable<SideChainEvent.PrimaryBlockChainEvent> {
         return Observable.create<SideChainEvent.PrimaryBlockChainEvent> { emitter ->
             peerGroup.addBlocksDownloadedEventListener(
-                BitcoinBlockChainListener(
+                BitcoinBlockChainDepositListener(
                     btcRegisteredAddressesProvider,
                     emitter,
                     confidenceLevel
