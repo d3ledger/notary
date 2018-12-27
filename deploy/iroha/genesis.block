@@ -39,7 +39,8 @@
                 "createRole": {
                   "roleName": "relay_deployer",
                   "permissions": [
-                    "can_set_detail"
+                    "can_set_detail",
+                    "can_get_domain_accounts"
                   ]
                 }
               },

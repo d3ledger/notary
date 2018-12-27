@@ -12,6 +12,9 @@ interface RelayRegistrationConfig {
     /** Number of accounts to deploy */
     val number: Int
 
+    /** How often run registration of new relays in seconds */
+    val replenishmentPeriod: Long
+
     /** Address of master smart contract in Ethereum */
     val ethMasterWallet: String
 
