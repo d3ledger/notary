@@ -110,7 +110,11 @@ pipeline {
               sh "rm build/libs/notary-1.0-SNAPSHOT-all.jar || true"
               iC = docker.image("openjdk:8-jdk")
               iC.inside("-e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
-                sh "./gradlew shadowJar"
+                sh "./gradlew eth:shadowJar"
+                sh "./gradlew eth-withdrawal:shadowJar"
+                sh "./gradlew eth-registration:shadowJar"
+                sh "./gradlew eth-vacuum:shadowJar"
+
               }
               relay = docker.build("nexus.iroha.tech:19002/${login}/eth-relay:${TAG}", "-f docker/eth-relay.dockerfile .")
               registration = docker.build("nexus.iroha.tech:19002/${login}/registration:${TAG}", "-f docker/registration.dockerfile .")
