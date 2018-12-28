@@ -52,8 +52,6 @@ class BitcoinBlockChainFeeRateListener(
                     .fold(
                         { logger.info { "Fee rate was set to ${feeRate.avgFeeRate}" } },
                         { ex -> logger.error("Cannot update fee rate", ex) })
-
-
             },
             INIT_TIME_FEE_RATE_UPDATE_DELAY_MIN.toLong(),
             FEE_RATE_UPDATE_DELAY_MIN.toLong(),

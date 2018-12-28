@@ -24,13 +24,11 @@ class BtcNotaryAppConfiguration {
 
     private val notaryCredential = IrohaCredential(notaryConfig.notaryCredential.accountId, notaryKeypair)
 
-    private val irohaNetwork = IrohaNetworkImpl(notaryConfig.iroha.hostname, notaryConfig.iroha.port)
-
     @Bean
     fun notaryConfig() = notaryConfig
 
     @Bean
-    fun irohaNetwork() = irohaNetwork
+    fun irohaNetwork() = IrohaNetworkImpl(notaryConfig.iroha.hostname, notaryConfig.iroha.port)
 
     @Bean
     fun btcRegisteredAddressesProvider(): BtcRegisteredAddressesProvider {
