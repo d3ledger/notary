@@ -99,10 +99,7 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
                 )
                 irohaTxList.add(irohaTx)
             }
-            val utx = IrohaConverter.convert(
-                IrohaOrderedBatch(irohaTxList),
-                mstRegistrationIrohaConsumer.creator
-            )
+            val utx = IrohaConverter.convert(IrohaOrderedBatch(irohaTxList))
             mstRegistrationIrohaConsumer.send(utx).failure { ex -> throw ex }
         }
     }

@@ -134,7 +134,7 @@ class IrohaBatchTest {
                 )
 
             val batch = IrohaOrderedBatch(txList)
-            val lst = IrohaConverter.convert(batch, irohaConsumer.creator)
+            val lst = IrohaConverter.convert(batch)
             val hashes = lst.map { String.hex(it.hash()) }
 
             val blockHashes = GlobalScope.async {
@@ -250,7 +250,7 @@ class IrohaBatchTest {
                 )
 
             val batch = IrohaOrderedBatch(txList)
-            val lst = IrohaConverter.convert(batch, irohaConsumer.creator)
+            val lst = IrohaConverter.convert(batch)
             val hashes = lst.map { String.hex(it.hash()) }
             val expectedHashes = hashes.subList(0, hashes.size - 1)
 

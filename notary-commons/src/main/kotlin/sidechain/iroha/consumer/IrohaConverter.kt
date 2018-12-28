@@ -4,6 +4,7 @@ import jp.co.soramitsu.iroha.java.Transaction
 import jp.co.soramitsu.iroha.java.TransactionBuilder
 import notary.IrohaCommand
 import notary.IrohaOrderedBatch
+import notary.IrohaTransaction
 import javax.xml.bind.DatatypeConverter
 
 /**
@@ -57,20 +58,39 @@ object IrohaConverter {
         }
     }
 
+    private fun buildModelTransactionBuilder(transaction: IrohaTransaction): TransactionBuilder {
+        return Transaction.builder(transaction.creator)
+            .setQuorum(transaction.quorum)
+    }
+
+    private fun appendCommands(
+        txBuilder: TransactionBuilder,
+        transaction: IrohaTransaction
+    ): TransactionBuilder {
+        var builder = txBuilder
+        transaction.commands.forEach { cmd ->
+            builder = appendCommand(builder, cmd)
+        }
+        return builder
+    }
+
+    /**
+     * Convert Notary intention [notary.IrohaTransaction] to Iroha java [Transaction]
+     */
+    fun convert(transaction: IrohaTransaction): Transaction {
+        val txBuilder = appendCommands(buildModelTransactionBuilder(transaction), transaction)
+        return txBuilder.build()
+    }
+
     /**
      * Converts batch into single Iroha transaction
      * @param batch - batch full of transactions
-     * @param creator - transaction creator
      * @return single Iroha transaction
      */
-    fun convert(batch: IrohaOrderedBatch, creator: String): List<Transaction> {
+    fun convert(batch: IrohaOrderedBatch): List<Transaction> {
         val txList = mutableListOf<Transaction>()
         batch.transactions.forEach { tx ->
-            val transaction = Transaction.builder(creator)
-            tx.commands.forEach { command ->
-                appendCommand(transaction, command)
-            }
-            txList.add(transaction.build())
+            txList.add(convert(tx))
         }
         return txList
     }

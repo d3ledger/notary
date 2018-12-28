@@ -12,7 +12,6 @@ import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.consumer.IrohaConverter
 import sidechain.iroha.util.ModelUtil.getCurrentTime
-import java.security.PublicKey
 
 open class IrohaAccountCreator(
     private val irohaConsumer: IrohaConsumer,
@@ -49,7 +48,7 @@ open class IrohaAccountCreator(
                 notaryStorageStrategy
             )
         }.map { irohaTx ->
-            val utx = IrohaConverter.convert(irohaTx, creator)
+            val utx = IrohaConverter.convert(irohaTx)
             irohaConsumer.send(utx).fold({ passedTransactions ->
                 if (isAccountCreationBatchFailed(utx, passedTransactions)) {
                     throw IllegalStateException("Cannot create account")
