@@ -66,6 +66,7 @@ class BitcoinBlockChainFeeRateListener(
             return
         }
         lastFeeRate = FeeRate(block.avgFeeRate(), block.timeSeconds)
+        logger.info { "Last fee rate is $lastFeeRate" }
     }
 
     /**

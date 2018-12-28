@@ -69,6 +69,9 @@ class BtcWithdrawalInitialization(
                 wallet.addWatchedAddress(address)
             }
             logger.info { "Previously registered addresses were added to the wallet" }
+        }.map {
+            // Add fee rate listener
+            peerGroup.addBlocksDownloadedEventListener(BitcoinBlockChainFeeRateListener(btcFeeRateService))
         }.flatMap {
             initBtcBlockChain()
         }.flatMap { peerGroup ->
@@ -77,10 +80,6 @@ class BtcWithdrawalInitialization(
                 irohaChainListener,
                 peerGroup
             )
-        }.map { peerGroup ->
-            // Add fee rate listener
-            peerGroup.addBlocksDownloadedEventListener(BitcoinBlockChainFeeRateListener(btcFeeRateService))
-            Unit
         }
     }
 
@@ -93,7 +92,7 @@ class BtcWithdrawalInitialization(
         wallet: Wallet,
         irohaChainListener: IrohaChainListener,
         peerGroup: PeerGroup
-    ): Result<PeerGroup, Exception> {
+    ): Result<Unit, Exception> {
         return irohaChainListener.getBlockObservable().map { irohaObservable ->
             irohaObservable.subscribeOn(Schedulers.from(Executors.newSingleThreadExecutor()))
                 .subscribe({ block ->
@@ -126,7 +125,6 @@ class BtcWithdrawalInitialization(
                     logger.error("Error on transfer events subscription", ex)
                 })
             logger.info { "Iroha transfer events listener was initialized" }
-            peerGroup
         }
     }
 
