@@ -52,13 +52,11 @@ class BtcDWBridgeAppConfiguration {
     private val notaryCredential =
         IrohaCredential(notaryConfig.notaryCredential.accountId, notaryKeypair)
 
-    private val notaryIrohaNetwork = IrohaNetworkImpl(dwBridgeConfig.iroha.hostname, dwBridgeConfig.iroha.port)
-
     @Bean
     fun notaryConfig() = notaryConfig
 
     @Bean
-    fun irohaNetwork() = notaryIrohaNetwork
+    fun irohaNetwork() = IrohaNetworkImpl(dwBridgeConfig.iroha.hostname, dwBridgeConfig.iroha.port)
 
     @Bean
     fun btcRegisteredAddressesProvider(): BtcRegisteredAddressesProvider {
