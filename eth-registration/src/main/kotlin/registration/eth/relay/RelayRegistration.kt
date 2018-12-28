@@ -4,9 +4,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import config.EthereumPasswords
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import model.IrohaCredential
 import mu.KLogging
@@ -16,9 +14,6 @@ import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
 import java.io.File
-import java.util.*
-import kotlin.concurrent.schedule
-import kotlin.concurrent.timer
 
 /**
  * Class is responsible for relay addresses registration.
@@ -75,7 +70,7 @@ class RelayRegistration(
     }
 
     /**
-     * Run a job that every [period] checks that [relayRegistrationConfig.number] free relays are present. In case of
+     * Run a job that every replenishmentPeriod checks that number from config free relays are present. In case of
      * lack of free relays deploys lacking amount.
      */
     fun runRelayReplenishment(): Result<Unit, Exception> {
