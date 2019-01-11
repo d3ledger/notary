@@ -29,6 +29,7 @@ import util.toHexString
 import java.math.BigInteger
 import java.time.Duration
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 private const val BATCH_TIME_WAIT = 5000L
 
@@ -80,7 +81,7 @@ class IrohaBatchTest {
 
             val userId = "$user@$CLIENT_DOMAIN"
 
-            val createdTime = ModelUtil.getCurrentTime()
+            val createdTime = ModelUtil.getCurrentTime().minus(BigInteger.valueOf(10_000))
             val txList =
                 listOf(
                     IrohaTransaction(
@@ -97,7 +98,7 @@ class IrohaBatchTest {
                     ),
                     IrohaTransaction(
                         tester,
-                        createdTime.add(BigInteger.ONE),
+                        createdTime.add(BigInteger.valueOf(1000)),
                         1,
                         listOf(
                             IrohaCommand.CommandSetAccountDetail(
@@ -109,7 +110,7 @@ class IrohaBatchTest {
                     ),
                     IrohaTransaction(
                         tester,
-                        createdTime.add(BigInteger.TEN),
+                        createdTime.add(BigInteger.valueOf(2000)),
                         1,
                         listOf(
                             IrohaCommand.CommandCreateAsset(
@@ -152,7 +153,8 @@ class IrohaBatchTest {
             val u1_amount =
                 getAccountAsset(irohaAPI, testCredential, userId, "$asset_name#$assetDomain").get()
 
-            assertEquals(hashes, successHash)
+            assertEquals(hashes.size, successHash.size)
+            assertTrue(successHash.containsAll(hashes))
             assertEquals("{\"$tester\":{\"key\":\"value\"}}", accountJson)
             assertEquals(73, tester_amount.toInt())
             assertEquals(27, u1_amount.toInt())
@@ -182,7 +184,7 @@ class IrohaBatchTest {
             val userId = "$user@$CLIENT_DOMAIN"
             val assetId = "$asset_name#$assetDomain"
 
-            val createdTime = ModelUtil.getCurrentTime()
+            val createdTime = ModelUtil.getCurrentTime().minus(BigInteger.valueOf(10_000))
             val txList =
                 listOf(
                     IrohaTransaction(
@@ -199,7 +201,7 @@ class IrohaBatchTest {
                     ),
                     IrohaTransaction(
                         tester,
-                        createdTime.add(BigInteger.ONE),
+                        createdTime.add(BigInteger.valueOf(1000)),
                         1,
                         listOf(
                             IrohaCommand.CommandSetAccountDetail(
@@ -211,7 +213,7 @@ class IrohaBatchTest {
                     ),
                     IrohaTransaction(
                         tester,
-                        createdTime.add(BigInteger.TEN),
+                        createdTime.add(BigInteger.valueOf(2000)),
                         1,
                         listOf(
                             IrohaCommand.CommandCreateAsset(
@@ -234,7 +236,7 @@ class IrohaBatchTest {
                     ),
                     IrohaTransaction(
                         tester,
-                        createdTime.add(BigInteger.TEN).add(BigInteger.TEN),
+                        createdTime.add(BigInteger.valueOf(3000)),
                         1,
                         listOf(
                             IrohaCommand.CommandTransferAsset(
@@ -269,7 +271,8 @@ class IrohaBatchTest {
             val u1_amount =
                 getAccountAsset(irohaAPI, testCredential, userId, assetId).get()
 
-            assertEquals(expectedHashes, successHash)
+            assertEquals(expectedHashes.size, successHash.size)
+            assertTrue(successHash.containsAll(expectedHashes))
             assertEquals("{\"$tester\":{\"key\":\"value\"}}", accountJson)
             assertEquals(73, tester_amount.toInt())
             assertEquals(27, u1_amount.toInt())

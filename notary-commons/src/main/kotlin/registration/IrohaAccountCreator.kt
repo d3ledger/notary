@@ -12,6 +12,7 @@ import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.consumer.IrohaConverter
 import sidechain.iroha.util.ModelUtil.getCurrentTime
+import java.math.BigInteger
 
 open class IrohaAccountCreator(
     private val irohaConsumer: IrohaConsumer,
@@ -81,11 +82,12 @@ open class IrohaAccountCreator(
         notaryStorageStrategy: () -> String
     ): IrohaOrderedBatch {
         // TODO: implement https://soramitsu.atlassian.net/browse/D3-415
+        val accountId = "$userName@$CLIENT_DOMAIN"
         return IrohaOrderedBatch(
             listOf(
                 IrohaTransaction(
                     creator,
-                    getCurrentTime(),
+                    getCurrentTime().minus(BigInteger.valueOf(1000)),
                     1,
                     arrayListOf(
                         // Create account
@@ -101,7 +103,7 @@ open class IrohaAccountCreator(
                     arrayListOf(
                         // Set user wallet/address in account detail
                         IrohaCommand.CommandSetAccountDetail(
-                            "$userName@$CLIENT_DOMAIN",
+                            accountId,
                             currencyName,
                             currencyAddress
                         ),
@@ -113,7 +115,7 @@ open class IrohaAccountCreator(
                         ),
                         //set whitelist
                         IrohaCommand.CommandSetAccountDetail(
-                            "$userName@$CLIENT_DOMAIN",
+                            accountId,
                             whitelistKey,
                             whitelist.toString().trim('[').trim(']')
                         )

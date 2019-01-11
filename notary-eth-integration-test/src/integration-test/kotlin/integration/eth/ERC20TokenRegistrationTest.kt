@@ -18,6 +18,7 @@ import java.time.Duration
 /**
  * Requires Iroha is running
  */
+@Disabled
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ERC20TokenRegistrationTest {
     private val integrationHelper = EthIntegrationHelperUtil()

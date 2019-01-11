@@ -2,13 +2,9 @@ package integration.eth
 
 import config.IrohaCredentialConfig
 import config.loadEthPasswords
-
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.*
 import provider.eth.ETH_PRECISION
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.util.ModelUtil
@@ -20,6 +16,7 @@ import java.time.Duration
 /**
  * Integration tests with multiple notaries for deposit case.
  */
+@Disabled
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DepositMultiIntegrationTest {
     /** Utility functions for integration tests */

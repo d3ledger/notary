@@ -10,7 +10,7 @@
                 "addPeer": {
                   "peer": {
                     "address": "localhost:10001",
-                    "peerKey": "0E2icbV/5jQmrh3Jf2lSEEA3QR/PTztzncIX9F5fyZs="
+                    "peerKey": "d04da271b57fe63426ae1dc97f6952104037411fcf4f3b739dc217f45e5fc99b"
                   }
                 }
               },
@@ -57,6 +57,7 @@
                 "createRole": {
                   "roleName": "registration_service",
                   "permissions": [
+                    "can_append_role",
                     "can_create_account",
                     "can_set_detail",
                     "can_get_all_accounts",
@@ -218,7 +219,7 @@
                 "createAccount": {
                   "accountName": "notary",
                   "domainId": "notary",
-                  "publicKey": "gl/XANujspTdZQKbLsHyG1v0ZOb3lcSHliy1mHgKsNE="
+                  "publicKey": "8d834b79be4f5019352207e5c6f155e2661d54eeb1a32e68f100735756c8d89c"
                 }
               },
               {
@@ -231,13 +232,19 @@
                 "createAccount": {
                   "accountName": "eth_registration_service",
                   "domainId": "notary",
-                  "publicKey": "/iaL2sezwMrJRx6RUpm0gZkcmwsUVD9lhoxWHa/Wtok="
+                  "publicKey": "fe268bdac7b3c0cac9471e915299b481991c9b0b14543f65868c561dafd6b689"
                 }
               },
               {
                 "appendRole": {
                   "accountId": "eth_registration_service@notary",
                   "roleName": "registration_service"
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "eth_registration_service@notary",
+                  "roleName": "client"
                 }
               },
               {
@@ -256,7 +263,7 @@
                 "createAccount": {
                   "accountName": "btc_registration_service",
                   "domainId": "notary",
-                  "publicKey": "5I4AOZEUK5CjVp1oBHOMaSlvM5IWFmo+bSDWOAr7JbE="
+                  "publicKey": "e48e003991142b90a3569d6804738c69296f339216166a3e6d20d6380afb25b1"
                 }
               },
               {
@@ -266,10 +273,16 @@
                 }
               },
               {
+                "appendRole": {
+                  "accountId": "btc_registration_service@notary",
+                  "roleName": "client"
+                }
+              },
+              {
                 "createAccount": {
                   "accountName": "mst_btc_registration_service",
                   "domainId": "notary",
-                  "publicKey": "qJWq9AOcKadQ5+mZC33Y8Fsdx4LEipp8X3DQCmZdfQI="
+                  "publicKey": "a895aaf4039c29a750e7e9990b7dd8f05b1dc782c48a9a7c5f70d00a665d7d02"
 
                 }
               },
@@ -286,10 +299,16 @@
                 }
               },
               {
+                "appendRole": {
+                  "accountId": "mst_btc_registration_service@notary",
+                  "roleName": "client"
+                }
+              },
+              {
                 "createAccount": {
                   "accountName": "eth_token_storage_service",
                   "domainId": "notary",
-                  "publicKey": "jw9s6xR2efuBVJxI5yA0XxTtA0CHnkrTcKIbbdwygck="
+                  "publicKey": "8f0f6ceb147679fb81549c48e720345f14ed0340879e4ad370a21b6ddc3281c9"
                 }
               },
               {
@@ -302,7 +321,7 @@
                 "createAccount": {
                   "accountName": "withdrawal",
                   "domainId": "notary",
-                  "publicKey": "CSdCcCMvQ/15TFyBdirByGh/cINoJlRlbqltH5sU9NM="
+                  "publicKey": "09274270232f43fd794c5c81762ac1c8687f7083682654656ea96d1f9b14f4d3"
                 }
               },
               {
@@ -315,7 +334,7 @@
                 "createAccount": {
                   "accountName": "btc_withdrawal_service",
                   "domainId": "notary",
-                  "publicKey": "CSdCcCMvQ/15TFyBdirByGh/cINoJlRlbqltH5sU9NM="
+                  "publicKey": "09274270232f43fd794c5c81762ac1c8687f7083682654656ea96d1f9b14f4d3"
                 }
               },
               {
@@ -334,7 +353,7 @@
                 "createAccount": {
                   "accountName": "test",
                   "domainId": "notary",
-                  "publicKey": "CS5xsDGlGtrpJPfNlE8Dca6LhQJGnjJpOIUzTe3MYAE="
+                  "publicKey": "092e71b031a51adae924f7cd944f0371ae8b8502469e32693885334dedcc6001"
                 }
               },
               {
@@ -347,7 +366,7 @@
                 "createAccount": {
                   "accountName": "vacuumer",
                   "domainId": "notary",
-                  "publicKey": "YU+qjFi+kKa8BtEEFk0JknDiQ9GLzgKlX23SVzKIeHY="
+                  "publicKey": "614faa8c58be90a6bc06d104164d099270e243d18bce02a55f6dd25732887876"
                 }
               },
               {
@@ -360,14 +379,14 @@
                 "createAccount": {
                   "accountName": "notaries",
                   "domainId": "notary",
-                  "publicKey": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+                  "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
                 }
               },
               {
                 "createAccount": {
                   "accountName": "btc_change_addresses",
                   "domainId": "notary",
-                  "publicKey": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+                  "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
                 }
               },
               {
@@ -387,7 +406,7 @@
                 "createAccount": {
                   "accountName": "gen_btc_pk_trigger",
                   "domainId": "notary",
-                  "publicKey": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+                  "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
                 }
               }
             ],
@@ -399,7 +418,7 @@
     ],
     "txNumber": 1,
     "height": "1",
-    "prevBlockHash": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000"
   }
-}
+ }
 }

@@ -41,7 +41,7 @@ class IrohaConsumerImpl(
     /**
      * Send list of transactions to Iroha
      * @param lst - list of unsigned transactions to send
-     * @return byte representation of hash or failure
+     * @return list of hashes that were accepted by iroha
      */
     override fun send(lst: List<Transaction>): Result<List<ByteArray>, Exception> {
         val batch = lst.map { tx ->
@@ -75,12 +75,11 @@ class IrohaConsumerImpl(
      * @return byte representation of hash or failure
      */
     private fun checkTransactionStatus(hash: ByteArray): Result<ByteArray, Exception> {
-        // TODO: Fix later. Otherwise all transactions have status UNRECOGNIZED
+        // TODO: Fix later. Otherwise all transactions have not a final status
         Thread.sleep(5000)
         return Result.of {
             val response = irohaAPI.txStatusSync(hash)
             val status = response.txStatus
-            logger.info(status.toString())
             if (status == Endpoint.TxStatus.STATEFUL_VALIDATION_FAILED) {
                 val message =
                     "Iroha transaction ${String.hex(hash)} received STATEFUL_VALIDATION_FAILED ${response.errOrCmdName}"

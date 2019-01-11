@@ -3,6 +3,7 @@ package integration.iroha
 import integration.helper.IrohaIntegrationHelperUtil
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import sidechain.iroha.util.getAccountAsset

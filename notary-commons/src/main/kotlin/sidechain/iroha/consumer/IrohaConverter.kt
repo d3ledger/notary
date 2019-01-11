@@ -5,6 +5,7 @@ import jp.co.soramitsu.iroha.java.TransactionBuilder
 import notary.IrohaCommand
 import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
+import util.unHex
 import javax.xml.bind.DatatypeConverter
 
 /**
@@ -18,7 +19,7 @@ object IrohaConverter {
                 txBuilder.createAccount(
                     cmd.accountName,
                     cmd.domainId,
-                    DatatypeConverter.parseHexBinary(cmd.mainPubkey)
+                    String.unHex(cmd.mainPubkey)
                 )
             is IrohaCommand.CommandAddAssetQuantity ->
                 txBuilder.addAssetQuantity(
@@ -28,7 +29,7 @@ object IrohaConverter {
             is IrohaCommand.CommandAddSignatory ->
                 txBuilder.addSignatory(
                     cmd.accountId,
-                    DatatypeConverter.parseHexBinary(cmd.publicKey)
+                    String.unHex(cmd.publicKey)
                 )
             is IrohaCommand.CommandCreateAsset ->
                 txBuilder.createAsset(
@@ -53,13 +54,13 @@ object IrohaConverter {
             is IrohaCommand.CommandAddPeer ->
                 txBuilder.addPeer(
                     cmd.address,
-                    DatatypeConverter.parseHexBinary(cmd.peerKey)
+                    String.unHex(cmd.peerKey)
                 )
         }
     }
 
     private fun buildModelTransactionBuilder(transaction: IrohaTransaction): TransactionBuilder {
-        return Transaction.builder(transaction.creator)
+        return Transaction.builder(transaction.creator, transaction.createdTime.toLong())
             .setQuorum(transaction.quorum)
     }
 

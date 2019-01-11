@@ -135,7 +135,7 @@ public class IrohaAccountCreatorTest {
         doReturn(batch).when(irohaAccountCreator)
                 .createAccountCreationBatch(currencyAddress, whitelistKey, whitelist, userName, pubKey, notaryStorageStrategy);
         doReturn(unsignedTransactions).when(irohaConverter)
-                .convert(batch, any());
+                .convert(batch);
         when(irohaConsumer.send(unsignedTransactions)).thenReturn(Result.Companion.of(() -> passedTransactions));
         doReturn(false).when(irohaAccountCreator)
                 .isAccountCreationBatchFailed(unsignedTransactions, passedTransactions);
@@ -166,7 +166,7 @@ public class IrohaAccountCreatorTest {
         doReturn(batch).when(irohaAccountCreator)
                 .createAccountCreationBatch(currencyAddress, whitelistKey, whitelist, userName, pubKey, notaryStorageStrategy);
         doReturn(unsignedTransactions).when(irohaConverter)
-                .convert(batch, any());
+                .convert(batch);
         when(irohaConsumer.send(unsignedTransactions)).thenReturn(Result.Companion.of(() -> passedTransactions));
         doReturn(true).when(irohaAccountCreator)
                 .isAccountCreationBatchFailed(unsignedTransactions, passedTransactions);
