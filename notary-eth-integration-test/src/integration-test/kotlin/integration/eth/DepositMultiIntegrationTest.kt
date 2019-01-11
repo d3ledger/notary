@@ -16,7 +16,6 @@ import java.time.Duration
 /**
  * Integration tests with multiple notaries for deposit case.
  */
-@Disabled
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DepositMultiIntegrationTest {
     /** Utility functions for integration tests */
