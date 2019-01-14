@@ -99,7 +99,7 @@ class DepositMultiIntegrationTest {
             integrationHelper.waitOneIrohaBlock()
 
             Assertions.assertEquals(
-                BigDecimal(amount, ETH_PRECISION.toInt()).add(BigDecimal(initialAmount)),
+                BigDecimal(amount, ETH_PRECISION).add(BigDecimal(initialAmount)),
                 BigDecimal(integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId))
             )
         }

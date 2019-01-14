@@ -116,7 +116,7 @@ class WithdrawalIntegrationTest {
             assert(response is EthNotaryResponse.Successful)
             response as EthNotaryResponse.Successful
 
-            assertEquals(decimalAmount, response.ethRefund.amount)
+            assertEquals(decimalAmount.toPlainString(), response.ethRefund.amount)
             assertEquals(ethWallet, response.ethRefund.address)
             assertEquals("0x0000000000000000000000000000000000000000", response.ethRefund.assetId)
 
