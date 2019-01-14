@@ -4,6 +4,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import iroha.protocol.Endpoint
+import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.Transaction
 import jp.co.soramitsu.iroha.java.Utils
@@ -25,16 +26,25 @@ class IrohaConsumerImpl(
     val keypair = irohaCredential.keyPair
 
     /**
-     * Send transaction to Iroha and check if it is committed with status stream
+     * Send transaction to Iroha and check if it is committed
      * @param utx - unsigned transaction to send
      * @return byte representation of hash or failure
      */
     override fun send(utx: Transaction): Result<ByteArray, Exception> {
         val transaction = utx.sign(keypair).build()
+        return send(transaction)
+    }
+
+    /**
+     * Send transaction to Iroha and check if it is committed
+     * @param tx - built protobuf iroha transaction
+     * @return byte representation of hash or failure
+     */
+    override fun send(tx: TransactionOuterClass.Transaction): Result<ByteArray, Exception> {
         return Result.of {
-            irohaAPI.transactionSync(transaction)
+            irohaAPI.transactionSync(tx)
         }.flatMap {
-            checkTransactionStatus(Utils.hash(transaction))
+            checkTransactionStatus(Utils.hash(tx))
         }
     }
 

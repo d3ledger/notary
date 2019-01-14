@@ -1,6 +1,7 @@
 package sidechain.iroha.consumer
 
 import com.github.kittinunf.result.Result
+import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.java.Transaction
 
 /**
@@ -12,13 +13,19 @@ interface IrohaConsumer {
     val creator: String
 
     /**
-     * Send transaction to Iroha and check if it is committed with status stream
+     * Send transaction to Iroha and check if it is committed
      * @param utx - unsigned transaction to send
      */
     fun send(utx: Transaction): Result<ByteArray, Exception>
 
     /**
-     * Send list of transactions to Iroha and check if it is committed with status stream
+     * Send transaction to Iroha and check if it is committed
+     * @param tx - built protobuf iroha transaction
+     */
+    fun send(tx: TransactionOuterClass.Transaction): Result<ByteArray, Exception>
+
+    /**
+     * Send list of transactions to Iroha and check if it is committed
      * @param utx - unsigned transaction to send
      */
     fun send(lst: List<Transaction>): Result<List<ByteArray>, Exception>

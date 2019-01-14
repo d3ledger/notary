@@ -363,6 +363,18 @@
                 }
               },
               {
+                "appendRole": {
+                  "accountId": "test@notary",
+                  "roleName": "registration_service"
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "test@notary",
+                  "roleName": "client"
+                }
+              },
+              {
                 "createAccount": {
                   "accountName": "vacuumer",
                   "domainId": "notary",

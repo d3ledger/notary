@@ -40,11 +40,11 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI) {
 
     /** Account that used to store registered clients.*/
     val registrationAccount by lazy {
-        createTesterAccount("registration", "registration_service")
+        createTesterAccount("registration", "registration_service", "client")
     }
     /** Account that used to store registered clients in mst fashion.*/
     val mstRegistrationAccount by lazy {
-        createTesterAccount("mst_registration", "registration_service")
+        createTesterAccount("mst_registration", "registration_service", "client")
     }
 
     val btcWithdrawalAccount by lazy {

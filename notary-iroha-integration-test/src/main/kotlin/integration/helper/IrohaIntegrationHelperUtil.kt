@@ -1,10 +1,10 @@
 package integration.helper
 
+import com.github.kittinunf.result.map
 import config.loadConfigs
 import integration.TestConfig
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.Transaction
-import jp.co.soramitsu.iroha.java.Utils
 import kotlinx.coroutines.runBlocking
 import model.IrohaCredential
 import mu.KLogging
@@ -16,7 +16,6 @@ import util.hex
 import java.io.Closeable
 import java.math.BigDecimal
 import java.security.KeyPair
-import javax.xml.bind.DatatypeConverter
 
 /**
  * Utility class that makes testing more comfortable
@@ -157,8 +156,9 @@ open class IrohaIntegrationHelperUtil : Closeable {
             .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
             .sign(kp)
             .build()
-        irohaAPI.transactionSync(tx)
-        return String.hex(Utils.hash(tx))
+        return irohaConsumer.send(tx).map {
+            String.hex(it)
+        }.get()
     }
 
     /**

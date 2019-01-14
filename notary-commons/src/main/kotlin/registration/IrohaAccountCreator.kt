@@ -83,24 +83,20 @@ open class IrohaAccountCreator(
     ): IrohaOrderedBatch {
         // TODO: implement https://soramitsu.atlassian.net/browse/D3-415
         val accountId = "$userName@$CLIENT_DOMAIN"
+        // TODO: @mingela: moved from actual batch to the single tx since first tx may not be commited
+        // before second tx validation occurred and we get "no such account" error during SetAccountDetails
+        // Pay additional attention to the previous comment
         return IrohaOrderedBatch(
             listOf(
-                IrohaTransaction(
-                    creator,
-                    getCurrentTime().minus(BigInteger.valueOf(1000)),
-                    1,
-                    arrayListOf(
-                        // Create account
-                        IrohaCommand.CommandCreateAccount(
-                            userName, CLIENT_DOMAIN, pubkey
-                        )
-                    )
-                ),
                 IrohaTransaction(
                     creator,
                     getCurrentTime(),
                     1,
                     arrayListOf(
+                        // Create account
+                        IrohaCommand.CommandCreateAccount(
+                            userName, CLIENT_DOMAIN, pubkey
+                        ),
                         // Set user wallet/address in account detail
                         IrohaCommand.CommandSetAccountDetail(
                             accountId,
