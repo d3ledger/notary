@@ -6,13 +6,12 @@ import jp.co.soramitsu.iroha.java.Transaction
 import jp.co.soramitsu.iroha.java.Utils
 import mu.KLogging
 import notary.IrohaCommand
-import notary.IrohaOrderedBatch
+import notary.IrohaAtomicBatch
 import notary.IrohaTransaction
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.consumer.IrohaConverter
 import sidechain.iroha.util.ModelUtil.getCurrentTime
-import java.math.BigInteger
 
 open class IrohaAccountCreator(
     private val irohaConsumer: IrohaConsumer,
@@ -49,9 +48,9 @@ open class IrohaAccountCreator(
                 notaryStorageStrategy
             )
         }.map { irohaTx ->
-            val utx = IrohaConverter.convert(irohaTx)
-            irohaConsumer.send(utx).fold({ passedTransactions ->
-                if (isAccountCreationBatchFailed(utx, passedTransactions)) {
+            val lst = IrohaConverter.convert(irohaTx)
+            irohaConsumer.send(lst).fold({ passedTransactions ->
+                if (isAccountCreationBatchFailed(lst, passedTransactions)) {
                     throw IllegalStateException("Cannot create account")
                 }
             }, { ex -> throw ex })
@@ -80,13 +79,9 @@ open class IrohaAccountCreator(
         userName: String,
         pubkey: String,
         notaryStorageStrategy: () -> String
-    ): IrohaOrderedBatch {
-        // TODO: implement https://soramitsu.atlassian.net/browse/D3-415
+    ): IrohaAtomicBatch {
         val accountId = "$userName@$CLIENT_DOMAIN"
-        // TODO: @mingela: moved from actual batch to the single tx since first tx may not be commited
-        // before second tx validation occurred and we get "no such account" error during SetAccountDetails
-        // Pay additional attention to the previous comment
-        return IrohaOrderedBatch(
+        return IrohaAtomicBatch(
             listOf(
                 IrohaTransaction(
                     creator,
@@ -96,7 +91,14 @@ open class IrohaAccountCreator(
                         // Create account
                         IrohaCommand.CommandCreateAccount(
                             userName, CLIENT_DOMAIN, pubkey
-                        ),
+                        )
+                    )
+                ),
+                IrohaTransaction(
+                    creator,
+                    getCurrentTime(),
+                    1,
+                    arrayListOf(
                         // Set user wallet/address in account detail
                         IrohaCommand.CommandSetAccountDetail(
                             accountId,

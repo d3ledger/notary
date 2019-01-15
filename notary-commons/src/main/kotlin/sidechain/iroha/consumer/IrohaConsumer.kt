@@ -26,7 +26,7 @@ interface IrohaConsumer {
 
     /**
      * Send list of transactions to Iroha and check if it is committed
-     * @param utx - unsigned transaction to send
+     * @param lst - unsigned transaction to send
      */
     fun send(lst: List<Transaction>): Result<List<ByteArray>, Exception>
 }

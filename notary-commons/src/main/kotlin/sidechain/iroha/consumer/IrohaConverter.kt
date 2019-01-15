@@ -2,14 +2,13 @@ package sidechain.iroha.consumer
 
 import jp.co.soramitsu.iroha.java.Transaction
 import jp.co.soramitsu.iroha.java.TransactionBuilder
+import notary.IrohaAtomicBatch
 import notary.IrohaCommand
-import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
 import util.unHex
-import javax.xml.bind.DatatypeConverter
 
 /**
- * Class converts Notary [notary.IrohaOrderedBatch] to Iroha [UnsignedTx]
+ * Class converts Notary [notary.IrohaAtomicBatch] to Iroha [UnsignedTx]
  */
 object IrohaConverter {
 
@@ -84,15 +83,12 @@ object IrohaConverter {
     }
 
     /**
-     * Converts batch into single Iroha transaction
+     * Converts batch into Iroha proto transactions atomic batch
      * @param batch - batch full of transactions
-     * @return single Iroha transaction
+     * @param keyPair - key pair to sign the batch with
+     * @return Iroha proto transactions atomic batch
      */
-    fun convert(batch: IrohaOrderedBatch): List<Transaction> {
-        val txList = mutableListOf<Transaction>()
-        batch.transactions.forEach { tx ->
-            txList.add(convert(tx))
-        }
-        return txList
+    fun convert(batch: IrohaAtomicBatch): List<Transaction> {
+        return batch.transactions.map { convert(it) }
     }
 }

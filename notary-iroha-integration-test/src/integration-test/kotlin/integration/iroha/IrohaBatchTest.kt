@@ -10,7 +10,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import notary.IrohaCommand
-import notary.IrohaOrderedBatch
+import notary.IrohaAtomicBatch
 import notary.IrohaTransaction
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
@@ -134,7 +134,7 @@ class IrohaBatchTest {
 
                 )
 
-            val batch = IrohaOrderedBatch(txList)
+            val batch = IrohaAtomicBatch(txList)
             val lst = IrohaConverter.convert(batch)
             val hashes = lst.map { String.hex(it.hash()) }
 
@@ -251,7 +251,7 @@ class IrohaBatchTest {
 
                 )
 
-            val batch = IrohaOrderedBatch(txList)
+            val batch = IrohaAtomicBatch(txList)
             val lst = IrohaConverter.convert(batch)
             val hashes = lst.map { String.hex(it.hash()) }
             val expectedHashes = hashes.subList(0, hashes.size - 1)

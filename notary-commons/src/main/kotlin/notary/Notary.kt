@@ -12,12 +12,12 @@ interface Notary {
      * Called when primary chain event is occurred
      * @return transaction to be commited to Iroha
      */
-    fun onPrimaryChainEvent(chainInputEvent: SideChainEvent.PrimaryBlockChainEvent): IrohaOrderedBatch
+    fun onPrimaryChainEvent(chainInputEvent: SideChainEvent.PrimaryBlockChainEvent): IrohaAtomicBatch
 
     /**
      * Observable with output for sending to Iroha
      */
-    fun irohaOutput(): io.reactivex.Observable<IrohaOrderedBatch>
+    fun irohaOutput(): io.reactivex.Observable<IrohaAtomicBatch>
 
     /**
      * Init Iroha consumer

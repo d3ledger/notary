@@ -72,9 +72,9 @@ class NotaryTest {
         expectedUserId: String,
         expectedFrom: String,
         expectedTime: BigInteger,
-        result: Observable<IrohaOrderedBatch>
+        result: Observable<IrohaAtomicBatch>
     ) {
-        val observer = TestObserver<IrohaOrderedBatch>()
+        val observer = TestObserver<IrohaAtomicBatch>()
         result.subscribe(observer)
 
         observer.assertNoErrors()
@@ -124,7 +124,7 @@ class NotaryTest {
     /**
      * @given a custodian has 100 Wei with intention to deposit 100 Wei to Notary
      * @when a custodian transfer 100 Wei to a specified wallet and specifies Iroha wallet to deposit assets
-     * @then an IrohaOrderedBatch is emitted with 2 transactions:
+     * @then an IrohaAtomicBatch is emitted with 2 transactions:
      * 1 - SetAccountDetail with hash
      * 2 - AddAssetQuantity with 100 Wei and TransferAsset with 100 Wei to specified account id
      */
@@ -166,7 +166,7 @@ class NotaryTest {
     /**
      * @given a custodian has 100 "XOR" ERC20 tokens with intention to deposit 100 "XOR" tokens to Notary
      * @when a custodian transfer 100 "XOR" tokens to a specified wallet and specifies Iroha wallet to deposit assets
-     * @then an IrohaOrderedBatch is emitted with 2 transactions:
+     * @then an IrohaAtomicBatch is emitted with 2 transactions:
      * 1 - SetAccountDetail with hash
      * 2 - AddAssetQuantity with 100 "XOR" and TransferAsset with 100 "XOR" to specified account id
      */

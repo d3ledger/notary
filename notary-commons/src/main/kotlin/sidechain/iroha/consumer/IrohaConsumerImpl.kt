@@ -54,11 +54,9 @@ class IrohaConsumerImpl(
      * @return list of hashes that were accepted by iroha
      */
     override fun send(lst: List<Transaction>): Result<List<ByteArray>, Exception> {
-        val batch = lst.map { tx ->
-            tx.sign(keypair).build()
-        }
+        val batch = lst.map { tx -> tx.build() }
         logger.info { "Send TX batch to IROHA" }
-        irohaAPI.transactionListSync(batch)
+        irohaAPI.transactionListSync(Utils.createTxAtomicBatch(batch, keypair))
         return Result.of {
             batch.map {
                 Utils.hash(it)
@@ -85,8 +83,6 @@ class IrohaConsumerImpl(
      * @return byte representation of hash or failure
      */
     private fun checkTransactionStatus(hash: ByteArray): Result<ByteArray, Exception> {
-        // TODO: Fix later. Otherwise all transactions have not a final status
-        Thread.sleep(5000)
         return Result.of {
             val response = irohaAPI.txStatusSync(hash)
             val status = response.txStatus

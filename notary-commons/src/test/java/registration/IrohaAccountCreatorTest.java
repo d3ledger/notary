@@ -3,7 +3,7 @@ package registration;
 import com.github.kittinunf.result.Result;
 import jp.co.soramitsu.iroha.java.Transaction;
 import kotlin.jvm.functions.Function0;
-import notary.IrohaOrderedBatch;
+import notary.IrohaAtomicBatch;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -130,7 +130,7 @@ public class IrohaAccountCreatorTest {
         String pubKey = "pub_key";
         List<Transaction> unsignedTransactions = new ArrayList<>();
         List<byte[]> passedTransactions = new ArrayList<>();
-        IrohaOrderedBatch batch = new IrohaOrderedBatch(new ArrayList<>());
+        IrohaAtomicBatch batch = new IrohaAtomicBatch(new ArrayList<>());
 
         doReturn(batch).when(irohaAccountCreator)
                 .createAccountCreationBatch(currencyAddress, whitelistKey, whitelist, userName, pubKey, notaryStorageStrategy);
@@ -161,7 +161,7 @@ public class IrohaAccountCreatorTest {
         String pubKey = "pub_key";
         List<Transaction> unsignedTransactions = new ArrayList<>();
         List<byte[]> passedTransactions = new ArrayList<>();
-        IrohaOrderedBatch batch = new IrohaOrderedBatch(new ArrayList<>());
+        IrohaAtomicBatch batch = new IrohaAtomicBatch(new ArrayList<>());
 
         doReturn(batch).when(irohaAccountCreator)
                 .createAccountCreationBatch(currencyAddress, whitelistKey, whitelist, userName, pubKey, notaryStorageStrategy);
