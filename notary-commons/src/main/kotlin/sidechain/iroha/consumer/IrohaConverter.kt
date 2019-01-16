@@ -1,11 +1,14 @@
 package sidechain.iroha.consumer
 
+import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.java.Transaction
 import jp.co.soramitsu.iroha.java.TransactionBuilder
+import jp.co.soramitsu.iroha.java.Utils
 import notary.IrohaAtomicBatch
 import notary.IrohaCommand
 import notary.IrohaTransaction
 import util.unHex
+import java.security.KeyPair
 
 /**
  * Class converts Notary [notary.IrohaAtomicBatch] to Iroha [UnsignedTx]
@@ -83,12 +86,24 @@ object IrohaConverter {
     }
 
     /**
-     * Converts batch into Iroha proto transactions atomic batch
+     * Converts batch into IPJ transactions list (JUST LIST, NOT BATCH)
      * @param batch - batch full of transactions
-     * @param keyPair - key pair to sign the batch with
-     * @return Iroha proto transactions atomic batch
+     * @return IPJ transactions list
      */
     fun convert(batch: IrohaAtomicBatch): List<Transaction> {
         return batch.transactions.map { convert(it) }
+    }
+
+    /**
+     * Converts batch into Iroha protobuf transactions batch list
+     * @param batch - batch full of transactions
+     * @param keyPair - credential to sign transactions
+     * @return Iroha protobuf transactions batch list
+     */
+    fun convert(
+        batch: IrohaAtomicBatch,
+        keyPair: KeyPair
+    ): Iterable<TransactionOuterClass.Transaction> {
+        return Utils.createTxAtomicBatch(convert(batch).map { it.build() }, keyPair)
     }
 }

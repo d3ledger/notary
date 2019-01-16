@@ -9,8 +9,8 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
-import notary.IrohaCommand
 import notary.IrohaAtomicBatch
+import notary.IrohaCommand
 import notary.IrohaTransaction
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
@@ -135,16 +135,16 @@ class IrohaBatchTest {
                 )
 
             val batch = IrohaAtomicBatch(txList)
-            val lst = IrohaConverter.convert(batch)
-            val hashes = lst.map { String.hex(it.hash()) }
+            val lst = IrohaConverter.convert(batch, testCredential.keyPair)
+            val hashes = lst.map { String.hex(Utils.hash(it)) }
 
             val blockHashes = GlobalScope.async {
                 listener.getBlock().blockV1.payload.transactionsList.map {
-                    Utils.hash(it)
+                    String.hex(Utils.hash(it))
                 }
             }
 
-            val successHash = irohaConsumer.send(lst).get().map { String.hex(it) }
+            val successHash = irohaConsumer.send(lst).get()
 
             Thread.sleep(BATCH_TIME_WAIT)
 
@@ -161,7 +161,7 @@ class IrohaBatchTest {
 
             runBlocking {
                 withTimeout(10_000) {
-                    assertEquals(hashes, blockHashes.await().map { String.hex(it) })
+                    assertEquals(hashes, blockHashes.await())
                 }
             }
         }
@@ -252,17 +252,19 @@ class IrohaBatchTest {
                 )
 
             val batch = IrohaAtomicBatch(txList)
-            val lst = IrohaConverter.convert(batch)
-            val hashes = lst.map { String.hex(it.hash()) }
+            val lst = IrohaConverter.convert(batch, testCredential.keyPair)
+            val hashes = lst.map { String.hex(Utils.hash(it)) }
             val expectedHashes = hashes.subList(0, hashes.size - 1)
+            val blockHashes = mutableListOf<String>()
 
-            val blockHashes = GlobalScope.async {
-                listener.getBlock().blockV1.payload.transactionsList.map {
-                    Utils.hash(it)
+            // Since failed tx goes to first block and successful to the second
+            listener.getBlockObservable().get().subscribe { block ->
+                block.blockV1.payload.transactionsList.forEach { tx ->
+                    blockHashes.add(String.hex(Utils.hash(tx)))
                 }
             }
 
-            val successHash = irohaConsumer.send(lst).get().map { String.hex(it) }
+            val successHash = irohaConsumer.send(lst).get()
 
             Thread.sleep(BATCH_TIME_WAIT)
 
@@ -276,12 +278,7 @@ class IrohaBatchTest {
             assertEquals("{\"$tester\":{\"key\":\"value\"}}", accountJson)
             assertEquals(73, tester_amount.toInt())
             assertEquals(27, u1_amount.toInt())
-
-            runBlocking {
-                withTimeout(10_000) {
-                    assertEquals(expectedHashes, blockHashes.await().map { String.hex(it) })
-                }
-            }
+            assertEquals(expectedHashes, blockHashes)
         }
     }
 }

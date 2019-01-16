@@ -98,7 +98,7 @@ class ERC20TokenRegistration(
         tokens: Map<String, EthTokenInfo>,
         tokenStorageAccount: String,
         irohaConsumer: IrohaConsumer
-    ): Result<ByteArray, Exception> {
+    ): Result<String, Exception> {
         return Result.of {
             var utx = Transaction.builder(irohaConsumer.creator)
             tokens.forEach { ethWallet, ethTokenInfo ->

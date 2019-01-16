@@ -182,7 +182,7 @@ class SignCollector(
     fun shortTxHash(tx: Transaction) = shortTxHash(tx.hashAsString)
 
     //Creates Iroha transaction to create signature storing account
-    private fun createSignCollectionAccountTx(txShortHash: String): Result<ByteArray, Exception> {
+    private fun createSignCollectionAccountTx(txShortHash: String): Result<String, Exception> {
         return ModelUtil.createAccount(
             withdrawalConsumer,
             txShortHash,
@@ -195,7 +195,7 @@ class SignCollector(
     private fun setSignatureDetailsTx(
         txShortHash: String,
         signedInputs: List<InputSignature>
-    ): Result<ByteArray, Exception> {
+    ): Result<String, Exception> {
         val signCollectionAccountId = "$txShortHash@$BTC_SIGN_COLLECT_DOMAIN"
         val signaturesJson = String.irohaEscape(inputSignatureJsonAdapter.toJson(signedInputs))
 

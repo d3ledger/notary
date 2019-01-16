@@ -124,7 +124,7 @@ class NotaryImpl(
                 .subscribe(
                     // send to Iroha network layer
                     { batch ->
-                        val lst = IrohaConverter.convert(batch)
+                        val lst = IrohaConverter.convert(batch, notaryCredential.keyPair)
                         irohaConsumer.send(lst)
                             .fold(
                                 { logger.info { "Send to Iroha success" } },

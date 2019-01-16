@@ -19,7 +19,7 @@ class BtcSessionProvider(
      * @param sessionId session identifier aka session account name
      * @return Result of account creation process
      */
-    fun createPubKeyCreationSession(sessionId: String): Result<ByteArray, Exception> {
+    fun createPubKeyCreationSession(sessionId: String): Result<String, Exception> {
         return ModelUtil.createAccount(
             irohaConsumer,
             sessionId,

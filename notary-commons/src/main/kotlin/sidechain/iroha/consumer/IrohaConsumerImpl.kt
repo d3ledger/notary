@@ -28,9 +28,9 @@ class IrohaConsumerImpl(
     /**
      * Send transaction to Iroha and check if it is committed
      * @param utx - unsigned transaction to send
-     * @return byte representation of hash or failure
+     * @return hex representation of hash or failure
      */
-    override fun send(utx: Transaction): Result<ByteArray, Exception> {
+    override fun send(utx: Transaction): Result<String, Exception> {
         val transaction = utx.sign(keypair).build()
         return send(transaction)
     }
@@ -38,9 +38,9 @@ class IrohaConsumerImpl(
     /**
      * Send transaction to Iroha and check if it is committed
      * @param tx - built protobuf iroha transaction
-     * @return byte representation of hash or failure
+     * @return hex representation of hash or failure
      */
-    override fun send(tx: TransactionOuterClass.Transaction): Result<ByteArray, Exception> {
+    override fun send(tx: TransactionOuterClass.Transaction): Result<String, Exception> {
         return Result.of {
             irohaAPI.transactionSync(tx)
         }.flatMap {
@@ -49,16 +49,32 @@ class IrohaConsumerImpl(
     }
 
     /**
-     * Send list of transactions to Iroha
+     * Send list of transactions to Iroha and check if it is committed
      * @param lst - list of unsigned transactions to send
-     * @return list of hashes that were accepted by iroha
+     * @return map of relevant hashes and boolean indicating if the tx is accepted by iroha
      */
-    override fun send(lst: List<Transaction>): Result<List<ByteArray>, Exception> {
+    override fun send(lst: List<Transaction>): Result<Map<String, Boolean>, Exception> {
         val batch = lst.map { tx -> tx.build() }
-        logger.info { "Send TX batch to IROHA" }
-        irohaAPI.transactionListSync(Utils.createTxAtomicBatch(batch, keypair))
+        val irohaBatch = Utils.createTxOrderedBatch(batch, keypair)
+        val acceptedHashes = send(irohaBatch).get()
         return Result.of {
-            batch.map {
+            irohaBatch.map { tx ->
+                String.hex(Utils.hash(tx))
+            }.map { hash ->
+                hash to acceptedHashes.contains(hash)
+            }.toMap()
+        }
+    }
+
+    /**
+     * Send list of transactions to Iroha as BATCH and check if it is committed
+     * @param lst - list of built protobuf iroha transactions
+     * @return list of hex hashes that were accepted by iroha
+     */
+    override fun send(lst: Iterable<TransactionOuterClass.Transaction>): Result<List<String>, Exception> {
+        irohaAPI.transactionListSync(lst)
+        return Result.of {
+            lst.map {
                 Utils.hash(it)
             }
         }.map { hashes ->
@@ -80,19 +96,21 @@ class IrohaConsumerImpl(
     /**
      * Check if transaction is committed to Iroha
      * @param hash - hash of transaction to check
-     * @return byte representation of hash or failure
+     * @return hex representation of hash or failure
      */
-    private fun checkTransactionStatus(hash: ByteArray): Result<ByteArray, Exception> {
+    private fun checkTransactionStatus(hash: ByteArray): Result<String, Exception> {
         return Result.of {
-            val response = irohaAPI.txStatusSync(hash)
-            val status = response.txStatus
-            if (status == Endpoint.TxStatus.STATEFUL_VALIDATION_FAILED) {
-                val message =
-                    "Iroha transaction ${String.hex(hash)} received STATEFUL_VALIDATION_FAILED ${response.errOrCmdName}"
-                logger.error { message }
-                throw Exception(message)
+            val responseObservable = irohaAPI.cmdStub.statusStream(Utils.createTxStatusRequest(hash))
+            val hex = String.hex(hash)
+            responseObservable.forEachRemaining { statusResponse ->
+                if (statusResponse.txStatus == Endpoint.TxStatus.STATEFUL_VALIDATION_FAILED) {
+                    val message =
+                        "Iroha transaction $hex received STATEFUL_VALIDATION_FAILED ${statusResponse.errOrCmdName}"
+                    logger.error { message }
+                    throw Exception(message)
+                }
             }
-            hash
+            hex
         }
     }
 

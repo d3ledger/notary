@@ -108,7 +108,7 @@ object ModelUtil {
         accountId: String,
         key: String,
         value: String
-    ): Result<ByteArray, Exception> {
+    ): Result<String, Exception> {
         val transaction = jp.co.soramitsu.iroha.java.Transaction
             .builder(irohaConsumer.creator)
             .setAccountDetail(accountId, key, value)
@@ -130,7 +130,7 @@ object ModelUtil {
         domain: String,
         publicKey: PublicKey,
         vararg roleName: String
-    ): Result<ByteArray, Exception> {
+    ): Result<String, Exception> {
         var txBuilder = jp.co.soramitsu.iroha.java.Transaction
             .builder(irohaConsumer.creator)
             .createAccount(name, domain, publicKey)
@@ -154,7 +154,7 @@ object ModelUtil {
         irohaConsumer: IrohaConsumer,
         accountId: String,
         permissions: Iterable<Primitive.GrantablePermission>
-    ): Result<ByteArray, Exception> {
+    ): Result<String, Exception> {
         val transaction = jp.co.soramitsu.iroha.java.Transaction
             .builder(irohaConsumer.creator)
             .grantPermissions(accountId, permissions)
@@ -173,7 +173,7 @@ object ModelUtil {
         irohaConsumer: IrohaConsumer,
         accountId: String,
         publicKey: PublicKey
-    ): Result<ByteArray, Exception> {
+    ): Result<String, Exception> {
         val transaction = jp.co.soramitsu.iroha.java.Transaction
             .builder(irohaConsumer.creator)
             .addSignatory(accountId, publicKey)
@@ -192,7 +192,7 @@ object ModelUtil {
         irohaConsumer: IrohaConsumer,
         accountId: String,
         quorum: Int
-    ): Result<ByteArray, Exception> {
+    ): Result<String, Exception> {
         val transaction = jp.co.soramitsu.iroha.java.Transaction
             .builder(irohaConsumer.creator)
             .setAccountQuorum(accountId, quorum)
@@ -213,7 +213,7 @@ object ModelUtil {
         assetName: String,
         domainId: String,
         precision: Int
-    ): Result<ByteArray, Exception> {
+    ): Result<String, Exception> {
         val transaction = jp.co.soramitsu.iroha.java.Transaction
             .builder(irohaConsumer.creator)
             .createAsset(assetName, domainId, precision)
@@ -232,7 +232,7 @@ object ModelUtil {
         irohaConsumer: IrohaConsumer,
         assetId: String,
         amount: BigDecimal
-    ): Result<ByteArray, Exception> {
+    ): Result<String, Exception> {
         val transaction = jp.co.soramitsu.iroha.java.Transaction
             .builder(irohaConsumer.creator)
             .addAssetQuantity(assetId, amount)
@@ -257,7 +257,7 @@ object ModelUtil {
         assetId: String,
         description: String,
         amount: String
-    ): Result<ByteArray, Exception> {
+    ): Result<String, Exception> {
         val transaction = jp.co.soramitsu.iroha.java.Transaction
             .builder(irohaConsumer.creator)
             .transferAsset(srcAccountId, destAccountId, assetId, description, amount)

@@ -16,17 +16,23 @@ interface IrohaConsumer {
      * Send transaction to Iroha and check if it is committed
      * @param utx - unsigned transaction to send
      */
-    fun send(utx: Transaction): Result<ByteArray, Exception>
+    fun send(utx: Transaction): Result<String, Exception>
 
     /**
      * Send transaction to Iroha and check if it is committed
      * @param tx - built protobuf iroha transaction
      */
-    fun send(tx: TransactionOuterClass.Transaction): Result<ByteArray, Exception>
+    fun send(tx: TransactionOuterClass.Transaction): Result<String, Exception>
 
     /**
      * Send list of transactions to Iroha and check if it is committed
-     * @param lst - unsigned transaction to send
+     * @param lst - list of unsigned transactions to send
      */
-    fun send(lst: List<Transaction>): Result<List<ByteArray>, Exception>
+    fun send(lst: List<Transaction>): Result<Map<String, Boolean>, Exception>
+
+    /**
+     * Send list of transactions to Iroha as BATCH and check if it is committed
+     * @param lst - list of built protobuf iroha transactions
+     */
+    fun send(lst: Iterable<TransactionOuterClass.Transaction>): Result<List<String>, Exception>
 }

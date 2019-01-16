@@ -156,9 +156,7 @@ open class IrohaIntegrationHelperUtil : Closeable {
             .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
             .sign(kp)
             .build()
-        return irohaConsumer.send(tx).map {
-            String.hex(it)
-        }.get()
+        return irohaConsumer.send(tx).get()
     }
 
     /**

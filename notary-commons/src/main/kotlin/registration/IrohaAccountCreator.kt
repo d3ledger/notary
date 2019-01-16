@@ -2,11 +2,9 @@ package registration
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import jp.co.soramitsu.iroha.java.Transaction
-import jp.co.soramitsu.iroha.java.Utils
 import mu.KLogging
-import notary.IrohaCommand
 import notary.IrohaAtomicBatch
+import notary.IrohaCommand
 import notary.IrohaTransaction
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumer
@@ -49,8 +47,8 @@ open class IrohaAccountCreator(
             )
         }.map { irohaTx ->
             val lst = IrohaConverter.convert(irohaTx)
-            irohaConsumer.send(lst).fold({ passedTransactions ->
-                if (isAccountCreationBatchFailed(lst, passedTransactions)) {
+            irohaConsumer.send(lst).fold({ batchResultMap ->
+                if (!isAccountCreationBatchSuccessful(batchResultMap)) {
                     throw IllegalStateException("Cannot create account")
                 }
             }, { ex -> throw ex })
@@ -124,35 +122,18 @@ open class IrohaAccountCreator(
     }
 
     /**
-     * Checks if account creation batch failed
-     * @param unsignedTransactions - list of not processed transactions from batch
-     * @param passedTransactions - list of successfully processed transactions
-     * @return 'true' if all [unsignedTransactions] are in [passedTransactions] (except for first transaction, we can ignore it)
+     * Checks if account creation batch successful
+     * @param transactionsResult - map of processed transactions and the indicator if it was successful
+     * @return 'true' if all [transactionsResult] (except for first transaction, we can ignore it) are successful
      */
-    protected open fun isAccountCreationBatchFailed(
-        unsignedTransactions: List<Transaction>,
-        passedTransactions: List<ByteArray>
+    protected open fun isAccountCreationBatchSuccessful(
+        transactionsResult: Map<String, Boolean>
     ): Boolean {
-        var txCounter = 0
-        unsignedTransactions.map { it.build() }.forEach { unsignedTransaction ->
-            /*
-             It's ok for the first transaction(Create Account) to be failed.
-             It may happen when we want to provide new crypto currency services to already created account
-            */
-            if (txCounter != 0
-                && !passedTransactions.any { passedTransaction ->
-                    passedTransaction.contentEquals(
-                        Utils.hash(
-                            unsignedTransaction
-                        )
-                    )
-                }
-            ) {
-                return true
-            }
-            txCounter++
-        }
-        return false
+        val count = transactionsResult.count { it.value }
+        return if (!transactionsResult.values.first()) {
+            count == transactionsResult.size - 1
+        } else
+            count == transactionsResult.size
     }
 
     /**

@@ -10,10 +10,8 @@ import org.junit.jupiter.api.Test;
 import sidechain.iroha.consumer.IrohaConsumer;
 import sidechain.iroha.consumer.IrohaConverter;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -33,21 +31,20 @@ public class IrohaAccountCreatorTest {
     }
 
     /**
-     * @given few unsigned transactions and no passed transactions lists
+     * @given map of several not passed transactions
      * @when status of batch is checked
      * @then batch is considered failed, because there are no passed transactions
      */
     @Test
     public void testIsAccountCreationBatchFailedNoPassed() {
-        List<Transaction> unsignedTransactions = Arrays.asList(
-                mock(Transaction.class),
-                mock(Transaction.class)
-        );
-        assertTrue(irohaAccountCreator.isAccountCreationBatchFailed(unsignedTransactions, new ArrayList<>()));
+        Map<String, Boolean> transactionsResultsMap = new HashMap<>();
+        transactionsResultsMap.put("first", false);
+        transactionsResultsMap.put("second", false);
+        assertFalse(irohaAccountCreator.isAccountCreationBatchSuccessful(transactionsResultsMap));
     }
 
     /**
-     * @given all unsigned transactions hashes are in passed transactions list
+     * @given all unsigned transactions hashes are in passed transactions map
      * @when status of batch is checked
      * @then batch is considered succeeded
      */
@@ -63,14 +60,15 @@ public class IrohaAccountCreatorTest {
         Transaction secondUnsignedTx = mock(Transaction.class);
         when(secondUnsignedTx.hash()).thenReturn(secondHash);
 
-        List<byte[]> passedTransactions = Arrays.asList("123".getBytes(), "456".getBytes());
+        Map<String, Boolean> passedTransactions = new HashMap<>();
+        passedTransactions.put(Arrays.toString(firstHash), true);
+        passedTransactions.put(Arrays.toString(secondHash), true);
 
-        List<Transaction> unsignedTransactions = Arrays.asList(firstUnsignedTx, secondUnsignedTx);
-        assertFalse(irohaAccountCreator.isAccountCreationBatchFailed(unsignedTransactions, passedTransactions));
+        assertTrue(irohaAccountCreator.isAccountCreationBatchSuccessful(passedTransactions));
     }
 
     /**
-     * @given all unsigned transactions hashes except for the first transaction are in passed transactions list
+     * @given all unsigned transactions hashes except for the first transaction are in passed transactions map
      * @when status of batch is checked
      * @then batch is considered succeeded, because the first transaction may fail
      */
@@ -86,14 +84,16 @@ public class IrohaAccountCreatorTest {
         Transaction secondUnsignedTx = mock(Transaction.class);
         when(secondUnsignedTx.hash()).thenReturn(secondHash);
 
-        List<byte[]> passedTransactions = Collections.singletonList("456".getBytes());
+        Map<String, Boolean> passedTransactions = new HashMap<>();
+        passedTransactions.put(Arrays.toString(firstHash), false);
+        passedTransactions.put(Arrays.toString(secondHash), true);
 
-        List<Transaction> unsignedTransactions = Arrays.asList(firstUnsignedTx, secondUnsignedTx);
-        assertFalse(irohaAccountCreator.isAccountCreationBatchFailed(unsignedTransactions, passedTransactions));
+        assertTrue(irohaAccountCreator.isAccountCreationBatchSuccessful(passedTransactions));
+
     }
 
     /**
-     * @given all unsigned transactions hashes except for the second transaction are in passed transactions list
+     * @given all unsigned transactions hashes except for the second transaction are in passed transactions map
      * @when status of batch is checked
      * @then batch is considered failed
      */
@@ -109,10 +109,12 @@ public class IrohaAccountCreatorTest {
         Transaction secondUnsignedTx = mock(Transaction.class);
         when(secondUnsignedTx.hash()).thenReturn(secondHash);
 
-        List<byte[]> passedTransactions = Collections.singletonList("123".getBytes());
+        Map<String, Boolean> passedTransactions = new HashMap<>();
+        passedTransactions.put(Arrays.toString(firstHash), true);
+        passedTransactions.put(Arrays.toString(secondHash), false);
 
-        List<Transaction> unsignedTransactions = Arrays.asList(firstUnsignedTx, secondUnsignedTx);
-        assertTrue(irohaAccountCreator.isAccountCreationBatchFailed(unsignedTransactions, passedTransactions));
+        assertFalse(irohaAccountCreator.isAccountCreationBatchSuccessful(passedTransactions));
+
     }
 
     /**
@@ -129,7 +131,7 @@ public class IrohaAccountCreatorTest {
         String userName = "user_name";
         String pubKey = "pub_key";
         List<Transaction> unsignedTransactions = new ArrayList<>();
-        List<byte[]> passedTransactions = new ArrayList<>();
+        Map<String, Boolean> passedTransactions = new HashMap<>();
         IrohaAtomicBatch batch = new IrohaAtomicBatch(new ArrayList<>());
 
         doReturn(batch).when(irohaAccountCreator)
@@ -138,7 +140,7 @@ public class IrohaAccountCreatorTest {
                 .convert(batch);
         when(irohaConsumer.send(unsignedTransactions)).thenReturn(Result.Companion.of(() -> passedTransactions));
         doReturn(false).when(irohaAccountCreator)
-                .isAccountCreationBatchFailed(unsignedTransactions, passedTransactions);
+                .isAccountCreationBatchSuccessful(passedTransactions);
         irohaAccountCreator.create(currencyAddress, whitelistKey, whitelist, userName, pubKey, notaryStorageStrategy)
                 .fold(address -> {
                     assertEquals(currencyAddress, address);
@@ -160,7 +162,7 @@ public class IrohaAccountCreatorTest {
         String userName = "user_name";
         String pubKey = "pub_key";
         List<Transaction> unsignedTransactions = new ArrayList<>();
-        List<byte[]> passedTransactions = new ArrayList<>();
+        Map<String, Boolean> passedTransactions = new HashMap<>();
         IrohaAtomicBatch batch = new IrohaAtomicBatch(new ArrayList<>());
 
         doReturn(batch).when(irohaAccountCreator)
@@ -169,7 +171,7 @@ public class IrohaAccountCreatorTest {
                 .convert(batch);
         when(irohaConsumer.send(unsignedTransactions)).thenReturn(Result.Companion.of(() -> passedTransactions));
         doReturn(true).when(irohaAccountCreator)
-                .isAccountCreationBatchFailed(unsignedTransactions, passedTransactions);
+                .isAccountCreationBatchSuccessful(passedTransactions);
         irohaAccountCreator.create(currencyAddress, whitelistKey, whitelist, userName, pubKey, notaryStorageStrategy)
                 .fold(address -> {
                     fail();
