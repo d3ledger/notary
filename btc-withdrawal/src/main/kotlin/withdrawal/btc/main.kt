@@ -12,18 +12,24 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.EnableMBeanExport
 import sidechain.iroha.IrohaInitialization
+import util.createFolderIfDoesntExist
 import withdrawal.btc.config.withdrawalConfig
+import withdrawal.btc.init.BtcWithdrawalInitialization
 import java.util.*
 
 @EnableMBeanExport
 @SpringBootApplication
-@ComponentScan(basePackages = ["withdrawal", "healthcheck", "provider.btc.network", "handler.btc", "provider.btc.address", "provider.btc.wallet"])
+@ComponentScan(basePackages = ["withdrawal", "healthcheck", "provider.btc.network", "handler.btc", "provider.btc.address", "provider.btc.wallet", "peer"])
 class BtcWithdrawalApplication
 
 private val logger = KLogging().logger
 
 fun main(args: Array<String>) {
     IrohaInitialization.loadIrohaLibrary()
+        .map {
+            // Create block storage folder
+            createFolderIfDoesntExist(withdrawalConfig.bitcoin.blockStoragePath)
+        }
         .map {
             val app = SpringApplication(BtcWithdrawalApplication::class.java)
             app.setAdditionalProfiles(getProfile())

@@ -15,21 +15,19 @@ private val logger = KLogging().logger
 /**
  * Starts bitcoin blockchain downloading process
  */
-fun startChainDownload(peerGroup: PeerGroup, host: String) {
+fun startChainDownload(peerGroup: PeerGroup) {
     logger.info { "Start bitcoin blockchain download" }
-    peerGroup.addAddress(InetAddress.getByName(host))
     peerGroup.startAsync()
     peerGroup.downloadBlockChain()
 }
 
 /**
- * Returns group of peers
+ * Returns Bitcoin blockchain
  */
-fun getPeerGroup(wallet: Wallet, networkParameters: NetworkParameters, blockStoragePath: String): PeerGroup {
+fun getBlockChain(wallet: Wallet, networkParameters: NetworkParameters, blockStoragePath: String): BlockChain {
     val levelDbFolder = File(blockStoragePath)
     val blockStore = LevelDBBlockStore(Context(networkParameters), levelDbFolder)
-    val blockChain = BlockChain(networkParameters, wallet, blockStore)
-    return PeerGroup(networkParameters, blockChain)
+    return BlockChain(networkParameters, wallet, blockStore)
 }
 
 /**

@@ -11,7 +11,11 @@ import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
 val btcAddressGenerationTriggerConfig =
-    loadConfigs("btc-address-generation", BtcAddressGenerationConfig::class.java, "/btc/address_generation.properties")
+    loadConfigs(
+        "btc-address-generation",
+        BtcAddressGenerationConfig::class.java,
+        "/btc/address_generation.properties"
+    ).get()
 
 @Configuration
 class BtcAddressGenerationTriggerAppConfiguration {

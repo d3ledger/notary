@@ -1,0 +1,8 @@
+---
+- name: Log into private registry and force re-authorization
+  docker_login:
+    registry: nexus.iroha.tech:19002
+    username: d3-deploy
+    password: "{{ docker_password }}"
+    reauthorize: yes
+  become: no

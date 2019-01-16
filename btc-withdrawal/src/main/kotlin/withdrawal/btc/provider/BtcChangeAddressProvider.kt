@@ -31,6 +31,9 @@ open class BtcChangeAddressProvider(
             changeAddressesStorageAccount,
             mstRegistrationAccount
         ).map { addresses ->
+            if (addresses.isEmpty()) {
+                throw IllegalStateException("No change address was set")
+            }
             val changeAddressEntry = addresses.entries.first()
             BtcAddress(changeAddressEntry.key, AddressInfo.fromJson(changeAddressEntry.value)!!)
         }

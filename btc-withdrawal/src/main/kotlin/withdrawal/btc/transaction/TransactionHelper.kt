@@ -35,7 +35,11 @@ class TransactionHelper(
     @Autowired private val btcChangeAddressProvider: BtcChangeAddressProvider
 ) {
 
-    private val usedOutputs = HashSet<TransactionOutput>()
+    /**
+     *  Map full of used transaction outputs. Key is tx hash, value is list of unspents.
+     *  We need it because Bitcoinj can't say if UTXO was spent until it was not broadcasted
+     *  */
+    private val usedOutputs = HashMap<String, List<TransactionOutput>>()
 
     /**
      * Adds outputs(destination and change addresses) to a given transaction
@@ -83,10 +87,19 @@ class TransactionHelper(
 
     /**
      * Registers given transaction outputs as "untouchable" to use in the future
+     * @param tx - transaction
      * @param unspents - transaction outputs to register as "untouchable"
      */
-    fun registerUnspents(unspents: List<TransactionOutput>) {
-        usedOutputs.addAll(unspents)
+    fun registerUnspents(tx: Transaction, unspents: List<TransactionOutput>) {
+        usedOutputs[tx.hashAsString] = unspents
+    }
+
+    /**
+     * Frees outputs, making them usable for other transactions
+     * @param txHash - hash of transaction which outputs/unspents must be freed
+     */
+    fun unregisterUnspents(txHash: String) {
+        usedOutputs.remove(txHash)
     }
 
     /**
@@ -115,6 +128,13 @@ class TransactionHelper(
     }
 
     /**
+     * Checks if satValue is too low to spend
+     * @param satValue - amount of SAT to check if it's a dust
+     * @return true, if [satValue] is a dust
+     */
+    fun isDust(satValue: Long) = satValue < (FEE_RATE * BYTES_PER_INPUT)
+
+    /**
      * Collects previously sent transactions, that may be used as an input for newly created transaction.
      * It may go into recursion if not enough money for fee was collected.
      * @param availableAddresses - set of addresses which transactions will be available to spend
@@ -136,9 +156,12 @@ class TransactionHelper(
         //Only confirmed transactions must be used
         val unspents =
             ArrayList<TransactionOutput>(wallet.unspents.filter { unspent ->
-                unspent.parentTransactionDepthInBlocks >= confidenceLevel
+                // It's senseless to use 'dusty' transaction, because its fee will be higher than its value
+                !isDust(unspent.value.value) &&
+                        //Only confirmed unspents may be used
+                        unspent.parentTransactionDepthInBlocks >= confidenceLevel
                         //Cannot use already used unspents
-                        && !usedOutputs.contains(unspent)
+                        && !usedOutputs.values.flatten().contains(unspent)
                         //Cannot use unspents from another level of recursion
                         && !recursivelyCollectedUnspents.contains(unspent)
             })

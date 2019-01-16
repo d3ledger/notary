@@ -3,6 +3,7 @@ package integration.helper
 import config.IrohaConfig
 import config.loadConfigs
 import integration.TestConfig
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  *Class that handles all the configuration objects.
@@ -10,7 +11,7 @@ import integration.TestConfig
 open class IrohaConfigHelper {
 
     /** Configurations for tests */
-    val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
+    val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
 
     /** Test configuration for Iroha */
     fun createIrohaConfig(
@@ -23,5 +24,7 @@ open class IrohaConfigHelper {
 
     companion object {
         const val timeoutMinutes = 5L
+        /** Port counter, so new port is generated for each run */
+        val portCounter = AtomicInteger(19_999)
     }
 }

@@ -18,7 +18,7 @@ import util.getRandomString
  */
 class IrohaAccountHelper(private val irohaNetwork: IrohaNetwork) {
 
-    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties")
+    private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
 
     /** A tester Iroha account with permissions to do everything */
     private val testCredential = IrohaCredential(
@@ -47,7 +47,11 @@ class IrohaAccountHelper(private val irohaNetwork: IrohaNetwork) {
     }
 
     val btcWithdrawalAccount by lazy {
-        createTesterAccount("btc_withdrawal", "withdrawal", "signature_collector")
+        createTesterAccount("btc_withdrawal", "withdrawal", "rollback")
+    }
+
+    val btcWithdrawalSignatureCollectorAccount by lazy {
+        createTesterAccount("signature_collector", "signature_collector")
     }
 
     /** Account that used to store tokens */
@@ -100,7 +104,7 @@ class IrohaAccountHelper(private val irohaNetwork: IrohaNetwork) {
     }
 
     /**
-     * Create notary account and grant set_my_quorum and add_my_signatory permissions to test account
+     * Create notary account and grant set_my_quorum, transfer_my_assets and add_my_signatory permissions to test account
      */
     private fun createNotaryAccount(): IrohaCredential {
         val credential = createTesterAccount("eth_notary_${String.getRandomString(9)}", "notary")
@@ -111,6 +115,7 @@ class IrohaAccountHelper(private val irohaNetwork: IrohaNetwork) {
                 .createdTime(ModelUtil.getCurrentTime())
                 .grantPermission(testCredential.accountId, Grantable.kSetMyQuorum)
                 .grantPermission(testCredential.accountId, Grantable.kAddMySignatory)
+                .grantPermission(testCredential.accountId, Grantable.kTransferMyAssets)
                 .build()
         )
 

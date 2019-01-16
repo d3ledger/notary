@@ -1,5 +1,6 @@
 package withdrawal.btc.config
 
+import config.BitcoinConfig
 import config.loadConfigs
 import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
@@ -15,7 +16,8 @@ import withdrawal.btc.provider.BtcWhiteListProvider
 import withdrawal.btc.statistics.WithdrawalStatistics
 import java.io.File
 
-val withdrawalConfig = loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties")
+val withdrawalConfig =
+    loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties").get()
 
 @Configuration
 class BtcWithdrawalAppConfiguration {
@@ -23,6 +25,11 @@ class BtcWithdrawalAppConfiguration {
     private val withdrawalKeypair = ModelUtil.loadKeypair(
         withdrawalConfig.withdrawalCredential.pubkeyPath,
         withdrawalConfig.withdrawalCredential.privkeyPath
+    ).fold({ keypair -> keypair }, { ex -> throw ex })
+
+    private val signatureCollectorKeypair = ModelUtil.loadKeypair(
+        withdrawalConfig.signatureCollectorCredential.pubkeyPath,
+        withdrawalConfig.signatureCollectorCredential.privkeyPath
     ).fold({ keypair -> keypair }, { ex -> throw ex })
 
     private val btcRegistrationCredential = ModelUtil.loadKeypair(
@@ -46,10 +53,17 @@ class BtcWithdrawalAppConfiguration {
     fun withdrawalConsumer() = IrohaConsumerImpl(withdrawalCredential(), irohaNetwork())
 
     @Bean
+    fun signatureCollectorCredential() =
+        IrohaCredential(withdrawalConfig.signatureCollectorCredential.accountId, signatureCollectorKeypair)
+
+    @Bean
+    fun signatureCollectorConsumer() = IrohaConsumerImpl(signatureCollectorCredential(), irohaNetwork())
+
+    @Bean
     fun withdrawalConfig() = withdrawalConfig
 
     @Bean
-    fun irohaChainListener() = IrohaChainListener(
+    fun withdrawalIrohaChainListener() = IrohaChainListener(
         withdrawalConfig.iroha.hostname,
         withdrawalConfig.iroha.port,
         withdrawalCredential()
@@ -86,4 +100,10 @@ class BtcWithdrawalAppConfiguration {
             withdrawalConfig.changeAddressesStorageAccount
         )
     }
+
+    @Bean
+    fun blockStoragePath() = withdrawalConfig().bitcoin.blockStoragePath
+
+    @Bean
+    fun btcHosts() = BitcoinConfig.extractHosts(withdrawalConfig().bitcoin)
 }

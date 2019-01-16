@@ -4,10 +4,8 @@ import com.github.kittinunf.result.Result
 import config.IrohaCredentialConfig
 import config.loadEthPasswords
 import integration.helper.EthIntegrationHelperUtil
-import integration.helper.IrohaIntegrationHelperUtil
 import integration.helper.NotaryClient
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import mu.KLogging
@@ -36,7 +34,7 @@ class LongevityTest {
         NotaryClient(
             integrationHelper,
             integrationHelper.configHelper.createEthereumConfig("deploy/ethereum/keys/local/client$clientNumber.key"),
-            loadEthPasswords("client$clientNumber", "/eth/ethereum_password.properties")
+            loadEthPasswords("client$clientNumber", "/eth/ethereum_password.properties").get()
         )
     }
 
@@ -53,7 +51,7 @@ class LongevityTest {
                 override val accountId = integrationHelper.accountHelper.notaryAccount.accountId
             }
 
-            val ethereumPasswords = loadEthPasswords("notary$it", "/eth/ethereum_password.properties")
+            val ethereumPasswords = loadEthPasswords("notary$it", "/eth/ethereum_password.properties").get()
 
             val ethereumConfig =
                 integrationHelper.configHelper.createEthereumConfig("deploy/ethereum/keys/local/notary$it.key")

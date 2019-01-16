@@ -2,8 +2,8 @@
 Backend code for a D3 notary
 
 ## How to run notary application and services in Ethereum main net
-1) clone project `master` branch
-2) launch Iroha and Postgres in docker with `docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml up`
+1) Clone project `master` branch
+2) Launch Iroha and Postgres in docker with `docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml up`
 3) Provide ethereum passwords `configs/eth/ethereum_password_mainnet.properties` (ask someone from maintainers team about the format)
 4) Deploy Ethereum master contract and relay registry contract, provide notary ethereum accounts `gradle runPreDeployEthereum --args="0x6826d84158e516f631bbf14586a9be7e255b2d23"` 
 5) Run notary service `PROFILE=mainnet gradle runEthNotary`
@@ -23,6 +23,16 @@ Passwords for Ethereum network may be set in 3 different ways:
 Configurations have the following priority:
 
 Command line args > Environment variables > Properties file
+
+## How to run notary application and services in Bitcoin main net
+1) Clone project `master` branch
+2) Launch Iroha and Postgres in docker with `docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml up`
+3) Create `.wallet` file (ask maintainers how to do that) and put it to desired location
+4) Run address generation process using `PROFILE=mainnet gradlew runBtcAddressGeneration`
+5) Create change address by running `gradlew generateBtcChangeAddress`
+6) Create few free addresses(addresses that may be registered by clients lately) `gradlew generateBtcFreeAddress`
+7) Run registration service `PROFILE=mainnet gradle runBtcRegistration`
+8) Run notary service `PROFILE=mainnet gradle runBtcDepositWithdrawal`
 
 ## Testing
 `gradle test` for unit tests

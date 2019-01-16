@@ -8,7 +8,6 @@ import registration.eth.relay.RelayRegistrationConfig
 import token.ERC20TokenRegistrationConfig
 import vacuum.RelayVacuumConfig
 import withdrawalservice.WithdrawalServiceConfig
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
  *Class that handles all the configuration objects.
@@ -20,7 +19,7 @@ open class EthConfigHelper(
 ) : IrohaConfigHelper() {
 
     /** Ethereum password configs */
-    val ethPasswordConfig = loadEthPasswords("test", "/eth/ethereum_password.properties")
+    val ethPasswordConfig = loadEthPasswords("test", "/eth/ethereum_password.properties").get()
 
     /** Configuration for notary instance */
     private val ethNotaryConfig by lazy {
@@ -28,7 +27,7 @@ open class EthConfigHelper(
             "eth-notary",
             EthNotaryConfig::class.java,
             "/eth/notary.properties"
-        )
+        ).get()
     }
 
     fun getTestCredentialConfig(): IrohaCredentialConfig {
@@ -41,7 +40,7 @@ open class EthConfigHelper(
             "token-registration",
             ERC20TokenRegistrationConfig::class.java,
             "/eth/token_registration.properties"
-        )
+        ).get()
 
         return object : ERC20TokenRegistrationConfig {
             override val irohaCredential = ethTokenRegistrationConfig.irohaCredential
@@ -54,10 +53,15 @@ open class EthConfigHelper(
     /** Creates config for ETH relays registration */
     fun createRelayRegistrationConfig(): RelayRegistrationConfig {
         val relayRegistrationConfig =
-            loadConfigs("relay-registration", RelayRegistrationConfig::class.java, "/eth/relay_registration.properties")
+            loadConfigs(
+                "relay-registration",
+                RelayRegistrationConfig::class.java,
+                "/eth/relay_registration.properties"
+            ).get()
 
         return object : RelayRegistrationConfig {
             override val number = relayRegistrationConfig.number
+            override val replenishmentPeriod = relayRegistrationConfig.replenishmentPeriod
             override val ethMasterWallet = masterContractAddress
             override val notaryIrohaAccount = accountHelper.notaryAccount.accountId
             override val iroha = createIrohaConfig()
@@ -95,13 +99,17 @@ open class EthConfigHelper(
             override val refund = createRefundConfig()
             override val iroha = irohaConfig
             override val ethereum = ethereumConfig
+            override val withdrawalAccountId = ethNotaryConfig.withdrawalAccountId
         }
     }
 
     /** Test configuration of Withdrawal service with runtime dependencies */
-    fun createWithdrawalConfig(): WithdrawalServiceConfig {
+    fun createWithdrawalConfig(useValidEthereum: Boolean = true): WithdrawalServiceConfig {
         val withdrawalConfig =
-            loadConfigs("withdrawal", WithdrawalServiceConfig::class.java, "/eth/withdrawal.properties")
+            loadConfigs("withdrawal", WithdrawalServiceConfig::class.java, "/eth/withdrawal.properties").get()
+
+        val ethereumConfig =
+            if (useValidEthereum) withdrawalConfig.ethereum else getBrokenEthereumConfig(withdrawalConfig)
 
         return object : WithdrawalServiceConfig {
             override val notaryIrohaAccount = accountHelper.notaryAccount.accountId
@@ -112,7 +120,17 @@ open class EthConfigHelper(
             override val registrationIrohaAccount = accountHelper.registrationAccount.accountId
             override val withdrawalCredential = withdrawalConfig.withdrawalCredential
             override val iroha = createIrohaConfig()
-            override val ethereum = withdrawalConfig.ethereum
+            override val ethereum = ethereumConfig
+        }
+    }
+
+    fun getBrokenEthereumConfig(withdrawalServiceConfig: WithdrawalServiceConfig): EthereumConfig {
+        return object : EthereumConfig {
+            override val url = withdrawalServiceConfig.ethereum.url
+            override val credentialsPath = withdrawalServiceConfig.ethereum.credentialsPath
+            override val gasPrice = 0L
+            override val gasLimit = 0L
+            override val confirmationPeriod = 0L
         }
     }
 
@@ -132,7 +150,7 @@ open class EthConfigHelper(
 
     fun createRelayVacuumConfig(): RelayVacuumConfig {
         val vacuumConfig =
-            loadConfigs("relay-vacuum", RelayVacuumConfig::class.java, "/eth/vacuum.properties")
+            loadConfigs("relay-vacuum", RelayVacuumConfig::class.java, "/eth/vacuum.properties").get()
         return object : RelayVacuumConfig {
             override val registrationServiceIrohaAccount = accountHelper.registrationAccount.accountId
             override val tokenStorageAccount = accountHelper.tokenStorageAccount.accountId
@@ -166,8 +184,4 @@ open class EthConfigHelper(
         }
     }
 
-    companion object {
-        /** Port counter, so new port is generated for each run */
-        private val portCounter = AtomicInteger(19_999)
-    }
 }

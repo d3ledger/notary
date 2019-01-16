@@ -111,6 +111,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
 
     private val relayRegistration by lazy {
         RelayRegistration(
+            ethFreeRelayProvider,
             configHelper.createRelayRegistrationConfig(),
             accountHelper.registrationAccount,
             irohaNetwork,
@@ -305,13 +306,6 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      * Returns wallets registered by master account in Iroha
      */
     fun getRegisteredEthWallets(): Set<String> = ethRelayProvider.getRelays().get().keys
-
-    private fun singularOrPluralBlocks(blocks: Int): String {
-        if (blocks == 1) {
-            return "block was"
-        }
-        return "blocks were"
-    }
 
     /**
      * Add Ethrereum addresses to client whitelist, so that she can withdraw only for that addresses
