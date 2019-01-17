@@ -5,7 +5,7 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import sidechain.iroha.consumer.IrohaNetworkImpl
-import sidechain.iroha.util.getAccountAsset
+import sidechain.iroha.util.getAccountAssetBalance
 import kotlin.test.assertEquals
 
 /**
@@ -42,7 +42,7 @@ class RequestHelperTest {
         val accountId = credential.accountId
         val assetId = "nonexist#nonexist"
 
-        assertEquals("0", getAccountAsset(credential, irohaNetwork, accountId, assetId).get())
+        assertEquals("0", getAccountAssetBalance(credential, irohaNetwork, accountId, assetId).get())
     }
 
 }

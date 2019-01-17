@@ -37,11 +37,6 @@ class SoraIntegrationTest {
         val clientId = "$clientName@$domain"
 
         val keypairAlice = ModelCrypto().generateKeypair()
-        println("pub")
-        println(keypairAlice.publicKey().hex())
-        println("priv")
-        println(keypairAlice.privateKey().hex())
-
         val clientAliceCredential = IrohaCredential(clientId, keypairAlice)
 
         integrationHelper.createAccount(clientName, domain, keypairAlice.publicKey())

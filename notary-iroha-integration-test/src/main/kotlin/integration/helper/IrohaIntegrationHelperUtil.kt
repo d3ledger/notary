@@ -15,7 +15,7 @@ import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
-import sidechain.iroha.util.getAccountAsset
+import sidechain.iroha.util.getAccountAssetBalance
 import java.io.Closeable
 import java.math.BigDecimal
 
@@ -126,7 +126,7 @@ open class IrohaIntegrationHelperUtil : Closeable {
      * @return balance of account asset
      */
     fun getIrohaAccountBalance(accountId: String, assetId: String): String {
-        return getAccountAsset(
+        return getAccountAssetBalance(
             testCredential,
             irohaNetwork,
             accountId,

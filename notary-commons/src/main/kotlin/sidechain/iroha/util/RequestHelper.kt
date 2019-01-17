@@ -108,7 +108,7 @@ fun getAccountAssets(
  *
  * @return asset account balance if asset is found, otherwise "0"
  */
-fun getAccountAsset(
+fun getAccountAssetBalance(
     credential: IrohaCredential,
     irohaNetwork: IrohaNetwork,
     accountId: String,
