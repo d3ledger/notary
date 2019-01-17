@@ -1,0 +1,56 @@
+version: '3'
+
+
+services:
+  d3-eth-relay:
+    image: nexus.iroha.tech:19002/d3-deploy/eth-relay:${TAG-master}
+    container_name: d3-eth-relay
+    volumes:
+      - ./:/opt/notary/deploy
+      - ../configs:/opt/notary/configs
+    environment:
+      - ETH_MASTER_WALLET
+      - ETH_CREDENTIALS_PASSWORD
+      - PROFILE
+      - IROHA_HOST=d3-iroha
+      - IROHA_PORT=50051
+      - CLASS=registration.eth.relay.DeployRelayMain
+    networks:
+      - d3-network
+
+
+  d3-registration:
+    image: nexus.iroha.tech:19002/d3-deploy/registration:${TAG-master}
+    container_name: d3-registration
+    ports:
+      - 8083:8083
+    volumes:
+      - ./:/opt/notary/deploy
+      - ../configs:/opt/notary/configs
+    environment:
+      - ETH_RELAY_REGISTRY
+      - PROFILE
+      - IROHA_HOST=d3-iroha
+      - IROHA_PORT=50051
+      - CLASS=registration.eth.EthRegistrationMain
+    networks:
+      - d3-network
+
+  d3-withdrawal:
+    image: nexus.iroha.tech:19002/d3-deploy/withdrawal:${TAG-master}
+    container_name: d3-withdrawal
+    volumes:
+      - ./:/opt/notary/deploy
+      - ../configs:/opt/notary/configs
+    environment:
+      - ETH_CREDENTIALS_PASSWORD
+      - PROFILE
+      - IROHA_HOST=d3-iroha
+      - IROHA_PORT=50051
+      - CLASS=withdrawalservice.WithdrawalServiceMain
+    networks:
+      - d3-network
+
+
+networks:
+  d3-network:

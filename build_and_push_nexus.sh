@@ -16,8 +16,10 @@ tags=("master" "develop" "debug")
 checkTag $TAG "${tags[@]}"
 
 
-rm build/libs/notary-1.0-SNAPSHOT-all.jar || true
-gradle shadowJar
+./gradlew eth:shadowJar
+./gradlew eth-withdrawal:shadowJar
+./gradlew eth-registration:shadowJar
+./gradlew eth-vacuum:shadowJar
 
 docker build -t nexus.iroha.tech:19002/d3-deploy/eth-relay:$TAG -f docker/eth-relay.dockerfile .
 docker build -t nexus.iroha.tech:19002/d3-deploy/registration:$TAG  -f docker/registration.dockerfile .

@@ -36,6 +36,11 @@ class BtcDWBridgeAppConfiguration {
         notaryConfig.notaryCredential.privkeyPath
     ).fold({ keypair -> keypair }, { ex -> throw ex })
 
+    private val signatureCollectorKeypair = ModelUtil.loadKeypair(
+        withdrawalConfig.signatureCollectorCredential.pubkeyPath,
+        withdrawalConfig.signatureCollectorCredential.privkeyPath
+    ).fold({ keypair -> keypair }, { ex -> throw ex })
+
     private val notaryCredential =
         IrohaCredential(notaryConfig.notaryCredential.accountId, notaryKeypair)
 
@@ -63,6 +68,13 @@ class BtcDWBridgeAppConfiguration {
     }
 
     @Bean
+    fun signatureCollectorCredential() =
+        IrohaCredential(withdrawalConfig.signatureCollectorCredential.accountId, signatureCollectorKeypair)
+
+    @Bean
+    fun signatureCollectorConsumer() = IrohaConsumerImpl(signatureCollectorCredential(), irohaNetwork())
+
+    @Bean
     fun wallet() = Wallet.loadFromFile(File(dwBridgeConfig.bitcoin.walletPath))
 
     @Bean
@@ -85,7 +97,7 @@ class BtcDWBridgeAppConfiguration {
     fun depositIrohaChainListener() = IrohaChainListener(
         dwBridgeConfig.iroha.hostname,
         dwBridgeConfig.iroha.port,
-        notaryCredential
+        notaryCredential()
     )
 
     @Bean

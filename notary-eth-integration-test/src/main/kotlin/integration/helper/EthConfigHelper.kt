@@ -61,6 +61,7 @@ open class EthConfigHelper(
 
         return object : RelayRegistrationConfig {
             override val number = relayRegistrationConfig.number
+            override val replenishmentPeriod = relayRegistrationConfig.replenishmentPeriod
             override val ethMasterWallet = masterContractAddress
             override val notaryIrohaAccount = accountHelper.notaryAccount.accountId
             override val iroha = createIrohaConfig()

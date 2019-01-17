@@ -22,8 +22,8 @@ class EthFreeRelayProvider(
 ) {
 
     init {
-        EthRelayProviderIrohaImpl.logger.info {
-            "Init free relay provider with notary account '$notaryIrohaAccount' and registration account '$registrationIrohaAccount'"
+        logger.info {
+            "Init free relay provider with holder account '$notaryIrohaAccount' and setter account '$registrationIrohaAccount'"
         }
     }
 
@@ -32,7 +32,11 @@ class EthFreeRelayProvider(
      * @return free ethereum relay wallet
      */
     fun getRelay(): Result<String, Exception> {
-        return getRelays().map { freeWallets -> freeWallets.first() }
+        return getRelays().map { freeWallets ->
+            if (freeWallets.isEmpty())
+                throw IllegalStateException("EthFreeRelayProvider - no free relay wallets created by $registrationIrohaAccount")
+            freeWallets.first()
+        }
     }
 
     /**
@@ -46,11 +50,7 @@ class EthFreeRelayProvider(
             notaryIrohaAccount,
             registrationIrohaAccount
         ).map { relays ->
-            val freeWallets = relays.filterValues { irohaAccount -> irohaAccount == "free" }.keys
-            if (freeWallets.isEmpty())
-                throw IllegalStateException("EthFreeRelayProvider - no free relay wallets created by $registrationIrohaAccount")
-            else
-                freeWallets
+            relays.filterValues { irohaAccount -> irohaAccount == "free" }.keys
         }
     }
 

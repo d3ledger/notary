@@ -1,14 +1,19 @@
 package withdrawal.btc.handler
 
+import com.github.kittinunf.result.map
 import iroha.protocol.Commands
 import mu.KLogging
 import org.bitcoinj.core.PeerGroup
+import org.bitcoinj.core.Transaction
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
 import withdrawal.btc.statistics.WithdrawalStatistics
+import withdrawal.btc.transaction.BtcRollbackService
 import withdrawal.btc.transaction.SignCollector
+import withdrawal.btc.transaction.TransactionHelper
 import withdrawal.btc.transaction.UnsignedTransactions
+import java.util.concurrent.CopyOnWriteArrayList
 
 /*
     Class that is used to handle new input signature appearance events
@@ -17,8 +22,22 @@ import withdrawal.btc.transaction.UnsignedTransactions
 class NewSignatureEventHandler(
     @Autowired private val withdrawalStatistics: WithdrawalStatistics,
     @Autowired private val signCollector: SignCollector,
-    @Autowired private val unsignedTransactions: UnsignedTransactions
+    @Autowired private val unsignedTransactions: UnsignedTransactions,
+    @Autowired private val transactionHelper: TransactionHelper,
+    @Autowired private val btcRollbackService: BtcRollbackService
 ) {
+
+    private val broadcastTransactionListeners = CopyOnWriteArrayList<(tx: Transaction) -> Unit>()
+
+    /**
+     * Registers "broadcast transaction" event listener
+     * For testing purposes only.
+     * @param listener - function that will be called when a transaction is about to be broadcasted
+     */
+    fun addBroadcastTransactionListeners(listener: (tx: Transaction) -> Unit) {
+        broadcastTransactionListeners.add(listener)
+    }
+
 
     /**
      * Handles "add new input signatures" commands
@@ -32,6 +51,7 @@ class NewSignatureEventHandler(
             logger.warn { "No tx starting with hash $shortTxHash was found in collection of unsigned transactions" }
             return
         }
+        val withdrawalCommand = unsignedTx.withdrawalDetails
         val tx = unsignedTx.tx
         // Hash of transaction will be changed after signing. This is why we keep an "original" hash
         val originalHash = tx.hashAsString
@@ -43,13 +63,26 @@ class NewSignatureEventHandler(
             }
             logger.info { "Tx $originalHash has enough signatures" }
             signCollector.fillTxWithSignatures(tx, signatures)
-                .fold({
-                    peerGroup.broadcastTransaction(tx)
+                .map {
                     unsignedTransactions.remove(shortTxHash)
+                    logger.info { "Tx(originally known as $originalHash) is ready to be broadcasted $tx" }
+                    broadcastTransactionListeners.forEach { listener ->
+                        listener(tx)
+                    }
+                    //Wait until it is broadcasted to all connected peers
+                    peerGroup.broadcastTransaction(tx).future().get()
+                }.fold({
+                    logger.info { "Tx ${tx.hashAsString} was successfully broadcasted" }
                     withdrawalStatistics.incSucceededTransfers()
                 }, { ex ->
+                    transactionHelper.unregisterUnspents(originalHash)
                     withdrawalStatistics.incFailedTransfers()
                     logger.error("Cannot complete tx $originalHash", ex)
+                    btcRollbackService.rollback(
+                        withdrawalCommand.sourceAccountId,
+                        withdrawalCommand.amountSat,
+                        withdrawalCommand.withdrawalTime
+                    )
                 })
 
         }, { ex ->

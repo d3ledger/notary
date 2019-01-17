@@ -39,7 +39,8 @@
                 "createRole": {
                   "roleName": "relay_deployer",
                   "permissions": [
-                    "can_set_detail"
+                    "can_set_detail",
+                    "can_get_domain_accounts"
                   ]
                 }
               },
@@ -76,7 +77,19 @@
                     "can_get_my_acc_txs",
                     "can_get_my_txs",
                     "can_transfer",
-                    "can_receive"
+                    "can_receive",
+                    "can_set_quorum",
+                    "can_add_signatory",
+                    "can_get_my_signatories",
+                    "can_remove_signatory"
+                  ]
+                }
+              },
+              {
+                "createRole": {
+                  "roleName": "admin",
+                  "permissions": [
+                    "can_get_all_accounts"
                   ]
                 }
               },
@@ -143,7 +156,9 @@
                     "can_read_assets",
                     "can_grant_can_set_my_quorum",
                     "can_grant_can_add_my_signatory",
-                    "can_grant_can_transfer_my_assets"
+                    "can_grant_can_transfer_my_assets",
+                    "can_get_my_signatories",
+                    "can_remove_signatory"
                   ]
                 }
               },
@@ -152,6 +167,14 @@
                   "roleName": "whitelist_setter",
                   "permissions": [
                     "can_set_detail"
+                  ]
+                }
+              },
+              {
+                "createRole": {
+                  "roleName": "rollback",
+                  "permissions": [
+                    "can_transfer"
                   ]
                 }
               },
@@ -210,7 +233,7 @@
                 "createAsset": {
                   "assetName": "btc",
                   "domainId": "bitcoin",
-                  "precision": 0
+                  "precision": 8
                 }
               },
               {
@@ -326,6 +349,24 @@
               {
                 "appendRole": {
                   "accountId": "btc_withdrawal_service@notary",
+                  "roleName": "rollback"
+                }
+              },{
+                "setAccountQuorum":{
+                  "accountId":"btc_withdrawal_service@notary",
+                  "quorum":1
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "btc_sign_collector",
+                  "domainId": "notary",
+                  "publicKey": "ZMySY3PLwOOuHnVsuJyqAP0wZglLcr+xwsbJnz0AhiY="
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "btc_sign_collector@notary",
                   "roleName": "signature_collector"
                 }
               },
@@ -387,6 +428,19 @@
                   "accountName": "gen_btc_pk_trigger",
                   "domainId": "notary",
                   "publicKey": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "admin",
+                  "domainId": "notary",
+                  "publicKey": "CS5xsDGlGtrpJPfNlE8Dca6LhQJGnjJpOIUzTe3MYAE="
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "admin@notary",
+                  "roleName": "admin"
                 }
               }
             ],

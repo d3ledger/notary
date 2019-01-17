@@ -3,6 +3,7 @@ package withdrawal.btc.handler
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import helper.address.isValidBtcAddress
+import helper.currency.btcToSat
 import iroha.protocol.Commands
 import monitoring.Monitoring
 import mu.KLogging
@@ -13,9 +14,9 @@ import org.springframework.stereotype.Component
 import withdrawal.btc.config.BtcWithdrawalConfig
 import withdrawal.btc.provider.BtcWhiteListProvider
 import withdrawal.btc.statistics.WithdrawalStatistics
-import withdrawal.btc.transaction.SignCollector
-import withdrawal.btc.transaction.TransactionCreator
-import withdrawal.btc.transaction.UnsignedTransactions
+import withdrawal.btc.transaction.*
+import java.math.BigDecimal
+import java.util.concurrent.CopyOnWriteArrayList
 
 /*
     Class that is used to handle withdrawal events
@@ -27,15 +28,17 @@ class WithdrawalTransferEventHandler(
     @Autowired private val btcWithdrawalConfig: BtcWithdrawalConfig,
     @Autowired private val transactionCreator: TransactionCreator,
     @Autowired private val signCollector: SignCollector,
-    @Autowired private val unsignedTransactions: UnsignedTransactions
+    @Autowired private val unsignedTransactions: UnsignedTransactions,
+    @Autowired private val transactionHelper: TransactionHelper,
+    @Autowired private val btcRollbackService: BtcRollbackService
 ) : Monitoring() {
     override fun monitor() = withdrawalStatistics
 
-    private val newBtcTransactionListeners = ArrayList<(tx: Transaction) -> Unit>()
+    private val newBtcTransactionListeners = CopyOnWriteArrayList<(tx: Transaction) -> Unit>()
 
     /**
      * Registers "new transaction was created" event listener
-     * Not thread safe. For testing purposes only.
+     * For testing purposes only.
      * @param listener - function that will be called when new transaction is created
      */
     fun addNewBtcTransactionListener(listener: (tx: Transaction) -> Unit) {
@@ -46,30 +49,41 @@ class WithdrawalTransferEventHandler(
      * Handles "transfer asset" command
      * @param transferCommand - object with "transfer asset" data: source account, destination account, amount and etc
      */
-    fun handleTransferCommand(wallet: Wallet, transferCommand: Commands.TransferAsset) {
+    fun handleTransferCommand(wallet: Wallet, transferCommand: Commands.TransferAsset, withdrawalTime: Long) {
         if (transferCommand.destAccountId != btcWithdrawalConfig.withdrawalCredential.accountId) {
             return
         }
         val destinationAddress = transferCommand.description
-        if (!isValidBtcAddress(destinationAddress)) {
-            logger.warn { "Cannot execute transfer. Destination $destinationAddress is not a valid base58 address." }
-            return
-        }
+        val sourceAccountId = transferCommand.srcAccountId
+        val btcAmount = BigDecimal(transferCommand.amount)
+        val satAmount = btcToSat(btcAmount)
         logger.info {
             "Withdrawal event(" +
                     "from:${transferCommand.srcAccountId} " +
                     "to:$destinationAddress " +
-                    "amount:${transferCommand.amount})"
+                    "amount:${btcAmount.toPlainString()})"
+        }
+        if (!isValidBtcAddress(destinationAddress)) {
+            logger.warn { "Cannot execute transfer. Destination $destinationAddress is not a valid base58 address." }
+            btcRollbackService.rollback(sourceAccountId, satAmount, withdrawalTime)
+            return
+        }
+        if (transactionHelper.isDust(satAmount)) {
+            btcRollbackService.rollback(sourceAccountId, satAmount, withdrawalTime)
+            logger.warn { "Can't spend SAT $satAmount, because it's considered a dust" }
+            return
         }
         withdrawalStatistics.incTotalTransfers()
-        whiteListProvider.checkWithdrawalAddress(transferCommand.srcAccountId, destinationAddress)
+        whiteListProvider.checkWithdrawalAddress(sourceAccountId, destinationAddress)
             .fold({ ableToWithdraw ->
                 if (ableToWithdraw) {
-                    withdraw(wallet, destinationAddress, transferCommand.amount.toLong())
+                    withdraw(wallet, destinationAddress, WithdrawalDetails(sourceAccountId, satAmount, withdrawalTime))
                 } else {
+                    btcRollbackService.rollback(sourceAccountId, satAmount, withdrawalTime)
                     logger.warn { "Cannot withdraw to $destinationAddress, because it's not in ${transferCommand.srcAccountId} whitelist" }
                 }
             }, { ex ->
+                btcRollbackService.rollback(sourceAccountId, satAmount, withdrawalTime)
                 withdrawalStatistics.incFailedTransfers()
                 logger.error("Cannot check ability to withdraw", ex)
             })
@@ -85,25 +99,35 @@ class WithdrawalTransferEventHandler(
      * @param destinationAddress - Bitcoin address to send money to
      * @param amount - amount of SAT to send
      * */
-    private fun withdraw(wallet: Wallet, destinationAddress: String, amount: Long) {
+    private fun withdraw(
+        wallet: Wallet,
+        destinationAddress: String,
+        withdrawalDetails: WithdrawalDetails
+    ) {
         transactionCreator.createTransaction(
             wallet,
-            amount,
+            withdrawalDetails.amountSat,
             destinationAddress,
             btcWithdrawalConfig.bitcoin.confidenceLevel
-        ).map { transaction ->
+        ).map { (transaction, unspents) ->
             newBtcTransactionListeners.forEach { listener ->
                 listener(transaction)
             }
-            transaction
-        }.map { transaction ->
+            Pair(transaction, unspents)
+        }.map { (transaction, unspents) ->
             logger.info { "Tx to sign\n$transaction" }
             signCollector.collectSignatures(transaction, btcWithdrawalConfig.bitcoin.walletPath)
-            transaction
-        }.map { transaction ->
-            unsignedTransactions.markAsUnsigned(transaction)
+            Pair(transaction, unspents)
+        }.map { (transaction, unspents) ->
+            unsignedTransactions.markAsUnsigned(withdrawalDetails, transaction)
+            transactionHelper.registerUnspents(transaction, unspents)
             logger.info { "Tx ${transaction.hashAsString} was added to collection of unsigned transactions" }
         }.failure { ex ->
+            btcRollbackService.rollback(
+                withdrawalDetails.sourceAccountId,
+                withdrawalDetails.amountSat,
+                withdrawalDetails.withdrawalTime
+            )
             withdrawalStatistics.incFailedTransfers()
             logger.error("Cannot create withdrawal transaction", ex)
         }

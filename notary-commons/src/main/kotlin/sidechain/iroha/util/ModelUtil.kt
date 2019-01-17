@@ -191,17 +191,19 @@ object ModelUtil {
      * @param accountId - account to set details
      * @param key - key of detail
      * @param value - value of detail
+     * @param createdTime - time of tx creation. Current time by default
      * @return hex representation of transaction hash
      */
     fun setAccountDetail(
         irohaConsumer: IrohaConsumer,
         accountId: String,
         key: String,
-        value: String
+        value: String,
+        createdTime: BigInteger = getCurrentTime()
     ): Result<String, Exception> {
         val tx = ModelTransactionBuilder()
             .creatorAccountId(irohaConsumer.creator)
-            .createdTime(getCurrentTime())
+            .createdTime(createdTime)
             .setAccountDetail(accountId, key, value)
             .build()
         return irohaConsumer.sendAndCheck(tx)
@@ -281,6 +283,7 @@ object ModelUtil {
      * @param assetId - asset id in Iroha
      * @param description - transfer description
      * @param amount - amount
+     * @param createdTime - time of transaction creation. Current time by default.
      * @return hex representation of transaction hash
      */
     fun transferAssetIroha(
@@ -289,12 +292,13 @@ object ModelUtil {
         destAccountId: String,
         assetId: String,
         description: String,
-        amount: String
+        amount: String,
+        createdTime: BigInteger = getCurrentTime()
     ): Result<String, Exception> {
         return irohaConsumer.sendAndCheck(
             ModelTransactionBuilder()
                 .creatorAccountId(irohaConsumer.creator)
-                .createdTime(getCurrentTime())
+                .createdTime(createdTime)
                 .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
                 .build()
         )

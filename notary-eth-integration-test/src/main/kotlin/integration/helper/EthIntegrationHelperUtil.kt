@@ -111,6 +111,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
 
     private val relayRegistration by lazy {
         RelayRegistration(
+            ethFreeRelayProvider,
             configHelper.createRelayRegistrationConfig(),
             accountHelper.registrationAccount,
             irohaNetwork,

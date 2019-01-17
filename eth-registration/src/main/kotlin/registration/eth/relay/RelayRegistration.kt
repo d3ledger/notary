@@ -1,9 +1,14 @@
 package registration.eth.relay
 
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.failure
+import com.github.kittinunf.result.map
 import config.EthereumPasswords
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import model.IrohaCredential
 import mu.KLogging
+import provider.eth.EthFreeRelayProvider
 import sidechain.eth.util.DeployHelper
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetwork
@@ -15,6 +20,7 @@ import java.io.File
  * Deploys relay smart contracts in Ethereum network and records it in Iroha.
  */
 class RelayRegistration(
+    private val freeRelayProvider: EthFreeRelayProvider,
     private val relayRegistrationConfig: RelayRegistrationConfig,
     relayCredential: IrohaCredential,
     irohaNetwork: IrohaNetwork,
@@ -48,23 +54,40 @@ class RelayRegistration(
         return ModelUtil.setAccountDetail(irohaConsumer, notaryIrohaAccount, relayAddress, "free")
     }
 
-    fun deploy(): Result<Unit, Exception> {
-        return deploy(
-            relayRegistrationConfig.number,
-            relayRegistrationConfig.ethMasterWallet
-        )
-    }
-
     fun deploy(
         relaysToDeploy: Int,
         ethMasterWallet: String
     ): Result<Unit, Exception> {
+        logger.info { "Deploy $relaysToDeploy ethereum relays" }
         return Result.of {
             (1..relaysToDeploy).forEach { _ ->
                 val relayWallet = deployRelaySmartContract(ethMasterWallet)
                 registerRelayIroha(relayWallet).fold(
                     { logger.info("Relay $relayWallet was deployed") },
                     { ex -> logger.error("Cannot deploy relay $relayWallet", ex) })
+            }
+        }
+    }
+
+    /**
+     * Run a job that every replenishmentPeriod checks that number from config free relays are present. In case of
+     * lack of free relays deploys lacking amount.
+     */
+    fun runRelayReplenishment(): Result<Unit, Exception> {
+        logger.info { "Run relay replenishment" }
+
+        return Result.of {
+            while (true) {
+                logger.info { "Relay replenishment triggered" }
+
+                freeRelayProvider.getRelays().map { relays ->
+                    logger.info { "Free relays: ${relays.size}" }
+                    val toDeploy = relayRegistrationConfig.number - relays.size
+                    if (toDeploy > 0)
+                        deploy(toDeploy, relayRegistrationConfig.ethMasterWallet)
+                }.failure { throw it }
+
+                runBlocking { delay(relayRegistrationConfig.replenishmentPeriod * 1000) }
             }
         }
     }

@@ -1,12 +1,13 @@
 package integration.btc
 
 import com.github.kittinunf.result.failure
+import helper.currency.satToBtc
 import integration.btc.environment.BtcAddressGenerationTestEnvironment
 import integration.btc.environment.BtcNotaryTestEnvironment
 import integration.btc.environment.BtcRegistrationTestEnvironment
 import integration.btc.environment.BtcWithdrawalTestEnvironment
 import integration.helper.BtcIntegrationHelperUtil
-import integration.helper.btcAsset
+import integration.helper.BTC_ASSET
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelCrypto
 import kotlinx.coroutines.GlobalScope
@@ -20,8 +21,8 @@ import org.junit.jupiter.api.fail
 import provider.btc.address.BtcAddressType
 import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
-import withdrawal.btc.transaction.TimedTx
 import java.io.File
+import java.math.BigDecimal
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcFullPipelineTest {
@@ -69,9 +70,6 @@ class BtcFullPipelineTest {
             //Recreate folder
             blockStorageFolder.mkdirs()
             withdrawalEnvironment.btcWithdrawalInitialization.init().failure { ex -> throw ex }
-            withdrawalEnvironment.withdrawalTransferEventHandler.addNewBtcTransactionListener { tx ->
-                withdrawalEnvironment.createdTransactions[tx.hashAsString] = TimedTx.create(tx)
-            }
         }
 
         Thread.sleep(10_000)
@@ -88,12 +86,12 @@ class BtcFullPipelineTest {
     /**
      * Note: Iroha must be deployed to pass the test.
      * @given all the services(notary, withdrawal, registration and address generation) are running. 2 clients are registered. 1st client has 1BTC.
-     * @when 1st client sends 1 SAT to 2nd client
+     * @when 1st client sends 10000 SAT to 2nd client
      * @then 1 SAT is subtracted from 1st client balance and 2nd client balance is increased by 1 SAT
      */
     @Test
     fun testFullPipeline() {
-        val amountOfSat = "1"
+        val amount = satToBtc(10000L)
 
         // Trigger address generation. Source and destination addresses
         generateFreeAddress(2)
@@ -118,17 +116,20 @@ class BtcFullPipelineTest {
             srcKeypair,
             "$srcUserName@$CLIENT_DOMAIN",
             withdrawalEnvironment.btcWithdrawalConfig.withdrawalCredential.accountId,
-            btcAsset,
+            BTC_ASSET,
             destBtcAddress,
-            amountOfSat
+            amount.toPlainString()
         )
         Thread.sleep(WITHDRAWAL_WAIT_MILLIS)
         integrationHelper.generateBtcBlocks(notaryEnvironment.notaryConfig.bitcoin.confidenceLevel)
         Thread.sleep(DEPOSIT_WAIT_MILLIS)
-        assertEquals(amountOfSat, integrationHelper.getIrohaAccountBalance("$destUserName@$CLIENT_DOMAIN", btcAsset))
         assertEquals(
-            integrationHelper.btcToSat(1) - 1,
-            integrationHelper.getIrohaAccountBalance("$srcUserName@$CLIENT_DOMAIN", btcAsset).toLong()
+            amount.toPlainString(),
+            integrationHelper.getIrohaAccountBalance("$destUserName@$CLIENT_DOMAIN", BTC_ASSET)
+        )
+        assertEquals(
+            BigDecimal(1).subtract(amount).toPlainString(),
+            integrationHelper.getIrohaAccountBalance("$srcUserName@$CLIENT_DOMAIN", BTC_ASSET)
         )
     }
 

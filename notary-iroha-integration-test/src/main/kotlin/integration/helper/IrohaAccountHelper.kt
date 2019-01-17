@@ -47,7 +47,11 @@ class IrohaAccountHelper(private val irohaNetwork: IrohaNetwork) {
     }
 
     val btcWithdrawalAccount by lazy {
-        createTesterAccount("btc_withdrawal", "withdrawal", "signature_collector")
+        createTesterAccount("btc_withdrawal", "withdrawal", "rollback")
+    }
+
+    val btcWithdrawalSignatureCollectorAccount by lazy {
+        createTesterAccount("signature_collector", "signature_collector")
     }
 
     /** Account that used to store tokens */

@@ -16,6 +16,7 @@ import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountAsset
 import java.io.Closeable
+import java.math.BigDecimal
 
 /**
  * Utility class that makes testing more comfortable
@@ -106,6 +107,17 @@ open class IrohaIntegrationHelperUtil : Closeable {
     }
 
     /**
+     * Add asset to Iroha account
+     * Add asset to creator and then transfer to destination account.
+     * @param accountId - destination account
+     * @param assetId - asset to add
+     * @param amount - amount to add
+     */
+    fun addIrohaAssetTo(accountId: String, assetId: String, amount: BigDecimal) {
+        addIrohaAssetTo(accountId, assetId, amount.toPlainString())
+    }
+
+    /**
      * Returns balance in Iroha
      * Query Iroha account balance
      * @param accountId - account in Iroha
@@ -162,6 +174,37 @@ open class IrohaIntegrationHelperUtil : Closeable {
         return ModelUtil.prepareTransaction(utx, kp)
             .flatMap { tx -> irohaNetwork.sendAndCheck(tx, hash) }
             .get()
+    }
+
+    /**
+     * Transfer asset in iroha with custom creator
+     * @param creator - iroha transaction creator
+     * @param kp - keypair
+     * @param srcAccountId - source account id
+     * @param destAccountId - destination account id
+     * @param assetId - asset id
+     * @param description - transaction description
+     * @param amount - amount
+     * @return hex representation of transaction hash
+     */
+    fun transferAssetIrohaFromClient(
+        creator: String,
+        kp: Keypair,
+        srcAccountId: String,
+        destAccountId: String,
+        assetId: String,
+        description: String,
+        amount: BigDecimal
+    ): String {
+        return transferAssetIrohaFromClient(
+            creator,
+            kp,
+            srcAccountId,
+            destAccountId,
+            assetId,
+            description,
+            amount.toPlainString()
+        )
     }
 
     /**

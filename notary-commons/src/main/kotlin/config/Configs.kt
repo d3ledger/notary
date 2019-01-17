@@ -75,8 +75,8 @@ interface BitcoinConfig {
  */
 interface EthereumPasswords {
     val credentialsPassword: String
-    val nodeLogin: String
-    val nodePassword: String
+    val nodeLogin: String?
+    val nodePassword: String?
 }
 
 /**
@@ -133,25 +133,23 @@ fun <T : Any> loadRawConfigs(prefix: String, type: Class<T>, filename: String): 
 }
 
 /**
- * Loads ETH passwords. Lookup priority: command line args>environment variables>property file
+ * Loads ETH passwords. Lookup priority: environment variables>property file
+ * TODO: implement command line argument parsing
  */
 fun loadEthPasswords(
     prefix: String,
     filename: String,
     args: Array<String> = emptyArray()
 ): Result<EthereumPasswords, Exception> {
-    val ethPasswordsFromArgs = createEthPasswordsFromArgs(args)
-    if (ethPasswordsFromArgs != null) {
-        logger.info { "eth passwords configuration was taken from command line arguments" }
-        return Result.of(ethPasswordsFromArgs)
+    var config = loadConfigs(prefix, EthereumPasswords::class.java, filename).get()
+
+    config = object : EthereumPasswords {
+        override val credentialsPassword = System.getenv(ETH_CREDENTIALS_PASSWORD_ENV) ?: config.credentialsPassword
+        override val nodeLogin = System.getenv(ETH_NODE_LOGIN_ENV) ?: config.nodeLogin
+        override val nodePassword = System.getenv(ETH_NODE_PASSWORD_ENV) ?: config.nodePassword
     }
-    val ethPasswordsFromEnv = createEthPasswordsFromEnv()
-    if (ethPasswordsFromEnv != null) {
-        logger.info { "eth passwords configuration was taken from env variables" }
-        return Result.of(ethPasswordsFromEnv)
-    }
-    logger.info { "eth passwords configuration was taken from properties file" }
-    return loadConfigs(prefix, EthereumPasswords::class.java, filename)
+
+    return Result.of(config)
 }
 
 /**
