@@ -45,6 +45,9 @@ project(':notary-eth-integration-test').projectDir = 'notary-eth-integration-tes
 include 'notary-iroha-integration-test'
 project(':notary-iroha-integration-test').projectDir = 'notary-iroha-integration-test' as File
 
+include 'notary-sora-integration-test'
+project(':notary-sora-integration-test').projectDir = 'notary-sora-integration-test' as File
+
 include 'test-longevity'
 project(':test-longevity').projectDir = 'test-longevity' as File
 

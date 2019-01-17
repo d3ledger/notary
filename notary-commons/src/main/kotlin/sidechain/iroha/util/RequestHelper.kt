@@ -68,6 +68,38 @@ fun getAssetInfo(
 }
 
 /**
+ * Get all account assets
+ *
+ * @param credential - iroha credential
+ * @param irohaNetwork - iroha network layer
+ * @param accountId - iroha account
+ * @return Map (assetId -> balance)
+ * */
+fun getAccountAssets(
+    credential: IrohaCredential,
+    irohaNetwork: IrohaNetwork,
+    accountId: String
+): Result<Map<String, String>, Exception> {
+    val uquery = ModelQueryBuilder()
+        .creatorAccountId(credential.accountId)
+        .queryCounter(BigInteger.valueOf(1))
+        .createdTime(ModelUtil.getCurrentTime())
+        .getAccountAssets(accountId)
+        .build()
+
+    return ModelUtil.prepareQuery(uquery, credential.keyPair)
+        .flatMap { query -> irohaNetwork.sendQuery(query) }
+        .map { queryResponse ->
+            validateResponse(queryResponse, "account_assets_response")
+
+            queryResponse.accountAssetsResponse.accountAssetsList
+                .map {
+                    it.assetId to it.balance
+                }.toMap()
+        }
+}
+
+/**
  * Get asset balance
  *
  * @param credential - iroha credential
@@ -82,25 +114,9 @@ fun getAccountAsset(
     accountId: String,
     assetId: String
 ): Result<String, Exception> {
-    val uquery = ModelQueryBuilder()
-        .creatorAccountId(credential.accountId)
-        .queryCounter(BigInteger.valueOf(1))
-        .createdTime(ModelUtil.getCurrentTime())
-        .getAccountAssets(accountId)
-        .build()
-
-    return ModelUtil.prepareQuery(uquery, credential.keyPair)
-        .flatMap { query -> irohaNetwork.sendQuery(query) }
-        .map { queryResponse ->
-            validateResponse(queryResponse, "account_assets_response")
-
-            val accountAsset = queryResponse.accountAssetsResponse.accountAssetsList
-                .find { it.assetId == assetId }
-
-            accountAsset?.balance ?: "0"
-        }
+    return getAccountAssets(credential, irohaNetwork, accountId)
+        .map { it.getOrDefault(assetId, "0") }
 }
-
 
 /**
  * Retrieves account JSON data from Iroha

@@ -6,6 +6,7 @@ import config.loadConfigs
 import integration.TestConfig
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
+import jp.co.soramitsu.iroha.PublicKey
 import kotlinx.coroutines.runBlocking
 import model.IrohaCredential
 import mu.KLogging
@@ -205,6 +206,24 @@ open class IrohaIntegrationHelperUtil : Closeable {
             description,
             amount.toPlainString()
         )
+    }
+
+    /**
+     * Create iroha account [name]@[domain] with [pubkey]
+     */
+    fun createAccount(name: String, domain: String, pubkey: PublicKey) {
+        ModelUtil.createAccount(irohaConsumer, name, domain, pubkey)
+    }
+
+    /**
+     * Query Iroha account balance from [accountId]. Creator is [credential].
+     * @return Map(assetId to balance)
+     */
+    fun getAccountAssets(
+        credential: IrohaCredential,
+        accountId: String
+    ): Map<String, String> {
+        return sidechain.iroha.util.getAccountAssets(credential, irohaNetwork, accountId).get()
     }
 
     /**
