@@ -2,8 +2,8 @@ package integration.iroha
 
 import integration.helper.IrohaIntegrationHelperUtil
 import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import sidechain.iroha.util.getAccountAsset
@@ -23,6 +23,9 @@ class RequestHelperTest {
 
     private val irohaAPI = IrohaAPI(irohaConfig.hostname, irohaConfig.port)
 
+    private val queryAPI = QueryAPI(irohaAPI, credential.accountId, credential.keyPair)
+
+
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
@@ -39,6 +42,6 @@ class RequestHelperTest {
         val accountId = credential.accountId
         val assetId = "nonexist#nonexist"
 
-        assertEquals("0", getAccountAsset(irohaAPI, credential, accountId, assetId).get())
+        assertEquals("0", getAccountAsset(queryAPI, accountId, assetId).get())
     }
 }

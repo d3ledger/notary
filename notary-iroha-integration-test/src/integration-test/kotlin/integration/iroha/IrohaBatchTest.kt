@@ -4,13 +4,14 @@ import integration.helper.IrohaConfigHelper
 import integration.helper.IrohaIntegrationHelperUtil
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import jp.co.soramitsu.iroha.java.Utils
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
-import notary.IrohaAtomicBatch
 import notary.IrohaCommand
+import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
@@ -47,6 +48,8 @@ class IrohaBatchTest {
     val assetDomain = "notary"
 
     private val irohaAPI = IrohaAPI(testConfig.iroha.hostname, testConfig.iroha.port)
+
+    private val queryAPI = QueryAPI(irohaAPI, testCredential.accountId, testCredential.keyPair)
 
     val listener = IrohaChainListener(
         testConfig.iroha.hostname,
@@ -134,7 +137,7 @@ class IrohaBatchTest {
 
                 )
 
-            val batch = IrohaAtomicBatch(txList)
+            val batch = IrohaOrderedBatch(txList)
             val lst = IrohaConverter.convert(batch, testCredential.keyPair)
             val hashes = lst.map { String.hex(Utils.hash(it)) }
 
@@ -148,10 +151,10 @@ class IrohaBatchTest {
 
             Thread.sleep(BATCH_TIME_WAIT)
 
-            val accountJson = getAccountData(irohaAPI, testCredential, userId).get().toJsonString()
-            val tester_amount = getAccountAsset(irohaAPI, testCredential, tester, "$asset_name#$assetDomain").get()
+            val accountJson = getAccountData(queryAPI, userId).get().toJsonString()
+            val tester_amount = getAccountAsset(queryAPI, tester, "$asset_name#$assetDomain").get()
             val u1_amount =
-                getAccountAsset(irohaAPI, testCredential, userId, "$asset_name#$assetDomain").get()
+                getAccountAsset(queryAPI, userId, "$asset_name#$assetDomain").get()
 
             assertEquals(hashes.size, successHash.size)
             assertTrue(successHash.containsAll(hashes))
@@ -251,16 +254,14 @@ class IrohaBatchTest {
 
                 )
 
-            val batch = IrohaAtomicBatch(txList)
+            val batch = IrohaOrderedBatch(txList)
             val lst = IrohaConverter.convert(batch, testCredential.keyPair)
             val hashes = lst.map { String.hex(Utils.hash(it)) }
             val expectedHashes = hashes.subList(0, hashes.size - 1)
-            val blockHashes = mutableListOf<String>()
 
-            // Since failed tx goes to first block and successful to the second
-            listener.getBlockObservable().get().subscribe { block ->
-                block.blockV1.payload.transactionsList.forEach { tx ->
-                    blockHashes.add(String.hex(Utils.hash(tx)))
+            val blockHashes = GlobalScope.async {
+                listener.getBlock().blockV1.payload.transactionsList.map {
+                    String.hex(Utils.hash(it))
                 }
             }
 
@@ -268,17 +269,22 @@ class IrohaBatchTest {
 
             Thread.sleep(BATCH_TIME_WAIT)
 
-            val accountJson = getAccountData(irohaAPI, testCredential, userId).get().toJsonString()
-            val tester_amount = getAccountAsset(irohaAPI, testCredential, tester, assetId).get()
+            val accountJson = getAccountData(queryAPI, userId).get().toJsonString()
+            val tester_amount = getAccountAsset(queryAPI, tester, assetId).get()
             val u1_amount =
-                getAccountAsset(irohaAPI, testCredential, userId, assetId).get()
+                getAccountAsset(queryAPI, userId, assetId).get()
 
             assertEquals(expectedHashes.size, successHash.size)
             assertTrue(successHash.containsAll(expectedHashes))
             assertEquals("{\"$tester\":{\"key\":\"value\"}}", accountJson)
             assertEquals(73, tester_amount.toInt())
             assertEquals(27, u1_amount.toInt())
-            assertEquals(expectedHashes, blockHashes)
+
+            runBlocking {
+                withTimeout(10_000) {
+                    assertEquals(expectedHashes, blockHashes.await())
+                }
+            }
         }
     }
 }

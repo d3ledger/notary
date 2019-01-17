@@ -3,6 +3,7 @@ package provider.eth
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.util.getAccountDetails
@@ -10,6 +11,7 @@ import sidechain.iroha.util.getAccountDetails
 /**
  * Provides with free ethereum relay wallet
  * @param credential - iroha credetial for queries
+ * @param irohaAPI - iroha network layer
  * @param notaryIrohaAccount - Master notary account in Iroha to write down the information about free relay wallets has been added
  */
 // TODO Prevent double relay accounts usage (in perfect world it is on Iroha side with custom code). In real world
@@ -20,6 +22,8 @@ class EthFreeRelayProvider(
     private val notaryIrohaAccount: String,
     private val registrationIrohaAccount: String
 ) {
+
+    private val queryAPI by lazy { QueryAPI(irohaAPI, credential.accountId, credential.keyPair) }
 
     init {
         EthRelayProviderIrohaImpl.logger.info {
@@ -41,8 +45,7 @@ class EthFreeRelayProvider(
      */
     fun getRelays(): Result<Set<String>, Exception> {
         return getAccountDetails(
-            irohaAPI,
-            credential,
+            queryAPI,
             notaryIrohaAccount,
             registrationIrohaAccount
         ).map { relays ->

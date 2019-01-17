@@ -4,14 +4,14 @@ import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.java.Transaction
 import jp.co.soramitsu.iroha.java.TransactionBuilder
 import jp.co.soramitsu.iroha.java.Utils
-import notary.IrohaAtomicBatch
+import notary.IrohaOrderedBatch
 import notary.IrohaCommand
 import notary.IrohaTransaction
 import util.unHex
 import java.security.KeyPair
 
 /**
- * Class converts Notary [notary.IrohaAtomicBatch] to Iroha [UnsignedTx]
+ * Class converts Notary [notary.IrohaOrderedBatch] to Iroha [UnsignedTx]
  */
 object IrohaConverter {
 
@@ -90,7 +90,7 @@ object IrohaConverter {
      * @param batch - batch full of transactions
      * @return IPJ transactions list
      */
-    fun convert(batch: IrohaAtomicBatch): List<Transaction> {
+    fun convert(batch: IrohaOrderedBatch): List<Transaction> {
         return batch.transactions.map { convert(it) }
     }
 
@@ -101,9 +101,9 @@ object IrohaConverter {
      * @return Iroha protobuf transactions batch list
      */
     fun convert(
-        batch: IrohaAtomicBatch,
+        batch: IrohaOrderedBatch,
         keyPair: KeyPair
     ): Iterable<TransactionOuterClass.Transaction> {
-        return Utils.createTxAtomicBatch(convert(batch).map { it.build() }, keyPair)
+        return Utils.createTxOrderedBatch(convert(batch).map { it.build() }, keyPair)
     }
 }

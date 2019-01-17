@@ -9,6 +9,7 @@ import com.squareup.moshi.Types
 import helper.address.getSignThreshold
 import helper.address.outPutToBase58Address
 import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import mu.KLogging
 import org.bitcoinj.core.ECKey
@@ -35,7 +36,7 @@ class SignCollector(
     @Autowired private val withdrawalConsumer: IrohaConsumer,
     @Autowired private val transactionSigner: TransactionSigner
 ) {
-
+    private val queryAPI by lazy { QueryAPI(irohaAPI, withdrawalCredential.accountId, withdrawalCredential.keyPair) }
     //Adapter for JSON serialization/deserialization
     private val inputSignatureJsonAdapter = Moshi.Builder().build()
         .adapter<List<InputSignature>>(Types.newParameterizedType(List::class.java, InputSignature::class.java))
@@ -76,8 +77,7 @@ class SignCollector(
         */
         val signCollectionAccountId = "${shortTxHash(txHash)}@$BTC_SIGN_COLLECT_DOMAIN"
         return getAccountDetails(
-            irohaAPI,
-            withdrawalCredential,
+            queryAPI,
             signCollectionAccountId,
             withdrawalCredential.accountId
         ).map { signatureDetails ->

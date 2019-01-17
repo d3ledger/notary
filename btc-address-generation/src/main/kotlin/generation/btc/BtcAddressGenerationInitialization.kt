@@ -10,6 +10,7 @@ import io.reactivex.Observable
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
 import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,6 +35,8 @@ class BtcAddressGenerationInitialization(
     @Autowired private val btcPublicKeyProvider: BtcPublicKeyProvider,
     @Autowired private val irohaChainListener: IrohaChainListener
 ) : HealthyService() {
+
+    private val queryAPI = QueryAPI(irohaAPI, registrationCredential.accountId, registrationCredential.keyPair)
 
     /*
     Initiates listener that listens to events in trigger account.
@@ -86,8 +89,7 @@ class BtcAddressGenerationInitialization(
         addressType: BtcAddressType
     ): Result<Unit, Exception> {
         return getAccountDetails(
-            irohaAPI,
-            registrationCredential,
+            queryAPI,
             sessionAccount,
             btcAddressGenerationConfig.registrationAccount.accountId
         ).flatMap { details ->

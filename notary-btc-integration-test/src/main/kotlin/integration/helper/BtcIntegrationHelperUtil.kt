@@ -6,8 +6,8 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import config.BitcoinConfig
 import mu.KLogging
-import notary.IrohaAtomicBatch
 import notary.IrohaCommand
+import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.ECKey
@@ -99,7 +99,7 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
                 )
                 irohaTxList.add(irohaTx)
             }
-            val utx = IrohaConverter.convert(IrohaAtomicBatch(irohaTxList))
+            val utx = IrohaConverter.convert(IrohaOrderedBatch(irohaTxList))
             mstRegistrationIrohaConsumer.send(utx).failure { ex -> throw ex }
         }
     }

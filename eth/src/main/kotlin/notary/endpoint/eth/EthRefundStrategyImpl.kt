@@ -7,6 +7,7 @@ import config.EthereumConfig
 import config.EthereumPasswords
 import iroha.protocol.TransactionOuterClass.Transaction
 import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import mu.KLogging
 import notary.eth.EthNotaryConfig
@@ -16,7 +17,7 @@ import provider.eth.EthTokensProvider
 import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
-import sidechain.iroha.util.ModelUtil
+import sidechain.iroha.util.getSingleTransaction
 import java.math.BigDecimal
 
 class NotaryException(reason: String) : Exception(reason)
@@ -32,7 +33,7 @@ class EthRefundStrategyImpl(
     ethereumPasswords: EthereumPasswords,
     private val tokensProvider: EthTokensProvider
 ) : EthRefundStrategy {
-
+    private val queryAPI by lazy { QueryAPI(irohaAPI, credential.accountId, credential.keyPair) }
     private val relayProvider = EthRelayProviderIrohaImpl(
         irohaAPI,
         credential,
@@ -49,7 +50,7 @@ class EthRefundStrategyImpl(
     override fun performRefund(request: EthRefundRequest): EthNotaryResponse {
         logger.info("Check tx ${request.irohaTx} for refund")
 
-        return ModelUtil.getTransaction(irohaAPI, credential, request.irohaTx)
+        return getSingleTransaction(queryAPI, request.irohaTx)
             .flatMap { checkTransaction(it, request) }
             .flatMap { makeRefund(it) }
             .fold({ it },

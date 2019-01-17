@@ -3,6 +3,7 @@ package provider.eth
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.util.getAccountDetails
@@ -27,6 +28,8 @@ class EthTokensProviderImpl(
     private val tokenSetterAccount: String
 ) : EthTokensProvider {
 
+    private val queryAPI = QueryAPI(irohaAPI, credential.accountId, credential.keyPair)
+
     init {
         logger.info { "Init token provider, storage: '$tokenStorageAccount', setter: '$tokenSetterAccount'" }
     }
@@ -36,8 +39,7 @@ class EthTokensProviderImpl(
      */
     override fun getTokens(): Result<Map<String, String>, Exception> {
         return getAccountDetails(
-            irohaAPI,
-            credential,
+            queryAPI,
             tokenStorageAccount,
             tokenSetterAccount
         )
@@ -50,8 +52,7 @@ class EthTokensProviderImpl(
         return if (name == ETH_NAME)
             Result.of { ETH_PRECISION }
         else getAssetPrecision(
-            irohaAPI,
-            credential,
+            queryAPI,
             "$name#ethereum"
         )
     }
@@ -63,8 +64,7 @@ class EthTokensProviderImpl(
         return if (name == ETH_NAME)
             Result.of { ETH_ADDRESS }
         else getAccountDetails(
-            irohaAPI,
-            credential,
+            queryAPI,
             tokenStorageAccount,
             tokenSetterAccount
         ).map { tokens ->

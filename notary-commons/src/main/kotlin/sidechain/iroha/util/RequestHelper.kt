@@ -8,108 +8,82 @@ import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
 import iroha.protocol.QryResponses
 import iroha.protocol.TransactionOuterClass
-import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.Query
-import jp.co.soramitsu.iroha.java.QueryBuilder
-import model.IrohaCredential
-import java.time.Instant
+import jp.co.soramitsu.iroha.java.QueryAPI
 
 /**
  * Get asset precision
  *
- * @param iroha - iroha network layer
- * @param irohaCredential - iroha account
+ * @param queryAPI - iroha queries network layer
  * @param assetId asset id in Iroha
  */
 fun getAssetPrecision(
-    iroha: IrohaAPI,
-    irohaCredential: IrohaCredential,
+    queryAPI: QueryAPI,
     assetId: String
 ): Result<Int, Exception> {
-    val query = QueryBuilder(irohaCredential.accountId, Instant.now(), 1)
-        .getAssetInfo(assetId)
-        .buildSigned(irohaCredential.keyPair)
-
-    return Result.of { iroha.query(query) }
+    return Result.of { queryAPI.getAssetInfo(assetId) }
         .map { queryResponse ->
-            validateResponse(queryResponse, "asset_response")
-            queryResponse.assetResponse.asset.precision
+            val asset = queryResponse.asset
+            if(asset.assetId.isNullOrEmpty()) {
+                throw Exception("There is no such asset.")
+            }
+            asset.precision
         }
 }
 
 /**
  * Get asset balance
  *
- * @param iroha - iroha network layer
- * @param irohaCredential - iroha account
- * @param accountId - iroha account
+ * @param queryAPI - iroha queries network layer
+ * @param accountId - account in Iroha
+ * @param assetId - asset id in Iroha
  *
  * @return asset account balance if asset is found, otherwise "0"
  */
 fun getAccountAsset(
-    iroha: IrohaAPI,
-    irohaCredential: IrohaCredential,
+    queryAPI: QueryAPI,
     accountId: String,
     assetId: String
 ): Result<String, Exception> {
-    val query = Query.builder(irohaCredential.accountId, 1)
-        .getAccountAssets(accountId)
-        .buildSigned(irohaCredential.keyPair)
-
-    return Result.of { iroha.query(query) }
+    return Result.of { queryAPI.getAccountAssets(accountId) }
         .map { queryResponse ->
-            validateResponse(queryResponse, "account_assets_response")
-
-            val accountAsset = queryResponse.accountAssetsResponse.accountAssetsList
+            val accountAsset = queryResponse.accountAssetsList
                 .find { it.assetId == assetId }
 
             accountAsset?.balance ?: "0"
         }
 }
 
-
 /**
  * Retrieves account JSON data from Iroha
- * @param iroha - iroha network layer
- * @param irohaCredential - iroha account
+ * @param queryAPI - iroha queries network layer
  * @param acc account to retrieve relays from
  * @return Map with account details
  */
 fun getAccountData(
-    iroha: IrohaAPI,
-    irohaCredential: IrohaCredential,
+    queryAPI: QueryAPI,
     acc: String
 ): Result<JsonObject, Exception> {
-    val query = Query.builder(irohaCredential.accountId, 1)
-        .getAccount(acc)
-        .buildSigned(irohaCredential.keyPair)
-
-    return Result.of { iroha.query(query) }
+    return Result.of { queryAPI.getAccount(acc) }
         .map { queryResponse ->
-            validateResponse(queryResponse, "account_response")
-            val account = queryResponse.accountResponse.account
-            val stringBuilder = StringBuilder(account.jsonData)
+            val stringBuilder = StringBuilder(queryResponse.account.jsonData)
             Parser().parse(stringBuilder) as JsonObject
         }
 }
 
 /**
  * Retrieves account details by setter from Iroha
- * @param iroha - iroha network layer
- * @param irohaCredential - iroha account
+ * @param queryAPI - iroha queries network layer
  * @param acc - account to read details from
  * @param detailSetterAccount - account that has set the details
  * @return Map with account details
  */
 fun getAccountDetails(
-    iroha: IrohaAPI,
-    irohaCredential: IrohaCredential,
+    queryAPI: QueryAPI,
     acc: String,
     detailSetterAccount: String
 ): Result<Map<String, String>, Exception> {
     return getAccountData(
-        iroha,
-        irohaCredential,
+        queryAPI,
         acc
     ).map { json ->
         if (json.map[detailSetterAccount] == null)
@@ -120,18 +94,34 @@ fun getAccountDetails(
 }
 
 /**
+ * Get transactions from Iroha by [hash]
+ * @param queryAPI - iroha queries network layer
+ * @param hashes - hex hashes of transactions
+ * @return transaction
+ */
+fun getTransactions(
+    queryAPI: QueryAPI,
+    hashes: Iterable<String>
+): Result<QryResponses.TransactionsResponse, Exception> {
+    return Result.of { queryAPI.getTransactions(hashes) }
+}
+
+/**
  * Return first transaction from transaction query response
- * @param queryResponse - query response on getTransactions
+ * @param queryAPI - iroha queries network layer
+ * @param hash - hex hash of transaction
  * @return first transaction
  */
-fun getFirstTransaction(queryResponse: QryResponses.QueryResponse): Result<TransactionOuterClass.Transaction, Exception> {
-    return Result.of {
-        validateResponse(queryResponse, "transactions_response")
-        if (queryResponse.transactionsResponse.transactionsCount == 0)
+fun getSingleTransaction(
+    queryAPI: QueryAPI,
+    hash: String
+): Result<TransactionOuterClass.Transaction, Exception> {
+    return getTransactions(queryAPI, listOf(hash)).map { queryResponse ->
+        if (queryResponse.transactionsCount == 0)
             throw Exception("There is no transactions.")
 
         // return transaction
-        queryResponse.transactionsResponse.transactionsList[0]
+        queryResponse.transactionsList[0]
     }
 }
 
@@ -154,16 +144,4 @@ fun getSetDetailCommands(block: BlockOuterClass.Block): List<Commands.Command> {
 fun getTransferCommands(block: BlockOuterClass.Block): List<Commands.Command> {
     return block.blockV1.payload.transactionsList.flatMap { tx -> tx.payload.reducedPayload.commandsList }
         .filter { command -> command.hasTransferAsset() }
-}
-
-/**
- * Throws exception, if fieldName is not present
- * @param queryResponse - query response on getTransactions
- * @param fieldName - field name to validate
- */
-private fun validateResponse(queryResponse: QryResponses.QueryResponse, fieldName: String) {
-    val fieldDescriptor = queryResponse.descriptorForType.findFieldByName(fieldName)
-    if (!queryResponse.hasField(fieldDescriptor)) {
-        throw IllegalStateException("Query response error: ${queryResponse.errorResponse}")
-    }
 }

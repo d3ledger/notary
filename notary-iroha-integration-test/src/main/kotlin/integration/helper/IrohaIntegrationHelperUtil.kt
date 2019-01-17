@@ -1,9 +1,9 @@
 package integration.helper
 
-import com.github.kittinunf.result.map
 import config.loadConfigs
 import integration.TestConfig
 import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import jp.co.soramitsu.iroha.java.Transaction
 import kotlinx.coroutines.runBlocking
 import model.IrohaCredential
@@ -12,7 +12,6 @@ import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountAsset
-import util.hex
 import java.io.Closeable
 import java.math.BigDecimal
 import java.security.KeyPair
@@ -51,6 +50,9 @@ open class IrohaIntegrationHelperUtil : Closeable {
         IrohaConsumerImpl(testCredential, irohaAPI)
     }
 
+    val queryAPI by lazy { QueryAPI(irohaAPI, testCredential.accountId, testCredential.keyPair) }
+
+
     protected val irohaListener = IrohaChainListener(
         testConfig.iroha.hostname,
         testConfig.iroha.port,
@@ -77,8 +79,7 @@ open class IrohaIntegrationHelperUtil : Closeable {
 
     fun getAccountDetails(accountDetailHolder: String, accountDetailSetter: String): Map<String, String> {
         return sidechain.iroha.util.getAccountDetails(
-            irohaAPI,
-            testCredential,
+            queryAPI,
             accountDetailHolder,
             accountDetailSetter
         ).get()
@@ -113,8 +114,7 @@ open class IrohaIntegrationHelperUtil : Closeable {
      */
     fun getIrohaAccountBalance(accountId: String, assetId: String): String {
         return getAccountAsset(
-            irohaAPI,
-            testCredential,
+            queryAPI,
             accountId,
             assetId
         ).get()

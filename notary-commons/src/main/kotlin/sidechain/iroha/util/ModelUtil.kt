@@ -4,17 +4,13 @@ import com.github.kittinunf.result.Result
 import io.reactivex.Observable
 import iroha.protocol.Primitive
 import iroha.protocol.QryResponses
-import iroha.protocol.QryResponses.QueryResponse
-import iroha.protocol.TransactionOuterClass.Transaction
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import jp.co.soramitsu.iroha.java.BlocksQueryBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.Query
 import jp.co.soramitsu.iroha.java.Utils
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.consumer.IrohaConsumer
-import util.unHex
 import java.io.IOException
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -56,7 +52,7 @@ object ModelUtil {
     fun loadKeypair(pubkeyPath: String, privkeyPath: String): Result<KeyPair, Exception> {
         return Result.of {
             try {
-                Utils.keyPair(readKeyFromFile(pubkeyPath), readKeyFromFile(privkeyPath))
+                Utils.parseHexKeypair(readKeyFromFile(pubkeyPath), readKeyFromFile(privkeyPath))
             } catch (e: IOException) {
                 throw Exception("Unable to read Iroha key files. Public key: $pubkeyPath, Private key: $privkeyPath", e)
             }
@@ -65,34 +61,6 @@ object ModelUtil {
 
     fun generateKeypair(): KeyPair {
         return Ed25519Sha3().generateKeypair()
-    }
-
-    /**
-     * Checks if query response is stateless valid, used to
-     * know when to increase query counter
-     * @param resp - query response
-     * @return true if query is stateless valid
-     */
-    fun isStatelessValid(resp: QueryResponse) =
-        !(resp.hasErrorResponse() &&
-                resp.errorResponse.reason.toString() == "STATELESS_INVALID")
-
-    /**
-     * Get transaction from Iroha by [hash]
-     * @param iroha - iroha network layer
-     * @param irohaCredential - iroha account
-     * @param hash - hash of transaction
-     * @return transaction
-     */
-    fun getTransaction(
-        iroha: IrohaAPI,
-        irohaCredential: IrohaCredential,
-        hash: String
-    ): Result<Transaction, Exception> {
-        val query = Query.builder(irohaCredential.accountId, 1)
-            .getTransactions(listOf(String.unHex(hash)))
-            .buildSigned(irohaCredential.keyPair)
-        return getFirstTransaction(iroha.query(query))
     }
 
     /**

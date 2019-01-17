@@ -40,13 +40,13 @@ class NotaryImpl(
         asset: String,
         amount: String,
         from: String
-    ): IrohaAtomicBatch {
+    ): IrohaOrderedBatch {
 
         logger.info { "Transfer $asset event: hash($hash) time($time) user($account) asset($asset) value ($amount)" }
 
         val quorum = peerListProvider.getPeerList().size
 
-        return IrohaAtomicBatch(
+        return IrohaOrderedBatch(
             arrayListOf(
                 IrohaTransaction(
                     creator,
@@ -86,7 +86,7 @@ class NotaryImpl(
     /**
      * Handle primary chain event
      */
-    override fun onPrimaryChainEvent(chainInputEvent: SideChainEvent.PrimaryBlockChainEvent): IrohaAtomicBatch {
+    override fun onPrimaryChainEvent(chainInputEvent: SideChainEvent.PrimaryBlockChainEvent): IrohaOrderedBatch {
         logger.info { "Notary performs primary chain event $chainInputEvent" }
         return when (chainInputEvent) {
             is SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit -> onPrimaryChainDeposit(
@@ -103,7 +103,7 @@ class NotaryImpl(
     /**
      * Relay side chain [SideChainEvent] to Iroha output
      */
-    override fun irohaOutput(): Observable<IrohaAtomicBatch> {
+    override fun irohaOutput(): Observable<IrohaOrderedBatch> {
         return primaryChainEvents.map { event ->
             onPrimaryChainEvent(event)
         }

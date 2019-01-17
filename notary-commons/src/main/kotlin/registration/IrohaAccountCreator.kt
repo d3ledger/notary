@@ -3,7 +3,7 @@ package registration
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import mu.KLogging
-import notary.IrohaAtomicBatch
+import notary.IrohaOrderedBatch
 import notary.IrohaCommand
 import notary.IrohaTransaction
 import sidechain.iroha.CLIENT_DOMAIN
@@ -77,9 +77,9 @@ open class IrohaAccountCreator(
         userName: String,
         pubkey: String,
         notaryStorageStrategy: () -> String
-    ): IrohaAtomicBatch {
+    ): IrohaOrderedBatch {
         val accountId = "$userName@$CLIENT_DOMAIN"
-        return IrohaAtomicBatch(
+        return IrohaOrderedBatch(
             listOf(
                 IrohaTransaction(
                     creator,

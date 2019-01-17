@@ -6,6 +6,7 @@ import com.github.kittinunf.result.map
 import com.squareup.moshi.Moshi
 import io.reactivex.Observable
 import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import mu.KLogging
 import notary.endpoint.eth.BigIntegerMoshiAdapter
@@ -20,6 +21,7 @@ import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountDetails
+import sidechain.iroha.util.getSingleTransaction
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -55,6 +57,7 @@ class WithdrawalServiceImpl(
     val irohaAPI: IrohaAPI,
     private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
 ) : WithdrawalService {
+    private val queryAPI by lazy { QueryAPI(irohaAPI, credential.accountId, credential.keyPair) }
     private val notaryPeerListProvider = NotaryPeerListProviderImpl(
         irohaAPI,
         credential,
@@ -74,8 +77,7 @@ class WithdrawalServiceImpl(
 
     private fun findInAccDetail(acc: String, name: String): Result<String, Exception> {
         return getAccountDetails(
-            irohaAPI,
-            credential,
+            queryAPI,
             acc,
             withdrawalServiceConfig.registrationIrohaAccount
         ).map { relays ->
@@ -196,7 +198,7 @@ class WithdrawalServiceImpl(
         }
 
         logger.info("Withdrawal rollback initiated: ${event.proof.irohaHash}")
-        return ModelUtil.getTransaction(irohaAPI, credential, event.proof.irohaHash)
+        return getSingleTransaction(queryAPI, event.proof.irohaHash)
             .map { tx ->
                 tx.payload.reducedPayload.commandsList.first { command ->
                     val transferAsset = command.transferAsset

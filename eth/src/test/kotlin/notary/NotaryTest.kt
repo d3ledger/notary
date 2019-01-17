@@ -72,9 +72,9 @@ class NotaryTest {
         expectedUserId: String,
         expectedFrom: String,
         expectedTime: BigInteger,
-        result: Observable<IrohaAtomicBatch>
+        result: Observable<IrohaOrderedBatch>
     ) {
-        val observer = TestObserver<IrohaAtomicBatch>()
+        val observer = TestObserver<IrohaOrderedBatch>()
         result.subscribe(observer)
 
         observer.assertNoErrors()
