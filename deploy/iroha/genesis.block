@@ -251,6 +251,19 @@
               },
               {
                 "createAccount": {
+                  "accountName": "registration_service",
+                  "domainId": "notary",
+                  "publicKey": "KNoWbCw34wLXUa2EQq9ev6sJffUivPRxf57yTnIjdd4="
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "registration_service@notary",
+                  "roleName": "registration_service"
+                }
+              },
+              {
+                "createAccount": {
                   "accountName": "eth_registration_service",
                   "domainId": "notary",
                   "publicKey": "/iaL2sezwMrJRx6RUpm0gZkcmwsUVD9lhoxWHa/Wtok="
