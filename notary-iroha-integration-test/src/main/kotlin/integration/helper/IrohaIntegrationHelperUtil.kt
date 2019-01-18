@@ -6,6 +6,7 @@ import config.loadConfigs
 import integration.TestConfig
 import jp.co.soramitsu.iroha.Keypair
 import jp.co.soramitsu.iroha.ModelTransactionBuilder
+import jp.co.soramitsu.iroha.PublicKey
 import kotlinx.coroutines.runBlocking
 import model.IrohaCredential
 import mu.KLogging
@@ -14,7 +15,7 @@ import sidechain.iroha.IrohaInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
-import sidechain.iroha.util.getAccountAsset
+import sidechain.iroha.util.getAccountAssetBalance
 import java.io.Closeable
 import java.math.BigDecimal
 
@@ -122,11 +123,16 @@ open class IrohaIntegrationHelperUtil : Closeable {
      * Query Iroha account balance
      * @param accountId - account in Iroha
      * @param assetId - asset in Iroha
+     * @param credential - credential of query creator
      * @return balance of account asset
      */
-    fun getIrohaAccountBalance(accountId: String, assetId: String): String {
-        return getAccountAsset(
-            testCredential,
+    fun getIrohaAccountBalance(
+        accountId: String,
+        assetId: String,
+        credential: IrohaCredential = testCredential
+    ): String {
+        return getAccountAssetBalance(
+            credential,
             irohaNetwork,
             accountId,
             assetId
@@ -205,6 +211,24 @@ open class IrohaIntegrationHelperUtil : Closeable {
             description,
             amount.toPlainString()
         )
+    }
+
+    /**
+     * Create iroha account [name]@[domain] with [pubkey]
+     */
+    fun createAccount(name: String, domain: String, pubkey: PublicKey) {
+        ModelUtil.createAccount(irohaConsumer, name, domain, pubkey)
+    }
+
+    /**
+     * Query Iroha account balance from [accountId]. Creator is [credential].
+     * @return Map(assetId to balance)
+     */
+    fun getAccountAssets(
+        credential: IrohaCredential,
+        accountId: String
+    ): Map<String, String> {
+        return sidechain.iroha.util.getAccountAssets(credential, irohaNetwork, accountId).get()
     }
 
     /**
