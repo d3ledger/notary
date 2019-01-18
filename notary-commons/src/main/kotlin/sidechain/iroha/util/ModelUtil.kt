@@ -308,4 +308,25 @@ object ModelUtil {
                 .build()
         )
     }
+
+    /**
+     * Create account in Iroha.
+     * @param name - account name
+     * @param domain - account domain
+     * @return hex
+     */
+    fun createAccount(
+        irohaConsumer: IrohaConsumer,
+        name: String,
+        domain: String,
+        pubkey: PublicKey
+    ): Result<String, Exception> {
+        return irohaConsumer.sendAndCheck(
+            ModelTransactionBuilder()
+                .creatorAccountId(irohaConsumer.creator)
+                .createdTime(getCurrentTime())
+                .createAccount(name, domain, pubkey)
+                .build()
+        )
+    }
 }

@@ -22,7 +22,7 @@ import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverterImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
-import sidechain.iroha.util.getAccountAsset
+import sidechain.iroha.util.getAccountAssetBalance
 import sidechain.iroha.util.getAccountData
 import sidechain.iroha.util.toByteVector
 import util.getRandomString
@@ -147,9 +147,10 @@ class IrohaBatchTest {
             val successHash = irohaConsumer.sendAndCheck(lst).get()
 
             val accountJson = getAccountData(testCredential, irohaNetwork, userId).get().toJsonString()
-            val tester_amount = getAccountAsset(testCredential, irohaNetwork, tester, "$asset_name#$assetDomain").get()
+            val tester_amount =
+                getAccountAssetBalance(testCredential, irohaNetwork, tester, "$asset_name#$assetDomain").get()
             val u1_amount =
-                getAccountAsset(testCredential, irohaNetwork, userId, "$asset_name#$assetDomain").get()
+                getAccountAssetBalance(testCredential, irohaNetwork, userId, "$asset_name#$assetDomain").get()
 
             assertEquals(hashes, successHash)
             assertEquals("{\"$tester\":{\"key\":\"value\"}}", accountJson)
@@ -261,9 +262,9 @@ class IrohaBatchTest {
             val successHash = irohaConsumer.sendAndCheck(lst).get()
 
             val accountJson = getAccountData(testCredential, irohaNetwork, userId).get().toJsonString()
-            val tester_amount = getAccountAsset(testCredential, irohaNetwork, tester, assetId).get()
+            val tester_amount = getAccountAssetBalance(testCredential, irohaNetwork, tester, assetId).get()
             val u1_amount =
-                getAccountAsset(testCredential, irohaNetwork, userId, assetId).get()
+                getAccountAssetBalance(testCredential, irohaNetwork, userId, assetId).get()
 
             assertEquals(expectedHashes, successHash)
             assertEquals("{\"$tester\":{\"key\":\"value\"}}", accountJson)
