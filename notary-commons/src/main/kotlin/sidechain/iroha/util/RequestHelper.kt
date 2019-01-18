@@ -70,20 +70,18 @@ fun getAssetInfo(
 }
 
 /**
- * Get asset balance
+ * Get all account assets
  *
  * @param credential - iroha credential
  * @param irohaNetwork - iroha network layer
  * @param accountId - iroha account
- *
- * @return asset account balance if asset is found, otherwise "0"
- */
-fun getAccountAsset(
+ * @return Map (assetId -> balance)
+ * */
+fun getAccountAssets(
     credential: IrohaCredential,
     irohaNetwork: IrohaNetwork,
-    accountId: String,
-    assetId: String
-): Result<String, Exception> {
+    accountId: String
+): Result<Map<String, String>, Exception> {
     val uquery = ModelQueryBuilder()
         .creatorAccountId(credential.accountId)
         .queryCounter(BigInteger.valueOf(1))
@@ -96,13 +94,31 @@ fun getAccountAsset(
         .map { queryResponse ->
             validateResponse(queryResponse, "account_assets_response")
 
-            val accountAsset = queryResponse.accountAssetsResponse.accountAssetsList
-                .find { it.assetId == assetId }
-
-            accountAsset?.balance ?: "0"
+            queryResponse.accountAssetsResponse.accountAssetsList
+                .map {
+                    it.assetId to it.balance
+                }.toMap()
         }
 }
 
+/**
+ * Get asset balance
+ *
+ * @param credential - iroha credential
+ * @param irohaNetwork - iroha network layer
+ * @param accountId - iroha account
+ *
+ * @return asset account balance if asset is found, otherwise "0"
+ */
+fun getAccountAssetBalance(
+    credential: IrohaCredential,
+    irohaNetwork: IrohaNetwork,
+    accountId: String,
+    assetId: String
+): Result<String, Exception> {
+    return getAccountAssets(credential, irohaNetwork, accountId)
+        .map { it.getOrDefault(assetId, "0") }
+}
 
 /**
  * Retrieves account JSON data from Iroha

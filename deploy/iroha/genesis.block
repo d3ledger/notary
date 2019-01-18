@@ -187,6 +187,34 @@
                 }
               },
               {
+                "createRole": {
+                  "roleName": "sora",
+                  "permissions": [
+                    "can_get_my_acc_ast",
+                    "can_transfer",
+                    "can_receive"
+                  ]
+                }
+              },
+              {
+                "createRole": {
+                  "roleName": "sora_client",
+                  "permissions": [
+                    "can_get_my_account",
+                    "can_get_my_acc_ast",
+                    "can_get_my_acc_ast_txs",
+                    "can_get_my_acc_txs",
+                    "can_get_my_txs",
+                    "can_transfer",
+                    "can_receive",
+                    "can_set_quorum",
+                    "can_add_signatory",
+                    "can_get_my_signatories",
+                    "can_remove_signatory"
+                  ]
+                }
+              },
+              {
                 "createDomain": {
                   "domainId": "notary",
                   "defaultRole": "none"
@@ -208,6 +236,19 @@
                 "createDomain": {
                   "domainId": "ethereum",
                   "defaultRole": "none"
+                }
+              },
+              {
+                "createDomain": {
+                  "domainId": "sora",
+                  "defaultRole": "sora_client"
+                }
+              },
+              {
+                "createAsset": {
+                  "assetName": "xor",
+                  "domainId": "sora",
+                  "precision": 0
                 }
               },
               {
@@ -454,6 +495,19 @@
                 "appendRole": {
                   "accountId": "admin@notary",
                   "roleName": "admin"
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "sora",
+                  "domainId": "sora",
+                  "publicKey": "VmWHWyKLnu5R+7dSXiG3/It9uftuksDG/ZJpsTQqGwM="
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "sora@sora",
+                  "roleName": "sora"
                 }
               }
             ],
