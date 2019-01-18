@@ -87,11 +87,11 @@ class SoraIntegrationTest {
 
         assertEquals(
             "4",
-            integrationHelper.getAccountAssets(clientAliceCredential, aliceClientId).getOrDefault(xorAsset, "0")
+            integrationHelper.getIrohaAccountBalance(aliceClientId, xorAsset, clientAliceCredential)
         )
         assertEquals(
             "1330",
-            integrationHelper.getAccountAssets(clientBobCredential, bobClientId).getOrDefault(xorAsset, "0")
+            integrationHelper.getIrohaAccountBalance(bobClientId, xorAsset, clientBobCredential)
         )
     }
 
@@ -143,11 +143,11 @@ class SoraIntegrationTest {
 
         assertEquals(
             "17",
-            integrationHelper.getAccountAssets(clientAliceCredential, aliceClientId).getOrDefault(xorAsset, "0")
+            integrationHelper.getIrohaAccountBalance(aliceClientId, xorAsset, clientAliceCredential)
         )
         assertEquals(
             "18",
-            integrationHelper.getAccountAssets(clientBobCredential, bobClientId).getOrDefault(xorAsset, "0")
+            integrationHelper.getIrohaAccountBalance(bobClientId, xorAsset, clientBobCredential)
         )
     }
 

@@ -123,11 +123,16 @@ open class IrohaIntegrationHelperUtil : Closeable {
      * Query Iroha account balance
      * @param accountId - account in Iroha
      * @param assetId - asset in Iroha
+     * @param credential - credential of query creator
      * @return balance of account asset
      */
-    fun getIrohaAccountBalance(accountId: String, assetId: String): String {
+    fun getIrohaAccountBalance(
+        accountId: String,
+        assetId: String,
+        credential: IrohaCredential = testCredential
+    ): String {
         return getAccountAssetBalance(
-            testCredential,
+            credential,
             irohaNetwork,
             accountId,
             assetId
