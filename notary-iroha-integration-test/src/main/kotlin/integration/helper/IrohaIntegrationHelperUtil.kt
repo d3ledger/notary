@@ -95,6 +95,17 @@ open class IrohaIntegrationHelperUtil : Closeable {
     }
 
     /**
+     * Return [account] data.
+     */
+    fun getAccount(account: String): String {
+        return sidechain.iroha.util.getAccountData(
+            testCredential,
+            irohaNetwork,
+            account
+        ).get().toString()
+    }
+
+    /**
      * Add asset to Iroha account
      * Add asset to creator and then transfer to destination account.
      * @param accountId - destination account

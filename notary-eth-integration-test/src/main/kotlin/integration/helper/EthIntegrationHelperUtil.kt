@@ -18,6 +18,7 @@ import registration.eth.EthRegistrationConfig
 import registration.eth.EthRegistrationStrategyImpl
 import registration.eth.relay.RelayRegistration
 import sidechain.eth.EthChainListener
+import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import token.EthTokenInfo
@@ -270,7 +271,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         whitelist: List<String>,
         keypair: Keypair = ModelCrypto().generateKeypair()
     ): String {
-        ethRegistrationStrategy.register(name, whitelist, keypair.publicKey().hex())
+        ethRegistrationStrategy.register(name, CLIENT_DOMAIN, whitelist, keypair.publicKey().hex())
             .fold({ registeredEthWallet ->
                 logger.info("registered client $name with relay $registeredEthWallet")
                 return registeredEthWallet

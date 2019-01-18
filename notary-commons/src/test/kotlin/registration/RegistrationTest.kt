@@ -34,6 +34,7 @@ open class RegistrationTest {
             register(
                 com.nhaarman.mockito_kotlin.any(),
                 com.nhaarman.mockito_kotlin.any(),
+                com.nhaarman.mockito_kotlin.any(),
                 com.nhaarman.mockito_kotlin.any()
             )
         } doReturn Result.of { correctEthWallet }

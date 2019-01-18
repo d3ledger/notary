@@ -1,10 +1,17 @@
 package integration.sora
 
+import config.loadConfigs
 import integration.helper.IrohaIntegrationHelperUtil
 import jp.co.soramitsu.iroha.ModelCrypto
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import model.IrohaCredential
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.fail
+import registration.NotaryRegistrationConfig
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import kotlin.test.assertEquals
@@ -21,8 +28,24 @@ class SoraIntegrationTest {
     val domain = "sora"
     val xorAsset = "xor#$domain"
 
+    val registrationConfig =
+        loadConfigs("registration", NotaryRegistrationConfig::class.java, "/registration.properties").get()
+
     init {
         System.loadLibrary("irohajava")
+
+        GlobalScope.launch {
+            RegistrationServiceTestEnvironment(integrationHelper).registrationInitialization.init()
+        }
+
+        runBlocking { delay(20_000) }
+    }
+
+    /**
+     * Send POST request to local server
+     */
+    fun post(params: Map<String, String>): khttp.responses.Response {
+        return khttp.post("http://127.0.0.1:${registrationConfig.port}/users", data = params)
     }
 
     /**
@@ -149,6 +172,35 @@ class SoraIntegrationTest {
             "18",
             integrationHelper.getIrohaAccountBalance(bobClientId, xorAsset, clientBobCredential)
         )
+    }
+
+    /**
+     * Test registration
+     * @given Registration service is up and running
+     * @when POST query is sent to register a user with `name` and `pubkey` and domain 'sora'
+     * @then new account 'name@sora' is created in Iroha
+     */
+    @Test
+    fun correctRegistration() {
+        val name = String.getRandomString(9)
+        val pubkey = ModelCrypto().generateKeypair().publicKey().hex()
+
+        val res = post(
+            mapOf(
+                "name" to name,
+                "pubkey" to pubkey,
+                "domain" to domain
+            )
+        )
+
+        assertEquals(200, res.statusCode)
+
+        // ensure account is created
+        try {
+            integrationHelper.getAccount("$name@$domain")
+        } catch (exc: Exception) {
+            fail { "Expected no exceptions, but got $exc" }
+        }
     }
 
 }

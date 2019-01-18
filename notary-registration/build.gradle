@@ -17,24 +17,24 @@ mainClassName = "registration.RegistrationMain"
 dependencies {
     compile project(":notary-commons")
 
-        //Spring-boot
-        compile('org.springframework.boot:spring-boot-starter') {
-            exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
-        }
-        compile("org.springframework.boot:spring-boot-starter-web") {
-            exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
-            exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
-            exclude group: 'org.hibernate'
-        }
+    //Spring-boot
+    compile('org.springframework.boot:spring-boot-starter') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
+    compile("org.springframework.boot:spring-boot-starter-web") {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+        exclude group: 'org.hibernate'
+    }
 
-        compile 'org.springframework.boot:spring-boot-starter-jetty'
+    compile 'org.springframework.boot:spring-boot-starter-jetty'
 
-        compile('org.springframework.boot:spring-boot-starter-actuator') {
-            exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
-        }
+    compile('org.springframework.boot:spring-boot-starter-actuator') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
 
-        // https://mvnrepository.com/artifact/commons-logging/commons-logging
-        compile group: 'commons-logging', name: 'commons-logging', version: '1.2'
+    // https://mvnrepository.com/artifact/commons-logging/commons-logging
+    compile group: 'commons-logging', name: 'commons-logging', version: '1.2'
 }
 
 task runRegistration(type: JavaExec) {

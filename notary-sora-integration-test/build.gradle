@@ -1,12 +1,20 @@
+import java.nio.file.Paths
+
 buildscript {
     repositories {
         mavenCentral()
         jcenter()
     }
 }
+
 dependencies {
+    // Iroha bindings
+    def iroha_bindings_dir = Paths.get(projectDir.getParent().toString(), "iroha_bindings").toString()
+    compile fileTree(dir: iroha_bindings_dir, include: '*.jar')
+
     compile project(":notary-commons")
     compile project(":notary-iroha-integration-test")
+    compile project(":notary-registration")
 
     // unit tests
     testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
@@ -21,7 +29,7 @@ sourceSets {
             srcDirs += 'src/integration-test/kotlin'
         }
         resources {
-            srcDirs= ["src/integration-test/resources"]
+            srcDirs = ["src/integration-test/resources"]
         }
     }
 }

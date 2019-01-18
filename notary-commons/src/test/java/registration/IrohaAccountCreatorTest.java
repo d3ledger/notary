@@ -121,19 +121,20 @@ public class IrohaAccountCreatorTest {
         String whitelistKey = "white_list_key";
         List<String> whitelist = new ArrayList<>();
         String userName = "user_name";
+        String domain = "domain";
         String pubKey = "pub_key";
         List<UnsignedTx> unsignedTransactions = new ArrayList<>();
         List<String> passedTransactions = new ArrayList<>();
         IrohaOrderedBatch batch = new IrohaOrderedBatch(new ArrayList<>());
 
         doReturn(batch).when(irohaAccountCreator)
-                .createAccountCreationBatch(currencyAddress, whitelistKey, whitelist, userName, pubKey, notaryStorageStrategy);
+                .createAccountCreationBatch(currencyAddress, whitelistKey, whitelist, userName, domain, pubKey, notaryStorageStrategy);
         doReturn(unsignedTransactions).when(irohaAccountCreator)
                 .convertBatchToTx(batch);
         when(irohaConsumer.sendAndCheck(unsignedTransactions)).thenReturn(Result.Companion.of(() -> passedTransactions));
         doReturn(false).when(irohaAccountCreator)
                 .isAccountCreationBatchFailed(unsignedTransactions, passedTransactions);
-        irohaAccountCreator.create(currencyAddress, whitelistKey, whitelist, userName, pubKey, notaryStorageStrategy)
+        irohaAccountCreator.create(currencyAddress, whitelistKey, whitelist, userName, domain, pubKey, notaryStorageStrategy)
                 .fold(address -> {
                     assertEquals(currencyAddress, address);
                     return null;
@@ -152,19 +153,20 @@ public class IrohaAccountCreatorTest {
         String whitelistKey = "white_list_key";
         List<String> whitelist = new ArrayList<>();
         String userName = "user_name";
+        String domain = "domain";
         String pubKey = "pub_key";
         List<UnsignedTx> unsignedTransactions = new ArrayList<>();
         List<String> passedTransactions = new ArrayList<>();
         IrohaOrderedBatch batch = new IrohaOrderedBatch(new ArrayList<>());
 
         doReturn(batch).when(irohaAccountCreator)
-                .createAccountCreationBatch(currencyAddress, whitelistKey, whitelist, userName, pubKey, notaryStorageStrategy);
+                .createAccountCreationBatch(currencyAddress, whitelistKey, whitelist, userName, domain, pubKey, notaryStorageStrategy);
         doReturn(unsignedTransactions).when(irohaAccountCreator)
                 .convertBatchToTx(batch);
         when(irohaConsumer.sendAndCheck(unsignedTransactions)).thenReturn(Result.Companion.of(() -> passedTransactions));
         doReturn(true).when(irohaAccountCreator)
                 .isAccountCreationBatchFailed(unsignedTransactions, passedTransactions);
-        irohaAccountCreator.create(currencyAddress, whitelistKey, whitelist, userName, pubKey, notaryStorageStrategy)
+        irohaAccountCreator.create(currencyAddress, whitelistKey, whitelist, userName, domain, pubKey, notaryStorageStrategy)
                 .fold(address -> {
                     fail();
                     return "";
