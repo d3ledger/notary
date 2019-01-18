@@ -5,7 +5,6 @@ import jp.co.soramitsu.iroha.PublicKey
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.util.ModelUtil
 
@@ -20,15 +19,21 @@ class NotaryRegistrationStrategy(
     /**
      * Register a new D3 client in Iroha
      * @param name - unique user name
+     * @param domain - client domain
      * @param pubkey - client public key
      * @return hash of tx in Iroha
      */
-    override fun register(name: String, whitelist: List<String>, pubkey: String): Result<String, Exception> {
+    override fun register(
+        name: String,
+        domain: String,
+        whitelist: List<String>,
+        pubkey: String
+    ): Result<String, Exception> {
         logger.info { "notary registration of client $name with pubkey $pubkey" }
         return ModelUtil.createAccount(
             irohaConsumer,
             name,
-            CLIENT_DOMAIN,
+            domain,
             PublicKey(PublicKey.fromHexString(pubkey))
         )
     }

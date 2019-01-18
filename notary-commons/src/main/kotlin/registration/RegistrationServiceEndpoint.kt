@@ -11,6 +11,7 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import mu.KLogging
+import sidechain.iroha.CLIENT_DOMAIN
 
 data class Response(val code: HttpStatusCode, val message: String)
 
@@ -37,10 +38,11 @@ class RegistrationServiceEndpoint(
                     val name = parameters["name"]
                     val whitelist = parameters["whitelist"].toString().split(",")
                     val pubkey = parameters["pubkey"]
+                    val domain = parameters["domain"]
 
                     logger.info { "Registration invoked with parameters (name = \"$name\", whitelist = \"$whitelist\", pubkey = \"$pubkey\"" }
 
-                    val response = onPostRegistration(name, whitelist, pubkey)
+                    val response = onPostRegistration(name, domain, whitelist, pubkey)
                     call.respondText(response.message, status = response.code)
                 }
             }
@@ -54,7 +56,12 @@ class RegistrationServiceEndpoint(
         return Response(code, errorMsg)
     }
 
-    private fun onPostRegistration(name: String?, whitelist: List<String>?, pubkey: String?): Response {
+    private fun onPostRegistration(
+        name: String?,
+        domain: String?,
+        whitelist: List<String>?,
+        pubkey: String?
+    ): Response {
         // TODO - D3-121 - a.chernyshov - distinguish correct status code response (500 - server internal error)
         var reason = ""
         if (name == null) reason = reason.plus("Parameter \"name\" is not specified. ")
@@ -64,7 +71,7 @@ class RegistrationServiceEndpoint(
         if (name == null || whitelist == null || pubkey == null) {
             return responseError(HttpStatusCode.BadRequest, reason)
         }
-        registrationStrategy.register(name, whitelist.filter { it.isNotEmpty() }, pubkey).fold(
+        registrationStrategy.register(name, domain ?: CLIENT_DOMAIN, whitelist.filter { it.isNotEmpty() }, pubkey).fold(
             { address ->
                 logger.info { "Client $name was successfully registered with address $address" }
                 return Response(HttpStatusCode.OK, address)
