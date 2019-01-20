@@ -63,3 +63,8 @@ services:
 
 volumes:
   iroha_block_store:
+
+
+networks:
+  d3-network:
+

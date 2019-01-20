@@ -4,7 +4,10 @@ import com.squareup.moshi.Moshi
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.features.CORS
+import io.ktor.features.ContentNegotiation
+import io.ktor.gson.gson
 import io.ktor.http.HttpStatusCode
+import io.ktor.response.respond
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.routing
@@ -40,11 +43,21 @@ class RefundServerEndpoint(
                 anyHost()
                 allowCredentials = true
             }
+            install(ContentNegotiation) {
+                gson()
+            }
             routing {
                 get(serverBundle.ethRefund + "/{tx_hash}") {
                     logger.info { "Eth refund invoked with parameters:${call.parameters}" }
                     val response = onCallEthRefund(call.parameters["tx_hash"])
                     call.respondText(response.message, status = response.code)
+                }
+                get("/actuator/health") {
+                    call.respond(
+                        mapOf(
+                            "status" to "UP"
+                        )
+                    )
                 }
             }
         }

@@ -6,6 +6,7 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.EthereumPasswords
 import io.reactivex.Observable
+import io.reactivex.schedulers.Schedulers
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.SideChainEvent
@@ -60,6 +61,7 @@ class WithdrawalServiceInitialization(
                 relayVacuumConfig
             )
             withdrawalService.output()
+                .subscribeOn(Schedulers.newThread())
                 .subscribe(
                     { res ->
                         res.map { withdrawalEvents ->
@@ -88,6 +90,8 @@ class WithdrawalServiceInitialization(
         return initIrohaChain()
             .map { initWithdrawalService(it) }
             .flatMap { initEthConsumer(it) }
+            .map { WithdrawalServiceEndpoint(withdrawalConfig.port) }
+            .map { Unit }
     }
 
     /**
