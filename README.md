@@ -1,7 +1,7 @@
 # notary
 Backend code for a D3 notary
 
-D3 consists of 3 parts. Common services should be run obligatory and rest can be run optionaly:
+D3 consists of 3 parts. Common services should be run obligatory and rest can be run optionally:
 1) Common services
 2) Ethereum subsystem
 3) Bitcoin subsystem
