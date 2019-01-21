@@ -11,18 +11,18 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import mu.KLogging
-import registration.RegistrationServiceEndpoint
 
 
 /**
  * Withdrawal HTTP service
  */
 class WithdrawalServiceEndpoint(
-        port: Int
+    port: Int
 ) {
 
     init {
-        RegistrationServiceEndpoint.logger.info { "Start withdrawal server on port $port" }
+
+        logger.info { "Start withdrawal server on port $port" }
 
         val server = embeddedServer(Netty, port = port) {
             install(CORS)
@@ -36,9 +36,9 @@ class WithdrawalServiceEndpoint(
             routing {
                 get("/actuator/health") {
                     call.respond(
-                            mapOf(
-                                    "status" to "UP"
-                            )
+                        mapOf(
+                            "status" to "UP"
+                        )
                     )
                 }
             }
