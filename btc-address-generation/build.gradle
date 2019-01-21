@@ -21,25 +21,16 @@ dependencies {
 task runBtcAddressGeneration(type: JavaExec) {
     main = 'generation.btc.BtcAddressGenerationMain'
     classpath = sourceSets.main.runtimeClasspath
-    setWorkingDir("$rootDir/")
-    systemProperty 'java.library.path', getIrohaLibPath()
-    environment "LD_LIBRARY_PATH", getIrohaLibPath()
 }
 
 task generateBtcChangeAddress(type: JavaExec) {
     main = 'generation.btc.trigger.BtcChangeAddressGeneration'
     classpath = sourceSets.main.runtimeClasspath
-    setWorkingDir("$rootDir/")
-    systemProperty 'java.library.path', getIrohaLibPath()
-    environment "LD_LIBRARY_PATH", getIrohaLibPath()
 }
 
 task generateBtcFreeAddress(type: JavaExec) {
     main = 'generation.btc.trigger.BtcFreeAddressGeneration'
     classpath = sourceSets.main.runtimeClasspath
-    setWorkingDir("$rootDir/")
-    systemProperty 'java.library.path', getIrohaLibPath()
-    environment "LD_LIBRARY_PATH", getIrohaLibPath()
 }
 
 sonarqube {

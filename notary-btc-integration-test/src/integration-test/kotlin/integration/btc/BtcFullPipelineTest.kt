@@ -92,7 +92,7 @@ class BtcFullPipelineTest {
      */
     @Test
     fun testFullPipeline() {
-        val amount = satToBtc(10000L)
+        val amount = satToBtc(1L)
 
         // Trigger address generation. Source and destination addresses
         generateFreeAddress(2)
@@ -111,7 +111,7 @@ class BtcFullPipelineTest {
         integrationHelper.sendBtc(srcBtcAddress, 1, notaryEnvironment.notaryConfig.bitcoin.confidenceLevel)
         Thread.sleep(DEPOSIT_WAIT_MILLIS)
 
-        // Send 1 SAT from source to destination
+        // Send 100000 SAT from source to destination
         integrationHelper.transferAssetIrohaFromClient(
             "$srcUserName@$CLIENT_DOMAIN",
             srcKeypair,

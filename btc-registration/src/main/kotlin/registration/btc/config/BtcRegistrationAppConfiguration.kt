@@ -1,14 +1,15 @@
 package registration.btc.config
 
 import config.loadConfigs
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import provider.btc.account.IrohaBtcAccountCreator
 import provider.btc.address.BtcAddressesProvider
 import provider.btc.address.BtcRegisteredAddressesProvider
-import provider.btc.account.IrohaBtcAccountCreator
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
 val btcRegistrationConfig =
@@ -28,11 +29,13 @@ class BtcRegistrationAppConfiguration {
     )
 
     @Bean
-    fun irohaNetwork() = IrohaNetworkImpl(btcRegistrationConfig.iroha.hostname, btcRegistrationConfig.iroha.port)
+    fun irohaAPI() = IrohaAPI(btcRegistrationConfig.iroha.hostname, btcRegistrationConfig.iroha.port)
 
     @Bean
-    fun btcClientCreatorConsumer() = IrohaConsumerImpl(
-        btcRegistrationCredential, irohaNetwork()
+    fun queryAPI() = QueryAPI(
+        irohaAPI(),
+        btcRegistrationCredential.accountId,
+        btcRegistrationCredential.keyPair
     )
 
     @Bean
@@ -41,8 +44,7 @@ class BtcRegistrationAppConfiguration {
     @Bean
     fun btcAddressesProvider(): BtcAddressesProvider {
         return BtcAddressesProvider(
-            btcRegistrationCredential,
-            irohaNetwork(),
+            queryAPI(),
             btcRegistrationConfig.mstRegistrationAccount,
             btcRegistrationConfig.notaryAccount
         )
@@ -51,17 +53,19 @@ class BtcRegistrationAppConfiguration {
     @Bean
     fun btcRegisteredAddressesProvider(): BtcRegisteredAddressesProvider {
         return BtcRegisteredAddressesProvider(
-            btcRegistrationCredential,
-            irohaNetwork(),
+            queryAPI(),
             btcRegistrationCredential.accountId,
             btcRegistrationConfig.notaryAccount
         )
     }
 
     @Bean
+    fun btcRegistrationConsumer() = IrohaConsumerImpl(btcRegistrationCredential, irohaAPI())
+
+    @Bean
     fun irohaBtcAccountCreator(): IrohaBtcAccountCreator {
         return IrohaBtcAccountCreator(
-            btcClientCreatorConsumer(),
+            btcRegistrationConsumer(),
             btcRegistrationConfig.notaryAccount
         )
     }

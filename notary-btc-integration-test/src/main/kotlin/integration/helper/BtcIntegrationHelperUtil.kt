@@ -25,7 +25,7 @@ import provider.btc.address.BtcAddressesProvider
 import provider.btc.address.BtcRegisteredAddressesProvider
 import registration.btc.strategy.BtcRegistrationStrategyImpl
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaConverterImpl
+import sidechain.iroha.consumer.IrohaConverter
 import sidechain.iroha.util.ModelUtil
 import util.toHexString
 import java.io.File
@@ -40,7 +40,7 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     override val configHelper by lazy { BtcConfigHelper(accountHelper) }
 
     private val mstRegistrationIrohaConsumer by lazy {
-        IrohaConsumerImpl(accountHelper.mstRegistrationAccount, irohaNetwork)
+        IrohaConsumerImpl(accountHelper.mstRegistrationAccount, irohaAPI)
     }
 
     private val rpcClient by lazy {
@@ -56,15 +56,13 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     private val btcRegistrationStrategy by lazy {
         val btcAddressesProvider =
             BtcAddressesProvider(
-                testCredential,
-                irohaNetwork,
+                queryAPI,
                 accountHelper.mstRegistrationAccount.accountId,
                 accountHelper.notaryAccount.accountId
             )
         val btcTakenAddressesProvider =
             BtcRegisteredAddressesProvider(
-                testCredential,
-                irohaNetwork,
+                queryAPI,
                 accountHelper.registrationAccount.accountId,
                 accountHelper.notaryAccount.accountId
             )
@@ -124,8 +122,8 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
             )
             irohaTxList.add(irohaTx)
         }
-        val utx = IrohaConverterImpl().convert(IrohaOrderedBatch(irohaTxList))
-        mstRegistrationIrohaConsumer.sendAndCheck(utx).failure { ex -> throw ex }
+        val utx = IrohaConverter.convert(IrohaOrderedBatch(irohaTxList))
+        mstRegistrationIrohaConsumer.send(utx).failure { ex -> throw ex }
     }
 
     /**
@@ -251,6 +249,11 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
             return "block was"
         }
         return "blocks were"
+    }
+
+    // Converts Bitcoins to Satoshi
+    fun btcToSat(btc: Int): BigDecimal {
+        return BigDecimal(btc * 100_000_000L)
     }
 
     /**

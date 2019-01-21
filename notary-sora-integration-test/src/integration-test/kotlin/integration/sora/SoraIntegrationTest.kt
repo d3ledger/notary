@@ -1,8 +1,7 @@
 package integration.sora
 
 import integration.helper.IrohaIntegrationHelperUtil
-import jp.co.soramitsu.iroha.ModelCrypto
-import model.IrohaCredential
+import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import sidechain.iroha.util.ModelUtil
@@ -36,20 +35,19 @@ class SoraIntegrationTest {
         val clientName = String.getRandomString(9)
         val clientId = "$clientName@$domain"
 
-        val keypairAlice = ModelCrypto().generateKeypair()
-        val clientAliceCredential = IrohaCredential(clientId, keypairAlice)
+        val keypairAlice = Ed25519Sha3().generateKeypair()
 
-        integrationHelper.createAccount(clientName, domain, keypairAlice.publicKey())
+        integrationHelper.createAccount(clientName, domain, keypairAlice.public)
 
         assertEquals(
             "0",
-            integrationHelper.getAccountAssets(clientAliceCredential, clientId).getOrDefault(xorAsset, "0")
+            integrationHelper.getAccountAssets(clientId).getOrDefault(xorAsset, "0")
         )
 
         integrationHelper.addIrohaAssetTo(clientId, xorAsset, "1334")
         assertEquals(
             "1334",
-            integrationHelper.getAccountAssets(clientAliceCredential, clientId).getOrDefault(xorAsset, "0")
+            integrationHelper.getAccountAssets(clientId).getOrDefault(xorAsset, "0")
         )
     }
 
@@ -63,15 +61,13 @@ class SoraIntegrationTest {
     fun transferSoraTest() {
         val aliceClientName = String.getRandomString(9)
         val aliceClientId = "$aliceClientName@$domain"
-        val keypairAlice = ModelCrypto().generateKeypair()
-        val clientAliceCredential = IrohaCredential(aliceClientId, keypairAlice)
-        integrationHelper.createAccount(aliceClientName, domain, keypairAlice.publicKey())
+        val keypairAlice = Ed25519Sha3().generateKeypair()
+        integrationHelper.createAccount(aliceClientName, domain, keypairAlice.public)
 
         val bobClientName = String.getRandomString(9)
         val bobClientId = "$bobClientName@$domain"
-        val keypairBob = ModelCrypto().generateKeypair()
-        val clientBobCredential = IrohaCredential(bobClientId, keypairBob)
-        integrationHelper.createAccount(bobClientName, domain, keypairBob.publicKey())
+        val keypairBob = Ed25519Sha3().generateKeypair()
+        integrationHelper.createAccount(bobClientName, domain, keypairBob.public)
 
         integrationHelper.addIrohaAssetTo(aliceClientId, xorAsset, "1334")
 
@@ -87,11 +83,11 @@ class SoraIntegrationTest {
 
         assertEquals(
             "4",
-            integrationHelper.getIrohaAccountBalance(aliceClientId, xorAsset, clientAliceCredential)
+            integrationHelper.getIrohaAccountBalance(aliceClientId, xorAsset)
         )
         assertEquals(
             "1330",
-            integrationHelper.getIrohaAccountBalance(bobClientId, xorAsset, clientBobCredential)
+            integrationHelper.getIrohaAccountBalance(bobClientId, xorAsset)
         )
     }
 
@@ -106,15 +102,13 @@ class SoraIntegrationTest {
     fun distributeSoraTest() {
         val aliceClientName = String.getRandomString(9)
         val aliceClientId = "$aliceClientName@$domain"
-        val keypairAlice = ModelCrypto().generateKeypair()
-        val clientAliceCredential = IrohaCredential(aliceClientId, keypairAlice)
-        integrationHelper.createAccount(aliceClientName, domain, keypairAlice.publicKey())
+        val keypairAlice = Ed25519Sha3().generateKeypair()
+        integrationHelper.createAccount(aliceClientName, domain, keypairAlice.public)
 
         val bobClientName = String.getRandomString(9)
         val bobClientId = "$bobClientName@$domain"
-        val keypairBob = ModelCrypto().generateKeypair()
-        val clientBobCredential = IrohaCredential(bobClientId, keypairBob)
-        integrationHelper.createAccount(bobClientName, domain, keypairBob.publicKey())
+        val keypairBob = Ed25519Sha3().generateKeypair()
+        integrationHelper.createAccount(bobClientName, domain, keypairBob.public)
 
         val soraClientId = "sora@sora"
         val soraKeyPair =
@@ -143,11 +137,11 @@ class SoraIntegrationTest {
 
         assertEquals(
             "17",
-            integrationHelper.getIrohaAccountBalance(aliceClientId, xorAsset, clientAliceCredential)
+            integrationHelper.getIrohaAccountBalance(aliceClientId, xorAsset)
         )
         assertEquals(
             "18",
-            integrationHelper.getIrohaAccountBalance(bobClientId, xorAsset, clientBobCredential)
+            integrationHelper.getIrohaAccountBalance(bobClientId, xorAsset)
         )
     }
 

@@ -6,13 +6,13 @@ import config.IrohaConfig
 import config.IrohaCredentialConfig
 import io.reactivex.Observable
 import io.reactivex.observers.TestObserver
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import notary.eth.EthNotaryConfig
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import provider.NotaryPeerListProvider
 import sidechain.SideChainEvent
-import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
 import java.math.BigInteger
 import kotlin.test.assertEquals
@@ -35,7 +35,7 @@ class NotaryTest {
     }
 
     private val irohaCredential = IrohaCredential("creator@iroha", ModelUtil.generateKeypair())
-    private val irohaNetwork = mock<IrohaNetwork>()
+    private val irohaAPI = mock<IrohaAPI>()
 
     /** Configuration for notary */
     private val notaryConfig = mock<EthNotaryConfig>() {
@@ -124,7 +124,7 @@ class NotaryTest {
     /**
      * @given a custodian has 100 Wei with intention to deposit 100 Wei to Notary
      * @when a custodian transfer 100 Wei to a specified wallet and specifies Iroha wallet to deposit assets
-     * @then an IrohaOrderedBatch is emitted with 2 transactions:
+     * @then an IrohaAtomicBatch is emitted with 2 transactions:
      * 1 - SetAccountDetail with hash
      * 2 - AddAssetQuantity with 100 Wei and TransferAsset with 100 Wei to specified account id
      */
@@ -149,7 +149,7 @@ class NotaryTest {
 
         // source of events from side chains
         val obsEth = Observable.just<SideChainEvent.PrimaryBlockChainEvent>(custodianIntention)
-        val notary = createEthNotary(irohaCredential, irohaNetwork, obsEth, peerListProvider)
+        val notary = createEthNotary(irohaCredential, irohaAPI, obsEth, peerListProvider)
         val res = notary.irohaOutput()
         checkEthereumDepositResult(
             expectedAmount,
@@ -166,7 +166,7 @@ class NotaryTest {
     /**
      * @given a custodian has 100 "XOR" ERC20 tokens with intention to deposit 100 "XOR" tokens to Notary
      * @when a custodian transfer 100 "XOR" tokens to a specified wallet and specifies Iroha wallet to deposit assets
-     * @then an IrohaOrderedBatch is emitted with 2 transactions:
+     * @then an IrohaAtomicBatch is emitted with 2 transactions:
      * 1 - SetAccountDetail with hash
      * 2 - AddAssetQuantity with 100 "XOR" and TransferAsset with 100 "XOR" to specified account id
      */
@@ -190,7 +190,7 @@ class NotaryTest {
 
         // source of events from side chains
         val obsEth = Observable.just<SideChainEvent.PrimaryBlockChainEvent>(custodianIntention)
-        val notary = createEthNotary(irohaCredential, irohaNetwork, obsEth, peerListProvider)
+        val notary = createEthNotary(irohaCredential, irohaAPI, obsEth, peerListProvider)
         val res = notary.irohaOutput()
         checkEthereumDepositResult(
             expectedAmount,

@@ -1,73 +1,35 @@
 package sidechain.iroha.util
 
 import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.flatMap
-import com.google.protobuf.InvalidProtocolBufferException
-import io.grpc.ManagedChannelBuilder
-import iroha.protocol.CommandServiceGrpc
-import iroha.protocol.QryResponses.QueryResponse
-import iroha.protocol.Queries.BlocksQuery
-import iroha.protocol.Queries.Query
-import iroha.protocol.QueryServiceGrpc
-import iroha.protocol.TransactionOuterClass.Transaction
+import io.reactivex.Observable
+import iroha.protocol.Primitive
+import iroha.protocol.QryResponses
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
-import jp.co.soramitsu.iroha.*
+import jp.co.soramitsu.iroha.java.BlocksQueryBuilder
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.Transaction
+import jp.co.soramitsu.iroha.java.Utils
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.consumer.IrohaConsumer
-import sidechain.iroha.consumer.IrohaNetwork
 import java.io.IOException
+import java.math.BigDecimal
 import java.math.BigInteger
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.security.KeyPair
 import java.security.PublicKey
+import java.time.Instant
+
 
 object ModelUtil {
     val logger = KLogging().logger
-
-    /**
-     * Get iroha transaction builder
-     * @return iroha transaction builder
-     */
-    fun getModelTransactionBuilder() = ModelTransactionBuilder()
-
-    /**
-     * Get iroha query builder
-     * @return iroha query builder
-     */
-    fun getModelQueryBuilder() = ModelQueryBuilder()
 
     /**
      * Get current time
      * @return current time as bigint
      */
     fun getCurrentTime() = BigInteger.valueOf(System.currentTimeMillis())
-
-    /**
-     * Opens a chanel with iroha peer
-     * @param host - the address, either ip or hostname
-     * @port to connect
-     * @return managed channel
-     */
-    fun getChannel(host: String, port: Int) = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build()
-
-    /**
-     * Creates a stub for commands
-     * @param channel - channel with Iroha peer
-     * @return torii command stub
-     */
-    fun getCommandStub(channel: io.grpc.Channel): CommandServiceGrpc.CommandServiceBlockingStub {
-        return CommandServiceGrpc.newBlockingStub(channel)
-    }
-
-    /**
-     * Creates a stub for queries
-     * @param channel - channel with Iroha peer
-     */
-    fun getQueryStub(channel: io.grpc.Channel): QueryServiceGrpc.QueryServiceBlockingStub {
-        return QueryServiceGrpc.newBlockingStub(channel)
-    }
 
     /**
      * Reads file from path as bytes
@@ -83,55 +45,6 @@ object ModelUtil {
         }
     }
 
-    // TODO temprorary function, should be removed after move to Iroha Pure Java Lib
-    // is used to convert iroha keys from Iroha Bindings lib representation to Iroha Pure Java lib
-    private fun hexToByte(hexString: String): Byte {
-        val firstDigit = toDigit(hexString[0])
-        val secondDigit = toDigit(hexString[1])
-        return ((firstDigit shl 4) + secondDigit).toByte()
-    }
-
-    // TODO temprorary function, should be removed after move to Iroha Pure Java Lib
-    // is used to convert iroha keys from Iroha Bindings lib representation to Iroha Pure Java lib
-    private fun toDigit(hexChar: Char): Int {
-        val digit = Character.digit(hexChar, 16)
-        if (digit == -1) {
-            throw IllegalArgumentException(
-                "Invalid Hexadecimal Character: $hexChar"
-            )
-        }
-        return digit
-    }
-
-    // TODO temprorary function, should be removed after move to Iroha Pure Java Lib
-    // is used to convert iroha keys from Iroha Bindings lib representation to Iroha Pure Java lib
-    private fun decodeHexString(hexString: String): ByteArray {
-        if (hexString.length % 2 == 1) {
-            throw IllegalArgumentException(
-                "Invalid hexadecimal String supplied."
-            )
-        }
-
-        val bytes = ByteArray(hexString.length / 2)
-        var i = 0
-        while (i < hexString.length) {
-            bytes[i / 2] = hexToByte(hexString.substring(i, i + 2))
-            i += 2
-        }
-        return bytes
-    }
-
-    // TODO temprorary function, should be removed after move to Iroha Pure Java Lib
-    // is used to convert iroha keys from Iroha Bindings lib representation to Iroha Pure Java lib
-    private fun bytesToHex(bytes: ByteArray): String {
-        var str = ""
-        for (b in bytes) {
-            str = str + String.format("%02X", b)
-        }
-
-        return str
-    }
-
     /**
      * Load keypair from existing files
      * @param pubkeyPath path to file with public key
@@ -140,10 +53,7 @@ object ModelUtil {
     fun loadKeypair(pubkeyPath: String, privkeyPath: String): Result<KeyPair, Exception> {
         return Result.of {
             try {
-                Ed25519Sha3.keyPairFromBytes(
-                    decodeHexString(readKeyFromFile(privkeyPath)!!),
-                    decodeHexString(readKeyFromFile(pubkeyPath)!!)
-                )
+                Utils.parseHexKeypair(readKeyFromFile(pubkeyPath), readKeyFromFile(privkeyPath))
             } catch (e: IOException) {
                 throw Exception("Unable to read Iroha key files. Public key: $pubkeyPath, Private key: $privkeyPath", e)
             }
@@ -152,109 +62,6 @@ object ModelUtil {
 
     fun generateKeypair(): KeyPair {
         return Ed25519Sha3().generateKeypair()
-    }
-
-    /**
-     * Prepares query before sending it to a peer
-     * @param uquery - unsigned model query
-     * @param keys used to sign query
-     * @return proto query, if succeeded
-     */
-    fun prepareQuery(uquery: UnsignedQuery, keys: KeyPair): Result<Query, Exception> {
-        val modelKeys =
-            ModelCrypto().convertFromExisting(bytesToHex(keys.public.encoded), bytesToHex(keys.private.encoded))
-
-        return Result.of {
-            val bquery = ModelProtoQuery(uquery)
-                .signAndAddSignature(modelKeys)
-                .finish()
-                .blob()
-                .toByteArray()
-            Query.parseFrom(bquery)
-        }
-    }
-
-    /**
-     * Prepares query for blocks before sending it to a peer
-     * @param uquery - unsigned model blocks query
-     * @param keys used to sign blocks query
-     * @return proto blocks query, if succeeded
-     */
-    fun prepareBlocksQuery(uquery: UnsignedBlockQuery, keys: KeyPair): BlocksQuery? {
-        val modelKeys =
-            ModelCrypto().convertFromExisting(bytesToHex(keys.public.encoded), bytesToHex(keys.private.encoded))
-
-        val queryBlob = ModelProtoBlocksQuery(uquery)
-            .signAndAddSignature(modelKeys)
-            .finish()
-            .blob()
-        val bquery = queryBlob.toByteArray()
-
-        var protoQuery: BlocksQuery? = null
-        try {
-            protoQuery = BlocksQuery.parseFrom(bquery)
-        } catch (e: InvalidProtocolBufferException) {
-            logger.error("Exception while converting byte array to protobuf", e)
-        }
-        return protoQuery
-    }
-
-    /**
-     * Prepares transaction before sending it to a peer
-     * @param utx - unsigned model transaction
-     * @param keys used to sign transaction
-     * @return proto transaction, if succeeded
-     */
-    fun prepareTransaction(utx: UnsignedTx, keys: KeyPair): Result<Transaction, Exception> {
-        val modelKeys =
-            ModelCrypto().convertFromExisting(bytesToHex(keys.public.encoded), bytesToHex(keys.private.encoded))
-
-        return Result.of {
-            // sign transaction and get its binary representation (Blob)
-            val tx = ModelProtoTransaction(utx)
-                .signAndAddSignature(modelKeys)
-                .finish()
-            val blob = tx.blob()
-
-            // Convert ByteVector to byte array
-            val bs = blob.toByteArray()
-            val protoTx = Transaction.parseFrom(bs)
-            protoTx
-        }
-    }
-
-    /**
-     * Checks if query response is stateless valid, used to
-     * know when to increase query counter
-     * @param resp - query response
-     * @return true if query is stateless valid
-     */
-    fun isStatelessValid(resp: QueryResponse) =
-        !(resp.hasErrorResponse() &&
-                resp.errorResponse.reason.toString() == "STATELESS_INVALID")
-
-    /**
-     * Get transaction from Iroha by [hash]
-     * @param hash - hash of transaction
-     * @return transaction
-     */
-    fun getTransaction(
-        irohaNetwork: IrohaNetwork,
-        credential: IrohaCredential,
-        hash: String
-    ): Result<Transaction, Exception> {
-        val hashes = HashVector()
-        hashes.add(Hash.fromHexString(hash))
-
-        val uquery = ModelQueryBuilder().creatorAccountId(credential.accountId)
-            .queryCounter(BigInteger.valueOf(1))
-            .createdTime(BigInteger.valueOf(System.currentTimeMillis()))
-            .getTransactions(hashes)
-            .build()
-
-        return prepareQuery(uquery, credential.keyPair)
-            .flatMap { irohaNetwork.sendQuery(it) }
-            .flatMap { getFirstTransaction(it) }
     }
 
     /**
@@ -270,15 +77,13 @@ object ModelUtil {
         irohaConsumer: IrohaConsumer,
         accountId: String,
         key: String,
-        value: String,
-        createdTime: BigInteger = getCurrentTime()
+        value: String
     ): Result<String, Exception> {
-        val tx = ModelTransactionBuilder()
-            .creatorAccountId(irohaConsumer.creator)
-            .createdTime(createdTime)
+        val transaction = Transaction
+            .builder(irohaConsumer.creator)
             .setAccountDetail(accountId, key, value)
             .build()
-        return irohaConsumer.sendAndCheck(tx)
+        return irohaConsumer.send(transaction)
     }
 
     /**
@@ -296,22 +101,16 @@ object ModelUtil {
         publicKey: PublicKey,
         vararg roleName: String
     ): Result<String, Exception> {
-        return Result.of {
-            val oldPubkey = PublicKey(jp.co.soramitsu.iroha.PublicKey.fromHexString(bytesToHex(publicKey.encoded)))
-
-            var txBuilder = ModelTransactionBuilder()
-                .creatorAccountId(irohaConsumer.creator)
-                .createdTime(getCurrentTime())
-                .createAccount(name, domain, oldPubkey)
-
-            roleName.forEach {
-                txBuilder = txBuilder.appendRole("$name@$domain", it)
-            }
-
-            txBuilder.build()
-        }.flatMap { utx ->
-            irohaConsumer.sendAndCheck(utx)
+        var txBuilder = Transaction
+            .builder(irohaConsumer.creator)
+            .createAccount(name, domain, publicKey)
+        val accountId = "$name@$domain"
+        roleName.forEach { role ->
+            txBuilder = txBuilder.appendRole(accountId, role)
         }
+        val transaction = txBuilder
+            .build()
+        return irohaConsumer.send(transaction)
     }
 
     /**
@@ -321,24 +120,16 @@ object ModelUtil {
      * @param permissions - permissions to be granted
      * @return hex representation of transaction hash
      */
-    fun grantPermission(
+    fun grantPermissions(
         irohaConsumer: IrohaConsumer,
         accountId: String,
-        vararg permissions: Grantable
+        permissions: Iterable<Primitive.GrantablePermission>
     ): Result<String, Exception> {
-        return Result.of {
-            var txBuilder = ModelTransactionBuilder()
-                .creatorAccountId(irohaConsumer.creator)
-                .createdTime(getCurrentTime())
-
-            permissions.forEach { permission ->
-                txBuilder = txBuilder.grantPermission(accountId, permission)
-            }
-
-            txBuilder.build()
-        }.flatMap { utx ->
-            irohaConsumer.sendAndCheck(utx)
-        }
+        val transaction = Transaction
+            .builder(irohaConsumer.creator)
+            .grantPermissions(accountId, permissions)
+            .build()
+        return irohaConsumer.send(transaction)
     }
 
     /**
@@ -353,17 +144,11 @@ object ModelUtil {
         accountId: String,
         publicKey: PublicKey
     ): Result<String, Exception> {
-        return Result.of {
-            val oldPubkey = PublicKey(jp.co.soramitsu.iroha.PublicKey.fromHexString(bytesToHex(publicKey.encoded)))
-
-            ModelTransactionBuilder()
-                .creatorAccountId(irohaConsumer.creator)
-                .createdTime(getCurrentTime())
-                .addSignatory(accountId, oldPubkey)
-                .build()
-        }.flatMap { utx ->
-            irohaConsumer.sendAndCheck(utx)
-        }
+        val transaction = Transaction
+            .builder(irohaConsumer.creator)
+            .addSignatory(accountId, publicKey)
+            .build()
+        return irohaConsumer.send(transaction)
     }
 
     /**
@@ -378,15 +163,11 @@ object ModelUtil {
         accountId: String,
         quorum: Int
     ): Result<String, Exception> {
-        return Result.of {
-            ModelTransactionBuilder()
-                .creatorAccountId(irohaConsumer.creator)
-                .createdTime(getCurrentTime())
-                .setAccountQuorum(accountId, quorum)
-                .build()
-        }.flatMap { utx ->
-            irohaConsumer.sendAndCheck(utx)
-        }
+        val transaction = Transaction
+            .builder(irohaConsumer.creator)
+            .setAccountQuorum(accountId, quorum)
+            .build()
+        return irohaConsumer.send(transaction)
     }
 
     /**
@@ -401,15 +182,13 @@ object ModelUtil {
         irohaConsumer: IrohaConsumer,
         assetName: String,
         domainId: String,
-        precision: Short
+        precision: Int
     ): Result<String, Exception> {
-        return irohaConsumer.sendAndCheck(
-            ModelTransactionBuilder()
-                .creatorAccountId(irohaConsumer.creator)
-                .createdTime(getCurrentTime())
-                .createAsset(assetName, domainId, precision)
-                .build()
-        )
+        val transaction = Transaction
+            .builder(irohaConsumer.creator)
+            .createAsset(assetName, domainId, precision)
+            .build()
+        return irohaConsumer.send(transaction)
     }
 
     /**
@@ -424,13 +203,11 @@ object ModelUtil {
         assetId: String,
         amount: String
     ): Result<String, Exception> {
-        return irohaConsumer.sendAndCheck(
-            ModelTransactionBuilder()
-                .creatorAccountId(irohaConsumer.creator)
-                .createdTime(getCurrentTime())
-                .addAssetQuantity(assetId, amount)
-                .build()
-        )
+        val transaction = Transaction
+            .builder(irohaConsumer.creator)
+            .addAssetQuantity(assetId, amount)
+            .build()
+        return irohaConsumer.send(transaction)
     }
 
     /**
@@ -450,16 +227,28 @@ object ModelUtil {
         destAccountId: String,
         assetId: String,
         description: String,
-        amount: String,
-        createdTime: BigInteger = getCurrentTime()
+        amount: String
     ): Result<String, Exception> {
-        return irohaConsumer.sendAndCheck(
-            ModelTransactionBuilder()
-                .creatorAccountId(irohaConsumer.creator)
-                .createdTime(createdTime)
-                .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
-                .build()
-        )
+        val transaction = Transaction
+            .builder(irohaConsumer.creator)
+            .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
+            .build()
+        return irohaConsumer.send(transaction)
+    }
+
+    /**
+     * Get block streaming.
+     */
+    fun getBlockStreaming(
+        iroha: IrohaAPI,
+        credential: IrohaCredential
+    ): Result<Observable<QryResponses.BlockQueryResponse>, Exception> {
+        return Result.of {
+            val query = BlocksQueryBuilder(credential.accountId, Instant.now(), 1)
+                .buildSigned(credential.keyPair)
+
+            iroha.blocksQuery(query)
+        }
     }
 
     /**
@@ -474,12 +263,10 @@ object ModelUtil {
         domain: String,
         pubkey: PublicKey
     ): Result<String, Exception> {
-        return irohaConsumer.sendAndCheck(
-            ModelTransactionBuilder()
-                .creatorAccountId(irohaConsumer.creator)
-                .createdTime(getCurrentTime())
-                .createAccount(name, domain, pubkey)
-                .build()
-        )
+        val transaction = Transaction
+            .builder(irohaConsumer.creator)
+            .createAccount(name, domain, pubkey)
+            .build()
+        return irohaConsumer.send(transaction)
     }
 }

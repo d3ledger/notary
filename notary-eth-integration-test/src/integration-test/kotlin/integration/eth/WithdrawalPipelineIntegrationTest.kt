@@ -105,7 +105,7 @@ class WithdrawalPipelineIntegrationTest {
             Assertions.assertEquals(200, res.statusCode)
 
             val initialBalance = integrationHelper.getEthBalance(toAddress)
-            val decimalAmount = BigDecimal(amount, ETH_PRECISION.toInt()).toPlainString()
+            val decimalAmount = BigDecimal(amount, ETH_PRECISION)
             val assetId = "ether#ethereum"
 
             // add assets to user
@@ -119,7 +119,7 @@ class WithdrawalPipelineIntegrationTest {
                 notaryAccount,
                 assetId,
                 toAddress,
-                decimalAmount
+                decimalAmount.toPlainString()
             )
             Thread.sleep(15_000)
 
@@ -139,7 +139,7 @@ class WithdrawalPipelineIntegrationTest {
     @Test
     fun testFullWithdrawalPipelineErc20() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            val precision: Short = 2
+            val precision = 2
 
             // deploy free relay
             integrationHelper.deployRelays(1)
@@ -147,13 +147,14 @@ class WithdrawalPipelineIntegrationTest {
             // create ERC20 token and transfer to master
             val (assetInfo, tokenAddress) = integrationHelper.deployRandomERC20Token(precision)
 
+            val bigIntegerValue = BigInteger.valueOf(125)
             integrationHelper.sendERC20Token(
                 tokenAddress,
-                BigInteger.valueOf(125),
+                bigIntegerValue,
                 integrationHelper.masterContract.contractAddress
             )
 
-            val amount = "1.25"
+            val amount = BigDecimal(1.25)
             val domain = "ethereum"
             val assetId = "${assetInfo.name}#$domain"
 
@@ -179,12 +180,12 @@ class WithdrawalPipelineIntegrationTest {
                 notaryAccount,
                 assetId,
                 toAddress,
-                amount
+                amount.toPlainString()
             )
             Thread.sleep(15_000)
 
             Assertions.assertEquals(
-                initialBalance.add(BigDecimal(amount).scaleByPowerOfTen(precision.toInt()).toBigInteger()),
+                initialBalance.add(bigIntegerValue),
                 integrationHelper.getERC20TokenBalance(tokenAddress, toAddress)
             )
         }
@@ -201,7 +202,7 @@ class WithdrawalPipelineIntegrationTest {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             integrationHelper.registerClient(clientName, listOf(toAddress, "0x123"), keypair)
 
-            val amount = "125"
+            val amount = BigDecimal(125)
             val assetId = "ether#ethereum"
 
             // add assets to user
@@ -215,8 +216,11 @@ class WithdrawalPipelineIntegrationTest {
                 notaryAccount,
                 assetId,
                 toAddress,
-                amount
+                amount.toPlainString()
             )
+
+            // TODO: Added because of statuses bug in Iroha
+            Thread.sleep(5000)
 
             // try get proof from peer
             val res = khttp.get("$refundAddress/eth/$hash")
@@ -239,7 +243,7 @@ class WithdrawalPipelineIntegrationTest {
 
             val withdrawalEthAddress = "0x123"
 
-            val amount = "125"
+            val amount = BigDecimal(125)
             val assetId = "ether#ethereum"
 
             // add assets to user
@@ -253,8 +257,11 @@ class WithdrawalPipelineIntegrationTest {
                 notaryAccount,
                 assetId,
                 withdrawalEthAddress,
-                amount
+                amount.toPlainString()
             )
+
+            // TODO: Added because of statuses bug in Iroha
+            Thread.sleep(5000)
 
             val res = khttp.get("$refundAddress/eth/$hash")
 
@@ -276,7 +283,7 @@ class WithdrawalPipelineIntegrationTest {
 
             val withdrawalEthAddress = "0x321"
 
-            val amount = "125"
+            val amount = BigDecimal(125)
             val assetId = "ether#ethereum"
 
             // add assets to user
@@ -290,8 +297,11 @@ class WithdrawalPipelineIntegrationTest {
                 notaryAccount,
                 assetId,
                 withdrawalEthAddress,
-                amount
+                amount.toPlainString()
             )
+
+            // TODO: Added because of statuses bug in Iroha
+            Thread.sleep(5000)
 
             val res = khttp.get("$refundAddress/eth/$hash")
 

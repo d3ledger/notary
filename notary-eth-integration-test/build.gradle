@@ -13,7 +13,7 @@ sourceSets {
             srcDirs += 'src/integration-test/kotlin'
         }
         resources {
-            srcDirs= ["src/integration-test/resources"]
+            srcDirs = ["src/integration-test/resources"]
         }
     }
 }
@@ -34,9 +34,6 @@ task integrationTest(type: Test) {
     // Enable JUnit5 tests
     useJUnitPlatform {
     }
-
-    systemProperty 'java.library.path', getIrohaLibPath()
-    environment "LD_LIBRARY_PATH", getIrohaLibPath()
 
     mustRunAfter test
 }

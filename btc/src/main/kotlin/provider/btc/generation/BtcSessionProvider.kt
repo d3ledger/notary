@@ -2,12 +2,12 @@ package provider.btc.generation
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import notary.IrohaCommand
 import notary.IrohaTransaction
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaConverterImpl
-import sidechain.iroha.consumer.IrohaNetwork
+import sidechain.iroha.consumer.IrohaConverter
 import sidechain.iroha.util.ModelUtil
 import util.hex
 
@@ -17,9 +17,9 @@ const val ADDRESS_GENERATION_TIME_KEY = "addressGenerationTime"
 // Class for creating session accounts. Theses accounts are used to store BTC public keys.
 class BtcSessionProvider(
     private val credential: IrohaCredential,
-    irohaNetwork: IrohaNetwork
+    irohaAPI: IrohaAPI
 ) {
-    private val irohaConsumer = IrohaConsumerImpl(credential, irohaNetwork)
+    private val irohaConsumer = IrohaConsumerImpl(credential, irohaAPI)
 
     /**
      * Creates a special session account for notaries public key storage
@@ -47,8 +47,8 @@ class BtcSessionProvider(
                 )
             )
         }.flatMap { irohaTx ->
-            val utx = IrohaConverterImpl().convert(irohaTx)
-            irohaConsumer.sendAndCheck(utx)
+            val utx = IrohaConverter.convert(irohaTx)
+            irohaConsumer.send(utx)
         }
     }
 }

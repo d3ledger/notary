@@ -7,7 +7,6 @@ import integration.btc.environment.BtcWithdrawalTestEnvironment
 import integration.helper.BTC_ASSET
 import integration.helper.BtcIntegrationHelperUtil
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
-import jp.co.soramitsu.iroha.ModelCrypto
 import mu.KLogging
 import org.bitcoinj.core.Address
 import org.junit.jupiter.api.*
@@ -99,7 +98,7 @@ class BtcWithdrawalIntegrationTest {
             environment.btcWithdrawalConfig.withdrawalCredential.accountId,
             BTC_ASSET,
             btcAddressDest,
-            amount
+            amount.toPlainString()
         )
         Thread.sleep(WITHDRAWAL_WAIT_MILLIS)
         assertEquals(initTxCount + 1, environment.createdTransactions.size)
@@ -261,7 +260,7 @@ class BtcWithdrawalIntegrationTest {
             environment.btcWithdrawalConfig.withdrawalCredential.accountId,
             BTC_ASSET,
             btcAddressDest,
-            amount
+            amount.toPlainString()
         )
         Thread.sleep(WITHDRAWAL_WAIT_MILLIS)
         assertEquals(initTxCount + 1, environment.createdTransactions.size)
@@ -373,7 +372,7 @@ class BtcWithdrawalIntegrationTest {
     @Test
     fun testWithdrawalMultipleInputs() {
         val initTxCount = environment.createdTransactions.size
-        val amount = BigDecimal(6)
+        val amount = integrationHelper.btcToSat(6)
         val randomNameSrc = String.getRandomString(9)
         val testClientSrcKeypair = ModelUtil.generateKeypair()
         val testClientSrc = "$randomNameSrc@$CLIENT_DOMAIN"
@@ -390,7 +389,7 @@ class BtcWithdrawalIntegrationTest {
             environment.btcWithdrawalConfig.withdrawalCredential.accountId,
             BTC_ASSET,
             btcAddressDest,
-            amount
+            amount.toPlainString()
         )
         Thread.sleep(WITHDRAWAL_WAIT_MILLIS)
         assertEquals(initTxCount + 1, environment.createdTransactions.size)
@@ -446,7 +445,7 @@ class BtcWithdrawalIntegrationTest {
             environment.btcWithdrawalConfig.withdrawalCredential.accountId,
             BTC_ASSET,
             btcAddressDest,
-            amount
+            amount.toPlainString()
         )
         Thread.sleep(WITHDRAWAL_WAIT_MILLIS)
         assertEquals(initTxCount, environment.createdTransactions.size)
@@ -485,7 +484,7 @@ class BtcWithdrawalIntegrationTest {
             environment.btcWithdrawalConfig.withdrawalCredential.accountId,
             BTC_ASSET,
             btcAddressDest,
-            amount
+            amount.toPlainString()
         )
         Thread.sleep(WITHDRAWAL_WAIT_MILLIS)
         assertEquals(initTxCount + 1, environment.createdTransactions.size)
@@ -539,7 +538,7 @@ class BtcWithdrawalIntegrationTest {
             environment.btcWithdrawalConfig.withdrawalCredential.accountId,
             BTC_ASSET,
             btcAddressDest,
-            amount
+            amount.toPlainString()
         )
         Thread.sleep(WITHDRAWAL_WAIT_MILLIS)
         assertEquals(initTxCount + 1, environment.createdTransactions.size)
@@ -570,7 +569,7 @@ class BtcWithdrawalIntegrationTest {
             environment.btcWithdrawalConfig.withdrawalCredential.accountId,
             BTC_ASSET,
             btcAddressDest,
-            amount
+            amount.toPlainString()
         )
         Thread.sleep(WITHDRAWAL_WAIT_MILLIS)
         assertEquals(initTxCount + 1, environment.createdTransactions.size)
@@ -605,7 +604,7 @@ class BtcWithdrawalIntegrationTest {
             environment.btcWithdrawalConfig.withdrawalCredential.accountId,
             BTC_ASSET,
             btcAddressDest,
-            amount
+            amount.toPlainString()
         )
         Thread.sleep(WITHDRAWAL_WAIT_MILLIS)
         assertEquals(initTxCount, environment.createdTransactions.size)
@@ -631,8 +630,10 @@ class BtcWithdrawalIntegrationTest {
         integrationHelper.sendBtc(btcAddressSrc, 1, environment.btcWithdrawalConfig.bitcoin.confidenceLevel)
         val randomNameDest = String.getRandomString(9)
         val btcAddressDest = integrationHelper.registerBtcAddressNoPreGen(randomNameDest)
+
         integrationHelper.addIrohaAssetTo(testClientSrc, BTC_ASSET, amount)
         val initialSrcBalance = integrationHelper.getIrohaAccountBalance(testClientSrc, BTC_ASSET)
+
         integrationHelper.transferAssetIrohaFromClient(
             testClientSrc,
             testClientSrcKeypair,

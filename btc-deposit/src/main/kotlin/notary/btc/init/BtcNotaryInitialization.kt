@@ -8,6 +8,8 @@ import healthcheck.HealthyService
 import helper.network.addPeerConnectionStatusListener
 import helper.network.startChainDownload
 import io.reactivex.Observable
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import listener.btc.NewBtcClientRegistrationListener
 import model.IrohaCredential
 import mu.KLogging
@@ -26,7 +28,6 @@ import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.btc.network.BtcNetworkConfigProvider
 import sidechain.SideChainEvent
 import sidechain.iroha.IrohaChainListener
-import sidechain.iroha.consumer.IrohaNetwork
 import java.io.Closeable
 
 
@@ -37,7 +38,7 @@ class BtcNotaryInitialization(
     @Autowired private val btcNotaryConfig: BtcNotaryConfig,
     @Qualifier("notaryCredential")
     @Autowired private val irohaCredential: IrohaCredential,
-    @Autowired private val irohaNetwork: IrohaNetwork,
+    @Autowired private val irohaAPI: IrohaAPI,
     @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
     @Qualifier("depositIrohaChainListener")
     @Autowired private val irohaChainListener: IrohaChainListener,
@@ -78,13 +79,14 @@ class BtcNotaryInitialization(
         }.map {
             getBtcEvents(peerGroup, btcNotaryConfig.bitcoin.confidenceLevel)
         }.map { btcEvents ->
+            val queryAPI = QueryAPI(irohaAPI, irohaCredential.accountId, irohaCredential.keyPair)
+
             val peerListProvider = NotaryPeerListProviderImpl(
-                irohaCredential,
-                irohaNetwork,
+                queryAPI,
                 btcNotaryConfig.notaryListStorageAccount,
                 btcNotaryConfig.notaryListSetterAccount
             )
-            val notary = createBtcNotary(irohaCredential, irohaNetwork, btcEvents, peerListProvider)
+            val notary = createBtcNotary(irohaCredential, irohaAPI, btcEvents, peerListProvider)
             notary.initIrohaConsumer().failure { ex -> throw ex }
         }.map {
             startChainDownload(peerGroup)

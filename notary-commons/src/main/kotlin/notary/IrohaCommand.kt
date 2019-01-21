@@ -48,7 +48,7 @@ sealed class IrohaCommand {
     data class CommandCreateAsset(
         val assetName: String,
         val domainId: String,
-        val precision: Short
+        val precision: Int
     ) : IrohaCommand()
 
     /**

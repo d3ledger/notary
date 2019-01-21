@@ -38,13 +38,9 @@ task integrationTest(type: Test) {
 
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
-    setWorkingDir("$rootDir/")
     // Enable JUnit5 tests
     useJUnitPlatform {
     }
-
-    systemProperty 'java.library.path', getIrohaLibPath()
-    environment "LD_LIBRARY_PATH", getIrohaLibPath()
 
     mustRunAfter test
 }

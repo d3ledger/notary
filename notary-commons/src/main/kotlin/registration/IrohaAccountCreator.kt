@@ -2,14 +2,13 @@ package registration
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import jp.co.soramitsu.iroha.UnsignedTx
 import mu.KLogging
-import notary.IrohaCommand
 import notary.IrohaOrderedBatch
+import notary.IrohaCommand
 import notary.IrohaTransaction
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumer
-import sidechain.iroha.consumer.IrohaConverterImpl
+import sidechain.iroha.consumer.IrohaConverter
 import sidechain.iroha.util.ModelUtil.getCurrentTime
 
 open class IrohaAccountCreator(
@@ -47,9 +46,9 @@ open class IrohaAccountCreator(
                 notaryStorageStrategy
             )
         }.map { irohaTx ->
-            val utx = convertBatchToTx(irohaTx)
-            irohaConsumer.sendAndCheck(utx).fold({ passedTransactions ->
-                if (isAccountCreationBatchFailed(utx, passedTransactions)) {
+            val lst = IrohaConverter.convert(irohaTx)
+            irohaConsumer.send(lst).fold({ batchResultMap ->
+                if (!isAccountCreationBatchSuccessful(batchResultMap)) {
                     throw IllegalStateException("Cannot create account")
                 }
             }, { ex -> throw ex })
@@ -58,13 +57,6 @@ open class IrohaAccountCreator(
             currencyAddress
         }
     }
-
-    /**
-     * Converts batch into single Iroha transaction
-     * @param batch - batch full of transactions
-     * @return single Iroha transaction
-     */
-    protected open fun convertBatchToTx(batch: IrohaOrderedBatch) = IrohaConverterImpl().convert(batch)
 
     /**
      * Creates account creation batch with the following commands
@@ -86,7 +78,7 @@ open class IrohaAccountCreator(
         pubkey: String,
         notaryStorageStrategy: () -> String
     ): IrohaOrderedBatch {
-        // TODO: implement https://soramitsu.atlassian.net/browse/D3-415
+        val accountId = "$userName@$CLIENT_DOMAIN"
         return IrohaOrderedBatch(
             listOf(
                 IrohaTransaction(
@@ -107,7 +99,7 @@ open class IrohaAccountCreator(
                     arrayListOf(
                         // Set user wallet/address in account detail
                         IrohaCommand.CommandSetAccountDetail(
-                            "$userName@$CLIENT_DOMAIN",
+                            accountId,
                             currencyName,
                             currencyAddress
                         ),
@@ -119,7 +111,7 @@ open class IrohaAccountCreator(
                         ),
                         //set whitelist
                         IrohaCommand.CommandSetAccountDetail(
-                            "$userName@$CLIENT_DOMAIN",
+                            accountId,
                             whitelistKey,
                             whitelist.toString().trim('[').trim(']')
                         )
@@ -130,29 +122,18 @@ open class IrohaAccountCreator(
     }
 
     /**
-     * Checks if account creation batch failed
-     * @param unsignedTransactions - list of not processed transactions from batch
-     * @param passedTransactions - list of successfully processed transactions
-     * @return 'true' if all [unsignedTransactions] are in [passedTransactions] (except for first transaction, we can ignore it)
+     * Checks if account creation batch successful
+     * @param transactionsResult - map of processed transactions and the indicator if it was successful
+     * @return 'true' if all [transactionsResult] (except for first transaction, we can ignore it) are successful
      */
-    protected open fun isAccountCreationBatchFailed(
-        unsignedTransactions: List<UnsignedTx>,
-        passedTransactions: List<String>
+    protected open fun isAccountCreationBatchSuccessful(
+        transactionsResult: Map<String, Boolean>
     ): Boolean {
-        var txCounter = 0
-        unsignedTransactions.forEach { unsignedTransaction ->
-            /*
-             It's ok for the first transaction(Create Account) to be failed.
-             It may happen when we want to provide new crypto currency services to already created account
-            */
-            if (txCounter != 0
-                && !passedTransactions.any { passedTransaction -> passedTransaction == unsignedTransaction.hash().hex() }
-            ) {
-                return true
-            }
-            txCounter++
-        }
-        return false
+        val count = transactionsResult.count { it.value }
+        return if (!transactionsResult.values.first()) {
+            count == transactionsResult.size - 1
+        } else
+            count == transactionsResult.size
     }
 
     /**

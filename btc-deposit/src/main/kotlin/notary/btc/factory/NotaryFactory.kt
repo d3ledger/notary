@@ -1,21 +1,21 @@
 package notary.btc.factory
 
 import io.reactivex.Observable
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import notary.NotaryImpl
 import provider.NotaryPeerListProvider
 import sidechain.SideChainEvent
-import sidechain.iroha.consumer.IrohaNetwork
 
 fun createBtcNotary(
     notaryCredential: IrohaCredential,
-    irohaNetwork: IrohaNetwork,
+    irohaAPI: IrohaAPI,
     btcEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>,
     peerListProvider: NotaryPeerListProvider
 ): NotaryImpl {
     return NotaryImpl(
         notaryCredential,
-        irohaNetwork,
+        irohaAPI,
         btcEvents,
         "bitcoin",
         peerListProvider
