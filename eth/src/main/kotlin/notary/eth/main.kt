@@ -7,6 +7,7 @@ import config.EthereumPasswords
 import config.loadConfigs
 import config.loadEthPasswords
 import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import mu.KLogging
 import provider.eth.EthRelayProviderIrohaImpl
@@ -60,15 +61,20 @@ fun executeNotary(
         notaryConfig.iroha.hostname,
         notaryConfig.iroha.port
     )
-    val ethRelayProvider = EthRelayProviderIrohaImpl(
+
+    val queryAPI = QueryAPI(
         irohaAPI,
-        irohaCredential,
+        irohaCredential.accountId,
+        irohaCredential.keyPair
+    )
+
+    val ethRelayProvider = EthRelayProviderIrohaImpl(
+        queryAPI,
         irohaCredential.accountId,
         notaryConfig.registrationServiceIrohaAccount
     )
     val ethTokensProvider = EthTokensProviderImpl(
-        irohaCredential,
-        irohaAPI,
+        queryAPI,
         notaryConfig.tokenStorageAccount,
         notaryConfig.tokenSetterAccount
     )

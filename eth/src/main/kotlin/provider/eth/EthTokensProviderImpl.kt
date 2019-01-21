@@ -2,9 +2,7 @@ package provider.eth
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
-import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.util.getAccountDetails
 import sidechain.iroha.util.getAssetPrecision
@@ -16,19 +14,15 @@ const val ETH_ADDRESS = "0x0000000000000000000000000000000000000000"
 /**
  * Implementation of [EthTokensProvider] with Iroha storage.
  *
- * @param credential - Iroha credential
+ * @param queryAPI - iroha queries network layer
  * @param tokenStorageAccount - tokenStorageAccount that contains details
  * @param tokenSetterAccount - tokenSetterAccount that holds tokens in tokenStorageAccount account
- * @param irohaNetwork - iroha network
  */
 class EthTokensProviderImpl(
-    private val credential: IrohaCredential,
-    private val irohaAPI: IrohaAPI,
+    private val queryAPI: QueryAPI,
     private val tokenStorageAccount: String,
     private val tokenSetterAccount: String
 ) : EthTokensProvider {
-
-    private val queryAPI = QueryAPI(irohaAPI, credential.accountId, credential.keyPair)
 
     init {
         logger.info { "Init token provider, storage: '$tokenStorageAccount', setter: '$tokenSetterAccount'" }

@@ -27,8 +27,7 @@ class BtcNotaryTestEnvironment(private val integrationHelper: BtcIntegrationHelp
     )
 
     private val btcRegisteredAddressesProvider = BtcRegisteredAddressesProvider(
-        irohaCredential,
-        integrationHelper.irohaAPI,
+        integrationHelper.queryAPI,
         notaryConfig.registrationAccount,
         notaryConfig.notaryCredential.accountId
     )

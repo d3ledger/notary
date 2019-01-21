@@ -18,18 +18,10 @@ import kotlin.test.assertEquals
 class RequestHelperTest {
 
     val integrationHelper = IrohaIntegrationHelperUtil()
-    val credential = integrationHelper.testCredential
-    val irohaConfig = integrationHelper.configHelper.createIrohaConfig()
-
-    private val irohaAPI = IrohaAPI(irohaConfig.hostname, irohaConfig.port)
-
-    private val queryAPI = QueryAPI(irohaAPI, credential.accountId, credential.keyPair)
-
 
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
-        irohaAPI.close()
     }
 
     /**
@@ -39,9 +31,9 @@ class RequestHelperTest {
      */
     @Test
     fun getNonexistentAccountAssetTest() {
-        val accountId = credential.accountId
+        val accountId = integrationHelper.testCredential.accountId
         val assetId = "nonexist#nonexist"
 
-        assertEquals("0", getAccountAsset(queryAPI, accountId, assetId).get())
+        assertEquals("0", getAccountAsset(integrationHelper.queryAPI, accountId, assetId).get())
     }
 }

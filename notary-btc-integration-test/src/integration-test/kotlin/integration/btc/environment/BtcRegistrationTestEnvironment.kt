@@ -39,8 +39,7 @@ class BtcRegistrationTestEnvironment(private val integrationHelper: BtcIntegrati
 
     private fun btcAddressesProvider(): BtcAddressesProvider {
         return BtcAddressesProvider(
-            btcRegistrationCredential,
-            integrationHelper.irohaAPI,
+            integrationHelper.queryAPI,
             btcRegistrationConfig.mstRegistrationAccount,
             btcRegistrationConfig.notaryAccount
         )
@@ -48,8 +47,7 @@ class BtcRegistrationTestEnvironment(private val integrationHelper: BtcIntegrati
 
     private fun btcRegisteredAddressesProvider(): BtcRegisteredAddressesProvider {
         return BtcRegisteredAddressesProvider(
-            btcRegistrationCredential,
-            integrationHelper.irohaAPI,
+            integrationHelper.queryAPI,
             btcRegistrationCredential.accountId,
             btcRegistrationConfig.notaryAccount
         )
@@ -63,8 +61,7 @@ class BtcRegistrationTestEnvironment(private val integrationHelper: BtcIntegrati
     }
 
     val btcTakenAddressesProvider = BtcRegisteredAddressesProvider(
-        integrationHelper.testCredential,
-        integrationHelper.irohaAPI,
+        integrationHelper.queryAPI,
         btcRegistrationConfig.registrationCredential.accountId,
         integrationHelper.accountHelper.notaryAccount.accountId
     )

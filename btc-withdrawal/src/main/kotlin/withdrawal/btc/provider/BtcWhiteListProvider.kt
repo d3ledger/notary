@@ -1,7 +1,6 @@
 package withdrawal.btc.provider
 
-import jp.co.soramitsu.iroha.java.IrohaAPI
-import model.IrohaCredential
+import jp.co.soramitsu.iroha.java.QueryAPI
 import provider.WhiteListProvider
 import provider.btc.account.BTC_WHITE_LIST_KEY
 
@@ -10,9 +9,8 @@ import provider.btc.account.BTC_WHITE_LIST_KEY
  */
 class BtcWhiteListProvider(
     whiteListSetterAccount: String,
-    credential: IrohaCredential,
-    irohaAPI: IrohaAPI
+    queryAPI: QueryAPI
 ) : WhiteListProvider(
-    whiteListSetterAccount, credential, irohaAPI,
+    whiteListSetterAccount, queryAPI,
     BTC_WHITE_LIST_KEY
 )

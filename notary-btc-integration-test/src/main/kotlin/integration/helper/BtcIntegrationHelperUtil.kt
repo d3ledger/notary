@@ -51,15 +51,13 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     private val btcRegistrationStrategy by lazy {
         val btcAddressesProvider =
             BtcAddressesProvider(
-                testCredential,
-                irohaAPI,
+                queryAPI,
                 accountHelper.mstRegistrationAccount.accountId,
                 accountHelper.notaryAccount.accountId
             )
         val btcTakenAddressesProvider =
             BtcRegisteredAddressesProvider(
-                testCredential,
-                irohaAPI,
+                queryAPI,
                 accountHelper.registrationAccount.accountId,
                 accountHelper.notaryAccount.accountId
             )

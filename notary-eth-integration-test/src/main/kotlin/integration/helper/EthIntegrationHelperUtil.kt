@@ -2,6 +2,7 @@ package integration.helper
 
 import com.github.kittinunf.result.success
 import config.EthereumPasswords
+import jp.co.soramitsu.iroha.java.QueryAPI
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import notary.eth.EthNotaryConfig
@@ -71,18 +72,19 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /** Provider that is used to store/fetch tokens*/
     val ethTokensProvider by lazy {
         EthTokensProviderImpl(
-            testCredential,
-            irohaAPI,
+            queryAPI,
             accountHelper.tokenStorageAccount.accountId,
             accountHelper.tokenSetterAccount.accountId
         )
     }
 
+    private val registrationQueryAPI =
+        QueryAPI(irohaAPI, accountHelper.registrationAccount.accountId, accountHelper.registrationAccount.keyPair)
+
     /** Provider that is used to get free registered relays*/
     private val ethFreeRelayProvider by lazy {
         EthFreeRelayProvider(
-            accountHelper.registrationAccount,
-            irohaAPI,
+            registrationQueryAPI,
             accountHelper.notaryAccount.accountId,
             accountHelper.registrationAccount.accountId
         )
@@ -91,8 +93,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /** Provider of ETH wallets created by registrationAccount*/
     private val ethRelayProvider by lazy {
         EthRelayProviderIrohaImpl(
-            irohaAPI,
-            accountHelper.registrationAccount,
+            registrationQueryAPI,
             accountHelper.notaryAccount.accountId,
             accountHelper.registrationAccount.accountId
         )

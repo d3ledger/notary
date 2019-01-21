@@ -2,6 +2,7 @@ package registration.btc.config
 
 import config.loadConfigs
 import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -31,13 +32,19 @@ class BtcRegistrationAppConfiguration {
     fun irohaAPI() = IrohaAPI(btcRegistrationConfig.iroha.hostname, btcRegistrationConfig.iroha.port)
 
     @Bean
+    fun queryAPI() = QueryAPI(
+        irohaAPI(),
+        btcRegistrationCredential.accountId,
+        btcRegistrationCredential.keyPair
+    )
+
+    @Bean
     fun btcRegistrationConfig() = btcRegistrationConfig
 
     @Bean
     fun btcAddressesProvider(): BtcAddressesProvider {
         return BtcAddressesProvider(
-            btcRegistrationCredential,
-            irohaAPI(),
+            queryAPI(),
             btcRegistrationConfig.mstRegistrationAccount,
             btcRegistrationConfig.notaryAccount
         )
@@ -46,8 +53,7 @@ class BtcRegistrationAppConfiguration {
     @Bean
     fun btcRegisteredAddressesProvider(): BtcRegisteredAddressesProvider {
         return BtcRegisteredAddressesProvider(
-            btcRegistrationCredential,
-            irohaAPI(),
+            queryAPI(),
             btcRegistrationCredential.accountId,
             btcRegistrationConfig.notaryAccount
         )

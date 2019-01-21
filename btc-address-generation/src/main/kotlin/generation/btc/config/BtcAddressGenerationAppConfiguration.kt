@@ -2,6 +2,7 @@ package generation.btc.config
 
 import config.loadConfigs
 import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
@@ -54,6 +55,13 @@ class BtcAddressGenerationAppConfiguration {
     )
 
     @Bean
+    fun queryAPI() = QueryAPI(
+        irohaAPI(),
+        registrationCredential.accountId,
+        registrationCredential.keyPair
+    )
+
+    @Bean
     fun btcAddressGenerationConfig() = btcAddressGenerationConfig
 
     @Bean
@@ -65,10 +73,9 @@ class BtcAddressGenerationAppConfiguration {
 
     @Bean
     @Autowired
-    fun notaryPeerListProvider(irohaAPI: IrohaAPI): NotaryPeerListProvider {
+    fun notaryPeerListProvider(queryAPI: QueryAPI): NotaryPeerListProvider {
         return NotaryPeerListProviderImpl(
-            irohaAPI,
-            registrationCredential,
+            queryAPI,
             btcAddressGenerationConfig.notaryListStorageAccount,
             btcAddressGenerationConfig.notaryListSetterAccount
         )

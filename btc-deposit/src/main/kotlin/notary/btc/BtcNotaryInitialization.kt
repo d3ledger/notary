@@ -11,6 +11,7 @@ import helper.network.getPeerGroup
 import helper.network.startChainDownload
 import io.reactivex.Observable
 import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import listener.btc.NewBtcClientRegistrationListener
 import model.IrohaCredential
 import mu.KLogging
@@ -73,9 +74,10 @@ class BtcNotaryInitialization(
         }.map {
             getBtcEvents(peerGroup, btcNotaryConfig.bitcoin.confidenceLevel)
         }.map { btcEvents ->
+            val queryAPI = QueryAPI(irohaAPI, irohaCredential.accountId, irohaCredential.keyPair)
+
             val peerListProvider = NotaryPeerListProviderImpl(
-                irohaAPI,
-                irohaCredential,
+                queryAPI,
                 btcNotaryConfig.notaryListStorageAccount,
                 btcNotaryConfig.notaryListSetterAccount
             )

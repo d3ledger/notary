@@ -5,7 +5,6 @@ import com.github.kittinunf.result.map
 import com.google.gson.Gson
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
-import jp.co.soramitsu.iroha.java.IrohaAPI
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import provider.eth.EthTokensProviderImpl
@@ -25,11 +24,8 @@ class ERC20TokenRegistrationTest {
     private val tokenRegistrationConfig =
         integrationHelper.configHelper.createERC20TokenRegistrationConfig(tokensFilePath)
 
-    val irohaAPI = IrohaAPI(tokenRegistrationConfig.iroha.hostname, tokenRegistrationConfig.iroha.port)
-
     private val ethTokensProvider = EthTokensProviderImpl(
-        integrationHelper.testCredential,
-        irohaAPI,
+        integrationHelper.queryAPI,
         tokenRegistrationConfig.tokenStorageAccount,
         tokenRegistrationConfig.irohaCredential.accountId
     )
@@ -44,7 +40,6 @@ class ERC20TokenRegistrationTest {
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
-        irohaAPI.close()
     }
 
     /**

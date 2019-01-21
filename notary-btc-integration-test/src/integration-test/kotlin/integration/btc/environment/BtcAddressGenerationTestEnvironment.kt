@@ -2,6 +2,7 @@ package integration.btc.environment
 
 import generation.btc.BtcAddressGenerationInitialization
 import integration.helper.BtcIntegrationHelperUtil
+import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
 import provider.NotaryPeerListProviderImpl
@@ -62,13 +63,18 @@ class BtcAddressGenerationTestEnvironment(private val integrationHelper: BtcInte
         integrationHelper.irohaAPI
     )
 
+    private val registrationQueryAPI = QueryAPI(
+        integrationHelper.irohaAPI,
+        registrationCredential.accountId,
+        registrationCredential.keyPair
+    )
+
     fun btcPublicKeyProvider(): BtcPublicKeyProvider {
         val file = File(btcGenerationConfig.btcWalletFilePath)
         val wallet = Wallet.loadFromFile(file)
         val walletFile = WalletFile(wallet, file)
         val notaryPeerListProvider = NotaryPeerListProviderImpl(
-            integrationHelper.irohaAPI,
-            registrationCredential,
+            registrationQueryAPI,
             btcGenerationConfig.notaryListStorageAccount,
             btcGenerationConfig.notaryListSetterAccount
         )
@@ -90,8 +96,7 @@ class BtcAddressGenerationTestEnvironment(private val integrationHelper: BtcInte
     )
 
     val btcAddressGenerationInitialization = BtcAddressGenerationInitialization(
-        registrationCredential,
-        integrationHelper.irohaAPI,
+        registrationQueryAPI,
         btcGenerationConfig,
         btcPublicKeyProvider(),
         irohaListener

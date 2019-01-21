@@ -5,7 +5,6 @@ import config.loadConfigs
 import config.loadEthPasswords
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
-import jp.co.soramitsu.iroha.java.IrohaAPI
 import khttp.get
 import notary.endpoint.eth.BigIntegerMoshiAdapter
 import notary.endpoint.eth.EthNotaryResponse
@@ -80,15 +79,9 @@ class WithdrawalMultinotaryIntegrationTest {
         integrationHelper.lockEthMasterSmartcontract()
     }
 
-    val irohaAPI = IrohaAPI(
-        notaryConfig1.iroha.hostname,
-        notaryConfig1.iroha.port
-    )
-
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
-        irohaAPI.close()
     }
 
     /**
@@ -113,8 +106,7 @@ class WithdrawalMultinotaryIntegrationTest {
             integrationHelper.registerClient(client, listOf(ethWallet), integrationHelper.testCredential.keyPair)
             integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
             val relay = EthRelayProviderIrohaImpl(
-                irohaAPI,
-                integrationHelper.testCredential,
+                integrationHelper.queryAPI,
                 masterAccount,
                 integrationHelper.accountHelper.registrationAccount.accountId
             ).getRelays().get().filter {

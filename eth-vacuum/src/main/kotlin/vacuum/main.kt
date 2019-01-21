@@ -6,6 +6,7 @@ import com.github.kittinunf.result.*
 import config.loadConfigs
 import config.loadEthPasswords
 import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.util.ModelUtil
@@ -33,10 +34,12 @@ fun executeVacuum(relayVacuumConfig: RelayVacuumConfig, args: Array<String> = em
         relayVacuumConfig.vacuumCredential.privkeyPath
     )
         .map { keypair -> IrohaCredential(relayVacuumConfig.vacuumCredential.accountId, keypair) }
-        .fanout { loadEthPasswords(RELAY_VACUUM_PREFIX, "/eth/ethereum_password.properties", args) }
-        .flatMap { (credential, passwordConfig) ->
-            IrohaAPI(relayVacuumConfig.iroha.hostname, relayVacuumConfig.iroha.port).use { irohaNetwork ->
-                RelayVacuum(relayVacuumConfig, passwordConfig, credential, irohaNetwork).vacuum()
-            }
+        .fanout {
+            Result.of { IrohaAPI(relayVacuumConfig.iroha.hostname, relayVacuumConfig.iroha.port) }
+        }.map { (credential, irohaAPI) ->
+            QueryAPI(irohaAPI, credential.accountId, credential.keyPair)
+        }.fanout { loadEthPasswords(RELAY_VACUUM_PREFIX, "/eth/ethereum_password.properties", args) }
+        .flatMap { (queryAPI, passwordConfig) ->
+            RelayVacuum(relayVacuumConfig, passwordConfig, queryAPI).vacuum()
         }
 }

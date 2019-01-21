@@ -7,6 +7,7 @@ import config.EthereumPasswords
 import io.reactivex.Observable
 import iroha.protocol.Primitive
 import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import jp.co.soramitsu.iroha.java.Transaction
 import model.IrohaCredential
 import mu.KLogging
@@ -95,9 +96,10 @@ class EthNotaryInitialization(
                 .build()
         )
 
+        val queryAPI = QueryAPI(irohaAPI, notaryCredential.accountId, notaryCredential.keyPair)
+
         val peerListProvider = NotaryPeerListProviderImpl(
-            irohaAPI,
-            notaryCredential,
+            queryAPI,
             ethNotaryConfig.notaryListStorageAccount,
             ethNotaryConfig.notaryListSetterAccount
         )

@@ -47,10 +47,6 @@ class IrohaBatchTest {
 
     val assetDomain = "notary"
 
-    private val irohaAPI = IrohaAPI(testConfig.iroha.hostname, testConfig.iroha.port)
-
-    private val queryAPI = QueryAPI(irohaAPI, testCredential.accountId, testCredential.keyPair)
-
     val listener = IrohaChainListener(
         testConfig.iroha.hostname,
         testConfig.iroha.port,
@@ -64,7 +60,6 @@ class IrohaBatchTest {
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
-        irohaAPI.close()
         listener.close()
     }
 
@@ -80,7 +75,7 @@ class IrohaBatchTest {
             val user = randomString()
             val asset_name = randomString()
 
-            val irohaConsumer = IrohaConsumerImpl(testCredential, irohaAPI)
+            val irohaConsumer = IrohaConsumerImpl(testCredential, integrationHelper.irohaAPI)
 
             val userId = "$user@$CLIENT_DOMAIN"
 
@@ -151,10 +146,10 @@ class IrohaBatchTest {
 
             Thread.sleep(BATCH_TIME_WAIT)
 
-            val accountJson = getAccountData(queryAPI, userId).get().toJsonString()
-            val tester_amount = getAccountAsset(queryAPI, tester, "$asset_name#$assetDomain").get()
+            val accountJson = getAccountData(integrationHelper.queryAPI, userId).get().toJsonString()
+            val tester_amount = getAccountAsset(integrationHelper.queryAPI, tester, "$asset_name#$assetDomain").get()
             val u1_amount =
-                getAccountAsset(queryAPI, userId, "$asset_name#$assetDomain").get()
+                getAccountAsset(integrationHelper.queryAPI, userId, "$asset_name#$assetDomain").get()
 
             assertEquals(hashes.size, successHash.size)
             assertTrue(successHash.containsAll(hashes))
@@ -182,7 +177,7 @@ class IrohaBatchTest {
             val user = randomString()
             val asset_name = randomString()
 
-            val irohaConsumer = IrohaConsumerImpl(testCredential, irohaAPI)
+            val irohaConsumer = IrohaConsumerImpl(testCredential, integrationHelper.irohaAPI)
 
             val userId = "$user@$CLIENT_DOMAIN"
             val assetId = "$asset_name#$assetDomain"
@@ -269,10 +264,10 @@ class IrohaBatchTest {
 
             Thread.sleep(BATCH_TIME_WAIT)
 
-            val accountJson = getAccountData(queryAPI, userId).get().toJsonString()
-            val tester_amount = getAccountAsset(queryAPI, tester, assetId).get()
+            val accountJson = getAccountData(integrationHelper.queryAPI, userId).get().toJsonString()
+            val tester_amount = getAccountAsset(integrationHelper.queryAPI, tester, assetId).get()
             val u1_amount =
-                getAccountAsset(queryAPI, userId, assetId).get()
+                getAccountAsset(integrationHelper.queryAPI, userId, assetId).get()
 
             assertEquals(expectedHashes.size, successHash.size)
             assertTrue(successHash.containsAll(expectedHashes))

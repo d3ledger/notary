@@ -9,9 +9,7 @@ import healthcheck.HealthyService
 import io.reactivex.Observable
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
-import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
-import model.IrohaCredential
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -29,14 +27,11 @@ import sidechain.iroha.util.getSetDetailCommands
 @Component
 class BtcAddressGenerationInitialization(
     @Qualifier("registrationCredential")
-    @Autowired private val registrationCredential: IrohaCredential,
-    @Autowired private val irohaAPI: IrohaAPI,
+    @Autowired private val queryAPI: QueryAPI,
     @Autowired private val btcAddressGenerationConfig: BtcAddressGenerationConfig,
     @Autowired private val btcPublicKeyProvider: BtcPublicKeyProvider,
     @Autowired private val irohaChainListener: IrohaChainListener
 ) : HealthyService() {
-
-    private val queryAPI = QueryAPI(irohaAPI, registrationCredential.accountId, registrationCredential.keyPair)
 
     /*
     Initiates listener that listens to events in trigger account.

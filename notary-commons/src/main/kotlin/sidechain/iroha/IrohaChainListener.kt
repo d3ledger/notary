@@ -17,14 +17,14 @@ class IrohaChainListener(
     irohaPort: Int,
     private val credential: IrohaCredential
 ) : ChainListener<iroha.protocol.BlockOuterClass.Block> {
-    val irohaApi = IrohaAPI(irohaHost, irohaPort)
+    val irohaAPI = IrohaAPI(irohaHost, irohaPort)
 
     /**
      * Returns an observable that emits a new block every time it gets it from Iroha
      */
     override fun getBlockObservable(): Result<Observable<iroha.protocol.BlockOuterClass.Block>, Exception> {
         logger.info { "On subscribe to Iroha chain" }
-        return ModelUtil.getBlockStreaming(irohaApi, credential).map { observable ->
+        return ModelUtil.getBlockStreaming(irohaAPI, credential).map { observable ->
             observable.map { response ->
                 logger.info { "New Iroha block arrived. Height ${response.blockResponse.block.blockV1.payload.height}" }
                 response.blockResponse.block
@@ -40,7 +40,7 @@ class IrohaChainListener(
     }
 
     override fun close() {
-        irohaApi.close()
+        irohaAPI.close()
     }
 
     /**

@@ -27,22 +27,21 @@ class NotaryException(reason: String) : Exception(reason)
  */
 class EthRefundStrategyImpl(
     notaryConfig: EthNotaryConfig,
-    private val irohaAPI: IrohaAPI,
+    irohaAPI: IrohaAPI,
     private val credential: IrohaCredential,
     ethereumConfig: EthereumConfig,
     ethereumPasswords: EthereumPasswords,
     private val tokensProvider: EthTokensProvider
 ) : EthRefundStrategy {
-    private val queryAPI by lazy { QueryAPI(irohaAPI, credential.accountId, credential.keyPair) }
+    private val queryAPI = QueryAPI(irohaAPI, credential.accountId, credential.keyPair)
     private val relayProvider = EthRelayProviderIrohaImpl(
-        irohaAPI,
-        credential,
+        queryAPI,
         credential.accountId,
         notaryConfig.registrationServiceIrohaAccount
     )
 
     private val whiteListProvider = EthWhiteListProvider(
-        notaryConfig.whitelistSetter, credential, irohaAPI
+        notaryConfig.whitelistSetter, queryAPI
     )
 
     private var ecKeyPair: ECKeyPair = DeployHelper(ethereumConfig, ethereumPasswords).credentials.ecKeyPair

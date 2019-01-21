@@ -4,6 +4,7 @@ import handler.btc.NewBtcClientRegistrationHandler
 import helper.address.outPutToBase58Address
 import integration.helper.BtcIntegrationHelperUtil
 import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import org.bitcoinj.core.TransactionOutput
 import org.bitcoinj.wallet.Wallet
@@ -44,6 +45,8 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
 
     val irohaAPI = IrohaAPI(btcWithdrawalConfig.iroha.hostname, btcWithdrawalConfig.iroha.port)
 
+    val queryAPI = QueryAPI(irohaAPI, withdrawalCredential.accountId, withdrawalCredential.keyPair)
+
     val withdrawalIrohaConsumer = IrohaConsumerImpl(
         withdrawalCredential,
         irohaAPI
@@ -56,16 +59,14 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
     )
 
     val btcRegisteredAddressesProvider = BtcRegisteredAddressesProvider(
-        integrationHelper.testCredential,
-        integrationHelper.irohaAPI,
+        integrationHelper.queryAPI,
         btcWithdrawalConfig.registrationCredential.accountId,
         btcWithdrawalConfig.notaryCredential.accountId
     )
 
     val btcNetworkConfigProvider = BtcRegTestConfigProvider()
     val btcChangeAddressProvider = BtcChangeAddressProvider(
-        integrationHelper.testCredential,
-        integrationHelper.irohaAPI,
+        integrationHelper.queryAPI,
         btcWithdrawalConfig.mstRegistrationAccount,
         btcWithdrawalConfig.changeAddressesStorageAccount
     )
@@ -92,7 +93,7 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
     val withdrawalTransferEventHandler = WithdrawalTransferEventHandler(
         withdrawalStatistics,
         BtcWhiteListProvider(
-            btcWithdrawalConfig.registrationCredential.accountId, withdrawalCredential, irohaAPI
+            btcWithdrawalConfig.registrationCredential.accountId, queryAPI
         ), btcWithdrawalConfig, transactionCreator, signCollector, unsignedTransactions
     )
     val newSignatureEventHandler = NewSignatureEventHandler(withdrawalStatistics, signCollector, unsignedTransactions)

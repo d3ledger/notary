@@ -2,19 +2,15 @@ package provider
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
-import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.util.getAccountDetails
 
 abstract class WhiteListProvider protected constructor(
     private val whiteListSetterAccount: String,
-    private val credential: IrohaCredential,
-    private val irohaAPI: IrohaAPI,
+    private val queryAPI: QueryAPI,
     private val whiteListKey: String
 ) {
-    private val queryAPI = QueryAPI(irohaAPI, credential.accountId, credential.keyPair)
     /**
      * Check if [srcAccountId] has withdrawal [address] in whitelist.
      * @param srcAccountId - Iroha account - holder of whitelist

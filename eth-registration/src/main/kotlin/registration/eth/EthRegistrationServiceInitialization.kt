@@ -4,6 +4,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import config.EthereumPasswords
 import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import mu.KLogging
 import provider.eth.EthFreeRelayProvider
@@ -36,10 +37,10 @@ class EthRegistrationServiceInitialization(
             ethRegistrationConfig.registrationCredential.privkeyPath
         ).map { keypair -> IrohaCredential(ethRegistrationConfig.registrationCredential.accountId, keypair) }
             .map { credential ->
+                val queryAPI = QueryAPI(irohaAPI, credential.accountId, credential.keyPair)
                 Pair(
                     EthFreeRelayProvider(
-                        credential,
-                        irohaAPI,
+                        queryAPI,
                         ethRegistrationConfig.notaryIrohaAccount,
                         ethRegistrationConfig.relayRegistrationIrohaAccount
                     ),

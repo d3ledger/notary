@@ -2,6 +2,7 @@ package withdrawal.btc.config
 
 import config.loadConfigs
 import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
@@ -62,27 +63,27 @@ class BtcWithdrawalAppConfiguration {
     @Bean
     fun btcRegisteredAddressesProvider(): BtcRegisteredAddressesProvider {
         return BtcRegisteredAddressesProvider(
-            btcRegistrationCredential,
-            irohaAPI(),
+            QueryAPI(irohaAPI(), btcRegistrationCredential.accountId, btcRegistrationCredential.keyPair),
             withdrawalConfig.registrationCredential.accountId,
             withdrawalConfig.notaryCredential.accountId
         )
     }
 
     @Bean
+    fun withdrawalQueryAPI() = QueryAPI(irohaAPI(), withdrawalCredential().accountId, withdrawalCredential().keyPair)
+
+    @Bean
     fun whiteListProvider(): BtcWhiteListProvider {
         return BtcWhiteListProvider(
             withdrawalConfig.registrationCredential.accountId,
-            withdrawalCredential(),
-            irohaAPI()
+            withdrawalQueryAPI()
         )
     }
 
     @Bean
     fun btcChangeAddressProvider(): BtcChangeAddressProvider {
         return BtcChangeAddressProvider(
-            withdrawalCredential(),
-            irohaAPI(),
+            withdrawalQueryAPI(),
             withdrawalConfig.mstRegistrationAccount,
             withdrawalConfig.changeAddressesStorageAccount
         )

@@ -53,20 +53,18 @@ data class RollbackApproval(
  */
 class WithdrawalServiceImpl(
     private val withdrawalServiceConfig: WithdrawalServiceConfig,
-    val credential: IrohaCredential,
-    val irohaAPI: IrohaAPI,
+    private val credential: IrohaCredential,
+    private val irohaAPI: IrohaAPI,
     private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
 ) : WithdrawalService {
     private val queryAPI by lazy { QueryAPI(irohaAPI, credential.accountId, credential.keyPair) }
     private val notaryPeerListProvider = NotaryPeerListProviderImpl(
-        irohaAPI,
-        credential,
+        queryAPI,
         withdrawalServiceConfig.notaryListStorageAccount,
         withdrawalServiceConfig.notaryListSetterAccount
     )
     private val tokensProvider: EthTokensProvider = EthTokensProviderImpl(
-        credential,
-        irohaAPI,
+        queryAPI,
         withdrawalServiceConfig.tokenStorageAccount,
         withdrawalServiceConfig.tokenSetterAccount
     )

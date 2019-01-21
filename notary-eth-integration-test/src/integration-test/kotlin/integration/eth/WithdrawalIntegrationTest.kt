@@ -49,15 +49,9 @@ class WithdrawalIntegrationTest {
         integrationHelper.configHelper.ethPasswordConfig
     ).credentials.ecKeyPair
 
-    val irohaAPI = IrohaAPI(
-        notaryConfig.iroha.hostname,
-        notaryConfig.iroha.port
-    )
-
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
-        irohaAPI.close()
     }
 
     /**
@@ -82,8 +76,7 @@ class WithdrawalIntegrationTest {
             integrationHelper.registerClient(client, listOf(ethWallet), integrationHelper.testCredential.keyPair)
             integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
             val relay = EthRelayProviderIrohaImpl(
-                irohaAPI,
-                integrationHelper.testCredential,
+                integrationHelper.queryAPI,
                 masterAccount,
                 integrationHelper.accountHelper.registrationAccount.accountId
             ).getRelays().get().filter {

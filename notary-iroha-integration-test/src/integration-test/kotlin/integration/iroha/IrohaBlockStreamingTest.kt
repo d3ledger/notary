@@ -31,8 +31,6 @@ class IrohaBlockStreamingTest {
 
     private val creator = testCredential.accountId
 
-    private val irohaAPI = IrohaAPI(testConfig.iroha.hostname, testConfig.iroha.port)
-
     private val listener = IrohaChainListener(
         testConfig.iroha.hostname,
         testConfig.iroha.port,
@@ -44,7 +42,6 @@ class IrohaBlockStreamingTest {
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
-        irohaAPI.close()
         listener.close()
     }
 
@@ -72,7 +69,7 @@ class IrohaBlockStreamingTest {
                 .setAccountDetail(creator, "test", "test")
                 .build()
 
-            IrohaConsumerImpl(testCredential, irohaAPI).send(utx)
+            IrohaConsumerImpl(testCredential, integrationHelper.irohaAPI).send(utx)
             runBlocking {
                 delay(5000)
             }
@@ -99,7 +96,7 @@ class IrohaBlockStreamingTest {
                 .setAccountDetail(creator, "test", "test")
                 .build()
 
-            IrohaConsumerImpl(testCredential, irohaAPI).send(utx)
+            IrohaConsumerImpl(testCredential, integrationHelper.irohaAPI).send(utx)
 
 
             val bl = runBlocking {
