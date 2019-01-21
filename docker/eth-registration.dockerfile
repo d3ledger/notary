@@ -2,7 +2,7 @@ FROM openjdk:8-jre
 
 WORKDIR /opt/notary
 
-COPY registration/build/libs/registration-all.jar /opt/notary/notary.jar
+COPY eth-registration/build/libs/eth-registration-all.jar /opt/notary/notary.jar
 COPY iroha_bindings/linux/* /opt/notary/
 ENV LD_LIBRARY_PATH="/opt/notary:${LD_LIBRARY_PATH}"
 
