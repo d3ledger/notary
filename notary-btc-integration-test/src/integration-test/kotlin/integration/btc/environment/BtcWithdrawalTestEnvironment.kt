@@ -1,6 +1,7 @@
 package integration.btc.environment
 
 import config.BitcoinConfig
+import fee.BtcFeeRateService
 import handler.btc.NewBtcClientRegistrationHandler
 import helper.address.outPutToBase58Address
 import integration.helper.BtcIntegrationHelperUtil
@@ -15,6 +16,7 @@ import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
+import withdrawal.btc.handler.NewFeeRateWasSetHandler
 import withdrawal.btc.handler.NewSignatureEventHandler
 import withdrawal.btc.handler.WithdrawalTransferEventHandler
 import withdrawal.btc.init.BtcWithdrawalInitialization
@@ -42,8 +44,16 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
         btcWithdrawalConfig.withdrawalCredential.privkeyPath
     ).fold({ keypair -> keypair }, { ex -> throw ex })
 
+    private val btcFeeRateKeypair = ModelUtil.loadKeypair(
+        btcWithdrawalConfig.btcFeeRateCredential.pubkeyPath,
+        btcWithdrawalConfig.btcFeeRateCredential.privkeyPath
+    ).fold({ keypair -> keypair }, { ex -> throw ex })
+
     private val withdrawalCredential =
         IrohaCredential(btcWithdrawalConfig.withdrawalCredential.accountId, withdrawalKeypair)
+
+    private val btcFeeRateCredential =
+        IrohaCredential(btcWithdrawalConfig.btcFeeRateCredential.accountId, btcFeeRateKeypair)
 
     private val signaturesCollectorKeypair = ModelUtil.loadKeypair(
         btcWithdrawalConfig.signatureCollectorCredential.pubkeyPath,
@@ -64,6 +74,8 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
         signaturesCollectorCredential,
         irohaNetwork
     )
+
+    private val btcFeeRateConsumer = IrohaConsumerImpl(btcFeeRateCredential, irohaNetwork)
 
     private val irohaChainListener = IrohaChainListener(
         btcWithdrawalConfig.iroha.hostname,
@@ -139,6 +151,8 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
         peerGroup
     }
 
+    private val btcFeeRateService = BtcFeeRateService(btcFeeRateConsumer, btcFeeRateCredential, irohaNetwork)
+
     val btcWithdrawalInitialization by lazy {
         BtcWithdrawalInitialization(
             peerGroup,
@@ -149,7 +163,9 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
             withdrawalTransferEventHandler,
             newSignatureEventHandler,
             NewBtcClientRegistrationHandler(btcNetworkConfigProvider),
-            btcRegisteredAddressesProvider
+            NewFeeRateWasSetHandler(btcWithdrawalConfig.btcFeeRateCredential.accountId),
+            btcRegisteredAddressesProvider,
+            btcFeeRateService
         )
     }
 

@@ -41,17 +41,25 @@ class IrohaAccountHelper(private val irohaNetwork: IrohaNetwork) {
     val registrationAccount by lazy {
         createTesterAccount("registration", "registration_service")
     }
+
     /** Account that used to store registered clients in mst fashion.*/
     val mstRegistrationAccount by lazy {
         createTesterAccount("mst_registration", "registration_service")
     }
 
+    /** Account that used to execute transfer commands */
     val btcWithdrawalAccount by lazy {
         createTesterAccount("btc_withdrawal", "withdrawal", "rollback")
     }
 
+    /** Account that collects withdrawal transaction signatures */
     val btcWithdrawalSignatureCollectorAccount by lazy {
         createTesterAccount("signature_collector", "signature_collector")
+    }
+
+    /** Account that stores current fee rate */
+    val btcFeeRateAccount by lazy {
+        createTesterAccount("fee_rate", "btc_fee_rate_setter")
     }
 
     /** Account that used to store tokens */

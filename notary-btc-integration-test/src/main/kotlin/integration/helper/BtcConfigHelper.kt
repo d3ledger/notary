@@ -1,6 +1,7 @@
 package integration.helper
 
 import config.BitcoinConfig
+import config.IrohaCredentialConfig
 import config.loadConfigs
 import generation.btc.config.BtcAddressGenerationConfig
 import notary.btc.config.BtcNotaryConfig
@@ -50,6 +51,7 @@ class BtcConfigHelper(
         val btcWithdrawalConfig =
             loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties").get()
         return object : BtcWithdrawalConfig {
+            override val btcFeeRateCredential = accountHelper.createCredentialConfig(accountHelper.btcFeeRateAccount)
             override val signatureCollectorCredential =
                 accountHelper.createCredentialConfig(accountHelper.btcWithdrawalSignatureCollectorAccount)
             override val changeAddressesStorageAccount = accountHelper.changeAddressesStorageAccount.accountId

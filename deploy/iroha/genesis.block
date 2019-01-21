@@ -215,6 +215,15 @@
                 }
               },
               {
+                "createRole": {
+                  "roleName": "btc_fee_rate_setter",
+                  "permissions": [
+                    "can_set_detail",
+                    "can_get_all_accounts"
+                  ]
+                }
+              },
+              {
                 "createDomain": {
                   "domainId": "notary",
                   "defaultRole": "none"
@@ -366,6 +375,19 @@
                   "accountName": "withdrawal",
                   "domainId": "notary",
                   "publicKey": "CSdCcCMvQ/15TFyBdirByGh/cINoJlRlbqltH5sU9NM="
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "btc_fee_rate",
+                  "domainId": "notary",
+                  "publicKey": "F3bTzx5zsPNh3ZKH+Kp9lfeLtqvkR4TOHNFzCWCEq9A="
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "btc_fee_rate@notary",
+                  "roleName": "btc_fee_rate_setter"
                 }
               },
               {

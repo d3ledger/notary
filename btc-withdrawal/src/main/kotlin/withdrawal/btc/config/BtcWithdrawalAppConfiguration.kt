@@ -2,6 +2,7 @@ package withdrawal.btc.config
 
 import config.BitcoinConfig
 import config.loadConfigs
+import fee.BtcFeeRateService
 import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
@@ -37,6 +38,13 @@ class BtcWithdrawalAppConfiguration {
         withdrawalConfig.registrationCredential.privkeyPath
     ).fold({ keypair ->
         IrohaCredential(withdrawalConfig.registrationCredential.accountId, keypair)
+    }, { ex -> throw ex })
+
+    private val btcFeeRateCredential = ModelUtil.loadKeypair(
+        withdrawalConfig.btcFeeRateCredential.pubkeyPath,
+        withdrawalConfig.btcFeeRateCredential.privkeyPath
+    ).fold({ keypair ->
+        IrohaCredential(withdrawalConfig.btcFeeRateCredential.accountId, keypair)
     }, { ex -> throw ex })
 
     @Bean
@@ -81,6 +89,18 @@ class BtcWithdrawalAppConfiguration {
             withdrawalConfig.notaryCredential.accountId
         )
     }
+
+    @Bean
+    fun btcFeeRateAccount() = withdrawalConfig.btcFeeRateCredential.accountId
+
+    @Bean
+    fun btcFeeRateService() =
+        BtcFeeRateService(
+            IrohaConsumerImpl(
+                btcFeeRateCredential, irohaNetwork()
+            ),
+            btcFeeRateCredential, irohaNetwork()
+        )
 
     @Bean
     fun whiteListProvider(): BtcWhiteListProvider {
