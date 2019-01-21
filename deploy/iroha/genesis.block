@@ -401,7 +401,7 @@
                 "createAccount": {
                   "accountName": "btc_fee_rate",
                   "domainId": "notary",
-                  "publicKey": "F3bTzx5zsPNh3ZKH+Kp9lfeLtqvkR4TOHNFzCWCEq9A="
+                  "publicKey": "1776d3cf1e73b0f361dd9287f8aa7d95f78bb6abe44784ce1cd173096084abd0"
                 }
               },
               {
@@ -444,7 +444,7 @@
                 "createAccount": {
                   "accountName": "btc_sign_collector",
                   "domainId": "notary",
-                  "publicKey": "ZMySY3PLwOOuHnVsuJyqAP0wZglLcr+xwsbJnz0AhiY="
+                  "publicKey": "64cc926373cbc0e3ae1e756cb89caa00fd3066094b72bfb1c2c6c99f3d008626"
                 }
               },
               {
@@ -529,7 +529,7 @@
                 "createAccount": {
                   "accountName": "admin",
                   "domainId": "notary",
-                  "publicKey": "CS5xsDGlGtrpJPfNlE8Dca6LhQJGnjJpOIUzTe3MYAE="
+                  "publicKey": "092e71b031a51adae924f7cd944f0371ae8b8502469e32693885334dedcc6001"
                 }
               },
               {
@@ -542,7 +542,7 @@
                 "createAccount": {
                   "accountName": "sora",
                   "domainId": "sora",
-                  "publicKey": "VmWHWyKLnu5R+7dSXiG3/It9uftuksDG/ZJpsTQqGwM="
+                  "publicKey": "5665875b228b9eee51fbb7525e21b7fc8b7db9fb6e92c0c6fd9269b1342a1b03"
                 }
               },
               {

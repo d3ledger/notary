@@ -20,10 +20,6 @@ class SoraIntegrationTest {
     val domain = "sora"
     val xorAsset = "xor#$domain"
 
-    init {
-        System.loadLibrary("irohajava")
-    }
-
     /**
      * Sora user can query her/his balance.
      * @given a client with 1334 xor on balance
