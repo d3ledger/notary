@@ -227,10 +227,11 @@ object ModelUtil {
         destAccountId: String,
         assetId: String,
         description: String,
-        amount: String
+        amount: String,
+        date: Long = System.currentTimeMillis()
     ): Result<String, Exception> {
         val transaction = Transaction
-            .builder(irohaConsumer.creator)
+            .builder(irohaConsumer.creator, date)
             .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
             .build()
         return irohaConsumer.send(transaction)
