@@ -6,6 +6,8 @@ dependencies {
     compile 'io.grpc:grpc-netty:1.14.0'
     compile 'io.grpc:grpc-protobuf:1.14.0'
     compile 'io.grpc:grpc-stub:1.14.0'
+    compile "io.ktor:ktor-gson:$ktor_version"
+
 
     // ------------------| Src dependencies |------------------
 

@@ -6,11 +6,16 @@ import io.ktor.features.CORS
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receiveParameters
 import io.ktor.response.respondText
+import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import mu.KLogging
+import io.ktor.features.ContentNegotiation
+import io.ktor.gson.*
+import io.ktor.response.respond
+
 
 data class Response(val code: HttpStatusCode, val message: String)
 
@@ -31,6 +36,9 @@ class RegistrationServiceEndpoint(
                 anyHost()
                 allowCredentials = true
             }
+            install(ContentNegotiation) {
+                gson()
+            }
             routing {
                 post("/users") {
                     val parameters = call.receiveParameters()
@@ -42,6 +50,14 @@ class RegistrationServiceEndpoint(
 
                     val response = onPostRegistration(name, whitelist, pubkey)
                     call.respondText(response.message, status = response.code)
+                }
+
+                get("/actuator/health") {
+                    call.respond(
+                            mapOf(
+                                    "status" to "UP"
+                            )
+                    )
                 }
             }
         }
