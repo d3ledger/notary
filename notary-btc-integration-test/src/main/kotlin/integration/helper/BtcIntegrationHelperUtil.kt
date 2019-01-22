@@ -251,11 +251,6 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         return "blocks were"
     }
 
-    // Converts Bitcoins to Satoshi
-    fun btcToSat(btc: Int): BigDecimal {
-        return BigDecimal(btc * 100_000_000L)
-    }
-
     /**
      * Logger
      */

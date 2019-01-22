@@ -62,7 +62,7 @@ class BtcNotaryIntegrationTest {
         Thread.sleep(DEPOSIT_WAIT_MILLIS)
         val newBalance = integrationHelper.getIrohaAccountBalance(testClient, BTC_ASSET)
         assertEquals(
-            BigDecimal(initialBalance).add(integrationHelper.btcToSat(btcAmount)).toString(),
+            BigDecimal(initialBalance).add(BigDecimal(btcAmount)).toString(),
             newBalance
         )
         assertTrue(environment.btcNotaryInitialization.isWatchedAddress(btcAddress))
@@ -93,7 +93,7 @@ class BtcNotaryIntegrationTest {
         }
         val newBalance = integrationHelper.getIrohaAccountBalance(testClient, BTC_ASSET)
         assertEquals(
-            BigDecimal(initialBalance).add(integrationHelper.btcToSat(btcAmount)).multiply(totalDeposits.toBigDecimal()).toString(),
+            BigDecimal(initialBalance).add(BigDecimal(btcAmount)).multiply(totalDeposits.toBigDecimal()).toString(),
             newBalance
         )
         assertTrue(environment.btcNotaryInitialization.isWatchedAddress(btcAddress))
@@ -155,7 +155,7 @@ class BtcNotaryIntegrationTest {
         Thread.sleep(DEPOSIT_WAIT_MILLIS)
         val newBalance = integrationHelper.getIrohaAccountBalance(testClient, BTC_ASSET)
         assertEquals(
-            BigDecimal(initialBalance).add(integrationHelper.btcToSat(btcAmount)).toString(),
+            BigDecimal(initialBalance).add(BigDecimal(btcAmount)).toString(),
             newBalance
         )
         assertTrue(environment.btcNotaryInitialization.isWatchedAddress(btcAddress))

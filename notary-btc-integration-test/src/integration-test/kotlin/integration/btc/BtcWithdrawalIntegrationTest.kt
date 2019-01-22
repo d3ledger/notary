@@ -371,7 +371,7 @@ class BtcWithdrawalIntegrationTest {
     @Test
     fun testWithdrawalMultipleInputs() {
         val initTxCount = environment.createdTransactions.size
-        val amount = integrationHelper.btcToSat(6)
+        val amount = BigDecimal(6)
         val randomNameSrc = String.getRandomString(9)
         val testClientSrcKeypair = ModelUtil.generateKeypair()
         val testClientSrc = "$randomNameSrc@$CLIENT_DOMAIN"
