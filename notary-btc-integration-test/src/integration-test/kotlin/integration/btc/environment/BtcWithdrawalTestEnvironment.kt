@@ -104,8 +104,8 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
     private val transactionSigner = TransactionSigner(btcRegisteredAddressesProvider, btcChangeAddressProvider)
     val signCollector =
         SignCollector(
-            withdrawalCredential,
-            withdrawalIrohaConsumer,
+            signaturesCollectorCredential,
+            signaturesCollectorIrohaConsumer,
             integrationHelper.irohaAPI,
             transactionSigner
         )

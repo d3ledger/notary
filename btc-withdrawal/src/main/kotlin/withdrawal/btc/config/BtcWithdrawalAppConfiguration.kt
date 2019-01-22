@@ -105,6 +105,7 @@ class BtcWithdrawalAppConfiguration {
             btcFeeRateCredential.accountId, queryAPI()
         )
 
+    @Bean
     fun withdrawalQueryAPI() = QueryAPI(irohaAPI(), withdrawalCredential().accountId, withdrawalCredential().keyPair)
 
     @Bean
