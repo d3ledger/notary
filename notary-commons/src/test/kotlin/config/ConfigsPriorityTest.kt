@@ -51,7 +51,6 @@ class ConfigsPriorityTest {
      * @then EthPasswordsConfig is constructed based on environment variables
      */
     @Test
-    @Ignore
     fun testLoadEthPasswordsEnv() {
         setEnvVariables()
         val envCredentialsPassword = System.getenv(ETH_CREDENTIALS_PASSWORD_ENV)

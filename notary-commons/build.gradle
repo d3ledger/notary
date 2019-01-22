@@ -52,3 +52,6 @@ sonarqube {
         property "sonar.projectKey", "notary:notary-commons"
     }
 }
+test {
+    setWorkingDir("$rootDir/")
+}
