@@ -15,4 +15,5 @@ task runWithdrawal(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 
     args getEthPasswordsArgs()
+    setWorkingDir("$rootDir/")
 }
