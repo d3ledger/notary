@@ -29,26 +29,36 @@ class BtcSessionProvider(
      */
     fun createPubKeyCreationSession(sessionId: String): Result<String, Exception> {
         return Result.of {
-            IrohaTransaction(
-                credential.accountId,
-                ModelUtil.getCurrentTime(),
-                1,
-                arrayListOf(
-                    //Creating session account
-                    IrohaCommand.CommandCreateAccount(
-                        sessionId, BTC_SESSION_DOMAIN, String.hex(credential.keyPair.public.encoded)
-                    ),
-                    //Setting address generation time
-                    IrohaCommand.CommandSetAccountDetail(
-                        "$sessionId@$BTC_SESSION_DOMAIN",
-                        ADDRESS_GENERATION_TIME_KEY,
-                        System.currentTimeMillis().toString()
-                    )
-                )
-            )
+            createPubKeyCreationSessionTx(sessionId)
         }.flatMap { irohaTx ->
             val utx = IrohaConverter.convert(irohaTx)
             irohaConsumer.send(utx)
         }
+    }
+
+    /**
+     * Creates a transaction that may be used to create special session account for notaries public key storage
+     *
+     * @param sessionId session identifier aka session account name
+     * @return Iroha transaction full of session creation commands
+     */
+    fun createPubKeyCreationSessionTx(sessionId: String): IrohaTransaction {
+        return IrohaTransaction(
+            credential.accountId,
+            ModelUtil.getCurrentTime(),
+            1,
+            arrayListOf(
+                //Creating session account
+                IrohaCommand.CommandCreateAccount(
+                    sessionId, BTC_SESSION_DOMAIN, String.hex(credential.keyPair.public.encoded)
+                ),
+                //Setting address generation time
+                IrohaCommand.CommandSetAccountDetail(
+                    "$sessionId@$BTC_SESSION_DOMAIN",
+                    ADDRESS_GENERATION_TIME_KEY,
+                    System.currentTimeMillis().toString()
+                )
+            )
+        )
     }
 }

@@ -5,8 +5,10 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import generation.btc.config.BtcAddressGenerationConfig
+import generation.btc.trigger.AddressGenerationTrigger
 import healthcheck.HealthyService
 import io.reactivex.Observable
+import io.reactivex.schedulers.Schedulers
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
 import jp.co.soramitsu.iroha.java.QueryAPI
@@ -14,13 +16,16 @@ import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
+import provider.btc.account.BTC_CURRENCY_NAME_KEY
 import provider.btc.address.BtcAddressType
 import provider.btc.address.getAddressTypeByAccountId
 import provider.btc.generation.ADDRESS_GENERATION_TIME_KEY
 import provider.btc.generation.BtcPublicKeyProvider
+import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.util.getAccountDetails
 import sidechain.iroha.util.getSetDetailCommands
+import java.util.concurrent.Executors
 
 /*
    This class listens to special account to be triggered and starts generation process
@@ -31,7 +36,8 @@ class BtcAddressGenerationInitialization(
     @Autowired private val registrationQueryAPI: QueryAPI,
     @Autowired private val btcAddressGenerationConfig: BtcAddressGenerationConfig,
     @Autowired private val btcPublicKeyProvider: BtcPublicKeyProvider,
-    @Autowired private val irohaChainListener: IrohaChainListener
+    @Autowired private val irohaChainListener: IrohaChainListener,
+    @Autowired private val addressGenerationTrigger: AddressGenerationTrigger
 ) : HealthyService() {
 
     /*
@@ -39,15 +45,26 @@ class BtcAddressGenerationInitialization(
     If trigger account is triggered, new session account full notary public keys will be created
      */
     fun init(): Result<Unit, Exception> {
-        return irohaChainListener.getBlockObservable().map { irohaObservable ->
-            initIrohaObservable(irohaObservable)
-        }
+        return irohaChainListener.getBlockObservable()
+            .map { irohaObservable ->
+                initIrohaObservable(irohaObservable)
+            }.flatMap {
+                // Start address generation at initial phase
+                addressGenerationTrigger
+                    .startFreeAddressGenerationIfNeeded(btcAddressGenerationConfig.threshold)
+            }
     }
 
     private fun initIrohaObservable(irohaObservable: Observable<BlockOuterClass.Block>) {
-        irohaObservable.subscribe({ block ->
+        irohaObservable.subscribeOn(Schedulers.from(Executors.newSingleThreadExecutor())).subscribe({ block ->
             getSetDetailCommands(block).forEach { command ->
-                if (isAddressGenerationTriggered(command)) {
+                if (isNewClientRegistered(command)) {
+                    // generate new multisignature address if new client has been registered recently
+                    addressGenerationTrigger.startFreeAddressGenerationIfNeeded(btcAddressGenerationConfig.threshold)
+                        .fold(
+                            { "Free BTC address generation was triggered" },
+                            { ex -> logger.error("Cannot trigger address generation", ex) })
+                } else if (isAddressGenerationTriggered(command)) {
                     //add new public key to session account, if trigger account was changed
                     val sessionAccountName = command.setAccountDetail.key
                     onGenerateKey(sessionAccountName).fold(
@@ -67,6 +84,12 @@ class BtcAddressGenerationInitialization(
             notHealthy()
             logger.error("Error on subscribe", ex)
         })
+    }
+
+    // Checks if new client was registered
+    private fun isNewClientRegistered(command: Commands.Command): Boolean {
+        val setAccountDetail = command.setAccountDetail
+        return setAccountDetail.accountId.endsWith(CLIENT_DOMAIN) && setAccountDetail.key == BTC_CURRENCY_NAME_KEY
     }
 
     // Checks if address generation account was triggered
@@ -95,7 +118,11 @@ class BtcAddressGenerationInitialization(
             val time = details.remove(ADDRESS_GENERATION_TIME_KEY)!!.toLong()
             // Getting keys
             val notaryKeys = details.values
-            btcPublicKeyProvider.checkAndCreateMultiSigAddress(notaryKeys, addressType, time)
+            if (!notaryKeys.isEmpty()) {
+                btcPublicKeyProvider.checkAndCreateMultiSigAddress(notaryKeys, addressType, time)
+            } else {
+                Result.of { Unit }
+            }
         }
     }
 

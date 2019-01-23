@@ -14,7 +14,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.ComponentScan
 
 @SpringBootApplication
-@ComponentScan(basePackages = ["generation", "healthcheck", "provider.btc.generation", "provider.btc.network"])
+@ComponentScan(basePackages = ["generation", "healthcheck", "provider.btc.generation", "provider.btc.network", "generation.btc.trigger"])
 class BtcAddressGenerationApplication
 
 private val logger = KLogging().logger

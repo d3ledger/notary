@@ -21,6 +21,7 @@ import provider.btc.address.BtcAddressType
 import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
 import util.hex
+import withdrawal.btc.handler.CurrentFeeRate
 import java.io.File
 import java.math.BigDecimal
 import java.security.KeyPair
@@ -39,11 +40,15 @@ class BtcFullPipelineTest {
     private val withdrawalEnvironment = BtcWithdrawalTestEnvironment(integrationHelper, "full_pipeline")
 
     init {
+        CurrentFeeRate.set(DEFAULT_FEE_RATE)
         integrationHelper.addNotary("test_notary", "test_notary_address")
         // Run address generation
         GlobalScope.launch {
             addressGenerationEnvironment.btcAddressGenerationInitialization.init().failure { ex -> throw ex }
         }
+        // Wait for initial address generation
+        Thread.sleep(WAIT_PREGEN_PROCESS_MILLIS * addressGenerationEnvironment.btcGenerationConfig.threshold)
+        addressGenerationEnvironment.checkIfAddressesWereGeneratedAtInitialPhase()
         // Run registration
         GlobalScope.launch {
             registrationEnvironment.btcRegistrationServiceInitialization.init()
@@ -94,9 +99,6 @@ class BtcFullPipelineTest {
     fun testFullPipeline() {
         val amount = satToBtc(10000L)
 
-        // Trigger address generation. Source and destination addresses
-        generateFreeAddress(2)
-
         // Register source account
         val srcKeypair = Ed25519Sha3().generateKeypair()
         val srcUserName = "src_${String.getRandomString(9)}"
@@ -132,6 +134,16 @@ class BtcFullPipelineTest {
             BigDecimal(1).subtract(amount).toPlainString(),
             integrationHelper.getIrohaAccountBalance("$srcUserName@$CLIENT_DOMAIN", BTC_ASSET)
         )
+
+        addressGenerationEnvironment.btcFreeAddressesProvider.getFreeAddresses()
+            .fold({ freeAddresses ->
+                if (freeAddresses.size < addressGenerationEnvironment.btcGenerationConfig.threshold) {
+                    fail(
+                        "Not enough addresses were generated after registration" +
+                                "(${freeAddresses.size} out of ${addressGenerationEnvironment.btcGenerationConfig.threshold})."
+                    )
+                }
+            }, { ex -> fail("Cannot get free addresses", ex) })
     }
 
     /**
@@ -153,16 +165,6 @@ class BtcFullPipelineTest {
      */
     private fun generateChangeAddress() {
         generateAddress(BtcAddressType.CHANGE)
-    }
-
-    /**
-     * Generates free Bitcoin address. This address may be registered by client later
-     * @param addressesToGenerate - number of addresses to generate
-     */
-    private fun generateFreeAddress(addressesToGenerate: Int) {
-        for (i in 1..addressesToGenerate) {
-            generateAddress(BtcAddressType.FREE)
-        }
     }
 
     /**

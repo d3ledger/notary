@@ -35,4 +35,7 @@ interface BtcAddressGenerationConfig {
 
     //Port of health check service
     val healthCheckPort: Int
+
+    //Minimum number of free addresses to keep in Iroha
+    val threshold: Int
 }
