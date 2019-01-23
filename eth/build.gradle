@@ -20,6 +20,7 @@ sonarqube {
 task runSendEther(type: JavaExec) {
     main = 'deploy.EthSendEther'
     classpath = sourceSets.main.runtimeClasspath
+    setWorkingDir("$rootDir/")
 }
 
 
@@ -27,9 +28,11 @@ task runSendEther(type: JavaExec) {
 task runPreDeployEthereum(type: JavaExec) {
     main = 'deploy.EthPreDeployMain'
     classpath = sourceSets.main.runtimeClasspath
+    setWorkingDir("$rootDir/")
 }
 
 task runEthNotary(type: JavaExec) {
     main = 'notary.eth.EthNotaryMain'
     classpath = sourceSets.main.runtimeClasspath
+    setWorkingDir("$rootDir/")
 }

@@ -15,4 +15,5 @@ task runVacuumRelay(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 
     args getEthPasswordsArgs()
+    setWorkingDir("$rootDir/")
 }
