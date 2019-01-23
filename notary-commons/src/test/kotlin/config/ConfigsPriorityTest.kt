@@ -63,9 +63,9 @@ class ConfigsPriorityTest {
     }
 
     /**
-     * @given environment variables not full of passwords
-     * @when properties file is passed to loadEthPasswords()
-     * @then EthPasswordsConfig is constructed based on both environment variables and file
+     * @given environment variables containing account id property
+     * @when test properties file is passed to loadConfigs
+     * @then MixedConfig is constructed based on both environment variables and file
      */
     @Test
     fun testLoadEthPasswordsEnvPartially() {
