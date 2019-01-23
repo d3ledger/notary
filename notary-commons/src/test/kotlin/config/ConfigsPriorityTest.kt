@@ -37,7 +37,7 @@ class ConfigsPriorityTest {
     @Test
     @Ignore
     fun testLoadEthPasswordsArgsWithEnvVariables() {
-        setEnvVariables()
+        setEthEnvVariables()
         val args = arrayOf("argCredentialsPassword", "argNodeLogin", "argNodePassword")
         val ethPasswords = loadEthPasswords("test", "/eth/ethereum_password.properties", args).get()
         assertEquals(args[0], ethPasswords.credentialsPassword)
@@ -52,7 +52,7 @@ class ConfigsPriorityTest {
      */
     @Test
     fun testLoadEthPasswordsEnv() {
-        setEnvVariables()
+        setEthEnvVariables()
         val envCredentialsPassword = System.getenv(ETH_CREDENTIALS_PASSWORD_ENV)
         val envNodeLogin = System.getenv(ETH_NODE_LOGIN_ENV)
         val envNodePassword = System.getenv(ETH_NODE_PASSWORD_ENV)
@@ -62,7 +62,23 @@ class ConfigsPriorityTest {
         assertEquals(envNodePassword, ethPasswords.nodePassword)
     }
 
-    private fun setEnvVariables() {
+    /**
+     * @given environment variables not full of passwords
+     * @when properties file is passed to loadEthPasswords()
+     * @then EthPasswordsConfig is constructed based on both environment variables and file
+     */
+    @Test
+    fun testLoadEthPasswordsEnvPartially() {
+        val envAccountId = "envAccountId"
+        val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
+        environmentVariables.set("TEST_TESTCREDENTIALCONFIG_ACCOUNTID", envAccountId)
+        val mixedConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
+        assertEquals(envAccountId, mixedConfig.testCredentialConfig.accountId)
+        assertEquals(testConfig.testCredentialConfig.pubkeyPath, mixedConfig.testCredentialConfig.pubkeyPath)
+        assertEquals(testConfig.testCredentialConfig.privkeyPath, mixedConfig.testCredentialConfig.privkeyPath)
+    }
+
+    private fun setEthEnvVariables() {
         environmentVariables.set(ETH_CREDENTIALS_PASSWORD_ENV, "env_credentialsPassword")
         environmentVariables.set(ETH_NODE_LOGIN_ENV, "env_nodeLogin")
         environmentVariables.set(ETH_NODE_PASSWORD_ENV, "env_nodePassword")
