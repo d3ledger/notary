@@ -68,7 +68,7 @@ class ConfigsPriorityTest {
      * @then MixedConfig is constructed based on both environment variables and file
      */
     @Test
-    fun testLoadEthPasswordsEnvPartially() {
+    fun testTestConfigEnvPartially() {
         val envAccountId = "envAccountId"
         val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
         environmentVariables.set("TEST_TESTCREDENTIALCONFIG_ACCOUNTID", envAccountId)
