@@ -1,6 +1,5 @@
 package sidechain
 
-import com.google.protobuf.ByteString
 import iroha.protocol.Commands
 import java.math.BigInteger
 
@@ -22,7 +21,7 @@ sealed class SideChainEvent {
          */
         data class AddPeer(
             val address: String,
-            val key: ByteString
+            val key: String
         ) : IrohaEvent() {
 
             companion object {

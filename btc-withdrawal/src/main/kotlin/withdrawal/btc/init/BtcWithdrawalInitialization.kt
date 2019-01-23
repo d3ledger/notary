@@ -101,7 +101,7 @@ class BtcWithdrawalInitialization(
                         withdrawalTransferEventHandler.handleTransferCommand(
                             wallet,
                             command.transferAsset,
-                            block.payload.createdTime
+                            block.blockV1.payload.createdTime
                         )
                     }
                     // Handle signature appearance commands

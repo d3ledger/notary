@@ -19,7 +19,6 @@ import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.util.ModelUtil
 import util.getRandomId
 import wallet.WalletFile
-import java.math.BigInteger
 
 /**
  *  Bitcoin keys provider
@@ -116,8 +115,7 @@ class BtcPublicKeyProvider(
                 multiSigConsumer,
                 storageAccount,
                 msAddress.toBase58(),
-                addressInfo.toJson(),
-                BigInteger.valueOf(generationTime)
+                addressInfo.toJson()
             ).fold({
                 walletFile.save()
                 logger.info { "New BTC ${addressType.title} address $msAddress was created " }

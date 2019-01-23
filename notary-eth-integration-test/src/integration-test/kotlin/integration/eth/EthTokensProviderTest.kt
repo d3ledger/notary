@@ -43,12 +43,11 @@ class EthTokensProviderTest {
         assertTimeoutPreemptively(timeoutDuration) {
             val tokensToAdd = 3
             val expectedTokens = mutableMapOf<String, EthTokenInfo>()
-            (1..tokensToAdd).forEach { i ->
-                val ethWallet = "0x$i"
+            (1..tokensToAdd).forEach { precision ->
+                val ethWallet = "0x$precision"
                 val tokenName = String.getRandomString(9)
-                val tokenPrecision = i.toShort()
-                expectedTokens[ethWallet] = EthTokenInfo(tokenName, tokenPrecision)
-                integrationHelper.addERC20Token(ethWallet, tokenName, tokenPrecision)
+                expectedTokens[ethWallet] = EthTokenInfo(tokenName, precision)
+                integrationHelper.addERC20Token(ethWallet, tokenName, precision)
             }
             ethTokensProvider.getTokens()
                 .fold(

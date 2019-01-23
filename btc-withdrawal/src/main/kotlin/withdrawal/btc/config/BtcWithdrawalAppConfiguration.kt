@@ -3,6 +3,8 @@ package withdrawal.btc.config
 import config.BitcoinConfig
 import config.loadConfigs
 import fee.BtcFeeRateService
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
@@ -10,7 +12,6 @@ import org.springframework.context.annotation.Configuration
 import provider.btc.address.BtcRegisteredAddressesProvider
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import withdrawal.btc.provider.BtcChangeAddressProvider
 import withdrawal.btc.provider.BtcWhiteListProvider
@@ -58,14 +59,14 @@ class BtcWithdrawalAppConfiguration {
         IrohaCredential(withdrawalConfig.withdrawalCredential.accountId, withdrawalKeypair)
 
     @Bean
-    fun withdrawalConsumer() = IrohaConsumerImpl(withdrawalCredential(), irohaNetwork())
+    fun withdrawalConsumer() = IrohaConsumerImpl(withdrawalCredential(), irohaAPI())
 
     @Bean
     fun signatureCollectorCredential() =
         IrohaCredential(withdrawalConfig.signatureCollectorCredential.accountId, signatureCollectorKeypair)
 
     @Bean
-    fun signatureCollectorConsumer() = IrohaConsumerImpl(signatureCollectorCredential(), irohaNetwork())
+    fun signatureCollectorConsumer() = IrohaConsumerImpl(signatureCollectorCredential(), irohaAPI())
 
     @Bean
     fun withdrawalConfig() = withdrawalConfig
@@ -78,13 +79,15 @@ class BtcWithdrawalAppConfiguration {
     )
 
     @Bean
-    fun irohaNetwork() = IrohaNetworkImpl(withdrawalConfig.iroha.hostname, withdrawalConfig.iroha.port)
+    fun irohaAPI() = IrohaAPI(withdrawalConfig.iroha.hostname, withdrawalConfig.iroha.port)
+
+    @Bean
+    fun queryAPI() = QueryAPI(irohaAPI(), btcFeeRateCredential.accountId, btcFeeRateCredential.keyPair)
 
     @Bean
     fun btcRegisteredAddressesProvider(): BtcRegisteredAddressesProvider {
         return BtcRegisteredAddressesProvider(
-            btcRegistrationCredential,
-            irohaNetwork(),
+            QueryAPI(irohaAPI(), btcRegistrationCredential.accountId, btcRegistrationCredential.keyPair),
             withdrawalConfig.registrationCredential.accountId,
             withdrawalConfig.notaryCredential.accountId
         )
@@ -97,25 +100,26 @@ class BtcWithdrawalAppConfiguration {
     fun btcFeeRateService() =
         BtcFeeRateService(
             IrohaConsumerImpl(
-                btcFeeRateCredential, irohaNetwork()
+                btcFeeRateCredential, irohaAPI()
             ),
-            btcFeeRateCredential, irohaNetwork()
+            btcFeeRateCredential.accountId, queryAPI()
         )
+
+    @Bean
+    fun withdrawalQueryAPI() = QueryAPI(irohaAPI(), withdrawalCredential().accountId, withdrawalCredential().keyPair)
 
     @Bean
     fun whiteListProvider(): BtcWhiteListProvider {
         return BtcWhiteListProvider(
             withdrawalConfig.registrationCredential.accountId,
-            withdrawalCredential(),
-            irohaNetwork()
+            withdrawalQueryAPI()
         )
     }
 
     @Bean
     fun btcChangeAddressProvider(): BtcChangeAddressProvider {
         return BtcChangeAddressProvider(
-            withdrawalCredential(),
-            irohaNetwork(),
+            withdrawalQueryAPI(),
             withdrawalConfig.mstRegistrationAccount,
             withdrawalConfig.changeAddressesStorageAccount
         )

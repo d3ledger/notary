@@ -1,20 +1,20 @@
 package notary
 
 import io.reactivex.Observable
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import provider.NotaryPeerListProvider
 import sidechain.SideChainEvent
-import sidechain.iroha.consumer.IrohaNetwork
 
 fun createEthNotary(
     notaryCredential: IrohaCredential,
-    irohaNetwork: IrohaNetwork,
+    irohaAPI: IrohaAPI,
     ethEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>,
     peerListProvider: NotaryPeerListProvider
 ): NotaryImpl {
     return NotaryImpl(
         notaryCredential,
-        irohaNetwork,
+        irohaAPI,
         ethEvents,
         "ethereum",
         peerListProvider
