@@ -10,7 +10,6 @@ buildscript {
 }
 apply plugin: 'application'
 apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
-apply plugin: 'org.springframework.boot'
 mainClassName = "notary.btc.BtcNotaryMain"
 
 dependencies {
@@ -20,6 +19,7 @@ dependencies {
 task runBtcNotary(type: JavaExec) {
     main = 'notary.btc.BtcNotaryMain'
     classpath = sourceSets.main.runtimeClasspath
+    setWorkingDir("$rootDir/")
 }
 
 sonarqube {

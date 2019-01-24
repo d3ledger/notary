@@ -32,7 +32,7 @@ class BtcAddressGenerationTriggerAppConfiguration {
         IrohaCredential(btcAddressGenerationTriggerConfig.registrationAccount.accountId, registrationKeyPair)
 
     @Bean
-    fun irohaAPI() =
+    fun triggerIrohaAPI() =
         IrohaAPI(
             btcAddressGenerationTriggerConfig.iroha.hostname,
             btcAddressGenerationTriggerConfig.iroha.port
@@ -40,9 +40,9 @@ class BtcAddressGenerationTriggerAppConfiguration {
 
     @Bean
     fun btcSessionProvider() =
-        BtcSessionProvider(registrationCredential, irohaAPI())
+        BtcSessionProvider(registrationCredential, triggerIrohaAPI())
 
     @Bean
     fun triggerProvider() =
-        TriggerProvider(registrationCredential, irohaAPI(), btcAddressGenerationTriggerConfig.pubKeyTriggerAccount)
+        TriggerProvider(registrationCredential, triggerIrohaAPI(), btcAddressGenerationTriggerConfig.pubKeyTriggerAccount)
 }

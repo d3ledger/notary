@@ -78,7 +78,7 @@ pipeline {
           jacoco execPattern: 'build/jacoco/test.exec', sourcePattern: '.'
         }
         cleanup {
-          sh "mkdir build-logs"
+          sh "mkdir -p build-logs"
           sh """
             while read -r LINE; do \
               docker logs \$(echo \$LINE | cut -d ' ' -f1) | gzip -6 > build-logs/\$(echo \$LINE | cut -d ' ' -f2).log.gz; \

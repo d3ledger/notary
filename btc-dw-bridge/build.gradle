@@ -21,6 +21,7 @@ dependencies {
 task runBtcDepositWithdrawal(type: JavaExec) {
     main = 'dwbridge.btc.BtcDepositWithdrawalMain'
     classpath = sourceSets.main.runtimeClasspath
+    setWorkingDir("$rootDir/")
 }
 
 sonarqube {

@@ -27,7 +27,8 @@ import sidechain.iroha.util.getSetDetailCommands
  */
 @Component
 class BtcAddressGenerationInitialization(
-    @Autowired private val queryAPI: QueryAPI,
+    @Qualifier("registrationQueryAPI")
+    @Autowired private val registrationQueryAPI: QueryAPI,
     @Autowired private val btcAddressGenerationConfig: BtcAddressGenerationConfig,
     @Autowired private val btcPublicKeyProvider: BtcPublicKeyProvider,
     @Autowired private val irohaChainListener: IrohaChainListener
@@ -86,7 +87,7 @@ class BtcAddressGenerationInitialization(
         addressType: BtcAddressType
     ): Result<Unit, Exception> {
         return getAccountDetails(
-            queryAPI,
+            registrationQueryAPI,
             sessionAccount,
             btcAddressGenerationConfig.registrationAccount.accountId
         ).flatMap { details ->

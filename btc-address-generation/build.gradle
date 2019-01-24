@@ -21,16 +21,19 @@ dependencies {
 task runBtcAddressGeneration(type: JavaExec) {
     main = 'generation.btc.BtcAddressGenerationMain'
     classpath = sourceSets.main.runtimeClasspath
+    setWorkingDir("$rootDir/")
 }
 
 task generateBtcChangeAddress(type: JavaExec) {
     main = 'generation.btc.trigger.BtcChangeAddressGeneration'
     classpath = sourceSets.main.runtimeClasspath
+    setWorkingDir("$rootDir/")
 }
 
 task generateBtcFreeAddress(type: JavaExec) {
     main = 'generation.btc.trigger.BtcFreeAddressGeneration'
     classpath = sourceSets.main.runtimeClasspath
+    setWorkingDir("$rootDir/")
 }
 
 sonarqube {

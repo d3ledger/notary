@@ -5,7 +5,6 @@ import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import provider.NotaryPeerListProvider
@@ -49,14 +48,14 @@ class BtcAddressGenerationAppConfiguration {
         IrohaCredential(btcAddressGenerationConfig.mstRegistrationAccount.accountId, mstRegistrationKeyPair)
 
     @Bean
-    fun irohaAPI() = IrohaAPI(
+    fun generationIrohaAPI() = IrohaAPI(
         btcAddressGenerationConfig.iroha.hostname,
         btcAddressGenerationConfig.iroha.port
     )
 
     @Bean
-    fun queryAPI() = QueryAPI(
-        irohaAPI(),
+    fun registrationQueryAPI() = QueryAPI(
+        generationIrohaAPI(),
         registrationCredential.accountId,
         registrationCredential.keyPair
     )
@@ -72,22 +71,19 @@ class BtcAddressGenerationAppConfiguration {
     }
 
     @Bean
-    @Autowired
-    fun notaryPeerListProvider(queryAPI: QueryAPI): NotaryPeerListProvider {
+    fun notaryPeerListProvider(): NotaryPeerListProvider {
         return NotaryPeerListProviderImpl(
-            queryAPI,
+            registrationQueryAPI(),
             btcAddressGenerationConfig.notaryListStorageAccount,
             btcAddressGenerationConfig.notaryListSetterAccount
         )
     }
 
     @Bean
-    @Autowired
-    fun sessionConsumer(irohaAPI: IrohaAPI) = IrohaConsumerImpl(registrationCredential, irohaAPI)
+    fun sessionConsumer() = IrohaConsumerImpl(registrationCredential, generationIrohaAPI())
 
     @Bean
-    @Autowired
-    fun multiSigConsumer(irohaAPI: IrohaAPI) = IrohaConsumerImpl(mstRegistrationCredential, irohaAPI)
+    fun multiSigConsumer() = IrohaConsumerImpl(mstRegistrationCredential, generationIrohaAPI())
 
     @Bean
     fun notaryAccount() = btcAddressGenerationConfig.notaryAccount
