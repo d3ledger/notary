@@ -48,7 +48,6 @@ task integrationTest(type: Test) {
 check.dependsOn integrationTest
 
 apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
-apply plugin: 'org.springframework.boot'
 
 dependencies {
     compile project(":btc-registration")

@@ -60,7 +60,6 @@ class BtcNotaryInitialization(
             ) {
                 // Kill deposit service if Iroha chain listener is not functioning
                 close()
-                System.exit(1)
             }
             logger.info { "Registration service listener was successfully initialized" }
         }.flatMap {
