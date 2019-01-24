@@ -1,6 +1,5 @@
-import com.github.kittinunf.result.failure
 import config.loadConfigs
-import jp.co.soramitsu.iroha.ModelCrypto
+import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -8,20 +7,14 @@ import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.fail
 import registration.NotaryRegistrationConfig
 import registration.main
-import sidechain.iroha.IrohaInitialization
 import util.getRandomString
+import util.toHexString
 import kotlin.test.assertEquals
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class NotaryRegistrationTest {
-
-    init {
-        IrohaInitialization.loadIrohaLibrary()
-            .failure { fail(it) }
-    }
 
     val registrationConfig =
         loadConfigs("registration", NotaryRegistrationConfig::class.java, "/registration.properties").get()
@@ -63,7 +56,7 @@ class NotaryRegistrationTest {
     @Test
     fun correctRegistration() {
         val name = String.getRandomString(9)
-        val pubkey = ModelCrypto().generateKeypair().publicKey().hex()
+        val pubkey = Ed25519Sha3().generateKeypair().public.toHexString()
 
         val res = post(
             mapOf(

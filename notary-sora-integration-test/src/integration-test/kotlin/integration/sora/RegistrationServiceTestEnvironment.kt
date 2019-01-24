@@ -27,7 +27,7 @@ class RegistrationServiceTestEnvironment(private val integrationHelper: IrohaInt
         { ex -> throw ex }
     )
 
-    private val irohaConsumer = IrohaConsumerImpl(registrationCredentials, integrationHelper.irohaNetwork)
+    private val irohaConsumer = IrohaConsumerImpl(registrationCredentials, integrationHelper.irohaAPI)
 
     private val registrationStrategy = NotaryRegistrationStrategy(irohaConsumer)
 

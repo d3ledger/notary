@@ -1,7 +1,7 @@
 package registration
 
 import com.github.kittinunf.result.Result
-import jp.co.soramitsu.iroha.PublicKey
+import jp.co.soramitsu.iroha.java.Utils
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -34,7 +34,7 @@ class NotaryRegistrationStrategy(
             irohaConsumer,
             name,
             domain,
-            PublicKey(PublicKey.fromHexString(pubkey))
+            Utils.parseHexPublicKey(pubkey)
         )
     }
 

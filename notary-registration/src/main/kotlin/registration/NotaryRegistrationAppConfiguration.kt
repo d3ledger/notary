@@ -1,11 +1,11 @@
 package registration
 
 import config.loadConfigs
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
 val registrationConfig =
@@ -30,11 +30,11 @@ class NotaryRegistrationAppConfiguration {
 
     /** Iroha network connection */
     @Bean
-    fun irohaNetwork() = IrohaNetworkImpl(registrationConfig.iroha.hostname, registrationConfig.iroha.port)
+    fun irohaAPI() = IrohaAPI(registrationConfig.iroha.hostname, registrationConfig.iroha.port)
 
     @Bean
     fun irohaConsumer() = IrohaConsumerImpl(
-        registrationCredential, irohaNetwork()
+        registrationCredential, irohaAPI()
     )
 
     /** Configurations for Notary Registration Service */
