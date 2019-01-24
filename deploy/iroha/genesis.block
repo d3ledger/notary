@@ -305,13 +305,19 @@
                 "createAccount": {
                   "accountName": "registration_service",
                   "domainId": "notary",
-                  "publicKey": "KNoWbCw34wLXUa2EQq9ev6sJffUivPRxf57yTnIjdd4="
+                  "publicKey": "28da166c2c37e302d751ad8442af5ebfab097df522bcf4717f9ef24e722375de"
                 }
               },
               {
                 "appendRole": {
                   "accountId": "registration_service@notary",
                   "roleName": "registration_service"
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "registration_service@notary",
+                  "roleName": "client"
                 }
               },
               {

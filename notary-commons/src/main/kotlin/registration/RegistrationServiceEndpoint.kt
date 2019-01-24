@@ -89,7 +89,9 @@ class RegistrationServiceEndpoint(
         }
         registrationStrategy.register(name, domain ?: CLIENT_DOMAIN, whitelist.filter { it.isNotEmpty() }, pubkey).fold(
             { address ->
-                logger.info { "Client $name was successfully registered with address $address" }
+                logger.info {
+                    "Client $name@${domain ?: CLIENT_DOMAIN} was successfully registered with address $address"
+                }
                 return Response(HttpStatusCode.OK, address)
             },
             { ex ->

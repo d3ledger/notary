@@ -55,7 +55,7 @@ class NotaryRegistrationTest {
      */
     @Test
     fun correctRegistration() {
-        val name = String.getRandomString(9)
+        val name = String.getRandomString(7)
         val pubkey = Ed25519Sha3().generateKeypair().public.toHexString()
 
         val res = post(
