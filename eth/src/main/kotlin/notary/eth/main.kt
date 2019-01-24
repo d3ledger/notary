@@ -6,12 +6,12 @@ import com.github.kittinunf.result.*
 import config.EthereumPasswords
 import config.loadConfigs
 import config.loadEthPasswords
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import mu.KLogging
 import provider.eth.EthRelayProviderIrohaImpl
 import provider.eth.EthTokensProviderImpl
-import sidechain.iroha.IrohaInitialization
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
 private val logger = KLogging().logger
@@ -35,13 +35,10 @@ fun executeNotary(
     ethereumPasswords: EthereumPasswords,
     notaryConfig: EthNotaryConfig
 ) {
-    IrohaInitialization.loadIrohaLibrary()
-        .flatMap {
-            ModelUtil.loadKeypair(
-                notaryConfig.notaryCredential.pubkeyPath,
-                notaryConfig.notaryCredential.privkeyPath
-            )
-        }
+    ModelUtil.loadKeypair(
+        notaryConfig.notaryCredential.pubkeyPath,
+        notaryConfig.notaryCredential.privkeyPath
+    )
         .map { keypair -> IrohaCredential(notaryConfig.notaryCredential.accountId, keypair) }
         .flatMap { irohaCredential ->
             executeNotary(irohaCredential, ethereumPasswords, notaryConfig)
@@ -60,25 +57,30 @@ fun executeNotary(
 ): Result<Unit, Exception> {
     logger.info { "Run ETH notary" }
 
-    val irohaNetwork = IrohaNetworkImpl(
+    val irohaAPI = IrohaAPI(
         notaryConfig.iroha.hostname,
         notaryConfig.iroha.port
     )
+
+    val queryAPI = QueryAPI(
+        irohaAPI,
+        irohaCredential.accountId,
+        irohaCredential.keyPair
+    )
+
     val ethRelayProvider = EthRelayProviderIrohaImpl(
-        irohaNetwork,
-        irohaCredential,
+        queryAPI,
         irohaCredential.accountId,
         notaryConfig.registrationServiceIrohaAccount
     )
     val ethTokensProvider = EthTokensProviderImpl(
-        irohaCredential,
-        irohaNetwork,
+        queryAPI,
         notaryConfig.tokenStorageAccount,
         notaryConfig.tokenSetterAccount
     )
     return EthNotaryInitialization(
         irohaCredential,
-        irohaNetwork,
+        irohaAPI,
         notaryConfig,
         ethereumPasswords,
         ethRelayProvider,

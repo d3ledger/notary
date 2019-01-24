@@ -1,18 +1,16 @@
 package notary.endpoint.eth
 
-import model.IrohaCredential
+import jp.co.soramitsu.iroha.java.QueryAPI
 import provider.WhiteListProvider
 import registration.ETH_WHITE_LIST_KEY
-import sidechain.iroha.consumer.IrohaNetwork
 
 /*
     White list provider for Ethereum services
  */
 class EthWhiteListProvider(
     whiteListSetterAccount: String,
-    credential: IrohaCredential,
-    irohaNetwork: IrohaNetwork
+    queryAPI: QueryAPI
 ) : WhiteListProvider(
-    whiteListSetterAccount, credential, irohaNetwork,
+    whiteListSetterAccount, queryAPI,
     ETH_WHITE_LIST_KEY
 )

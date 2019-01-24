@@ -6,11 +6,16 @@ import io.ktor.features.CORS
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receiveParameters
 import io.ktor.response.respondText
+import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import mu.KLogging
+import io.ktor.features.ContentNegotiation
+import io.ktor.gson.*
+import io.ktor.response.respond
+
 import sidechain.iroha.CLIENT_DOMAIN
 
 data class Response(val code: HttpStatusCode, val message: String)
@@ -32,6 +37,9 @@ class RegistrationServiceEndpoint(
                 anyHost()
                 allowCredentials = true
             }
+            install(ContentNegotiation) {
+                gson()
+            }
             routing {
                 post("/users") {
                     val parameters = call.receiveParameters()
@@ -44,6 +52,14 @@ class RegistrationServiceEndpoint(
 
                     val response = onPostRegistration(name, domain, whitelist, pubkey)
                     call.respondText(response.message, status = response.code)
+                }
+
+                get("/actuator/health") {
+                    call.respond(
+                            mapOf(
+                                    "status" to "UP"
+                            )
+                    )
                 }
             }
         }
@@ -71,7 +87,7 @@ class RegistrationServiceEndpoint(
         if (name == null || whitelist == null || pubkey == null) {
             return responseError(HttpStatusCode.BadRequest, reason)
         }
-        registrationStrategy.register(name, domain ?: CLIENT_DOMAIN, whitelist.filter { it.isNotEmpty() }, pubkey).fold(
+        registrationStrategy.register(name,domain ?: CLIENT_DOMAIN, whitelist.filter { it.isNotEmpty() }, pubkey).fold(
             { address ->
                 logger.info { "Client $name was successfully registered with address $address" }
                 return Response(HttpStatusCode.OK, address)

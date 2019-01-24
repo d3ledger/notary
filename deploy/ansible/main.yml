@@ -1,6 +1,6 @@
 ---
 - hosts: ubuntu
-  gather_facts: yes
+  gather_facts: no
   pre_tasks:
     - name: install python 2  # python installation (ansible hosts gather_facts requirement)
       raw: test -e /usr/bin/python || (apt -y update && apt install -y python)

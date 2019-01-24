@@ -63,6 +63,11 @@ class WithdrawalTransferEventHandler(
                     "to:$destinationAddress " +
                     "amount:${btcAmount.toPlainString()})"
         }
+        if (!CurrentFeeRate.isPresent()) {
+            logger.warn { "Cannot execute transfer. Fee rate was not set." }
+            btcRollbackService.rollback(sourceAccountId, satAmount, withdrawalTime)
+            return
+        }
         if (!isValidBtcAddress(destinationAddress)) {
             logger.warn { "Cannot execute transfer. Destination $destinationAddress is not a valid base58 address." }
             btcRollbackService.rollback(sourceAccountId, satAmount, withdrawalTime)

@@ -20,9 +20,6 @@ dependencies {
 task runBtcNotary(type: JavaExec) {
     main = 'notary.btc.BtcNotaryMain'
     classpath = sourceSets.main.runtimeClasspath
-    setWorkingDir("$rootDir/")
-    systemProperty 'java.library.path', getIrohaLibPath()
-    environment "LD_LIBRARY_PATH", getIrohaLibPath()
 }
 
 sonarqube {

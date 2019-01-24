@@ -2,13 +2,9 @@ package integration.eth
 
 import config.IrohaCredentialConfig
 import config.loadEthPasswords
-
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.*
 import provider.eth.ETH_PRECISION
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.util.ModelUtil
@@ -103,7 +99,7 @@ class DepositMultiIntegrationTest {
             integrationHelper.waitOneIrohaBlock()
 
             Assertions.assertEquals(
-                BigDecimal(amount, ETH_PRECISION.toInt()).add(BigDecimal(initialAmount)),
+                BigDecimal(amount, ETH_PRECISION).add(BigDecimal(initialAmount)),
                 BigDecimal(integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId))
             )
         }

@@ -23,8 +23,8 @@ class EthRegistrationStrategyImpl(
     private val ethFreeRelayProvider: EthFreeRelayProvider,
     ethRegistrationConfig: EthRegistrationConfig,
     passwordConfig: EthereumPasswords,
-    val irohaConsumer: IrohaConsumer,
-    val notaryIrohaAccount: String
+    private val irohaConsumer: IrohaConsumer,
+    private val notaryIrohaAccount: String
 ) : RegistrationStrategy {
 
     init {

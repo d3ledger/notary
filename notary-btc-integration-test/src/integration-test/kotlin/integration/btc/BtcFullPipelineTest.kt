@@ -6,10 +6,9 @@ import integration.btc.environment.BtcAddressGenerationTestEnvironment
 import integration.btc.environment.BtcNotaryTestEnvironment
 import integration.btc.environment.BtcRegistrationTestEnvironment
 import integration.btc.environment.BtcWithdrawalTestEnvironment
-import integration.helper.BtcIntegrationHelperUtil
 import integration.helper.BTC_ASSET
-import jp.co.soramitsu.iroha.Keypair
-import jp.co.soramitsu.iroha.ModelCrypto
+import integration.helper.BtcIntegrationHelperUtil
+import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import mu.KLogging
@@ -21,8 +20,10 @@ import org.junit.jupiter.api.fail
 import provider.btc.address.BtcAddressType
 import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
+import util.hex
 import java.io.File
 import java.math.BigDecimal
+import java.security.KeyPair
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcFullPipelineTest {
@@ -87,7 +88,7 @@ class BtcFullPipelineTest {
      * Note: Iroha must be deployed to pass the test.
      * @given all the services(notary, withdrawal, registration and address generation) are running. 2 clients are registered. 1st client has 1BTC.
      * @when 1st client sends 10000 SAT to 2nd client
-     * @then 1 SAT is subtracted from 1st client balance and 2nd client balance is increased by 1 SAT
+     * @then 10000 SAT is subtracted from 1st client balance and 2nd client balance is increased by 10000 SAT
      */
     @Test
     fun testFullPipeline() {
@@ -97,12 +98,12 @@ class BtcFullPipelineTest {
         generateFreeAddress(2)
 
         // Register source account
-        val srcKeypair = ModelCrypto().generateKeypair()
+        val srcKeypair = Ed25519Sha3().generateKeypair()
         val srcUserName = "src_${String.getRandomString(9)}"
         val srcBtcAddress = registerClient(srcUserName, srcKeypair)
 
         // Register destination account
-        val destKeypair = ModelCrypto().generateKeypair()
+        val destKeypair = Ed25519Sha3().generateKeypair()
         val destUserName = "dest_${String.getRandomString(9)}"
         val destBtcAddress = registerClient(destUserName, destKeypair)
 
@@ -110,7 +111,7 @@ class BtcFullPipelineTest {
         integrationHelper.sendBtc(srcBtcAddress, 1, notaryEnvironment.notaryConfig.bitcoin.confidenceLevel)
         Thread.sleep(DEPOSIT_WAIT_MILLIS)
 
-        // Send 1 SAT from source to destination
+        // Send 10000 SAT from source to destination
         integrationHelper.transferAssetIrohaFromClient(
             "$srcUserName@$CLIENT_DOMAIN",
             srcKeypair,
@@ -139,10 +140,10 @@ class BtcFullPipelineTest {
      * @param keypair - registered user key pair
      * @return registered Bitcoin address
      */
-    private fun registerClient(userName: String, keypair: Keypair): String {
+    private fun registerClient(userName: String, keypair: KeyPair): String {
         val res = khttp.post(
             "http://127.0.0.1:${registrationEnvironment.btcRegistrationConfig.port}/users",
-            data = mapOf("name" to userName, "pubkey" to keypair.publicKey().hex(), "whitelist" to "")
+            data = mapOf("name" to userName, "pubkey" to String.hex(keypair.public.encoded), "whitelist" to "")
         )
         return String(res.content)
     }

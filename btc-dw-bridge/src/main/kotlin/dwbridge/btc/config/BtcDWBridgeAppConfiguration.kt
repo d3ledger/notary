@@ -2,6 +2,9 @@ package dwbridge.btc.config
 
 import config.BitcoinConfig
 import config.loadConfigs
+import fee.BtcFeeRateService
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import notary.btc.config.BtcNotaryConfig
 import org.bitcoinj.wallet.Wallet
@@ -10,7 +13,6 @@ import org.springframework.context.annotation.Configuration
 import provider.btc.address.BtcRegisteredAddressesProvider
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import withdrawal.btc.config.BtcWithdrawalConfig
 import withdrawal.btc.provider.BtcChangeAddressProvider
@@ -41,6 +43,13 @@ class BtcDWBridgeAppConfiguration {
         withdrawalConfig.signatureCollectorCredential.privkeyPath
     ).fold({ keypair -> keypair }, { ex -> throw ex })
 
+    private val btcFeeRateCredential = ModelUtil.loadKeypair(
+        withdrawalConfig.btcFeeRateCredential.pubkeyPath,
+        withdrawalConfig.btcFeeRateCredential.privkeyPath
+    ).fold({ keypair ->
+        IrohaCredential(withdrawalConfig.btcFeeRateCredential.accountId, keypair)
+    }, { ex -> throw ex })
+
     private val notaryCredential =
         IrohaCredential(notaryConfig.notaryCredential.accountId, notaryKeypair)
 
@@ -48,8 +57,7 @@ class BtcDWBridgeAppConfiguration {
     fun notaryConfig() = notaryConfig
 
     @Bean
-    fun irohaNetwork() =
-        IrohaNetworkImpl(dwBridgeConfig.iroha.hostname, dwBridgeConfig.iroha.port)
+    fun irohaAPI() = IrohaAPI(dwBridgeConfig.iroha.hostname, dwBridgeConfig.iroha.port)
 
     @Bean
     fun btcRegisteredAddressesProvider(): BtcRegisteredAddressesProvider {
@@ -59,8 +67,7 @@ class BtcDWBridgeAppConfiguration {
         )
             .fold({ keypair ->
                 return BtcRegisteredAddressesProvider(
-                    IrohaCredential(notaryConfig.notaryCredential.accountId, keypair),
-                    irohaNetwork(),
+                    QueryAPI(irohaAPI(), notaryConfig.notaryCredential.accountId, keypair),
                     notaryConfig.registrationAccount,
                     notaryConfig.notaryCredential.accountId
                 )
@@ -72,7 +79,7 @@ class BtcDWBridgeAppConfiguration {
         IrohaCredential(withdrawalConfig.signatureCollectorCredential.accountId, signatureCollectorKeypair)
 
     @Bean
-    fun signatureCollectorConsumer() = IrohaConsumerImpl(signatureCollectorCredential(), irohaNetwork())
+    fun signatureCollectorConsumer() = IrohaConsumerImpl(signatureCollectorCredential(), irohaAPI())
 
     @Bean
     fun wallet() = Wallet.loadFromFile(File(dwBridgeConfig.bitcoin.walletPath))
@@ -88,7 +95,7 @@ class BtcDWBridgeAppConfiguration {
         IrohaCredential(withdrawalConfig.withdrawalCredential.accountId, withdrawalKeypair)
 
     @Bean
-    fun withdrawalConsumer() = IrohaConsumerImpl(withdrawalCredential(), irohaNetwork())
+    fun withdrawalConsumer() = IrohaConsumerImpl(withdrawalCredential(), irohaAPI())
 
     @Bean
     fun withdrawalConfig() = withdrawalConfig
@@ -108,19 +115,20 @@ class BtcDWBridgeAppConfiguration {
     )
 
     @Bean
+    fun withdrawalQueryAPI() = QueryAPI(irohaAPI(), withdrawalCredential().accountId, withdrawalCredential().keyPair)
+
+    @Bean
     fun whiteListProvider(): BtcWhiteListProvider {
         return BtcWhiteListProvider(
             withdrawalConfig.registrationCredential.accountId,
-            withdrawalCredential(),
-            irohaNetwork()
+            withdrawalQueryAPI()
         )
     }
 
     @Bean
     fun btcChangeAddressProvider(): BtcChangeAddressProvider {
         return BtcChangeAddressProvider(
-            withdrawalCredential(),
-            irohaNetwork(),
+            withdrawalQueryAPI(),
             withdrawalConfig.mstRegistrationAccount,
             withdrawalConfig.changeAddressesStorageAccount
         )
@@ -131,5 +139,18 @@ class BtcDWBridgeAppConfiguration {
 
     @Bean
     fun btcHosts() = BitcoinConfig.extractHosts(dwBridgeConfig.bitcoin)
+
+    @Bean
+    fun btcFeeRateAccount() = withdrawalConfig.btcFeeRateCredential.accountId
+
+    @Bean
+    fun btcFeeRateService() =
+        BtcFeeRateService(
+            IrohaConsumerImpl(
+                btcFeeRateCredential, irohaAPI()
+            ),
+            btcFeeRateCredential.accountId,
+            QueryAPI(irohaAPI(), btcFeeRateCredential.accountId, btcFeeRateCredential.keyPair)
+        )
 
 }
