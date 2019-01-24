@@ -1,15 +1,18 @@
 package notary.btc.config
 
+import config.BitcoinConfig
 import config.loadConfigs
 import model.IrohaCredential
+import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import provider.btc.address.BtcRegisteredAddressesProvider
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
+import java.io.File
 
-val notaryConfig = loadConfigs("btc-notary", BtcNotaryConfig::class.java, "/btc/notary.properties")
+val notaryConfig = loadConfigs("btc-notary", BtcNotaryConfig::class.java, "/btc/notary.properties").get()
 
 @Configuration
 class BtcNotaryAppConfiguration {
@@ -41,12 +44,21 @@ class BtcNotaryAppConfiguration {
     }
 
     @Bean
+    fun wallet() = Wallet.loadFromFile(File(notaryConfig.bitcoin.walletPath))
+
+    @Bean
     fun notaryCredential() = notaryCredential
 
     @Bean
-    fun irohaChainListener() = IrohaChainListener(
+    fun depositIrohaChainListener() = IrohaChainListener(
         notaryConfig.iroha.hostname,
         notaryConfig.iroha.port,
         notaryCredential
     )
+
+    @Bean
+    fun blockStoragePath() = notaryConfig().bitcoin.blockStoragePath
+
+    @Bean
+    fun btcHosts() = BitcoinConfig.extractHosts(notaryConfig().bitcoin)
 }

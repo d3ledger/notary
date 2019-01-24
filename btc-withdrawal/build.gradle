@@ -17,10 +17,37 @@ dependencies {
     compile project(":btc")
 }
 
+// Forms a list full of 'sendBtc' task arguments
+def getSendBtcArgs() {
+    List<String> args = new ArrayList<>()
+    if (project.hasProperty("address")) {
+        args.add(project.property("address").toString())
+    }
+    if (project.hasProperty("amountSat")) {
+        args.add(project.property("amountSat").toString())
+    }
+    return args
+}
+
 task runBtcWithdrawal(type: JavaExec) {
     main = 'withdrawal.btc.BtcWithdrawalMain'
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
     systemProperty 'java.library.path', getIrohaLibPath()
     environment "LD_LIBRARY_PATH", getIrohaLibPath()
+}
+
+task sendBtc(type: JavaExec) {
+    main = 'withdrawal.btc.send.BtcSendBtc'
+    args getSendBtcArgs()
+    classpath = sourceSets.main.runtimeClasspath
+    setWorkingDir("$rootDir/")
+    systemProperty 'java.library.path', getIrohaLibPath()
+    environment "LD_LIBRARY_PATH", getIrohaLibPath()
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "notary:btc-withdrawal"
+    }
 }

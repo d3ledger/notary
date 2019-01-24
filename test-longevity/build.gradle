@@ -27,5 +27,11 @@ task longevityTest(type: JavaExec) {
 }
 
 dependencies {
-    compile project(":notary-integration-test")
+    compile project(":notary-eth-integration-test")
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "notary:test-longevity"
+    }
 }

@@ -1,0 +1,52 @@
+import java.nio.file.Paths
+
+dependencies {
+    compile project(":notary-commons")
+    
+    // Eth library
+    compile 'org.web3j:core:4.0.4'
+
+    // Waves library
+    compile 'com.wavesplatform:wavesj:0.4'
+}
+
+
+apply plugin: 'com.github.johnrengelman.shadow'
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "notary:eth"
+    }
+}
+
+task runSendEther(type: JavaExec) {
+    main = 'deploy.EthSendEther'
+    classpath = sourceSets.main.runtimeClasspath
+
+    args getEthPasswordsArgs()
+    setWorkingDir("$rootDir/")
+    systemProperty 'java.library.path', getIrohaLibPath()
+    environment "LD_LIBRARY_PATH", getIrohaLibPath()
+}
+
+
+// Deploy ethereum smart contracts - RelayRegistry, Master, add notaries wallets to Master and lock Master.
+task runPreDeployEthereum(type: JavaExec) {
+    main = 'deploy.EthPreDeployMain'
+    classpath = sourceSets.main.runtimeClasspath
+
+    args getEthPasswordsArgs()
+    setWorkingDir("$rootDir/")
+    systemProperty 'java.library.path', getIrohaLibPath()
+    environment "LD_LIBRARY_PATH", getIrohaLibPath()
+}
+
+task runEthNotary(type: JavaExec) {
+    main = 'notary.eth.EthNotaryMain'
+    classpath = sourceSets.main.runtimeClasspath
+
+    args getEthPasswordsArgs()
+    setWorkingDir("$rootDir/")
+    systemProperty 'java.library.path', getIrohaLibPath()
+    environment "LD_LIBRARY_PATH", getIrohaLibPath()
+}

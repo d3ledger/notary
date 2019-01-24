@@ -11,8 +11,12 @@ buildscript {
 
 apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
 apply plugin: 'org.springframework.boot'
+// TODO 'build' quickfix. better solution is to remove 'spring-boot' plugin from this project
+bootRepackage.enabled = false
 
 dependencies {
+    compile project(":notary-commons")
+    
     //bitcoin
     compile 'org.bitcoinj:bitcoinj-core:0.14.7'
     // https://mvnrepository.com/artifact/org.iq80.leveldb/leveldb
@@ -40,3 +44,8 @@ dependencies {
     compile group: 'commons-logging', name: 'commons-logging', version: '1.2'
 }
 
+sonarqube {
+    properties {
+        property "sonar.projectKey", "notary:btc"
+    }
+}
