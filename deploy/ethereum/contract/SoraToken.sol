@@ -1,9 +1,10 @@
 pragma solidity 0.4.25;
 
-import "./ERC20.sol";
 import "./ERC20Detailed.sol";
+import "./ERC20Burnable.sol";
+import "./Ownable.sol";
 
-contract SoraToken is ERC20, ERC20Detailed {
+contract SoraToken is ERC20Burnable, ERC20Detailed, Ownable {
 
     uint256 public constant INITIAL_SUPPLY = 1618033988 * (10 ** uint256(decimals()));
 
@@ -14,7 +15,9 @@ contract SoraToken is ERC20, ERC20Detailed {
         _mint(msg.sender, INITIAL_SUPPLY);
     }
 
-    //TODO: Implement minting function, with secure timestamp checking or other secure checking approach
-    //TODO: Implement burn function, with secure checking approach
+    function mintTokens(address beneficiary, uint256 amount) public onlyOwner {
+        require(amount < INITIAL_SUPPLY);
+        _mint(beneficiary, amount);
+    }
 
 }

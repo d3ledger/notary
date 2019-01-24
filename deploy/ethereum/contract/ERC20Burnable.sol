@@ -1,4 +1,4 @@
-pragma solidity 0.4.25;
+pragma solidity ^0.5.2;
 
 import "./ERC20.sol";
 
@@ -7,7 +7,6 @@ import "./ERC20.sol";
  * @dev Token that can be irreversibly burned (destroyed).
  */
 contract ERC20Burnable is ERC20 {
-
     /**
      * @dev Burns a specific amount of tokens.
      * @param value The amount of token to be burned.

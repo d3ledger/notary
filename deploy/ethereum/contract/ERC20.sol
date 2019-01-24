@@ -1,4 +1,4 @@
-pragma solidity 0.4.25;
+pragma solidity ^0.5.2;
 
 import "./IERC20.sol";
 import "./SafeMath.sol";
@@ -8,7 +8,12 @@ import "./SafeMath.sol";
  *
  * @dev Implementation of the basic standard token.
  * https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md
- * Originally based on code by FirstBlood: https://github.com/Firstbloodio/token/blob/master/smart_contract/FirstBloodToken.sol
+ * Originally based on code by FirstBlood:
+ * https://github.com/Firstbloodio/token/blob/master/smart_contract/FirstBloodToken.sol
+ *
+ * This implementation emits additional Approval events, allowing applications to reconstruct the allowance status for
+ * all accounts just by listening to said events. Note that this isn't required by the specification, and other
+ * compliant implementations may not do it.
  */
 contract ERC20 is IERC20 {
     using SafeMath for uint256;
@@ -41,14 +46,7 @@ contract ERC20 is IERC20 {
      * @param spender address The address which will spend the funds.
      * @return A uint256 specifying the amount of tokens still available for the spender.
      */
-    function allowance(
-        address owner,
-        address spender
-    )
-    public
-    view
-    returns (uint256)
-    {
+    function allowance(address owner, address spender) public view returns (uint256) {
         return _allowed[owner][spender];
     }
 
@@ -72,29 +70,21 @@ contract ERC20 is IERC20 {
      * @param value The amount of tokens to be spent.
      */
     function approve(address spender, uint256 value) public returns (bool) {
-        require(spender != address(0));
-
-        _allowed[msg.sender][spender] = value;
-        emit Approval(msg.sender, spender, value);
+        _approve(msg.sender, spender, value);
         return true;
     }
 
     /**
-     * @dev Transfer tokens from one address to another
+     * @dev Transfer tokens from one address to another.
+     * Note that while this function emits an Approval event, this is not required as per the specification,
+     * and other compliant implementations may not emit the event.
      * @param from address The address which you want to send tokens from
      * @param to address The address which you want to transfer to
      * @param value uint256 the amount of tokens to be transferred
      */
-    function transferFrom(
-        address from,
-        address to,
-        uint256 value
-    )
-    public
-    returns (bool)
-    {
-        _allowed[from][msg.sender] = _allowed[from][msg.sender].sub(value);
+    function transferFrom(address from, address to, uint256 value) public returns (bool) {
         _transfer(from, to, value);
+        _approve(from, msg.sender, _allowed[from][msg.sender].sub(value));
         return true;
     }
 
@@ -104,21 +94,12 @@ contract ERC20 is IERC20 {
      * allowed value is better to use this function to avoid 2 calls (and wait until
      * the first transaction is mined)
      * From MonolithDAO Token.sol
+     * Emits an Approval event.
      * @param spender The address which will spend the funds.
      * @param addedValue The amount of tokens to increase the allowance by.
      */
-    function increaseAllowance(
-        address spender,
-        uint256 addedValue
-    )
-    public
-    returns (bool)
-    {
-        require(spender != address(0));
-
-        _allowed[msg.sender][spender] = (
-        _allowed[msg.sender][spender].add(addedValue));
-        emit Approval(msg.sender, spender, _allowed[msg.sender][spender]);
+    function increaseAllowance(address spender, uint256 addedValue) public returns (bool) {
+        _approve(msg.sender, spender, _allowed[msg.sender][spender].add(addedValue));
         return true;
     }
 
@@ -128,21 +109,12 @@ contract ERC20 is IERC20 {
      * allowed value is better to use this function to avoid 2 calls (and wait until
      * the first transaction is mined)
      * From MonolithDAO Token.sol
+     * Emits an Approval event.
      * @param spender The address which will spend the funds.
      * @param subtractedValue The amount of tokens to decrease the allowance by.
      */
-    function decreaseAllowance(
-        address spender,
-        uint256 subtractedValue
-    )
-    public
-    returns (bool)
-    {
-        require(spender != address(0));
-
-        _allowed[msg.sender][spender] = (
-        _allowed[msg.sender][spender].sub(subtractedValue));
-        emit Approval(msg.sender, spender, _allowed[msg.sender][spender]);
+    function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool) {
+        _approve(msg.sender, spender, _allowed[msg.sender][spender].sub(subtractedValue));
         return true;
     }
 
@@ -190,17 +162,29 @@ contract ERC20 is IERC20 {
     }
 
     /**
+     * @dev Approve an address to spend another addresses' tokens.
+     * @param owner The address that owns the tokens.
+     * @param spender The address that will spend the tokens.
+     * @param value The number of tokens that can be spent.
+     */
+    function _approve(address owner, address spender, uint256 value) internal {
+        require(spender != address(0));
+        require(owner != address(0));
+
+        _allowed[owner][spender] = value;
+        emit Approval(owner, spender, value);
+    }
+
+    /**
      * @dev Internal function that burns an amount of the token of a given
      * account, deducting from the sender's allowance for said account. Uses the
      * internal burn function.
+     * Emits an Approval event (reflecting the reduced allowance).
      * @param account The account whose tokens will be burnt.
      * @param value The amount that will be burnt.
      */
     function _burnFrom(address account, uint256 value) internal {
-        // Should https://github.com/OpenZeppelin/zeppelin-solidity/issues/707 be accepted,
-        // this function needs to emit an event with the updated approval.
-        _allowed[account][msg.sender] = _allowed[account][msg.sender].sub(
-            value);
         _burn(account, value);
+        _approve(account, msg.sender, _allowed[account][msg.sender].sub(value));
     }
 }
