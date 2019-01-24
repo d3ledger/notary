@@ -28,11 +28,10 @@ fun main(args: Array<String>) {
         app.run(*args)
     }.flatMap { context ->
         context.getBean(BtcNotaryInitialization::class.java).init()
+    }.failure { ex ->
+        logger.error("Cannot run btc notary", ex)
+        System.exit(1)
     }
-        .failure { ex ->
-            logger.error("Cannot run btc notary", ex)
-            System.exit(1)
-        }
 }
 
 private fun webPortProperties(): Map<String, String> {

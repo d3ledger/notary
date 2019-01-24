@@ -21,6 +21,7 @@ dependencies {
 task runBtcRegistration(type: JavaExec) {
     main = 'registration.btc.BtcRegistrationMain'
     classpath = sourceSets.main.runtimeClasspath
+    setWorkingDir("$rootDir/")
 }
 
 sonarqube {
