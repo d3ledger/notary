@@ -41,8 +41,6 @@ task runRegistration(type: JavaExec) {
     main = 'registration.RegistrationMain'
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
-    systemProperty 'java.library.path', getIrohaLibPath()
-    environment "LD_LIBRARY_PATH", getIrohaLibPath()
 }
 
 sonarqube {

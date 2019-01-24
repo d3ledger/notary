@@ -56,9 +56,9 @@ class RegistrationServiceEndpoint(
 
                 get("/actuator/health") {
                     call.respond(
-                            mapOf(
-                                    "status" to "UP"
-                            )
+                        mapOf(
+                            "status" to "UP"
+                        )
                     )
                 }
             }
@@ -87,7 +87,7 @@ class RegistrationServiceEndpoint(
         if (name == null || whitelist == null || pubkey == null) {
             return responseError(HttpStatusCode.BadRequest, reason)
         }
-        registrationStrategy.register(name,domain ?: CLIENT_DOMAIN, whitelist.filter { it.isNotEmpty() }, pubkey).fold(
+        registrationStrategy.register(name, domain ?: CLIENT_DOMAIN, whitelist.filter { it.isNotEmpty() }, pubkey).fold(
             { address ->
                 logger.info { "Client $name was successfully registered with address $address" }
                 return Response(HttpStatusCode.OK, address)

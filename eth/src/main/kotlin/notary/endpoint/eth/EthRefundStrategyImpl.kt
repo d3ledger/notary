@@ -125,7 +125,7 @@ class EthRefundStrategyImpl(
                         }.fold(
                             { (relayAddress, tokenInfo) ->
                                 val decimalAmount =
-                                    BigDecimal(amount).scaleByPowerOfTen(tokenInfo.second.toInt()).toPlainString()
+                                    BigDecimal(amount).scaleByPowerOfTen(tokenInfo.second).toPlainString()
                                 EthRefund(destEthAddress, tokenInfo.first, decimalAmount, request.irohaTx, relayAddress)
                             },
                             { throw it }

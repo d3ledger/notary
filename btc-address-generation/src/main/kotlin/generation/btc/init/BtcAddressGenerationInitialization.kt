@@ -27,7 +27,6 @@ import sidechain.iroha.util.getSetDetailCommands
  */
 @Component
 class BtcAddressGenerationInitialization(
-    @Qualifier("registrationCredential")
     @Autowired private val queryAPI: QueryAPI,
     @Autowired private val btcAddressGenerationConfig: BtcAddressGenerationConfig,
     @Autowired private val btcPublicKeyProvider: BtcPublicKeyProvider,

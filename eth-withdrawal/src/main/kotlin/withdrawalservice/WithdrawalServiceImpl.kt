@@ -153,7 +153,7 @@ class WithdrawalServiceImpl(
                 }
 
                 val (coinAddress, precision) = tokenInfo
-                val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(precision.toInt()).toPlainString()
+                val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(precision).toPlainString()
                 RollbackApproval(coinAddress, decimalAmount, address, hash, rr, ss, vv, relayAddress)
             }
     }
