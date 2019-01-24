@@ -1,5 +1,3 @@
-import java.nio.file.Paths
-
 dependencies {
     compile project(":eth")
 }
@@ -14,6 +12,4 @@ task runERC20TokenRegistration(type: JavaExec) {
     main = 'token.ERC20TokenRegistrationMain'
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
-    systemProperty 'java.library.path', getIrohaLibPath()
-    environment "LD_LIBRARY_PATH", getIrohaLibPath()
 }

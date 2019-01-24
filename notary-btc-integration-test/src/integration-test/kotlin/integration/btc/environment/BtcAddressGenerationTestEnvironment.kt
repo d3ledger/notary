@@ -2,6 +2,7 @@ package integration.btc.environment
 
 import generation.btc.init.BtcAddressGenerationInitialization
 import integration.helper.BtcIntegrationHelperUtil
+import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
 import provider.NotaryPeerListProviderImpl
@@ -27,12 +28,12 @@ class BtcAddressGenerationTestEnvironment(private val integrationHelper: BtcInte
 
     val triggerProvider = TriggerProvider(
         integrationHelper.testCredential,
-        integrationHelper.irohaNetwork,
+        integrationHelper.irohaAPI,
         btcGenerationConfig.pubKeyTriggerAccount
     )
     val btcKeyGenSessionProvider = BtcSessionProvider(
         integrationHelper.accountHelper.registrationAccount,
-        integrationHelper.irohaNetwork
+        integrationHelper.irohaAPI
     )
 
     private val registrationKeyPair =
@@ -55,11 +56,17 @@ class BtcAddressGenerationTestEnvironment(private val integrationHelper: BtcInte
         }, { ex -> throw ex })
 
     private val sessionConsumer =
-        IrohaConsumerImpl(registrationCredential, integrationHelper.irohaNetwork)
+        IrohaConsumerImpl(registrationCredential, integrationHelper.irohaAPI)
 
     private val multiSigConsumer = IrohaConsumerImpl(
         IrohaCredential(btcGenerationConfig.mstRegistrationAccount.accountId, mstRegistrationKeyPair),
-        integrationHelper.irohaNetwork
+        integrationHelper.irohaAPI
+    )
+
+    private val registrationQueryAPI = QueryAPI(
+        integrationHelper.irohaAPI,
+        registrationCredential.accountId,
+        registrationCredential.keyPair
     )
 
     fun btcPublicKeyProvider(): BtcPublicKeyProvider {
@@ -67,8 +74,7 @@ class BtcAddressGenerationTestEnvironment(private val integrationHelper: BtcInte
         val wallet = Wallet.loadFromFile(file)
         val walletFile = WalletFile(wallet, file)
         val notaryPeerListProvider = NotaryPeerListProviderImpl(
-            registrationCredential,
-            integrationHelper.irohaNetwork,
+            registrationQueryAPI,
             btcGenerationConfig.notaryListStorageAccount,
             btcGenerationConfig.notaryListSetterAccount
         )
@@ -90,8 +96,7 @@ class BtcAddressGenerationTestEnvironment(private val integrationHelper: BtcInte
     )
 
     val btcAddressGenerationInitialization = BtcAddressGenerationInitialization(
-        registrationCredential,
-        integrationHelper.irohaNetwork,
+        registrationQueryAPI,
         btcGenerationConfig,
         btcPublicKeyProvider(),
         irohaListener

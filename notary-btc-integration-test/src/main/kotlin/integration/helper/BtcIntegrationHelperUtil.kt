@@ -7,8 +7,6 @@ import com.github.kittinunf.result.map
 import config.BitcoinConfig
 import helper.currency.satToBtc
 import helper.network.getBlockChain
-import jp.co.soramitsu.iroha.Keypair
-import jp.co.soramitsu.iroha.ModelCrypto
 import mu.KLogging
 import notary.IrohaCommand
 import notary.IrohaOrderedBatch
@@ -27,10 +25,12 @@ import provider.btc.address.BtcAddressesProvider
 import provider.btc.address.BtcRegisteredAddressesProvider
 import registration.btc.strategy.BtcRegistrationStrategyImpl
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaConverterImpl
+import sidechain.iroha.consumer.IrohaConverter
 import sidechain.iroha.util.ModelUtil
+import util.toHexString
 import java.io.File
 import java.math.BigDecimal
+import java.security.KeyPair
 
 const val BTC_ASSET = "btc#bitcoin"
 private const val GENERATED_ADDRESSES_PER_BATCH = 5
@@ -40,7 +40,7 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     override val configHelper by lazy { BtcConfigHelper(accountHelper) }
 
     private val mstRegistrationIrohaConsumer by lazy {
-        IrohaConsumerImpl(accountHelper.mstRegistrationAccount, irohaNetwork)
+        IrohaConsumerImpl(accountHelper.mstRegistrationAccount, irohaAPI)
     }
 
     private val rpcClient by lazy {
@@ -56,15 +56,13 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     private val btcRegistrationStrategy by lazy {
         val btcAddressesProvider =
             BtcAddressesProvider(
-                testCredential,
-                irohaNetwork,
+                queryAPI,
                 accountHelper.mstRegistrationAccount.accountId,
                 accountHelper.notaryAccount.accountId
             )
         val btcTakenAddressesProvider =
             BtcRegisteredAddressesProvider(
-                testCredential,
-                irohaNetwork,
+                queryAPI,
                 accountHelper.registrationAccount.accountId,
                 accountHelper.notaryAccount.accountId
             )
@@ -124,8 +122,8 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
             )
             irohaTxList.add(irohaTx)
         }
-        val utx = IrohaConverterImpl().convert(IrohaOrderedBatch(irohaTxList))
-        mstRegistrationIrohaConsumer.sendAndCheck(utx).failure { ex -> throw ex }
+        val utx = IrohaConverter.convert(IrohaOrderedBatch(irohaTxList))
+        mstRegistrationIrohaConsumer.send(utx).failure { ex -> throw ex }
     }
 
     /**
@@ -192,7 +190,7 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     fun registerBtcAddress(
         walletFilePath: String,
         irohaAccountName: String,
-        keypair: Keypair = ModelCrypto().generateKeypair()
+        keypair: KeyPair = ModelUtil.generateKeypair()
     ): String {
         genFreeBtcAddress(walletFilePath).fold({
             return registerBtcAddressNoPreGen(irohaAccountName, keypair)
@@ -208,10 +206,10 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      */
     fun registerBtcAddressNoPreGen(
         irohaAccountName: String,
-        keypair: Keypair = ModelCrypto().generateKeypair(),
+        keypair: KeyPair = ModelUtil.generateKeypair(),
         whitelist: List<String> = emptyList()
     ): String {
-        btcRegistrationStrategy.register(irohaAccountName, whitelist, keypair.publicKey().hex())
+        btcRegistrationStrategy.register(irohaAccountName, whitelist, keypair.public.toHexString())
             .fold({ btcAddress ->
                 logger.info { "BTC address $btcAddress was registered by $irohaAccountName" }
                 return btcAddress

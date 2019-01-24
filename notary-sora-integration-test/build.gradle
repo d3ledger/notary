@@ -43,9 +43,6 @@ task integrationTest(type: Test) {
     useJUnitPlatform {
     }
 
-    systemProperty 'java.library.path', getIrohaLibPath()
-    environment "LD_LIBRARY_PATH", getIrohaLibPath()
-
     mustRunAfter test
 }
 check.dependsOn integrationTest

@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.util.ModelUtil
-import java.math.BigInteger
 
 private const val BTC_ASSET_ID = "btc#bitcoin"
 
@@ -34,7 +33,7 @@ class BtcRollbackService(
             BTC_ASSET_ID,
             "rollback",
             satToBtc(amountSat).toPlainString(),
-            BigInteger.valueOf(withdrawalTime)
+            withdrawalTime
         ).fold(
             { logger.info { "Rollback(accountId:$accountId, amount:${satToBtc(amountSat).toPlainString()}) was committed" } },
             { ex -> logger.error("Cannot perform rollback", ex) })

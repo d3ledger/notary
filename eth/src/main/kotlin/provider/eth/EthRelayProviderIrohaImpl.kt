@@ -2,26 +2,22 @@ package provider.eth
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import model.IrohaCredential
+import jp.co.soramitsu.iroha.java.QueryAPI
 import mu.KLogging
-import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
 
 /**
  * Implementation of [EthRelayProvider] with Iroha storage.
  *
- * @param irohaConfig - Iroha configuration
- * @param keypair - Iroha keypair to query
+ * @param queryAPI - Iroha queries network layer
  * @param notaryAccount - account that contains details
  * @param registrationAccount - account that has set details
  */
 class EthRelayProviderIrohaImpl(
-    private val irohaNetwork: IrohaNetwork,
-    private val credential: IrohaCredential,
+    private val queryAPI: QueryAPI,
     private val notaryAccount: String,
     private val registrationAccount: String
 ) : EthRelayProvider {
-
     init {
         logger.info {
             "Init relay provider with notary account '$notaryAccount' and registration account '$registrationAccount'"
@@ -35,8 +31,7 @@ class EthRelayProviderIrohaImpl(
      */
     override fun getRelays(): Result<Map<String, String>, Exception> {
         return getAccountDetails(
-            credential,
-            irohaNetwork,
+            queryAPI,
             notaryAccount,
             registrationAccount
         ).map { relays ->

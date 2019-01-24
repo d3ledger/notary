@@ -1,6 +1,5 @@
 package notary
 
-import com.google.protobuf.ByteString
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -18,7 +17,7 @@ class IrohaCommandTest {
     fun addPeerProtoTest() {
         val cmdBuilder = iroha.protocol.Commands.AddPeer.newBuilder()
         val address = "127.0.0.1"
-        val key = ByteString.copyFromUtf8("key")
+        val key = "key"
         val protoCmd = cmdBuilder
             .setPeer(
                 cmdBuilder.peerBuilder
