@@ -116,13 +116,18 @@ pipeline {
                 sh "./gradlew eth-vacuum:shadowJar"
 
               }
-              relay = docker.build("nexus.iroha.tech:19002/${login}/eth-relay:${TAG}", "-f docker/eth-relay.dockerfile .")
+
               registration = docker.build("nexus.iroha.tech:19002/${login}/registration:${TAG}", "-f docker/registration.dockerfile .")
+
+              ethRegistration = docker.build("nexus.iroha.tech:19002/${login}/eth-registration:${TAG}", "-f docker/eth-registration.dockerfile .")
+              relay = docker.build("nexus.iroha.tech:19002/${login}/eth-relay:${TAG}", "-f docker/eth-relay.dockerfile .")
               notary = docker.build("nexus.iroha.tech:19002/${login}/notary:${TAG}", "-f docker/notary.dockerfile .")
               withdrawal = docker.build("nexus.iroha.tech:19002/${login}/withdrawal:${TAG}", "-f docker/withdrawal.dockerfile .")
 
-              relay.push("${TAG}")
               registration.push("${TAG}")
+
+              relay.push("${TAG}")
+              ethRegistration.push("${TAG}")
               notary.push("${TAG}")
               withdrawal.push("${TAG}")
 
