@@ -68,7 +68,7 @@ class DepositIntegrationTest {
             integrationHelper.waitOneIrohaBlock()
 
             Assertions.assertEquals(
-                BigDecimal(amount, ETH_PRECISION.toInt()).add(BigDecimal(initialAmount)),
+                BigDecimal(amount, ETH_PRECISION).add(BigDecimal(initialAmount)),
                 BigDecimal(integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId))
             )
         }
@@ -103,7 +103,7 @@ class DepositIntegrationTest {
             integrationHelper.waitOneIrohaBlock()
 
             Assertions.assertEquals(
-                BigDecimal(amount, ETH_PRECISION.toInt()).add(BigDecimal(initialAmount)),
+                BigDecimal(amount, ETH_PRECISION).add(BigDecimal(initialAmount)),
                 BigDecimal(integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId))
             )
         }
@@ -130,7 +130,7 @@ class DepositIntegrationTest {
             integrationHelper.waitOneIrohaBlock()
 
             Assertions.assertEquals(
-                BigDecimal(amount, tokenInfo.precision.toInt()).add(BigDecimal(initialAmount)),
+                BigDecimal(amount, tokenInfo.precision).add(BigDecimal(initialAmount)),
                 BigDecimal(integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId))
             )
         }
@@ -166,7 +166,7 @@ class DepositIntegrationTest {
             integrationHelper.waitOneIrohaBlock()
 
             Assertions.assertEquals(
-                BigDecimal(amount, tokenInfo.precision.toInt()).add(BigDecimal(initialAmount)),
+                BigDecimal(amount, tokenInfo.precision).add(BigDecimal(initialAmount)),
                 BigDecimal(integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId))
             )
         }

@@ -9,7 +9,7 @@ import healthcheck.HealthyService
 import io.reactivex.Observable
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
-import model.IrohaCredential
+import jp.co.soramitsu.iroha.java.QueryAPI
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -19,7 +19,6 @@ import provider.btc.address.getAddressTypeByAccountId
 import provider.btc.generation.ADDRESS_GENERATION_TIME_KEY
 import provider.btc.generation.BtcPublicKeyProvider
 import sidechain.iroha.IrohaChainListener
-import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.getAccountDetails
 import sidechain.iroha.util.getSetDetailCommands
 
@@ -28,9 +27,8 @@ import sidechain.iroha.util.getSetDetailCommands
  */
 @Component
 class BtcAddressGenerationInitialization(
-    @Qualifier("registrationCredential")
-    @Autowired private val registrationCredential: IrohaCredential,
-    @Autowired private val irohaNetwork: IrohaNetwork,
+    @Qualifier("registrationQueryAPI")
+    @Autowired private val registrationQueryAPI: QueryAPI,
     @Autowired private val btcAddressGenerationConfig: BtcAddressGenerationConfig,
     @Autowired private val btcPublicKeyProvider: BtcPublicKeyProvider,
     @Autowired private val irohaChainListener: IrohaChainListener
@@ -89,8 +87,7 @@ class BtcAddressGenerationInitialization(
         addressType: BtcAddressType
     ): Result<Unit, Exception> {
         return getAccountDetails(
-            registrationCredential,
-            irohaNetwork,
+            registrationQueryAPI,
             sessionAccount,
             btcAddressGenerationConfig.registrationAccount.accountId
         ).flatMap { details ->

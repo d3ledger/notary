@@ -1,9 +1,9 @@
 package integration.eth
 
 import com.squareup.moshi.Moshi
-
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import notary.endpoint.eth.BigIntegerMoshiAdapter
 import notary.endpoint.eth.EthNotaryResponse
 import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
@@ -19,7 +19,6 @@ import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
 import sidechain.iroha.CLIENT_DOMAIN
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -50,15 +49,9 @@ class WithdrawalIntegrationTest {
         integrationHelper.configHelper.ethPasswordConfig
     ).credentials.ecKeyPair
 
-    val irohaNetwork = IrohaNetworkImpl(
-        notaryConfig.iroha.hostname,
-        notaryConfig.iroha.port
-    )
-
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
-        irohaNetwork.close()
     }
 
     /**
@@ -73,7 +66,7 @@ class WithdrawalIntegrationTest {
         assertTimeoutPreemptively(timeoutDuration) {
             val masterAccount = notaryConfig.notaryCredential.accountId
             val amount = "64203"
-            val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(ETH_PRECISION.toInt()).toPlainString()
+            val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(ETH_PRECISION)
             val assetId = "ether#ethereum"
             val ethWallet = "0x1334"
 
@@ -83,8 +76,7 @@ class WithdrawalIntegrationTest {
             integrationHelper.registerClient(client, listOf(ethWallet), integrationHelper.testCredential.keyPair)
             integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
             val relay = EthRelayProviderIrohaImpl(
-                irohaNetwork,
-                integrationHelper.testCredential,
+                integrationHelper.queryAPI,
                 masterAccount,
                 integrationHelper.accountHelper.registrationAccount.accountId
             ).getRelays().get().filter {
@@ -117,7 +109,7 @@ class WithdrawalIntegrationTest {
             assert(response is EthNotaryResponse.Successful)
             response as EthNotaryResponse.Successful
 
-            assertEquals(decimalAmount, response.ethRefund.amount)
+            assertEquals(decimalAmount.toPlainString(), response.ethRefund.amount)
             assertEquals(ethWallet, response.ethRefund.address)
             assertEquals("0x0000000000000000000000000000000000000000", response.ethRefund.assetId)
 
@@ -126,9 +118,9 @@ class WithdrawalIntegrationTest {
                     keypair,
                     hashToWithdraw(
                         "0x0000000000000000000000000000000000000000",
-                        decimalAmount,
+                        decimalAmount.toPlainString(),
                         ethWallet,
-                        hash,
+                        hash.toString(),
                         relay
                     )
                 ), response.ethSignature

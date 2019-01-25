@@ -3,10 +3,9 @@ package fee
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import com.squareup.moshi.Moshi
-import model.IrohaCredential
+import jp.co.soramitsu.iroha.java.QueryAPI
 import mu.KLogging
 import sidechain.iroha.consumer.IrohaConsumer
-import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountDetails
 import util.irohaEscape
@@ -20,8 +19,8 @@ private val feeRateJsonAdapter = Moshi.Builder().build().adapter(FeeRate::class.
  */
 class BtcFeeRateService(
     private val btcFeeRateConsumer: IrohaConsumer,
-    private val btcFeeRateCredential: IrohaCredential,
-    private val irohaNetwork: IrohaNetwork
+    private val btcFeeRateAccountId: String,
+    private val queryAPI: QueryAPI
 ) {
 
     /**
@@ -32,10 +31,9 @@ class BtcFeeRateService(
     fun setFeeRate(feeRate: FeeRate): Result<Unit, Exception> {
         //Get previous fee rate
         return getAccountDetails(
-            btcFeeRateCredential,
-            irohaNetwork,
-            btcFeeRateCredential.accountId,
-            btcFeeRateCredential.accountId
+            queryAPI,
+            btcFeeRateAccountId,
+            btcFeeRateAccountId
         ).map { details ->
             // If fee rate was set
             details[BTC_FEE_RATE_KEY]?.let { feeRateJson ->

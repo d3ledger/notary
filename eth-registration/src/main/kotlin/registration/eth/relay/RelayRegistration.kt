@@ -4,6 +4,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import config.EthereumPasswords
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import model.IrohaCredential
@@ -11,7 +12,6 @@ import mu.KLogging
 import provider.eth.EthFreeRelayProvider
 import sidechain.eth.util.DeployHelper
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaNetwork
 import sidechain.iroha.util.ModelUtil
 import java.io.File
 
@@ -23,14 +23,14 @@ class RelayRegistration(
     private val freeRelayProvider: EthFreeRelayProvider,
     private val relayRegistrationConfig: RelayRegistrationConfig,
     relayCredential: IrohaCredential,
-    irohaNetwork: IrohaNetwork,
+    irohaAPI: IrohaAPI,
     relayRegistrationEthereumPasswords: EthereumPasswords
 ) {
     /** Ethereum endpoint */
     private val deployHelper = DeployHelper(relayRegistrationConfig.ethereum, relayRegistrationEthereumPasswords)
 
     /** Iroha endpoint */
-    private val irohaConsumer = IrohaConsumerImpl(relayCredential, irohaNetwork)
+    private val irohaConsumer = IrohaConsumerImpl(relayCredential, irohaAPI)
 
     private val notaryIrohaAccount = relayRegistrationConfig.notaryIrohaAccount
 
