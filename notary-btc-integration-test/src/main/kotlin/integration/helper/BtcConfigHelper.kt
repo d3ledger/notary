@@ -1,7 +1,6 @@
 package integration.helper
 
 import config.BitcoinConfig
-import config.IrohaCredentialConfig
 import config.loadConfigs
 import generation.btc.config.BtcAddressGenerationConfig
 import notary.btc.config.BtcNotaryConfig
@@ -28,6 +27,7 @@ class BtcConfigHelper(
             ).get()
 
         return object : BtcAddressGenerationConfig {
+            override val threshold = 2
             override val changeAddressesStorageAccount = accountHelper.changeAddressesStorageAccount.accountId
             override val healthCheckPort = btcPkPreGenConfig.healthCheckPort
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId

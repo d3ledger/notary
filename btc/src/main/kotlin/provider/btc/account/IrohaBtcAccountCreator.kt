@@ -7,6 +7,7 @@ import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumer
 
 const val BTC_WHITE_LIST_KEY = "btc_whitelist"
+const val BTC_CURRENCY_NAME_KEY = "bitcoin"
 
 /*
     Class that is used to create Bitcoin accounts in Iroha
@@ -15,7 +16,7 @@ class IrohaBtcAccountCreator(
     irohaConsumer: IrohaConsumer,
     notaryIrohaAccount: String
 ) {
-    private val irohaAccountCreator = IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, "bitcoin")
+    private val irohaAccountCreator = IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, BTC_CURRENCY_NAME_KEY)
 
     /**
      * Creates new Bitcoin account to Iroha with given address
