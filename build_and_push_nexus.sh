@@ -22,7 +22,7 @@ checkTag $TAG "${tags[@]}"
 ./gradlew eth-vacuum:shadowJar
 
 # Build common services docker images
-docker build -t nexus.iroha.tech:19002/d3-deploy/registration:TAG -f docker/registration.dockerfils .
+docker build -t nexus.iroha.tech:19002/d3-deploy/registration:TAG -f docker/registration.dockerfile .
 
 # Build Ethereum related docker images
 docker build -t nexus.iroha.tech:19002/d3-deploy/eth-relay:$TAG -f docker/eth-relay.dockerfile .
