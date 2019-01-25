@@ -78,26 +78,25 @@ class RegistrationServiceEndpoint(
         whitelist: List<String>?,
         pubkey: String?
     ): Response {
-        // TODO - D3-121 - a.chernyshov - distinguish correct status code response (500 - server internal error)
         var reason = ""
         if (name == null) reason = reason.plus("Parameter \"name\" is not specified. ")
+        val clientDomain = domain ?: CLIENT_DOMAIN
         if (whitelist == null) reason = reason.plus("Parameter \"whitelist\" is not specified. ")
         if (pubkey == null) reason = reason.plus("Parameter \"pubkey\" is not specified.")
 
         if (name == null || whitelist == null || pubkey == null) {
             return responseError(HttpStatusCode.BadRequest, reason)
         }
-        registrationStrategy.register(name, domain ?: CLIENT_DOMAIN, whitelist.filter { it.isNotEmpty() }, pubkey).fold(
+        registrationStrategy.register(name, clientDomain, whitelist.filter { it.isNotEmpty() }, pubkey).fold(
             { address ->
                 logger.info {
-                    "Client $name@${domain ?: CLIENT_DOMAIN} was successfully registered with address $address"
+                    "Client $name@$clientDomain was successfully registered with address $address"
                 }
                 return Response(HttpStatusCode.OK, address)
             },
             { ex ->
                 logger.error("Cannot register client $name", ex)
-                // TODO - D3-121 - a.chernyshov - distinguish correct status code response (500 - server internal error)
-                return responseError(HttpStatusCode.BadRequest, ex.toString())
+                return responseError(HttpStatusCode.InternalServerError, ex.toString())
             })
     }
 
