@@ -5,7 +5,7 @@ services:
 
   # D3 common registration service
   d3-registration:
-    image: nexus.iroha.tech:19002/d3-deploy/registration:${TAG-master}
+    image: nexus.iroha.tech:19002/d3-deploy/notary-registration:${TAG-master}
     container_name: d3-registration
     ports:
       - 8085:8085

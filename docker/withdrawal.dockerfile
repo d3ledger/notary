@@ -3,8 +3,6 @@ FROM openjdk:8-jre
 WORKDIR /opt/notary
 
 COPY eth-withdrawal/build/libs/eth-withdrawal-all.jar /opt/notary/notary.jar
-COPY iroha_bindings/linux/* /opt/notary/
-ENV LD_LIBRARY_PATH="/opt/notary:${LD_LIBRARY_PATH}"
 
 # Please run `kscript --package grpc_healthcheck.kts` before building docker image
 COPY grpc_healthcheck /opt/notary

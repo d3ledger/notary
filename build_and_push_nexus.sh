@@ -15,6 +15,7 @@ tags=("master" "develop" "debug")
 
 checkTag $TAG "${tags[@]}"
 
+./gradlew notary-registration:shadowJar
 
 ./gradlew eth:shadowJar
 ./gradlew eth-withdrawal:shadowJar
@@ -22,7 +23,7 @@ checkTag $TAG "${tags[@]}"
 ./gradlew eth-vacuum:shadowJar
 
 # Build common services docker images
-docker build -t nexus.iroha.tech:19002/d3-deploy/registration:TAG -f docker/registration.dockerfile .
+docker build -t nexus.iroha.tech:19002/d3-deploy/notary-registration:$TAG -f docker/notary-registration.dockerfile .
 
 # Build Ethereum related docker images
 docker build -t nexus.iroha.tech:19002/d3-deploy/eth-relay:$TAG -f docker/eth-relay.dockerfile .
@@ -31,7 +32,7 @@ docker build -t nexus.iroha.tech:19002/d3-deploy/notary:$TAG  -f docker/notary.d
 docker build -t nexus.iroha.tech:19002/d3-deploy/withdrawal:$TAG  -f docker/withdrawal.dockerfile .
 
 #Push common services docker images
-docker push nexus.iroha.tech:19002/d3-deploy/registration:$TAG
+docker push nexus.iroha.tech:19002/d3-deploy/notary-registration:$TAG
 
 # Push Ethereum related docker images
 docker push nexus.iroha.tech:19002/d3-deploy/eth-relay:$TAG
