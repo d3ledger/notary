@@ -81,7 +81,7 @@ services:
     - IROHA_HOST=d3-iroha
     - IROHA_PORT=50051
     - JAR_NAME=btc-registration.jar
-    - CLASS=registration.eth.EthRegistrationMain
+    - CLASS=registration.btc.BtcRegistrationMain
     networks:
     - d3-network
 
@@ -96,7 +96,7 @@ services:
     - IROHA_HOST=d3-iroha
     - IROHA_PORT=50051
     - JAR_NAME=btc-dw-bridge.jar
-    - CLASS=withdrawalservice.WithdrawalServiceMain
+    - CLASS=dwbridge.btc.BtcDepositWithdrawalMain
     networks:
     - d3-network
 
