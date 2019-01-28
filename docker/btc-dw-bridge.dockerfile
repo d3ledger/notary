@@ -2,7 +2,7 @@ FROM openjdk:8-jre
 
 WORKDIR /opt/notary
 
-COPY eth-registration/build/libs/eth-registration-all.jar /opt/notary/eth-registration.jar
+COPY btc-dw-bridge/build/libs/btc-dw-bridge-all.jar /opt/notary/btc-dw-bridge.jar
 
 # Please run `kscript --package grpc_healthcheck.kts` before building docker image
 COPY grpc_healthcheck /opt/notary

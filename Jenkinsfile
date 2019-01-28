@@ -116,15 +116,23 @@ pipeline {
                 sh "./gradlew eth-vacuum:shadowJar"
 
               }
-              relay = docker.build("nexus.iroha.tech:19002/${login}/eth-relay:${TAG}", "-f docker/eth-relay.dockerfile .")
-              registration = docker.build("nexus.iroha.tech:19002/${login}/registration:${TAG}", "-f docker/registration.dockerfile .")
+              eth-relay = docker.build("nexus.iroha.tech:19002/${login}/eth-relay:${TAG}", "-f docker/eth-relay.dockerfile .")
+              eth-registration = docker.build("nexus.iroha.tech:19002/${login}/eth-registration:${TAG}", "-f docker/eth-registration.dockerfile .")
               notary = docker.build("nexus.iroha.tech:19002/${login}/notary:${TAG}", "-f docker/notary.dockerfile .")
-              withdrawal = docker.build("nexus.iroha.tech:19002/${login}/withdrawal:${TAG}", "-f docker/withdrawal.dockerfile .")
+              eth-withdrawal = docker.build("nexus.iroha.tech:19002/${login}/eth-withdrawal:${TAG}", "-f docker/eth-withdrawal.dockerfile .")
 
-              relay.push("${TAG}")
-              registration.push("${TAG}")
+              btc-address-generation = docker.build("nexus.iroha.tech:19002/${login}/btc-address-generation:${TAG}", "-f docker/btc-address-generation.dockerfile .")
+              btc-registration = docker.build("nexus.iroha.tech:19002/${login}/btc-registration:${TAG}", "-f docker/btc-registration.dockerfile .")
+              btc-dw-bridge = docker.build("nexus.iroha.tech:19002/${login}/btc-dw-bridge:${TAG}", "-f docker/btc-dw-bridge.dockerfile .")
+
+              eth-relay.push("${TAG}")
+              eth-registration.push("${TAG}")
               notary.push("${TAG}")
-              withdrawal.push("${TAG}")
+              eth-withdrawal.push("${TAG}")
+
+              btc-address-generation.push("${TAG}")
+              btc-registration.push("${TAG}")
+              btc-dw-bridge.push("${TAG}")
 
             }
           }

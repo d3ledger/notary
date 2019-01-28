@@ -14,14 +14,14 @@ services:
       - PROFILE
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
+      - JAR_NAME=eth-registration.jar
       - CLASS=registration.eth.relay.DeployRelayMain
     networks:
       - d3-network
 
-
-  d3-registration:
-    image: nexus.iroha.tech:19002/d3-deploy/registration:${TAG-master}
-    container_name: d3-registration
+  d3-eth-registration:
+    image: nexus.iroha.tech:19002/d3-deploy/eth-registration:${TAG-master}
+    container_name: d3-eth-registration
     ports:
       - 8083:8083
     volumes:
@@ -32,13 +32,14 @@ services:
       - PROFILE
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
+      - JAR_NAME=eth-registration.jar
       - CLASS=registration.eth.EthRegistrationMain
     networks:
       - d3-network
 
-  d3-withdrawal:
-    image: nexus.iroha.tech:19002/d3-deploy/withdrawal:${TAG-master}
-    container_name: d3-withdrawal
+  d3-eth-withdrawal:
+    image: nexus.iroha.tech:19002/d3-deploy/eth-withdrawal:${TAG-master}
+    container_name: d3-eth-withdrawal
     volumes:
       - ./:/opt/notary/deploy
       - ../configs:/opt/notary/configs
@@ -49,10 +50,63 @@ services:
       - PROFILE
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
+      - JAR_NAME=eth-withdrawal.jar
       - CLASS=withdrawalservice.WithdrawalServiceMain
     networks:
       - d3-network
 
+  d3-btc-address-generation:
+    image: nexus.iroha.tech:19002/d3-deploy/btc-address-generation:${TAG-master}
+    container_name: d3-btc-address
+    volumes:
+      - ./:/opt/notary/deploy
+      - ../configs:/opt/notary/configs
+    environment:
+      - ETH_MASTER_WALLET
+      - ETH_CREDENTIALS_PASSWORD
+      - PROFILE
+      - IROHA_HOST=d3-iroha
+      - IROHA_PORT=50051
+      - JAR_NAME=btc-address-generation.jar
+      - CLASS=generation.btc.BtcAddressGenerationMain
+    networks:
+      - d3-network
+
+  d3-btc-registration:
+    image: nexus.iroha.tech:19002/d3-deploy/btc-registration:${TAG-master}
+    container_name: d3-btc-registration
+    ports:
+    - 8083:8083
+    volumes:
+    - ./:/opt/notary/deploy
+    - ../configs:/opt/notary/configs
+    environment:
+    - ETH_RELAY_REGISTRY
+    - PROFILE
+    - IROHA_HOST=d3-iroha
+    - IROHA_PORT=50051
+    - JAR_NAME=btc-registration.jar
+    - CLASS=registration.eth.EthRegistrationMain
+    networks:
+    - d3-network
+
+  d3-btc-dw:
+    image: nexus.iroha.tech:19002/d3-deploy/btc-dw-bridge:${TAG-master}
+    container_name: d3-btc-dw
+    volumes:
+    - ./:/opt/notary/deploy
+    - ../configs:/opt/notary/configs
+    ports:
+    - 8084:8084
+    environment:
+    - ETH_CREDENTIALS_PASSWORD
+    - PROFILE
+    - IROHA_HOST=d3-iroha
+    - IROHA_PORT=50051
+    - JAR_NAME=btc-dw-bridge.jar
+    - CLASS=withdrawalservice.WithdrawalServiceMain
+    networks:
+    - d3-network
 
 networks:
   d3-network:

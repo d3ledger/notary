@@ -2,9 +2,7 @@ FROM openjdk:8-jre
 
 WORKDIR /opt/notary
 
-COPY eth-registration/build/libs/eth-registration-all.jar /opt/notary/notary.jar
-COPY iroha_bindings/linux/* /opt/notary/
-ENV LD_LIBRARY_PATH="/opt/notary:${LD_LIBRARY_PATH}"
+COPY btc-address-generation/build/libs/btc-address-generation-all.jar /opt/notary/btc-address-generation.jar
 
 # Please run `kscript --package grpc_healthcheck.kts` before building docker image
 COPY grpc_healthcheck /opt/notary
