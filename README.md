@@ -39,6 +39,10 @@ Command line args > Environment variables > Properties file
 
 `gradle integrationTest` for integation tests
 
+## Testing Bitcoin
+`gradlew btcSendToAddress -Paddress=<address> -PamountBtc=<amount>` — sends `<amount>` BTC to `<address>` in Bitcoin regtest network
+
+`gradlew btcGenerateBlocks -Pblocks=<blocks>` — generates `<blocks>` in Bitcoin regtest network
 
 ## Troubleshooting
 
