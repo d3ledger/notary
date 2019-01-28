@@ -14,4 +14,4 @@ while [ $STATE -ne 0 ]; do
     sleep 0.1
 done
 
-java -cp /opt/notary/notary.jar ${CLASS}
+java -cp /opt/notary/${JAR_NAME} ${CLASS}
