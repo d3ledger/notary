@@ -62,8 +62,6 @@ services:
       - ./:/opt/notary/deploy
       - ../configs:/opt/notary/configs
     environment:
-      - ETH_MASTER_WALLET
-      - ETH_CREDENTIALS_PASSWORD
       - PROFILE
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
@@ -75,13 +73,10 @@ services:
   d3-btc-registration:
     image: nexus.iroha.tech:19002/d3-deploy/btc-registration:${TAG-master}
     container_name: d3-btc-registration
-    ports:
-    - 8083:8083
     volumes:
     - ./:/opt/notary/deploy
     - ../configs:/opt/notary/configs
     environment:
-    - ETH_RELAY_REGISTRY
     - PROFILE
     - IROHA_HOST=d3-iroha
     - IROHA_PORT=50051
@@ -96,10 +91,7 @@ services:
     volumes:
     - ./:/opt/notary/deploy
     - ../configs:/opt/notary/configs
-    ports:
-    - 8084:8084
     environment:
-    - ETH_CREDENTIALS_PASSWORD
     - PROFILE
     - IROHA_HOST=d3-iroha
     - IROHA_PORT=50051
