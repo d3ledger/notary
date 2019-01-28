@@ -25,7 +25,6 @@ import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.util.getAccountDetails
 import sidechain.iroha.util.getSetDetailCommands
-import java.util.concurrent.Executors
 
 /*
    This class listens to special account to be triggered and starts generation process
@@ -56,7 +55,7 @@ class BtcAddressGenerationInitialization(
     }
 
     private fun initIrohaObservable(irohaObservable: Observable<BlockOuterClass.Block>) {
-        irohaObservable.subscribeOn(Schedulers.from(Executors.newSingleThreadExecutor())).subscribe({ block ->
+        irohaObservable.subscribeOn(Schedulers.single()).subscribe({ block ->
             getSetDetailCommands(block).forEach { command ->
                 if (isNewClientRegistered(command)) {
                     // generate new multisignature address if new client has been registered recently

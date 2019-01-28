@@ -3,6 +3,8 @@ package integration.btc.environment
 import generation.btc.init.BtcAddressGenerationInitialization
 import generation.btc.trigger.AddressGenerationTrigger
 import integration.helper.BtcIntegrationHelperUtil
+import io.grpc.ManagedChannelBuilder
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
@@ -20,6 +22,7 @@ import sidechain.iroha.util.ModelUtil
 import wallet.WalletFile
 import java.io.Closeable
 import java.io.File
+import java.util.concurrent.Executors
 
 /**
  * Bitcoin address generation service testing environment
@@ -29,15 +32,34 @@ class BtcAddressGenerationTestEnvironment(private val integrationHelper: BtcInte
     val btcGenerationConfig =
         integrationHelper.configHelper.createBtcAddressGenerationConfig()
 
+    private val irohaApi by lazy {
+        val irohaAPI = IrohaAPI(
+            btcGenerationConfig.iroha.hostname,
+            btcGenerationConfig.iroha.port
+        )
+        /**
+         * It's essential to handle blocks in this service one-by-one.
+         * This is why we explicitly set single threaded executor.
+         */
+        irohaAPI.setChannelForStreamingQueryStub(
+            ManagedChannelBuilder.forAddress(
+                btcGenerationConfig.iroha.hostname,
+                btcGenerationConfig.iroha.port
+            ).executor(Executors.newSingleThreadExecutor()).usePlaintext().build()
+        )
+        irohaAPI
+    }
+
     val triggerProvider = TriggerProvider(
         integrationHelper.testCredential,
-        integrationHelper.irohaAPI,
+        irohaApi,
         btcGenerationConfig.pubKeyTriggerAccount
     )
     val btcKeyGenSessionProvider = BtcSessionProvider(
         integrationHelper.accountHelper.registrationAccount,
-        integrationHelper.irohaAPI
+        irohaApi
     )
+
 
     private val registrationKeyPair =
         ModelUtil.loadKeypair(
@@ -59,15 +81,15 @@ class BtcAddressGenerationTestEnvironment(private val integrationHelper: BtcInte
         }, { ex -> throw ex })
 
     private val sessionConsumer =
-        IrohaConsumerImpl(registrationCredential, integrationHelper.irohaAPI)
+        IrohaConsumerImpl(registrationCredential, irohaApi)
 
     private val multiSigConsumer = IrohaConsumerImpl(
         IrohaCredential(btcGenerationConfig.mstRegistrationAccount.accountId, mstRegistrationKeyPair),
-        integrationHelper.irohaAPI
+        irohaApi
     )
 
     private val registrationQueryAPI = QueryAPI(
-        integrationHelper.irohaAPI,
+        irohaApi,
         registrationCredential.accountId,
         registrationCredential.keyPair
     )
@@ -93,8 +115,7 @@ class BtcAddressGenerationTestEnvironment(private val integrationHelper: BtcInte
     }
 
     private val irohaListener = IrohaChainListener(
-        btcGenerationConfig.iroha.hostname,
-        btcGenerationConfig.iroha.port,
+        irohaApi,
         registrationCredential
     )
 
@@ -117,7 +138,7 @@ class BtcAddressGenerationTestEnvironment(private val integrationHelper: BtcInte
         btcKeyGenSessionProvider,
         triggerProvider,
         btcFreeAddressesProvider,
-        IrohaConsumerImpl(registrationCredential, integrationHelper.irohaAPI)
+        IrohaConsumerImpl(registrationCredential, irohaApi)
     )
 
     val btcAddressGenerationInitialization = BtcAddressGenerationInitialization(

@@ -1,6 +1,7 @@
 package generation.btc.config
 
 import config.loadConfigs
+import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
@@ -14,6 +15,7 @@ import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import wallet.WalletFile
 import java.io.File
+import java.util.concurrent.Executors
 
 val btcAddressGenerationConfig =
     loadConfigs(
@@ -48,10 +50,23 @@ class BtcAddressGenerationAppConfiguration {
         IrohaCredential(btcAddressGenerationConfig.mstRegistrationAccount.accountId, mstRegistrationKeyPair)
 
     @Bean
-    fun generationIrohaAPI() = IrohaAPI(
-        btcAddressGenerationConfig.iroha.hostname,
-        btcAddressGenerationConfig.iroha.port
-    )
+    fun generationIrohaAPI(): IrohaAPI {
+        val irohaAPI = IrohaAPI(
+            btcAddressGenerationConfig.iroha.hostname,
+            btcAddressGenerationConfig.iroha.port
+        )
+        /**
+         * It's essential to handle blocks in this service one-by-one.
+         * This is why we explicitly set single threaded executor.
+         */
+        irohaAPI.setChannelForStreamingQueryStub(
+            ManagedChannelBuilder.forAddress(
+                btcAddressGenerationConfig.iroha.hostname,
+                btcAddressGenerationConfig.iroha.port
+            ).executor(Executors.newSingleThreadExecutor()).usePlaintext().build()
+        )
+        return irohaAPI
+    }
 
     @Bean
     fun registrationQueryAPI() = QueryAPI(
@@ -93,8 +108,7 @@ class BtcAddressGenerationAppConfiguration {
 
     @Bean
     fun irohaChainListener() = IrohaChainListener(
-        btcAddressGenerationConfig.iroha.hostname,
-        btcAddressGenerationConfig.iroha.port,
+        generationIrohaAPI(),
         registrationCredential
     )
 
