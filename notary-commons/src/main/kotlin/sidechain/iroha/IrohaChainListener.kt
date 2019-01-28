@@ -13,11 +13,16 @@ import sidechain.iroha.util.ModelUtil
  * Dummy implementation of [ChainListener] with effective dependencies
  */
 class IrohaChainListener(
-    irohaHost: String,
-    irohaPort: Int,
+    private val irohaAPI: IrohaAPI,
     private val credential: IrohaCredential
 ) : ChainListener<iroha.protocol.BlockOuterClass.Block> {
-    val irohaAPI = IrohaAPI(irohaHost, irohaPort)
+
+    constructor(
+        irohaHost: String,
+        irohaPort: Int,
+        credential: IrohaCredential
+    ) : this(IrohaAPI(irohaHost, irohaPort), credential)
+
 
     /**
      * Returns an observable that emits a new block every time it gets it from Iroha

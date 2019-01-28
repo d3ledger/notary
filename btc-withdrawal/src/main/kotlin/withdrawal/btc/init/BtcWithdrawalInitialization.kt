@@ -30,7 +30,6 @@ import withdrawal.btc.handler.WithdrawalTransferEventHandler
 import withdrawal.btc.listener.BitcoinBlockChainFeeRateListener
 import withdrawal.btc.provider.BtcChangeAddressProvider
 import java.io.Closeable
-import java.util.concurrent.Executors
 
 /*
     Class that initiates listeners that will be used to handle Bitcoin withdrawal logic
@@ -94,7 +93,7 @@ class BtcWithdrawalInitialization(
         peerGroup: PeerGroup
     ): Result<Unit, Exception> {
         return irohaChainListener.getBlockObservable().map { irohaObservable ->
-            irohaObservable.subscribeOn(Schedulers.from(Executors.newSingleThreadExecutor()))
+            irohaObservable.subscribeOn(Schedulers.single())
                 .subscribe({ block ->
                     // Handle transfer commands
                     getTransferCommands(block).forEach { command ->
