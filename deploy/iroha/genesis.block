@@ -159,7 +159,6 @@
                     "can_get_all_acc_detail",
                     "can_get_all_accounts",
                     "can_get_all_acc_ast",
-                    "can_read_assets",
                     "can_get_blocks",
                     "can_get_roles",
                     "can_get_all_signatories",
