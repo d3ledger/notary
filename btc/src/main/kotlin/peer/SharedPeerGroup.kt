@@ -13,10 +13,10 @@ import provider.btc.network.BtcNetworkConfigProvider
 import java.net.InetAddress
 
 /**
- * This is a peer group implementation that can be used in multiple services simultaneously with no fear of get exception while calling 'startAsync()' twice
+ * This is a peer group implementation that can be used in multiple services simultaneously with no fear of get exception while calling 'startAsync()' or 'stopAsync()' twice
  */
 @Component
-class StartNeutralPeerGroup(
+class SharedPeerGroup(
     @Autowired btcNetworkConfigProvider: BtcNetworkConfigProvider,
     @Autowired wallet: Wallet,
     @Qualifier("blockStoragePath")
@@ -37,6 +37,7 @@ class StartNeutralPeerGroup(
     }
 
     private var started = false
+    private var stopped = false
 
     @Synchronized
     override fun startAsync(): ListenableFuture<*>? {
@@ -46,6 +47,18 @@ class StartNeutralPeerGroup(
             return asyncStart
         }
         logger.warn { "Cannot start peer group, because it was started previously." }
+        return null
+    }
+
+
+    @Synchronized
+    override fun stopAsync(): ListenableFuture<*>? {
+        if (!stopped) {
+            val asyncStop = super.stopAsync()
+            stopped = true
+            return asyncStop
+        }
+        logger.warn { "Cannot stop peer group, because it was stopped previously" }
         return null
     }
 
