@@ -13,7 +13,7 @@ apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compi
 
 dependencies {
     compile project(":notary-commons")
-    
+
     //bitcoin
     compile 'org.bitcoinj:bitcoinj-core:0.14.7'
     // https://mvnrepository.com/artifact/org.iq80.leveldb/leveldb
@@ -42,6 +42,53 @@ dependencies {
 
     // https://mvnrepository.com/artifact/commons-logging/commons-logging
     compile group: 'commons-logging', name: 'commons-logging', version: '1.2'
+
+    // https://mvnrepository.com/artifact/com.github.jleskovar/btc-rpc-client
+    compile group: 'com.github.jleskovar', name: 'btc-rpc-client', version: '1.1.0'
+
+}
+
+// Forms a list full of 'btcSendToAddress' task arguments
+def getBtcSendToAddressArgs() {
+    List<String> args = new ArrayList<>()
+    if (project.hasProperty("address")) {
+        args.add(project.property("address").toString())
+    }
+    if (project.hasProperty("amountBtc")) {
+        args.add(project.property("amountBtc").toString())
+    }
+    return args
+}
+
+// Forms a list full of 'btcGenerateBlocks' task arguments
+def getBtcGenerateBlocksArgs() {
+    List<String> args = new ArrayList<>()
+    if (project.hasProperty("blocks")) {
+        args.add(project.property("blocks").toString())
+    }
+    return args
+}
+
+/** Sends money to Bitcoin address
+ *
+ * Usage ./gradlew btcSendToAddress -Paddress=<address> -PamountBtc=<amountBtc>
+ *  */
+task btcSendToAddress(type: JavaExec) {
+    main = 'cli.BtcSendToAddressMain'
+    args getBtcSendToAddressArgs()
+    classpath = sourceSets.main.runtimeClasspath
+    setWorkingDir("$rootDir/")
+}
+
+/** Generates blocks in Bitcoin blockchain
+ *
+ * Usage ./gradlew btcGenerateBlocks -Pblocks=<blocks>
+ */
+task btcGenerateBlocks(type: JavaExec) {
+    main = 'cli.BtcGenerateBlocksMain'
+    args getBtcGenerateBlocksArgs()
+    classpath = sourceSets.main.runtimeClasspath
+    setWorkingDir("$rootDir/")
 }
 
 sonarqube {

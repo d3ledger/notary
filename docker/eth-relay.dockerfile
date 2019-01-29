@@ -2,7 +2,7 @@ FROM openjdk:8-jre
 
 WORKDIR /opt/notary
 
-COPY eth-registration/build/libs/eth-registration-all.jar /opt/notary/notary.jar
+COPY eth-registration/build/libs/eth-registration-all.jar /opt/notary/eth-registration.jar
 
 # Please run `kscript --package grpc_healthcheck.kts` before building docker image
 COPY grpc_healthcheck /opt/notary

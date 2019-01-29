@@ -21,8 +21,7 @@ import provider.btc.address.BtcAddressType
 import provider.btc.generation.ADDRESS_GENERATION_TIME_KEY
 import java.io.File
 
-private const val WAIT_PREGEN_INIT_MILLIS = 10_000L
-const val WAIT_PREGEN_PROCESS_MILLIS = 15_000L
+const val WAIT_PREGEN_PROCESS_MILLIS = 20_000L
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcAddressGenerationIntegrationTest {
@@ -51,7 +50,9 @@ class BtcAddressGenerationIntegrationTest {
         GlobalScope.launch {
             environment.btcAddressGenerationInitialization.init().failure { ex -> throw ex }
         }
-        Thread.sleep(WAIT_PREGEN_INIT_MILLIS)
+        // Wait for initial address generation
+        Thread.sleep(WAIT_PREGEN_PROCESS_MILLIS * environment.btcGenerationConfig.threshold)
+        environment.checkIfAddressesWereGeneratedAtInitialPhase()
     }
 
     /**

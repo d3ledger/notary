@@ -3,6 +3,7 @@ package dwbridge.btc.config
 import config.BitcoinConfig
 import config.loadConfigs
 import fee.BtcFeeRateService
+import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
@@ -19,6 +20,7 @@ import withdrawal.btc.provider.BtcChangeAddressProvider
 import withdrawal.btc.provider.BtcWhiteListProvider
 import withdrawal.btc.statistics.WithdrawalStatistics
 import java.io.File
+import java.util.concurrent.Executors
 
 val withdrawalConfig =
     loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties").get()
@@ -57,7 +59,20 @@ class BtcDWBridgeAppConfiguration {
     fun notaryConfig() = notaryConfig
 
     @Bean
-    fun irohaAPI() = IrohaAPI(dwBridgeConfig.iroha.hostname, dwBridgeConfig.iroha.port)
+    fun irohaAPI(): IrohaAPI {
+        val irohaAPI = IrohaAPI(dwBridgeConfig.iroha.hostname, dwBridgeConfig.iroha.port)
+        /**
+         * It's essential to handle blocks in this service one-by-one.
+         * This is why we explicitly set single threaded executor.
+         */
+        irohaAPI.setChannelForStreamingQueryStub(
+            ManagedChannelBuilder.forAddress(
+                dwBridgeConfig.iroha.hostname,
+                dwBridgeConfig.iroha.port
+            ).executor(Executors.newSingleThreadExecutor()).usePlaintext().build()
+        )
+        return irohaAPI
+    }
 
     @Bean
     fun btcRegisteredAddressesProvider(): BtcRegisteredAddressesProvider {
@@ -109,8 +124,7 @@ class BtcDWBridgeAppConfiguration {
 
     @Bean
     fun withdrawalIrohaChainListener() = IrohaChainListener(
-        dwBridgeConfig.iroha.hostname,
-        dwBridgeConfig.iroha.port,
+        irohaAPI(),
         withdrawalCredential()
     )
 

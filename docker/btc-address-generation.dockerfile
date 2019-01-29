@@ -2,7 +2,7 @@ FROM openjdk:8-jre
 
 WORKDIR /opt/notary
 
-COPY eth-withdrawal/build/libs/eth-withdrawal-all.jar /opt/notary/notary.jar
+COPY btc-address-generation/build/libs/btc-address-generation-all.jar /opt/notary/btc-address-generation.jar
 
 # Please run `kscript --package grpc_healthcheck.kts` before building docker image
 COPY grpc_healthcheck /opt/notary
