@@ -4,16 +4,23 @@ services:
   d3-iroha:
     ports:
       - 50051:50051
+    networks:
+      - d3-network
   d3-eth-node0:
     ports:
       - 8545:8545
+    networks:
+      - d3-network
   grpcwebproxy:
     ports:
       - 8081:8080
       - 8443:8443
+    networks:
+      - d3-network
   d3-btc-node0:
     ports:
       - 8332:8332
       - 18333:18333
       - 18444:18444
-
+    networks:
+      - d3-network

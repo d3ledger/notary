@@ -9,6 +9,7 @@ services:
     container_name: d3-registration
     ports:
       - 8085:8085
+      - 7075:7075
     volumes:
       - ./:/opt/notary/deploy
       - ../configs:/opt/notary/configs
