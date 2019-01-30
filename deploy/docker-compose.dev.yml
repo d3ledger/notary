@@ -22,5 +22,5 @@ services:
       - 8332:8332
       - 18333:18333
       - 18444:18444
-networks:
+    networks:
       - d3-network
