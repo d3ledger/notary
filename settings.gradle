@@ -1,5 +1,11 @@
 rootProject.name = 'notary'
 
+include 'notifications-integration-test'
+project(':notifications-integration-test').projectDir = 'notifications-integration-test' as File
+
+include 'notifications'
+project(':notifications').projectDir = 'notifications' as File
+
 include 'btc'
 project(':btc').projectDir = 'btc' as File
 
