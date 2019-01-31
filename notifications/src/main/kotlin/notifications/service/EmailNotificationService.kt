@@ -24,14 +24,14 @@ class EmailNotificationService(
     override fun notifyDeposit(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
         logger.info { "Notify deposit $transferNotifyEvent" }
         val message =
-            "Hello ${transferNotifyEvent.accountId}. We are happy to notify that ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} has been deposited to your account."
+            "Dear client, deposit of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} to your account ${transferNotifyEvent.accountId} is successful."
         return checkClientAndSendMessage(transferNotifyEvent.accountId, D3_DEPOSIT_EMAIL_SUBJECT, message)
     }
 
     override fun notifyWithdrawal(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
         logger.info { "Notify withdrawal $transferNotifyEvent" }
         val message =
-            "Hello ${transferNotifyEvent.accountId}. We are happy to notify that ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} has been withdrawn from your account."
+            "Dear client, withdrawal of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} from your account ${transferNotifyEvent.accountId} is successful."
         return checkClientAndSendMessage(transferNotifyEvent.accountId, D3_WITHDRAWAL_EMAIL_SUBJECT, message)
     }
 
