@@ -23,7 +23,7 @@ val HOST = "51.15.62.100"
 class IrohaChainListener(
     private val irohaAPI: IrohaAPI,
     private val credential: IrohaCredential
-) : ChainListener<iroha.protocol.BlockOuterClass.Block> {
+) : ChainListener<Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit>> {
 
     constructor(
         irohaHost: String,
@@ -31,11 +31,20 @@ class IrohaChainListener(
         credential: IrohaCredential
     ) : this(IrohaAPI(irohaHost, irohaPort), credential)
 
+    fun getIrohaBlockObservable(): Result<Observable<iroha.protocol.BlockOuterClass.Block>, Exception> {
+        return ModelUtil.getBlockStreaming(irohaAPI, credential).map { observable ->
+            observable.map { response ->
+                logger.info { "New Iroha block arrived. Height ${response.blockResponse.block.blockV1.payload.height}" }
+                response.blockResponse.block
+            }
+        }
+
+    }
 
     /**
      * Returns an observable that emits a new block every time it gets it from Iroha
      */
-    override fun getBlockObservable(): Result<Observable<iroha.protocol.BlockOuterClass.Block>, Exception> {
+    override fun getBlockObservable(): Result<Observable<Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit>>, Exception> {
         val factory = ConnectionFactory()
         factory.host = HOST
         val conn = factory.newConnection()
@@ -44,13 +53,6 @@ class IrohaChainListener(
 
         val source = PublishSubject.create<Delivery>()
         val obs: Observable<Delivery> = source
-//        GlobalScope.launch {
-//            obs.subscribe { delivery ->
-//                println(delivery.body)
-//                channel.basicAck(delivery.envelope.deliveryTag, false)
-//            }
-//        }
-
         channel.queueDeclare(QUEUE_NAME, true, false, false, null)
         val deliverCallback = { consumerTag: String, delivery: Delivery ->
             val message = delivery.getBody()
@@ -58,8 +60,7 @@ class IrohaChainListener(
             source.onNext(delivery)
 
         }
-        channel.basicConsume(QUEUE_NAME, true, deliverCallback, { consumerTag -> })
-//            while (true) { delay(1000) }
+        channel.basicConsume(QUEUE_NAME, false, deliverCallback, { consumerTag -> })
 
 
         logger.info { "On subscribe to Iroha chain" }
@@ -67,7 +68,9 @@ class IrohaChainListener(
             obs.map { delivery ->
                 val block = iroha.protocol.BlockOuterClass.Block.parseFrom(delivery.body)
                 logger.info { "New Iroha block arrived. Height ${block.blockV1.payload.height}" }
-                block
+                Pair(block, {
+                    channel.basicAck(delivery.envelope.deliveryTag, false)
+                })
             }
         }
 //            return ModelUtil.getBlockStreaming(irohaAPI, credential).map { observable ->
@@ -82,7 +85,7 @@ class IrohaChainListener(
     /**
      * @return a block as soon as it is committed to iroha
      */
-    override suspend fun getBlock(): iroha.protocol.BlockOuterClass.Block {
+    override suspend fun getBlock(): Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit> {
         return getBlockObservable().get().blockingFirst()
     }
 

@@ -73,8 +73,9 @@ open class IrohaIntegrationHelperUtil : Closeable {
      */
     fun waitOneIrohaBlock() {
         runBlocking {
-            val block = irohaListener.getBlock()
+            val (block, ack) = irohaListener.getBlock()
             logger.info { "Wait for one block ${block.blockV1.payload.height}" }
+            ack()
         }
     }
 

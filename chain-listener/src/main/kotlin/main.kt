@@ -13,7 +13,6 @@ import io.reactivex.subjects.PublishSubject
 val QUEUE_NAME = "iroha_blocks"
 val HOST = "51.15.62.100"
 
-typealias Message = Pair<ByteArray, Delivery>
 
 fun main(args: Array<String>) {
     val notaryConfig = loadConfigs("eth-notary", EthNotaryConfig::class.java, "/eth/notary.properties").get()
@@ -39,7 +38,7 @@ fun main(args: Array<String>) {
             connection.createChannel().use { channel ->
                 channel.queueDeclare(QUEUE_NAME, true, false, false, null)
                 println(channel.connection.isOpen)
-                listener.getBlockObservable().get()
+                listener.getIrohaBlockObservable().get()
                     .blockingSubscribe {
                         val message = it.toByteArray()
                         channel.basicPublish("", QUEUE_NAME, null, message)
@@ -48,32 +47,6 @@ fun main(args: Array<String>) {
                     }
             }
         }
-    }
-
-    while(true);
-    val channel = conn.createChannel()
-
-    val source = PublishSubject.create<Delivery>()
-    val obs: Observable<Delivery> = source
-    GlobalScope.launch {
-        obs.subscribe { delivery ->
-            println(delivery.body)
-            channel.basicAck(delivery.envelope.deliveryTag, false)
-        }
-    }
-
-    runBlocking {
-        channel.queueDeclare(QUEUE_NAME, true, false, false, null)
-        val deliverCallback = { consumerTag: String, delivery: Delivery ->
-            val message = delivery.getBody()
-            println(" [x] Received '$message'")
-            source.onNext(delivery)
-
-        }
-        channel.basicConsume(QUEUE_NAME, false, deliverCallback, { consumerTag -> })
-        while (true) { delay(1000) }
-
-
     }
 
 
