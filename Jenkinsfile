@@ -110,6 +110,8 @@ pipeline {
               sh "rm build/libs/notary-1.0-SNAPSHOT-all.jar || true"
               iC = docker.image("openjdk:8-jdk")
               iC.inside("-e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
+                sh "./gradlew notary-registration:shadowJar"
+
                 sh "./gradlew eth:shadowJar"
                 sh "./gradlew eth-withdrawal:shadowJar"
                 sh "./gradlew eth-registration:shadowJar"
@@ -120,6 +122,9 @@ pipeline {
                 sh "./gradlew btc-dw-bridge:shadowJar"
 
               }
+
+              notaryRegistration = docker.build("nexus.iroha.tech:19002/${login}/notary-registration:${TAG}", "-f docker/notary-registration.dockerfile .")
+
               ethRelay = docker.build("nexus.iroha.tech:19002/${login}/eth-relay:${TAG}", "-f docker/eth-relay.dockerfile .")
               ethRegistration = docker.build("nexus.iroha.tech:19002/${login}/eth-registration:${TAG}", "-f docker/eth-registration.dockerfile .")
               notary = docker.build("nexus.iroha.tech:19002/${login}/notary:${TAG}", "-f docker/notary.dockerfile .")
@@ -128,6 +133,8 @@ pipeline {
               btcAddressGeneration = docker.build("nexus.iroha.tech:19002/${login}/btc-address-generation:${TAG}", "-f docker/btc-address-generation.dockerfile .")
               btcRegistration = docker.build("nexus.iroha.tech:19002/${login}/btc-registration:${TAG}", "-f docker/btc-registration.dockerfile .")
               btcDwBridge = docker.build("nexus.iroha.tech:19002/${login}/btc-dw-bridge:${TAG}", "-f docker/btc-dw-bridge.dockerfile .")
+
+              notaryRegistration.push("${TAG}")
 
               ethRelay.push("${TAG}")
               ethRegistration.push("${TAG}")

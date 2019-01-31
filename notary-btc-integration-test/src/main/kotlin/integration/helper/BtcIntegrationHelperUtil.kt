@@ -24,6 +24,7 @@ import provider.btc.address.AddressInfo
 import provider.btc.address.BtcAddressesProvider
 import provider.btc.address.BtcRegisteredAddressesProvider
 import registration.btc.strategy.BtcRegistrationStrategyImpl
+import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverter
 import sidechain.iroha.util.ModelUtil
@@ -209,7 +210,7 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         keypair: KeyPair = ModelUtil.generateKeypair(),
         whitelist: List<String> = emptyList()
     ): String {
-        btcRegistrationStrategy.register(irohaAccountName, whitelist, keypair.public.toHexString())
+        btcRegistrationStrategy.register(irohaAccountName, CLIENT_DOMAIN, whitelist, keypair.public.toHexString())
             .fold({ btcAddress ->
                 logger.info { "BTC address $btcAddress was registered by $irohaAccountName" }
                 return btcAddress

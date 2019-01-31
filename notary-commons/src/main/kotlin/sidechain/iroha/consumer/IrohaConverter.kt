@@ -11,7 +11,7 @@ import util.unHex
 import java.security.KeyPair
 
 /**
- * Class converts Notary [notary.IrohaOrderedBatch] to Iroha [UnsignedTx]
+ * Class converts Notary [notary.IrohaOrderedBatch] to Iroha [Transaction]
  */
 object IrohaConverter {
 

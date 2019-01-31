@@ -87,6 +87,16 @@ open class IrohaIntegrationHelperUtil : Closeable {
     }
 
     /**
+     * Return [account] data.
+     */
+    fun getAccount(account: String): String {
+        return sidechain.iroha.util.getAccountData(
+            queryAPI,
+            account
+        ).get().toString()
+    }
+
+    /**
      * Add asset to Iroha account
      * Add asset to creator and then transfer to destination account.
      * @param accountId - destination account
@@ -122,7 +132,6 @@ open class IrohaIntegrationHelperUtil : Closeable {
      * Query Iroha account balance
      * @param accountId - account in Iroha
      * @param assetId - asset in Iroha
-     * @param credential - credential of query creator
      * @return balance of account asset
      */
     fun getIrohaAccountBalance(accountId: String, assetId: String): String {
@@ -211,7 +220,7 @@ open class IrohaIntegrationHelperUtil : Closeable {
     }
 
     /**
-     * Query Iroha account balance from [accountId]. Creator is [credential].
+     * Query Iroha account balance from [accountId].
      * @return Map(assetId to balance)
      */
     fun getAccountAssets(

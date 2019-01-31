@@ -120,7 +120,7 @@ class WithdrawalIntegrationTest {
                         "0x0000000000000000000000000000000000000000",
                         decimalAmount.toPlainString(),
                         ethWallet,
-                        hash.toString(),
+                        hash,
                         relay
                     )
                 ), response.ethSignature

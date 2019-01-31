@@ -115,7 +115,7 @@ class BtcRegistrationIntegrationTest {
             "http://127.0.0.1:${environment.btcRegistrationConfig.port}/users",
             data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
         )
-        assertEquals(400, res.statusCode)
+        assertEquals(500, res.statusCode)
         assertEquals(
             clientsBeforeRegistration,
             environment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
@@ -138,7 +138,7 @@ class BtcRegistrationIntegrationTest {
             "http://127.0.0.1:${environment.btcRegistrationConfig.port}/users",
             data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
         )
-        assertEquals(400, res.statusCode)
+        assertEquals(500, res.statusCode)
         assertEquals(
             clientsBeforeRegistration,
             environment.btcTakenAddressesProvider.getRegisteredAddresses().get().size

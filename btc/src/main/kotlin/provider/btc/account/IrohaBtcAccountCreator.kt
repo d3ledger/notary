@@ -3,7 +3,6 @@ package provider.btc.account
 import com.github.kittinunf.result.Result
 import provider.btc.address.AddressInfo
 import registration.IrohaAccountCreator
-import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumer
 
 const val BTC_WHITE_LIST_KEY = "btc_whitelist"
@@ -23,6 +22,7 @@ class IrohaBtcAccountCreator(
      * @param btcAddress - Bitcoin address
      * @param whitelist - list of addresses allowed to withdraw to
      * @param userName - client userName in Iroha
+     * @param domain - client domain
      * @param pubkey - client's public key
      * @param notaryKeys - keys that were used to create given address
      * @return address associated with userName
@@ -31,6 +31,7 @@ class IrohaBtcAccountCreator(
         btcAddress: String,
         whitelist: List<String>,
         userName: String,
+        domain: String,
         pubkey: String,
         notaryKeys: List<String>
     ): Result<String, Exception> {
@@ -39,10 +40,11 @@ class IrohaBtcAccountCreator(
             BTC_WHITE_LIST_KEY,
             whitelist,
             userName,
+            domain,
             pubkey
         ) {
             AddressInfo(
-                "$userName@$CLIENT_DOMAIN",
+                "$userName@$domain",
                 notaryKeys
             ).toJson()
         }
