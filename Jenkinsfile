@@ -115,6 +115,10 @@ pipeline {
                 sh "./gradlew eth-registration:shadowJar"
                 sh "./gradlew eth-vacuum:shadowJar"
 
+                sh "./gradlew btc-address-generation:shadowJar"
+                sh "./gradlew btc-registration:shadowJar"
+                sh "./gradlew btc-dw-bridge:shadowJar"
+
               }
               ethRelay = docker.build("nexus.iroha.tech:19002/${login}/eth-relay:${TAG}", "-f docker/eth-relay.dockerfile .")
               ethRegistration = docker.build("nexus.iroha.tech:19002/${login}/eth-registration:${TAG}", "-f docker/eth-registration.dockerfile .")
