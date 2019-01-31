@@ -55,21 +55,6 @@ services:
     networks:
       - d3-network
 
-  d3-btc-address-generation:
-    image: nexus.iroha.tech:19002/d3-deploy/btc-address-generation:${TAG-master}
-    container_name: d3-btc-address
-    volumes:
-      - ./:/opt/notary/deploy
-      - ../configs:/opt/notary/configs
-    environment:
-      - PROFILE
-      - IROHA_HOST=d3-iroha
-      - IROHA_PORT=50051
-      - JAR_NAME=btc-address-generation.jar
-      - CLASS=generation.btc.BtcAddressGenerationMain
-    networks:
-      - d3-network
-
   d3-btc-registration:
     image: nexus.iroha.tech:19002/d3-deploy/btc-registration:${TAG-master}
     container_name: d3-btc-registration
@@ -82,21 +67,6 @@ services:
     - IROHA_PORT=50051
     - JAR_NAME=btc-registration.jar
     - CLASS=registration.btc.BtcRegistrationMain
-    networks:
-    - d3-network
-
-  d3-btc-dw:
-    image: nexus.iroha.tech:19002/d3-deploy/btc-dw-bridge:${TAG-master}
-    container_name: d3-btc-dw
-    volumes:
-    - ./:/opt/notary/deploy
-    - ../configs:/opt/notary/configs
-    environment:
-    - PROFILE
-    - IROHA_HOST=d3-iroha
-    - IROHA_PORT=50051
-    - JAR_NAME=btc-dw-bridge.jar
-    - CLASS=dwbridge.btc.BtcDepositWithdrawalMain
     networks:
     - d3-network
 
