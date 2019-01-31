@@ -15,10 +15,6 @@ apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compi
 apply plugin: 'org.springframework.boot'
 
 dependencies {
-    // Iroha bindings
-    def iroha_bindings_dir = Paths.get(projectDir.getParent().toString(), "iroha_bindings").toString()
-    compile fileTree(dir: iroha_bindings_dir, include: '*.jar')
-
     compile project(":notary-commons")
     compile project(":notary-iroha-integration-test")
     compile project(":notary-registration")
