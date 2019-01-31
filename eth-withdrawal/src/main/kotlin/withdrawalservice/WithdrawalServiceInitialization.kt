@@ -36,7 +36,7 @@ class WithdrawalServiceInitialization(
      */
     private fun initIrohaChain(): Result<Observable<SideChainEvent.IrohaEvent>, Exception> {
         logger.info { "Init Iroha chain listener" }
-        return IrohaChainListener(irohaHost, irohaPort, credential).getBlockObservable()
+        return IrohaChainListener(irohaHost, irohaPort, credential).getIrohaBlockObservable()
             .map { observable ->
                 observable.flatMapIterable { block -> IrohaChainHandler().parseBlock(block) }
             }
