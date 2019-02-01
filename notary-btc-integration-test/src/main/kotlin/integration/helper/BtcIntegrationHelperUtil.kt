@@ -19,6 +19,7 @@ import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
+import peer.SharedPeerGroup
 import provider.btc.account.IrohaBtcAccountCreator
 import provider.btc.address.AddressInfo
 import provider.btc.address.BtcAddressesProvider
@@ -132,7 +133,7 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      * Returns group of peers
      */
     fun getPeerGroup(wallet: Wallet, networkParameters: NetworkParameters, blockStoragePath: String): PeerGroup {
-        return PeerGroup(networkParameters, getBlockChain(wallet, networkParameters, blockStoragePath))
+        return SharedPeerGroup(networkParameters, getBlockChain(wallet, networkParameters, blockStoragePath))
     }
 
     private fun createMsAddress(keys: List<ECKey>): Address {
