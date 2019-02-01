@@ -41,20 +41,22 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
 
     val btcWithdrawalConfig = integrationHelper.configHelper.createBtcWithdrawalConfig(testName)
 
+    /**
+     * It's essential to handle blocks in this service one-by-one.
+     * This is why we explicitly set single threaded executor.
+     */
+    private val executor = Executors.newSingleThreadExecutor()
+
     private val irohaApi by lazy {
         val irohaAPI = IrohaAPI(
             btcWithdrawalConfig.iroha.hostname,
             btcWithdrawalConfig.iroha.port
         )
-        /**
-         * It's essential to handle blocks in this service one-by-one.
-         * This is why we explicitly set single threaded executor.
-         */
         irohaAPI.setChannelForStreamingQueryStub(
             ManagedChannelBuilder.forAddress(
                 btcWithdrawalConfig.iroha.hostname,
                 btcWithdrawalConfig.iroha.port
-            ).executor(Executors.newSingleThreadExecutor()).usePlaintext().build()
+            ).executor(executor).usePlaintext().build()
         )
         irohaAPI
     }
@@ -216,6 +218,7 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
 
     override fun close() {
         integrationHelper.close()
+        executor.shutdownNow()
         irohaChainListener.close()
         File(btcWithdrawalConfig.bitcoin.blockStoragePath).deleteRecursively()
         btcWithdrawalInitialization.close()
