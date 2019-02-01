@@ -49,7 +49,7 @@ class BtcWithdrawalIntegrationTest {
         //Recreate folder
         blockStorageFolder.mkdirs()
         integrationHelper.addNotary("test", "test")
-        integrationHelper.generateBtcBlocks()
+        integrationHelper.generateBtcInitialBlocks()
         integrationHelper.genChangeBtcAddress(environment.btcWithdrawalConfig.bitcoin.walletPath)
             .fold({ address -> changeAddress = address }, { ex -> throw  ex })
         integrationHelper.preGenFreeBtcAddresses(environment.btcWithdrawalConfig.bitcoin.walletPath, TOTAL_TESTS * 2)

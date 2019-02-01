@@ -60,7 +60,6 @@ class BtcAddressGenerationTestEnvironment(private val integrationHelper: BtcInte
         irohaApi
     )
 
-
     private val registrationKeyPair =
         ModelUtil.loadKeypair(
             btcGenerationConfig.registrationAccount.pubkeyPath,
@@ -69,7 +68,7 @@ class BtcAddressGenerationTestEnvironment(private val integrationHelper: BtcInte
             keypair
         }, { ex -> throw ex })
 
-    val registrationCredential =
+    private val registrationCredential =
         IrohaCredential(btcGenerationConfig.registrationAccount.accountId, registrationKeyPair)
 
     private val mstRegistrationKeyPair =

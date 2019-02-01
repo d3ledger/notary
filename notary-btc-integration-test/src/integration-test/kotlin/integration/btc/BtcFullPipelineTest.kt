@@ -54,12 +54,13 @@ class BtcFullPipelineTest {
             registrationEnvironment.btcRegistrationServiceInitialization.init()
         }
 
-        integrationHelper.generateBtcBlocks()
+        integrationHelper.generateBtcInitialBlocks()
 
         // Run notary
         GlobalScope.launch {
             val blockStorageFolder = File(notaryEnvironment.notaryConfig.bitcoin.blockStoragePath)
             //Clear bitcoin blockchain folder
+            blockStorageFolder.deleteRecursively()
             //Recreate folder
             blockStorageFolder.mkdirs()
             notaryEnvironment.btcNotaryInitialization.init().failure { ex -> fail("Cannot run BTC notary", ex) }

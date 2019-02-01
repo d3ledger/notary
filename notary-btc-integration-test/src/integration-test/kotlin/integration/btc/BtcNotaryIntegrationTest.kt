@@ -35,7 +35,7 @@ class BtcNotaryIntegrationTest {
         blockStorageFolder.deleteRecursively()
         //Recreate folder
         blockStorageFolder.mkdirs()
-        integrationHelper.generateBtcBlocks()
+        integrationHelper.generateBtcInitialBlocks()
         integrationHelper.addNotary("test_notary", "test_notary_address")
         environment.btcNotaryInitialization.init().failure { ex -> fail("Cannot run BTC notary", ex) }
     }

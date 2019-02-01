@@ -35,6 +35,7 @@ import java.security.KeyPair
 
 const val BTC_ASSET = "btc#bitcoin"
 private const val GENERATED_ADDRESSES_PER_BATCH = 5
+private const val BTC_INITAL_BLOCKS = 101
 
 class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
 
@@ -238,10 +239,24 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /**
      * Creates blocks in bitcoin blockchain. May be used as transaction confirmation mechanism.
      */
-    fun generateBtcBlocks(blocks: Int = 150) {
+    fun generateBtcBlocks(blocks: Int) {
         if (blocks > 0) {
             rpcClient.generate(numberOfBlocks = blocks)
             logger.info { "New $blocks ${singularOrPluralBlocks(blocks)} generated in Bitcoin blockchain" }
+        }
+    }
+
+    /**
+     * Creates initial blocks in bitcoin blockchain if needed.
+     * After calling this function you will be available to call 'sendToAddress' command
+     */
+    fun generateBtcInitialBlocks() {
+        val currentBlockCount = rpcClient.getBlockCount()
+        if (currentBlockCount >= BTC_INITAL_BLOCKS) {
+            logger.info { "No need to create initial blocks" }
+        } else {
+            generateBtcBlocks(BTC_INITAL_BLOCKS - currentBlockCount)
+            logger.info { "Initial blocks were generated" }
         }
     }
 
