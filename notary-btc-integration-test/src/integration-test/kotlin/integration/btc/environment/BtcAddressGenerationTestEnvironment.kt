@@ -27,25 +27,29 @@ import java.util.concurrent.Executors
 /**
  * Bitcoin address generation service testing environment
  */
-class BtcAddressGenerationTestEnvironment(private val integrationHelper: BtcIntegrationHelperUtil) : Closeable {
+class BtcAddressGenerationTestEnvironment(
+    private val integrationHelper: BtcIntegrationHelperUtil
+) : Closeable {
 
     val btcGenerationConfig =
         integrationHelper.configHelper.createBtcAddressGenerationConfig()
+    /**
+     * It's essential to handle blocks in this service one-by-one.
+     * This is why we explicitly set single threaded executor.
+     */
+    private val executor = Executors.newSingleThreadExecutor()
 
     private val irohaApi by lazy {
         val irohaAPI = IrohaAPI(
             btcGenerationConfig.iroha.hostname,
             btcGenerationConfig.iroha.port
         )
-        /**
-         * It's essential to handle blocks in this service one-by-one.
-         * This is why we explicitly set single threaded executor.
-         */
+
         irohaAPI.setChannelForStreamingQueryStub(
             ManagedChannelBuilder.forAddress(
                 btcGenerationConfig.iroha.hostname,
                 btcGenerationConfig.iroha.port
-            ).executor(Executors.newSingleThreadExecutor()).usePlaintext().build()
+            ).executor(executor).usePlaintext().build()
         )
         irohaAPI
     }
@@ -60,7 +64,6 @@ class BtcAddressGenerationTestEnvironment(private val integrationHelper: BtcInte
         irohaApi
     )
 
-
     private val registrationKeyPair =
         ModelUtil.loadKeypair(
             btcGenerationConfig.registrationAccount.pubkeyPath,
@@ -69,7 +72,7 @@ class BtcAddressGenerationTestEnvironment(private val integrationHelper: BtcInte
             keypair
         }, { ex -> throw ex })
 
-    val registrationCredential =
+    private val registrationCredential =
         IrohaCredential(btcGenerationConfig.registrationAccount.accountId, registrationKeyPair)
 
     private val mstRegistrationKeyPair =
@@ -168,6 +171,7 @@ class BtcAddressGenerationTestEnvironment(private val integrationHelper: BtcInte
 
     override fun close() {
         integrationHelper.close()
+        executor.shutdownNow()
         irohaListener.close()
     }
 }
