@@ -50,7 +50,7 @@ class BtcNotaryTestEnvironment(private val integrationHelper: BtcIntegrationHelp
     private val peerGroup by lazy {
         val peerGroup = integrationHelper.getPeerGroup(
             wallet,
-            btcNetworkConfigProvider.getConfig(),
+            btcNetworkConfigProvider,
             notaryConfig.bitcoin.blockStoragePath
         )
         BitcoinConfig.extractHosts(notaryConfig.bitcoin).forEach { host ->

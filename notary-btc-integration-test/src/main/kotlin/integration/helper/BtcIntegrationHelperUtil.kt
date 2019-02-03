@@ -6,23 +6,23 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import config.BitcoinConfig
 import helper.currency.satToBtc
-import helper.network.getBlockChain
 import mu.KLogging
 import notary.IrohaCommand
 import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.ECKey
-import org.bitcoinj.core.NetworkParameters
 import org.bitcoinj.core.PeerGroup
 import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
+import peer.SharedPeerGroup
 import provider.btc.account.IrohaBtcAccountCreator
 import provider.btc.address.AddressInfo
 import provider.btc.address.BtcAddressesProvider
 import provider.btc.address.BtcRegisteredAddressesProvider
+import provider.btc.network.BtcNetworkConfigProvider
 import registration.btc.strategy.BtcRegistrationStrategyImpl
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumerImpl
@@ -131,8 +131,12 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /**
      * Returns group of peers
      */
-    fun getPeerGroup(wallet: Wallet, networkParameters: NetworkParameters, blockStoragePath: String): PeerGroup {
-        return PeerGroup(networkParameters, getBlockChain(wallet, networkParameters, blockStoragePath))
+    fun getPeerGroup(
+        wallet: Wallet,
+        btcNetworkConfigProvider: BtcNetworkConfigProvider,
+        blockStoragePath: String
+    ): PeerGroup {
+        return SharedPeerGroup(btcNetworkConfigProvider, wallet, blockStoragePath, emptyList())
     }
 
     private fun createMsAddress(keys: List<ECKey>): Address {

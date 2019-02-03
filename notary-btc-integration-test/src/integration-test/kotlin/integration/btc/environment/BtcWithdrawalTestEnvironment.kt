@@ -159,7 +159,7 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
     private val peerGroup by lazy {
         val peerGroup = integrationHelper.getPeerGroup(
             wallet,
-            btcNetworkConfigProvider.getConfig(),
+            btcNetworkConfigProvider,
             btcWithdrawalConfig.bitcoin.blockStoragePath
         )
         BitcoinConfig.extractHosts(btcWithdrawalConfig.bitcoin).forEach { host ->
