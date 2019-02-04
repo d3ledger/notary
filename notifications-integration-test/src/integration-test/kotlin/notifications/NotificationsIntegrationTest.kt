@@ -1,26 +1,25 @@
 package notifications
 
-import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
-import com.nhaarman.mockito_kotlin.*
 import integration.helper.IrohaIntegrationHelperUtil
 import model.D3_CLIENT_EMAIL_KEY
 import model.D3_CLIENT_ENABLE_NOTIFICATIONS
 import notifications.environment.NotificationsIntegrationTestEnvironment
 import notifications.service.D3_DEPOSIT_EMAIL_SUBJECT
 import notifications.service.D3_WITHDRAWAL_EMAIL_SUBJECT
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.fail
-import org.mockito.Matchers.anyString
+import notifications.service.NOTIFICATION_EMAIL
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.util.ModelUtil
 import java.math.BigDecimal
 
 const val BTC_ASSET = "btc#bitcoin"
 private const val TRANSFER_WAIT_TIME = 3_000L
+private const val SRC_USER_EMAIL = "src.user@d3.com"
+private const val DEST_USER_EMAIL = "dest.user@d3.com"
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class NotificationsIntegrationTest {
@@ -42,7 +41,7 @@ class NotificationsIntegrationTest {
             environment.srcClientConsumer,
             environment.srcClientId,
             D3_CLIENT_EMAIL_KEY,
-            "user@d3.com"
+            SRC_USER_EMAIL
         ).failure { ex -> throw ex }
 
         // Setting dest client email
@@ -50,7 +49,7 @@ class NotificationsIntegrationTest {
             environment.destClientConsumer,
             environment.destClientId,
             D3_CLIENT_EMAIL_KEY,
-            "user@d3.com"
+            DEST_USER_EMAIL
         ).failure { ex -> throw ex }
 
         // Enriching notary account
@@ -72,17 +71,13 @@ class NotificationsIntegrationTest {
     }
 
     @BeforeEach
-    fun resetMocks() {
-        // We need reset() in order to clear sendMessage() calls counter
-        reset(environment.smtpService)
-        whenever(
-            environment.smtpService.sendMessage(
-                anyString(),
-                anyString(),
-                anyString(),
-                anyString()
-            )
-        ).thenReturn(Result.of { Unit })
+    fun resetDumbster() {
+        environment.dumbster.reset()
+    }
+
+    @AfterAll
+    fun closeEnvironments() {
+        environment.close()
     }
 
     /**
@@ -113,12 +108,12 @@ class NotificationsIntegrationTest {
             )
         }.map {
             Thread.sleep(TRANSFER_WAIT_TIME)
-            verify(environment.smtpService).sendMessage(
-                anyString(),
-                anyString(),
-                eq(D3_DEPOSIT_EMAIL_SUBJECT),
-                anyString()
-            )
+            val receivedEmails = environment.dumbster.receivedEmails
+            assertEquals(1, receivedEmails.size)
+            val lastEmail = receivedEmails.last()
+            assertEquals(D3_DEPOSIT_EMAIL_SUBJECT, lastEmail.getHeaderValue("Subject"))
+            assertEquals(SRC_USER_EMAIL, lastEmail.getHeaderValue("To"))
+            assertEquals(NOTIFICATION_EMAIL, lastEmail.getHeaderValue("From"))
             Unit
         }.failure { ex -> fail(ex) }
     }
@@ -151,12 +146,12 @@ class NotificationsIntegrationTest {
             )
         }.map {
             Thread.sleep(TRANSFER_WAIT_TIME)
-            verify(environment.smtpService).sendMessage(
-                anyString(),
-                anyString(),
-                eq(D3_WITHDRAWAL_EMAIL_SUBJECT),
-                anyString()
-            )
+            val receivedEmails = environment.dumbster.receivedEmails
+            assertEquals(1, receivedEmails.size)
+            val lastEmail = receivedEmails.last()
+            assertEquals(D3_WITHDRAWAL_EMAIL_SUBJECT, lastEmail.getHeaderValue("Subject"))
+            assertEquals(SRC_USER_EMAIL, lastEmail.getHeaderValue("To"))
+            assertEquals(NOTIFICATION_EMAIL, lastEmail.getHeaderValue("From"))
             Unit
         }.failure { ex -> fail(ex) }
     }
@@ -195,7 +190,7 @@ class NotificationsIntegrationTest {
             )
         }.map {
             Thread.sleep(TRANSFER_WAIT_TIME)
-            verify(environment.smtpService, never()).sendMessage(anyString(), anyString(), anyString(), anyString())
+            assertTrue(environment.dumbster.receivedEmails.isEmpty())
             Unit
         }.failure { ex -> fail(ex) }
     }
@@ -228,7 +223,7 @@ class NotificationsIntegrationTest {
             )
         }.map {
             Thread.sleep(TRANSFER_WAIT_TIME)
-            verify(environment.smtpService, never()).sendMessage(anyString(), anyString(), anyString(), anyString())
+            assertTrue(environment.dumbster.receivedEmails.isEmpty())
             Unit
         }.failure { ex -> fail(ex) }
     }
