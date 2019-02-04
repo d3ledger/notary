@@ -1,29 +1,42 @@
 package notifications.environment
 
-import com.nhaarman.mockito_kotlin.mock
+import com.dumbster.smtp.SimpleSmtpServer
+import config.getConfigFolder
+import config.loadRawConfigs
 import integration.helper.IrohaIntegrationHelperUtil
 import integration.helper.NotificationsConfigHelper
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
+import notifications.config.SMTPConfig
 import notifications.init.NotificationInitialization
 import notifications.service.EmailNotificationService
-import notifications.smtp.SMTPService
+import notifications.smtp.SMTPServiceImpl
 import provider.D3ClientProvider
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
+import java.io.Closeable
+import java.io.File
 
 /**
  * Notifications service testing environment
  */
-class NotificationsIntegrationTestEnvironment(private val integrationHelper: IrohaIntegrationHelperUtil) {
+class NotificationsIntegrationTestEnvironment(private val integrationHelper: IrohaIntegrationHelperUtil) : Closeable {
 
     private val notificationsConfigHelper = NotificationsConfigHelper(integrationHelper.accountHelper)
 
     private val notificationsConfig = notificationsConfigHelper.createNotificationsConfig()
+
+    private val smtpConfig = loadRawConfigs(
+        "smtp",
+        SMTPConfig::class.java,
+        getConfigFolder() + File.separator + notificationsConfig.smtpConfigPath
+    )
+
+    val dumbster = SimpleSmtpServer.start(smtpConfig.port)!!
 
     private val irohaAPI = IrohaAPI(notificationsConfig.iroha.hostname, notificationsConfig.iroha.port)
 
@@ -37,7 +50,7 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
 
     private val d3ClientProvider = D3ClientProvider(notaryQueryAPI)
 
-    val smtpService = mock<SMTPService>()
+    private val smtpService = SMTPServiceImpl(smtpConfig)
 
     private val notificationService = EmailNotificationService(smtpService, d3ClientProvider)
 
@@ -55,4 +68,10 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
     val destClientId = "$destClientName@$CLIENT_DOMAIN"
     val destClientConsumer = IrohaConsumerImpl(IrohaCredential(destClientId, destClientKeyPair), irohaAPI)
 
+
+    override fun close() {
+        integrationHelper.close()
+        irohaAPI.close()
+        dumbster.close()
+    }
 }

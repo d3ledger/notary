@@ -10,7 +10,7 @@ class NotificationsConfigHelper(private val accountHelper: IrohaAccountHelper) :
     fun createNotificationsConfig(): NotificationsConfig {
         return object : NotificationsConfig {
             override val iroha = createIrohaConfig()
-            override val smtpConfigPath = "no matter. its not used in tests"
+            override val smtpConfigPath = "smtp_test.properties"
             override val notaryCredential = accountHelper.createCredentialConfig(accountHelper.notaryAccount)
         }
     }
