@@ -34,4 +34,7 @@ interface WithdrawalServiceConfig {
 
     /** Ethereum config */
     val ethereum: EthereumConfig
+
+    /** RMQ Iroha Block */
+    val ethIrohaWithdrawalQueue: String
 }

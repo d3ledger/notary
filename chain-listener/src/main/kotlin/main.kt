@@ -1,50 +1,54 @@
+package chainlistener
+
+import config.RMQConfig
+import com.github.kittinunf.result.map
 import config.loadConfigs
 import model.IrohaCredential
-import notary.eth.EthNotaryConfig
-import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.util.ModelUtil
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.Delivery
-import kotlinx.coroutines.*
-import java.nio.charset.Charset
-import io.reactivex.Observable
-import io.reactivex.subjects.PublishSubject
+import com.rabbitmq.client.ConnectionFactory
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import mu.KLogging
 
-val QUEUE_NAME = "iroha_blocks"
-val HOST = "51.15.62.100"
 
+private val logger = KLogging().logger
 
 fun main(args: Array<String>) {
-    val notaryConfig = loadConfigs("eth-notary", EthNotaryConfig::class.java, "/eth/notary.properties").get()
-    val notaryKeypair = ModelUtil.loadKeypair(
-        notaryConfig.notaryCredential.pubkeyPath,
-        notaryConfig.notaryCredential.privkeyPath
+    val rmqConfig = loadConfigs("rmq", RMQConfig::class.java, "rmq.properties", true).get()
+
+    val rmqKeypair = ModelUtil.loadKeypair(
+        rmqConfig.irohaCredential.pubkeyPath,
+        rmqConfig.irohaCredential.privkeyPath
     ).fold({ keypair -> keypair }, { ex -> throw ex })
 
-    val notaryCredential = IrohaCredential(notaryConfig.notaryCredential.accountId, notaryKeypair)
+    val withdrawalCredential = IrohaCredential(rmqConfig.irohaCredential.accountId, rmqKeypair)
 
-    val listener = IrohaChainListener(
-        notaryConfig.iroha.hostname,
-        notaryConfig.iroha.port,
-        notaryCredential
-    )
+    val irohaAPI = IrohaAPI(rmqConfig.iroha.hostname, rmqConfig.iroha.port)
+
 
     val factory = ConnectionFactory()
-    factory.host = HOST
+    factory.host = rmqConfig.host
     val conn = factory.newConnection()
 
     GlobalScope.launch {
         conn.use { connection ->
             connection.createChannel().use { channel ->
-                channel.queueDeclare(QUEUE_NAME, true, false, false, null)
-                println(channel.connection.isOpen)
-                listener.getIrohaBlockObservable().get()
-                    .blockingSubscribe {
-                        val message = it.toByteArray()
-                        channel.basicPublish("", QUEUE_NAME, null, message)
-                        println(" [x] Sent '$message'")
-
+                channel.exchangeDeclare(rmqConfig.ethIrohaExchange, "fanout", true)
+                val obs = ModelUtil.getBlockStreaming(irohaAPI, withdrawalCredential).map { observable ->
+                    observable.map { response ->
+                        logger.info { "New Iroha block arrived. Height ${response.blockResponse.block.blockV1.payload.height}" }
+                        response.blockResponse.block
                     }
+
+                }.get()
+                logger.info { "Listening Iroha blocks" }
+                obs.blockingSubscribe {
+                    val message = it.toByteArray()
+                    channel.basicPublish(rmqConfig.ethIrohaExchange, "", null, message)
+                    println("Block pushed")
+
+                }
             }
         }
     }

@@ -70,6 +70,12 @@ services:
     networks:
       - d3-network
 
+  d3-rmq:
+    image: rabbitmq:3-management
+    container_name: d3-rmq
+    networks:
+      - d3-network
+
 
 volumes:
   iroha_block_store:

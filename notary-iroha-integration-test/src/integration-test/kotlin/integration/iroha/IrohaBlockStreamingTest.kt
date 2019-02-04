@@ -54,15 +54,13 @@ class IrohaBlockStreamingTest {
     fun irohaStreamingTest() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             var cmds = listOf<iroha.protocol.Commands.Command>()
-            var func = {}
             listener.getBlockObservable()
                 .map { obs ->
-                    obs.map { (block, ack) ->
+                    obs.map { (block, _) ->
                         cmds = block.blockV1.payload.transactionsList
                             .flatMap {
                                 it.payload.reducedPayload.commandsList
                             }
-                        func = ack
                     }.subscribeOn(Schedulers.io()).subscribe()
                 }
 
@@ -78,7 +76,6 @@ class IrohaBlockStreamingTest {
             assertEquals(creator, cmds.last().setAccountDetail.accountId)
             assertEquals("test", cmds.last().setAccountDetail.key)
             assertEquals("test", cmds.last().setAccountDetail.value)
-            func()
         }
     }
 
@@ -101,7 +98,7 @@ class IrohaBlockStreamingTest {
             IrohaConsumerImpl(testCredential, integrationHelper.irohaAPI).send(utx)
 
 
-            val (bl, ack) = runBlocking {
+            val (bl, _) = runBlocking {
                 block.await()
             }
 
@@ -113,7 +110,6 @@ class IrohaBlockStreamingTest {
             assertEquals(creator, cmds.first().setAccountDetail.accountId)
             assertEquals("test", cmds.first().setAccountDetail.key)
             assertEquals("test", cmds.first().setAccountDetail.value)
-            ack()
         }
     }
 }

@@ -28,6 +28,18 @@ const val ETH_RELAY_REGISTRY_ENV = "ETH_RELAY_REGISTRY"
 private val logger = KLogging().logger
 
 /**
+ * RMQ configurations
+ */
+
+interface RMQConfig {
+    val host: String
+    val ethIrohaExchange: String
+
+    val irohaCredential : IrohaCredentialConfig
+    val iroha: IrohaConfig
+}
+
+/**
  * Iroha configurations
  */
 interface IrohaConfig {
@@ -101,21 +113,27 @@ fun <T : Any> loadConfigs(
     prefix: String,
     type: Class<T>,
     filename: String,
+    ignoreProfile: Boolean = false,
     vararg validators: ConfigValidationRule<T>
 ): Result<T, Exception> {
-    return Result.of { loadValidatedConfigs(prefix, type, filename, *validators) }
+    return Result.of { loadValidatedConfigs(prefix, type, filename, ignoreProfile, *validators) }
 }
 
 private fun <T : Any> loadValidatedConfigs(
     prefix: String,
     type: Class<T>,
     filename: String,
+    ignoreProfile: Boolean = false,
     vararg validators: ConfigValidationRule<T>
 ): T {
-    val profile = getProfile()
     val (file, extension) = filename.split(".")
     val pwd = System.getProperty("user.dir")
-    val path = "$pwd/configs${file}_$profile.$extension"
+    val path = if (ignoreProfile) {
+        "$pwd/configs${file}.$extension"
+    } else {
+        val profile = getProfile()
+        "$pwd/configs${file}_$profile.$extension"
+    }
     logger.info { "Loading config from $path, prefix $prefix" }
     val config = loadRawConfigs(prefix, type, path)
     validators.forEach { rule -> rule.validate(config) }

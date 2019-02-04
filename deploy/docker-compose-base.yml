@@ -30,6 +30,15 @@ services:
     networks:
       - d3-network
 
+  d3-rmq:
+    container_name: d3-rmq
+    image: rabbitmq:3-management
+    ports:
+      - 8181:15672
+      - 5672:5672
+    networks:
+      - d3-network
+
 volumes:
   iroha_block_store:
 

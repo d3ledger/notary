@@ -5,6 +5,7 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.EthereumPasswords
+import config.RMQConfig
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.iroha.java.IrohaAPI
@@ -25,7 +26,8 @@ class WithdrawalServiceInitialization(
     private val credential: IrohaCredential,
     private val irohaAPI: IrohaAPI,
     private val withdrawalEthereumPasswords: EthereumPasswords,
-    private val relayVacuumConfig: RelayVacuumConfig
+    private val relayVacuumConfig: RelayVacuumConfig,
+    private val rmqConfig: RMQConfig
 ) {
     private val irohaHost = withdrawalConfig.iroha.hostname
     private val irohaPort = withdrawalConfig.iroha.port
@@ -36,9 +38,15 @@ class WithdrawalServiceInitialization(
      */
     private fun initIrohaChain(): Result<Observable<SideChainEvent.IrohaEvent>, Exception> {
         logger.info { "Init Iroha chain listener" }
-        return IrohaChainListener(irohaHost, irohaPort, credential).getIrohaBlockObservable()
+        return IrohaChainListener(
+            irohaHost,
+            irohaPort,
+            credential,
+            rmqConfig,
+            withdrawalConfig.ethIrohaWithdrawalQueue
+        ).getBlockObservable()
             .map { observable ->
-                observable.flatMapIterable { block -> IrohaChainHandler().parseBlock(block) }
+                observable.flatMapIterable { (block, _) -> IrohaChainHandler().parseBlock(block) }
             }
     }
 

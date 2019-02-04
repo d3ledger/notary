@@ -28,7 +28,7 @@ class EthChainListener(
     /** Keep counting blocks to prevent double emitting in case of chain reorganisation */
     private var lastBlock = confirmationPeriod
 
-    override fun getBlockObservable(): Result<Observable<EthBlock>, Exception> {
+    override fun getBlockObservable(autoAck : Boolean): Result<Observable<EthBlock>, Exception> {
         return Result.of {
             web3.blockFlowable(false).toObservable()
                 // skip up to confirmationPeriod blocks in case of chain reorganisation
