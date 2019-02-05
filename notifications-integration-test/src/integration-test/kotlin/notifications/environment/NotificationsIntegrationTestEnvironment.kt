@@ -1,6 +1,7 @@
 package notifications.environment
 
 import com.dumbster.smtp.SimpleSmtpServer
+import com.nhaarman.mockito_kotlin.mock
 import config.getConfigFolder
 import config.loadRawConfigs
 import integration.helper.IrohaIntegrationHelperUtil
@@ -8,11 +9,15 @@ import integration.helper.NotificationsConfigHelper
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
+import nl.martijndwars.webpush.PushService
 import notifications.config.SMTPConfig
 import notifications.init.NotificationInitialization
+import notifications.provider.D3ClientProvider
+import notifications.push.PushServiceFactory
+import notifications.push.WebPushAPIServiceImpl
 import notifications.service.EmailNotificationService
+import notifications.service.PushNotificationService
 import notifications.smtp.SMTPServiceImpl
-import provider.D3ClientProvider
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
@@ -52,9 +57,19 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
 
     private val smtpService = SMTPServiceImpl(smtpConfig)
 
-    private val notificationService = EmailNotificationService(smtpService, d3ClientProvider)
+    private val emailNotificationService = EmailNotificationService(smtpService, d3ClientProvider)
 
-    val notificationInitialization = NotificationInitialization(irohaChainListener, notificationService)
+    val pushService = mock<PushService> {}
+
+    private val pushServiceFactory = object : PushServiceFactory {
+        override fun create() = pushService
+    }
+
+    private val pushNotificationService =
+        PushNotificationService(WebPushAPIServiceImpl(d3ClientProvider, pushServiceFactory))
+
+    val notificationInitialization =
+        NotificationInitialization(irohaChainListener, listOf(emailNotificationService, pushNotificationService))
 
     // Source account
     val srcClientName = String.getRandomString(9)
@@ -67,7 +82,6 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
     val destClientKeyPair = ModelUtil.generateKeypair()
     val destClientId = "$destClientName@$CLIENT_DOMAIN"
     val destClientConsumer = IrohaConsumerImpl(IrohaCredential(destClientId, destClientKeyPair), irohaAPI)
-
 
     override fun close() {
         integrationHelper.close()

@@ -1,9 +1,9 @@
-package provider
+package notifications.provider
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import jp.co.soramitsu.iroha.java.QueryAPI
-import model.D3Client
+import notifications.client.D3Client
 import sidechain.iroha.util.getAccountDetails
 
 /**
