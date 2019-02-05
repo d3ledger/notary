@@ -51,7 +51,7 @@ pipeline {
           rc = sh(script: "nc d3-iroha 50051", returnStatus: true)
           sh "echo ${rc}"
 
-          iC = docker.image("bash")
+          iC = docker.image("busybox")
           iC.inside("--network='d3-${DOCKER_NETWORK}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
             sh "nc d3-iroha 50051"
             rc = sh(script: "nc d3-iroha 50051", returnStatus: true)
