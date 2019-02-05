@@ -53,6 +53,12 @@ pipeline {
 
           iC = docker.image("openjdk:8-jdk")
           iC.inside("--network='d3-${DOCKER_NETWORK}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
+            rc = sh(script: "nc d3-iroha 50051", returnStatus: true)
+            sh "echo ${rc}"
+
+            rc = sh(script: "nc d3-rmq 5672", returnStatus: true)
+            sh "echo ${rc}"
+
             sh "ln -s deploy/bitcoin/bitcoin-cli /usr/bin/bitcoin-cli"
             sh "./gradlew dependencies"
             sh "./gradlew test --info"
