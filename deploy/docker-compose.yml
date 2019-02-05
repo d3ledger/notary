@@ -78,8 +78,8 @@ services:
 
   d3-chain-adapter:
     build:
-      context: ../docker/
-      dockerfile: chain-adapter.dockerfile
+      context: ../
+      dockerfile: docker/chain-adapter.dockerfile
     container_name: d3-chain-adapter
     volumes:
       - ./:/opt/notary/deploy
