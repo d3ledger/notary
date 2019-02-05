@@ -35,8 +35,9 @@ pipeline {
         script {
           def scmVars = checkout scm
           tmp = docker.image("openjdk:8-jdk")
-          tmp.inside("-e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
+          tmp.inside("-e JVM_OPTS='-Xmx3200m' -e TERM='dumb' -v /chain-adapter/build/libs:/home/out") {
             sh "./gradlew chain-adapter:shadowJar"
+            sh "cp chain-adapter/build/libs/chain-adapter-all.jar /home/out/"
 
           }
           DOCKER_NETWORK = "${scmVars.CHANGE_ID}-${scmVars.GIT_COMMIT}-${BUILD_NUMBER}"
