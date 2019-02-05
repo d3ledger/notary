@@ -53,12 +53,9 @@ pipeline {
             sh "apt-get update"
             sh "apt-get install -y netcat"
             sh "sleep 40"
-            sh "nc d3-iroha-${DOCKER_NETWORK} 50051"
-            rc = sh(script: "nc d3-iroha-${DOCKER_NETWORK} 50051", returnStatus: true)
-            sh "echo ${rc}"
+            //sh "nc d3-iroha-${DOCKER_NETWORK} 50051"
+            sh "nc d3-rmq-${DOCKER_NETWORK} 5672"
 
-            rc = sh(script: "nc d3-rmq 5672", returnStatus: true)
-            sh "echo ${rc}"
 
             sh "ln -s deploy/bitcoin/bitcoin-cli /usr/bin/bitcoin-cli"
             sh "./gradlew dependencies"
