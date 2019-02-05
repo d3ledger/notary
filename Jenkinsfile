@@ -53,6 +53,7 @@ pipeline {
 
           iC = docker.image("bash")
           iC.inside("--network='d3-${DOCKER_NETWORK}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
+            sh "nc d3-iroha 50051"
             rc = sh(script: "nc d3-iroha 50051", returnStatus: true)
             sh "echo ${rc}"
 
