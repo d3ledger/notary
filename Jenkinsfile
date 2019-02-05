@@ -41,7 +41,7 @@ pipeline {
             sh "./gradlew chain-adapter:shadowJar"
 
           }
-          sh "ls"
+          sh "find ."
 
           DOCKER_NETWORK = "${scmVars.CHANGE_ID}-${scmVars.GIT_COMMIT}-${BUILD_NUMBER}"
           writeFile file: ".env", text: "SUBNET=${DOCKER_NETWORK}"
