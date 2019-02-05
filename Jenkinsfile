@@ -37,7 +37,7 @@ pipeline {
           tmp = docker.image("openjdk:8-jdk")
           env.WORKSPACE = pwd()
 
-          tmp.inside("-e JVM_OPTS='-Xmx3200m' -e TERM='dumb' -v {env.WORKSPACE}/chain-adapter/build/libs:/home/out") {
+          tmp.inside("-e JVM_OPTS='-Xmx3200m' -e TERM='dumb' -v ${env.WORKSPACE}/chain-adapter/build/libs:/home/out") {
             sh "./gradlew chain-adapter:shadowJar"
             sh "cp chain-adapter/build/libs/chain-adapter-all.jar /home/out/"
           }
