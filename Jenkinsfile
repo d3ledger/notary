@@ -48,7 +48,8 @@ pipeline {
           sh(returnStdout: true, script: "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml up --build -d")
           sh "docker cp d3-btc-node0-${DOCKER_NETWORK}:/usr/bin/bitcoin-cli deploy/bitcoin/"
 
-          sh "nc localhost 5672 && echo ${?}"
+          rc = sh(script: "nc localhost 5672", returnStatus: true)
+          sh "echo ${rc}"
 
           iC = docker.image("openjdk:8-jdk")
           iC.inside("--network='d3-${DOCKER_NETWORK}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
