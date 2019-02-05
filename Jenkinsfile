@@ -48,15 +48,12 @@ pipeline {
           sh(returnStdout: true, script: "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml up --build -d")
           sh "docker cp d3-btc-node0-${DOCKER_NETWORK}:/usr/bin/bitcoin-cli deploy/bitcoin/"
 
-          rc = sh(script: "nc d3-iroha 50051", returnStatus: true)
-          sh "echo ${rc}"
-
           iC = docker.image("openjdk:8-jdk")
           iC.inside("--network='d3-${DOCKER_NETWORK}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
             sh "apt-get update"
             sh "apt-get install -y netcat"
             sh "nc d3-iroha 50051"
-            rc = sh(script: "nc d3-iroha 50051", returnStatus: true)
+            rc = sh(script: "nc d3-iroha-${DOCKER_NETWORK} 50051", returnStatus: true)
             sh "echo ${rc}"
 
             rc = sh(script: "nc d3-rmq 5672", returnStatus: true)
