@@ -41,15 +41,15 @@ pipeline {
             sh "./gradlew chain-adapter:shadowJar"
 
           }
-          sh "pwd"
-          sh "find ."
-          sh "file chain-adapter/build/libs/chain-adapter-all.jar"
 
           DOCKER_NETWORK = "${scmVars.CHANGE_ID}-${scmVars.GIT_COMMIT}-${BUILD_NUMBER}"
           writeFile file: ".env", text: "SUBNET=${DOCKER_NETWORK}"
           sh "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml pull"
           sh(returnStdout: true, script: "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml up --build -d")
           sh "docker cp d3-btc-node0-${DOCKER_NETWORK}:/usr/bin/bitcoin-cli deploy/bitcoin/"
+
+          sh "nc localhost 5672 && echo $?"
+
           iC = docker.image("openjdk:8-jdk")
           iC.inside("--network='d3-${DOCKER_NETWORK}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
             sh "ln -s deploy/bitcoin/bitcoin-cli /usr/bin/bitcoin-cli"
