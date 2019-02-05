@@ -52,7 +52,7 @@ pipeline {
           iC.inside("--network='d3-${DOCKER_NETWORK}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
             sh "apt-get update"
             sh "apt-get install -y netcat"
-            sh "nc d3-iroha 50051"
+            sh "nc d3-iroha-${DOCKER_NETWORK} 50051"
             rc = sh(script: "nc d3-iroha-${DOCKER_NETWORK} 50051", returnStatus: true)
             sh "echo ${rc}"
 
