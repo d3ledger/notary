@@ -1,10 +1,11 @@
 package integration.iroha
 
 import com.github.kittinunf.result.map
+import config.RMQConfig
+import config.loadConfigs
 import integration.helper.IrohaConfigHelper
 import integration.helper.IrohaIntegrationHelperUtil
 import io.reactivex.schedulers.Schedulers
-import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.Transaction
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -14,7 +15,9 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
+import util.getRandomId
 import java.time.Duration
+import util.getRandomString
 
 /**
  * Note: Requires Iroha is running.
@@ -31,18 +34,29 @@ class IrohaBlockStreamingTest {
 
     private val creator = testCredential.accountId
 
-    private val listener = IrohaChainListener(
-        testConfig.iroha.hostname,
-        testConfig.iroha.port,
-        testCredential
-    )
+    private val rmqConfig = loadConfigs("rmq", RMQConfig::class.java, "/rmq.properties", true).get()
+    lateinit private var listener : IrohaChainListener
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
 
-    @AfterAll
+    @BeforeEach
+    fun setUp() {
+        listener = IrohaChainListener(
+            testConfig.iroha.hostname,
+            testConfig.iroha.port,
+            testCredential,
+            rmqConfig,
+            String.getRandomId()
+        )
+    }
+    @AfterEach
     fun dropDown() {
-        integrationHelper.close()
         listener.close()
+    }
+
+    @AfterAll
+    fun tearDown(){
+        integrationHelper.close()
     }
 
     /**

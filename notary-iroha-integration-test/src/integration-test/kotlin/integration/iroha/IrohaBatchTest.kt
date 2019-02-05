@@ -1,5 +1,7 @@
 package integration.iroha
 
+import config.RMQConfig
+import config.loadConfigs
 import integration.helper.IrohaConfigHelper
 import integration.helper.IrohaIntegrationHelperUtil
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
@@ -22,6 +24,7 @@ import sidechain.iroha.consumer.IrohaConverter
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountAsset
 import sidechain.iroha.util.getAccountData
+import util.getRandomId
 import util.getRandomString
 import util.hex
 import util.toHexString
@@ -42,13 +45,16 @@ class IrohaBatchTest {
     private val testCredential = integrationHelper.testCredential
 
     private val tester = testCredential.accountId
+    private val rmqConfig = loadConfigs("rmq", RMQConfig::class.java, "/rmq.properties", true).get()
 
     val assetDomain = "notary"
 
     val listener = IrohaChainListener(
         testConfig.iroha.hostname,
         testConfig.iroha.port,
-        testCredential
+        testCredential,
+        rmqConfig,
+        String.getRandomId()
     )
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)

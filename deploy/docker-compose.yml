@@ -76,6 +76,20 @@ services:
     networks:
       - d3-network
 
+  d3-chain-adapter:
+    image: nexus.iroha.tech:19002/d3-deploy/chain-adapter:${TAG-master}
+    container_name: d3-chain-adapter
+    volumes:
+      - ./:/opt/notary/deploy
+      - ../configs:/opt/notary/configs
+    environment:
+      - PROFILE
+      - IROHA_HOST=d3-iroha
+      - IROHA_PORT=50051
+      - JAR_NAME=chain-adapter.jar
+      - CLASS=chainadapter.ChainAdapterMain
+    networks:
+      - d3-network
 
 volumes:
   iroha_block_store:

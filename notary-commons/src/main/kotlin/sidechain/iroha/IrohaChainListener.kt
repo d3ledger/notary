@@ -10,6 +10,7 @@ import sidechain.ChainListener
 import sidechain.iroha.util.ModelUtil
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.Delivery
+import com.rabbitmq.client.GetResponse
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import kotlin.test.assertNotNull
@@ -33,6 +34,25 @@ class IrohaChainListener(
         irohaQueue: String? = null
     ) : this(IrohaAPI(irohaHost, irohaPort), credential, rmqConfig, irohaQueue)
 
+    val factory = ConnectionFactory()
+    val conn = factory.newConnection()
+    val channel = conn.createChannel()
+
+    var consumerTag: String? = null
+
+    init {
+        rmqConfig?.let {
+            irohaQueue?.let {
+                factory.host = rmqConfig.host
+                channel.exchangeDeclare(rmqConfig.ethIrohaExchange, "fanout", true)
+                channel.queueDeclare(irohaQueue, true, false, false, null)
+                channel.queueBind(irohaQueue, rmqConfig.ethIrohaExchange, "")
+                channel.basicQos(1)
+            }
+
+        }
+    }
+
     fun getIrohaBlockObservable(): Result<Observable<iroha.protocol.BlockOuterClass.Block>, Exception> {
         return ModelUtil.getBlockStreaming(irohaAPI, credential).map { observable ->
             observable.map { response ->
@@ -43,17 +63,13 @@ class IrohaChainListener(
 
     }
 
+
     /**
      * Returns an observable that emits a new block every time it gets it from Iroha
      */
     override fun getBlockObservable(autoAck: Boolean): Result<Observable<Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit>>, Exception> {
         assertNotNull(rmqConfig)
         assertNotNull(irohaQueue)
-        val factory = ConnectionFactory()
-        factory.host = rmqConfig.host
-        val conn = factory.newConnection()
-
-        val channel = conn.createChannel()
 
         val source = PublishSubject.create<Delivery>()
         val obs: Observable<Delivery> = source
@@ -61,10 +77,9 @@ class IrohaChainListener(
         val deliverCallback = { consumerTag: String, delivery: Delivery ->
             source.onNext(delivery)
         }
-        channel.exchangeDeclare(rmqConfig.ethIrohaExchange, "fanout")
-        channel.queueDeclare(irohaQueue, true, false, false, null)
-        channel.queueBind(irohaQueue, rmqConfig.ethIrohaExchange, "")
-        channel.basicConsume(irohaQueue, autoAck, deliverCallback, { consumerTag -> })
+
+        consumerTag = channel.basicConsume(irohaQueue, autoAck, deliverCallback, { _ -> })
+
 
 
         logger.info { "On subscribe to Iroha chain" }
@@ -84,12 +99,34 @@ class IrohaChainListener(
     /**
      * @return a block as soon as it is committed to iroha
      */
-    override suspend fun getBlock(): Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit> {
-        return getBlockObservable().get().blockingFirst()
+    override suspend fun getBlock(autoAck: Boolean): Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit> {
+        assertNotNull(rmqConfig)
+        assertNotNull(irohaQueue)
+
+
+        var resp: GetResponse?
+        do {
+            resp = channel.basicGet(irohaQueue, autoAck)
+        } while (resp == null)
+
+        val block = iroha.protocol.BlockOuterClass.Block.parseFrom(resp.body)
+        return Pair(block, {
+            if (!autoAck)
+                channel.basicAck(resp.envelope.deliveryTag, false)
+        })
+
+    }
+
+    fun purge() {
+        channel.queuePurge(irohaQueue)
     }
 
     override fun close() {
         irohaAPI.close()
+        consumerTag?.let {
+            channel.basicCancel(it)
+        }
+
     }
 
     /**

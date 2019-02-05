@@ -1,5 +1,6 @@
 package integration.helper
 
+import config.RMQConfig
 import config.loadConfigs
 import integration.TestConfig
 import jp.co.soramitsu.iroha.java.IrohaAPI
@@ -12,6 +13,7 @@ import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountAsset
+import util.getRandomString
 import java.io.Closeable
 import java.math.BigDecimal
 import java.security.KeyPair
@@ -28,6 +30,8 @@ open class IrohaIntegrationHelperUtil : Closeable {
     }
 
     val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
+    val rmqConfig = loadConfigs("rmq", RMQConfig::class.java, "/rmq.properties", true).get()
+    val testQueue = String.getRandomString(20)
 
     val testCredential = IrohaCredential(
         testConfig.testCredentialConfig.accountId,
@@ -54,10 +58,12 @@ open class IrohaIntegrationHelperUtil : Closeable {
     val queryAPI by lazy { QueryAPI(irohaAPI, testCredential.accountId, testCredential.keyPair) }
 
 
-    protected val irohaListener = IrohaChainListener(
+    val irohaListener = IrohaChainListener(
         testConfig.iroha.hostname,
         testConfig.iroha.port,
-        testCredential
+        testCredential,
+        rmqConfig,
+        testQueue
     )
 
     protected val registrationConsumer by lazy {
@@ -69,13 +75,14 @@ open class IrohaIntegrationHelperUtil : Closeable {
     }
 
     /**
-     * Waits for exactly one iroha block
+     * Purge all iroha blocks, call and wait for exactly one iroha block
      */
-    fun waitOneIrohaBlock() {
+    fun purgeAndwaitOneIrohaBlock(func : () -> Unit) {
         runBlocking {
-            val (block, ack) = irohaListener.getBlock()
+            irohaListener.purge()
+            func()
+            val (block, _) = irohaListener.getBlock()
             logger.info { "Wait for one block ${block.blockV1.payload.height}" }
-            ack()
         }
     }
 

@@ -114,6 +114,7 @@ pipeline {
                 sh "./gradlew eth-withdrawal:shadowJar"
                 sh "./gradlew eth-registration:shadowJar"
                 sh "./gradlew eth-vacuum:shadowJar"
+                sh "./gradlew chain-adapter:shadowJar"
 
               }
               ethRelay = docker.build("nexus.iroha.tech:19002/${login}/eth-relay:${TAG}", "-f docker/eth-relay.dockerfile .")
@@ -125,6 +126,8 @@ pipeline {
               btcRegistration = docker.build("nexus.iroha.tech:19002/${login}/btc-registration:${TAG}", "-f docker/btc-registration.dockerfile .")
               btcDwBridge = docker.build("nexus.iroha.tech:19002/${login}/btc-dw-bridge:${TAG}", "-f docker/btc-dw-bridge.dockerfile .")
 
+              chainAdapter = docker.build("nexus.iroha.tech:19002/d3-deploy/chain-adapter:${TAG}", "-f docker/chain-adapter.dockerfile .")
+
               ethRelay.push("${TAG}")
               ethRegistration.push("${TAG}")
               notary.push("${TAG}")
@@ -133,6 +136,8 @@ pipeline {
               btcAddressGeneration.push("${TAG}")
               btcRegistration.push("${TAG}")
               btcDwBridge.push("${TAG}")
+
+              chainAdapter.push("${TAG}")
 
             }
           }

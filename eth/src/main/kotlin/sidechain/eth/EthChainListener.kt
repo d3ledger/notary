@@ -48,7 +48,7 @@ class EthChainListener(
     /**
      * @return a block as soon as it is committed to Ethereum
      */
-    override suspend fun getBlock(): EthBlock {
+    override suspend fun getBlock(autoAck : Boolean): EthBlock {
         return getBlockObservable().get().blockingFirst()
     }
 

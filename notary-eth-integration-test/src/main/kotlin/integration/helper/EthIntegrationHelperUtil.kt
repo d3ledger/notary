@@ -397,7 +397,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     fun runEthWithdrawalService(
         withdrawalServiceConfig: WithdrawalServiceConfig = configHelper.createWithdrawalConfig(),
         relayVacuumConfig: RelayVacuumConfig = configHelper.createRelayVacuumConfig(),
-        rmqConfig : RMQConfig = loadConfigs("rmq",RMQConfig::class.java, "rmq.properties").get()
+        rmqConfig : RMQConfig = loadConfigs("rmq",RMQConfig::class.java, "/rmq.properties",true).get()
     ) {
         withdrawalservice.executeWithdrawal(withdrawalServiceConfig, configHelper.ethPasswordConfig, relayVacuumConfig, rmqConfig)
     }

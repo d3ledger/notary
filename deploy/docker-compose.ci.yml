@@ -41,3 +41,16 @@ services:
     - 8443
     networks:
     - d3-notary
+
+  d3-rmq:
+    container_name: d3-rmq-${SUBNET}
+    expose:
+    - 15672
+    - 5672
+    networks:
+    - d3-network
+
+  d3-chain-adapter:
+    container_name: d3-chain-adapter-${SUBNET}
+    networks:
+    - d3-network

@@ -29,7 +29,7 @@ fun main(args: Array<String>) {
         .map { (withdrawalConfig, passwordConfig) ->
             loadConfigs(RELAY_VACUUM_PREFIX, RelayVacuumConfig::class.java, "/eth/vacuum.properties")
                 .map { relayVacuumConfig ->
-                    loadConfigs("rmq",RMQConfig::class.java, "rmq.properties").map { rmqConfig ->
+                    loadConfigs("rmq",RMQConfig::class.java, "/rmq.properties", true).map { rmqConfig ->
                         executeWithdrawal(withdrawalConfig, passwordConfig, relayVacuumConfig, rmqConfig)
                     }
 

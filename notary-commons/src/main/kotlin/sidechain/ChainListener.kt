@@ -16,6 +16,6 @@ interface ChainListener<Block> : Closeable {
     /**
      * @return a block that was committed into network
      */
-    suspend fun getBlock(): Block
+    suspend fun getBlock(autoAck : Boolean = true): Block
 
 }

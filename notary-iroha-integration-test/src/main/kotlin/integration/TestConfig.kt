@@ -9,4 +9,5 @@ interface TestConfig {
     val ethereum: EthereumConfig
     val iroha: IrohaConfig
     val testCredentialConfig: IrohaCredentialConfig
+    val testQueue : String
 }
