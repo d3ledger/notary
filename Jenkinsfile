@@ -43,6 +43,7 @@ pipeline {
           }
           sh "pwd"
           sh "find ."
+          sh "file chain-adapter/build/libs/chain-adapter-all.jar"
 
           DOCKER_NETWORK = "${scmVars.CHANGE_ID}-${scmVars.GIT_COMMIT}-${BUILD_NUMBER}"
           writeFile file: ".env", text: "SUBNET=${DOCKER_NETWORK}"
