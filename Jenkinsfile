@@ -51,7 +51,7 @@ pipeline {
           rc = sh(script: "nc d3-iroha 50051", returnStatus: true)
           sh "echo ${rc}"
 
-          iC = docker.image("openjdk:8-jdk")
+          iC = docker.image("ubuntu")
           iC.inside("--network='d3-${DOCKER_NETWORK}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
             rc = sh(script: "nc d3-iroha 50051", returnStatus: true)
             sh "echo ${rc}"
