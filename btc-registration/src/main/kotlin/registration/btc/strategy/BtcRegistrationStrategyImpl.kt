@@ -25,7 +25,12 @@ class BtcRegistrationStrategyImpl(
      * @param whitelist - list of bitcoin addresses
      * @return associated BTC address
      */
-    override fun register(name: String, whitelist: List<String>, pubkey: String): Result<String, Exception> {
+    override fun register(
+        name: String,
+        domain: String,
+        whitelist: List<String>,
+        pubkey: String
+    ): Result<String, Exception> {
         return btcAddressesProvider.getAddresses().fanout { btcRegisteredAddressesProvider.getRegisteredAddresses() }
             .flatMap { (addresses, takenAddresses) ->
                 try {
@@ -38,6 +43,7 @@ class BtcRegistrationStrategyImpl(
                         freeAddress.address,
                         whitelist,
                         name,
+                        domain,
                         pubkey,
                         freeAddress.info.notaryKeys
                     )

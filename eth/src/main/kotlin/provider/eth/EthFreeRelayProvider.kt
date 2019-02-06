@@ -8,7 +8,7 @@ import sidechain.iroha.util.getAccountDetails
 
 /**
  * Provides with free ethereum relay wallet
- * @param irohaAPI - iroha queries network layer
+ * @param queryAPI - iroha queries network layer
  * @param notaryIrohaAccount - Master notary account in Iroha to write down the information about free relay wallets has been added
  */
 // TODO Prevent double relay accounts usage (in perfect world it is on Iroha side with custom code). In real world

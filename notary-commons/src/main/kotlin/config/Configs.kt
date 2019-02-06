@@ -119,6 +119,11 @@ fun <T : Any> loadConfigs(
     return Result.of { loadValidatedConfigs(prefix, type, filename, ignoreProfile, *validators) }
 }
 
+/**
+ * Returns default D3 config folder
+ */
+fun getConfigFolder() = System.getProperty("user.dir") + "/configs"
+
 private fun <T : Any> loadValidatedConfigs(
     prefix: String,
     type: Class<T>,
@@ -127,12 +132,11 @@ private fun <T : Any> loadValidatedConfigs(
     vararg validators: ConfigValidationRule<T>
 ): T {
     val (file, extension) = filename.split(".")
-    val pwd = System.getProperty("user.dir")
     val path = if (ignoreProfile) {
-        "$pwd/configs${file}.$extension"
+        "${getConfigFolder()}${file}.$extension"
     } else {
         val profile = getProfile()
-        "$pwd/configs${file}_$profile.$extension"
+        "${getConfigFolder()}${file}_$profile.$extension"
     }
     logger.info { "Loading config from $path, prefix $prefix" }
     val config = loadRawConfigs(prefix, type, path)

@@ -28,7 +28,8 @@ class BtcAddressGenerationIntegrationTest {
 
     private val integrationHelper = BtcIntegrationHelperUtil()
 
-    private val environment = BtcAddressGenerationTestEnvironment(integrationHelper)
+    private val environment =
+        BtcAddressGenerationTestEnvironment(integrationHelper)
 
     private fun createMsAddress(notaryKeys: Collection<String>): String {
         val keys = ArrayList<ECKey>()

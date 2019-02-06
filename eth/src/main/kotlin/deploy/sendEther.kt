@@ -29,17 +29,17 @@ fun main(args: Array<String>) {
 
 
     loadConfigs("predeploy.ethereum", EthereumConfig::class.java, "/eth/predeploy.properties")
-            .fanout { loadEthPasswords("predeploy", "/eth/ethereum_password.properties") }
-            .map { (ethereumConfig, passwordConfig) -> DeployHelper(ethereumConfig, passwordConfig) }
-            .map { deployHelper ->
-                deployHelper.sendEthereum(BigInteger.valueOf((1000000000000000000 * amount).toLong()), addr);
-                logger.info { "Ether was sent" }
+        .fanout { loadEthPasswords("predeploy", "/eth/ethereum_password.properties") }
+        .map { (ethereumConfig, passwordConfig) -> DeployHelper(ethereumConfig, passwordConfig) }
+        .map { deployHelper ->
+            deployHelper.sendEthereum(BigInteger.valueOf((1000000000000000000 * amount).toLong()), addr);
+            logger.info { "Ether was sent" }
 
-            }
-            .failure { ex ->
-                logger.error("Cannot send eth", ex)
-                System.exit(1)
-            }
+        }
+        .failure { ex ->
+            logger.error("Cannot send eth", ex)
+            System.exit(1)
+        }
 
 
 }

@@ -30,4 +30,3 @@ services:
       - 5672:5672
     networks:
       - d3-network
-

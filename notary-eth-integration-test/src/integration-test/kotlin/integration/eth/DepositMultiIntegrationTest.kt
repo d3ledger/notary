@@ -131,7 +131,7 @@ class DepositMultiIntegrationTest {
             }
 
             Assertions.assertEquals(
-                BigDecimal(amount, tokenInfo.precision.toInt()).add(BigDecimal(initialAmount)),
+                BigDecimal(amount, tokenInfo.precision).add(BigDecimal(initialAmount)),
                 BigDecimal(integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId))
             )
         }

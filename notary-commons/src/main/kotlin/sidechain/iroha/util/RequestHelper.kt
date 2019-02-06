@@ -94,7 +94,7 @@ fun getAccountDetails(
 }
 
 /**
- * Get transactions from Iroha by [hash]
+ * Get transactions from Iroha by [hashes]
  * @param queryAPI - iroha queries network layer
  * @param hashes - hex hashes of transactions
  * @return transaction

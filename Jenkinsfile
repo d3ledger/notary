@@ -49,7 +49,7 @@ pipeline {
           sh "docker cp d3-btc-node0-${DOCKER_NETWORK}:/usr/bin/bitcoin-cli deploy/bitcoin/"
 
           iC = docker.image("openjdk:8-jdk")
-          iC.inside("--network='d3-${DOCKER_NETWORK}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") { chain-adapter/build.gradle
+          iC.inside("--network='d3-${DOCKER_NETWORK}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
             sh "ln -s deploy/bitcoin/bitcoin-cli /usr/bin/bitcoin-cli"
             sh "./gradlew dependencies"
             sh "./gradlew test --info"
@@ -119,13 +119,22 @@ pipeline {
               sh "rm build/libs/notary-1.0-SNAPSHOT-all.jar || true"
               iC = docker.image("openjdk:8-jdk")
               iC.inside("-e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
+                sh "./gradlew notary-registration:shadowJar"
+
                 sh "./gradlew eth:shadowJar"
                 sh "./gradlew eth-withdrawal:shadowJar"
                 sh "./gradlew eth-registration:shadowJar"
                 sh "./gradlew eth-vacuum:shadowJar"
                 sh "./gradlew chain-adapter:shadowJar"
 
+                sh "./gradlew btc-address-generation:shadowJar"
+                sh "./gradlew btc-registration:shadowJar"
+                sh "./gradlew btc-dw-bridge:shadowJar"
+
               }
+
+              notaryRegistration = docker.build("nexus.iroha.tech:19002/${login}/notary-registration:${TAG}", "-f docker/notary-registration.dockerfile .")
+
               ethRelay = docker.build("nexus.iroha.tech:19002/${login}/eth-relay:${TAG}", "-f docker/eth-relay.dockerfile .")
               ethRegistration = docker.build("nexus.iroha.tech:19002/${login}/eth-registration:${TAG}", "-f docker/eth-registration.dockerfile .")
               notary = docker.build("nexus.iroha.tech:19002/${login}/notary:${TAG}", "-f docker/notary.dockerfile .")
@@ -136,6 +145,8 @@ pipeline {
               btcDwBridge = docker.build("nexus.iroha.tech:19002/${login}/btc-dw-bridge:${TAG}", "-f docker/btc-dw-bridge.dockerfile .")
 
               chainAdapter = docker.build("nexus.iroha.tech:19002/d3-deploy/chain-adapter:${TAG}", "-f docker/chain-adapter.dockerfile .")
+
+              notaryRegistration.push("${TAG}")
 
               ethRelay.push("${TAG}")
               ethRegistration.push("${TAG}")

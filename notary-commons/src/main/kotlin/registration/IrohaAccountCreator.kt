@@ -6,7 +6,6 @@ import mu.KLogging
 import notary.IrohaOrderedBatch
 import notary.IrohaCommand
 import notary.IrohaTransaction
-import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.consumer.IrohaConverter
 import sidechain.iroha.util.ModelUtil.getCurrentTime
@@ -24,6 +23,7 @@ open class IrohaAccountCreator(
      * @param currencyAddress - address of crypto currency wallet
      * @param whitelist - list of addresses allowed to withdraw to
      * @param userName - client userName in Iroha
+     * @param domain - client domain in Iroha
      * @param pubkey - client's public key
      * @param notaryStorageStrategy - function that defines the way newly created account data will be stored in notary
      * @return address associated with userName
@@ -33,6 +33,7 @@ open class IrohaAccountCreator(
         whitelistKey: String,
         whitelist: List<String>,
         userName: String,
+        domain: String,
         pubkey: String,
         notaryStorageStrategy: () -> String
     ): Result<String, Exception> {
@@ -42,6 +43,7 @@ open class IrohaAccountCreator(
                 whitelistKey,
                 whitelist,
                 userName,
+                domain,
                 pubkey,
                 notaryStorageStrategy
             )
@@ -53,7 +55,7 @@ open class IrohaAccountCreator(
                 }
             }, { ex -> throw ex })
         }.map {
-            logger.info { "New account $userName@$CLIENT_DOMAIN was created" }
+            logger.info { "New account $userName@$domain was created" }
             currencyAddress
         }
     }
@@ -66,6 +68,7 @@ open class IrohaAccountCreator(
      * @param currencyAddress - address of crypto currency wallet
      * @param whitelist - list of addresses allowed to withdraw to
      * @param userName - client userName in Iroha
+     * @param domain - client domain
      * @param pubkey - client's public key
      * @param notaryStorageStrategy - function that defines the way newly created account data will be stored in notary
      * @return batch
@@ -75,10 +78,11 @@ open class IrohaAccountCreator(
         whitelistKey: String,
         whitelist: List<String>,
         userName: String,
+        domain: String,
         pubkey: String,
         notaryStorageStrategy: () -> String
     ): IrohaOrderedBatch {
-        val accountId = "$userName@$CLIENT_DOMAIN"
+        val accountId = "$userName@$domain"
         return IrohaOrderedBatch(
             listOf(
                 IrohaTransaction(
@@ -88,7 +92,7 @@ open class IrohaAccountCreator(
                     arrayListOf(
                         // Create account
                         IrohaCommand.CommandCreateAccount(
-                            userName, CLIENT_DOMAIN, pubkey
+                            userName, domain, pubkey
                         )
                     )
                 ),

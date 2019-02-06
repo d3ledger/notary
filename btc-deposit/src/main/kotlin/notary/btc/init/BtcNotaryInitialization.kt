@@ -115,6 +115,7 @@ class BtcNotaryInitialization(
     }
 
     override fun close() {
+        logger.info { "Closing Bitcoin notary service" }
         peerGroup.stop()
     }
 

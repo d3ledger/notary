@@ -6,24 +6,25 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import config.BitcoinConfig
 import helper.currency.satToBtc
-import helper.network.getBlockChain
 import mu.KLogging
 import notary.IrohaCommand
 import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.ECKey
-import org.bitcoinj.core.NetworkParameters
 import org.bitcoinj.core.PeerGroup
 import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
+import peer.SharedPeerGroup
 import provider.btc.account.IrohaBtcAccountCreator
 import provider.btc.address.AddressInfo
 import provider.btc.address.BtcAddressesProvider
 import provider.btc.address.BtcRegisteredAddressesProvider
+import provider.btc.network.BtcNetworkConfigProvider
 import registration.btc.strategy.BtcRegistrationStrategyImpl
+import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverter
 import sidechain.iroha.util.ModelUtil
@@ -34,6 +35,7 @@ import java.security.KeyPair
 
 const val BTC_ASSET = "btc#bitcoin"
 private const val GENERATED_ADDRESSES_PER_BATCH = 5
+private const val BTC_INITAL_BLOCKS = 101
 
 class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
 
@@ -129,8 +131,12 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /**
      * Returns group of peers
      */
-    fun getPeerGroup(wallet: Wallet, networkParameters: NetworkParameters, blockStoragePath: String): PeerGroup {
-        return PeerGroup(networkParameters, getBlockChain(wallet, networkParameters, blockStoragePath))
+    fun getPeerGroup(
+        wallet: Wallet,
+        btcNetworkConfigProvider: BtcNetworkConfigProvider,
+        blockStoragePath: String
+    ): PeerGroup {
+        return SharedPeerGroup(btcNetworkConfigProvider, wallet, blockStoragePath, emptyList())
     }
 
     private fun createMsAddress(keys: List<ECKey>): Address {
@@ -209,7 +215,7 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         keypair: KeyPair = ModelUtil.generateKeypair(),
         whitelist: List<String> = emptyList()
     ): String {
-        btcRegistrationStrategy.register(irohaAccountName, whitelist, keypair.public.toHexString())
+        btcRegistrationStrategy.register(irohaAccountName, CLIENT_DOMAIN, whitelist, keypair.public.toHexString())
             .fold({ btcAddress ->
                 logger.info { "BTC address $btcAddress was registered by $irohaAccountName" }
                 return btcAddress
@@ -237,10 +243,24 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /**
      * Creates blocks in bitcoin blockchain. May be used as transaction confirmation mechanism.
      */
-    fun generateBtcBlocks(blocks: Int = 150) {
+    fun generateBtcBlocks(blocks: Int) {
         if (blocks > 0) {
             rpcClient.generate(numberOfBlocks = blocks)
             logger.info { "New $blocks ${singularOrPluralBlocks(blocks)} generated in Bitcoin blockchain" }
+        }
+    }
+
+    /**
+     * Creates initial blocks in bitcoin blockchain if needed.
+     * After calling this function you will be available to call 'sendToAddress' command
+     */
+    fun generateBtcInitialBlocks() {
+        val currentBlockCount = rpcClient.getBlockCount()
+        if (currentBlockCount >= BTC_INITAL_BLOCKS) {
+            logger.info { "No need to create initial blocks" }
+        } else {
+            generateBtcBlocks(BTC_INITAL_BLOCKS - currentBlockCount)
+            logger.info { "Initial blocks were generated" }
         }
     }
 

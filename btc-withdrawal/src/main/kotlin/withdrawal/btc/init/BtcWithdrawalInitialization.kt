@@ -144,6 +144,7 @@ class BtcWithdrawalInitialization(
         command.setAccountDetail.accountId.endsWith("@$BTC_SIGN_COLLECT_DOMAIN")
 
     override fun close() {
+        logger.info { "Closing Bitcoin withdrawal service" }
         peerGroup.stop()
     }
 
