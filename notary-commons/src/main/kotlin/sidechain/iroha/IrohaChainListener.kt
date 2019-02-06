@@ -3,14 +3,12 @@ package sidechain.iroha
 import config.RMQConfig
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
+import com.rabbitmq.client.*
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.ChainListener
 import sidechain.iroha.util.ModelUtil
-import com.rabbitmq.client.ConnectionFactory
-import com.rabbitmq.client.Delivery
-import com.rabbitmq.client.GetResponse
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import kotlin.test.assertNotNull
@@ -34,16 +32,19 @@ class IrohaChainListener(
         irohaQueue: String? = null
     ) : this(IrohaAPI(irohaHost, irohaPort), credential, rmqConfig, irohaQueue)
 
-    val factory = ConnectionFactory()
-    val conn = factory.newConnection()
-    val channel = conn.createChannel()
+    val factory by lazy { ConnectionFactory() }
+    val conn by lazy {
+        factory.host = rmqConfig?.host
+        factory.newConnection()
+    }
+
+    val channel by lazy { conn.createChannel() }
 
     var consumerTag: String? = null
 
     init {
         rmqConfig?.let {
             irohaQueue?.let {
-                factory.host = rmqConfig.host
                 channel.exchangeDeclare(rmqConfig.ethIrohaExchange, "fanout", true)
                 channel.queueDeclare(irohaQueue, true, false, false, null)
                 channel.queueBind(irohaQueue, rmqConfig.ethIrohaExchange, "")

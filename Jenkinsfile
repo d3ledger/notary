@@ -54,7 +54,7 @@ pipeline {
             sh "apt-get install -y netcat"
 
             //sh "nc d3-iroha-${DOCKER_NETWORK} 50051"
-            sh "nc d3-rmq-${DOCKER_NETWORK} 5672"
+            sh "nc d3-rmq-${DOCKER_NETWORK} 5672 "
 
 
             sh "ln -s deploy/bitcoin/bitcoin-cli /usr/bin/bitcoin-cli"
