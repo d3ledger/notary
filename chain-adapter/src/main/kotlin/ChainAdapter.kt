@@ -46,7 +46,5 @@ class ChainAdapter(private val rmqConfig: RMQConfig) {
                 }
             }
         }
-
-
     }
 }

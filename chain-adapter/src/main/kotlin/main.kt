@@ -21,6 +21,4 @@ fun main(args: Array<String>) {
             logger.error("Cannot run chain adapter", ex)
             System.exit(1)
         }
-
-
 }

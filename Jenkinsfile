@@ -49,14 +49,7 @@ pipeline {
           sh "docker cp d3-btc-node0-${DOCKER_NETWORK}:/usr/bin/bitcoin-cli deploy/bitcoin/"
 
           iC = docker.image("openjdk:8-jdk")
-          iC.inside("--network='d3-${DOCKER_NETWORK}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
-            sh "apt-get update"
-            sh "apt-get install -y netcat"
-
-            //sh "nc d3-iroha-${DOCKER_NETWORK} 50051"
-            sh "nc d3-rmq-${DOCKER_NETWORK} 5672 "
-
-
+          iC.inside("--network='d3-${DOCKER_NETWORK}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") { chain-adapter/build.gradle
             sh "ln -s deploy/bitcoin/bitcoin-cli /usr/bin/bitcoin-cli"
             sh "./gradlew dependencies"
             sh "./gradlew test --info"

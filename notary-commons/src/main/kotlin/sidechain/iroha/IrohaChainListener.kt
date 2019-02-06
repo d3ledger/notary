@@ -81,8 +81,6 @@ class IrohaChainListener(
 
         consumerTag = channel.basicConsume(irohaQueue, autoAck, deliverCallback, { _ -> })
 
-
-
         logger.info { "On subscribe to Iroha chain" }
         return Result.of {
             obs.map { delivery ->
@@ -103,7 +101,6 @@ class IrohaChainListener(
     override suspend fun getBlock(autoAck: Boolean): Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit> {
         assertNotNull(rmqConfig)
         assertNotNull(irohaQueue)
-
 
         var resp: GetResponse?
         do {
