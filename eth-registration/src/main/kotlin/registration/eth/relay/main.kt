@@ -9,10 +9,11 @@ import com.github.kittinunf.result.map
 import config.ETH_MASTER_WALLET_ENV
 import config.loadConfigs
 import config.loadEthPasswords
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import mu.KLogging
-import sidechain.iroha.IrohaInitialization
-import sidechain.iroha.consumer.IrohaNetworkImpl
+import provider.eth.EthFreeRelayProvider
 import sidechain.iroha.util.ModelUtil
 
 private val logger = KLogging().logger
@@ -21,14 +22,16 @@ private val logger = KLogging().logger
  * Entry point for deployment of relay smart contracts that will be used in client registration.
  * The main reason to move the logic of contract deployment to separate executable is that it takes too much time and
  * thus it should be done in advance.
+ * Every [relayRegistrationConfig.replenishmentPeriod] checks that number of free relays is
+ * [relayRegistrationConfig.number]. In case of lack of free relays
  */
-// TODO a.chernyshov - think about automatization of trigger and obtaining master address
 fun main(args: Array<String>) {
     logger.info { "Run relay deployment" }
     loadConfigs("relay-registration", RelayRegistrationConfig::class.java, "/eth/relay_registration.properties")
         .map { relayRegistrationConfig ->
             object : RelayRegistrationConfig {
                 override val number = relayRegistrationConfig.number
+                override val replenishmentPeriod = relayRegistrationConfig.replenishmentPeriod
                 override val ethMasterWallet =
                     System.getenv(ETH_MASTER_WALLET_ENV) ?: relayRegistrationConfig.ethMasterWallet
                 override val notaryIrohaAccount = relayRegistrationConfig.notaryIrohaAccount
@@ -39,13 +42,10 @@ fun main(args: Array<String>) {
         }
         .fanout { loadEthPasswords("relay-registration", "/eth/ethereum_password.properties", args) }
         .map { (relayRegistrationConfig, passwordConfig) ->
-            IrohaInitialization.loadIrohaLibrary()
-                .flatMap {
-                    ModelUtil.loadKeypair(
-                        relayRegistrationConfig.relayRegistrationCredential.pubkeyPath,
-                        relayRegistrationConfig.relayRegistrationCredential.privkeyPath
-                    )
-                }
+            ModelUtil.loadKeypair(
+                relayRegistrationConfig.relayRegistrationCredential.pubkeyPath,
+                relayRegistrationConfig.relayRegistrationCredential.privkeyPath
+            )
                 .map { keypair ->
                     IrohaCredential(
                         relayRegistrationConfig.relayRegistrationCredential.accountId,
@@ -53,14 +53,27 @@ fun main(args: Array<String>) {
                     )
                 }
                 .flatMap { credential ->
-                    IrohaNetworkImpl(
+                    IrohaAPI(
                         relayRegistrationConfig.iroha.hostname,
                         relayRegistrationConfig.iroha.port
-                    ).use { irohaNetwork ->
-                        val relayRegistration =
-                            RelayRegistration(relayRegistrationConfig, credential, irohaNetwork, passwordConfig)
+                    ).use { irohaAPI ->
+                        val queryAPI = QueryAPI(irohaAPI, credential.accountId, credential.keyPair)
+                        val freeRelayProvider = EthFreeRelayProvider(
+                            queryAPI,
+                            relayRegistrationConfig.notaryIrohaAccount,
+                            relayRegistrationConfig.relayRegistrationCredential.accountId
+                        )
+
+                        val relayRegistration = RelayRegistration(
+                            freeRelayProvider,
+                            relayRegistrationConfig,
+                            credential,
+                            irohaAPI,
+                            passwordConfig
+                        )
+
                         if (args.isEmpty()) {
-                            relayRegistration.deploy()
+                            relayRegistration.runRelayReplenishment()
                         } else {
                             relayRegistration.import(args[0])
                         }

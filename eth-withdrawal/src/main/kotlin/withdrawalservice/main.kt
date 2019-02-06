@@ -9,10 +9,9 @@ import com.github.kittinunf.result.map
 import config.EthereumPasswords
 import config.loadConfigs
 import config.loadEthPasswords
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import mu.KLogging
-import sidechain.iroha.IrohaInitialization
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import vacuum.RelayVacuumConfig
 
@@ -44,28 +43,25 @@ fun executeWithdrawal(
     relayVacuumConfig: RelayVacuumConfig
 ) {
     logger.info { "Run withdrawal service" }
-    val irohaNetwork = IrohaNetworkImpl(withdrawalConfig.iroha.hostname, withdrawalConfig.iroha.port)
+    val irohaAPI = IrohaAPI(withdrawalConfig.iroha.hostname, withdrawalConfig.iroha.port)
 
-    IrohaInitialization.loadIrohaLibrary()
-        .flatMap {
-            ModelUtil.loadKeypair(
-                withdrawalConfig.withdrawalCredential.pubkeyPath,
-                withdrawalConfig.withdrawalCredential.privkeyPath
-            )
-        }
+    ModelUtil.loadKeypair(
+        withdrawalConfig.withdrawalCredential.pubkeyPath,
+        withdrawalConfig.withdrawalCredential.privkeyPath
+    )
         .map { keypair -> IrohaCredential(withdrawalConfig.withdrawalCredential.accountId, keypair) }
         .flatMap { credential ->
             WithdrawalServiceInitialization(
                 withdrawalConfig,
                 credential,
-                irohaNetwork,
+                irohaAPI,
                 passwordConfig,
                 relayVacuumConfig
             ).init()
         }
         .failure { ex ->
             logger.error("Cannot run withdrawal service", ex)
-            irohaNetwork.close()
+            irohaAPI.close()
             System.exit(1)
         }
 }

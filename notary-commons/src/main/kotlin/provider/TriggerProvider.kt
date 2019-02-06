@@ -2,10 +2,13 @@ package provider
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import mu.KLogging
+import notary.IrohaCommand
+import notary.IrohaTransaction
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaNetwork
+import sidechain.iroha.consumer.IrohaConverter
 import sidechain.iroha.util.ModelUtil
 
 /*
@@ -13,7 +16,7 @@ import sidechain.iroha.util.ModelUtil
  */
 class TriggerProvider(
     private val callerCredential: IrohaCredential,
-    irohaNetwork: IrohaNetwork,
+    irohaAPI: IrohaAPI,
     private val triggerAccount: String
 ) {
     init {
@@ -22,24 +25,42 @@ class TriggerProvider(
         }
     }
 
-    private val irohaConsumer = IrohaConsumerImpl(callerCredential, irohaNetwork)
+    private val irohaConsumer = IrohaConsumerImpl(callerCredential, irohaAPI)
 
     /**
-     * Triggers triggeredAccount by setting details
+     * Triggers [triggerAccount] by setting details
      *
      * @param payload - some data to store
      * @return Result of detail setting process
      */
     fun trigger(payload: String): Result<Unit, Exception> {
-        return ModelUtil.setAccountDetail(
-            irohaConsumer,
-            triggerAccount,
-            payload,
-            ""
-        ).map {
-            logger.info { "$triggerAccount was triggered with payload $payload" }
-            Unit
-        }
+        val utx = IrohaConverter.convert(triggerTx(payload))
+        return irohaConsumer.send(utx)
+            .map {
+                logger.info { "$triggerAccount was triggered with payload $payload" }
+                Unit
+            }
+    }
+
+    /**
+     * Creates transaction that may be used to trigger [triggerAccount] by setting details
+     *
+     * @param payload - some data to store
+     * @return Iroha transaction full of triggering commands
+     */
+    fun triggerTx(payload: String): IrohaTransaction {
+        return IrohaTransaction(
+            irohaConsumer.creator,
+            ModelUtil.getCurrentTime(),
+            1,
+            arrayListOf(
+                IrohaCommand.CommandSetAccountDetail(
+                    triggerAccount,
+                    payload,
+                    ""
+                )
+            )
+        )
     }
 
     /**

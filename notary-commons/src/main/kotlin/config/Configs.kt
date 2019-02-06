@@ -1,7 +1,10 @@
 package config
 
 import com.github.kittinunf.result.Result
+import com.jdiazcano.cfg4k.loaders.EnvironmentConfigLoader
 import com.jdiazcano.cfg4k.loaders.PropertyConfigLoader
+import com.jdiazcano.cfg4k.providers.DefaultConfigProvider
+import com.jdiazcano.cfg4k.providers.OverrideConfigProvider
 import com.jdiazcano.cfg4k.providers.ProxyConfigProvider
 import com.jdiazcano.cfg4k.sources.ConfigSource
 import mu.KLogging
@@ -103,6 +106,11 @@ fun <T : Any> loadConfigs(
     return Result.of { loadValidatedConfigs(prefix, type, filename, *validators) }
 }
 
+/**
+ * Returns default D3 config folder
+ */
+fun getConfigFolder() = System.getProperty("user.dir") + "/configs"
+
 private fun <T : Any> loadValidatedConfigs(
     prefix: String,
     type: Class<T>,
@@ -111,8 +119,7 @@ private fun <T : Any> loadValidatedConfigs(
 ): T {
     val profile = getProfile()
     val (file, extension) = filename.split(".")
-    val pwd = System.getProperty("user.dir")
-    val path = "$pwd/configs${file}_$profile.$extension"
+    val path = "${getConfigFolder()}${file}_$profile.$extension"
     logger.info { "Loading config from $path, prefix $prefix" }
     val config = loadRawConfigs(prefix, type, path)
     validators.forEach { rule -> rule.validate(config) }
@@ -127,8 +134,12 @@ class Stream(private val stream: InputStream) : ConfigSource {
 
 fun <T : Any> loadRawConfigs(prefix: String, type: Class<T>, filename: String): T {
     val stream = Stream(File(filename).inputStream())
-    val loader = PropertyConfigLoader(stream)
-    val provider = ProxyConfigProvider(loader)
+    val configLoader = PropertyConfigLoader(stream)
+    val envLoader = EnvironmentConfigLoader()
+    val provider = OverrideConfigProvider(
+        DefaultConfigProvider(envLoader),
+        ProxyConfigProvider(configLoader)
+    )
     return provider.bind(prefix, type)
 }
 

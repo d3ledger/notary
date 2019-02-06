@@ -1,5 +1,11 @@
 rootProject.name = 'notary'
 
+include 'notifications-integration-test'
+project(':notifications-integration-test').projectDir = 'notifications-integration-test' as File
+
+include 'notifications'
+project(':notifications').projectDir = 'notifications' as File
+
 include 'btc'
 project(':btc').projectDir = 'btc' as File
 
@@ -42,8 +48,14 @@ project(':notary-btc-integration-test').projectDir = 'notary-btc-integration-tes
 include 'notary-eth-integration-test'
 project(':notary-eth-integration-test').projectDir = 'notary-eth-integration-test' as File
 
+include 'notary-registration'
+project(':notary-registration').projectDir = 'notary-registration' as File
+
 include 'notary-iroha-integration-test'
 project(':notary-iroha-integration-test').projectDir = 'notary-iroha-integration-test' as File
+
+include 'notary-sora-integration-test'
+project(':notary-sora-integration-test').projectDir = 'notary-sora-integration-test' as File
 
 include 'test-longevity'
 project(':test-longevity').projectDir = 'test-longevity' as File

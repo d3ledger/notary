@@ -3,13 +3,13 @@ package notary
 import com.github.kittinunf.result.Result
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import mu.KLogging
 import provider.NotaryPeerListProvider
 import sidechain.SideChainEvent
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaConverterImpl
-import sidechain.iroha.consumer.IrohaNetwork
+import sidechain.iroha.consumer.IrohaConverter
 import java.math.BigInteger
 import java.util.concurrent.Executors
 
@@ -18,7 +18,7 @@ import java.util.concurrent.Executors
  */
 class NotaryImpl(
     private val notaryCredential: IrohaCredential,
-    private val irohaNetwork: IrohaNetwork,
+    private val irohaAPI: IrohaAPI,
     private val primaryChainEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>,
     private val domain: String,
     private val peerListProvider: NotaryPeerListProvider
@@ -115,7 +115,7 @@ class NotaryImpl(
     override fun initIrohaConsumer(): Result<Unit, Exception> {
         logger.info { "Init Iroha consumer" }
         return Result.of {
-            val irohaConsumer = IrohaConsumerImpl(notaryCredential, irohaNetwork)
+            val irohaConsumer = IrohaConsumerImpl(notaryCredential, irohaAPI)
 
             // Init Iroha Consumer pipeline
             irohaOutput()
@@ -124,8 +124,8 @@ class NotaryImpl(
                 .subscribe(
                     // send to Iroha network layer
                     { batch ->
-                        val lst = IrohaConverterImpl().convert(batch)
-                        irohaConsumer.sendAndCheck(lst)
+                        val lst = IrohaConverter.convert(batch, notaryCredential.keyPair)
+                        irohaConsumer.send(lst)
                             .fold(
                                 { logger.info { "Send to Iroha success" } },
                                 { ex -> logger.error("Send failure", ex) }

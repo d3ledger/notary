@@ -1,11 +1,18 @@
 package integration.btc.environment
 
 import generation.btc.init.BtcAddressGenerationInitialization
+import generation.btc.trigger.AddressGenerationTrigger
 import integration.helper.BtcIntegrationHelperUtil
+import io.grpc.ManagedChannelBuilder
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
 import provider.NotaryPeerListProviderImpl
 import provider.TriggerProvider
+import provider.btc.address.BtcAddressesProvider
+import provider.btc.address.BtcFreeAddressesProvider
+import provider.btc.address.BtcRegisteredAddressesProvider
 import provider.btc.generation.BtcPublicKeyProvider
 import provider.btc.generation.BtcSessionProvider
 import provider.btc.network.BtcRegTestConfigProvider
@@ -15,24 +22,46 @@ import sidechain.iroha.util.ModelUtil
 import wallet.WalletFile
 import java.io.Closeable
 import java.io.File
+import java.util.concurrent.Executors
 
 /**
  * Bitcoin address generation service testing environment
  */
-class BtcAddressGenerationTestEnvironment(private val integrationHelper: BtcIntegrationHelperUtil) : Closeable {
-
+class BtcAddressGenerationTestEnvironment(
+    private val integrationHelper: BtcIntegrationHelperUtil
+) : Closeable {
 
     val btcGenerationConfig =
         integrationHelper.configHelper.createBtcAddressGenerationConfig()
+    /**
+     * It's essential to handle blocks in this service one-by-one.
+     * This is why we explicitly set single threaded executor.
+     */
+    private val executor = Executors.newSingleThreadExecutor()
+
+    private val irohaApi by lazy {
+        val irohaAPI = IrohaAPI(
+            btcGenerationConfig.iroha.hostname,
+            btcGenerationConfig.iroha.port
+        )
+
+        irohaAPI.setChannelForStreamingQueryStub(
+            ManagedChannelBuilder.forAddress(
+                btcGenerationConfig.iroha.hostname,
+                btcGenerationConfig.iroha.port
+            ).executor(executor).usePlaintext().build()
+        )
+        irohaAPI
+    }
 
     val triggerProvider = TriggerProvider(
         integrationHelper.testCredential,
-        integrationHelper.irohaNetwork,
+        irohaApi,
         btcGenerationConfig.pubKeyTriggerAccount
     )
     val btcKeyGenSessionProvider = BtcSessionProvider(
         integrationHelper.accountHelper.registrationAccount,
-        integrationHelper.irohaNetwork
+        irohaApi
     )
 
     private val registrationKeyPair =
@@ -43,7 +72,7 @@ class BtcAddressGenerationTestEnvironment(private val integrationHelper: BtcInte
             keypair
         }, { ex -> throw ex })
 
-    val registrationCredential =
+    private val registrationCredential =
         IrohaCredential(btcGenerationConfig.registrationAccount.accountId, registrationKeyPair)
 
     private val mstRegistrationKeyPair =
@@ -55,20 +84,25 @@ class BtcAddressGenerationTestEnvironment(private val integrationHelper: BtcInte
         }, { ex -> throw ex })
 
     private val sessionConsumer =
-        IrohaConsumerImpl(registrationCredential, integrationHelper.irohaNetwork)
+        IrohaConsumerImpl(registrationCredential, irohaApi)
 
     private val multiSigConsumer = IrohaConsumerImpl(
         IrohaCredential(btcGenerationConfig.mstRegistrationAccount.accountId, mstRegistrationKeyPair),
-        integrationHelper.irohaNetwork
+        irohaApi
     )
 
-    fun btcPublicKeyProvider(): BtcPublicKeyProvider {
+    private val registrationQueryAPI = QueryAPI(
+        irohaApi,
+        registrationCredential.accountId,
+        registrationCredential.keyPair
+    )
+
+    private fun btcPublicKeyProvider(): BtcPublicKeyProvider {
         val file = File(btcGenerationConfig.btcWalletFilePath)
         val wallet = Wallet.loadFromFile(file)
         val walletFile = WalletFile(wallet, file)
         val notaryPeerListProvider = NotaryPeerListProviderImpl(
-            registrationCredential,
-            integrationHelper.irohaNetwork,
+            registrationQueryAPI,
             btcGenerationConfig.notaryListStorageAccount,
             btcGenerationConfig.notaryListSetterAccount
         )
@@ -84,21 +118,60 @@ class BtcAddressGenerationTestEnvironment(private val integrationHelper: BtcInte
     }
 
     private val irohaListener = IrohaChainListener(
-        btcGenerationConfig.iroha.hostname,
-        btcGenerationConfig.iroha.port,
+        irohaApi,
         registrationCredential
     )
 
+    private val btcAddressesProvider = BtcAddressesProvider(
+        registrationQueryAPI,
+        btcGenerationConfig.mstRegistrationAccount.accountId,
+        btcGenerationConfig.notaryAccount
+    )
+
+    private val btcRegisteredAddressesProvider = BtcRegisteredAddressesProvider(
+        registrationQueryAPI,
+        registrationCredential.accountId,
+        btcGenerationConfig.notaryAccount
+    )
+
+    val btcFreeAddressesProvider =
+        BtcFreeAddressesProvider(btcAddressesProvider, btcRegisteredAddressesProvider)
+
+    private val addressGenerationTrigger = AddressGenerationTrigger(
+        btcKeyGenSessionProvider,
+        triggerProvider,
+        btcFreeAddressesProvider,
+        IrohaConsumerImpl(registrationCredential, irohaApi)
+    )
+
     val btcAddressGenerationInitialization = BtcAddressGenerationInitialization(
-        registrationCredential,
-        integrationHelper.irohaNetwork,
+        registrationQueryAPI,
         btcGenerationConfig,
         btcPublicKeyProvider(),
-        irohaListener
+        irohaListener,
+        addressGenerationTrigger
     )
+
+    /**
+     * Checks if enough free addresses were generated at initial phase
+     * @throws IllegalStateException if not enough
+     */
+    fun checkIfAddressesWereGeneratedAtInitialPhase() {
+        btcFreeAddressesProvider.getFreeAddresses()
+            .fold({ freeAddresses ->
+                if (freeAddresses.size < btcGenerationConfig.threshold) {
+                    throw IllegalStateException(
+                        "Generation service was not properly started." +
+                                " Not enough address were generated at initial phase " +
+                                "(${freeAddresses.size} out of ${btcGenerationConfig.threshold})."
+                    )
+                }
+            }, { ex -> throw IllegalStateException("Cannot get free addresses", ex) })
+    }
 
     override fun close() {
         integrationHelper.close()
+        executor.shutdownNow()
         irohaListener.close()
     }
 }

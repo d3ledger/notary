@@ -3,6 +3,7 @@ package withdrawal.btc.init
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
+import fee.BtcFeeRateService
 import handler.btc.NewBtcClientRegistrationHandler
 import healthcheck.HealthyService
 import helper.network.addPeerConnectionStatusListener
@@ -23,12 +24,12 @@ import sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.util.getSetDetailCommands
 import sidechain.iroha.util.getTransferCommands
-import withdrawal.btc.config.BtcWithdrawalConfig
+import withdrawal.btc.handler.NewFeeRateWasSetHandler
 import withdrawal.btc.handler.NewSignatureEventHandler
 import withdrawal.btc.handler.WithdrawalTransferEventHandler
+import withdrawal.btc.listener.BitcoinBlockChainFeeRateListener
 import withdrawal.btc.provider.BtcChangeAddressProvider
 import java.io.Closeable
-import java.util.concurrent.Executors
 
 /*
     Class that initiates listeners that will be used to handle Bitcoin withdrawal logic
@@ -37,7 +38,6 @@ import java.util.concurrent.Executors
 class BtcWithdrawalInitialization(
     @Autowired private val peerGroup: PeerGroup,
     @Autowired private val wallet: Wallet,
-    @Autowired private val btcWithdrawalConfig: BtcWithdrawalConfig,
     @Autowired private val btcChangeAddressProvider: BtcChangeAddressProvider,
     @Qualifier("withdrawalIrohaChainListener")
     @Autowired private val irohaChainListener: IrohaChainListener,
@@ -45,7 +45,9 @@ class BtcWithdrawalInitialization(
     @Autowired private val withdrawalTransferEventHandler: WithdrawalTransferEventHandler,
     @Autowired private val newSignatureEventHandler: NewSignatureEventHandler,
     @Autowired private val newBtcClientRegistrationHandler: NewBtcClientRegistrationHandler,
-    @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider
+    @Autowired private val newFeeRateWasSetHandler: NewFeeRateWasSetHandler,
+    @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
+    @Autowired private val btcFeeRateService: BtcFeeRateService
 ) : HealthyService(), Closeable {
 
     fun init(): Result<Unit, Exception> {
@@ -66,6 +68,9 @@ class BtcWithdrawalInitialization(
                 wallet.addWatchedAddress(address)
             }
             logger.info { "Previously registered addresses were added to the wallet" }
+        }.map {
+            // Add fee rate listener
+            peerGroup.addBlocksDownloadedEventListener(BitcoinBlockChainFeeRateListener(btcFeeRateService))
         }.flatMap {
             initBtcBlockChain()
         }.flatMap { peerGroup ->
@@ -88,13 +93,14 @@ class BtcWithdrawalInitialization(
         peerGroup: PeerGroup
     ): Result<Unit, Exception> {
         return irohaChainListener.getBlockObservable().map { irohaObservable ->
-            irohaObservable.subscribeOn(Schedulers.from(Executors.newSingleThreadExecutor()))
+            irohaObservable.subscribeOn(Schedulers.single())
                 .subscribe({ block ->
                     // Handle transfer commands
                     getTransferCommands(block).forEach { command ->
                         withdrawalTransferEventHandler.handleTransferCommand(
                             wallet,
-                            command.transferAsset
+                            command.transferAsset,
+                            block.blockV1.payload.createdTime
                         )
                     }
                     // Handle signature appearance commands
@@ -105,6 +111,10 @@ class BtcWithdrawalInitialization(
                                 peerGroup
                             )
                         }
+                    // Handle 'set new fee rate' events
+                    getSetDetailCommands(block).forEach { command ->
+                        newFeeRateWasSetHandler.handleNewFeeRate(command)
+                    }
                     // Handle newly registered Bitcoin addresses. We need it to update wallet object.
                     getSetDetailCommands(block).forEach { command ->
                         newBtcClientRegistrationHandler.handleNewClientCommand(command, wallet)
@@ -114,7 +124,6 @@ class BtcWithdrawalInitialization(
                     logger.error("Error on transfer events subscription", ex)
                 })
             logger.info { "Iroha transfer events listener was initialized" }
-            Unit
         }
     }
 
@@ -135,6 +144,7 @@ class BtcWithdrawalInitialization(
         command.setAccountDetail.accountId.endsWith("@$BTC_SIGN_COLLECT_DOMAIN")
 
     override fun close() {
+        logger.info { "Closing Bitcoin withdrawal service" }
         peerGroup.stop()
     }
 

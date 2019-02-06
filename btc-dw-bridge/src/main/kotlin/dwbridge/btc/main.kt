@@ -2,6 +2,7 @@
 
 package dwbridge.btc
 
+import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import config.getProfile
@@ -14,7 +15,6 @@ import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.EnableMBeanExport
-import sidechain.iroha.IrohaInitialization
 import util.createFolderIfDoesntExist
 import withdrawal.btc.init.BtcWithdrawalInitialization
 import java.util.*
@@ -35,11 +35,10 @@ private val logger = KLogging().logger
  * Function that starts deposit and withdrawal services concurrently
  */
 fun main(args: Array<String>) {
-    IrohaInitialization.loadIrohaLibrary()
-        .map {
-            // Create block storage folder
-            createFolderIfDoesntExist(dwBridgeConfig.bitcoin.blockStoragePath)
-        }
+    Result.of {
+        // Create block storage folder
+        createFolderIfDoesntExist(dwBridgeConfig.bitcoin.blockStoragePath)
+    }
         .map {
             val app = SpringApplication(BtcDWBridgeApplication::class.java)
             app.setAdditionalProfiles(getProfile())

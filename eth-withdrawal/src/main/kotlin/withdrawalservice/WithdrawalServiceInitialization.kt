@@ -6,13 +6,14 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.EthereumPasswords
 import io.reactivex.Observable
+import io.reactivex.schedulers.Schedulers
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.SideChainEvent
 import sidechain.eth.consumer.EthConsumer
 import sidechain.iroha.IrohaChainHandler
 import sidechain.iroha.IrohaChainListener
-import sidechain.iroha.consumer.IrohaNetwork
 import vacuum.RelayVacuumConfig
 
 /**
@@ -22,7 +23,7 @@ import vacuum.RelayVacuumConfig
 class WithdrawalServiceInitialization(
     private val withdrawalConfig: WithdrawalServiceConfig,
     private val credential: IrohaCredential,
-    private val irohaNetwork: IrohaNetwork,
+    private val irohaAPI: IrohaAPI,
     private val withdrawalEthereumPasswords: EthereumPasswords,
     private val relayVacuumConfig: RelayVacuumConfig
 ) {
@@ -47,7 +48,7 @@ class WithdrawalServiceInitialization(
     private fun initWithdrawalService(inputEvents: Observable<SideChainEvent.IrohaEvent>): WithdrawalService {
         logger.info { "Init Withdrawal Service" }
 
-        return WithdrawalServiceImpl(withdrawalConfig, credential, irohaNetwork, inputEvents)
+        return WithdrawalServiceImpl(withdrawalConfig, credential, irohaAPI, inputEvents)
     }
 
     private fun initEthConsumer(withdrawalService: WithdrawalService): Result<Unit, Exception> {
@@ -60,6 +61,7 @@ class WithdrawalServiceInitialization(
                 relayVacuumConfig
             )
             withdrawalService.output()
+                .subscribeOn(Schedulers.newThread())
                 .subscribe(
                     { res ->
                         res.map { withdrawalEvents ->
@@ -88,6 +90,8 @@ class WithdrawalServiceInitialization(
         return initIrohaChain()
             .map { initWithdrawalService(it) }
             .flatMap { initEthConsumer(it) }
+            .map { WithdrawalServiceEndpoint(withdrawalConfig.port) }
+            .map { Unit }
     }
 
     /**

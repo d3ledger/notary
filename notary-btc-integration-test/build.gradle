@@ -8,10 +8,6 @@ buildscript {
         classpath "org.springframework.boot:spring-boot-gradle-plugin:$spring_boot_version"
     }
 }
-dependencies {
-    // https://mvnrepository.com/artifact/com.github.jleskovar/btc-rpc-client
-    compile group: 'com.github.jleskovar', name: 'btc-rpc-client', version: '1.1.0'
-}
 
 sourceSets {
     integrationTest {
@@ -43,15 +39,11 @@ task integrationTest(type: Test) {
     useJUnitPlatform {
     }
 
-    systemProperty 'java.library.path', getIrohaLibPath()
-    environment "LD_LIBRARY_PATH", getIrohaLibPath()
-
     mustRunAfter test
 }
 check.dependsOn integrationTest
 
 apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
-apply plugin: 'org.springframework.boot'
 
 dependencies {
     compile project(":btc-registration")

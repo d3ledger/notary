@@ -16,15 +16,15 @@ class UnsignedTransactions(
 ) : Monitoring() {
     override fun monitor() = unsignedTransactions.values.map { timedTx -> timedTx.tx.toString() }
 
-    //TODO create rollback mechanism
-    private val unsignedTransactions = ConcurrentHashMap<String, TimedTx>()
+    private val unsignedTransactions = ConcurrentHashMap<String, WithdrawalTx>()
 
     /**
      * Marks transaction as unsigned. Transaction will be added to [unsignedTransactions] collection under the hood
+     * @param withdrawalDetails - details of withdrawal(account id, amount and time)
      * @param transaction - transaction to mark as unsigned
      */
-    fun markAsUnsigned(transaction: Transaction) {
-        unsignedTransactions[signCollector.shortTxHash(transaction)] = TimedTx.create(transaction)
+    fun markAsUnsigned(withdrawalDetails: WithdrawalDetails, transaction: Transaction) {
+        unsignedTransactions[signCollector.shortTxHash(transaction)] = WithdrawalTx(withdrawalDetails, transaction)
     }
 
     /**

@@ -45,7 +45,7 @@ class BtcPublicKeyProvider(
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider
 ) {
     init {
-        logger.info { "BtcPublicKeyProvider was successfully initialized. Current wallet state:\n${walletFile.wallet}" }
+        logger.info { "BtcPublicKeyProvider was successfully initialized" }
     }
 
     /**
@@ -72,48 +72,54 @@ class BtcPublicKeyProvider(
      * Creates multisignature address if enough public keys are provided
      * @param notaryKeys - list of all notaries public keys
      * @param addressType - type of address to create
+     * @param generationTime - time of address generation. Used in Iroha multisig
      * @return Result of operation
      */
     fun checkAndCreateMultiSigAddress(
         notaryKeys: Collection<String>,
-        addressType: BtcAddressType
+        addressType: BtcAddressType,
+        generationTime: Long
     ): Result<Unit, Exception> {
         return Result.of {
             val peers = notaryPeerListProvider.getPeerList().size
             if (peers == 0) {
                 throw IllegalStateException("No peers to create btc multisignature address")
-            } else if (notaryKeys.size == peers && hasMyKey(notaryKeys)) {
-                val threshold = getSignThreshold(peers)
-                val msAddress = createMsAddress(notaryKeys, threshold)
-                if (!walletFile.wallet.addWatchedAddress(msAddress)) {
-                    throw IllegalStateException("BTC address $msAddress was not added to wallet")
-                }
-                logger.info { "Address $msAddress was added to wallet. Current wallet state:\n${walletFile.wallet}" }
-
-                val (addressInfo, storageAccount) = when (addressType) {
-                    BtcAddressType.CHANGE -> {
-                        logger.info { "Creating change address" }
-                        Pair(
-                            AddressInfo.createChangeAddressInfo(ArrayList<String>(notaryKeys)),
-                            changeAddressStorageAccount
-                        )
-                    }
-                    BtcAddressType.FREE -> {
-                        logger.info { "Creating free address" }
-                        Pair(AddressInfo.createFreeAddressInfo(ArrayList<String>(notaryKeys)), notaryAccount)
-                    }
-                }
-                ModelUtil.setAccountDetail(
-                    multiSigConsumer,
-                    storageAccount,
-                    msAddress.toBase58(),
-                    addressInfo.toJson()
-                ).fold({
-                    //TODO this save will probably corrupt the wallet file
-                    walletFile.save()
-                    logger.info { "New BTC ${addressType.title} address $msAddress was created " }
-                }, { ex -> throw ex })
+            } else if (notaryKeys.size != peers) {
+                logger.info { "Not enough keys are collected to generate a multisig address(${notaryKeys.size} out of $peers)" }
+                return@of
+            } else if (!hasMyKey(notaryKeys)) {
+                logger.info { "Cannot be involved in address generation. No access to $notaryKeys." }
+                return@of
             }
+            val threshold = getSignThreshold(peers)
+            val msAddress = createMsAddress(notaryKeys, threshold)
+            if (!walletFile.wallet.addWatchedAddress(msAddress)) {
+                throw IllegalStateException("BTC address $msAddress was not added to wallet")
+            }
+            logger.info { "Address $msAddress was added to wallet." }
+
+            val (addressInfo, storageAccount) = when (addressType) {
+                BtcAddressType.CHANGE -> {
+                    logger.info { "Creating change address" }
+                    Pair(
+                        AddressInfo.createChangeAddressInfo(ArrayList<String>(notaryKeys)),
+                        changeAddressStorageAccount
+                    )
+                }
+                BtcAddressType.FREE -> {
+                    logger.info { "Creating free address" }
+                    Pair(AddressInfo.createFreeAddressInfo(ArrayList<String>(notaryKeys)), notaryAccount)
+                }
+            }
+            ModelUtil.setAccountDetail(
+                multiSigConsumer,
+                storageAccount,
+                msAddress.toBase58(),
+                addressInfo.toJson()
+            ).fold({
+                walletFile.save()
+                logger.info { "New BTC ${addressType.title} address $msAddress was created " }
+            }, { ex -> throw ex })
         }
     }
 
