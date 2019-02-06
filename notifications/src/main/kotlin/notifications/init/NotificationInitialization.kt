@@ -29,10 +29,11 @@ class NotificationInitialization(
      * @param onIrohaChainFailure - function that will be called in case of Iroha failure
      */
     fun init(onIrohaChainFailure: () -> Unit) {
-        irohaChainListener.getBlockObservable().map { irohaObservable ->
+        irohaChainListener.getIrohaBlockObservable().map { irohaObservable ->
             irohaObservable
                 .subscribeOn(Schedulers.from(Executors.newSingleThreadExecutor()))
-                .subscribe({ (block, _) ->
+                .subscribe(
+                    { block ->
                     //Get transfer commands from block
                     getTransferCommands(block).forEach { command ->
                         val transferAsset = command.transferAsset
