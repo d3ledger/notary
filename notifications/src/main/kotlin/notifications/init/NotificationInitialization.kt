@@ -32,7 +32,7 @@ class NotificationInitialization(
         irohaChainListener.getBlockObservable().map { irohaObservable ->
             irohaObservable
                 .subscribeOn(Schedulers.from(Executors.newSingleThreadExecutor()))
-                .subscribe({ block ->
+                .subscribe({ (block, _) ->
                     //Get transfer commands from block
                     getTransferCommands(block).forEach { command ->
                         val transferAsset = command.transferAsset
