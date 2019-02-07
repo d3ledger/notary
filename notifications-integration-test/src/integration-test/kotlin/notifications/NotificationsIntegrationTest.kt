@@ -12,6 +12,7 @@ import notifications.service.D3_DEPOSIT_EMAIL_SUBJECT
 import notifications.service.D3_WITHDRAWAL_EMAIL_SUBJECT
 import notifications.service.NOTIFICATION_EMAIL
 import org.apache.http.HttpResponse
+import org.apache.http.StatusLine
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -93,8 +94,13 @@ class NotificationsIntegrationTest {
     fun resetEnvironment() {
         environment.dumbster.reset()
         reset(environment.pushService)
-        doReturn(mock<HttpResponse> {}).whenever(environment.pushService).send(any())
-        //whenever(environment.pushService).send(any()).thenReturn(mock {})
+        val statusLine = mock<StatusLine> {
+            on { getStatusCode() } doReturn 200
+        }
+        val response = mock<HttpResponse> {
+            on { getStatusLine() } doReturn statusLine
+        }
+        doReturn(response).whenever(environment.pushService).send(any())
     }
 
     @AfterAll
