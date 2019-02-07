@@ -53,6 +53,7 @@ class IrohaChainListener(
         }
     }
 
+    @Deprecated("This method connects directly to iroha, we will switch to MQ soon")
     fun getIrohaBlockObservable(): Result<Observable<iroha.protocol.BlockOuterClass.Block>, Exception> {
         return ModelUtil.getBlockStreaming(irohaAPI, credential).map { observable ->
             observable.map { response ->
