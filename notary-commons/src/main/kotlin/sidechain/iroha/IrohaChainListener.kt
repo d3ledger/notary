@@ -45,9 +45,9 @@ class IrohaChainListener(
     init {
         rmqConfig?.let {
             irohaQueue?.let {
-                channel.exchangeDeclare(rmqConfig.ethIrohaExchange, "fanout", true)
+                channel.exchangeDeclare(rmqConfig.irohaExchange, "fanout", true)
                 channel.queueDeclare(irohaQueue, true, false, false, null)
-                channel.queueBind(irohaQueue, rmqConfig.ethIrohaExchange, "")
+                channel.queueBind(irohaQueue, rmqConfig.irohaExchange, "")
                 channel.basicQos(1)
             }
         }

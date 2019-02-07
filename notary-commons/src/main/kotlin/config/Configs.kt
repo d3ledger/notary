@@ -33,7 +33,7 @@ private val logger = KLogging().logger
 
 interface RMQConfig {
     val host: String
-    val ethIrohaExchange: String
+    val irohaExchange: String
 
     val irohaCredential : IrohaCredentialConfig
     val iroha: IrohaConfig

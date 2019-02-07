@@ -28,7 +28,7 @@ class ChainAdapter(private val rmqConfig: RMQConfig) {
 
         conn.use { connection ->
             connection.createChannel().use { channel ->
-                channel.exchangeDeclare(rmqConfig.ethIrohaExchange, "fanout", true)
+                channel.exchangeDeclare(rmqConfig.irohaExchange, "fanout", true)
                 ModelUtil.getBlockStreaming(irohaAPI, irohaCredential).map { observable ->
                     observable.map { response ->
                         logger.info { "New Iroha block arrived. Height ${response.blockResponse.block.blockV1.payload.height}" }
@@ -39,7 +39,7 @@ class ChainAdapter(private val rmqConfig: RMQConfig) {
                     logger.info { "Listening Iroha blocks" }
                     obs.blockingSubscribe {
                         val message = it.toByteArray()
-                        channel.basicPublish(rmqConfig.ethIrohaExchange, "", null, message)
+                        channel.basicPublish(rmqConfig.irohaExchange, "", null, message)
                         logger.info { "Block pushed" }
 
                     }
