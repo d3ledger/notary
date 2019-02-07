@@ -2,7 +2,9 @@ package integration.iroha
 
 import com.github.kittinunf.result.map
 import config.RMQConfig
+import config.getConfigFolder
 import config.loadConfigs
+import config.loadRawConfigs
 import integration.helper.IrohaConfigHelper
 import integration.helper.IrohaIntegrationHelperUtil
 import io.reactivex.schedulers.Schedulers
@@ -34,7 +36,7 @@ class IrohaBlockStreamingTest {
 
     private val creator = testCredential.accountId
 
-    private val rmqConfig = loadConfigs("rmq", RMQConfig::class.java, "/rmq.properties", true).get()
+    private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
     lateinit private var listener : IrohaChainListener
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)

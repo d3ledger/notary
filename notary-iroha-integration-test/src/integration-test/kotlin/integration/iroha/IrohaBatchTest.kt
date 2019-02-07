@@ -1,6 +1,7 @@
 package integration.iroha
 
 import config.RMQConfig
+import config.getConfigFolder
 import config.loadConfigs
 import config.loadRawConfigs
 import integration.helper.IrohaConfigHelper
@@ -46,7 +47,7 @@ class IrohaBatchTest {
     private val testCredential = integrationHelper.testCredential
 
     private val tester = testCredential.accountId
-    private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "/rmq.properties")
+    private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
 
     val assetDomain = "notary"
 

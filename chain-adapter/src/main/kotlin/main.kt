@@ -7,19 +7,14 @@ import config.RMQConfig
 import com.github.kittinunf.result.map
 import config.getConfigFolder
 import config.loadConfigs
+import config.loadRawConfigs
 import mu.KLogging
 
 
 private val logger = KLogging().logger
 
 fun main(args: Array<String>) {
-    loadConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
-        .map { rmqConfig ->
-            val adapter = ChainAdapter(rmqConfig)
-            adapter.run()
-        }
-        .failure { ex ->
-            logger.error("Cannot run chain adapter", ex)
-            System.exit(1)
-        }
+    val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
+    val adapter = ChainAdapter(rmqConfig)
+    adapter.run()
 }

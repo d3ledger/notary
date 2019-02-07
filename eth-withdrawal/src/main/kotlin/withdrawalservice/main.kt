@@ -26,7 +26,7 @@ fun main(args: Array<String>) {
         .map { (withdrawalConfig, passwordConfig) ->
             loadConfigs(RELAY_VACUUM_PREFIX, RelayVacuumConfig::class.java, "/eth/vacuum.properties")
                 .map { relayVacuumConfig ->
-                    val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "/rmq.properties")
+                    val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
                     executeWithdrawal(withdrawalConfig, passwordConfig, relayVacuumConfig, rmqConfig)
                 }
         }
