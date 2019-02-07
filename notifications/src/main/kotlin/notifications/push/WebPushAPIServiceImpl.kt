@@ -34,7 +34,7 @@ class WebPushAPIServiceImpl(
                     }
                 sendPushMessage(d3Client.subscription, message)
             }.map {
-                logger.info { "Push message $message has been successfully sent to $accountId" }
+                logger.info { "Push message '$message' has been successfully sent to $accountId" }
             }
     }
 

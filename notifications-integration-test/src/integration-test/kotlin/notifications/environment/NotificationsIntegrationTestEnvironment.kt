@@ -1,7 +1,7 @@
 package notifications.environment
 
 import com.dumbster.smtp.SimpleSmtpServer
-import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.spy
 import config.getConfigFolder
 import config.loadRawConfigs
 import integration.helper.IrohaIntegrationHelperUtil
@@ -10,6 +10,7 @@ import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import nl.martijndwars.webpush.PushService
+import notifications.config.PushAPIConfig
 import notifications.config.SMTPConfig
 import notifications.init.NotificationInitialization
 import notifications.provider.D3ClientProvider
@@ -18,6 +19,7 @@ import notifications.push.WebPushAPIServiceImpl
 import notifications.service.EmailNotificationService
 import notifications.service.PushNotificationService
 import notifications.smtp.SMTPServiceImpl
+import org.bouncycastle.jce.provider.BouncyCastleProvider
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
@@ -25,11 +27,16 @@ import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import java.io.Closeable
 import java.io.File
+import java.security.Security
 
 /**
  * Notifications service testing environment
  */
 class NotificationsIntegrationTestEnvironment(private val integrationHelper: IrohaIntegrationHelperUtil) : Closeable {
+
+    init {
+        Security.addProvider(BouncyCastleProvider())
+    }
 
     private val notificationsConfigHelper = NotificationsConfigHelper(integrationHelper.accountHelper)
 
@@ -41,6 +48,11 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
         getConfigFolder() + File.separator + notificationsConfig.smtpConfigPath
     )
 
+    private val pushAPIConfig = loadRawConfigs(
+        "push",
+        PushAPIConfig::class.java,
+        getConfigFolder() + File.separator + notificationsConfig.pushApiConfigPath
+    )
     val dumbster = SimpleSmtpServer.start(smtpConfig.port)!!
 
     private val irohaAPI = IrohaAPI(notificationsConfig.iroha.hostname, notificationsConfig.iroha.port)
@@ -59,7 +71,8 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
 
     private val emailNotificationService = EmailNotificationService(smtpService, d3ClientProvider)
 
-    val pushService = mock<PushService> {}
+    val pushService =
+        spy(PushService(pushAPIConfig.vapidPubKeyBase64, pushAPIConfig.vapidPrivKeyBase64, "D3 notifications"))
 
     private val pushServiceFactory = object : PushServiceFactory {
         override fun create() = pushService

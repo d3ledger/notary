@@ -30,6 +30,12 @@ class NotificationAppConfiguration {
 
     private val notaryCredential = IrohaCredential(notificationsConfig.notaryCredential.accountId, notaryKeypair)
 
+    private val pushAPIConfig = loadRawConfigs(
+        "push",
+        PushAPIConfig::class.java,
+        getConfigFolder() + File.separator + notificationsConfig.pushApiConfigPath
+    )
+
     @Bean
     fun irohaAPI(): IrohaAPI {
         val irohaAPI = IrohaAPI(notificationsConfig.iroha.hostname, notificationsConfig.iroha.port)
@@ -62,6 +68,7 @@ class NotificationAppConfiguration {
 
     @Bean
     fun pushServiceFactory() = object : PushServiceFactory {
-        override fun create() = PushService()
+        override fun create() =
+            PushService(pushAPIConfig.vapidPubKeyBase64, pushAPIConfig.vapidPrivKeyBase64, "D3 notifications")
     }
 }
