@@ -5,6 +5,7 @@ package chainadapter
 import com.github.kittinunf.result.failure
 import config.RMQConfig
 import com.github.kittinunf.result.map
+import config.getConfigFolder
 import config.loadConfigs
 import mu.KLogging
 
@@ -12,7 +13,7 @@ import mu.KLogging
 private val logger = KLogging().logger
 
 fun main(args: Array<String>) {
-    loadConfigs("rmq", RMQConfig::class.java, "/rmq.properties", true)
+    loadConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
         .map { rmqConfig ->
             val adapter = ChainAdapter(rmqConfig)
             adapter.run()
