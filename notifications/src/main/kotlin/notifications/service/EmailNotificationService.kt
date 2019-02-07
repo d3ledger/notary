@@ -6,7 +6,7 @@ import mu.KLogging
 import notifications.smtp.SMTPService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import provider.D3ClientProvider
+import notifications.provider.D3ClientProvider
 
 const val NOTIFICATION_EMAIL = "noreply@d3ledger.com"
 const val D3_WITHDRAWAL_EMAIL_SUBJECT = "D3 withdrawal"
@@ -22,14 +22,12 @@ class EmailNotificationService(
 ) : NotificationService {
 
     override fun notifyDeposit(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
-        logger.info { "Notify deposit $transferNotifyEvent" }
         val message =
             "Dear client, deposit of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} to your account ${transferNotifyEvent.accountId} is successful."
         return checkClientAndSendMessage(transferNotifyEvent.accountId, D3_DEPOSIT_EMAIL_SUBJECT, message)
     }
 
     override fun notifyWithdrawal(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
-        logger.info { "Notify withdrawal $transferNotifyEvent" }
         val message =
             "Dear client, withdrawal of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} from your account ${transferNotifyEvent.accountId} is successful."
         return checkClientAndSendMessage(transferNotifyEvent.accountId, D3_WITHDRAWAL_EMAIL_SUBJECT, message)

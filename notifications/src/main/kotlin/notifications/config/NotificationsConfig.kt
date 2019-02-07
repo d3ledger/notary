@@ -11,6 +11,8 @@ interface NotificationsConfig {
     val iroha: IrohaConfig
     // Path to file with SMTP configs
     val smtpConfigPath: String
+    // Path to file with Push API configs
+    val pushApiConfigPath: String
     // Notary account credential. Used to listen to Iroha blocks
     val notaryCredential: IrohaCredentialConfig
 }
@@ -27,4 +29,16 @@ interface SMTPConfig {
     val userName: String
     // SMTP password
     val password: String
+}
+
+/**
+ * Push API configuration
+ */
+interface PushAPIConfig {
+
+    // Base64Url encoded VAPID public key
+    val vapidPubKeyBase64: String
+
+    // Base64Url encoded VAPID private key
+    val vapidPrivKeyBase64: String
 }

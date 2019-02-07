@@ -11,6 +11,12 @@ mainClassName = "notifications.NotificationsMain"
 dependencies {
     compile project(":notary-commons")
 
+    // https://mvnrepository.com/artifact/nl.martijndwars/web-push
+    compile group: 'nl.martijndwars', name: 'web-push', version: '5.0.1'
+
+    // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on
+    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.60'
+
     // https://mvnrepository.com/artifact/javax.mail/mail
     compile group: 'javax.mail', name: 'mail', version: '1.4.7'
 

@@ -156,3 +156,5 @@ deploy/bitcoin/mainnet/
 # SMTP configs
 configs/smtp.properties
 
+# Push API configs
+configs/push.properties

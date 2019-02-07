@@ -44,6 +44,11 @@ Command line args > Environment variables > Properties file
 6) Run registration service `PROFILE=mainnet gradle runBtcRegistration`
 7) Run notary service `PROFILE=mainnet gradle runBtcDepositWithdrawal`
 
+## How to run notification services
+1) Create SMTP configuration file located at `configs/smtp.properties`(see test example `configs/smtp_test.properties`). This file contains SMTP server credentials.
+2) Create Push API configuration file located at `configs/push.properties`(see test example `configs/push_test.properties`). This file contains VAPID keys. You can generate keys by yourself using [webpush-libs tutorial](https://github.com/web-push-libs/webpush-java/wiki/VAPID).
+3) Run gralde command `./gradlew runNotifications`
+
 ## Testing
 `gradle test` for unit tests
 

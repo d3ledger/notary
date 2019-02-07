@@ -21,7 +21,7 @@ import java.util.concurrent.Executors
 @Component
 class NotificationInitialization(
     @Autowired private val irohaChainListener: IrohaChainListener,
-    @Autowired private val notificationService: NotificationService
+    @Autowired private val notificationServices: List<NotificationService>
 ) {
 
     /**
@@ -59,13 +59,17 @@ class NotificationInitialization(
 
     // Handles deposit event notification
     private fun handleDepositNotification(transferAsset: Commands.TransferAsset) {
-        notificationService.notifyDeposit(
-            TransferNotifyEvent(
-                transferAsset.destAccountId,
-                BigDecimal(transferAsset.amount),
-                transferAsset.assetId
-            )
-        ).failure { ex -> logger.error("Cannot notify deposit", ex) }
+        val transferNotifyEvent = TransferNotifyEvent(
+            transferAsset.destAccountId,
+            BigDecimal(transferAsset.amount),
+            transferAsset.assetId
+        )
+        logger.info { "Notify deposit $transferNotifyEvent" }
+        notificationServices.forEach {
+            it.notifyDeposit(
+                transferNotifyEvent
+            ).failure { ex -> logger.error("Cannot notify deposit", ex) }
+        }
     }
 
     // Checks if withdrawal event
@@ -75,13 +79,17 @@ class NotificationInitialization(
 
     // Handles withdrawal event notification
     private fun handleWithdrawalEventNotification(transferAsset: Commands.TransferAsset) {
-        notificationService.notifyWithdrawal(
-            TransferNotifyEvent(
-                transferAsset.srcAccountId,
-                BigDecimal(transferAsset.amount),
-                transferAsset.assetId
-            )
-        ).failure { ex -> logger.error("Cannot notify withdrawal", ex) }
+        val transferNotifyEvent = TransferNotifyEvent(
+            transferAsset.srcAccountId,
+            BigDecimal(transferAsset.amount),
+            transferAsset.assetId
+        )
+        logger.info { "Notify withdrawal $transferNotifyEvent" }
+        notificationServices.forEach {
+            it.notifyWithdrawal(
+                transferNotifyEvent
+            ).failure { ex -> logger.error("Cannot notify withdrawal", ex) }
+        }
     }
 
     /**

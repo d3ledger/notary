@@ -2,24 +2,36 @@ package notifications
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
+import com.nhaarman.mockito_kotlin.*
 import integration.helper.IrohaIntegrationHelperUtil
-import model.D3_CLIENT_EMAIL_KEY
-import model.D3_CLIENT_ENABLE_NOTIFICATIONS
+import notifications.client.D3_CLIENT_EMAIL_KEY
+import notifications.client.D3_CLIENT_ENABLE_NOTIFICATIONS
+import notifications.client.D3_CLIENT_PUSH_SUBSCRIPTION
 import notifications.environment.NotificationsIntegrationTestEnvironment
 import notifications.service.D3_DEPOSIT_EMAIL_SUBJECT
 import notifications.service.D3_WITHDRAWAL_EMAIL_SUBJECT
 import notifications.service.NOTIFICATION_EMAIL
+import org.apache.http.HttpResponse
+import org.apache.http.StatusLine
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.util.ModelUtil
+import util.irohaEscape
 import java.math.BigDecimal
 
 const val BTC_ASSET = "btc#bitcoin"
 private const val TRANSFER_WAIT_TIME = 3_000L
 private const val SRC_USER_EMAIL = "src.user@d3.com"
 private const val DEST_USER_EMAIL = "dest.user@d3.com"
+private const val SUBSCRIPTION_JSON = "{" +
+        "  \"endpoint\": \"https://some.pushservice.com/something-unique\"," +
+        "  \"keys\": {" +
+        "    \"p256dh\": \"BIPUL12DLfytvTajnryr2PRdAgXS3HGKiLqndGcJGabyhHheJYlNGCeXl1dn18gSJ1WAkAPIxr4gK0_dQds4yiI=\"," +
+        "    \"auth\":\"FPssNDTKnInHVndSTdbKFw==\"" +
+        "  }" +
+        "}"
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class NotificationsIntegrationTest {
@@ -42,6 +54,14 @@ class NotificationsIntegrationTest {
             environment.srcClientId,
             D3_CLIENT_EMAIL_KEY,
             SRC_USER_EMAIL
+        ).failure { ex -> throw ex }
+
+        // Setting src client subscription data
+        ModelUtil.setAccountDetail(
+            environment.srcClientConsumer,
+            environment.srcClientId,
+            D3_CLIENT_PUSH_SUBSCRIPTION,
+            SUBSCRIPTION_JSON.irohaEscape()
         ).failure { ex -> throw ex }
 
         // Setting dest client email
@@ -71,8 +91,16 @@ class NotificationsIntegrationTest {
     }
 
     @BeforeEach
-    fun resetDumbster() {
+    fun resetEnvironment() {
         environment.dumbster.reset()
+        reset(environment.pushService)
+        val statusLine = mock<StatusLine> {
+            on { getStatusCode() } doReturn 200
+        }
+        val response = mock<HttpResponse> {
+            on { getStatusLine() } doReturn statusLine
+        }
+        doReturn(response).whenever(environment.pushService).send(any())
     }
 
     @AfterAll
@@ -84,7 +112,7 @@ class NotificationsIntegrationTest {
      * Note: Iroha must be deployed to pass the test.
      * @given D3 client with enabled email notifications and notary account
      * @when notary sends money to D3 client
-     * @then D3 client is notified about deposit
+     * @then D3 client is notified about deposit(both email and push)
      */
     @Test
     fun testNotificationDeposit() {
@@ -114,6 +142,7 @@ class NotificationsIntegrationTest {
             assertEquals(D3_DEPOSIT_EMAIL_SUBJECT, lastEmail.getHeaderValue("Subject"))
             assertEquals(SRC_USER_EMAIL, lastEmail.getHeaderValue("To"))
             assertEquals(NOTIFICATION_EMAIL, lastEmail.getHeaderValue("From"))
+            verify(environment.pushService).send(any())
             Unit
         }.failure { ex -> fail(ex) }
     }
@@ -122,7 +151,7 @@ class NotificationsIntegrationTest {
      * Note: Iroha must be deployed to pass the test.
      * @given D3 client with enabled email notifications and notary account
      * @when D3 client sends money to notary account
-     * @then D3 client is notified about withdrawal
+     * @then D3 client is notified about withdrawal(both email and push)
      */
     @Test
     fun testNotificationWithdrawal() {
@@ -152,6 +181,7 @@ class NotificationsIntegrationTest {
             assertEquals(D3_WITHDRAWAL_EMAIL_SUBJECT, lastEmail.getHeaderValue("Subject"))
             assertEquals(SRC_USER_EMAIL, lastEmail.getHeaderValue("To"))
             assertEquals(NOTIFICATION_EMAIL, lastEmail.getHeaderValue("From"))
+            verify(environment.pushService).send(any())
             Unit
         }.failure { ex -> fail(ex) }
     }
@@ -191,6 +221,7 @@ class NotificationsIntegrationTest {
         }.map {
             Thread.sleep(TRANSFER_WAIT_TIME)
             assertTrue(environment.dumbster.receivedEmails.isEmpty())
+            verify(environment.pushService, never()).send(any())
             Unit
         }.failure { ex -> fail(ex) }
     }
@@ -199,10 +230,10 @@ class NotificationsIntegrationTest {
      * Note: Iroha must be deployed to pass the test.
      * @given D3 client with disabled email notifications and notary account
      * @when notary sends money to D3 client
-     * @then D3 client is not notified about deposit
+     * @then D3 client is not notified about deposit via email, but client must be notified via push
      */
     @Test
-    fun testNotificationDepositNotEnabled() {
+    fun testNotificationDepositNotEnabledEmail() {
         val depositValue = BigDecimal(1)
 
         ModelUtil.setAccountDetail(
@@ -224,6 +255,7 @@ class NotificationsIntegrationTest {
         }.map {
             Thread.sleep(TRANSFER_WAIT_TIME)
             assertTrue(environment.dumbster.receivedEmails.isEmpty())
+            verify(environment.pushService).send(any())
             Unit
         }.failure { ex -> fail(ex) }
     }
