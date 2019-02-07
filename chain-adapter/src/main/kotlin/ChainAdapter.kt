@@ -9,10 +9,10 @@ import mu.KLogging
 import sidechain.iroha.util.ModelUtil
 
 class ChainAdapter(private val rmqConfig: RMQConfig) {
-    private val logger = KLogging().logger
+
+    companion object : KLogging()
 
     fun run() {
-
         val rmqKeypair = ModelUtil.loadKeypair(
             rmqConfig.irohaCredential.pubkeyPath,
             rmqConfig.irohaCredential.privkeyPath
@@ -22,7 +22,6 @@ class ChainAdapter(private val rmqConfig: RMQConfig) {
 
         val irohaAPI = IrohaAPI(rmqConfig.iroha.hostname, rmqConfig.iroha.port)
 
-
         val factory = ConnectionFactory()
         factory.host = rmqConfig.host
         val conn = factory.newConnection()
@@ -30,20 +29,22 @@ class ChainAdapter(private val rmqConfig: RMQConfig) {
         conn.use { connection ->
             connection.createChannel().use { channel ->
                 channel.exchangeDeclare(rmqConfig.ethIrohaExchange, "fanout", true)
-                val obs = ModelUtil.getBlockStreaming(irohaAPI, irohaCredential).map { observable ->
+                ModelUtil.getBlockStreaming(irohaAPI, irohaCredential).map { observable ->
                     observable.map { response ->
                         logger.info { "New Iroha block arrived. Height ${response.blockResponse.block.blockV1.payload.height}" }
                         response.blockResponse.block
                     }
 
-                }.get()
-                logger.info { "Listening Iroha blocks" }
-                obs.blockingSubscribe {
-                    val message = it.toByteArray()
-                    channel.basicPublish(rmqConfig.ethIrohaExchange, "", null, message)
-                    logger.info { "Block pushed" }
+                }.map { obs ->
+                    logger.info { "Listening Iroha blocks" }
+                    obs.blockingSubscribe {
+                        val message = it.toByteArray()
+                        channel.basicPublish(rmqConfig.ethIrohaExchange, "", null, message)
+                        logger.info { "Block pushed" }
 
+                    }
                 }
+
             }
         }
     }

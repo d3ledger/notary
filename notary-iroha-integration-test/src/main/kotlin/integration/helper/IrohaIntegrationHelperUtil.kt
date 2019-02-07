@@ -1,7 +1,9 @@
 package integration.helper
 
 import config.RMQConfig
+import config.getConfigFolder
 import config.loadConfigs
+import config.loadRawConfigs
 import integration.TestConfig
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
@@ -30,7 +32,7 @@ open class IrohaIntegrationHelperUtil : Closeable {
     }
 
     val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
-    val rmqConfig = loadConfigs("rmq", RMQConfig::class.java, "/rmq.properties", true).get()
+    val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
     val testQueue = String.getRandomString(20)
 
     val testCredential = IrohaCredential(

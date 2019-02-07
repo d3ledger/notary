@@ -13,7 +13,6 @@ import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import kotlin.test.assertNotNull
 
-
 /**
  * Dummy implementation of [ChainListener] with effective dependencies
  */
@@ -32,13 +31,14 @@ class IrohaChainListener(
         irohaQueue: String? = null
     ) : this(IrohaAPI(irohaHost, irohaPort), credential, rmqConfig, irohaQueue)
 
-    val factory by lazy { ConnectionFactory() }
-    val conn by lazy {
+    private val factory by lazy { ConnectionFactory() }
+
+    private val conn by lazy {
         factory.host = rmqConfig?.host
         factory.newConnection()
     }
 
-    val channel by lazy { conn.createChannel() }
+    private val channel by lazy { conn.createChannel() }
 
     var consumerTag: String? = null
 
@@ -50,7 +50,6 @@ class IrohaChainListener(
                 channel.queueBind(irohaQueue, rmqConfig.ethIrohaExchange, "")
                 channel.basicQos(1)
             }
-
         }
     }
 
@@ -61,9 +60,7 @@ class IrohaChainListener(
                 response.blockResponse.block
             }
         }
-
     }
-
 
     /**
      * Returns an observable that emits a new block every time it gets it from Iroha
@@ -92,7 +89,6 @@ class IrohaChainListener(
                 })
             }
         }
-
     }
 
     /**
@@ -112,7 +108,6 @@ class IrohaChainListener(
             if (!autoAck)
                 channel.basicAck(resp.envelope.deliveryTag, false)
         })
-
     }
 
     fun purge() {
@@ -124,7 +119,6 @@ class IrohaChainListener(
         consumerTag?.let {
             channel.basicCancel(it)
         }
-
     }
 
     /**

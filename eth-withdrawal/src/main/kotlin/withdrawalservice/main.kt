@@ -6,10 +6,7 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import config.EthereumPasswords
-import config.RMQConfig
-import config.loadConfigs
-import config.loadEthPasswords
+import config.*
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import mu.KLogging
@@ -29,10 +26,8 @@ fun main(args: Array<String>) {
         .map { (withdrawalConfig, passwordConfig) ->
             loadConfigs(RELAY_VACUUM_PREFIX, RelayVacuumConfig::class.java, "/eth/vacuum.properties")
                 .map { relayVacuumConfig ->
-                    loadConfigs("rmq",RMQConfig::class.java, "/rmq.properties", true).map { rmqConfig ->
-                        executeWithdrawal(withdrawalConfig, passwordConfig, relayVacuumConfig, rmqConfig)
-                    }
-
+                    val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "/rmq.properties")
+                    executeWithdrawal(withdrawalConfig, passwordConfig, relayVacuumConfig, rmqConfig)
                 }
         }
         .failure { ex ->

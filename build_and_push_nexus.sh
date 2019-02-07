@@ -34,7 +34,6 @@ checkTag $TAG "${tags[@]}"
 
 # </gradle build>
 
-
 # <docker build>
 docker build -t nexus.iroha.tech:19002/d3-deploy/notary-registration:$TAG -f docker/notary-registration.dockerfile .
 
@@ -49,6 +48,7 @@ docker build -t nexus.iroha.tech:19002/d3-deploy/btc-address-generation:$TAG -f 
 docker build -t nexus.iroha.tech:19002/d3-deploy/btc-registration:$TAG  -f docker/btc-registration.dockerfile .
 docker build -t nexus.iroha.tech:19002/d3-deploy/btc-dw-bridge:$TAG  -f docker/btc-dw-bridge.dockerfile .
 
+# Chain adapter
 docker build -t nexus.iroha.tech:19002/d3-deploy/chain-adapter:$TAG  -f docker/chain-adapter.dockerfile .
 # </docker build>
 
@@ -66,5 +66,6 @@ docker push nexus.iroha.tech:19002/d3-deploy/btc-address-generation:$TAG
 docker push nexus.iroha.tech:19002/d3-deploy/btc-registration:$TAG
 docker push nexus.iroha.tech:19002/d3-deploy/btc-dw-bridge:$TAG
 
+# Chain adapter
 docker push nexus.iroha.tech:19002/d3-deploy/chain-adapter:$TAG
 # </docker push>

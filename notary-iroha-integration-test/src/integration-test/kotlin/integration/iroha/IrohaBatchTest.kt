@@ -2,6 +2,7 @@ package integration.iroha
 
 import config.RMQConfig
 import config.loadConfigs
+import config.loadRawConfigs
 import integration.helper.IrohaConfigHelper
 import integration.helper.IrohaIntegrationHelperUtil
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
@@ -45,7 +46,7 @@ class IrohaBatchTest {
     private val testCredential = integrationHelper.testCredential
 
     private val tester = testCredential.accountId
-    private val rmqConfig = loadConfigs("rmq", RMQConfig::class.java, "/rmq.properties", true).get()
+    private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "/rmq.properties")
 
     val assetDomain = "notary"
 
@@ -146,7 +147,6 @@ class IrohaBatchTest {
                 block.blockV1.payload.transactionsList.map {
                     String.hex(Utils.hash(it))
                 }
-
             }
 
             val successHash = irohaConsumer.send(lst).get()

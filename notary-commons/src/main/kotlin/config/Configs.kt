@@ -113,10 +113,9 @@ fun <T : Any> loadConfigs(
     prefix: String,
     type: Class<T>,
     filename: String,
-    ignoreProfile: Boolean = false,
     vararg validators: ConfigValidationRule<T>
 ): Result<T, Exception> {
-    return Result.of { loadValidatedConfigs(prefix, type, filename, ignoreProfile, *validators) }
+    return Result.of { loadValidatedConfigs(prefix, type, filename, *validators) }
 }
 
 /**
@@ -128,16 +127,11 @@ private fun <T : Any> loadValidatedConfigs(
     prefix: String,
     type: Class<T>,
     filename: String,
-    ignoreProfile: Boolean = false,
     vararg validators: ConfigValidationRule<T>
 ): T {
+    val profile = getProfile()
     val (file, extension) = filename.split(".")
-    val path = if (ignoreProfile) {
-        "${getConfigFolder()}${file}.$extension"
-    } else {
-        val profile = getProfile()
-        "${getConfigFolder()}${file}_$profile.$extension"
-    }
+    val path = "${getConfigFolder()}${file}_$profile.$extension"
     logger.info { "Loading config from $path, prefix $prefix" }
     val config = loadRawConfigs(prefix, type, path)
     validators.forEach { rule -> rule.validate(config) }
