@@ -3,6 +3,7 @@ package registration.btc.strategy
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
+import com.github.kittinunf.result.map
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import provider.btc.account.IrohaBtcAccountCreator
@@ -52,4 +53,17 @@ class BtcRegistrationStrategyImpl(
                 }
             }
     }
+
+    /**
+     * Get number of free addresses.
+     */
+    override fun getFreeAddressNumber(): Result<Int, Exception> {
+        return btcAddressesProvider.getAddresses().fanout { btcRegisteredAddressesProvider.getRegisteredAddresses() }
+            .map { (addresses, takenAddresses) ->
+                addresses.filter { address -> address.isFree() }
+                    .filter { btcAddress -> !takenAddresses.any { takenAddress -> takenAddress.address == btcAddress.address } }
+                    .size
+            }
+    }
+
 }

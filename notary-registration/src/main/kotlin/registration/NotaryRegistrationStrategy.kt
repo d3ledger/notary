@@ -38,6 +38,10 @@ class NotaryRegistrationStrategy(
         )
     }
 
+    override fun getFreeAddressNumber(): Result<Int, Exception> {
+        return Result.of { throw Exception("not supported") }
+    }
+
     /**
      * Logger
      */
