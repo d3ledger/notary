@@ -444,7 +444,7 @@
                 "createAccount": {
                   "accountName": "btc_withdrawal_service",
                   "domainId": "notary",
-                  "publicKey": "09274270232f43fd794c5c81762ac1c8687f7083682654656ea96d1f9b14f4d3"
+                  "publicKey": "2ea1d2c3eb5b35a85b393622609ae116ddb2ea35e060fc74adb3b2caa324eacb"
                 }
               },
               {
