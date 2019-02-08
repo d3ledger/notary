@@ -76,6 +76,9 @@ class BtcRegistrationIntegrationTest {
         val addressesToRegister = 3
         integrationHelper.preGenFreeBtcAddresses(environment.btcNotaryConfig.bitcoin.walletPath, addressesToRegister)
         for (i in 1..addressesToRegister) {
+            val num = khttp.get("http://127.0.0.1:${environment.btcRegistrationConfig.port}/free-addresses/number")
+            assertEquals((addressesToRegister - i + 1).toString(), num.text)
+
             val keypair = Ed25519Sha3().generateKeypair()
             val userName = String.getRandomString(9)
             val res = khttp.post(
@@ -97,6 +100,10 @@ class BtcRegistrationIntegrationTest {
                 integrationHelper.getIrohaAccountBalance("$userName@$CLIENT_DOMAIN", "btc#bitcoin")
             )
         }
+
+        val num = khttp.get("http://127.0.0.1:${environment.btcRegistrationConfig.port}/free-addresses/number")
+        assertEquals("0", num.text)
+
     }
 
     /**
@@ -111,6 +118,10 @@ class BtcRegistrationIntegrationTest {
         val clientsBeforeRegistration = environment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
         val keypair = Ed25519Sha3().generateKeypair()
         val userName = String.getRandomString(9)
+
+        val num = khttp.get("http://127.0.0.1:${environment.btcRegistrationConfig.port}/free-addresses/number")
+        assertEquals("0", num.text)
+
         val res = khttp.post(
             "http://127.0.0.1:${environment.btcRegistrationConfig.port}/users",
             data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
@@ -132,6 +143,10 @@ class BtcRegistrationIntegrationTest {
     fun testRegistrationOnlyChangeAddresses() {
         val clientsBeforeRegistration = environment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
         integrationHelper.genChangeBtcAddress(environment.btcNotaryConfig.bitcoin.walletPath)
+
+        val num = khttp.get("http://127.0.0.1:${environment.btcRegistrationConfig.port}/free-addresses/number")
+        assertEquals("0", num.text)
+
         val keypair = Ed25519Sha3().generateKeypair()
         val userName = String.getRandomString(9)
         val res = khttp.post(

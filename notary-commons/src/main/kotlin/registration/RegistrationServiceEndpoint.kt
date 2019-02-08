@@ -3,8 +3,11 @@ package registration
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.features.CORS
+import io.ktor.features.ContentNegotiation
+import io.ktor.gson.gson
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receiveParameters
+import io.ktor.response.respond
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.post
@@ -12,10 +15,6 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import mu.KLogging
-import io.ktor.features.ContentNegotiation
-import io.ktor.gson.*
-import io.ktor.response.respond
-
 import sidechain.iroha.CLIENT_DOMAIN
 
 data class Response(val code: HttpStatusCode, val message: String)
@@ -51,6 +50,12 @@ class RegistrationServiceEndpoint(
                     logger.info { "Registration invoked with parameters (name = \"$name\", whitelist = \"$whitelist\", pubkey = \"$pubkey\"" }
 
                     val response = onPostRegistration(name, domain, whitelist, pubkey)
+                    call.respondText(response.message, status = response.code)
+                }
+
+
+                get("free-addresses/number") {
+                    val response = onGetFreeAddressesNumber()
                     call.respondText(response.message, status = response.code)
                 }
 
@@ -98,6 +103,18 @@ class RegistrationServiceEndpoint(
                 logger.error("Cannot register client $name", ex)
                 return responseError(HttpStatusCode.InternalServerError, ex.toString())
             })
+    }
+
+    private fun onGetFreeAddressesNumber(): Response {
+        return registrationStrategy.getFreeAddressNumber()
+            .fold(
+                {
+                    Response(HttpStatusCode.OK, it.toString())
+                },
+                {
+                    responseError(HttpStatusCode.InternalServerError, it.toString())
+                }
+            )
     }
 
     /**

@@ -2,6 +2,7 @@ package registration.eth
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
+import com.github.kittinunf.result.map
 import config.EthereumPasswords
 import contract.RelayRegistry
 import mu.KLogging
@@ -68,6 +69,16 @@ class EthRegistrationStrategyImpl(
                 irohaEthAccountCreator.create(
                     freeEthWallet, whitelist, name, domain, pubkey
                 )
+            }
+    }
+
+    /**
+     * Return number of free relays.
+     */
+    override fun getFreeAddressNumber(): Result<Int, Exception> {
+        return ethFreeRelayProvider.getRelays()
+            .map { freeRelays ->
+                freeRelays.size
             }
     }
 
