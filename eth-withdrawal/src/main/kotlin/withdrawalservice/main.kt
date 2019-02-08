@@ -6,9 +6,7 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import config.EthereumPasswords
-import config.loadConfigs
-import config.loadEthPasswords
+import config.*
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import mu.KLogging
@@ -28,7 +26,8 @@ fun main(args: Array<String>) {
         .map { (withdrawalConfig, passwordConfig) ->
             loadConfigs(RELAY_VACUUM_PREFIX, RelayVacuumConfig::class.java, "/eth/vacuum.properties")
                 .map { relayVacuumConfig ->
-                    executeWithdrawal(withdrawalConfig, passwordConfig, relayVacuumConfig)
+                    val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
+                    executeWithdrawal(withdrawalConfig, passwordConfig, relayVacuumConfig, rmqConfig)
                 }
         }
         .failure { ex ->
@@ -40,7 +39,8 @@ fun main(args: Array<String>) {
 fun executeWithdrawal(
     withdrawalConfig: WithdrawalServiceConfig,
     passwordConfig: EthereumPasswords,
-    relayVacuumConfig: RelayVacuumConfig
+    relayVacuumConfig: RelayVacuumConfig,
+    rmqConfig: RMQConfig
 ) {
     logger.info { "Run withdrawal service" }
     val irohaAPI = IrohaAPI(withdrawalConfig.iroha.hostname, withdrawalConfig.iroha.port)
@@ -56,7 +56,8 @@ fun executeWithdrawal(
                 credential,
                 irohaAPI,
                 passwordConfig,
-                relayVacuumConfig
+                relayVacuumConfig,
+                rmqConfig
             ).init()
         }
         .failure { ex ->

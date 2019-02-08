@@ -97,6 +97,14 @@
               },
               {
                 "createRole": {
+                  "roleName": "rmq",
+                  "permissions": [
+                    "can_get_blocks"
+                  ]
+                }
+              },
+              {
+                "createRole": {
                   "roleName": "withdrawal",
                   "permissions": [
                     "can_get_all_accounts",
@@ -291,6 +299,19 @@
                   "assetName": "btc",
                   "domainId": "bitcoin",
                   "precision": 8
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "rmq",
+                  "domainId": "notary",
+                  "publicKey": "7a4af859a775dd7c7b4024c97c8118f0280455b8135f6f41422101f0397e0fa5"
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "rmq@notary",
+                  "roleName": "rmq"
                 }
               },
               {

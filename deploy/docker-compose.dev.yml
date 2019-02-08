@@ -24,3 +24,9 @@ services:
       - 18444:18444
     networks:
       - d3-network
+  d3-rmq:
+    ports:
+      - 8181:15672
+      - 5672:5672
+    networks:
+      - d3-network

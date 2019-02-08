@@ -62,3 +62,6 @@ project(':test-longevity').projectDir = 'test-longevity' as File
 
 include 'd3testreport'
 project(':d3testreport').projectDir = 'd3testreport' as File
+
+include 'chain-adapter'
+project(':chain-adapter').projectDir = 'chain-adapter' as File

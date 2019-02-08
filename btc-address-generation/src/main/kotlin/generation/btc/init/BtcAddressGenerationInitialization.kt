@@ -44,7 +44,7 @@ class BtcAddressGenerationInitialization(
     If trigger account is triggered, new session account full notary public keys will be created
      */
     fun init(): Result<Unit, Exception> {
-        return irohaChainListener.getBlockObservable()
+        return irohaChainListener.getIrohaBlockObservable()
             .map { irohaObservable ->
                 initIrohaObservable(irohaObservable)
             }.flatMap {

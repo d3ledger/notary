@@ -122,6 +122,7 @@ open class EthConfigHelper(
             override val port = portCounter.incrementAndGet()
             override val iroha = createIrohaConfig()
             override val ethereum = ethereumConfig
+            override val ethIrohaWithdrawalQueue = withdrawalConfig.ethIrohaWithdrawalQueue
         }
     }
 

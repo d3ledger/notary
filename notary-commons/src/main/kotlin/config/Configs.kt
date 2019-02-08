@@ -28,6 +28,18 @@ const val ETH_RELAY_REGISTRY_ENV = "ETH_RELAY_REGISTRY"
 private val logger = KLogging().logger
 
 /**
+ * RMQ configurations
+ */
+
+interface RMQConfig {
+    val host: String
+    val irohaExchange: String
+
+    val irohaCredential : IrohaCredentialConfig
+    val iroha: IrohaConfig
+}
+
+/**
  * Iroha configurations
  */
 interface IrohaConfig {

@@ -1,7 +1,7 @@
 package integration.helper
 
 import com.github.kittinunf.result.success
-import config.EthereumPasswords
+import config.*
 import jp.co.soramitsu.iroha.java.QueryAPI
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
@@ -395,9 +395,10 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      */
     fun runEthWithdrawalService(
         withdrawalServiceConfig: WithdrawalServiceConfig = configHelper.createWithdrawalConfig(),
-        relayVacuumConfig: RelayVacuumConfig = configHelper.createRelayVacuumConfig()
+        relayVacuumConfig: RelayVacuumConfig = configHelper.createRelayVacuumConfig(),
+        rmqConfig: RMQConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
     ) {
-        withdrawalservice.executeWithdrawal(withdrawalServiceConfig, configHelper.ethPasswordConfig, relayVacuumConfig)
+        withdrawalservice.executeWithdrawal(withdrawalServiceConfig, configHelper.ethPasswordConfig, relayVacuumConfig, rmqConfig)
     }
 
     /**

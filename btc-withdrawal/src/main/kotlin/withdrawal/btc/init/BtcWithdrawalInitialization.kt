@@ -92,7 +92,7 @@ class BtcWithdrawalInitialization(
         irohaChainListener: IrohaChainListener,
         peerGroup: PeerGroup
     ): Result<Unit, Exception> {
-        return irohaChainListener.getBlockObservable().map { irohaObservable ->
+        return irohaChainListener.getIrohaBlockObservable().map { irohaObservable ->
             irohaObservable.subscribeOn(Schedulers.single())
                 .subscribe({ block ->
                     // Handle transfer commands
