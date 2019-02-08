@@ -163,6 +163,7 @@ open class IrohaIntegrationHelperUtil : Closeable {
      * @param assetId - asset id
      * @param description - transaction description
      * @param amount - amount
+     * @param createdTime - time tx creation. Current by default.
      * @return hex representation of transaction hash
      */
     fun transferAssetIrohaFromClient(
@@ -172,11 +173,12 @@ open class IrohaIntegrationHelperUtil : Closeable {
         destAccountId: String,
         assetId: String,
         description: String,
-        amount: String
+        amount: String,
+        createdTime: Long = System.currentTimeMillis()
     ): String {
         val tx = Transaction.builder(creator)
             .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
-            .sign(kp)
+            .setCreatedTime(createdTime).sign(kp)
             .build()
         return irohaConsumer.send(tx).get()
     }

@@ -148,6 +148,72 @@ class BtcFullPipelineTest {
     }
 
     /**
+     * Note: Iroha must be deployed to pass the test.
+     * @given all the services(notary, withdrawal, registration and address generation) are running. 2 clients are registered. 1st client has 1BTC.
+     * @when 1st client sends 10000 SAT to 2nd client multiple times
+     * @then 10000 SAT is subtracted from 1st client balance and 2nd client balance is increased by 10000 SAT multiple times
+     */
+    @Test
+    fun testFullPipelineMultipleTransfers() {
+        val totalTransfers = 5
+        val amount = satToBtc(10000L)
+
+        // Register source account
+        val srcKeypair = Ed25519Sha3().generateKeypair()
+        val srcUserName = "src_${String.getRandomString(9)}"
+        val srcBtcAddress = registerClient(srcUserName, srcKeypair)
+
+        // Register destination account
+        val destKeypair = Ed25519Sha3().generateKeypair()
+        val destUserName = "dest_${String.getRandomString(9)}"
+        val destBtcAddress = registerClient(destUserName, destKeypair)
+
+        // Send 1 BTC multiple times
+        for (transfer in 1..totalTransfers) {
+            Thread {
+                integrationHelper.sendBtc(
+                    srcBtcAddress,
+                    1,
+                    notaryEnvironment.notaryConfig.bitcoin.confidenceLevel
+                )
+            }.start()
+        }
+        Thread.sleep(DEPOSIT_WAIT_MILLIS * totalTransfers)
+
+        // Send 10000 SAT from source to destination multiple times
+        for (transfer in 1..totalTransfers) {
+            Thread {
+                /**
+                 * Every transfer transaction must have different creation time
+                 * Otherwise some transactions may have the same tx hash
+                 * */
+                val createdTime = System.currentTimeMillis() + transfer
+                integrationHelper.transferAssetIrohaFromClient(
+                    "$srcUserName@$CLIENT_DOMAIN",
+                    srcKeypair,
+                    "$srcUserName@$CLIENT_DOMAIN",
+                    withdrawalEnvironment.btcWithdrawalConfig.withdrawalCredential.accountId,
+                    BTC_ASSET,
+                    destBtcAddress,
+                    amount.toPlainString(),
+                    createdTime
+                )
+            }.start()
+        }
+        Thread.sleep(WITHDRAWAL_WAIT_MILLIS * totalTransfers)
+        integrationHelper.generateBtcBlocks(notaryEnvironment.notaryConfig.bitcoin.confidenceLevel)
+        Thread.sleep(DEPOSIT_WAIT_MILLIS * totalTransfers)
+        assertEquals(
+            amount.multiply(BigDecimal(totalTransfers)).toPlainString(),
+            integrationHelper.getIrohaAccountBalance("$destUserName@$CLIENT_DOMAIN", BTC_ASSET)
+        )
+        assertEquals(
+            BigDecimal(totalTransfers).subtract(amount.multiply(BigDecimal(totalTransfers))).toPlainString(),
+            integrationHelper.getIrohaAccountBalance("$srcUserName@$CLIENT_DOMAIN", BTC_ASSET)
+        )
+    }
+
+    /**
      * Registers Iroha client
      * @param userName - name of user to register
      * @param keypair - registered user key pair

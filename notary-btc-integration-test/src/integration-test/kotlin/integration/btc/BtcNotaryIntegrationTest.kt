@@ -16,7 +16,7 @@ import util.getRandomString
 import java.io.File
 import java.math.BigDecimal
 
-const val DEPOSIT_WAIT_MILLIS = 20_000L
+const val DEPOSIT_WAIT_MILLIS = 10_000L
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcNotaryIntegrationTest {
@@ -91,6 +91,39 @@ class BtcNotaryIntegrationTest {
             integrationHelper.sendBtc(btcAddress, btcAmount)
             Thread.sleep(DEPOSIT_WAIT_MILLIS)
         }
+        val newBalance = integrationHelper.getIrohaAccountBalance(testClient, BTC_ASSET)
+        assertEquals(
+            BigDecimal(initialBalance).add(BigDecimal(btcAmount)).multiply(totalDeposits.toBigDecimal()).toString(),
+            newBalance
+        )
+        assertTrue(environment.btcNotaryInitialization.isWatchedAddress(btcAddress))
+    }
+
+    /**
+     * Test US-002 Deposit
+     * Note: Iroha and bitcoind must be deployed to pass the test.
+     * @given new registered account
+     * @when 1 btc was sent to new account 5 times in a row using multiple threads
+     * @then balance of new account is increased by 3 btc(or 300.000.000 sat)
+     */
+    @Test
+    fun testMultipleDepositMultiThreaded() {
+        val totalDeposits = 5
+        val randomName = String.getRandomString(9)
+        val testClient = "$randomName@$CLIENT_DOMAIN"
+        val btcAddress =
+            integrationHelper.registerBtcAddress(environment.notaryConfig.bitcoin.walletPath, randomName)
+        val initialBalance = integrationHelper.getIrohaAccountBalance(
+            testClient,
+            BTC_ASSET
+        )
+        val btcAmount = 1
+        for (deposit in 1..totalDeposits) {
+            Thread {
+                integrationHelper.sendBtc(btcAddress, btcAmount)
+            }.start()
+        }
+        Thread.sleep(DEPOSIT_WAIT_MILLIS * totalDeposits)
         val newBalance = integrationHelper.getIrohaAccountBalance(testClient, BTC_ASSET)
         assertEquals(
             BigDecimal(initialBalance).add(BigDecimal(btcAmount)).multiply(totalDeposits.toBigDecimal()).toString(),
