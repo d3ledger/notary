@@ -1,12 +1,19 @@
 package integration.sora
 
+import config.loadConfigs
 import integration.helper.IrohaIntegrationHelperUtil
-import jp.co.soramitsu.iroha.ModelCrypto
-import model.IrohaCredential
+import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.fail
+import registration.NotaryRegistrationConfig
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
+import util.toHexString
 import kotlin.test.assertEquals
 
 /**
@@ -21,8 +28,22 @@ class SoraIntegrationTest {
     val domain = "sora"
     val xorAsset = "xor#$domain"
 
+    val registrationConfig =
+        loadConfigs("registration", NotaryRegistrationConfig::class.java, "/registration.properties").get()
+
     init {
-        System.loadLibrary("irohajava")
+        GlobalScope.launch {
+            RegistrationServiceTestEnvironment(integrationHelper).registrationInitialization.init()
+        }
+
+        runBlocking { delay(20_000) }
+    }
+
+    /**
+     * Send POST request to local server
+     */
+    fun post(params: Map<String, String>): khttp.responses.Response {
+        return khttp.post("http://127.0.0.1:${registrationConfig.port}/users", data = params)
     }
 
     /**
@@ -36,20 +57,19 @@ class SoraIntegrationTest {
         val clientName = String.getRandomString(9)
         val clientId = "$clientName@$domain"
 
-        val keypairAlice = ModelCrypto().generateKeypair()
-        val clientAliceCredential = IrohaCredential(clientId, keypairAlice)
+        val keypairAlice = Ed25519Sha3().generateKeypair()
 
-        integrationHelper.createAccount(clientName, domain, keypairAlice.publicKey())
+        integrationHelper.createAccount(clientName, domain, keypairAlice.public)
 
         assertEquals(
             "0",
-            integrationHelper.getAccountAssets(clientAliceCredential, clientId).getOrDefault(xorAsset, "0")
+            integrationHelper.getAccountAssets(clientId).getOrDefault(xorAsset, "0")
         )
 
         integrationHelper.addIrohaAssetTo(clientId, xorAsset, "1334")
         assertEquals(
             "1334",
-            integrationHelper.getAccountAssets(clientAliceCredential, clientId).getOrDefault(xorAsset, "0")
+            integrationHelper.getAccountAssets(clientId).getOrDefault(xorAsset, "0")
         )
     }
 
@@ -63,15 +83,13 @@ class SoraIntegrationTest {
     fun transferSoraTest() {
         val aliceClientName = String.getRandomString(9)
         val aliceClientId = "$aliceClientName@$domain"
-        val keypairAlice = ModelCrypto().generateKeypair()
-        val clientAliceCredential = IrohaCredential(aliceClientId, keypairAlice)
-        integrationHelper.createAccount(aliceClientName, domain, keypairAlice.publicKey())
+        val keypairAlice = Ed25519Sha3().generateKeypair()
+        integrationHelper.createAccount(aliceClientName, domain, keypairAlice.public)
 
         val bobClientName = String.getRandomString(9)
         val bobClientId = "$bobClientName@$domain"
-        val keypairBob = ModelCrypto().generateKeypair()
-        val clientBobCredential = IrohaCredential(bobClientId, keypairBob)
-        integrationHelper.createAccount(bobClientName, domain, keypairBob.publicKey())
+        val keypairBob = Ed25519Sha3().generateKeypair()
+        integrationHelper.createAccount(bobClientName, domain, keypairBob.public)
 
         integrationHelper.addIrohaAssetTo(aliceClientId, xorAsset, "1334")
 
@@ -87,11 +105,11 @@ class SoraIntegrationTest {
 
         assertEquals(
             "4",
-            integrationHelper.getIrohaAccountBalance(aliceClientId, xorAsset, clientAliceCredential)
+            integrationHelper.getIrohaAccountBalance(aliceClientId, xorAsset)
         )
         assertEquals(
             "1330",
-            integrationHelper.getIrohaAccountBalance(bobClientId, xorAsset, clientBobCredential)
+            integrationHelper.getIrohaAccountBalance(bobClientId, xorAsset)
         )
     }
 
@@ -106,15 +124,13 @@ class SoraIntegrationTest {
     fun distributeSoraTest() {
         val aliceClientName = String.getRandomString(9)
         val aliceClientId = "$aliceClientName@$domain"
-        val keypairAlice = ModelCrypto().generateKeypair()
-        val clientAliceCredential = IrohaCredential(aliceClientId, keypairAlice)
-        integrationHelper.createAccount(aliceClientName, domain, keypairAlice.publicKey())
+        val keypairAlice = Ed25519Sha3().generateKeypair()
+        integrationHelper.createAccount(aliceClientName, domain, keypairAlice.public)
 
         val bobClientName = String.getRandomString(9)
         val bobClientId = "$bobClientName@$domain"
-        val keypairBob = ModelCrypto().generateKeypair()
-        val clientBobCredential = IrohaCredential(bobClientId, keypairBob)
-        integrationHelper.createAccount(bobClientName, domain, keypairBob.publicKey())
+        val keypairBob = Ed25519Sha3().generateKeypair()
+        integrationHelper.createAccount(bobClientName, domain, keypairBob.public)
 
         val soraClientId = "sora@sora"
         val soraKeyPair =
@@ -143,12 +159,41 @@ class SoraIntegrationTest {
 
         assertEquals(
             "17",
-            integrationHelper.getIrohaAccountBalance(aliceClientId, xorAsset, clientAliceCredential)
+            integrationHelper.getIrohaAccountBalance(aliceClientId, xorAsset)
         )
         assertEquals(
             "18",
-            integrationHelper.getIrohaAccountBalance(bobClientId, xorAsset, clientBobCredential)
+            integrationHelper.getIrohaAccountBalance(bobClientId, xorAsset)
         )
+    }
+
+    /**
+     * Test registration
+     * @given Registration service is up and running
+     * @when POST query is sent to register a user with `name` and `pubkey` and domain 'sora'
+     * @then new account 'name@sora' is created in Iroha
+     */
+    @Test
+    fun correctRegistration() {
+        val name = String.getRandomString(9)
+        val pubkey = Ed25519Sha3().generateKeypair().public.toHexString()
+
+        val res = post(
+            mapOf(
+                "name" to name,
+                "pubkey" to pubkey,
+                "domain" to domain
+            )
+        )
+
+        assertEquals(200, res.statusCode)
+
+        // ensure account is created
+        try {
+            integrationHelper.getAccount("$name@$domain")
+        } catch (exc: Exception) {
+            fail { "Expected no exceptions, but got $exc" }
+        }
     }
 
 }

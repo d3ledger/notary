@@ -12,6 +12,7 @@ buildscript {
 apply plugin: 'application'
 apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
 apply plugin: 'org.springframework.boot'
+apply plugin: 'com.github.johnrengelman.shadow'
 mainClassName = "generation.btc.BtcAddressGenerationMain"
 
 dependencies {
@@ -22,24 +23,18 @@ task runBtcAddressGeneration(type: JavaExec) {
     main = 'generation.btc.BtcAddressGenerationMain'
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
-    systemProperty 'java.library.path', getIrohaLibPath()
-    environment "LD_LIBRARY_PATH", getIrohaLibPath()
 }
 
 task generateBtcChangeAddress(type: JavaExec) {
     main = 'generation.btc.trigger.BtcChangeAddressGeneration'
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
-    systemProperty 'java.library.path', getIrohaLibPath()
-    environment "LD_LIBRARY_PATH", getIrohaLibPath()
 }
 
 task generateBtcFreeAddress(type: JavaExec) {
     main = 'generation.btc.trigger.BtcFreeAddressGeneration'
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
-    systemProperty 'java.library.path', getIrohaLibPath()
-    environment "LD_LIBRARY_PATH", getIrohaLibPath()
 }
 
 sonarqube {

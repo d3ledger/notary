@@ -2,13 +2,11 @@ package integration.eth
 
 import config.IrohaCredentialConfig
 import config.loadEthPasswords
-
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.*
 import provider.eth.ETH_PRECISION
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.util.ModelUtil
@@ -99,11 +97,13 @@ class DepositMultiIntegrationTest {
             val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId)
             val amount = BigInteger.valueOf(1_234_000_000_000)
             // send ETH
-            integrationHelper.sendEth(amount, relayWallet)
-            integrationHelper.waitOneIrohaBlock()
+            runBlocking { delay(2000) }
+            integrationHelper.purgeAndwaitOneIrohaBlock {
+                integrationHelper.sendEth(amount, relayWallet)
+            }
 
             Assertions.assertEquals(
-                BigDecimal(amount, ETH_PRECISION.toInt()).add(BigDecimal(initialAmount)),
+                BigDecimal(amount, ETH_PRECISION).add(BigDecimal(initialAmount)),
                 BigDecimal(integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId))
             )
         }
@@ -126,11 +126,12 @@ class DepositMultiIntegrationTest {
             val amount = BigInteger.valueOf(51)
 
             // send ETH
-            integrationHelper.sendERC20Token(tokenAddress, amount, relayWallet)
-            integrationHelper.waitOneIrohaBlock()
+            integrationHelper.purgeAndwaitOneIrohaBlock {
+                integrationHelper.sendERC20Token(tokenAddress, amount, relayWallet)
+            }
 
             Assertions.assertEquals(
-                BigDecimal(amount, tokenInfo.precision.toInt()).add(BigDecimal(initialAmount)),
+                BigDecimal(amount, tokenInfo.precision).add(BigDecimal(initialAmount)),
                 BigDecimal(integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId))
             )
         }

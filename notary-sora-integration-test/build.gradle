@@ -1,12 +1,23 @@
+import java.nio.file.Paths
+
 buildscript {
     repositories {
         mavenCentral()
         jcenter()
     }
+    dependencies {
+        //Spring-boot
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:$spring_boot_version"
+    }
 }
+
+apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
+apply plugin: 'org.springframework.boot'
+
 dependencies {
     compile project(":notary-commons")
     compile project(":notary-iroha-integration-test")
+    compile project(":notary-registration")
 
     // unit tests
     testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
@@ -21,7 +32,7 @@ sourceSets {
             srcDirs += 'src/integration-test/kotlin'
         }
         resources {
-            srcDirs= ["src/integration-test/resources"]
+            srcDirs = ["src/integration-test/resources"]
         }
     }
 }
@@ -42,9 +53,6 @@ task integrationTest(type: Test) {
     // Enable JUnit5 tests
     useJUnitPlatform {
     }
-
-    systemProperty 'java.library.path', getIrohaLibPath()
-    environment "LD_LIBRARY_PATH", getIrohaLibPath()
 
     mustRunAfter test
 }

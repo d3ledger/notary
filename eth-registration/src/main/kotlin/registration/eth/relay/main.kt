@@ -9,11 +9,11 @@ import com.github.kittinunf.result.map
 import config.ETH_MASTER_WALLET_ENV
 import config.loadConfigs
 import config.loadEthPasswords
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import mu.KLogging
 import provider.eth.EthFreeRelayProvider
-import sidechain.iroha.IrohaInitialization
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 
 private val logger = KLogging().logger
@@ -42,13 +42,10 @@ fun main(args: Array<String>) {
         }
         .fanout { loadEthPasswords("relay-registration", "/eth/ethereum_password.properties", args) }
         .map { (relayRegistrationConfig, passwordConfig) ->
-            IrohaInitialization.loadIrohaLibrary()
-                .flatMap {
-                    ModelUtil.loadKeypair(
-                        relayRegistrationConfig.relayRegistrationCredential.pubkeyPath,
-                        relayRegistrationConfig.relayRegistrationCredential.privkeyPath
-                    )
-                }
+            ModelUtil.loadKeypair(
+                relayRegistrationConfig.relayRegistrationCredential.pubkeyPath,
+                relayRegistrationConfig.relayRegistrationCredential.privkeyPath
+            )
                 .map { keypair ->
                     IrohaCredential(
                         relayRegistrationConfig.relayRegistrationCredential.accountId,
@@ -56,13 +53,13 @@ fun main(args: Array<String>) {
                     )
                 }
                 .flatMap { credential ->
-                    IrohaNetworkImpl(
+                    IrohaAPI(
                         relayRegistrationConfig.iroha.hostname,
                         relayRegistrationConfig.iroha.port
-                    ).use { irohaNetwork ->
+                    ).use { irohaAPI ->
+                        val queryAPI = QueryAPI(irohaAPI, credential.accountId, credential.keyPair)
                         val freeRelayProvider = EthFreeRelayProvider(
-                            credential,
-                            irohaNetwork,
+                            queryAPI,
                             relayRegistrationConfig.notaryIrohaAccount,
                             relayRegistrationConfig.relayRegistrationCredential.accountId
                         )
@@ -71,7 +68,7 @@ fun main(args: Array<String>) {
                             freeRelayProvider,
                             relayRegistrationConfig,
                             credential,
-                            irohaNetwork,
+                            irohaAPI,
                             passwordConfig
                         )
 

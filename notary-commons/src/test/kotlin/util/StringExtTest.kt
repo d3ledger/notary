@@ -20,6 +20,6 @@ class StringExtTest {
     @Test
     fun testIrohaEscape() {
         val text = "\"kek\""
-        assertEquals("\\\"kek\\\"", String.irohaEscape(text))
+        assertEquals("\\\"kek\\\"", text.irohaEscape())
     }
 }

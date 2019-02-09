@@ -3,6 +3,7 @@ package registration.btc.strategy
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
+import com.github.kittinunf.result.map
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import provider.btc.account.IrohaBtcAccountCreator
@@ -25,7 +26,12 @@ class BtcRegistrationStrategyImpl(
      * @param whitelist - list of bitcoin addresses
      * @return associated BTC address
      */
-    override fun register(name: String, whitelist: List<String>, pubkey: String): Result<String, Exception> {
+    override fun register(
+        name: String,
+        domain: String,
+        whitelist: List<String>,
+        pubkey: String
+    ): Result<String, Exception> {
         return btcAddressesProvider.getAddresses().fanout { btcRegisteredAddressesProvider.getRegisteredAddresses() }
             .flatMap { (addresses, takenAddresses) ->
                 try {
@@ -38,6 +44,7 @@ class BtcRegistrationStrategyImpl(
                         freeAddress.address,
                         whitelist,
                         name,
+                        domain,
                         pubkey,
                         freeAddress.info.notaryKeys
                     )
@@ -46,4 +53,17 @@ class BtcRegistrationStrategyImpl(
                 }
             }
     }
+
+    /**
+     * Get number of free addresses.
+     */
+    override fun getFreeAddressNumber(): Result<Int, Exception> {
+        return btcAddressesProvider.getAddresses().fanout { btcRegisteredAddressesProvider.getRegisteredAddresses() }
+            .map { (addresses, takenAddresses) ->
+                addresses.filter { address -> address.isFree() }
+                    .filter { btcAddress -> !takenAddresses.any { takenAddress -> takenAddress.address == btcAddress.address } }
+                    .size
+            }
+    }
+
 }

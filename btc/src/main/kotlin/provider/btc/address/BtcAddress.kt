@@ -12,7 +12,7 @@ data class BtcAddress(val address: String, val info: AddressInfo) {
 
 data class AddressInfo(val irohaClient: String, val notaryKeys: List<String>) {
 
-    fun toJson() = String.irohaEscape(addressInfoJsonAdapter.toJson(this))
+    fun toJson() = addressInfoJsonAdapter.toJson(this).irohaEscape()
 
     companion object {
         fun fromJson(json: String) = addressInfoJsonAdapter.fromJson(json)

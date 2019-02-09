@@ -97,13 +97,15 @@ class BitcoinTransactionListener(
             This leads D3 to handle the same transaction many times. This is why we use a special
             flag to check if it has been handled already.
             */
-            if (confidence.depthInBlocks >= confidenceLevel
+            val currentDepth = confidence.depthInBlocks
+            if (currentDepth >= confidenceLevel
                 && processed.compareAndSet(false, true)
             ) {
                 logger.info { "BTC tx ${tx.hashAsString} was confirmed" }
                 confidence.removeEventListener(this)
                 txHandler(tx, blockTime)
             }
+            logger.info { "BTC tx ${tx.hashAsString} has $currentDepth confirmations" }
         }
     }
 

@@ -1,6 +1,7 @@
 package contract;
 
 import io.reactivex.Flowable;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -100,9 +101,9 @@ public class RelayRegistry extends Contract {
     }
 
     public RemoteCall<Boolean> isWhiteListed(String relay, String who) {
-        final Function function = new Function(FUNC_ISWHITELISTED, 
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(relay), 
-                new org.web3j.abi.datatypes.Address(who)), 
+        final Function function = new Function(FUNC_ISWHITELISTED,
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(relay),
+                        new org.web3j.abi.datatypes.Address(who)),
                 Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
         return executeRemoteCallSingleValueReturn(function, Boolean.class);
     }

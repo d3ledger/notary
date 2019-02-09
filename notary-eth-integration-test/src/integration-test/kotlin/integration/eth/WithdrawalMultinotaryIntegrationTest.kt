@@ -22,7 +22,6 @@ import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.hashToWithdraw
 import sidechain.eth.util.signUserData
 import sidechain.iroha.CLIENT_DOMAIN
-import sidechain.iroha.consumer.IrohaNetworkImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import java.math.BigDecimal
@@ -80,15 +79,9 @@ class WithdrawalMultinotaryIntegrationTest {
         integrationHelper.lockEthMasterSmartcontract()
     }
 
-    val irohaNetwork = IrohaNetworkImpl(
-        notaryConfig1.iroha.hostname,
-        notaryConfig1.iroha.port
-    )
-
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
-        irohaNetwork.close()
     }
 
     /**
@@ -103,7 +96,7 @@ class WithdrawalMultinotaryIntegrationTest {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             val masterAccount = integrationHelper.accountHelper.notaryAccount.accountId
             val amount = "64203"
-            val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(ETH_PRECISION.toInt()).toPlainString()
+            val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(ETH_PRECISION)
             val assetId = "ether#ethereum"
             val ethWallet = "0x1334"
 
@@ -113,8 +106,7 @@ class WithdrawalMultinotaryIntegrationTest {
             integrationHelper.registerClient(client, listOf(ethWallet), integrationHelper.testCredential.keyPair)
             integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
             val relay = EthRelayProviderIrohaImpl(
-                irohaNetwork,
-                integrationHelper.testCredential,
+                integrationHelper.queryAPI,
                 masterAccount,
                 integrationHelper.accountHelper.registrationAccount.accountId
             ).getRelays().get().filter {
@@ -147,7 +139,7 @@ class WithdrawalMultinotaryIntegrationTest {
             assert(response1 is EthNotaryResponse.Successful)
             response1 as EthNotaryResponse.Successful
 
-            Assertions.assertEquals(decimalAmount, response1.ethRefund.amount)
+            Assertions.assertEquals(decimalAmount.toPlainString(), response1.ethRefund.amount)
             Assertions.assertEquals(ethWallet, response1.ethRefund.address)
             Assertions.assertEquals("0x0000000000000000000000000000000000000000", response1.ethRefund.assetId)
             Assertions.assertEquals(hash, response1.ethRefund.irohaTxHash)
@@ -157,7 +149,7 @@ class WithdrawalMultinotaryIntegrationTest {
                     keypair1,
                     hashToWithdraw(
                         "0x0000000000000000000000000000000000000000",
-                        decimalAmount,
+                        decimalAmount.toPlainString(),
                         ethWallet,
                         hash,
                         relay
@@ -174,7 +166,7 @@ class WithdrawalMultinotaryIntegrationTest {
             assert(response2 is EthNotaryResponse.Successful)
             response2 as EthNotaryResponse.Successful
 
-            Assertions.assertEquals(decimalAmount, response2.ethRefund.amount)
+            Assertions.assertEquals(decimalAmount.toPlainString(), response2.ethRefund.amount)
             Assertions.assertEquals(ethWallet, response2.ethRefund.address)
             Assertions.assertEquals("0x0000000000000000000000000000000000000000", response2.ethRefund.assetId)
             Assertions.assertEquals(hash, response2.ethRefund.irohaTxHash)
@@ -184,7 +176,7 @@ class WithdrawalMultinotaryIntegrationTest {
                     keypair2,
                     hashToWithdraw(
                         "0x0000000000000000000000000000000000000000",
-                        decimalAmount,
+                        decimalAmount.toPlainString(),
                         ethWallet,
                         hash,
                         relay

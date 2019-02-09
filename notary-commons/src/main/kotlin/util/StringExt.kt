@@ -54,8 +54,13 @@ fun String.Companion.unHex(s: String): ByteArray {
 }
 
 // Escapes string so it can be used in Iroha
-fun String.Companion.irohaEscape(text: String): String {
-    return text.replace("\"", IROHA_FRIENDLY_QUOTE)
+fun String.irohaEscape(): String {
+    return this.replace("\"", IROHA_FRIENDLY_QUOTE)
+}
+
+// Reverse changes of 'irohaEscape'
+fun String.irohaUnEscape(): String {
+    return this.replace(IROHA_FRIENDLY_QUOTE, "\"")
 }
 
 //TODO can we get rid of klaxon and moshi? Gson is much easier thing to use.

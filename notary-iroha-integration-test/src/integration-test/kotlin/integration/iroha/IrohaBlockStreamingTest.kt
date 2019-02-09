@@ -1,9 +1,14 @@
 package integration.iroha
 
 import com.github.kittinunf.result.map
+import config.RMQConfig
+import config.getConfigFolder
+import config.loadConfigs
+import config.loadRawConfigs
 import integration.helper.IrohaConfigHelper
 import integration.helper.IrohaIntegrationHelperUtil
 import io.reactivex.schedulers.Schedulers
+import jp.co.soramitsu.iroha.java.Transaction
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -12,10 +17,9 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaNetworkImpl
-import sidechain.iroha.util.ModelUtil.getCurrentTime
-import sidechain.iroha.util.ModelUtil.getModelTransactionBuilder
+import util.getRandomId
 import java.time.Duration
+import util.getRandomString
 
 /**
  * Note: Requires Iroha is running.
@@ -32,26 +36,29 @@ class IrohaBlockStreamingTest {
 
     private val creator = testCredential.accountId
 
-    private val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
-
-    private val listener = IrohaChainListener(
-        testConfig.iroha.hostname,
-        testConfig.iroha.port,
-        testCredential
-    )
+    private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
+    lateinit private var listener : IrohaChainListener
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
 
-    @BeforeAll
+    @BeforeEach
     fun setUp() {
-        System.loadLibrary("irohajava")
+        listener = IrohaChainListener(
+            testConfig.iroha.hostname,
+            testConfig.iroha.port,
+            testCredential,
+            rmqConfig,
+            String.getRandomId()
+        )
+    }
+    @AfterEach
+    fun dropDown() {
+        listener.close()
     }
 
     @AfterAll
-    fun dropDown() {
+    fun tearDown(){
         integrationHelper.close()
-        irohaNetwork.close()
-        listener.close()
     }
 
     /**
@@ -63,32 +70,28 @@ class IrohaBlockStreamingTest {
     fun irohaStreamingTest() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             var cmds = listOf<iroha.protocol.Commands.Command>()
-
             listener.getBlockObservable()
                 .map { obs ->
-                    obs.map { block ->
-                        cmds = block.payload.transactionsList
+                    obs.map { (block, _) ->
+                        cmds = block.blockV1.payload.transactionsList
                             .flatMap {
                                 it.payload.reducedPayload.commandsList
                             }
                     }.subscribeOn(Schedulers.io()).subscribe()
                 }
 
-            val utx = getModelTransactionBuilder()
-                .creatorAccountId(creator)
-                .createdTime(getCurrentTime())
+            val utx = Transaction.builder(creator)
                 .setAccountDetail(creator, "test", "test")
                 .build()
 
-            IrohaConsumerImpl(testCredential, irohaNetwork).sendAndCheck(utx)
+            IrohaConsumerImpl(testCredential, integrationHelper.irohaAPI).send(utx)
             runBlocking {
                 delay(5000)
             }
 
-            assertEquals(1, cmds.size)
-            assertEquals(creator, cmds.first().setAccountDetail.accountId)
-            assertEquals("test", cmds.first().setAccountDetail.key)
-            assertEquals("test", cmds.first().setAccountDetail.value)
+            assertEquals(creator, cmds.last().setAccountDetail.accountId)
+            assertEquals("test", cmds.last().setAccountDetail.key)
+            assertEquals("test", cmds.last().setAccountDetail.value)
         }
     }
 
@@ -104,20 +107,18 @@ class IrohaBlockStreamingTest {
                 listener.getBlock()
             }
 
-            val utx = getModelTransactionBuilder()
-                .creatorAccountId(creator)
-                .createdTime(getCurrentTime())
+            val utx = Transaction.builder(creator)
                 .setAccountDetail(creator, "test", "test")
                 .build()
 
-            IrohaConsumerImpl(testCredential, irohaNetwork).sendAndCheck(utx)
+            IrohaConsumerImpl(testCredential, integrationHelper.irohaAPI).send(utx)
 
 
-            val bl = runBlocking {
+            val (bl, _) = runBlocking {
                 block.await()
             }
 
-            val cmds = bl.payload.transactionsList
+            val cmds = bl.blockV1.payload.transactionsList
                 .flatMap {
                     it.payload.reducedPayload.commandsList
                 }

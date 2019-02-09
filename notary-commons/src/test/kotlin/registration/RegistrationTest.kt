@@ -34,6 +34,7 @@ open class RegistrationTest {
             register(
                 com.nhaarman.mockito_kotlin.any(),
                 com.nhaarman.mockito_kotlin.any(),
+                com.nhaarman.mockito_kotlin.any(),
                 com.nhaarman.mockito_kotlin.any()
             )
         } doReturn Result.of { correctEthWallet }
@@ -46,7 +47,7 @@ open class RegistrationTest {
             RegistrationServiceEndpoint(port, strategy)
         }
 
-        runBlocking { delay(3_000) }
+        runBlocking { delay(10_000) }
     }
 
     @AfterAll

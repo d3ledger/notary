@@ -1,10 +1,13 @@
 package integration.iroha
 
+import config.RMQConfig
+import config.getConfigFolder
+import config.loadConfigs
+import config.loadRawConfigs
 import integration.helper.IrohaConfigHelper
 import integration.helper.IrohaIntegrationHelperUtil
-import jp.co.soramitsu.iroha.Blob
-import jp.co.soramitsu.iroha.ModelCrypto
-import jp.co.soramitsu.iroha.iroha
+import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
+import jp.co.soramitsu.iroha.java.Utils
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
@@ -19,22 +22,23 @@ import org.junit.jupiter.api.TestInstance
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaConverterImpl
-import sidechain.iroha.consumer.IrohaNetworkImpl
+import sidechain.iroha.consumer.IrohaConverter
 import sidechain.iroha.util.ModelUtil
-import sidechain.iroha.util.getAccountAssetBalance
+import sidechain.iroha.util.getAccountAsset
 import sidechain.iroha.util.getAccountData
-import sidechain.iroha.util.toByteVector
+import util.getRandomId
 import util.getRandomString
+import util.hex
+import util.toHexString
+import java.math.BigInteger
 import java.time.Duration
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+
+private const val BATCH_TIME_WAIT = 5000L
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class IrohaBatchTest {
-
-    init {
-        System.loadLibrary("irohajava")
-    }
 
     private val integrationHelper = IrohaIntegrationHelperUtil()
 
@@ -43,15 +47,16 @@ class IrohaBatchTest {
     private val testCredential = integrationHelper.testCredential
 
     private val tester = testCredential.accountId
+    private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
 
     val assetDomain = "notary"
-
-    private val irohaNetwork = IrohaNetworkImpl(testConfig.iroha.hostname, testConfig.iroha.port)
 
     val listener = IrohaChainListener(
         testConfig.iroha.hostname,
         testConfig.iroha.port,
-        testCredential
+        testCredential,
+        rmqConfig,
+        String.getRandomId()
     )
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
@@ -61,7 +66,6 @@ class IrohaBatchTest {
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
-        irohaNetwork.close()
         listener.close()
     }
 
@@ -77,28 +81,28 @@ class IrohaBatchTest {
             val user = randomString()
             val asset_name = randomString()
 
-            val irohaConsumer = IrohaConsumerImpl(testCredential, irohaNetwork)
+            val irohaConsumer = IrohaConsumerImpl(testCredential, integrationHelper.irohaAPI)
 
             val userId = "$user@$CLIENT_DOMAIN"
 
-
+            val createdTime = ModelUtil.getCurrentTime().minus(BigInteger.valueOf(10_000))
             val txList =
                 listOf(
                     IrohaTransaction(
                         tester,
-                        ModelUtil.getCurrentTime(),
+                        createdTime,
                         1,
                         listOf(
                             IrohaCommand.CommandCreateAccount(
                                 user,
                                 CLIENT_DOMAIN,
-                                ModelCrypto().generateKeypair().publicKey().hex()
+                                Ed25519Sha3().generateKeypair().public.toHexString()
                             )
                         )
                     ),
                     IrohaTransaction(
                         tester,
-                        ModelUtil.getCurrentTime(),
+                        createdTime.add(BigInteger.valueOf(1000)),
                         1,
                         listOf(
                             IrohaCommand.CommandSetAccountDetail(
@@ -110,7 +114,7 @@ class IrohaBatchTest {
                     ),
                     IrohaTransaction(
                         tester,
-                        ModelUtil.getCurrentTime(),
+                        createdTime.add(BigInteger.valueOf(2000)),
                         1,
                         listOf(
                             IrohaCommand.CommandCreateAsset(
@@ -135,24 +139,28 @@ class IrohaBatchTest {
                 )
 
             val batch = IrohaOrderedBatch(txList)
-            val lst = IrohaConverterImpl().convert(batch)
-            val hashes = lst.map { it.hash().hex() }
+            val lst = IrohaConverter.convert(batch, testCredential.keyPair)
+            val hashes = lst.map { String.hex(Utils.hash(it)) }
 
             val blockHashes = GlobalScope.async {
-                listener.getBlock().payload.transactionsList.map {
-                    Blob(iroha.hashTransaction(it.toByteArray().toByteVector())).hex()
+                val(block, ack) = listener.getBlock()
+                ack()
+                block.blockV1.payload.transactionsList.map {
+                    String.hex(Utils.hash(it))
                 }
             }
 
-            val successHash = irohaConsumer.sendAndCheck(lst).get()
+            val successHash = irohaConsumer.send(lst).get()
 
-            val accountJson = getAccountData(testCredential, irohaNetwork, userId).get().toJsonString()
-            val tester_amount =
-                getAccountAssetBalance(testCredential, irohaNetwork, tester, "$asset_name#$assetDomain").get()
+            Thread.sleep(BATCH_TIME_WAIT)
+
+            val accountJson = getAccountData(integrationHelper.queryAPI, userId).get().toJsonString()
+            val tester_amount = getAccountAsset(integrationHelper.queryAPI, tester, "$asset_name#$assetDomain").get()
             val u1_amount =
-                getAccountAssetBalance(testCredential, irohaNetwork, userId, "$asset_name#$assetDomain").get()
+                getAccountAsset(integrationHelper.queryAPI, userId, "$asset_name#$assetDomain").get()
 
-            assertEquals(hashes, successHash)
+            assertEquals(hashes.size, successHash.size)
+            assertTrue(successHash.containsAll(hashes))
             assertEquals("{\"$tester\":{\"key\":\"value\"}}", accountJson)
             assertEquals(73, tester_amount.toInt())
             assertEquals(27, u1_amount.toInt())
@@ -177,28 +185,29 @@ class IrohaBatchTest {
             val user = randomString()
             val asset_name = randomString()
 
-            val irohaConsumer = IrohaConsumerImpl(testCredential, irohaNetwork)
+            val irohaConsumer = IrohaConsumerImpl(testCredential, integrationHelper.irohaAPI)
 
             val userId = "$user@$CLIENT_DOMAIN"
             val assetId = "$asset_name#$assetDomain"
 
+            val createdTime = ModelUtil.getCurrentTime().minus(BigInteger.valueOf(10_000))
             val txList =
                 listOf(
                     IrohaTransaction(
                         tester,
-                        ModelUtil.getCurrentTime(),
+                        createdTime,
                         1,
                         listOf(
                             IrohaCommand.CommandCreateAccount(
                                 user,
                                 CLIENT_DOMAIN,
-                                ModelCrypto().generateKeypair().publicKey().hex()
+                                Ed25519Sha3().generateKeypair().public.toHexString()
                             )
                         )
                     ),
                     IrohaTransaction(
                         tester,
-                        ModelUtil.getCurrentTime(),
+                        createdTime.add(BigInteger.valueOf(1000)),
                         1,
                         listOf(
                             IrohaCommand.CommandSetAccountDetail(
@@ -210,7 +219,7 @@ class IrohaBatchTest {
                     ),
                     IrohaTransaction(
                         tester,
-                        ModelUtil.getCurrentTime(),
+                        createdTime.add(BigInteger.valueOf(2000)),
                         1,
                         listOf(
                             IrohaCommand.CommandCreateAsset(
@@ -233,7 +242,7 @@ class IrohaBatchTest {
                     ),
                     IrohaTransaction(
                         tester,
-                        ModelUtil.getCurrentTime(),
+                        createdTime.add(BigInteger.valueOf(3000)),
                         1,
                         listOf(
                             IrohaCommand.CommandTransferAsset(
@@ -249,24 +258,29 @@ class IrohaBatchTest {
                 )
 
             val batch = IrohaOrderedBatch(txList)
-            val lst = IrohaConverterImpl().convert(batch)
-            val hashes = lst.map { it.hash().hex() }
+            val lst = IrohaConverter.convert(batch, testCredential.keyPair)
+            val hashes = lst.map { String.hex(Utils.hash(it)) }
             val expectedHashes = hashes.subList(0, hashes.size - 1)
 
             val blockHashes = GlobalScope.async {
-                listener.getBlock().payload.transactionsList.map {
-                    Blob(iroha.hashTransaction(it.toByteArray().toByteVector())).hex()
+                val(block, ack) = listener.getBlock()
+                ack()
+                block.blockV1.payload.transactionsList.map {
+                    String.hex(Utils.hash(it))
                 }
             }
 
-            val successHash = irohaConsumer.sendAndCheck(lst).get()
+            val successHash = irohaConsumer.send(lst).get()
 
-            val accountJson = getAccountData(testCredential, irohaNetwork, userId).get().toJsonString()
-            val tester_amount = getAccountAssetBalance(testCredential, irohaNetwork, tester, assetId).get()
+            Thread.sleep(BATCH_TIME_WAIT)
+
+            val accountJson = getAccountData(integrationHelper.queryAPI, userId).get().toJsonString()
+            val tester_amount = getAccountAsset(integrationHelper.queryAPI, tester, assetId).get()
             val u1_amount =
-                getAccountAssetBalance(testCredential, irohaNetwork, userId, assetId).get()
+                getAccountAsset(integrationHelper.queryAPI, userId, assetId).get()
 
-            assertEquals(expectedHashes, successHash)
+            assertEquals(expectedHashes.size, successHash.size)
+            assertTrue(successHash.containsAll(expectedHashes))
             assertEquals("{\"$tester\":{\"key\":\"value\"}}", accountJson)
             assertEquals(73, tester_amount.toInt())
             assertEquals(27, u1_amount.toInt())

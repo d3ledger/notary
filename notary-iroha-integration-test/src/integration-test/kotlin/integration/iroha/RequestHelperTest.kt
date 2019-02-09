@@ -2,11 +2,10 @@ package integration.iroha
 
 import integration.helper.IrohaIntegrationHelperUtil
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import sidechain.iroha.consumer.IrohaNetworkImpl
-import sidechain.iroha.util.getAccountAssetBalance
-import kotlin.test.assertEquals
+import sidechain.iroha.util.getAccountAsset
 
 /**
  * Test helper class for Iroha queries
@@ -16,20 +15,11 @@ import kotlin.test.assertEquals
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RequestHelperTest {
 
-    init {
-        System.loadLibrary("irohajava")
-    }
-
     val integrationHelper = IrohaIntegrationHelperUtil()
-    val credential = integrationHelper.testCredential
-    val irohaConfig = integrationHelper.configHelper.createIrohaConfig()
-
-    private val irohaNetwork = IrohaNetworkImpl(irohaConfig.hostname, irohaConfig.port)
 
     @AfterAll
     fun dropDown() {
         integrationHelper.close()
-        irohaNetwork.close()
     }
 
     /**
@@ -39,10 +29,9 @@ class RequestHelperTest {
      */
     @Test
     fun getNonexistentAccountAssetTest() {
-        val accountId = credential.accountId
+        val accountId = integrationHelper.testCredential.accountId
         val assetId = "nonexist#nonexist"
 
-        assertEquals("0", getAccountAssetBalance(credential, irohaNetwork, accountId, assetId).get())
+        assertEquals("0", getAccountAsset(integrationHelper.queryAPI, accountId, assetId).get())
     }
-
 }

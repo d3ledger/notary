@@ -41,6 +41,11 @@ hs_err_pid*
 /btc-withdrawal/gradle
 /btc-withdrawal/gradlew
 /btc-withdrawal/gradlew.bat
+/notifications/build
+/notifications/gradle
+/notifications/gradlew
+/notifications/gradlew.bat
+/notifications-integration-test/build/
 /d3testreport/gradle
 /d3testreport/gradlew
 /d3testreport/gradlew.bat
@@ -147,3 +152,9 @@ deploy/bitcoin/regtest/d3.wallet
 deploy/bitcoin/testnet/d3.wallet
 deploy/bitcoin/regtest/d3-test.wallet
 deploy/bitcoin/mainnet/
+
+# SMTP configs
+configs/smtp.properties
+
+# Push API configs
+configs/push.properties

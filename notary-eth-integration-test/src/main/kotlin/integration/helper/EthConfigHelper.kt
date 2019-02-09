@@ -119,8 +119,10 @@ open class EthConfigHelper(
             override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
             override val registrationIrohaAccount = accountHelper.registrationAccount.accountId
             override val withdrawalCredential = withdrawalConfig.withdrawalCredential
+            override val port = portCounter.incrementAndGet()
             override val iroha = createIrohaConfig()
             override val ethereum = ethereumConfig
+            override val ethIrohaWithdrawalQueue = withdrawalConfig.ethIrohaWithdrawalQueue
         }
     }
 

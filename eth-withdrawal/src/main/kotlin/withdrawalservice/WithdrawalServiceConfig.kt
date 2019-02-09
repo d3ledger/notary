@@ -6,6 +6,8 @@ import config.IrohaCredentialConfig
 
 /** Configuration of withdrawal service */
 interface WithdrawalServiceConfig {
+    /** Withdrawal endpoint port */
+    val port: Int
 
     /** Notary account in Iroha */
     val notaryIrohaAccount: String
@@ -32,4 +34,7 @@ interface WithdrawalServiceConfig {
 
     /** Ethereum config */
     val ethereum: EthereumConfig
+
+    /** RMQ Iroha Block */
+    val ethIrohaWithdrawalQueue: String
 }

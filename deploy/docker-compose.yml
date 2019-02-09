@@ -2,7 +2,7 @@ version: '3.5'
 
 services:
   d3-iroha:
-    image: hyperledger/iroha:snapshot-29a7517
+    image: hyperledger/iroha:1.0.0_rc2
     container_name: d3-iroha
     depends_on:
       - d3-iroha-postgres
@@ -14,6 +14,8 @@ services:
     volumes:
       - iroha_block_store:/tmp/block_store
       - ./iroha:/opt/iroha_data
+    networks:
+      - d3-network
 
   d3-iroha-postgres:
     image: postgres:9.5
@@ -24,6 +26,8 @@ services:
       - POSTGRES_PASSWORD=mysecretpassword
     volumes:
       - /var/lib/postgresql/data
+    networks:
+      - d3-network
 
   # ethereum
   d3-eth-node0:
@@ -35,6 +39,8 @@ services:
       - ./ethereum:/eth
     environment:
       - NODE=0
+    networks:
+      - d3-network
 
   grpcwebproxy:
     build:
@@ -46,6 +52,8 @@ services:
     - grpcwebproxy
     - --backend_addr=d3-iroha:50051
     - --run_tls_server=false
+    networks:
+      - d3-network
 
   # bitcoin
   d3-btc-node0:
@@ -59,7 +67,36 @@ services:
     - --server=1
     - --rpcallowip=172.0.0.0/8
     - --rpcport=8332
+    networks:
+      - d3-network
 
+  d3-rmq:
+    image: rabbitmq:3-management
+    container_name: d3-rmq
+    networks:
+      - d3-network
+
+  d3-chain-adapter:
+    build:
+      context: ../
+      dockerfile: docker/chain-adapter.dockerfile
+    container_name: d3-chain-adapter
+    volumes:
+      - ./:/opt/notary/deploy
+      - ../configs:/opt/notary/configs
+    environment:
+      - PROFILE
+      - IROHA_HOST=d3-iroha
+      - IROHA_PORT=50051
+      - JAR_NAME=chain-adapter.jar
+      - CLASS=chainadapter.ChainAdapterMain
+    networks:
+      - d3-network
 
 volumes:
   iroha_block_store:
+
+
+networks:
+  d3-network:
+

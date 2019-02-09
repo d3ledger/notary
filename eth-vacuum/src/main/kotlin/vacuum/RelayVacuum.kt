@@ -5,12 +5,11 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.EthereumPasswords
 import contract.Relay
-import model.IrohaCredential
+import jp.co.soramitsu.iroha.java.QueryAPI
 import mu.KLogging
 import provider.eth.EthRelayProviderIrohaImpl
 import provider.eth.EthTokensProviderImpl
 import sidechain.eth.util.DeployHelper
-import sidechain.iroha.consumer.IrohaNetwork
 
 /**
  * Class is responsible for relay contracts vacuum
@@ -19,23 +18,20 @@ import sidechain.iroha.consumer.IrohaNetwork
 class RelayVacuum(
     relayVacuumConfig: RelayVacuumConfig,
     relayVacuumEthereumPasswords: EthereumPasswords,
-    credential: IrohaCredential,
-    irohaNetwork: IrohaNetwork
+    queryAPI: QueryAPI
 ) {
     private val ethTokenAddress = "0x0000000000000000000000000000000000000000"
 
     /** Ethereum endpoint */
     private val deployHelper = DeployHelper(relayVacuumConfig.ethereum, relayVacuumEthereumPasswords)
     private val ethTokensProvider = EthTokensProviderImpl(
-        credential,
-        irohaNetwork,
+        queryAPI,
         relayVacuumConfig.tokenStorageAccount,
         relayVacuumConfig.tokenSetterAccount
     )
 
     private val ethRelayProvider = EthRelayProviderIrohaImpl(
-        irohaNetwork,
-        credential,
+        queryAPI,
         relayVacuumConfig.notaryIrohaAccount,
         relayVacuumConfig.registrationServiceIrohaAccount
     )

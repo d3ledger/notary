@@ -1,0 +1,38 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+}
+apply plugin: 'application'
+apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
+mainClassName = "notifications.NotificationsMain"
+
+dependencies {
+    compile project(":notary-commons")
+
+    // https://mvnrepository.com/artifact/nl.martijndwars/web-push
+    compile group: 'nl.martijndwars', name: 'web-push', version: '5.0.1'
+
+    // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on
+    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.60'
+
+    // https://mvnrepository.com/artifact/javax.mail/mail
+    compile group: 'javax.mail', name: 'mail', version: '1.4.7'
+
+    // https://mvnrepository.com/artifact/org.springframework/spring-context
+    compile group: 'org.springframework', name: 'spring-context', version: '5.1.4.RELEASE'
+
+}
+
+task runNotifications(type: JavaExec) {
+    main = 'notifications.NotificationsMain'
+    classpath = sourceSets.main.runtimeClasspath
+    setWorkingDir("$rootDir/")
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "notary:notifications"
+    }
+}

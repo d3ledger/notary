@@ -1,6 +1,7 @@
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
+import d3.report.enums.TestFolder;
 import d3.report.service.TestReportService;
 
 import java.io.*;
@@ -10,7 +11,6 @@ import java.io.*;
  */
 public class MainHtml {
     private static final TestReportService REPORT_SERVICE = new TestReportService();
-    private static final String TESTS_PATH = "notary-integration-test";
     //Report template. See http://mustache.github.io
     private static final String REPORT_TEMPLATE_FILE = "report.html";
     //Folder where the generated HTML file will be located
@@ -26,7 +26,7 @@ public class MainHtml {
             System.exit(1);
         }
         try (Writer writer = new BufferedWriter(new FileWriter(REPORT_FOLDER + REPORT_FILE_NAME))) {
-            mustache.execute(writer, REPORT_SERVICE.create(TESTS_PATH)).flush();
+            mustache.execute(writer, REPORT_SERVICE.create(TestFolder.getAllFolders())).flush();
             System.out.println("Report was successfully created. Take a look at " + REPORT_FOLDER + REPORT_FILE_NAME);
         }
     }

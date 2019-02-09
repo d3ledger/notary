@@ -2,7 +2,7 @@ package integration.btc
 
 import integration.btc.environment.BtcRegistrationTestEnvironment
 import integration.helper.BtcIntegrationHelperUtil
-import jp.co.soramitsu.iroha.ModelCrypto
+import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterAll
@@ -13,6 +13,7 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
 import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
+import util.toHexString
 import java.math.BigInteger
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -42,11 +43,11 @@ class BtcRegistrationIntegrationTest {
     @Test
     fun testRegistration() {
         integrationHelper.genFreeBtcAddress(environment.btcNotaryConfig.bitcoin.walletPath)
-        val keypair = ModelCrypto().generateKeypair()
+        val keypair = Ed25519Sha3().generateKeypair()
         val userName = String.getRandomString(9)
         val res = khttp.post(
             "http://127.0.0.1:${environment.btcRegistrationConfig.port}/users",
-            data = mapOf("name" to userName, "pubkey" to keypair.publicKey().hex())
+            data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
         )
         assertEquals(200, res.statusCode)
         val registeredBtcAddress = String(res.content)
@@ -75,11 +76,14 @@ class BtcRegistrationIntegrationTest {
         val addressesToRegister = 3
         integrationHelper.preGenFreeBtcAddresses(environment.btcNotaryConfig.bitcoin.walletPath, addressesToRegister)
         for (i in 1..addressesToRegister) {
-            val keypair = ModelCrypto().generateKeypair()
+            val num = khttp.get("http://127.0.0.1:${environment.btcRegistrationConfig.port}/free-addresses/number")
+            assertEquals((addressesToRegister - i + 1).toString(), num.text)
+
+            val keypair = Ed25519Sha3().generateKeypair()
             val userName = String.getRandomString(9)
             val res = khttp.post(
                 "http://127.0.0.1:${environment.btcRegistrationConfig.port}/users",
-                data = mapOf("name" to userName, "pubkey" to keypair.publicKey().hex())
+                data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
             )
             assertEquals(200, res.statusCode)
             val registeredBtcAddress = String(res.content)
@@ -96,6 +100,10 @@ class BtcRegistrationIntegrationTest {
                 integrationHelper.getIrohaAccountBalance("$userName@$CLIENT_DOMAIN", "btc#bitcoin")
             )
         }
+
+        val num = khttp.get("http://127.0.0.1:${environment.btcRegistrationConfig.port}/free-addresses/number")
+        assertEquals("0", num.text)
+
     }
 
     /**
@@ -108,13 +116,17 @@ class BtcRegistrationIntegrationTest {
     @Test
     fun testRegistrationNoFree() {
         val clientsBeforeRegistration = environment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
-        val keypair = ModelCrypto().generateKeypair()
+        val keypair = Ed25519Sha3().generateKeypair()
         val userName = String.getRandomString(9)
+
+        val num = khttp.get("http://127.0.0.1:${environment.btcRegistrationConfig.port}/free-addresses/number")
+        assertEquals("0", num.text)
+
         val res = khttp.post(
             "http://127.0.0.1:${environment.btcRegistrationConfig.port}/users",
-            data = mapOf("name" to userName, "pubkey" to keypair.publicKey().hex())
+            data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
         )
-        assertEquals(400, res.statusCode)
+        assertEquals(500, res.statusCode)
         assertEquals(
             clientsBeforeRegistration,
             environment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
@@ -131,13 +143,17 @@ class BtcRegistrationIntegrationTest {
     fun testRegistrationOnlyChangeAddresses() {
         val clientsBeforeRegistration = environment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
         integrationHelper.genChangeBtcAddress(environment.btcNotaryConfig.bitcoin.walletPath)
-        val keypair = ModelCrypto().generateKeypair()
+
+        val num = khttp.get("http://127.0.0.1:${environment.btcRegistrationConfig.port}/free-addresses/number")
+        assertEquals("0", num.text)
+
+        val keypair = Ed25519Sha3().generateKeypair()
         val userName = String.getRandomString(9)
         val res = khttp.post(
             "http://127.0.0.1:${environment.btcRegistrationConfig.port}/users",
-            data = mapOf("name" to userName, "pubkey" to keypair.publicKey().hex())
+            data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
         )
-        assertEquals(400, res.statusCode)
+        assertEquals(500, res.statusCode)
         assertEquals(
             clientsBeforeRegistration,
             environment.btcTakenAddressesProvider.getRegisteredAddresses().get().size

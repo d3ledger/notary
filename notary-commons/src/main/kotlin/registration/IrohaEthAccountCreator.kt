@@ -21,6 +21,7 @@ class IrohaEthAccountCreator(
      * @param walletAddress - address of Ethereum wallet
      * @param whitelist - list of addresses allowed to withdraw to
      * @param userName - client userName in Iroha
+     * @param domain - client domain
      * @param pubkey - client's public key
      * @return address associated with userName
      */
@@ -28,6 +29,7 @@ class IrohaEthAccountCreator(
         walletAddress: String,
         whitelist: List<String>,
         userName: String,
+        domain: String,
         pubkey: String
     ): Result<String, Exception> {
         return irohaAccountCreator.create(
@@ -35,6 +37,7 @@ class IrohaEthAccountCreator(
             ETH_WHITE_LIST_KEY,
             whitelist,
             userName,
+            domain,
             pubkey
         ) { "$userName@$CLIENT_DOMAIN" }
     }
