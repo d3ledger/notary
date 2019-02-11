@@ -29,6 +29,8 @@ import provider.btc.network.BtcNetworkConfigProvider
 import sidechain.SideChainEvent
 import sidechain.iroha.IrohaChainListener
 import java.io.Closeable
+import java.util.concurrent.Executors
+import java.util.concurrent.ThreadFactory
 
 
 @Component
@@ -105,7 +107,12 @@ class BtcNotaryInitialization(
     ): Observable<SideChainEvent.PrimaryBlockChainEvent> {
         return Observable.create<SideChainEvent.PrimaryBlockChainEvent> { emitter ->
             peerGroup.addBlocksDownloadedEventListener(
-                BitcoinBlockChainDepositListener(
+                Executors.newSingleThreadExecutor { r ->
+                    // Make all threads in pull daemons
+                    val thread = Executors.defaultThreadFactory().newThread(r)
+                    thread.isDaemon = true
+                    thread
+                }, BitcoinBlockChainDepositListener(
                     btcRegisteredAddressesProvider,
                     emitter,
                     confidenceLevel

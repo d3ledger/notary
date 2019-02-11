@@ -27,7 +27,6 @@ import withdrawal.btc.statistics.WithdrawalStatistics
 import withdrawal.btc.transaction.*
 import java.io.Closeable
 import java.io.File
-import java.net.InetAddress
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 
@@ -156,17 +155,12 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
         Wallet.loadFromFile(File(btcWithdrawalConfig.bitcoin.walletPath))
     }
 
-    private val peerGroup by lazy {
-        val peerGroup = integrationHelper.getPeerGroup(
-            wallet,
-            btcNetworkConfigProvider,
-            btcWithdrawalConfig.bitcoin.blockStoragePath
-        )
-        BitcoinConfig.extractHosts(btcWithdrawalConfig.bitcoin).forEach { host ->
-            peerGroup.addAddress(InetAddress.getByName(host))
-        }
-        peerGroup
-    }
+    private val peerGroup = integrationHelper.getPeerGroup(
+        wallet,
+        btcNetworkConfigProvider,
+        btcWithdrawalConfig.bitcoin.blockStoragePath,
+        BitcoinConfig.extractHosts(btcWithdrawalConfig.bitcoin)
+    )
 
     private val btcFeeRateService =
         BtcFeeRateService(btcFeeRateConsumer, btcFeeRateCredential.accountId, integrationHelper.queryAPI)
