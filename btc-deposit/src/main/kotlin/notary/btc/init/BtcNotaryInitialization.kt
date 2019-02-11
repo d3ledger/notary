@@ -31,7 +31,6 @@ import sidechain.iroha.IrohaChainListener
 import java.io.Closeable
 import java.util.concurrent.Executors
 
-
 @Component
 class BtcNotaryInitialization(
     @Autowired private val peerGroup: PeerGroup,
