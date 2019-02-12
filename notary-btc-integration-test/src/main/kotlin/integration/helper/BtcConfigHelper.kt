@@ -18,8 +18,11 @@ class BtcConfigHelper(
     private val accountHelper: IrohaAccountHelper
 ) : IrohaConfigHelper() {
 
-    /** Creates config for BTC multisig addresses generation */
-    fun createBtcAddressGenerationConfig(): BtcAddressGenerationConfig {
+    /** Creates config for BTC multisig addresses generation
+     * @param initAddresses - number of addresses that will be generated at initial phase
+     * @return config
+     * */
+    fun createBtcAddressGenerationConfig(initAddresses: Int): BtcAddressGenerationConfig {
         val btcPkPreGenConfig =
             loadConfigs(
                 "btc-address-generation",
@@ -28,7 +31,7 @@ class BtcConfigHelper(
             ).get()
 
         return object : BtcAddressGenerationConfig {
-            override val threshold = 2
+            override val threshold = initAddresses
             override val changeAddressesStorageAccount = accountHelper.changeAddressesStorageAccount.accountId
             override val healthCheckPort = btcPkPreGenConfig.healthCheckPort
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
