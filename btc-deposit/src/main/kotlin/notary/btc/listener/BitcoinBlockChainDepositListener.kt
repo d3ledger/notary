@@ -8,6 +8,9 @@ import org.bitcoinj.core.Peer
 import org.bitcoinj.core.listeners.BlocksDownloadedEventListener
 import provider.btc.address.BtcRegisteredAddressesProvider
 import sidechain.SideChainEvent
+import java.io.Closeable
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 private const val DAY_MILLIS = 24 * 60 * 60 * 1000L
 
@@ -17,6 +20,7 @@ private const val DAY_MILLIS = 24 * 60 * 60 * 1000L
 class BitcoinBlockChainDepositListener(
     private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
     private val emitter: ObservableEmitter<SideChainEvent.PrimaryBlockChainEvent>,
+    private val confidenceListenerExecutorService: ExecutorService,
     private val confidenceLevel: Int
 ) : BlocksDownloadedEventListener {
 
@@ -39,7 +43,12 @@ class BitcoinBlockChainDepositListener(
             { registeredAddresses ->
                 processedBlocks.add(block.hashAsString)
                 val receivedCoinsListener =
-                    BitcoinTransactionListener(registeredAddresses, confidenceLevel, emitter)
+                    BitcoinTransactionListener(
+                        registeredAddresses,
+                        confidenceLevel,
+                        emitter,
+                        confidenceListenerExecutorService
+                    )
                 block.transactions?.forEach { tx ->
                     receivedCoinsListener.onTransaction(
                         tx,

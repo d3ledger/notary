@@ -30,7 +30,6 @@ import sidechain.SideChainEvent
 import sidechain.iroha.IrohaChainListener
 import java.io.Closeable
 import java.util.concurrent.Executors
-import java.util.concurrent.ThreadFactory
 
 
 @Component
@@ -47,6 +46,13 @@ class BtcNotaryInitialization(
     @Autowired private val newBtcClientRegistrationListener: NewBtcClientRegistrationListener,
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider
 ) : HealthyService(), Closeable {
+
+
+    // Executor that will be used to execute Bitcoin deposit listener logic
+    private val blockChainDepositListenerExecutor = Executors.newSingleThreadExecutor()
+
+    // Executor that will be used to execute transaction confidence listener logic
+    private val confidenceListenerExecutorService = Executors.newSingleThreadExecutor()
 
     /**
      * Init notary
@@ -107,14 +113,11 @@ class BtcNotaryInitialization(
     ): Observable<SideChainEvent.PrimaryBlockChainEvent> {
         return Observable.create<SideChainEvent.PrimaryBlockChainEvent> { emitter ->
             peerGroup.addBlocksDownloadedEventListener(
-                Executors.newSingleThreadExecutor { r ->
-                    // Make all threads in pull daemons
-                    val thread = Executors.defaultThreadFactory().newThread(r)
-                    thread.isDaemon = true
-                    thread
-                }, BitcoinBlockChainDepositListener(
+                blockChainDepositListenerExecutor,
+                BitcoinBlockChainDepositListener(
                     btcRegisteredAddressesProvider,
                     emitter,
+                    confidenceListenerExecutorService,
                     confidenceLevel
                 )
             )
@@ -123,6 +126,8 @@ class BtcNotaryInitialization(
 
     override fun close() {
         logger.info { "Closing Bitcoin notary service" }
+        confidenceListenerExecutorService.shutdownNow()
+        blockChainDepositListenerExecutor.shutdownNow()
         peerGroup.stop()
     }
 

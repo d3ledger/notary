@@ -38,7 +38,6 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
     /** Notary accounts. Can be used to test multisig */
     val notaryAccounts by lazy {
         val accounts = ArrayList<IrohaCredential>(peers)
-        val notaryAccount = notaryAccount
         accounts.add(notaryAccount)
         for (peer in 2..peers) {
             val keyPair = ModelUtil.generateKeypair()
