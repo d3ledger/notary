@@ -10,6 +10,7 @@ import provider.btc.address.BtcAddress
 import sidechain.SideChainEvent
 import java.math.BigInteger
 import java.util.*
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
 
 private const val BTC_ASSET_NAME = "btc"
@@ -21,9 +22,10 @@ class BitcoinTransactionListener(
     // Level of confidence aka depth of transaction. Recommend value is 6
     private val confidenceLevel: Int,
     // Source of Bitcoin deposit events
-    private val emitter: ObservableEmitter<SideChainEvent.PrimaryBlockChainEvent>
+    private val emitter: ObservableEmitter<SideChainEvent.PrimaryBlockChainEvent>,
+    // Executor that will be used to execute confidence listener logic
+    private val confidenceListenerExecutor: ExecutorService
 ) {
-
     fun onTransaction(tx: Transaction, blockTime: Date) {
         if (!hasRegisteredAddresses(tx)) {
             return
@@ -38,7 +40,10 @@ class BitcoinTransactionListener(
             Handling function will be called, if tx depth hits desired value
             */
             logger.info { "BTC was received, but it's not confirmed yet. Tx: ${tx.hashAsString}" }
-            tx.confidence.addEventListener(ConfirmedTxListener(confidenceLevel, tx, blockTime, ::handleTx))
+            tx.confidence.addEventListener(
+                confidenceListenerExecutor,
+                ConfirmedTxListener(confidenceLevel, tx, blockTime, ::handleTx)
+            )
 
         }
     }

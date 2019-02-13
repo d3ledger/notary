@@ -17,7 +17,7 @@ import java.security.KeyPair
 /**
  * Class that handles all the accounts in running configuration.
  */
-class IrohaAccountHelper(private val irohaAPI: IrohaAPI) {
+class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int = 1) {
 
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
 
@@ -34,6 +34,24 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI) {
 
     /** Notary account */
     val notaryAccount by lazy { createNotaryAccount() }
+
+    /** Notary accounts. Can be used to test multisig */
+    val notaryAccounts by lazy {
+        val accounts = ArrayList<IrohaCredential>(peers)
+        accounts.add(notaryAccount)
+        for (peer in 2..peers) {
+            val keyPair = ModelUtil.generateKeypair()
+            val irohaCredential = IrohaCredential(notaryAccount.accountId, keyPair)
+            ModelUtil.addSignatory(irohaConsumer, notaryAccount.accountId, keyPair.public)
+                .failure { ex -> throw ex }
+            accounts.add(irohaCredential)
+        }
+        if (peers > 1) {
+            ModelUtil.setAccountQuorum(irohaConsumer, notaryAccount.accountId, peers)
+                .failure { ex -> throw ex }
+        }
+        accounts
+    }
 
     /** Notary keys */
     val notaryKeys = mutableListOf(testCredential.keyPair)
@@ -113,7 +131,7 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI) {
      * Create notary account and grant set_my_quorum, transfer_my_assets and add_my_signatory permissions to test account
      */
     private fun createNotaryAccount(): IrohaCredential {
-        val credential = createTesterAccount("eth_notary_${String.getRandomString(9)}", "notary")
+        val credential = createTesterAccount("notary_${String.getRandomString(9)}", "notary")
 
         ModelUtil.grantPermissions(
             IrohaConsumerImpl(credential, irohaAPI),

@@ -37,7 +37,7 @@ const val BTC_ASSET = "btc#bitcoin"
 private const val GENERATED_ADDRESSES_PER_BATCH = 5
 private const val BTC_INITAL_BLOCKS = 101
 
-class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
+class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peers) {
 
     override val configHelper by lazy { BtcConfigHelper(accountHelper) }
 
@@ -134,9 +134,10 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     fun getPeerGroup(
         wallet: Wallet,
         btcNetworkConfigProvider: BtcNetworkConfigProvider,
-        blockStoragePath: String
+        blockStoragePath: String,
+        hosts: List<String>
     ): PeerGroup {
-        return SharedPeerGroup(btcNetworkConfigProvider, wallet, blockStoragePath, emptyList())
+        return SharedPeerGroup(btcNetworkConfigProvider, wallet, blockStoragePath, hosts)
     }
 
     private fun createMsAddress(keys: List<ECKey>): Address {

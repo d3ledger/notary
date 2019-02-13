@@ -179,15 +179,10 @@ class BtcFullPipelineTest {
             }.start()
         }
         Thread.sleep(DEPOSIT_WAIT_MILLIS * totalTransfers)
-
+        val createdTime = System.currentTimeMillis()
         // Send 10000 SAT from source to destination multiple times
         for (transfer in 1..totalTransfers) {
             Thread {
-                /**
-                 * Every transfer transaction must have different creation time
-                 * Otherwise some transactions may have the same tx hash
-                 * */
-                val createdTime = System.currentTimeMillis() + transfer
                 integrationHelper.transferAssetIrohaFromClient(
                     "$srcUserName@$CLIENT_DOMAIN",
                     srcKeypair,
@@ -196,7 +191,11 @@ class BtcFullPipelineTest {
                     BTC_ASSET,
                     destBtcAddress,
                     amount.toPlainString(),
-                    createdTime
+                    /**
+                     * Every transfer transaction must have different creation time
+                     * Otherwise some transactions may have the same tx hash
+                     * */
+                    createdTime + transfer
                 )
             }.start()
         }
