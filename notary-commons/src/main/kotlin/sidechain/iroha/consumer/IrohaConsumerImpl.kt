@@ -11,6 +11,7 @@ import jp.co.soramitsu.iroha.java.Utils
 import model.IrohaCredential
 import mu.KLogging
 import util.hex
+import java.util.*
 
 /**
  * Endpoint of Iroha to write transactions
@@ -41,10 +42,16 @@ class IrohaConsumerImpl(
      * @return hex representation of hash or failure
      */
     override fun send(tx: TransactionOuterClass.Transaction): Result<String, Exception> {
+        val id = UUID.randomUUID()
         return Result.of {
+            logger.info { "Start send in IrohaConsumerImpl $id" }
             irohaAPI.transactionSync(tx)
         }.flatMap {
-            checkTransactionStatus(Utils.hash(tx))
+            logger.info { "Start check transaction $id" }
+            val res = checkTransactionStatus(Utils.hash(tx))
+            logger.info { "Stop check transaction $id" }
+            logger.info { "Stop send in IrohaConsumerImpl $id" }
+            res
         }
     }
 
@@ -72,6 +79,8 @@ class IrohaConsumerImpl(
      * @return list of hex hashes that were accepted by iroha
      */
     override fun send(lst: Iterable<TransactionOuterClass.Transaction>): Result<List<String>, Exception> {
+        val id = UUID.randomUUID()
+        logger.info { "Start sendList in IrohaConsumerImpl $id" }
         irohaAPI.transactionListSync(lst)
         return Result.of {
             lst.map {
@@ -79,7 +88,10 @@ class IrohaConsumerImpl(
             }
         }.map { hashes ->
             hashes.map {
-                checkTransactionStatus(it)
+                logger.info { "Start check transaction $id" }
+                val res = checkTransactionStatus(it)
+                logger.info { "Stop check transaction $id" }
+                res
             }
                 .filter { res ->
                     res.fold(
@@ -89,9 +101,15 @@ class IrohaConsumerImpl(
                             false
                         }
                     )
-                }.map { it.get() }
+                }.map {
+                    it.get()
+                }
+        }.map { map ->
+            logger.info { "Stop sendList in IrohaConsumerImpl $id" }
+            map
         }
     }
+
 
     /**
      * Check if transaction is committed to Iroha

@@ -110,7 +110,7 @@ class BtcConfigHelper(
         return object : BitcoinConfig {
             override val walletPath = createTempWalletFile(bitcoinConfig.walletPath)
             override val blockStoragePath = createTempBlockStorageFolder(bitcoinConfig.blockStoragePath, testName)
-            override val confidenceLevel = bitcoinConfig.confidenceLevel
+            override val confidenceLevel = BTC_CONFIRMATIONS
             override val hosts = bitcoinConfig.hosts
         }
     }

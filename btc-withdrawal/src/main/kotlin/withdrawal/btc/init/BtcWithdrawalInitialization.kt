@@ -50,6 +50,8 @@ class BtcWithdrawalInitialization(
     @Autowired private val btcFeeRateService: BtcFeeRateService
 ) : HealthyService(), Closeable {
 
+    private val bitcoinBlockChainFeeRateListener = BitcoinBlockChainFeeRateListener(btcFeeRateService)
+
     fun init(): Result<Unit, Exception> {
         return btcChangeAddressProvider.getChangeAddress().map { changeAddress ->
             wallet.addWatchedAddress(
@@ -70,7 +72,7 @@ class BtcWithdrawalInitialization(
             logger.info { "Previously registered addresses were added to the wallet" }
         }.map {
             // Add fee rate listener
-            peerGroup.addBlocksDownloadedEventListener(BitcoinBlockChainFeeRateListener(btcFeeRateService))
+            peerGroup.addBlocksDownloadedEventListener(bitcoinBlockChainFeeRateListener)
         }.flatMap {
             initBtcBlockChain()
         }.flatMap { peerGroup ->
@@ -145,6 +147,7 @@ class BtcWithdrawalInitialization(
 
     override fun close() {
         logger.info { "Closing Bitcoin withdrawal service" }
+        bitcoinBlockChainFeeRateListener.close()
         peerGroup.stop()
     }
 

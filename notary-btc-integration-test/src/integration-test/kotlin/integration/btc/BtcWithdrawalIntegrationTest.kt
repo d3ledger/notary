@@ -5,6 +5,7 @@ import helper.address.outPutToBase58Address
 import helper.currency.satToBtc
 import integration.btc.environment.BtcWithdrawalTestEnvironment
 import integration.helper.BTC_ASSET
+import integration.helper.BTC_CONFIRMATIONS
 import integration.helper.BtcIntegrationHelperUtil
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import mu.KLogging
@@ -432,7 +433,7 @@ class BtcWithdrawalIntegrationTest {
             testClientSrcKeypair,
             listOf("some_btc_address")
         )
-        integrationHelper.sendBtc(btcAddressSrc, 1, 6)
+        integrationHelper.sendBtc(btcAddressSrc, 1, BTC_CONFIRMATIONS)
         val randomNameDest = String.getRandomString(9)
         val btcAddressDest = integrationHelper.registerBtcAddressNoPreGen(randomNameDest)
         integrationHelper.addIrohaAssetTo(testClientSrc, BTC_ASSET, amount)
@@ -474,7 +475,7 @@ class BtcWithdrawalIntegrationTest {
             testClientSrcKeypair,
             listOf(btcAddressDest)
         )
-        integrationHelper.sendBtc(btcAddressSrc, 1, 6)
+        integrationHelper.sendBtc(btcAddressSrc, 1, BTC_CONFIRMATIONS)
         integrationHelper.addIrohaAssetTo(testClientSrc, BTC_ASSET, amount)
         integrationHelper.transferAssetIrohaFromClient(
             testClientSrc,

@@ -33,9 +33,11 @@ import java.io.File
 import java.math.BigDecimal
 import java.security.KeyPair
 
+//Bitcoin confirmations to consider a transaction 'valid'
+const val BTC_CONFIRMATIONS = 3
 const val BTC_ASSET = "btc#bitcoin"
-private const val GENERATED_ADDRESSES_PER_BATCH = 5
-private const val BTC_INITAL_BLOCKS = 101
+private const val GENERATED_ADDRESSES_PER_BATCH = 3
+private const val BTC_INITIAL_BLOCKS = 101
 
 class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peers) {
 
@@ -125,7 +127,9 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
             irohaTxList.add(irohaTx)
         }
         val utx = IrohaConverter.convert(IrohaOrderedBatch(irohaTxList))
+        logger.info { "Start saving addresses into Iroha" }
         mstRegistrationIrohaConsumer.send(utx).failure { ex -> throw ex }
+        logger.info { "Stop saving addresses into Iroha" }
     }
 
     /**
@@ -226,7 +230,7 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
     /**
      * Sends btc to a given address
      */
-    fun sendBtc(address: String, amount: Int, confirmations: Int = 6) {
+    fun sendBtc(address: String, amount: Int, confirmations: Int = BTC_CONFIRMATIONS) {
         logger.info { "Send $amount BTC to $address" }
         rpcClient.sendToAddress(address = address, amount = BigDecimal(amount))
         generateBtcBlocks(confirmations)
@@ -235,7 +239,7 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
     /**
      * Send sat to a given address
      */
-    fun sendSat(address: String, amount: Int, confirmations: Int = 6) {
+    fun sendSat(address: String, amount: Int, confirmations: Int = BTC_CONFIRMATIONS) {
         logger.info { "Send $amount SAT to $address" }
         rpcClient.sendToAddress(address = address, amount = satToBtc(amount.toLong()))
         generateBtcBlocks(confirmations)
@@ -257,10 +261,10 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
      */
     fun generateBtcInitialBlocks() {
         val currentBlockCount = rpcClient.getBlockCount()
-        if (currentBlockCount >= BTC_INITAL_BLOCKS) {
+        if (currentBlockCount >= BTC_INITIAL_BLOCKS) {
             logger.info { "No need to create initial blocks" }
         } else {
-            generateBtcBlocks(BTC_INITAL_BLOCKS - currentBlockCount)
+            generateBtcBlocks(BTC_INITIAL_BLOCKS - currentBlockCount)
             logger.info { "Initial blocks were generated" }
         }
     }

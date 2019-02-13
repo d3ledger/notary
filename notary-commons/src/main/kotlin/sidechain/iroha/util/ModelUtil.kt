@@ -77,11 +77,13 @@ object ModelUtil {
         key: String,
         value: String
     ): Result<String, Exception> {
-        val transaction = Transaction
-            .builder(irohaConsumer.creator)
-            .setAccountDetail(accountId, key, value)
-            .build()
-        return irohaConsumer.send(transaction)
+        return measureModelUtilTiming("setAccountDetail") {
+            val transaction = Transaction
+                .builder(irohaConsumer.creator)
+                .setAccountDetail(accountId, key, value)
+                .build()
+            irohaConsumer.send(transaction)
+        }
     }
 
     /**
@@ -99,16 +101,18 @@ object ModelUtil {
         publicKey: PublicKey,
         vararg roleName: String
     ): Result<String, Exception> {
-        var txBuilder = Transaction
-            .builder(irohaConsumer.creator)
-            .createAccount(name, domain, publicKey)
-        val accountId = "$name@$domain"
-        roleName.forEach { role ->
-            txBuilder = txBuilder.appendRole(accountId, role)
+        return measureModelUtilTiming("createAccount") {
+            var txBuilder = Transaction
+                .builder(irohaConsumer.creator)
+                .createAccount(name, domain, publicKey)
+            val accountId = "$name@$domain"
+            roleName.forEach { role ->
+                txBuilder = txBuilder.appendRole(accountId, role)
+            }
+            val transaction = txBuilder
+                .build()
+            irohaConsumer.send(transaction)
         }
-        val transaction = txBuilder
-            .build()
-        return irohaConsumer.send(transaction)
     }
 
     /**
@@ -123,11 +127,13 @@ object ModelUtil {
         accountId: String,
         permissions: Iterable<Primitive.GrantablePermission>
     ): Result<String, Exception> {
-        val transaction = Transaction
-            .builder(irohaConsumer.creator)
-            .grantPermissions(accountId, permissions)
-            .build()
-        return irohaConsumer.send(transaction)
+        return measureModelUtilTiming("grantPermissions") {
+            val transaction = Transaction
+                .builder(irohaConsumer.creator)
+                .grantPermissions(accountId, permissions)
+                .build()
+            irohaConsumer.send(transaction)
+        }
     }
 
     /**
@@ -142,11 +148,13 @@ object ModelUtil {
         accountId: String,
         publicKey: PublicKey
     ): Result<String, Exception> {
-        val transaction = Transaction
-            .builder(irohaConsumer.creator)
-            .addSignatory(accountId, publicKey)
-            .build()
-        return irohaConsumer.send(transaction)
+        return measureModelUtilTiming("addSignatory") {
+            val transaction = Transaction
+                .builder(irohaConsumer.creator)
+                .addSignatory(accountId, publicKey)
+                .build()
+            irohaConsumer.send(transaction)
+        }
     }
 
     /**
@@ -161,11 +169,13 @@ object ModelUtil {
         accountId: String,
         quorum: Int
     ): Result<String, Exception> {
-        val transaction = Transaction
-            .builder(irohaConsumer.creator)
-            .setAccountQuorum(accountId, quorum)
-            .build()
-        return irohaConsumer.send(transaction)
+        return measureModelUtilTiming("setAccountQuorum") {
+            val transaction = Transaction
+                .builder(irohaConsumer.creator)
+                .setAccountQuorum(accountId, quorum)
+                .build()
+            irohaConsumer.send(transaction)
+        }
     }
 
     /**
@@ -182,11 +192,13 @@ object ModelUtil {
         domainId: String,
         precision: Int
     ): Result<String, Exception> {
-        val transaction = Transaction
-            .builder(irohaConsumer.creator)
-            .createAsset(assetName, domainId, precision)
-            .build()
-        return irohaConsumer.send(transaction)
+        return measureModelUtilTiming("createAsset") {
+            val transaction = Transaction
+                .builder(irohaConsumer.creator)
+                .createAsset(assetName, domainId, precision)
+                .build()
+            irohaConsumer.send(transaction)
+        }
     }
 
     /**
@@ -201,11 +213,13 @@ object ModelUtil {
         assetId: String,
         amount: String
     ): Result<String, Exception> {
-        val transaction = Transaction
-            .builder(irohaConsumer.creator)
-            .addAssetQuantity(assetId, amount)
-            .build()
-        return irohaConsumer.send(transaction)
+        return measureModelUtilTiming("addAssetIroha") {
+            val transaction = Transaction
+                .builder(irohaConsumer.creator)
+                .addAssetQuantity(assetId, amount)
+                .build()
+            irohaConsumer.send(transaction)
+        }
     }
 
     /**
@@ -228,11 +242,13 @@ object ModelUtil {
         amount: String,
         creationTime: Long = System.currentTimeMillis()
     ): Result<String, Exception> {
-        val transaction = Transaction
-            .builder(irohaConsumer.creator, creationTime)
-            .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
-            .build()
-        return irohaConsumer.send(transaction)
+        return measureModelUtilTiming("transferAssetIroha") {
+            val transaction = Transaction
+                .builder(irohaConsumer.creator, creationTime)
+                .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
+                .build()
+            irohaConsumer.send(transaction)
+        }
     }
 
     /**
@@ -262,10 +278,23 @@ object ModelUtil {
         domain: String,
         pubkey: PublicKey
     ): Result<String, Exception> {
-        val transaction = Transaction
-            .builder(irohaConsumer.creator)
-            .createAccount(name, domain, pubkey)
-            .build()
-        return irohaConsumer.send(transaction)
+        return measureModelUtilTiming("createAccount") {
+            val transaction = Transaction
+                .builder(irohaConsumer.creator)
+                .createAccount(name, domain, pubkey)
+                .build()
+            irohaConsumer.send(transaction)
+        }
     }
+
+    private fun <T> measureModelUtilTiming(operationName: String, func: () -> T): T {
+        try {
+            logger.info("Start ModelUtil operation $operationName")
+            return func()
+        } finally {
+            logger.info("Stop ModelUtil operation $operationName")
+        }
+    }
+
+
 }
