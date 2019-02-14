@@ -1,7 +1,8 @@
 package integration.btc
 
+import com.d3.btc.helper.currency.satToBtc
+import com.d3.btc.model.BtcAddressType
 import com.github.kittinunf.result.failure
-import helper.currency.satToBtc
 import integration.btc.environment.BtcAddressGenerationTestEnvironment
 import integration.btc.environment.BtcNotaryTestEnvironment
 import integration.btc.environment.BtcRegistrationTestEnvironment
@@ -17,7 +18,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
-import provider.btc.address.BtcAddressType
 import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
 import util.hex

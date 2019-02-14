@@ -1,5 +1,8 @@
 package generation.btc.trigger
 
+import com.d3.btc.model.BtcAddressType
+import com.d3.btc.provider.BtcFreeAddressesProvider
+import com.d3.btc.provider.generation.BtcSessionProvider
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
@@ -10,9 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import provider.TriggerProvider
-import provider.btc.address.BtcAddressType
-import provider.btc.address.BtcFreeAddressesProvider
-import provider.btc.generation.BtcSessionProvider
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.consumer.IrohaConverter
 

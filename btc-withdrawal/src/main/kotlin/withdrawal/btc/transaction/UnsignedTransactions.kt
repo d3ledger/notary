@@ -1,6 +1,6 @@
 package withdrawal.btc.transaction
 
-import monitoring.Monitoring
+import com.d3.btc.monitoring.Monitoring
 import org.bitcoinj.core.Transaction
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component

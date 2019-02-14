@@ -1,14 +1,14 @@
 package registration.btc.strategy
 
+import com.d3.btc.provider.BtcRegisteredAddressesProvider
+import com.d3.btc.provider.account.IrohaBtcAccountCreator
+import com.d3.btc.provider.address.BtcAddressesProvider
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import provider.btc.account.IrohaBtcAccountCreator
-import provider.btc.address.BtcAddressesProvider
-import provider.btc.address.BtcRegisteredAddressesProvider
 import registration.RegistrationStrategy
 
 //Strategy for registering BTC addresses

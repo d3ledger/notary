@@ -1,10 +1,10 @@
 package integration.btc.environment
 
+import com.d3.btc.provider.BtcRegisteredAddressesProvider
+import com.d3.btc.provider.account.IrohaBtcAccountCreator
+import com.d3.btc.provider.address.BtcAddressesProvider
 import integration.helper.BtcIntegrationHelperUtil
 import model.IrohaCredential
-import provider.btc.account.IrohaBtcAccountCreator
-import provider.btc.address.BtcAddressesProvider
-import provider.btc.address.BtcRegisteredAddressesProvider
 import registration.btc.init.BtcRegistrationServiceInitialization
 import registration.btc.strategy.BtcRegistrationStrategyImpl
 import sidechain.iroha.consumer.IrohaConsumerImpl

@@ -1,9 +1,12 @@
 package integration.btc.environment
 
+import com.d3.btc.fee.BtcFeeRateService
+import com.d3.btc.handler.NewBtcClientRegistrationHandler
+import com.d3.btc.helper.address.outPutToBase58Address
+import com.d3.btc.provider.BtcRegisteredAddressesProvider
+import com.d3.btc.provider.network.BtcNetworkConfigProvider
+import com.d3.btc.provider.network.BtcRegTestConfigProvider
 import config.BitcoinConfig
-import fee.BtcFeeRateService
-import handler.btc.NewBtcClientRegistrationHandler
-import helper.address.outPutToBase58Address
 import integration.helper.BtcIntegrationHelperUtil
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
@@ -11,9 +14,6 @@ import model.IrohaCredential
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.TransactionOutput
 import org.bitcoinj.wallet.Wallet
-import provider.btc.address.BtcRegisteredAddressesProvider
-import provider.btc.network.BtcNetworkConfigProvider
-import provider.btc.network.BtcRegTestConfigProvider
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil

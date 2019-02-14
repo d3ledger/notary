@@ -1,5 +1,9 @@
 package generation.btc.trigger
 
+import com.d3.btc.provider.BtcFreeAddressesProvider
+import com.d3.btc.provider.BtcRegisteredAddressesProvider
+import com.d3.btc.provider.address.BtcAddressesProvider
+import com.d3.btc.provider.generation.BtcSessionProvider
 import config.loadConfigs
 import generation.btc.config.BtcAddressGenerationConfig
 import jp.co.soramitsu.iroha.java.IrohaAPI
@@ -8,11 +12,6 @@ import model.IrohaCredential
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import provider.TriggerProvider
-import provider.btc.address.BtcAddressesProvider
-import provider.btc.address.BtcFreeAddressesProvider
-import provider.btc.address.BtcRegisteredAddressesProvider
-import provider.btc.generation.BtcSessionProvider
-
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 

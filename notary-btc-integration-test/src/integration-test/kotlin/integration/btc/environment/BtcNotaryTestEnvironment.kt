@@ -1,14 +1,14 @@
 package integration.btc.environment
 
+import com.d3.btc.handler.NewBtcClientRegistrationHandler
+import com.d3.btc.listener.NewBtcClientRegistrationListener
+import com.d3.btc.provider.BtcRegisteredAddressesProvider
+import com.d3.btc.provider.network.BtcRegTestConfigProvider
 import config.BitcoinConfig
-import handler.btc.NewBtcClientRegistrationHandler
 import integration.helper.BtcIntegrationHelperUtil
-import listener.btc.NewBtcClientRegistrationListener
 import model.IrohaCredential
 import notary.btc.config.BtcNotaryConfig
 import notary.btc.init.BtcNotaryInitialization
-import provider.btc.address.BtcRegisteredAddressesProvider
-import provider.btc.network.BtcRegTestConfigProvider
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.util.ModelUtil
 import java.io.Closeable

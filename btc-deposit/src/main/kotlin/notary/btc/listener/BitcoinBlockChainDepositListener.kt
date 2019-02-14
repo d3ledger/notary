@@ -1,12 +1,12 @@
 package notary.btc.listener
 
+import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import io.reactivex.ObservableEmitter
 import mu.KLogging
 import org.bitcoinj.core.Block
 import org.bitcoinj.core.FilteredBlock
 import org.bitcoinj.core.Peer
 import org.bitcoinj.core.listeners.BlocksDownloadedEventListener
-import provider.btc.address.BtcRegisteredAddressesProvider
 import sidechain.SideChainEvent
 import java.io.Closeable
 import java.util.concurrent.ExecutorService

@@ -1,11 +1,17 @@
 package integration.helper
 
+import com.d3.btc.helper.currency.satToBtc
+import com.d3.btc.model.AddressInfo
+import com.d3.btc.peer.SharedPeerGroup
+import com.d3.btc.provider.BtcRegisteredAddressesProvider
+import com.d3.btc.provider.account.IrohaBtcAccountCreator
+import com.d3.btc.provider.address.BtcAddressesProvider
+import com.d3.btc.provider.network.BtcNetworkConfigProvider
 import com.github.jleskovar.btcrpc.BitcoinRpcClientFactory
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import config.BitcoinConfig
-import helper.currency.satToBtc
 import mu.KLogging
 import notary.IrohaCommand
 import notary.IrohaOrderedBatch
@@ -17,12 +23,6 @@ import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
-import peer.SharedPeerGroup
-import provider.btc.account.IrohaBtcAccountCreator
-import provider.btc.address.AddressInfo
-import provider.btc.address.BtcAddressesProvider
-import provider.btc.address.BtcRegisteredAddressesProvider
-import provider.btc.network.BtcNetworkConfigProvider
 import registration.btc.strategy.BtcRegistrationStrategyImpl
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumerImpl

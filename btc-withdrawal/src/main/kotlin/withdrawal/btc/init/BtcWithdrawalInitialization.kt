@@ -1,13 +1,15 @@
 package withdrawal.btc.init
 
+import com.d3.btc.fee.BtcFeeRateService
+import com.d3.btc.handler.NewBtcClientRegistrationHandler
+import com.d3.btc.healthcheck.HealthyService
+import com.d3.btc.helper.network.addPeerConnectionStatusListener
+import com.d3.btc.helper.network.startChainDownload
+import com.d3.btc.provider.BtcRegisteredAddressesProvider
+import com.d3.btc.provider.network.BtcNetworkConfigProvider
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import fee.BtcFeeRateService
-import handler.btc.NewBtcClientRegistrationHandler
-import healthcheck.HealthyService
-import helper.network.addPeerConnectionStatusListener
-import helper.network.startChainDownload
 import io.reactivex.schedulers.Schedulers
 import iroha.protocol.Commands
 import mu.KLogging
@@ -18,8 +20,6 @@ import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
-import provider.btc.address.BtcRegisteredAddressesProvider
-import provider.btc.network.BtcNetworkConfigProvider
 import sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.util.getSetDetailCommands
