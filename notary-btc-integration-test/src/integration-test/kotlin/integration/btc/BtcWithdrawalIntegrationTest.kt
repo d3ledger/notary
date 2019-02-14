@@ -1,8 +1,8 @@
 package integration.btc
 
+import com.d3.btc.helper.address.outPutToBase58Address
+import com.d3.btc.helper.currency.satToBtc
 import com.github.kittinunf.result.failure
-import helper.address.outPutToBase58Address
-import helper.currency.satToBtc
 import integration.btc.environment.BtcWithdrawalTestEnvironment
 import integration.helper.BTC_ASSET
 import integration.helper.BtcIntegrationHelperUtil

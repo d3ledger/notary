@@ -1,12 +1,17 @@
 package generation.btc.init
 
+import com.d3.btc.healthcheck.HealthyService
+import com.d3.btc.model.BtcAddressType
+import com.d3.btc.model.getAddressTypeByAccountId
+import com.d3.btc.provider.account.BTC_CURRENCY_NAME_KEY
+import com.d3.btc.provider.generation.ADDRESS_GENERATION_TIME_KEY
+import com.d3.btc.provider.generation.BtcPublicKeyProvider
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import generation.btc.config.BtcAddressGenerationConfig
 import generation.btc.trigger.AddressGenerationTrigger
-import healthcheck.HealthyService
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import iroha.protocol.BlockOuterClass
@@ -16,11 +21,6 @@ import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
-import provider.btc.account.BTC_CURRENCY_NAME_KEY
-import provider.btc.address.BtcAddressType
-import provider.btc.address.getAddressTypeByAccountId
-import provider.btc.generation.ADDRESS_GENERATION_TIME_KEY
-import provider.btc.generation.BtcPublicKeyProvider
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.util.getAccountDetails

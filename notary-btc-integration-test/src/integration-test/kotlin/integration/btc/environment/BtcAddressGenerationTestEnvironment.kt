@@ -1,5 +1,12 @@
 package integration.btc.environment
 
+import com.d3.btc.provider.BtcFreeAddressesProvider
+import com.d3.btc.provider.BtcRegisteredAddressesProvider
+import com.d3.btc.provider.address.BtcAddressesProvider
+import com.d3.btc.provider.generation.BtcPublicKeyProvider
+import com.d3.btc.provider.generation.BtcSessionProvider
+import com.d3.btc.provider.network.BtcRegTestConfigProvider
+import com.d3.btc.wallet.WalletFile
 import generation.btc.init.BtcAddressGenerationInitialization
 import generation.btc.trigger.AddressGenerationTrigger
 import integration.helper.BtcIntegrationHelperUtil
@@ -10,16 +17,9 @@ import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
 import provider.NotaryPeerListProviderImpl
 import provider.TriggerProvider
-import provider.btc.address.BtcAddressesProvider
-import provider.btc.address.BtcFreeAddressesProvider
-import provider.btc.address.BtcRegisteredAddressesProvider
-import provider.btc.generation.BtcPublicKeyProvider
-import provider.btc.generation.BtcSessionProvider
-import provider.btc.network.BtcRegTestConfigProvider
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
-import wallet.WalletFile
 import java.io.Closeable
 import java.io.File
 import java.util.concurrent.Executors

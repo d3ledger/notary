@@ -1,11 +1,11 @@
 package withdrawal.btc.provider
 
+import com.d3.btc.model.AddressInfo
+import com.d3.btc.model.BtcAddress
+import com.d3.btc.monitoring.Monitoring
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import jp.co.soramitsu.iroha.java.QueryAPI
-import monitoring.Monitoring
-import provider.btc.address.AddressInfo
-import provider.btc.address.BtcAddress
 import sidechain.iroha.util.getAccountDetails
 
 /*

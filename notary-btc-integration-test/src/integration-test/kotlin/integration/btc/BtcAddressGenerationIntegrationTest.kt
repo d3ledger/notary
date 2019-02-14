@@ -1,5 +1,8 @@
 package integration.btc
 
+import com.d3.btc.model.AddressInfo
+import com.d3.btc.model.BtcAddressType
+import com.d3.btc.provider.generation.ADDRESS_GENERATION_TIME_KEY
 import com.github.kittinunf.result.failure
 import integration.btc.environment.BtcAddressGenerationTestEnvironment
 import integration.helper.BtcIntegrationHelperUtil
@@ -16,9 +19,6 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
-import provider.btc.address.AddressInfo
-import provider.btc.address.BtcAddressType
-import provider.btc.generation.ADDRESS_GENERATION_TIME_KEY
 import java.io.File
 
 const val WAIT_PREGEN_PROCESS_MILLIS = 20_000L

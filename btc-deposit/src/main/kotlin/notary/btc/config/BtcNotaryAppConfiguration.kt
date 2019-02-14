@@ -1,5 +1,6 @@
 package notary.btc.config
 
+import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import config.BitcoinConfig
 import config.loadConfigs
 import jp.co.soramitsu.iroha.java.IrohaAPI
@@ -8,7 +9,6 @@ import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import provider.btc.address.BtcRegisteredAddressesProvider
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.util.ModelUtil
 import java.io.File

@@ -1,5 +1,6 @@
 package withdrawal.btc.transaction
 
+import com.d3.btc.provider.network.BtcNetworkConfigProvider
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
@@ -10,7 +11,6 @@ import org.bitcoinj.core.TransactionOutput
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import provider.btc.network.BtcNetworkConfigProvider
 import withdrawal.btc.provider.BtcChangeAddressProvider
 
 /*
