@@ -15,6 +15,7 @@ import org.bitcoinj.core.Utils
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
+import org.junit.Assert.assertTrue
 import org.junit.jupiter.api.*
 import java.io.File
 
@@ -72,10 +73,10 @@ class BtcMultiAddressGenerationIntegrationTest {
             )
         val notaryKeys = sessionDetails.entries.filter { entry -> entry.key != ADDRESS_GENERATION_TIME_KEY }
             .map { entry -> entry.value }
-        val pubKey = notaryKeys.first()
-        Assertions.assertNotNull(pubKey)
         val wallet = Wallet.loadFromFile(File(environment.btcGenerationConfig.btcWalletFilePath))
-        Assertions.assertTrue(wallet.issuedReceiveKeys.any { ecKey -> ecKey.publicKeyAsHex == pubKey })
+        notaryKeys.forEach { pubKey ->
+            assertTrue(wallet.issuedReceiveKeys.any { ecKey -> ecKey.publicKeyAsHex == pubKey })
+        }
         val notaryAccountDetails =
             integrationHelper.getAccountDetails(
                 environment.btcGenerationConfig.notaryAccount,

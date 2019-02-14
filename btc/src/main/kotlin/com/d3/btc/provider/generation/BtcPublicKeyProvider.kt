@@ -19,6 +19,10 @@ import provider.NotaryPeerListProvider
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.util.ModelUtil
 import util.getRandomId
+<<<<<<< HEAD:btc/src/main/kotlin/com/d3/btc/provider/generation/BtcPublicKeyProvider.kt
+=======
+import wallet.WalletFile
+>>>>>>> Fixed comments:btc/src/main/kotlin/provider/btc/generation/BtcPublicKeyProvider.kt
 
 /**
  *  Bitcoin keys provider
