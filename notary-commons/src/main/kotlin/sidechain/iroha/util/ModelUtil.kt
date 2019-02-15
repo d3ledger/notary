@@ -12,7 +12,6 @@ import jp.co.soramitsu.iroha.java.Utils
 import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.consumer.IrohaConsumer
-import util.hex
 import java.io.IOException
 import java.math.BigInteger
 import java.nio.file.Files
@@ -70,7 +69,7 @@ object ModelUtil {
      * @param accountId - account to set details
      * @param key - key of detail
      * @param value - value of detail
-     * @param quorum - tx quorum. -1 by default
+     * @param quorum - tx quorum. 1 by default
      * @return hex representation of transaction hash
      */
     fun setAccountDetail(
@@ -79,17 +78,14 @@ object ModelUtil {
         key: String,
         value: String,
         createdTime: Long = System.currentTimeMillis(),
-        quorum: Int = -1
+        quorum: Int = 1
     ): Result<String, Exception> {
         val transactionBuilder = Transaction
             .builder(irohaConsumer.creator)
             .setAccountDetail(accountId, key, value)
             .setCreatedTime(createdTime)
-        if (quorum > 0) {
-            transactionBuilder.setQuorum(quorum)
-        }
-        val transaction = transactionBuilder.build()
-        return irohaConsumer.send(transaction)
+            .setQuorum(quorum)
+        return irohaConsumer.send(transactionBuilder.build())
     }
 
     /**
