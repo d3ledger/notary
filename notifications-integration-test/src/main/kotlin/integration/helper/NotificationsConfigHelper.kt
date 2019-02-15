@@ -1,6 +1,6 @@
 package integration.helper
 
-import notifications.config.NotificationsConfig
+import com.d3.notifications.config.NotificationsConfig
 
 class NotificationsConfigHelper(private val accountHelper: IrohaAccountHelper) : IrohaConfigHelper() {
 

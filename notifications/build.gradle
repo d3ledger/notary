@@ -6,7 +6,7 @@ buildscript {
 }
 apply plugin: 'application'
 apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
-mainClassName = "notifications.NotificationsMain"
+mainClassName = "com.d3.notifications.NotificationsMain"
 
 dependencies {
     compile project(":notary-commons")
@@ -26,7 +26,7 @@ dependencies {
 }
 
 task runNotifications(type: JavaExec) {
-    main = 'notifications.NotificationsMain'
+    main = 'com.d3.notifications.NotificationsMain'
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
 }

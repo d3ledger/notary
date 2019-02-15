@@ -1,4 +1,4 @@
-package notifications.push
+package com.d3.notifications.push
 
 import com.github.kittinunf.result.Result
 

@@ -1,4 +1,4 @@
-package notifications.config
+package com.d3.notifications.config
 
 import config.IrohaConfig
 import config.IrohaCredentialConfig

@@ -1,12 +1,12 @@
-package notifications.init
+package com.d3.notifications.init
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import io.reactivex.schedulers.Schedulers
 import iroha.protocol.Commands
 import mu.KLogging
-import notifications.service.NotificationService
-import notifications.service.TransferNotifyEvent
+import com.d3.notifications.service.NotificationService
+import com.d3.notifications.service.TransferNotifyEvent
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import sidechain.iroha.IrohaChainListener
