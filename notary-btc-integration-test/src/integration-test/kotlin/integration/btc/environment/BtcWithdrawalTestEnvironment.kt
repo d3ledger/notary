@@ -14,9 +14,11 @@ import model.IrohaCredential
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.TransactionOutput
 import org.bitcoinj.wallet.Wallet
+import provider.NotaryPeerListProviderImpl
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
+import withdrawal.btc.config.BtcWithdrawalConfig
 import withdrawal.btc.handler.NewFeeRateWasSetHandler
 import withdrawal.btc.handler.NewSignatureEventHandler
 import withdrawal.btc.handler.WithdrawalTransferEventHandler
@@ -33,12 +35,20 @@ import java.util.concurrent.Executors
 /**
  * Bitcoin withdrawal service testing environment
  */
-class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegrationHelperUtil, testName: String = "") :
-    Closeable {
+class BtcWithdrawalTestEnvironment(
+    private val integrationHelper: BtcIntegrationHelperUtil,
+    testName: String = "",
+    val btcWithdrawalConfig: BtcWithdrawalConfig = integrationHelper.configHelper.createBtcWithdrawalConfig(testName),
+    withdrawalCredential: IrohaCredential =
+        IrohaCredential(
+            btcWithdrawalConfig.withdrawalCredential.accountId, ModelUtil.loadKeypair(
+                btcWithdrawalConfig.withdrawalCredential.pubkeyPath,
+                btcWithdrawalConfig.withdrawalCredential.privkeyPath
+            ).get()
+        )
+) : Closeable {
 
     val createdTransactions = ConcurrentHashMap<String, Pair<Long, Transaction>>()
-
-    val btcWithdrawalConfig = integrationHelper.configHelper.createBtcWithdrawalConfig(testName)
 
     /**
      * It's essential to handle blocks in this service one-by-one.
@@ -60,18 +70,10 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
         irohaAPI
     }
 
-    private val withdrawalKeypair = ModelUtil.loadKeypair(
-        btcWithdrawalConfig.withdrawalCredential.pubkeyPath,
-        btcWithdrawalConfig.withdrawalCredential.privkeyPath
-    ).fold({ keypair -> keypair }, { ex -> throw ex })
-
     private val btcFeeRateKeypair = ModelUtil.loadKeypair(
         btcWithdrawalConfig.btcFeeRateCredential.pubkeyPath,
         btcWithdrawalConfig.btcFeeRateCredential.privkeyPath
     ).fold({ keypair -> keypair }, { ex -> throw ex })
-
-    private val withdrawalCredential =
-        IrohaCredential(btcWithdrawalConfig.withdrawalCredential.accountId, withdrawalKeypair)
 
     private val btcFeeRateCredential =
         IrohaCredential(btcWithdrawalConfig.btcFeeRateCredential.accountId, btcFeeRateKeypair)
@@ -132,7 +134,12 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
         )
 
     private val withdrawalStatistics = WithdrawalStatistics.create()
-    private val btcRollbackService = BtcRollbackService(withdrawalIrohaConsumer)
+    private val notaryPeerListProvider = NotaryPeerListProviderImpl(
+        integrationHelper.queryAPI,
+        btcWithdrawalConfig.notaryListStorageAccount,
+        btcWithdrawalConfig.notaryListSetterAccount
+    )
+    private val btcRollbackService = BtcRollbackService(withdrawalIrohaConsumer, notaryPeerListProvider)
     val unsignedTransactions = UnsignedTransactions(signCollector)
     val withdrawalTransferEventHandler = WithdrawalTransferEventHandler(
         withdrawalStatistics,

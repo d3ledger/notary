@@ -42,7 +42,6 @@ class BtcWithdrawalIntegrationTest {
     @BeforeAll
     fun setUp() {
         CurrentFeeRate.set(DEFAULT_FEE_RATE)
-        File(environment.btcWithdrawalConfig.bitcoin.blockStoragePath).mkdirs()
         val blockStorageFolder = File(environment.btcWithdrawalConfig.bitcoin.blockStoragePath)
         //Clear bitcoin blockchain folder
         blockStorageFolder.deleteRecursively()

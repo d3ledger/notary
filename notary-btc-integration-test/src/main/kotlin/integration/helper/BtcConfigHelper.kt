@@ -55,6 +55,8 @@ class BtcConfigHelper(
         val btcWithdrawalConfig =
             loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties").get()
         return object : BtcWithdrawalConfig {
+            override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
+            override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
             override val btcFeeRateCredential = accountHelper.createCredentialConfig(accountHelper.btcFeeRateAccount)
             override val signatureCollectorCredential =
                 accountHelper.createCredentialConfig(accountHelper.btcWithdrawalSignatureCollectorAccount)
