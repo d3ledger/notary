@@ -1,4 +1,4 @@
-package registration.btc.init
+package com.d3.btc.registration.init
 
 import com.github.kittinunf.result.Result
 import mu.KLogging
@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import registration.RegistrationServiceEndpoint
 import registration.RegistrationStrategy
-import registration.btc.config.BtcRegistrationConfig
+import com.d3.btc.registration.config.BtcRegistrationConfig
 
 @Component
 class BtcRegistrationServiceInitialization(

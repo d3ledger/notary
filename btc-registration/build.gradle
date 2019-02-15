@@ -13,14 +13,14 @@ apply plugin: 'application'
 apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
 apply plugin: 'org.springframework.boot'
 apply plugin: 'com.github.johnrengelman.shadow'
-mainClassName = "registration.btc.BtcRegistrationMain"
+mainClassName = "com.d3.btc.registration.BtcRegistrationMain"
 
 dependencies {
     compile project(":btc")
 }
 
 task runBtcRegistration(type: JavaExec) {
-    main = 'registration.btc.BtcRegistrationMain'
+    main = 'com.d3.btc.registration.BtcRegistrationMain'
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
 }
