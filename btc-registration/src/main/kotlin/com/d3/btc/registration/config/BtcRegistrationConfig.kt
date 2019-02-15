@@ -1,4 +1,4 @@
-package registration.btc.config
+package com.d3.btc.registration.config
 
 import config.IrohaConfig
 import config.IrohaCredentialConfig

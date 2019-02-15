@@ -1,4 +1,4 @@
-package registration.btc.config
+package com.d3.btc.registration.config
 
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.account.IrohaBtcAccountCreator

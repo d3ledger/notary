@@ -23,7 +23,7 @@ import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
-import registration.btc.strategy.BtcRegistrationStrategyImpl
+import com.d3.btc.registration.strategy.BtcRegistrationStrategyImpl
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverter

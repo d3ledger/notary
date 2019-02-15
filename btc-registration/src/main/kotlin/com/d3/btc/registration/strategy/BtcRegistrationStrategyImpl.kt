@@ -1,4 +1,4 @@
-package registration.btc.strategy
+package com.d3.btc.registration.strategy
 
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.account.IrohaBtcAccountCreator

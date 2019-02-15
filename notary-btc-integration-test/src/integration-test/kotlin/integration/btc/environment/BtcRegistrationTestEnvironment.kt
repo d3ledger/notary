@@ -3,10 +3,10 @@ package integration.btc.environment
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.account.IrohaBtcAccountCreator
 import com.d3.btc.provider.address.BtcAddressesProvider
+import com.d3.btc.registration.init.BtcRegistrationServiceInitialization
 import integration.helper.BtcIntegrationHelperUtil
 import model.IrohaCredential
-import registration.btc.init.BtcRegistrationServiceInitialization
-import registration.btc.strategy.BtcRegistrationStrategyImpl
+import com.d3.btc.registration.strategy.BtcRegistrationStrategyImpl
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import java.io.Closeable

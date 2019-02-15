@@ -1,7 +1,9 @@
 @file:JvmName("BtcRegistrationMain")
 
-package registration.btc
+package com.d3.btc.registration
 
+import com.d3.btc.registration.config.btcRegistrationConfig
+import com.d3.btc.registration.init.BtcRegistrationServiceInitialization
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
@@ -10,13 +12,11 @@ import mu.KLogging
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.ComponentScan
-import registration.btc.config.btcRegistrationConfig
-import registration.btc.init.BtcRegistrationServiceInitialization
 
 private val logger = KLogging().logger
 
 @SpringBootApplication
-@ComponentScan(basePackages = ["registration"])
+@ComponentScan(basePackages = ["com.d3.btc.registration"])
 class BtcRegistrationApplication
 
 /**
