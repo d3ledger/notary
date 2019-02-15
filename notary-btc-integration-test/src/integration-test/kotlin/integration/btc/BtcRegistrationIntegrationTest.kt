@@ -41,7 +41,7 @@ class BtcRegistrationIntegrationTest {
      */
     @Test
     fun testRegistration() {
-        integrationHelper.genFreeBtcAddress(environment.btcNotaryConfig.bitcoin.walletPath)
+        integrationHelper.genFreeBtcAddress(environment.btcDepositConfig.bitcoin.walletPath)
         val keypair = Ed25519Sha3().generateKeypair()
         val userName = String.getRandomString(9)
         val res = khttp.post(
@@ -96,7 +96,7 @@ class BtcRegistrationIntegrationTest {
     fun testRegistrationMultiple() {
         val takenAddresses = HashSet<String>()
         val addressesToRegister = 3
-        integrationHelper.preGenFreeBtcAddresses(environment.btcNotaryConfig.bitcoin.walletPath, addressesToRegister)
+        integrationHelper.preGenFreeBtcAddresses(environment.btcDepositConfig.bitcoin.walletPath, addressesToRegister)
         for (i in 1..addressesToRegister) {
             val num = khttp.get("http://127.0.0.1:${environment.btcRegistrationConfig.port}/free-addresses/number")
             assertEquals((addressesToRegister - i + 1).toString(), num.text)
@@ -163,7 +163,7 @@ class BtcRegistrationIntegrationTest {
     @Test
     fun testRegistrationOnlyChangeAddresses() {
         val clientsBeforeRegistration = environment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
-        integrationHelper.genChangeBtcAddress(environment.btcNotaryConfig.bitcoin.walletPath)
+        integrationHelper.genChangeBtcAddress(environment.btcDepositConfig.bitcoin.walletPath)
 
         val num = khttp.get("http://127.0.0.1:${environment.btcRegistrationConfig.port}/free-addresses/number")
         assertEquals("0", num.text)

@@ -1,4 +1,4 @@
-package notary.btc.listener
+package com.d3.btc.deposit.listener
 
 import com.d3.btc.helper.address.outPutToBase58Address
 import com.d3.btc.helper.currency.satToBtc
@@ -42,7 +42,12 @@ class BitcoinTransactionListener(
             logger.info { "BTC was received, but it's not confirmed yet. Tx: ${tx.hashAsString}" }
             tx.confidence.addEventListener(
                 confidenceListenerExecutor,
-                ConfirmedTxListener(confidenceLevel, tx, blockTime, ::handleTx)
+                ConfirmedTxListener(
+                    confidenceLevel,
+                    tx,
+                    blockTime,
+                    ::handleTx
+                )
             )
 
         }

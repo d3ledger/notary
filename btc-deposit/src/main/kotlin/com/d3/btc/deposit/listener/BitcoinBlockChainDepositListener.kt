@@ -1,4 +1,4 @@
-package notary.btc.listener
+package com.d3.btc.deposit.listener
 
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import io.reactivex.ObservableEmitter
@@ -8,9 +8,7 @@ import org.bitcoinj.core.FilteredBlock
 import org.bitcoinj.core.Peer
 import org.bitcoinj.core.listeners.BlocksDownloadedEventListener
 import sidechain.SideChainEvent
-import java.io.Closeable
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 private const val DAY_MILLIS = 24 * 60 * 60 * 1000L
 

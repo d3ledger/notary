@@ -1,4 +1,4 @@
-package notary.btc.init
+package com.d3.btc.deposit.init
 
 import com.d3.btc.healthcheck.HealthyService
 import com.d3.btc.helper.network.addPeerConnectionStatusListener
@@ -15,9 +15,9 @@ import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import mu.KLogging
-import notary.btc.config.BtcNotaryConfig
-import notary.btc.factory.createBtcNotary
-import notary.btc.listener.BitcoinBlockChainDepositListener
+import com.d3.btc.deposit.config.BtcDepositConfig
+import com.d3.btc.deposit.factory.createBtcNotary
+import com.d3.btc.deposit.listener.BitcoinBlockChainDepositListener
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.PeerGroup
 import org.bitcoinj.utils.BriefLogFormatter
@@ -35,7 +35,7 @@ import java.util.concurrent.Executors
 class BtcNotaryInitialization(
     @Autowired private val peerGroup: PeerGroup,
     @Autowired private val wallet: Wallet,
-    @Autowired private val btcNotaryConfig: BtcNotaryConfig,
+    @Autowired private val btcDepositConfig: BtcDepositConfig,
     @Qualifier("notaryCredential")
     @Autowired private val irohaCredential: IrohaCredential,
     @Autowired private val irohaAPI: IrohaAPI,
@@ -83,16 +83,17 @@ class BtcNotaryInitialization(
             }
             logger.info { "Previously registered addresses were added to the wallet" }
         }.map {
-            getBtcEvents(peerGroup, btcNotaryConfig.bitcoin.confidenceLevel)
+            getBtcEvents(peerGroup, btcDepositConfig.bitcoin.confidenceLevel)
         }.map { btcEvents ->
             val queryAPI = QueryAPI(irohaAPI, irohaCredential.accountId, irohaCredential.keyPair)
 
             val peerListProvider = NotaryPeerListProviderImpl(
                 queryAPI,
-                btcNotaryConfig.notaryListStorageAccount,
-                btcNotaryConfig.notaryListSetterAccount
+                btcDepositConfig.notaryListStorageAccount,
+                btcDepositConfig.notaryListSetterAccount
             )
-            val notary = createBtcNotary(irohaCredential, irohaAPI, btcEvents, peerListProvider)
+            val notary =
+                createBtcNotary(irohaCredential, irohaAPI, btcEvents, peerListProvider)
             notary.initIrohaConsumer().failure { ex -> throw ex }
         }.map {
             startChainDownload(peerGroup)

@@ -30,7 +30,7 @@ class BtcMultiNotaryIntegrationTest {
         integrationHelper.accountHelper.notaryAccounts
             .forEach { notaryAccount ->
                 val testName = "multi_notary_${peerCount++}"
-                val notaryConfig = integrationHelper.configHelper.createBtcNotaryConfig(testName, notaryAccount)
+                val notaryConfig = integrationHelper.configHelper.createBtcDepositConfig(testName, notaryAccount)
                 environments.add(
                     BtcNotaryTestEnvironment(
                         integrationHelper = integrationHelper,

@@ -1,11 +1,11 @@
-package notary.btc.config
+package com.d3.btc.deposit.config
 
 import config.BitcoinConfig
 import config.IrohaConfig
 import config.IrohaCredentialConfig
 
-/** Configuration of Bitcoin notary */
-interface BtcNotaryConfig {
+/** Configuration of Bitcoin deposit */
+interface BtcDepositConfig {
     /** Web port for health checks */
     val healthCheckPort: Int
 

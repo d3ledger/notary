@@ -8,7 +8,7 @@ import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
-import notary.btc.config.BtcNotaryConfig
+import com.d3.btc.deposit.config.BtcDepositConfig
 import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -25,7 +25,7 @@ import java.util.concurrent.Executors
 
 val withdrawalConfig =
     loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties").get()
-val notaryConfig = loadConfigs("btc-notary", BtcNotaryConfig::class.java, "/btc/notary.properties").get()
+val depositConfig = loadConfigs("btc-deposit", BtcDepositConfig::class.java, "/btc/deposit.properties").get()
 val dwBridgeConfig = loadConfigs("btc-dw-bridge", BtcDWBridgeConfig::class.java, "/btc/dw-bridge.properties").get()
 
 @Configuration
@@ -37,8 +37,8 @@ class BtcDWBridgeAppConfiguration {
     ).fold({ keypair -> keypair }, { ex -> throw ex })
 
     private val notaryKeypair = ModelUtil.loadKeypair(
-        notaryConfig.notaryCredential.pubkeyPath,
-        notaryConfig.notaryCredential.privkeyPath
+        depositConfig.notaryCredential.pubkeyPath,
+        depositConfig.notaryCredential.privkeyPath
     ).fold({ keypair -> keypair }, { ex -> throw ex })
 
     private val signatureCollectorKeypair = ModelUtil.loadKeypair(
@@ -54,10 +54,10 @@ class BtcDWBridgeAppConfiguration {
     }, { ex -> throw ex })
 
     private val notaryCredential =
-        IrohaCredential(notaryConfig.notaryCredential.accountId, notaryKeypair)
+        IrohaCredential(depositConfig.notaryCredential.accountId, notaryKeypair)
 
     @Bean
-    fun notaryConfig() = notaryConfig
+    fun notaryConfig() = depositConfig
 
     @Bean
     fun irohaAPI(): IrohaAPI {
@@ -78,14 +78,14 @@ class BtcDWBridgeAppConfiguration {
     @Bean
     fun btcRegisteredAddressesProvider(): BtcRegisteredAddressesProvider {
         ModelUtil.loadKeypair(
-            notaryConfig.notaryCredential.pubkeyPath,
-            notaryConfig.notaryCredential.privkeyPath
+            depositConfig.notaryCredential.pubkeyPath,
+            depositConfig.notaryCredential.privkeyPath
         )
             .fold({ keypair ->
                 return BtcRegisteredAddressesProvider(
-                    QueryAPI(irohaAPI(), notaryConfig.notaryCredential.accountId, keypair),
-                    notaryConfig.registrationAccount,
-                    notaryConfig.notaryCredential.accountId
+                    QueryAPI(irohaAPI(), depositConfig.notaryCredential.accountId, keypair),
+                    depositConfig.registrationAccount,
+                    depositConfig.notaryCredential.accountId
                 )
             }, { ex -> throw ex })
     }

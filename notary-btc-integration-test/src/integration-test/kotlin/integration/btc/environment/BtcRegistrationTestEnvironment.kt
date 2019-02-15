@@ -19,7 +19,7 @@ class BtcRegistrationTestEnvironment(private val integrationHelper: BtcIntegrati
 
     val btcRegistrationConfig = integrationHelper.configHelper.createBtcRegistrationConfig()
 
-    val btcNotaryConfig = integrationHelper.configHelper.createBtcNotaryConfig()
+    val btcDepositConfig = integrationHelper.configHelper.createBtcDepositConfig()
 
     private val btcRegistrationCredential = ModelUtil.loadKeypair(
         btcRegistrationConfig.registrationCredential.pubkeyPath,
