@@ -10,15 +10,15 @@ import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import nl.martijndwars.webpush.PushService
-import notifications.config.PushAPIConfig
-import notifications.config.SMTPConfig
-import notifications.init.NotificationInitialization
-import notifications.provider.D3ClientProvider
-import notifications.push.PushServiceFactory
-import notifications.push.WebPushAPIServiceImpl
-import notifications.service.EmailNotificationService
-import notifications.service.PushNotificationService
-import notifications.smtp.SMTPServiceImpl
+import com.d3.notifications.config.PushAPIConfig
+import com.d3.notifications.config.SMTPConfig
+import com.d3.notifications.init.NotificationInitialization
+import com.d3.notifications.provider.D3ClientProvider
+import com.d3.notifications.push.PushServiceFactory
+import com.d3.notifications.push.WebPushAPIServiceImpl
+import com.d3.notifications.service.EmailNotificationService
+import com.d3.notifications.service.PushNotificationService
+import com.d3.notifications.smtp.SMTPServiceImpl
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.IrohaChainListener
@@ -69,7 +69,8 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
 
     private val smtpService = SMTPServiceImpl(smtpConfig)
 
-    private val emailNotificationService = EmailNotificationService(smtpService, d3ClientProvider)
+    private val emailNotificationService =
+        EmailNotificationService(smtpService, d3ClientProvider)
 
     val pushService =
         spy(PushService(pushAPIConfig.vapidPubKeyBase64, pushAPIConfig.vapidPrivKeyBase64, "D3 notifications"))
@@ -79,10 +80,18 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
     }
 
     private val pushNotificationService =
-        PushNotificationService(WebPushAPIServiceImpl(d3ClientProvider, pushServiceFactory))
+        PushNotificationService(
+            WebPushAPIServiceImpl(
+                d3ClientProvider,
+                pushServiceFactory
+            )
+        )
 
     val notificationInitialization =
-        NotificationInitialization(irohaChainListener, listOf(emailNotificationService, pushNotificationService))
+        NotificationInitialization(
+            irohaChainListener,
+            listOf(emailNotificationService, pushNotificationService)
+        )
 
     // Source account
     val srcClientName = String.getRandomString(9)

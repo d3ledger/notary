@@ -1,4 +1,4 @@
-package notifications.config
+package com.d3.notifications.config
 
 import config.getConfigFolder
 import config.loadRawConfigs
@@ -7,9 +7,9 @@ import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import nl.martijndwars.webpush.PushService
-import notifications.provider.D3ClientProvider
-import notifications.push.PushServiceFactory
-import notifications.smtp.SMTPServiceImpl
+import com.d3.notifications.provider.D3ClientProvider
+import com.d3.notifications.push.PushServiceFactory
+import com.d3.notifications.smtp.SMTPServiceImpl
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import sidechain.iroha.IrohaChainListener

@@ -1,16 +1,16 @@
 @file:JvmName("NotificationsMain")
 
-package notifications
+package com.d3.notifications
 
+import com.d3.notifications.init.NotificationInitialization
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import mu.KLogging
-import notifications.init.NotificationInitialization
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.ComponentScan
 
-@ComponentScan(basePackages = ["notifications"])
+@ComponentScan(basePackages = ["com.d3.notifications"])
 class NotificationApplication
 
 private val logger = KLogging().logger

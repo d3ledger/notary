@@ -1,4 +1,4 @@
-package notifications.client
+package com.d3.notifications.client
 
 import com.google.gson.Gson
 import nl.martijndwars.webpush.Subscription

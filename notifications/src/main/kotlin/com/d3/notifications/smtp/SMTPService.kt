@@ -1,4 +1,4 @@
-package notifications.smtp
+package com.d3.notifications.smtp
 
 import com.github.kittinunf.result.Result
 

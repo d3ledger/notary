@@ -1,4 +1,4 @@
-package notifications.service
+package com.d3.notifications.service
 
 import com.github.kittinunf.result.Result
 import java.math.BigDecimal

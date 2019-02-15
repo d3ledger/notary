@@ -1,4 +1,4 @@
-package notifications.push
+package com.d3.notifications.push
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
@@ -6,12 +6,11 @@ import mu.KLogging
 import nl.martijndwars.webpush.Notification
 import nl.martijndwars.webpush.PushService
 import nl.martijndwars.webpush.Subscription
-import notifications.provider.D3ClientProvider
+import com.d3.notifications.provider.D3ClientProvider
 import org.apache.http.util.EntityUtils
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import java.nio.charset.Charset
 import java.security.Security
 
 /**

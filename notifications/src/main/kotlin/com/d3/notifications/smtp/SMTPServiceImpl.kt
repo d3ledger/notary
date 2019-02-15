@@ -1,9 +1,9 @@
-package notifications.smtp
+package com.d3.notifications.smtp
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import mu.KLogging
-import notifications.config.SMTPConfig
+import com.d3.notifications.config.SMTPConfig
 import java.util.*
 import javax.mail.*
 import javax.mail.internet.InternetAddress
@@ -14,7 +14,8 @@ import javax.mail.internet.MimeMultipart
 /**
  * Service that is used to send email messages using SMTP
  */
-class SMTPServiceImpl(private val smtpConfig: SMTPConfig) : SMTPService {
+class SMTPServiceImpl(private val smtpConfig: SMTPConfig) :
+    SMTPService {
 
     private val properties = Properties()
 
