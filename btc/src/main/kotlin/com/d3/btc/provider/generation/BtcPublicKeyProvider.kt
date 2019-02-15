@@ -115,7 +115,9 @@ class BtcPublicKeyProvider(
                 multiSigConsumer,
                 storageAccount,
                 msAddress.toBase58(),
-                addressInfo.toJson()
+                addressInfo.toJson(),
+                generationTime,
+                quorum = peers
             ).fold({
                 walletFile.save()
                 logger.info { "New BTC ${addressType.title} address $msAddress was created " }
