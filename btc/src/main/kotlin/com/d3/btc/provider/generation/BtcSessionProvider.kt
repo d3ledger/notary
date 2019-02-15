@@ -13,6 +13,7 @@ import util.hex
 
 private const val BTC_SESSION_DOMAIN = "btcSession"
 const val ADDRESS_GENERATION_TIME_KEY = "addressGenerationTime"
+const val ADDRESS_GENERATION_NODE_ID_KEY = "nodeId"
 
 // Class for creating session accounts. Theses accounts are used to store BTC public keys.
 class BtcSessionProvider(
@@ -25,11 +26,12 @@ class BtcSessionProvider(
      * Creates a special session account for notaries public key storage
      *
      * @param sessionId session identifier aka session account name
+     * @param nodeId - node id
      * @return Result of account creation process
      */
-    fun createPubKeyCreationSession(sessionId: String): Result<String, Exception> {
+    fun createPubKeyCreationSession(sessionId: String, nodeId: String): Result<String, Exception> {
         return Result.of {
-            createPubKeyCreationSessionTx(sessionId)
+            createPubKeyCreationSessionTx(sessionId, nodeId)
         }.flatMap { irohaTx ->
             val utx = IrohaConverter.convert(irohaTx)
             irohaConsumer.send(utx)
@@ -39,10 +41,11 @@ class BtcSessionProvider(
     /**
      * Creates a transaction that may be used to create special session account for notaries public key storage
      *
-     * @param sessionId session identifier aka session account name
+     * @param sessionId - session identifier aka session account name
+     * @param nodeId - node id
      * @return Iroha transaction full of session creation commands
      */
-    fun createPubKeyCreationSessionTx(sessionId: String): IrohaTransaction {
+    fun createPubKeyCreationSessionTx(sessionId: String, nodeId: String): IrohaTransaction {
         return IrohaTransaction(
             credential.accountId,
             ModelUtil.getCurrentTime(),
@@ -57,6 +60,12 @@ class BtcSessionProvider(
                     "$sessionId@$BTC_SESSION_DOMAIN",
                     ADDRESS_GENERATION_TIME_KEY,
                     System.currentTimeMillis().toString()
+                ),
+                //Setting node id
+                IrohaCommand.CommandSetAccountDetail(
+                    "$sessionId@$BTC_SESSION_DOMAIN",
+                    ADDRESS_GENERATION_NODE_ID_KEY,
+                    nodeId
                 )
             )
         )

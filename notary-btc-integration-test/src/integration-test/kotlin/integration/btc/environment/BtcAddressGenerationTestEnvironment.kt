@@ -139,7 +139,7 @@ class BtcAddressGenerationTestEnvironment(
     )
 
     val btcFreeAddressesProvider =
-        BtcFreeAddressesProvider(btcAddressesProvider, btcRegisteredAddressesProvider)
+        BtcFreeAddressesProvider(btcGenerationConfig.nodeId, btcAddressesProvider, btcRegisteredAddressesProvider)
 
     private val addressGenerationTrigger = AddressGenerationTrigger(
         btcKeyGenSessionProvider,

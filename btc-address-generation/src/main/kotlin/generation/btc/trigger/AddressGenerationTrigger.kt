@@ -31,15 +31,17 @@ class AddressGenerationTrigger(
      * Starts address generation process
      * @param addressType - type of address to generate
      * @param addressesToGenerate - number of addresses to generate. 1 by default.
+     * @param nodeId - node id
      */
     fun startAddressGeneration(
         addressType: BtcAddressType,
-        addressesToGenerate: Int = 1
+        addressesToGenerate: Int = 1,
+        nodeId: String
     ): Result<Unit, Exception> {
         val txList = ArrayList<IrohaTransaction>()
         for (addresses in 1..addressesToGenerate) {
             val sessionAccountName = addressType.createSessionAccountName()
-            txList.add(btcSessionProvider.createPubKeyCreationSessionTx(sessionAccountName))
+            txList.add(btcSessionProvider.createPubKeyCreationSessionTx(sessionAccountName, nodeId))
             txList.add(
                 btcAddressGenerationTriggerProvider.triggerTx(
                     sessionAccountName
@@ -55,13 +57,14 @@ class AddressGenerationTrigger(
      * Starts free address generation process, if there is a need to generate.
      * Addresses will be generated if there is not enough free addresses in Iroha.
      * @param addressesThreshold - minimum number of free addresses to keep in Iroha
+     * @param nodeId - node id
      */
-    fun startFreeAddressGenerationIfNeeded(addressesThreshold: Int): Result<Unit, Exception> {
+    fun startFreeAddressGenerationIfNeeded(addressesThreshold: Int, nodeId: String): Result<Unit, Exception> {
         return btcFreeAddressesProvider.getFreeAddresses().flatMap { freeAddresses ->
             if (freeAddresses.size < addressesThreshold) {
                 val addressesToGenerate = addressesThreshold - freeAddresses.size
                 logger.info { "Generating $addressesToGenerate addresses" }
-                startAddressGeneration(BtcAddressType.FREE, addressesToGenerate)
+                startAddressGeneration(BtcAddressType.FREE, addressesToGenerate, nodeId)
             } else {
                 logger.info { "No need to generate addresses" }
                 Result.of { Unit }

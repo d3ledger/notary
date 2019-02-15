@@ -32,6 +32,7 @@ class BtcConfigHelper(
 
         return object : BtcAddressGenerationConfig {
             override val threshold = initAddresses
+            override val nodeId = NODE_ID
             override val changeAddressesStorageAccount = accountHelper.changeAddressesStorageAccount.accountId
             override val healthCheckPort = btcPkPreGenConfig.healthCheckPort
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
@@ -141,6 +142,7 @@ class BtcConfigHelper(
         val btcRegistrationConfig =
             loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/btc/registration.properties").get()
         return object : BtcRegistrationConfig {
+            override val nodeId = NODE_ID
             override val healthCheckPort = btcRegistrationConfig.healthCheckPort
             override val notaryAccount = accountHelper.notaryAccount.accountId
             override val mstRegistrationAccount = accountHelper.mstRegistrationAccount.accountId
@@ -150,5 +152,4 @@ class BtcConfigHelper(
             override val iroha = createIrohaConfig()
         }
     }
-
 }

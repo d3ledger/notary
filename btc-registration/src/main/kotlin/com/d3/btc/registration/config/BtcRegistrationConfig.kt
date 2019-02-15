@@ -24,4 +24,7 @@ interface BtcRegistrationConfig {
 
     /** Port for health check service */
     val healthCheckPort: Int
+
+    /** Node id */
+    val nodeId: String
 }

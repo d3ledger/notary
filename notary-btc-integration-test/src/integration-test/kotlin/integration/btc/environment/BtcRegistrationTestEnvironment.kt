@@ -1,5 +1,6 @@
 package integration.btc.environment
 
+import com.d3.btc.provider.BtcFreeAddressesProvider
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.account.IrohaBtcAccountCreator
 import com.d3.btc.provider.address.BtcAddressesProvider
@@ -35,8 +36,10 @@ class BtcRegistrationTestEnvironment(private val integrationHelper: BtcIntegrati
     val btcRegistrationServiceInitialization = BtcRegistrationServiceInitialization(
         btcRegistrationConfig,
         BtcRegistrationStrategyImpl(
-            btcAddressesProvider(),
-            btcRegisteredAddressesProvider(),
+            BtcFreeAddressesProvider(
+                btcRegistrationConfig.nodeId, btcAddressesProvider(),
+                btcRegisteredAddressesProvider()
+            ),
             irohaBtcAccountCreator()
         )
     )

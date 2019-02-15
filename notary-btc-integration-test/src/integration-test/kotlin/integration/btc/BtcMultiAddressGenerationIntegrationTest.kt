@@ -3,6 +3,7 @@ package integration.btc
 import com.d3.btc.helper.address.getSignThreshold
 import com.d3.btc.model.AddressInfo
 import com.d3.btc.model.BtcAddressType
+import com.d3.btc.provider.generation.ADDRESS_GENERATION_NODE_ID_KEY
 import com.d3.btc.provider.generation.ADDRESS_GENERATION_TIME_KEY
 import com.github.kittinunf.result.failure
 import integration.btc.environment.BtcAddressGenerationTestEnvironment
@@ -15,13 +16,18 @@ import org.bitcoinj.core.Utils
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
-import org.junit.Assert.assertTrue
-import org.junit.jupiter.api.*
+import org.junit.Assert.*
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.fail
 import java.io.File
+import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcMultiAddressGenerationIntegrationTest {
 
+    private val nodeId = UUID.randomUUID()
     private val peers = 3
     private val integrationHelper = BtcIntegrationHelperUtil(peers)
     private val environments = ArrayList<BtcAddressGenerationTestEnvironment>()
@@ -61,9 +67,11 @@ class BtcMultiAddressGenerationIntegrationTest {
     fun testGenerateFreeAddress() {
         val environment = environments.first()
         val sessionAccountName = BtcAddressType.FREE.createSessionAccountName()
-        environment.btcKeyGenSessionProvider.createPubKeyCreationSession(sessionAccountName)
-            .fold({ BtcAddressGenerationIntegrationTest.logger.info { "session $sessionAccountName was created" } },
-                { ex -> fail("cannot create session", ex) })
+        environment.btcKeyGenSessionProvider.createPubKeyCreationSession(
+            sessionAccountName,
+            nodeId.toString()
+        ).fold({ BtcAddressGenerationIntegrationTest.logger.info { "session $sessionAccountName was created" } },
+            { ex -> fail("cannot create session", ex) })
         environment.triggerProvider.trigger(sessionAccountName)
         Thread.sleep(WAIT_PREGEN_PROCESS_MILLIS * peers)
         val sessionDetails =
@@ -71,8 +79,11 @@ class BtcMultiAddressGenerationIntegrationTest {
                 "$sessionAccountName@btcSession",
                 environment.btcGenerationConfig.registrationAccount.accountId
             )
-        val notaryKeys = sessionDetails.entries.filter { entry -> entry.key != ADDRESS_GENERATION_TIME_KEY }
-            .map { entry -> entry.value }
+        val notaryKeys =
+            sessionDetails.entries.filter { entry ->
+                entry.key != ADDRESS_GENERATION_TIME_KEY
+                        && entry.key != ADDRESS_GENERATION_NODE_ID_KEY
+            }.map { entry -> entry.value }
         val wallet = Wallet.loadFromFile(File(environment.btcGenerationConfig.btcWalletFilePath))
         notaryKeys.forEach { pubKey ->
             assertTrue(wallet.issuedReceiveKeys.any { ecKey -> ecKey.publicKeyAsHex == pubKey })
@@ -84,8 +95,9 @@ class BtcMultiAddressGenerationIntegrationTest {
             )
         val expectedMsAddress = createMsAddress(notaryKeys)
         val generatedAddress = AddressInfo.fromJson(notaryAccountDetails[expectedMsAddress]!!)!!
-        Assertions.assertEquals(BtcAddressType.FREE.title, generatedAddress.irohaClient)
-        Assertions.assertEquals(notaryKeys, generatedAddress.notaryKeys.toList())
+        assertNull(generatedAddress.irohaClient)
+        assertEquals(notaryKeys, generatedAddress.notaryKeys.toList())
+        assertEquals(nodeId.toString(), generatedAddress.nodeId)
     }
 
     private fun createMsAddress(notaryKeys: Collection<String>): String {

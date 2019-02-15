@@ -73,12 +73,13 @@ class BitcoinTransactionListener(
                     Subtracting 2 hours is just a simple workaround of this problem.
                     */
                     BigInteger.valueOf(blockTime.time - TWO_HOURS_MILLIS),
-                    btcAddress.info.irohaClient,
+                    btcAddress.info.irohaClient!!,
                     BTC_ASSET_NAME,
                     btcValue.toPlainString(),
                     ""
                 )
-                logger.info { "BTC deposit event(tx ${tx.hashAsString}, amount ${btcValue.toPlainString()}) was created. Related client is ${btcAddress.info.irohaClient}. " }
+                logger.info { "BTC deposit event(tx ${tx.hashAsString}, amount ${btcValue.toPlainString()}) was created. " +
+                        "Related client is ${btcAddress.info.irohaClient}. " }
                 emitter.onNext(event)
             }
         }

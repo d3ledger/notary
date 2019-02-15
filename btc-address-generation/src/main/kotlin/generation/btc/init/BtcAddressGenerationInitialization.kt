@@ -4,6 +4,7 @@ import com.d3.btc.healthcheck.HealthyService
 import com.d3.btc.model.BtcAddressType
 import com.d3.btc.model.getAddressTypeByAccountId
 import com.d3.btc.provider.account.BTC_CURRENCY_NAME_KEY
+import com.d3.btc.provider.generation.ADDRESS_GENERATION_NODE_ID_KEY
 import com.d3.btc.provider.generation.ADDRESS_GENERATION_TIME_KEY
 import com.d3.btc.provider.generation.BtcPublicKeyProvider
 import com.github.kittinunf.result.Result
@@ -50,7 +51,10 @@ class BtcAddressGenerationInitialization(
             }.flatMap {
                 // Start address generation at initial phase
                 addressGenerationTrigger
-                    .startFreeAddressGenerationIfNeeded(btcAddressGenerationConfig.threshold)
+                    .startFreeAddressGenerationIfNeeded(
+                        btcAddressGenerationConfig.threshold,
+                        btcAddressGenerationConfig.nodeId
+                    )
             }
     }
 
@@ -59,7 +63,10 @@ class BtcAddressGenerationInitialization(
             getSetDetailCommands(block).forEach { command ->
                 if (isNewClientRegistered(command)) {
                     // generate new multisignature address if new client has been registered recently
-                    addressGenerationTrigger.startFreeAddressGenerationIfNeeded(btcAddressGenerationConfig.threshold)
+                    addressGenerationTrigger.startFreeAddressGenerationIfNeeded(
+                        btcAddressGenerationConfig.threshold,
+                        btcAddressGenerationConfig.nodeId
+                    )
                         .fold(
                             { "Free BTC address generation was triggered" },
                             { ex -> logger.error("Cannot trigger address generation", ex) })
@@ -103,7 +110,11 @@ class BtcAddressGenerationInitialization(
         return btcPublicKeyProvider.createKey(sessionAccountName)
     }
 
-    // Generates multisig address
+    /**
+     * Generates multisig address
+     * @param sessionAccount - account that holds public keys that are used in multisig address generation
+     * @param addressType - type of address to generate
+     */
     private fun onGenerateMultiSigAddress(
         sessionAccount: String,
         addressType: BtcAddressType
@@ -115,10 +126,17 @@ class BtcAddressGenerationInitialization(
         ).flatMap { details ->
             // Getting time
             val time = details.remove(ADDRESS_GENERATION_TIME_KEY)!!.toLong()
+            // Getting node id
+            val nodeId = details.remove(ADDRESS_GENERATION_NODE_ID_KEY)!!
             // Getting keys
             val notaryKeys = details.values
             if (!notaryKeys.isEmpty()) {
-                btcPublicKeyProvider.checkAndCreateMultiSigAddress(notaryKeys, addressType, time)
+                btcPublicKeyProvider.checkAndCreateMultiSigAddress(
+                    notaryKeys,
+                    addressType,
+                    time,
+                    nodeId
+                )
             } else {
                 Result.of { Unit }
             }

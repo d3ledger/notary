@@ -21,7 +21,11 @@ fun main(args: Array<String>) {
     Result.of {
         AnnotationConfigApplicationContext(BtcChangeAddressGenerationApplication::class.java)
     }.flatMap { context ->
-        context.getBean(AddressGenerationTrigger::class.java).startAddressGeneration(addressType)
+        context.getBean(AddressGenerationTrigger::class.java)
+            .startAddressGeneration(
+                addressType = addressType,
+                nodeId = btcAddressGenerationTriggerConfig.nodeId
+            )
     }.fold(
         {
             logger.info { "${addressType.title} address generation process was started" }
