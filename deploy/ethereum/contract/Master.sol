@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.4;
 
 import "./IRelayRegistry.sol";
 import "./IERC20.sol";
@@ -17,9 +17,6 @@ contract Master {
     IRelayRegistry private relayRegistryInstance;
 
     address[] private tokens;
-
-    // TODO: For development purpose only, https://soramitsu.atlassian.net/browse/D3-418
-    bool public isLockAddPeer = false;
 
     /**
      * Emit event when master contract does not have enough assets to proceed withdraw
@@ -69,23 +66,10 @@ contract Master {
     }
 
     /**
-     * Adds new peers to list of signature verifiers. Can be called only by contract owner.
-     * @param newAddresses addresses of new peers
-     */
-    function addPeers(address[] memory newAddresses) public onlyOwner returns (uint) {
-        for (uint i = 0; i < newAddresses.length; i++) {
-            addPeer(newAddresses[i]);
-        }
-        return peersCount;
-    }
-
-    /**
      * Adds new peer to list of signature verifiers. Can be called only by contract owner.
      * @param newAddress address of new peer
      */
     function addPeer(address newAddress) private returns (uint) {
-        // TODO: For development purpose only, https://soramitsu.atlassian.net/browse/D3-418
-        require(!isLockAddPeer);
         require(peers[newAddress] == false);
         peers[newAddress] = true;
         ++peersCount;
@@ -163,13 +147,6 @@ contract Master {
     }
 
     /**
-     * Disable adding the new peers
-     */
-    function disableAddingNewPeers() public onlyOwner {
-        isLockAddPeer = true;
-    }
-
-    /**
      * Adds new token to whitelist. Token should not been already added.
      * @param newToken token to add
      */
@@ -224,7 +201,6 @@ contract Master {
     )
     public
     {
-        require(isLockAddPeer);
         require(checkTokenAddress(tokenAddress));
         require(relayRegistryInstance.isWhiteListed(from, to));
         // TODO luckychess 26.06.2018 D3-101 improve require checks (copy-paste) (use modifiers)

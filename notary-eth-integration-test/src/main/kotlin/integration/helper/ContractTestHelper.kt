@@ -24,7 +24,12 @@ class ContractTestHelper {
     val keypair = deployHelper.credentials.ecKeyPair
     val relayRegistry by lazy { deployHelper.deployRelayRegistrySmartContract() }
     val token by lazy { deployHelper.deployERC20TokenSmartContract() }
-    val master by lazy { deployHelper.deployMasterSmartContract(relayRegistry.contractAddress) }
+    val master by lazy {
+        deployHelper.deployMasterSmartContract(
+            relayRegistry.contractAddress,
+            listOf(accMain, accGreen)
+        )
+    }
     val relay by lazy { deployHelper.deployRelaySmartContract(master.contractAddress) }
 
     private var addPeerCalls = BigInteger.ZERO
@@ -53,13 +58,6 @@ class ContractTestHelper {
             ss.add(vrs.s)
         }
         return sigsData(vv, rr, ss)
-    }
-
-    fun sendAddPeer(address: String) {
-        ++addPeerCalls
-        master.addPeer(address).send()
-        // addPeer return number of added peers
-        assertEquals(addPeerCalls, master.peersCount().send())
     }
 
     fun transferTokensToMaster(amount: BigInteger) {

@@ -76,7 +76,6 @@ class WithdrawalMultinotaryIntegrationTest {
         // run 2nd instance of notary
         integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig2)
 
-        integrationHelper.lockEthMasterSmartcontract()
     }
 
     @AfterAll
