@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test
 import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Keys
 import org.web3j.protocol.exceptions.TransactionException
+import sidechain.eth.util.hashToAddAndRemovePeer
 import sidechain.eth.util.hashToWithdraw
 import java.math.BigInteger
 import java.time.Duration
@@ -161,6 +162,7 @@ class MasterTest {
     fun secondWithdrawAfterVacuum() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             val initialBalance = cth.getETHBalance(accGreen)
+            println(master.peersCount().send())
             cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
             val call =
                 cth.withdraw(
@@ -477,6 +479,10 @@ class MasterTest {
                 )
 
             val keypairs = ArrayList<ECKeyPair>()
+            for (i in 0 until sigCount) {
+                val keypair = Keys.createEcKeyPair()
+                keypairs.add(keypair)
+            }
             val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
 
             master.withdraw(
@@ -519,6 +525,10 @@ class MasterTest {
                 )
 
             val keypairs = ArrayList<ECKeyPair>()
+            for (i in 0 until sigCount) {
+                val keypair = Keys.createEcKeyPair()
+                keypairs.add(keypair)
+            }
             val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
 
             Assertions.assertThrows(TransactionException::class.java) {
@@ -561,6 +571,10 @@ class MasterTest {
                 )
 
             val keypairs = ArrayList<ECKeyPair>()
+            for (i in 0 until sigCount) {
+                val keypair = Keys.createEcKeyPair()
+                keypairs.add(keypair)
+            }
             val sigs = cth.prepareSignatures(sigCount, keypairs, finalHash)
 
             master.withdraw(
@@ -605,6 +619,10 @@ class MasterTest {
                 )
 
             val keypairs = ArrayList<ECKeyPair>()
+            for (i in 0 until sigCount) {
+                val keypair = Keys.createEcKeyPair()
+                keypairs.add(keypair)
+            }
             val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
 
             master.withdraw(
@@ -647,6 +665,10 @@ class MasterTest {
                 )
 
             val keypairs = ArrayList<ECKeyPair>()
+            for (i in 0 until sigCount) {
+                val keypair = Keys.createEcKeyPair()
+                keypairs.add(keypair)
+            }
             val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
 
             Assertions.assertThrows(TransactionException::class.java) {
@@ -679,10 +701,38 @@ class MasterTest {
         }
     }
 
-
     /**
      * @given relay registry and master contracts
      * @when try to add one more peer address by all valid peers
-     * @then
+     * @then the new peer should be added
      */
+    @Test
+    fun addNewPeerByPeers() {
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            var newPeer = "0x3"
+            val sigCount = 4
+            val realSigCount = 4
+
+            val finalHash =
+                hashToAddAndRemovePeer(
+                    newPeer,
+                    cth.defaultIrohaHash
+                )
+
+            val keypairs = ArrayList<ECKeyPair>()
+
+            for (i in 0 until sigCount) {
+                val keypair = Keys.createEcKeyPair()
+                keypairs.add(keypair)
+            }
+            val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
+
+            master.addPeerByPeer(
+                newPeer, cth.defaultByteHash, sigs.vv,
+                sigs.rr,
+                sigs.ss
+            ).send()
+
+        }
+    }
 }

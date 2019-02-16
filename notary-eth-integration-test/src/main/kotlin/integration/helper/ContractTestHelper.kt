@@ -27,12 +27,10 @@ class ContractTestHelper {
     val master by lazy {
         deployHelper.deployMasterSmartContract(
             relayRegistry.contractAddress,
-            listOf(accMain, accGreen)
+            listOf(accMain)
         )
     }
     val relay by lazy { deployHelper.deployRelaySmartContract(master.contractAddress) }
-
-    private var addPeerCalls = BigInteger.ZERO
 
     val etherAddress = "0x0000000000000000000000000000000000000000"
     val defaultIrohaHash = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))
