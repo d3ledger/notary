@@ -816,8 +816,8 @@ class MasterTest {
 
     /**
      * @given relay registry and master contracts
-     * @when try to remove one peer address by all valid peers
-     * @then the tx should be failed and new peer is not saved
+     * @when try to remove one peer address by rest of peers
+     * @then the tx should be successful and peer is removed
      */
     @Test
     fun removePeerByPeers() {
