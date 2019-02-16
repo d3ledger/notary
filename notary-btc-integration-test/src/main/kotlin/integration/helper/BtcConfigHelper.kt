@@ -3,8 +3,9 @@ package integration.helper
 import config.BitcoinConfig
 import config.loadConfigs
 import generation.btc.config.BtcAddressGenerationConfig
+import model.IrohaCredential
 import notary.btc.config.BtcNotaryConfig
-import registration.btc.config.BtcRegistrationConfig
+import com.d3.btc.registration.config.BtcRegistrationConfig
 import withdrawal.btc.config.BtcWithdrawalConfig
 import java.io.File
 import java.io.FileInputStream
@@ -17,8 +18,11 @@ class BtcConfigHelper(
     private val accountHelper: IrohaAccountHelper
 ) : IrohaConfigHelper() {
 
-    /** Creates config for BTC multisig addresses generation */
-    fun createBtcAddressGenerationConfig(): BtcAddressGenerationConfig {
+    /** Creates config for BTC multisig addresses generation
+     * @param initAddresses - number of addresses that will be generated at initial phase
+     * @return config
+     * */
+    fun createBtcAddressGenerationConfig(initAddresses: Int): BtcAddressGenerationConfig {
         val btcPkPreGenConfig =
             loadConfigs(
                 "btc-address-generation",
@@ -27,7 +31,7 @@ class BtcConfigHelper(
             ).get()
 
         return object : BtcAddressGenerationConfig {
-            override val threshold = 2
+            override val threshold = initAddresses
             override val changeAddressesStorageAccount = accountHelper.changeAddressesStorageAccount.accountId
             override val healthCheckPort = btcPkPreGenConfig.healthCheckPort
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
@@ -86,11 +90,14 @@ class BtcConfigHelper(
     /**
      * Creates config for Bitcoin notary
      * @param testName - name of the test. used to create folder for block storage
+     * @param notaryIrohaCredential - notary Iroha credential. Taken from account helper by default
      * @return configuration
      */
-    fun createBtcNotaryConfig(testName: String = ""): BtcNotaryConfig {
+    fun createBtcNotaryConfig(
+        testName: String = "",
+        notaryIrohaCredential: IrohaCredential = accountHelper.notaryAccount
+    ): BtcNotaryConfig {
         val btcNotaryConfig = loadConfigs("btc-notary", BtcNotaryConfig::class.java, "/btc/notary.properties").get()
-
         return object : BtcNotaryConfig {
             override val healthCheckPort = btcNotaryConfig.healthCheckPort
             override val registrationAccount = accountHelper.registrationAccount.accountId
@@ -98,7 +105,7 @@ class BtcConfigHelper(
             override val bitcoin = createBitcoinConfig(btcNotaryConfig.bitcoin, testName)
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
             override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
-            override val notaryCredential = accountHelper.createCredentialConfig(accountHelper.notaryAccount)
+            override val notaryCredential = accountHelper.createCredentialConfig(notaryIrohaCredential)
         }
     }
 

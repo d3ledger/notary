@@ -1,8 +1,9 @@
 package withdrawal.btc.config
 
+import com.d3.btc.fee.BtcFeeRateService
+import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import config.BitcoinConfig
 import config.loadConfigs
-import fee.BtcFeeRateService
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
@@ -10,7 +11,6 @@ import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import provider.btc.address.BtcRegisteredAddressesProvider
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil

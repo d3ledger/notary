@@ -1,8 +1,8 @@
 package withdrawal.btc.listener
 
-import fee.BtcFeeRateService
-import fee.FeeRate
-import fee.avgFeeRate
+import com.d3.btc.fee.BtcFeeRateService
+import com.d3.btc.fee.FeeRate
+import com.d3.btc.fee.avgFeeRate
 import mu.KLogging
 import org.bitcoinj.core.Block
 import org.bitcoinj.core.FilteredBlock

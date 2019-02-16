@@ -85,7 +85,7 @@ services:
     - IROHA_HOST=d3-iroha
     - IROHA_PORT=50051
     - JAR_NAME=btc-registration.jar
-    - CLASS=registration.btc.BtcRegistrationMain
+    - CLASS=com.d3.btc.registration.BtcRegistrationMain
     networks:
     - d3-network
 

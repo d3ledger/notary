@@ -1,6 +1,6 @@
 package withdrawal.btc.handler
 
-import fee.FeeRate
+import com.d3.btc.fee.FeeRate
 import iroha.protocol.Commands
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier

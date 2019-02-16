@@ -12,12 +12,13 @@ import mu.KLogging
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
+import util.toHexString
 import java.security.KeyPair
 
 /**
  * Class that handles all the accounts in running configuration.
  */
-class IrohaAccountHelper(private val irohaAPI: IrohaAPI) {
+class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int = 1) {
 
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
 
@@ -35,6 +36,41 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI) {
     /** Notary account */
     val notaryAccount by lazy { createNotaryAccount() }
 
+
+    /**
+     * Makes given account multisignature
+     * @param account - account to make multisignature
+     * @return list of accounts with the same account id but different public keys
+     */
+    private fun makeAccountMst(account: IrohaCredential): List<IrohaCredential> {
+        val accounts = ArrayList<IrohaCredential>(peers)
+        accounts.add(account)
+        // Add signatories
+        for (peer in 2..peers) {
+            val keyPair = ModelUtil.generateKeypair()
+            val irohaCredential = IrohaCredential(account.accountId, keyPair)
+            ModelUtil.addSignatory(irohaConsumer, account.accountId, keyPair.public)
+                .failure { ex -> throw ex }
+            accounts.add(irohaCredential)
+        }
+        if (peers > 1) {
+            // Set quorum
+            ModelUtil.setAccountQuorum(irohaConsumer, account.accountId, peers)
+                .failure { ex -> throw ex }
+        }
+        return accounts
+    }
+
+    /** Notary accounts. Can be used to test multisig */
+    val notaryAccounts by lazy {
+        makeAccountMst(notaryAccount)
+    }
+
+    /** Accounts that are used to store registered clients in mst fashion. Can be used to test multisig */
+    val mstRegistrationAccounts by lazy {
+        makeAccountMst(mstRegistrationAccount)
+    }
+
     /** Notary keys */
     val notaryKeys = mutableListOf(testCredential.keyPair)
 
@@ -45,7 +81,16 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI) {
 
     /** Account that used to store registered clients in mst fashion.*/
     val mstRegistrationAccount by lazy {
-        createTesterAccount("mst_registration", "registration_service", "client")
+        val credential = createTesterAccount("mst_registration", "registration_service", "client")
+        ModelUtil.grantPermissions(
+            IrohaConsumerImpl(credential, irohaAPI),
+            testCredential.accountId,
+            listOf(
+                Primitive.GrantablePermission.can_set_my_quorum,
+                Primitive.GrantablePermission.can_add_my_signatory
+            )
+        ).failure { throw it }
+        credential
     }
 
     /** Account that used to execute transfer commands */
@@ -113,7 +158,7 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI) {
      * Create notary account and grant set_my_quorum, transfer_my_assets and add_my_signatory permissions to test account
      */
     private fun createNotaryAccount(): IrohaCredential {
-        val credential = createTesterAccount("eth_notary_${String.getRandomString(9)}", "notary")
+        val credential = createTesterAccount("notary_${String.getRandomString(9)}", "notary")
 
         ModelUtil.grantPermissions(
             IrohaConsumerImpl(credential, irohaAPI),

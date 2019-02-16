@@ -1,5 +1,6 @@
 package generation.btc.config
 
+import com.d3.btc.wallet.WalletFile
 import config.loadConfigs
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
@@ -13,7 +14,6 @@ import provider.NotaryPeerListProviderImpl
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
-import wallet.WalletFile
 import java.io.File
 import java.util.concurrent.Executors
 

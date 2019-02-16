@@ -16,7 +16,16 @@ import withdrawal.btc.init.BtcWithdrawalInitialization
 
 @EnableMBeanExport
 @SpringBootApplication
-@ComponentScan(basePackages = ["withdrawal", "healthcheck", "provider.btc.network", "handler.btc", "provider.btc.address", "provider.btc.wallet", "peer"])
+@ComponentScan(
+    basePackages = [
+        "withdrawal",
+        "com.d3.btc.healthcheck",
+        "com.d3.btc.provider.network",
+        "com.d3.btc.handler",
+        "com.d3.btc.provider.address",
+        "com.d3.btc.provider.wallet",
+        "com.d3.btc.peer"]
+)
 class BtcWithdrawalApplication
 
 private val logger = KLogging().logger

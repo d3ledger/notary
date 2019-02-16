@@ -1,5 +1,7 @@
 package withdrawal.btc.transaction;
 
+import com.d3.btc.provider.BtcRegisteredAddressesProvider;
+import com.d3.btc.provider.network.BtcRegTestConfigProvider;
 import com.github.kittinunf.result.Result;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.TransactionOutput;
@@ -7,8 +9,6 @@ import org.bitcoinj.wallet.Wallet;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
-import provider.btc.address.BtcRegisteredAddressesProvider;
-import provider.btc.network.BtcRegTestConfigProvider;
 import withdrawal.btc.provider.BtcChangeAddressProvider;
 
 import java.util.ArrayList;

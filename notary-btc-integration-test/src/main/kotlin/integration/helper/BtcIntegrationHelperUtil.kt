@@ -1,11 +1,17 @@
 package integration.helper
 
+import com.d3.btc.helper.currency.satToBtc
+import com.d3.btc.model.AddressInfo
+import com.d3.btc.peer.SharedPeerGroup
+import com.d3.btc.provider.BtcRegisteredAddressesProvider
+import com.d3.btc.provider.account.IrohaBtcAccountCreator
+import com.d3.btc.provider.address.BtcAddressesProvider
+import com.d3.btc.provider.network.BtcNetworkConfigProvider
 import com.github.jleskovar.btcrpc.BitcoinRpcClientFactory
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import config.BitcoinConfig
-import helper.currency.satToBtc
 import mu.KLogging
 import notary.IrohaCommand
 import notary.IrohaOrderedBatch
@@ -17,13 +23,7 @@ import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
-import peer.SharedPeerGroup
-import provider.btc.account.IrohaBtcAccountCreator
-import provider.btc.address.AddressInfo
-import provider.btc.address.BtcAddressesProvider
-import provider.btc.address.BtcRegisteredAddressesProvider
-import provider.btc.network.BtcNetworkConfigProvider
-import registration.btc.strategy.BtcRegistrationStrategyImpl
+import com.d3.btc.registration.strategy.BtcRegistrationStrategyImpl
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverter
@@ -37,7 +37,7 @@ const val BTC_ASSET = "btc#bitcoin"
 private const val GENERATED_ADDRESSES_PER_BATCH = 5
 private const val BTC_INITAL_BLOCKS = 101
 
-class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
+class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peers) {
 
     override val configHelper by lazy { BtcConfigHelper(accountHelper) }
 
@@ -134,9 +134,10 @@ class BtcIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     fun getPeerGroup(
         wallet: Wallet,
         btcNetworkConfigProvider: BtcNetworkConfigProvider,
-        blockStoragePath: String
+        blockStoragePath: String,
+        hosts: List<String>
     ): PeerGroup {
-        return SharedPeerGroup(btcNetworkConfigProvider, wallet, blockStoragePath, emptyList())
+        return SharedPeerGroup(btcNetworkConfigProvider, wallet, blockStoragePath, hosts)
     }
 
     private fun createMsAddress(keys: List<ECKey>): Address {

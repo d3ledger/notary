@@ -69,19 +69,23 @@ object ModelUtil {
      * @param accountId - account to set details
      * @param key - key of detail
      * @param value - value of detail
+     * @param quorum - tx quorum. 1 by default
      * @return hex representation of transaction hash
      */
     fun setAccountDetail(
         irohaConsumer: IrohaConsumer,
         accountId: String,
         key: String,
-        value: String
+        value: String,
+        createdTime: Long = System.currentTimeMillis(),
+        quorum: Int = 1
     ): Result<String, Exception> {
-        val transaction = Transaction
+        val transactionBuilder = Transaction
             .builder(irohaConsumer.creator)
             .setAccountDetail(accountId, key, value)
-            .build()
-        return irohaConsumer.send(transaction)
+            .setCreatedTime(createdTime)
+            .setQuorum(quorum)
+        return irohaConsumer.send(transactionBuilder.build())
     }
 
     /**
