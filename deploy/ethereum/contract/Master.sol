@@ -7,16 +7,16 @@ import "./IERC20.sol";
  * Provides functionality of master contract
  */
 contract Master {
-    address private owner;
-    mapping(address => bool) private peers;
+    address public owner;
+    mapping(address => bool) public peers;
     uint public peersCount;
-    mapping(bytes32 => bool) private used;
-    mapping(address => bool) private uniqueAddresses;
+    mapping(bytes32 => bool) public used;
+    mapping(address => bool) public uniqueAddresses;
 
-    address private relayRegistryAddress;
-    IRelayRegistry private relayRegistryInstance;
+    address public relayRegistryAddress;
+    IRelayRegistry public relayRegistryInstance;
 
-    address[] private tokens;
+    address[] public tokens;
 
     /**
      * Emit event when master contract does not have enough assets to proceed withdraw
@@ -89,7 +89,7 @@ contract Master {
         bytes32[] memory r,
         bytes32[] memory s
     )
-    public
+    public returns (bool)
     {
         require(used[txHash] == false);
         require(peersCount >= 1);
@@ -112,6 +112,7 @@ contract Master {
         }
         require(checkForUniqueness(recoveredAddresses));
         addPeer(newPeerAddress);
+        return true;
     }
 
     function removePeerByPeer(
@@ -121,7 +122,7 @@ contract Master {
         bytes32[] memory r,
         bytes32[] memory s
     )
-    public
+    public returns (bool)
     {
         require(used[txHash] == false);
         require(peersCount >= 1);
@@ -144,6 +145,7 @@ contract Master {
         }
         require(checkForUniqueness(recoveredAddresses));
         removePeer(peerAddress);
+        return true;
     }
 
     /**
@@ -177,6 +179,8 @@ contract Master {
         }
         return token_found;
     }
+
+    event TestInfo(string message);
 
     /**
      * Withdraws specified amount of ether or one of ERC-20 tokens to provided address
@@ -216,6 +220,8 @@ contract Master {
         uint needSigs = peersCount - f;
         require(s.length >= needSigs);
 
+        emit TestInfo("1");
+
         address[] memory recoveredAddresses = new address[](s.length);
         for (uint i = 0; i < s.length; ++i) {
             recoveredAddresses[i] = recoverAddress(
@@ -227,6 +233,7 @@ contract Master {
             // recovered address should be in peers_
             require(peers[recoveredAddresses[i]] == true);
         }
+        emit TestInfo("2");
         require(checkForUniqueness(recoveredAddresses));
 
         if (tokenAddress == address (0)) {
@@ -237,6 +244,7 @@ contract Master {
                 // untrusted transfer, relies on provided cryptographic proof
                 to.transfer(amount);
             }
+            emit TestInfo("3");
         } else {
             IERC20 coin = IERC20(tokenAddress);
             if (coin.balanceOf(address (this)) < amount) {

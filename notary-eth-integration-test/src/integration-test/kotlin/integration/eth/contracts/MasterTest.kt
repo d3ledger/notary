@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test
 import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Keys
 import org.web3j.protocol.exceptions.TransactionException
+import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.hashToAddAndRemovePeer
 import sidechain.eth.util.hashToWithdraw
 import java.math.BigInteger
@@ -421,9 +422,15 @@ class MasterTest {
     fun validSignatures4of4() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             val sigCount = 4
+            val keypairs = ArrayList<ECKeyPair>()
+            val peers = ArrayList<String>()
+            for (i in 0 until sigCount) {
+                val keypair = Keys.createEcKeyPair()
+                keypairs.add(keypair)
+                peers.add(Keys.getAddress(keypair))
+            }
+
             val amountToSend = 1000
-            val initialBalance = cth.getETHBalance(accGreen)
-            cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
 
             val finalHash =
                 hashToWithdraw(
@@ -434,10 +441,21 @@ class MasterTest {
                     master.contractAddress
                 )
 
-            val keypairs = ArrayList<ECKeyPair>()
+            val master = cth.deployMaster(
+                cth.relayRegistry.contractAddress,
+                peers
+            )
+
+            println(master.peersCount().send())
+
             val sigs = cth.prepareSignatures(sigCount, keypairs, finalHash)
 
-            master.withdraw(
+            val initialBalance = cth.getETHBalance(accGreen)
+            cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
+
+            cth.addWhiteListToRelayRegistry(master.contractAddress, listOf(accGreen))
+
+            val tx = master.withdraw(
                 etherAddress,
                 BigInteger.valueOf(amountToSend.toLong()),
                 accGreen,
@@ -446,8 +464,9 @@ class MasterTest {
                 sigs.rr,
                 sigs.ss,
                 master.contractAddress
-            ).send()
+            ).send().logsBloom
 
+            DeployHelper.logger.info("Withdraw were sent to ${master.contractAddress}; tx hash $tx")
             Assertions.assertEquals(BigInteger.valueOf(4000), cth.getETHBalance(master.contractAddress))
             Assertions.assertEquals(initialBalance + BigInteger.valueOf(1000), cth.getETHBalance(accGreen))
         }
@@ -575,6 +594,7 @@ class MasterTest {
                 val keypair = Keys.createEcKeyPair()
                 keypairs.add(keypair)
             }
+
             val sigs = cth.prepareSignatures(sigCount, keypairs, finalHash)
 
             master.withdraw(
@@ -707,9 +727,9 @@ class MasterTest {
      * @then the new peer should be added
      */
     @Test
-    fun addNewPeerByPeers() {
+    fun addNewPeerByPeers4of4() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            var newPeer = "0x3"
+            val newPeer = "0x006fe444ffbaffb27813265c50a479897b8a2514"
             val sigCount = 4
             val realSigCount = 4
 
@@ -720,19 +740,128 @@ class MasterTest {
                 )
 
             val keypairs = ArrayList<ECKeyPair>()
+            val peers = ArrayList<String>()
 
             for (i in 0 until sigCount) {
                 val keypair = Keys.createEcKeyPair()
                 keypairs.add(keypair)
+                peers.add(Keys.getAddress(keypair))
             }
+            val master = cth.deployMaster(
+                cth.relayRegistry.contractAddress,
+                peers
+            )
+
             val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
 
-            master.addPeerByPeer(
-                newPeer, cth.defaultByteHash, sigs.vv,
+            val result = master.addPeerByPeer(
+                newPeer,
+                cth.defaultByteHash,
+                sigs.vv,
                 sigs.rr,
                 sigs.ss
-            ).send()
+            ).send().isStatusOK
 
+            Assertions.assertTrue(result)
+            Assertions.assertTrue(master.peers(newPeer).send())
+        }
+    }
+
+    /**
+     * @given relay registry and master contracts
+     * @when try to add one more peer address by all valid peers
+     * @then the tx should be failed and new peer is not saved
+     */
+    @Test
+    fun addNewPeerByPeers2of4() {
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            val newPeer = "0x006fe444ffbaffb27813265c50a479897b8a2514"
+            val sigCount = 4
+            val realSigCount = 2
+
+            val finalHash =
+                hashToAddAndRemovePeer(
+                    newPeer,
+                    cth.defaultIrohaHash
+                )
+
+            val keypairs = ArrayList<ECKeyPair>()
+            val peers = ArrayList<String>()
+
+            for (i in 0 until sigCount) {
+                val keypair = Keys.createEcKeyPair()
+                keypairs.add(keypair)
+                peers.add(Keys.getAddress(keypair))
+            }
+            val master = cth.deployMaster(
+                cth.relayRegistry.contractAddress,
+                peers
+            )
+
+            val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
+
+            Assertions.assertThrows(TransactionException::class.java) {
+                master.addPeerByPeer(
+                    newPeer,
+                    cth.defaultByteHash,
+                    sigs.vv,
+                    sigs.rr,
+                    sigs.ss
+                ).send().isStatusOK
+            }
+
+            Assertions.assertFalse(master.peers(newPeer).send())
+        }
+    }
+
+    /**
+     * @given relay registry and master contracts
+     * @when try to remove one peer address by all valid peers
+     * @then the tx should be failed and new peer is not saved
+     */
+    @Test
+    fun removePeerByPeers() {
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            val peerToRemove = "0x006fe444ffbaffb27813265c50a479897b8a2514"
+            val sigCount = 4
+            val realSigCount = 4
+
+            val keypairs = ArrayList<ECKeyPair>()
+            val peers = ArrayList<String>()
+
+            for (i in 0 until sigCount) {
+                val keypair = Keys.createEcKeyPair()
+                keypairs.add(keypair)
+                peers.add(Keys.getAddress(keypair))
+            }
+
+            // deploy with peer which will be removed
+            peers.add(peerToRemove)
+            val master = cth.deployMaster(
+                cth.relayRegistry.contractAddress,
+                peers
+            )
+
+            val finalHash =
+                hashToAddAndRemovePeer(
+                    peers.first(),
+                    cth.defaultIrohaHash
+                )
+
+            val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
+
+            Assertions.assertTrue(master.peers(peerToRemove).send())
+            Assertions.assertTrue(
+                master.removePeerByPeer(
+                    peers.first(),
+                    cth.defaultByteHash,
+                    sigs.vv,
+                    sigs.rr,
+                    sigs.ss
+                ).send().isStatusOK
+            )
+
+            Assertions.assertFalse(master.peers(peers.first()).send())
         }
     }
 }

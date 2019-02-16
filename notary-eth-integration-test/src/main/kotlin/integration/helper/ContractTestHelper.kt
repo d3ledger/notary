@@ -2,6 +2,7 @@ package integration.helper
 
 import config.EthereumPasswords
 import config.loadConfigs
+import contract.Master
 import integration.TestConfig
 import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Hash
@@ -207,6 +208,13 @@ class ContractTestHelper {
 
     fun getERC20TokenBalance(contractAddress: String, whoAddress: String): BigInteger {
         return deployHelper.getERC20Balance(contractAddress, whoAddress)
+    }
+
+    fun deployMaster(relayAddress: String, peers: List<String>): Master {
+        return deployHelper.deployMasterSmartContract(
+            relayAddress,
+            peers
+        )
     }
 
     fun deployFailer(): String {
