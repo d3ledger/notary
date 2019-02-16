@@ -180,8 +180,6 @@ contract Master {
         return token_found;
     }
 
-    event TestInfo(string message);
-
     /**
      * Withdraws specified amount of ether or one of ERC-20 tokens to provided address
      * @param tokenAddress address of token to withdraw (0 for ether)
@@ -220,8 +218,6 @@ contract Master {
         uint needSigs = peersCount - f;
         require(s.length >= needSigs);
 
-        emit TestInfo("1");
-
         address[] memory recoveredAddresses = new address[](s.length);
         for (uint i = 0; i < s.length; ++i) {
             recoveredAddresses[i] = recoverAddress(
@@ -233,7 +229,7 @@ contract Master {
             // recovered address should be in peers_
             require(peers[recoveredAddresses[i]] == true);
         }
-        emit TestInfo("2");
+
         require(checkForUniqueness(recoveredAddresses));
 
         if (tokenAddress == address (0)) {
@@ -244,7 +240,6 @@ contract Master {
                 // untrusted transfer, relies on provided cryptographic proof
                 to.transfer(amount);
             }
-            emit TestInfo("3");
         } else {
             IERC20 coin = IERC20(tokenAddress);
             if (coin.balanceOf(address (this)) < amount) {

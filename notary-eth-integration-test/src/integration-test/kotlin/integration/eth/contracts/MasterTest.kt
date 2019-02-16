@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test
 import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Keys
 import org.web3j.protocol.exceptions.TransactionException
-import sidechain.eth.util.DeployHelper
 import sidechain.eth.util.hashToAddAndRemovePeer
 import sidechain.eth.util.hashToWithdraw
 import java.math.BigInteger
@@ -163,7 +162,7 @@ class MasterTest {
     fun secondWithdrawAfterVacuum() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             val initialBalance = cth.getETHBalance(accGreen)
-            println(master.peersCount().send())
+
             cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
             val call =
                 cth.withdraw(
@@ -422,15 +421,22 @@ class MasterTest {
     fun validSignatures4of4() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             val sigCount = 4
+            val amountToSend = 1000
+            val initialBalance = cth.getETHBalance(accGreen)
             val keypairs = ArrayList<ECKeyPair>()
             val peers = ArrayList<String>()
             for (i in 0 until sigCount) {
                 val keypair = Keys.createEcKeyPair()
                 keypairs.add(keypair)
-                peers.add(Keys.getAddress(keypair))
+                peers.add("0x" + Keys.getAddress(keypair))
             }
 
-            val amountToSend = 1000
+            val master = cth.deployMaster(
+                cth.relayRegistry.contractAddress,
+                peers
+            )
+
+            cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
 
             val finalHash =
                 hashToWithdraw(
@@ -441,21 +447,9 @@ class MasterTest {
                     master.contractAddress
                 )
 
-            val master = cth.deployMaster(
-                cth.relayRegistry.contractAddress,
-                peers
-            )
-
-            println(master.peersCount().send())
-
             val sigs = cth.prepareSignatures(sigCount, keypairs, finalHash)
 
-            val initialBalance = cth.getETHBalance(accGreen)
-            cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
-
-            cth.addWhiteListToRelayRegistry(master.contractAddress, listOf(accGreen))
-
-            val tx = master.withdraw(
+            master.withdraw(
                 etherAddress,
                 BigInteger.valueOf(amountToSend.toLong()),
                 accGreen,
@@ -464,9 +458,8 @@ class MasterTest {
                 sigs.rr,
                 sigs.ss,
                 master.contractAddress
-            ).send().logsBloom
+            ).send()
 
-            DeployHelper.logger.info("Withdraw were sent to ${master.contractAddress}; tx hash $tx")
             Assertions.assertEquals(BigInteger.valueOf(4000), cth.getETHBalance(master.contractAddress))
             Assertions.assertEquals(initialBalance + BigInteger.valueOf(1000), cth.getETHBalance(accGreen))
         }
@@ -486,6 +479,19 @@ class MasterTest {
             val amountToSend = 1000
             val tokenAddress = etherAddress
             val initialBalance = cth.getETHBalance(accGreen)
+            val keypairs = ArrayList<ECKeyPair>()
+            val peers = ArrayList<String>()
+            for (i in 0 until sigCount) {
+                val keypair = Keys.createEcKeyPair()
+                keypairs.add(keypair)
+                peers.add("0x" + Keys.getAddress(keypair))
+            }
+
+            val master = cth.deployMaster(
+                cth.relayRegistry.contractAddress,
+                peers
+            )
+
             cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
 
             val finalHash =
@@ -497,11 +503,6 @@ class MasterTest {
                     master.contractAddress
                 )
 
-            val keypairs = ArrayList<ECKeyPair>()
-            for (i in 0 until sigCount) {
-                val keypair = Keys.createEcKeyPair()
-                keypairs.add(keypair)
-            }
             val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
 
             master.withdraw(
@@ -534,6 +535,19 @@ class MasterTest {
             val amountToSend = 1000
             val tokenAddress = etherAddress
 
+            val keypairs = ArrayList<ECKeyPair>()
+            val peers = ArrayList<String>()
+            for (i in 0 until sigCount) {
+                val keypair = Keys.createEcKeyPair()
+                keypairs.add(keypair)
+                peers.add("0x" + Keys.getAddress(keypair))
+            }
+
+            val master = cth.deployMaster(
+                cth.relayRegistry.contractAddress,
+                peers
+            )
+
             val finalHash =
                 hashToWithdraw(
                     tokenAddress,
@@ -543,11 +557,6 @@ class MasterTest {
                     master.contractAddress
                 )
 
-            val keypairs = ArrayList<ECKeyPair>()
-            for (i in 0 until sigCount) {
-                val keypair = Keys.createEcKeyPair()
-                keypairs.add(keypair)
-            }
             val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
 
             Assertions.assertThrows(TransactionException::class.java) {
@@ -578,6 +587,19 @@ class MasterTest {
             val amountToSend = 1000
             val tokenAddress = etherAddress
             val initialBalance = cth.getETHBalance(accGreen)
+            val keypairs = ArrayList<ECKeyPair>()
+            val peers = ArrayList<String>()
+            for (i in 0 until sigCount) {
+                val keypair = Keys.createEcKeyPair()
+                keypairs.add(keypair)
+                peers.add("0x" + Keys.getAddress(keypair))
+            }
+
+            val master = cth.deployMaster(
+                cth.relayRegistry.contractAddress,
+                peers
+            )
+
             cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
 
             val finalHash =
@@ -588,12 +610,6 @@ class MasterTest {
                     cth.defaultIrohaHash,
                     master.contractAddress
                 )
-
-            val keypairs = ArrayList<ECKeyPair>()
-            for (i in 0 until sigCount) {
-                val keypair = Keys.createEcKeyPair()
-                keypairs.add(keypair)
-            }
 
             val sigs = cth.prepareSignatures(sigCount, keypairs, finalHash)
 
@@ -627,6 +643,18 @@ class MasterTest {
             val amountToSend = 1000
             val tokenAddress = etherAddress
             val initialBalance = cth.getETHBalance(accGreen)
+            val keypairs = ArrayList<ECKeyPair>()
+            val peers = ArrayList<String>()
+            for (i in 0 until sigCount) {
+                val keypair = Keys.createEcKeyPair()
+                keypairs.add(keypair)
+                peers.add("0x" + Keys.getAddress(keypair))
+            }
+
+            val master = cth.deployMaster(
+                cth.relayRegistry.contractAddress,
+                peers
+            )
             cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
 
             val finalHash =
@@ -638,11 +666,6 @@ class MasterTest {
                     master.contractAddress
                 )
 
-            val keypairs = ArrayList<ECKeyPair>()
-            for (i in 0 until sigCount) {
-                val keypair = Keys.createEcKeyPair()
-                keypairs.add(keypair)
-            }
             val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
 
             master.withdraw(
@@ -675,6 +698,19 @@ class MasterTest {
             val amountToSend = 1000
             val tokenAddress = etherAddress
 
+            val keypairs = ArrayList<ECKeyPair>()
+            val peers = ArrayList<String>()
+            for (i in 0 until sigCount) {
+                val keypair = Keys.createEcKeyPair()
+                keypairs.add(keypair)
+                peers.add("0x" + Keys.getAddress(keypair))
+            }
+
+            val master = cth.deployMaster(
+                cth.relayRegistry.contractAddress,
+                peers
+            )
+
             val finalHash =
                 hashToWithdraw(
                     tokenAddress,
@@ -684,11 +720,6 @@ class MasterTest {
                     master.contractAddress
                 )
 
-            val keypairs = ArrayList<ECKeyPair>()
-            for (i in 0 until sigCount) {
-                val keypair = Keys.createEcKeyPair()
-                keypairs.add(keypair)
-            }
             val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
 
             Assertions.assertThrows(TransactionException::class.java) {
