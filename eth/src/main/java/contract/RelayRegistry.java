@@ -63,18 +63,26 @@ public class RelayRegistry extends Contract {
     }
 
     public RemoteCall<TransactionReceipt> addNewRelayAddress(String relay, List<String> whiteList) {
-        final Function function = new Function(
-                FUNC_ADDNEWRELAYADDRESS,
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(relay),
-                        new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.Address>(
-                                org.web3j.abi.Utils.typeMap(whiteList, org.web3j.abi.datatypes.Address.class))),
-                Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function);
+        if (whiteList.isEmpty()) {
+            final Function function = new Function(
+                    FUNC_ADDNEWRELAYADDRESS,
+                    Arrays.<Type>asList(new Address(relay), DynamicArray.empty("address[]")),
+                    Collections.<TypeReference<?>>emptyList());
+            return executeRemoteCallTransaction(function);
+        } else {
+            final Function function = new Function(
+                    FUNC_ADDNEWRELAYADDRESS,
+                    Arrays.<Type>asList(new Address(relay),
+                            new DynamicArray<Address>(
+                                    org.web3j.abi.Utils.typeMap(whiteList, Address.class))),
+                    Collections.<TypeReference<?>>emptyList());
+            return executeRemoteCallTransaction(function);
+        }
     }
 
     public RemoteCall<List> getWhiteListByRelay(String relay) {
-        final Function function = new Function(FUNC_GETWHITELISTBYRELAY, 
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(relay)), 
+        final Function function = new Function(FUNC_GETWHITELISTBYRELAY,
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(relay)),
                 Arrays.<TypeReference<?>>asList(new TypeReference<DynamicArray<Address>>() {}));
         return new RemoteCall<List>(
                 new Callable<List>() {
