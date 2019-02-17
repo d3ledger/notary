@@ -1,4 +1,4 @@
-pragma solidity 0.4.25;
+pragma solidity 0.5.4;
 
 import "./ERC20Detailed.sol";
 import "./ERC20Burnable.sol";
@@ -6,12 +6,12 @@ import "./Ownable.sol";
 
 contract SoraToken is ERC20Burnable, ERC20Detailed, Ownable {
 
-    uint256 public constant INITIAL_SUPPLY = 1618033988 * (10 ** uint256(decimals()));
+    uint256 public constant INITIAL_SUPPLY = 1618033988 * (10 ** uint256(18));
 
     /**
      * @dev Constructor that gives msg.sender all of existing tokens.
      */
-    constructor() public ERC20Detailed("Sora", "XOR", 18) {
+    constructor() public ERC20Detailed("Sora Token", "XOR", 18) {
         _mint(msg.sender, INITIAL_SUPPLY);
     }
 
