@@ -54,7 +54,7 @@ fun hashToWithdraw(
 
 /**
  * Calculates keccak-256 hash of several params concatenation. Params are:
- * @param peerAddress Ethereum address of ERC-20 token (0x0000000000000000000000000000000000000000 for ether)
+ * @param peerAddress Ethereum address of notary
  * @param irohaHash hash of transaction in Iroha
  * @return keccak-256 hash of all provided fields
  */
