@@ -10,7 +10,6 @@ buildscript {
 }
 apply plugin: 'application'
 apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
-apply plugin: 'org.springframework.boot'
 mainClassName = "notary.btc.BtcNotaryMain"
 
 dependencies {
@@ -21,6 +20,10 @@ task runBtcNotary(type: JavaExec) {
     main = 'notary.btc.BtcNotaryMain'
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
-    systemProperty 'java.library.path', getIrohaLibPath()
-    environment "LD_LIBRARY_PATH", getIrohaLibPath()
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "notary:btc-deposit"
+    }
 }

@@ -1,0 +1,27 @@
+dependencies {
+    compile project(":eth")
+}
+
+apply plugin: 'com.github.johnrengelman.shadow'
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "notary:eth-registration"
+    }
+}
+
+task runEthRegistration(type: JavaExec) {
+    main = 'registration.eth.EthRegistrationMain'
+    classpath = sourceSets.main.runtimeClasspath
+
+    args getEthPasswordsArgs()
+    setWorkingDir("$rootDir/")
+}
+
+task runDeployRelay(type: JavaExec) {
+    main = 'registration.eth.relay.DeployRelayMain'
+    classpath = sourceSets.main.runtimeClasspath
+
+    args getEthPasswordsArgs()
+    setWorkingDir("$rootDir/")
+}

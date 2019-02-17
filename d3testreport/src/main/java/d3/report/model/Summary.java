@@ -6,8 +6,6 @@ package d3.report.model;
 public class Summary {
     //Title of report
     private String title;
-    // Root directory where all the tests are located
-    private String projectRootDir;
     // Date of report generation
     private String generationDate;
     // Total amount of test files
@@ -18,14 +16,6 @@ public class Summary {
     private int lacksInDescription;
     // Total amount of disabled test cases
     private int disabledCases;
-
-    public String getProjectRootDir() {
-        return projectRootDir;
-    }
-
-    public void setProjectRootDir(String projectRootDir) {
-        this.projectRootDir = projectRootDir;
-    }
 
     public String getGenerationDate() {
         return generationDate;

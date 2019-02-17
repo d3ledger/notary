@@ -1,10 +1,22 @@
 # notary
 Backend code for a D3 notary
 
+D3 consists of 3 parts. Common services should be run obligatory and rest can be run optionally:
+1) Common services
+2) Ethereum subsystem
+3) Bitcoin subsystem
+
+## Common services
+1) Clone project `master` branch
+2) Launch Iroha and Postgres in docker with `docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml up`
+3) Run registration service `PROFILE=mainnet ./gradlew runRegistration`
+
+Now you can register clients and launch subsystems.
+
 ## How to run notary application and services in Ethereum main net
-1) clone project `master` branch
-2) launch Iroha and Postgres in docker with `docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml up`
-3) Provide ethereum passwords `configs/eth/ethereum_password_mainnet.properties` (ask someone from maintainers team about the format)
+1) Run common services
+2) Provide ethereum passwords `configs/eth/ethereum_password_mainnet.properties` (ask someone from maintainers team about the format)
+3) Deploy Ethereum master contract and relay registry contract, provide notary ethereum accounts `gradle runPreDeployEthereum --args="0x6826d84158e516f631bbf14586a9be7e255b2d23"` 
 4) Run notary service `PROFILE=mainnet gradle runEthNotary`
 5) Run registration service `PROFILE=mainnet gradle runEthRegistration`
 6) Run withdrawal service `PROFILE=mainnet gradle runWithdrawal`
@@ -23,11 +35,29 @@ Configurations have the following priority:
 
 Command line args > Environment variables > Properties file
 
+## How to run notary application and services in Bitcoin main net
+1) Run common services
+2) Create `.wallet` file (ask maintainers how to do that) and put it to desired location
+3) Run address generation process using `PROFILE=mainnet gradlew runBtcAddressGeneration`
+4) Create change address by running `gradlew generateBtcChangeAddress`
+5) Create few free addresses(addresses that may be registered by clients lately) `gradlew generateBtcFreeAddress`
+6) Run registration service `PROFILE=mainnet gradle runBtcRegistration`
+7) Run notary service `PROFILE=mainnet gradle runBtcDepositWithdrawal`
+
+## How to run notification services
+1) Create SMTP configuration file located at `configs/smtp.properties`(see test example `configs/smtp_test.properties`). This file contains SMTP server credentials.
+2) Create Push API configuration file located at `configs/push.properties`(see test example `configs/push_test.properties`). This file contains VAPID keys. You can generate keys by yourself using [webpush-libs tutorial](https://github.com/web-push-libs/webpush-java/wiki/VAPID).
+3) Run gralde command `./gradlew runNotifications`
+
 ## Testing
 `gradle test` for unit tests
 
 `gradle integrationTest` for integation tests
 
+## Testing Bitcoin
+`gradlew btcSendToAddress -Paddress=<address> -PamountBtc=<amount>` — sends `<amount>` BTC to `<address>` in Bitcoin regtest network
+
+`gradlew btcGenerateBlocks -Pblocks=<blocks>` — generates `<blocks>` in Bitcoin regtest network
 
 ## Troubleshooting
 
@@ -40,4 +70,5 @@ Command line args > Environment variables > Properties file
 127.0.0.1 d3-notary
 127.0.0.1 d3-eth-node0
 127.0.0.1 d3-btc-node0
+127.0.0.1 d3-rmq
 ```

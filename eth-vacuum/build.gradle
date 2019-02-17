@@ -1,0 +1,19 @@
+dependencies {
+    compile project(":eth")
+}
+
+apply plugin: 'com.github.johnrengelman.shadow'
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "notary:eth-vacuum"
+    }
+}
+
+task runVacuumRelay(type: JavaExec) {
+    main = 'vacuum.VacuumRelayMain'
+    classpath = sourceSets.main.runtimeClasspath
+
+    args getEthPasswordsArgs()
+    setWorkingDir("$rootDir/")
+}

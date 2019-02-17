@@ -1,7 +1,7 @@
 buildscript {
-    ext.kotlin_version = '1.2.50'
-    ext.ktor_version = '0.9.2'
-    ext.spring_boot_version = '1.5.4.RELEASE'
+    ext.kotlin_version = '1.3.10'
+    ext.ktor_version = '1.0.0'
+    ext.spring_boot_version = '1.5.19.RELEASE'
 
     repositories {
         mavenCentral()
@@ -9,6 +9,8 @@ buildscript {
     }
     configurations.maybeCreate("pitest")
     dependencies {
+        classpath "org.jetbrains.dokka:dokka-gradle-plugin:0.9.17"
+        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.2"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.6'
         classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.3.0'
@@ -27,104 +29,60 @@ apply plugin: 'com.google.protobuf'
 apply plugin: "jacoco"
 apply plugin: 'info.solidsoft.pitest'
 apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'org.sonarqube'
 
 allprojects {
     apply plugin: 'java'
     apply plugin: 'kotlin'
+    apply plugin: 'org.jetbrains.dokka'
     repositories {
         mavenCentral()
         // for Ktor
         jcenter()
         maven { url = 'https://dl.bintray.com/kotlin/ktor' }
+        maven { url 'https://jitpack.io' }
     }
 }
 
 subprojects {
-    dependencies {
-        compile project(':')
+    dokka {
+        outputFormat = 'html'
+        outputDirectory = "build/reports/dokka"
+        reportUndocumented = true
+        sourceDirs = files("${project.projectDir}/src/main/kotlin")
+    }
+    sonarqube {
+        properties {
+            property "sonar.java.binaries", "${project.projectDir}/build/classes"
+            property "sonar.java.test.binaries", "${project.projectDir}/build/test-results/test/binary"
+            property "sonar.junit.reportsPaths", "${project.projectDir}/build/test-results/**/*.xml"
+            property "sonar.jacoco.reportPaths", "${project.projectDir}/build/jacoco/test.exec"
+            property "sonar.exclusions", "${project.projectDir}/**/*.txt"
+        }
     }
 }
 
 sourceCompatibility = 1.8
 
-dependencies {
-    // protobuf
-    compile 'com.google.protobuf:protobuf-java:3.5.1'
-    compile 'io.grpc:grpc-netty:1.14.0'
-    compile 'io.grpc:grpc-protobuf:1.14.0'
-    compile 'io.grpc:grpc-stub:1.14.0'
+// ------------------| Test dependencies |------------------
 
-    // ------------------| Src dependencies |------------------
+allprojects {
+    dependencies {
+        // unit tests
+        testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
+        testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
+        // https://mvnrepository.com/artifact/org.mockito/mockito-all
+        testCompile group: 'org.mockito', name: 'mockito-all', version: '2.0.2-beta'
+        testCompile('com.nhaarman:mockito-kotlin:1.5.0') {
+            exclude group: 'org.jetbrains.kotlin'
+            exclude group: 'org.mockito'
+        }
 
-    // kotlin related
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-
-    // rx2
-    compile "io.reactivex.rxjava2:rxjava:2.0.0"
-    compile "io.reactivex.rxjava2:rxkotlin:2.0.0"
-
-    // converter rx1 to rx2
-    // since eth client uses rx1, we need a converter to rx2
-    compile "com.github.akarnokd:rxjava2-interop:0.12.7"
-
-    // Iroha bindings
-    def iroha_bindings_dir = Paths.get(projectDir.toString(), "iroha_bindings").toString()
-    compile fileTree(dir: iroha_bindings_dir, include: '*.jar')
-
-    // Eth library
-    compile 'org.web3j:core:3.6.0'
-    compile group: 'org.web3j', name: 'parity', version: '3.6.0'
-
-    // Waves library
-    compile 'com.wavesplatform:wavesj:0.4'
-
-    // logging
-    compile 'io.github.microutils:kotlin-logging:1.4.9'
-    // https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12
-    compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.8.0-beta2'
-
-    // CLI arguments
-    compile group: 'com.xenomachina', name: 'kotlin-argparser', version: '2.0.6'
-
-    // Kyber
-    // TODO @muratovv: add lib
-
-    // Ktor - http
-    compile "io.ktor:ktor-server-core:$ktor_version"
-    compile "io.ktor:ktor-server-netty:$ktor_version"
-
-    // khttp - consume http
-    compile 'khttp:khttp:0.1.0'
-
-    // JSON parser
-    compile 'com.beust:klaxon:3.0.1'
-
-    // JSON converter
-    compile 'com.squareup.moshi:moshi-kotlin:1.5.0'
-
-    // for Result
-    compile group: 'com.github.kittinunf.result', name: 'result', version: '1.4.0'
-
-    // Configuration
-    compile group: 'com.jdiazcano.cfg4k', name: 'cfg4k-core', version: '0.8'
-
-    // ------------------| Test dependencies |------------------
-
-    // unit tests
-    testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
-    testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
-    // https://mvnrepository.com/artifact/org.mockito/mockito-all
-    testCompile group: 'org.mockito', name: 'mockito-all', version: '2.0.2-beta'
-    testCompile('com.nhaarman:mockito-kotlin:1.5.0') {
-        exclude group: 'org.jetbrains.kotlin'
-        exclude group: 'org.mockito'
+        // for setting env variables in tests
+        testCompile group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.18.0'
+        // to run both junit4 and junit5 tests
+        testRuntime("org.junit.vintage:junit-vintage-engine:5.2.0")
     }
-
-    // for setting env variables in tests
-    testCompile group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.18.0'
-    // to run both junit4 and junit5 tests
-    testRuntime("org.junit.vintage:junit-vintage-engine:5.2.0")
-
 }
 
 wrapper {
@@ -138,38 +96,11 @@ jar {
 }
 
 allprojects {
-    kotlin {
-        experimental {
-            coroutines "enable"
-        }
-    }
-
     compileKotlin {
         kotlinOptions.jvmTarget = "1.8"
     }
     compileTestKotlin {
         kotlinOptions.jvmTarget = "1.8"
-    }
-}
-
-sourceSets {
-    main {
-        java {
-            srcDirs += "src/main"
-            // iroha bindings
-            srcDirs += "build/generated/source/proto/main/java"
-            srcDirs += "build/generated/source/proto/main/grpc"
-        }
-    }
-}
-
-allprojects {
-    test {
-        setWorkingDir("$rootDir/")
-        useJUnitPlatform()
-        systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-        println "Runtime Iroha library path:${systemProperties}"
-        environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
     }
 }
 
@@ -215,8 +146,9 @@ task buildEthereumContractsBindings(type: Exec) {
     String cmd = 'for f in ' + wildcard + '; ' +
             'do ' +
             'name=$(echo "$f" | cut -f 1 -d \'.\'); ' +
-            'web3j solidity generate ${name}.bin ${name}.abi -o <bin_path> -p contract \n'.replace("<bin_path>", bin_path) +
-            'done'
+            'web3j solidity generate -b ${name}.bin --abiFile=${name}.abi -o <bin_path> -p contract \n'.replace("<bin_path>", bin_path) +
+            'done \n' +
+            'cp deploy/ethereum/contract/bin/contract/* eth/src/main/java/contract'
 
     commandLine 'bash', '-c', cmd
 }
@@ -227,18 +159,7 @@ buildEthereumContractsBindings.dependsOn ':buildEthereumContracts'
 
 import org.gradle.internal.os.OperatingSystem
 
-import java.nio.file.Paths
-
 import static org.apache.tools.ant.taskdefs.condition.Os.*
-
-static def getCurrentOs() {
-    if (OperatingSystem.current().isMacOsX()) {
-        return 'mac'
-    }
-    if (OperatingSystem.current().isLinux()) {
-        return 'linux'
-    }
-}
 
 //Forms a list of ETH passwords from command line arguments
 def getEthPasswordsArgs() {
@@ -255,14 +176,6 @@ def getEthPasswordsArgs() {
     return args
 }
 
-task retrieveIrohaBindings(type: Exec) {
-    description = 'Downloads Iroha binding for specific platform'
-
-    def bindings_invocation = ['sh', 'iroha_bindings.sh', getCurrentOs()]
-
-    commandLine bindings_invocation
-}
-
 task osInfo {
     description = 'Show information about the operating system'
     doLast {
@@ -273,97 +186,7 @@ task osInfo {
     }
 }
 
-def getIrohaLibPath() {
-    return Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-}
-
-retrieveIrohaBindings.dependsOn(osInfo)
-
 // -------------------------| End Iroha bindings |-------------------------
-
-// -------------------------| Run services |-------------------------
-
-// Deploy ethereum smart contracts - RelayRegistry, Master, add notaries wallets to Master and lock Master.
-task runPreDeployEthereum(type: JavaExec) {
-    main = 'deploy.EthPreDeployMain'
-    classpath = sourceSets.main.runtimeClasspath
-
-    args getEthPasswordsArgs()
-    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-}
-
-task runEthNotary(type: JavaExec) {
-    main = 'notary.eth.EthNotaryMain'
-    classpath = sourceSets.main.runtimeClasspath
-
-    args getEthPasswordsArgs()
-    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-}
-
-task runEthRegistration(type: JavaExec) {
-    main = 'registration.eth.EthRegistrationMain'
-    classpath = sourceSets.main.runtimeClasspath
-
-    args getEthPasswordsArgs()
-    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-}
-
-task runERC20TokenRegistration(type: JavaExec) {
-    main = 'token.ERC20TokenRegistrationMain'
-    classpath = sourceSets.main.runtimeClasspath
-
-    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-}
-
-task runDeployRelay(type: JavaExec) {
-    main = 'registration.eth.relay.DeployRelayMain'
-    classpath = sourceSets.main.runtimeClasspath
-
-    args getEthPasswordsArgs()
-    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-}
-
-task runVacuumRelay(type: JavaExec) {
-    main = 'vacuum.VacuumRelayMain'
-    classpath = sourceSets.main.runtimeClasspath
-
-    args getEthPasswordsArgs()
-    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-}
-
-task runWithdrawal(type: JavaExec) {
-    main = 'withdrawalservice.WithdrawalServiceMain'
-    classpath = sourceSets.main.runtimeClasspath
-
-    args getEthPasswordsArgs()
-    systemProperty 'java.library.path', Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-    environment "LD_LIBRARY_PATH", Paths.get(projectDir.toString(), "iroha_bindings", getCurrentOs()).toString()
-}
-
-
-// -------------------------| JaCoCo code coverage |-------------------------
-
-jacocoTestReport {
-    reports {
-        xml.enabled = true
-        html.enabled = true
-    }
-
-    afterEvaluate {
-        classDirectories = files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: ['iroha/**',
-                                        'notary/db/**',
-                                        'contract/**',
-                                        'integration/**'])
-        })
-    }
-}
 
 // -------------------------| PIT mutation testing |-------------------------
 
@@ -376,4 +199,30 @@ pitest {
     avoidCallsTo = ['kotlin.jvm.internal', 'mu']
     mutators = ['CONDITIONALS_BOUNDARY', 'NEGATE_CONDITIONALS', 'REMOVE_CONDITIONALS', 'MATH', 'INCREMENTS',
                 'INVERT_NEGS', 'INLINE_CONSTS', 'VOID_METHOD_CALLS']
+}
+
+// -------------------------| JaCoCo code coverage |-------------------------
+
+task codeCoverageReport(type: JacocoReport) {
+
+    // Gather execution data from all subprojects
+    // (change this if you e.g. want to calculate unit test/integration test coverage separately)
+    executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
+
+    // Add all relevant sourcesets from the subprojects
+    subprojects.each {
+        sourceSets it.sourceSets.main
+    }
+
+    reports {
+        xml.enabled true
+        html.enabled true
+        html.destination "${buildDir}/reports/jacoco"
+        csv.enabled false
+    }
+}
+
+// always run the tests before generating the report
+codeCoverageReport.dependsOn {
+    subprojects*.test
 }

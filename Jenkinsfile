@@ -34,22 +34,36 @@ pipeline {
       steps {
         script {
           def scmVars = checkout scm
+          tmp = docker.image("openjdk:8-jdk")
+          env.WORKSPACE = pwd()
+
+          tmp.inside("-e JVM_OPTS='-Xmx3200m' -e TERM='dumb' -v ${env.WORKSPACE}/chain-adapter/build/libs:/home/out") {
+            sh "./gradlew chain-adapter:shadowJar"
+
+          }
+
           DOCKER_NETWORK = "${scmVars.CHANGE_ID}-${scmVars.GIT_COMMIT}-${BUILD_NUMBER}"
           writeFile file: ".env", text: "SUBNET=${DOCKER_NETWORK}"
           sh "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml pull"
           sh(returnStdout: true, script: "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml up --build -d")
           sh "docker cp d3-btc-node0-${DOCKER_NETWORK}:/usr/bin/bitcoin-cli deploy/bitcoin/"
+
           iC = docker.image("openjdk:8-jdk")
           iC.inside("--network='d3-${DOCKER_NETWORK}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
             sh "ln -s deploy/bitcoin/bitcoin-cli /usr/bin/bitcoin-cli"
-            withCredentials([file(credentialsId: 'ethereum_password.properties', variable: 'ethereum_password')]) {
-              sh "cp \$ethereum_password configs/eth/ethereum_password_local.properties"
-              sh "cp \$ethereum_password configs/eth/ethereum_password_local.properties"
-            }
             sh "./gradlew dependencies"
             sh "./gradlew test --info"
             sh "./gradlew compileIntegrationTestKotlin --info"
             sh "./gradlew integrationTest --info"
+            sh "./gradlew codeCoverageReport --info"
+            sh "./gradlew dokka --info"
+            // sh "./gradlew pitest --info"
+            withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
+              sh(script: """./gradlew sonarqube --configure-on-demand \
+                -Dsonar.host.url=https://sonar.soramitsu.co.jp \
+                -Dsonar.login=${SONAR_TOKEN} \
+              """)
+            }
           }
           // scan smartcontracts only on pull requests to master
           try {
@@ -64,20 +78,28 @@ pipeline {
             }
           }
           catch(MissingPropertyException e) { }
+          
         }
       }
       post {
         always {
-          junit 'build/test-results/**/*.xml'
+          junit allowEmptyResults: true, keepLongStdio: true, testResults: 'build/test-results/**/*.xml'
+          jacoco execPattern: 'build/jacoco/test.exec', sourcePattern: '.'
         }
         cleanup {
-          sh "mkdir build-logs"
+          sh "mkdir -p build-logs"
           sh """
             while read -r LINE; do \
               docker logs \$(echo \$LINE | cut -d ' ' -f1) | gzip -6 > build-logs/\$(echo \$LINE | cut -d ' ' -f2).log.gz; \
             done < <(docker ps --filter "network=d3-${DOCKER_NETWORK}" --format "{{.ID}} {{.Names}}")
           """
-          archiveArtifacts artifacts: 'build-logs/*.log.gz'
+          
+          sh "tar -zcvf build-logs/notaryIrohaIntegrationTest.gz -C notary-iroha-integration-test/build/reports/tests integrationTest || true"
+          sh "tar -zcvf build-logs/notaryEthIntegrationTest.gz -C notary-eth-integration-test/build/reports/tests integrationTest || true"
+          sh "tar -zcvf build-logs/notaryBtcIntegrationTest.gz -C notary-btc-integration-test/build/reports/tests integrationTest || true"
+          sh "tar -zcvf build-logs/jacoco.gz -C build/reports jacoco || true"
+          sh "tar -zcvf build-logs/dokka.gz -C build/reports dokka || true"
+          archiveArtifacts artifacts: 'build-logs/*.gz'
           sh "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml down"
           cleanWs()
         }
@@ -97,17 +119,45 @@ pipeline {
               sh "rm build/libs/notary-1.0-SNAPSHOT-all.jar || true"
               iC = docker.image("openjdk:8-jdk")
               iC.inside("-e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
-                sh "./gradlew shadowJar"
-              }
-              relay = docker.build("nexus.iroha.tech:19002/${login}/eth-relay:${TAG}", "-f docker/eth-relay.dockerfile .")
-              registration = docker.build("nexus.iroha.tech:19002/${login}/registration:${TAG}", "-f docker/registration.dockerfile .")
-              notary = docker.build("nexus.iroha.tech:19002/${login}/notary:${TAG}", "-f docker/notary.dockerfile .")
-              withdrawal = docker.build("nexus.iroha.tech:19002/${login}/withdrawal:${TAG}", "-f docker/withdrawal.dockerfile .")
+                sh "./gradlew notary-registration:shadowJar"
 
-              relay.push("${TAG}")
-              registration.push("${TAG}")
+                sh "./gradlew eth:shadowJar"
+                sh "./gradlew eth-withdrawal:shadowJar"
+                sh "./gradlew eth-registration:shadowJar"
+                sh "./gradlew eth-vacuum:shadowJar"
+                sh "./gradlew chain-adapter:shadowJar"
+
+                sh "./gradlew btc-address-generation:shadowJar"
+                sh "./gradlew btc-registration:shadowJar"
+                sh "./gradlew btc-dw-bridge:shadowJar"
+
+              }
+
+              notaryRegistration = docker.build("nexus.iroha.tech:19002/${login}/notary-registration:${TAG}", "-f docker/notary-registration.dockerfile .")
+
+              ethRelay = docker.build("nexus.iroha.tech:19002/${login}/eth-relay:${TAG}", "-f docker/eth-relay.dockerfile .")
+              ethRegistration = docker.build("nexus.iroha.tech:19002/${login}/eth-registration:${TAG}", "-f docker/eth-registration.dockerfile .")
+              notary = docker.build("nexus.iroha.tech:19002/${login}/notary:${TAG}", "-f docker/notary.dockerfile .")
+              ethWithdrawal = docker.build("nexus.iroha.tech:19002/${login}/eth-withdrawal:${TAG}", "-f docker/eth-withdrawal.dockerfile .")
+
+              btcAddressGeneration = docker.build("nexus.iroha.tech:19002/${login}/btc-address-generation:${TAG}", "-f docker/btc-address-generation.dockerfile .")
+              btcRegistration = docker.build("nexus.iroha.tech:19002/${login}/btc-registration:${TAG}", "-f docker/btc-registration.dockerfile .")
+              btcDwBridge = docker.build("nexus.iroha.tech:19002/${login}/btc-dw-bridge:${TAG}", "-f docker/btc-dw-bridge.dockerfile .")
+
+              chainAdapter = docker.build("nexus.iroha.tech:19002/d3-deploy/chain-adapter:${TAG}", "-f docker/chain-adapter.dockerfile .")
+
+              notaryRegistration.push("${TAG}")
+
+              ethRelay.push("${TAG}")
+              ethRegistration.push("${TAG}")
               notary.push("${TAG}")
-              withdrawal.push("${TAG}")
+              ethWithdrawal.push("${TAG}")
+
+              btcAddressGeneration.push("${TAG}")
+              btcRegistration.push("${TAG}")
+              btcDwBridge.push("${TAG}")
+
+              chainAdapter.push("${TAG}")
 
             }
           }
@@ -116,3 +166,4 @@ pipeline {
     }
   }
 }
+

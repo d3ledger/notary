@@ -1,0 +1,19 @@
+dependencies {
+    compile project(":eth-vacuum")
+}
+
+apply plugin: 'com.github.johnrengelman.shadow'
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "notary:eth-withdrawal"
+    }
+}
+
+task runWithdrawal(type: JavaExec) {
+    main = 'withdrawalservice.WithdrawalServiceMain'
+    classpath = sourceSets.main.runtimeClasspath
+
+    args getEthPasswordsArgs()
+    setWorkingDir("$rootDir/")
+}

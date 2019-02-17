@@ -1,0 +1,60 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        //Spring-boot
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:$spring_boot_version"
+    }
+}
+
+sourceSets {
+    integrationTest {
+        kotlin {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDirs += 'src/integration-test/kotlin'
+        }
+        resources {
+            srcDirs = ["src/integration-test/resources"]
+        }
+    }
+}
+
+configurations {
+    integrationTestImplementation.extendsFrom testImplementation
+    integrationTestCompile.extendsFrom testCompile
+    integrationTestRuntime.extendsFrom testRuntime
+}
+
+task integrationTest(type: Test) {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = 'Runs the integration tests.'
+
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    setWorkingDir("$rootDir/")
+    // Enable JUnit5 tests
+    useJUnitPlatform {
+    }
+
+    mustRunAfter test
+}
+check.dependsOn integrationTest
+
+apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
+
+dependencies {
+    compile project(":btc-registration")
+    compile project(":btc-address-generation")
+    compile project(":btc-deposit")
+    compile project(":btc-withdrawal")
+    compile project(":notary-iroha-integration-test")
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "notary:notary-integration-test"
+    }
+}

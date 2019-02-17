@@ -3,11 +3,11 @@ package longevity
 import com.github.kittinunf.result.Result
 import config.IrohaCredentialConfig
 import config.loadEthPasswords
-import integration.helper.IntegrationHelperUtil
+import integration.helper.EthIntegrationHelperUtil
 import integration.helper.NotaryClient
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import mu.KLogging
 import provider.eth.ETH_PRECISION
 import sidechain.iroha.util.ModelUtil
@@ -19,7 +19,7 @@ import java.math.BigInteger
  * It is supposed to be used for long-running tests.
  */
 class LongevityTest {
-    private val integrationHelper = IntegrationHelperUtil()
+    private val integrationHelper = EthIntegrationHelperUtil()
 
     private val masterContract = integrationHelper.masterContract.contractAddress
 
@@ -34,7 +34,7 @@ class LongevityTest {
         NotaryClient(
             integrationHelper,
             integrationHelper.configHelper.createEthereumConfig("deploy/ethereum/keys/local/client$clientNumber.key"),
-            loadEthPasswords("client$clientNumber", "/eth/ethereum_password.properties")
+            loadEthPasswords("client$clientNumber", "/eth/ethereum_password.properties").get()
         )
     }
 
@@ -51,7 +51,7 @@ class LongevityTest {
                 override val accountId = integrationHelper.accountHelper.notaryAccount.accountId
             }
 
-            val ethereumPasswords = loadEthPasswords("notary$it", "/eth/ethereum_password.properties")
+            val ethereumPasswords = loadEthPasswords("notary$it", "/eth/ethereum_password.properties").get()
 
             val ethereumConfig =
                 integrationHelper.configHelper.createEthereumConfig("deploy/ethereum/keys/local/notary$it.key")
@@ -81,8 +81,8 @@ class LongevityTest {
      */
     private fun runServices() {
         runNotaries()
-        launch { integrationHelper.runRegistrationService() }
-        launch { integrationHelper.runEthWithdrawalService() }
+        GlobalScope.launch { integrationHelper.runRegistrationService() }
+        GlobalScope.launch { integrationHelper.runEthWithdrawalService() }
 
         // wait until services are up
         Thread.sleep(10_000)
@@ -109,14 +109,14 @@ class LongevityTest {
         logger.info { "client count ${clients.size}" }
 
         clients.forEach { client ->
-            async { delay(3_000) }
-            launch {
+            GlobalScope.launch { delay(3_000) }
+            GlobalScope.launch {
                 logger.info { "start client ${client.accountId}" }
                 while (true) {
                     val amount = BigInteger.valueOf(12_000_000_000)
                     logger.info { "Client ${client.name} perform deposit of $amount wei" }
                     client.deposit(amount)
-                    async { delay(20_000) }
+                    launch { delay(20_000) }
 
 
                     val ethBalanceBefore = client.getEthBalance()
@@ -132,7 +132,7 @@ class LongevityTest {
 
                     logger.info { "Client ${client.name} perform withdrawal of ${decimalAmount.toPlainString()}" }
                     client.withdraw(decimalAmount.toPlainString())
-                    async { delay(20_000) }
+                    launch { delay(20_000) }
 
                     val ethBalanceAfter = client.getEthBalance()
                     val irohaBalanceAfter = client.getIrohaBalance()
