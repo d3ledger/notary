@@ -3,6 +3,7 @@ dependencies {
 
     // Eth library
     compile 'org.web3j:core:4.0.4'
+    compile group: 'org.web3j', name: 'parity', version: '4.0.4'
 
     // Waves library
     compile 'com.wavesplatform:wavesj:0.4'

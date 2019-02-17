@@ -1,14 +1,14 @@
-pragma solidity ^0.4.24;
+pragma solidity 0.5.4;
 
 contract InternalTxProducer {
     uint public balance;
 
-    function () payable public {
+    function() payable external {
         balance += msg.value;
     }
 
-    function sendFunds(address to) public {
+    function sendFunds(address payable receiver) public {
         balance -= address(this).balance;
-        to.transfer(address(this).balance);
+        address(receiver).transfer(address(this).balance);
     }
 }
