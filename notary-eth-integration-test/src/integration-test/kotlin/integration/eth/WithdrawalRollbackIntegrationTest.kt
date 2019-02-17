@@ -45,7 +45,6 @@ class WithdrawalRollbackIntegrationTest {
             integrationHelper.runEthWithdrawalService(integrationHelper.configHelper.createWithdrawalConfig(false))
         }
 
-        integrationHelper.lockEthMasterSmartcontract()
     }
 
     lateinit var clientName: String

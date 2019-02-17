@@ -2,6 +2,7 @@ package integration.helper
 
 import config.EthereumPasswords
 import config.loadConfigs
+import contract.Master
 import integration.TestConfig
 import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Hash
@@ -25,10 +26,13 @@ class ContractTestHelper {
     val relayRegistry by lazy { deployHelper.deployRelayRegistrySmartContract() }
     val internalTxProducer by lazy { deployHelper.deployInternalTxProducerSmartContract() }
     val token by lazy { deployHelper.deployERC20TokenSmartContract() }
-    val master by lazy { deployHelper.deployMasterSmartContract(relayRegistry.contractAddress) }
+    val master by lazy {
+        deployHelper.deployMasterSmartContract(
+            relayRegistry.contractAddress,
+            listOf(accMain)
+        )
+    }
     val relay by lazy { deployHelper.deployRelaySmartContract(master.contractAddress) }
-
-    private var addPeerCalls = BigInteger.ZERO
 
     val etherAddress = "0x0000000000000000000000000000000000000000"
     val defaultIrohaHash = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))
@@ -54,13 +58,6 @@ class ContractTestHelper {
             ss.add(vrs.s)
         }
         return sigsData(vv, rr, ss)
-    }
-
-    fun sendAddPeer(address: String) {
-        ++addPeerCalls
-        master.addPeer(address).send()
-        // addPeer return number of added peers
-        assertEquals(addPeerCalls, master.peersCount().send())
     }
 
     fun transferTokensToMaster(amount: BigInteger) {
@@ -212,6 +209,13 @@ class ContractTestHelper {
 
     fun getERC20TokenBalance(contractAddress: String, whoAddress: String): BigInteger {
         return deployHelper.getERC20Balance(contractAddress, whoAddress)
+    }
+
+    fun deployMaster(relayAddress: String, peers: List<String>): Master {
+        return deployHelper.deployMasterSmartContract(
+            relayAddress,
+            peers
+        )
     }
 
     fun deployFailer(): String {

@@ -55,8 +55,6 @@ class WithdrawalPipelineIntegrationTest {
         withdrawalService = GlobalScope.launch {
             integrationHelper.runEthWithdrawalService()
         }
-
-        integrationHelper.lockEthMasterSmartcontract()
     }
 
     lateinit var clientName: String

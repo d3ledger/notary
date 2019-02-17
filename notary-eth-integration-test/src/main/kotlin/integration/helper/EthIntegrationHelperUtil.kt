@@ -1,7 +1,10 @@
 package integration.helper
 
 import com.github.kittinunf.result.success
-import config.*
+import config.EthereumPasswords
+import config.RMQConfig
+import config.getConfigFolder
+import config.loadRawConfigs
 import jp.co.soramitsu.iroha.java.QueryAPI
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
@@ -210,15 +213,6 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     }
 
     /**
-     * Disable adding new notary peers to smart contract.
-     * Before smart contract can be used it should be locked in order to prevent adding malicious peers.
-     */
-    fun lockEthMasterSmartcontract() {
-        logger.info { "Disable adding new peers on master contract ${masterContract.contractAddress}" }
-        masterContract.disableAddingNewPeers().send()
-    }
-
-    /**
      * Deploys relay contracts in Ethereum network
      */
     fun deployRelays(relaysToDeploy: Int) {
@@ -382,7 +376,6 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
 
         val ethCredential =
             WalletUtils.loadCredentials(ethereumPasswords.credentialsPassword, ethNotaryConfig.ethereum.credentialsPath)
-        masterContract.addPeer(ethCredential.address).send()
 
         executeNotary(ethereumPasswords, ethNotaryConfig)
 
