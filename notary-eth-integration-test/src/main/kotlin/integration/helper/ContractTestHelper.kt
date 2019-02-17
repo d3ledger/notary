@@ -24,6 +24,7 @@ class ContractTestHelper {
     val keypair = deployHelper.credentials.ecKeyPair
     val relayRegistry by lazy { deployHelper.deployRelayRegistrySmartContract() }
     val token by lazy { deployHelper.deployERC20TokenSmartContract() }
+    val soraToken by lazy { deployHelper.deploySoraTokenSmartContract() }
     val master by lazy { deployHelper.deployMasterSmartContract(relayRegistry.contractAddress) }
     val relay by lazy { deployHelper.deployRelaySmartContract(master.contractAddress) }
 

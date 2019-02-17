@@ -116,6 +116,21 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
     }
 
     /**
+     * Deploy Sora token smart contract
+     * @return Sora token instance
+     */
+    fun deploySoraTokenSmartContract(): SoraToken {
+        val soraToken = contract.SoraToken.deploy(
+            web3,
+            credentials,
+            gasPrice,
+            gasLimit
+        ).send()
+        logger.info { "Sora token contract ${soraToken.contractAddress} was deployed" }
+        return soraToken
+    }
+
+    /**
      * Deploy relay smart contract
      * @param master notary master account
      * @return relay smart contract object

@@ -2,7 +2,7 @@ pragma solidity 0.5.4;
 
 import "./IRelayRegistry.sol";
 import "./IERC20.sol";
-import "./IXORToken.sol";
+import "./SoraToken.sol";
 
 /**
  * Provides functionality of master contract
@@ -17,8 +17,7 @@ contract Master {
     address private relayRegistryAddress;
     IRelayRegistry private relayRegistryInstance;
 
-    address public xorTokenAddress;
-    IXORToken private xorTokenInstance;
+    SoraToken public xorTokenInstance;
 
     address[] private tokens;
 
@@ -43,8 +42,7 @@ contract Master {
      * Update token address
      */
     function setXorToken(address tokenAddress) public onlyOwner {
-        xorTokenAddress = tokenAddress;
-        xorTokenInstance = IXORToken(xorTokenAddress);
+        xorTokenInstance = SoraToken(tokenAddress);
     }
 
     /**
@@ -270,7 +268,7 @@ contract Master {
     )
     public
     {
-        require(xorTokenAddress != address(0));
+        require(address(xorTokenInstance) != address(0));
         require(used[txHash] == false);
         require(peersCount >= 1);
         require(v.length == r.length);

@@ -53,6 +53,25 @@ fun hashToWithdraw(
 }
 
 /**
+ * Calculates keccak-256 hash of several params concatenation. Params are:
+ * @param beneficiary Ethereum address
+ * @param amount amount of token to mint
+ * @param irohaHash hash of transaction in Iroha
+ * @return keccak-256 hash of all provided fields
+ */
+fun hashToMint(
+    beneficiary: String,
+    amount: String,
+    irohaHash: String
+): String {
+    return Hash.sha3(
+        beneficiary.replace("0x", "")
+                + String.format("%064x", BigInteger(amount)).replace("0x", "")
+                + irohaHash.replace("0x", "")
+    )
+}
+
+/**
  * Data class which stores signature splitted into components
  * @param v v component of signature
  * @param r r component of signature
