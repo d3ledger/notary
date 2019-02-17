@@ -1,16 +1,18 @@
 package notary.btc.init
 
+import com.d3.btc.healthcheck.HealthyService
+import com.d3.btc.helper.network.addPeerConnectionStatusListener
+import com.d3.btc.helper.network.startChainDownload
+import com.d3.btc.listener.NewBtcClientRegistrationListener
+import com.d3.btc.provider.BtcRegisteredAddressesProvider
+import com.d3.btc.provider.network.BtcNetworkConfigProvider
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import healthcheck.HealthyService
-import helper.network.addPeerConnectionStatusListener
-import helper.network.startChainDownload
 import io.reactivex.Observable
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
-import listener.btc.NewBtcClientRegistrationListener
 import model.IrohaCredential
 import mu.KLogging
 import notary.btc.config.BtcNotaryConfig
@@ -24,12 +26,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import provider.NotaryPeerListProviderImpl
-import provider.btc.address.BtcRegisteredAddressesProvider
-import provider.btc.network.BtcNetworkConfigProvider
 import sidechain.SideChainEvent
 import sidechain.iroha.IrohaChainListener
 import java.io.Closeable
-
+import java.util.concurrent.Executors
 
 @Component
 class BtcNotaryInitialization(
@@ -46,6 +46,13 @@ class BtcNotaryInitialization(
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider
 ) : HealthyService(), Closeable {
 
+
+    // Executor that will be used to execute Bitcoin deposit listener logic
+    private val blockChainDepositListenerExecutor = Executors.newSingleThreadExecutor()
+
+    // Executor that will be used to execute transaction confidence listener logic
+    private val confidenceListenerExecutorService = Executors.newSingleThreadExecutor()
+
     /**
      * Init notary
      */
@@ -54,13 +61,12 @@ class BtcNotaryInitialization(
         //Enables short log format for Bitcoin events
         BriefLogFormatter.init()
         addPeerConnectionStatusListener(peerGroup, ::notHealthy, ::cured)
-        return irohaChainListener.getBlockObservable().map { irohaObservable ->
+        return irohaChainListener.getIrohaBlockObservable().map { irohaObservable ->
             newBtcClientRegistrationListener.listenToRegisteredClients(
                 wallet, irohaObservable
             ) {
                 // Kill deposit service if Iroha chain listener is not functioning
                 close()
-                System.exit(1)
             }
             logger.info { "Registration service listener was successfully initialized" }
         }.flatMap {
@@ -106,9 +112,11 @@ class BtcNotaryInitialization(
     ): Observable<SideChainEvent.PrimaryBlockChainEvent> {
         return Observable.create<SideChainEvent.PrimaryBlockChainEvent> { emitter ->
             peerGroup.addBlocksDownloadedEventListener(
+                blockChainDepositListenerExecutor,
                 BitcoinBlockChainDepositListener(
                     btcRegisteredAddressesProvider,
                     emitter,
+                    confidenceListenerExecutorService,
                     confidenceLevel
                 )
             )
@@ -116,6 +124,9 @@ class BtcNotaryInitialization(
     }
 
     override fun close() {
+        logger.info { "Closing Bitcoin notary service" }
+        confidenceListenerExecutorService.shutdownNow()
+        blockChainDepositListenerExecutor.shutdownNow()
         peerGroup.stop()
     }
 

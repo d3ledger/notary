@@ -1,11 +1,12 @@
 package generation.btc.config
 
+import com.d3.btc.wallet.WalletFile
 import config.loadConfigs
+import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import provider.NotaryPeerListProvider
@@ -13,8 +14,8 @@ import provider.NotaryPeerListProviderImpl
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
-import wallet.WalletFile
 import java.io.File
+import java.util.concurrent.Executors
 
 val btcAddressGenerationConfig =
     loadConfigs(
@@ -49,14 +50,27 @@ class BtcAddressGenerationAppConfiguration {
         IrohaCredential(btcAddressGenerationConfig.mstRegistrationAccount.accountId, mstRegistrationKeyPair)
 
     @Bean
-    fun irohaAPI() = IrohaAPI(
-        btcAddressGenerationConfig.iroha.hostname,
-        btcAddressGenerationConfig.iroha.port
-    )
+    fun generationIrohaAPI(): IrohaAPI {
+        val irohaAPI = IrohaAPI(
+            btcAddressGenerationConfig.iroha.hostname,
+            btcAddressGenerationConfig.iroha.port
+        )
+        /**
+         * It's essential to handle blocks in this service one-by-one.
+         * This is why we explicitly set single threaded executor.
+         */
+        irohaAPI.setChannelForStreamingQueryStub(
+            ManagedChannelBuilder.forAddress(
+                btcAddressGenerationConfig.iroha.hostname,
+                btcAddressGenerationConfig.iroha.port
+            ).executor(Executors.newSingleThreadExecutor()).usePlaintext().build()
+        )
+        return irohaAPI
+    }
 
     @Bean
-    fun queryAPI() = QueryAPI(
-        irohaAPI(),
+    fun registrationQueryAPI() = QueryAPI(
+        generationIrohaAPI(),
         registrationCredential.accountId,
         registrationCredential.keyPair
     )
@@ -72,22 +86,19 @@ class BtcAddressGenerationAppConfiguration {
     }
 
     @Bean
-    @Autowired
-    fun notaryPeerListProvider(queryAPI: QueryAPI): NotaryPeerListProvider {
+    fun notaryPeerListProvider(): NotaryPeerListProvider {
         return NotaryPeerListProviderImpl(
-            queryAPI,
+            registrationQueryAPI(),
             btcAddressGenerationConfig.notaryListStorageAccount,
             btcAddressGenerationConfig.notaryListSetterAccount
         )
     }
 
     @Bean
-    @Autowired
-    fun sessionConsumer(irohaAPI: IrohaAPI) = IrohaConsumerImpl(registrationCredential, irohaAPI)
+    fun sessionConsumer() = IrohaConsumerImpl(registrationCredential, generationIrohaAPI())
 
     @Bean
-    @Autowired
-    fun multiSigConsumer(irohaAPI: IrohaAPI) = IrohaConsumerImpl(mstRegistrationCredential, irohaAPI)
+    fun multiSigConsumer() = IrohaConsumerImpl(mstRegistrationCredential, generationIrohaAPI())
 
     @Bean
     fun notaryAccount() = btcAddressGenerationConfig.notaryAccount
@@ -97,8 +108,7 @@ class BtcAddressGenerationAppConfiguration {
 
     @Bean
     fun irohaChainListener() = IrohaChainListener(
-        btcAddressGenerationConfig.iroha.hostname,
-        btcAddressGenerationConfig.iroha.port,
+        generationIrohaAPI(),
         registrationCredential
     )
 

@@ -1,15 +1,16 @@
 package notary.btc.listener
 
-import helper.address.outPutToBase58Address
-import helper.currency.satToBtc
+import com.d3.btc.helper.address.outPutToBase58Address
+import com.d3.btc.helper.currency.satToBtc
+import com.d3.btc.model.BtcAddress
 import io.reactivex.ObservableEmitter
 import mu.KLogging
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.TransactionConfidence
-import provider.btc.address.BtcAddress
 import sidechain.SideChainEvent
 import java.math.BigInteger
 import java.util.*
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
 
 private const val BTC_ASSET_NAME = "btc"
@@ -21,9 +22,10 @@ class BitcoinTransactionListener(
     // Level of confidence aka depth of transaction. Recommend value is 6
     private val confidenceLevel: Int,
     // Source of Bitcoin deposit events
-    private val emitter: ObservableEmitter<SideChainEvent.PrimaryBlockChainEvent>
+    private val emitter: ObservableEmitter<SideChainEvent.PrimaryBlockChainEvent>,
+    // Executor that will be used to execute confidence listener logic
+    private val confidenceListenerExecutor: ExecutorService
 ) {
-
     fun onTransaction(tx: Transaction, blockTime: Date) {
         if (!hasRegisteredAddresses(tx)) {
             return
@@ -38,7 +40,10 @@ class BitcoinTransactionListener(
             Handling function will be called, if tx depth hits desired value
             */
             logger.info { "BTC was received, but it's not confirmed yet. Tx: ${tx.hashAsString}" }
-            tx.confidence.addEventListener(ConfirmedTxListener(confidenceLevel, tx, blockTime, ::handleTx))
+            tx.confidence.addEventListener(
+                confidenceListenerExecutor,
+                ConfirmedTxListener(confidenceLevel, tx, blockTime, ::handleTx)
+            )
 
         }
     }
@@ -97,13 +102,15 @@ class BitcoinTransactionListener(
             This leads D3 to handle the same transaction many times. This is why we use a special
             flag to check if it has been handled already.
             */
-            if (confidence.depthInBlocks >= confidenceLevel
+            val currentDepth = confidence.depthInBlocks
+            if (currentDepth >= confidenceLevel
                 && processed.compareAndSet(false, true)
             ) {
                 logger.info { "BTC tx ${tx.hashAsString} was confirmed" }
                 confidence.removeEventListener(this)
                 txHandler(tx, blockTime)
             }
+            logger.info { "BTC tx ${tx.hashAsString} has $currentDepth confirmations" }
         }
     }
 

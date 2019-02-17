@@ -10,7 +10,6 @@ buildscript {
 }
 apply plugin: 'application'
 apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
-apply plugin: 'org.springframework.boot'
 mainClassName = "withdrawal.btc.BtcWithdrawalMain"
 
 dependencies {
@@ -32,12 +31,14 @@ def getSendBtcArgs() {
 task runBtcWithdrawal(type: JavaExec) {
     main = 'withdrawal.btc.BtcWithdrawalMain'
     classpath = sourceSets.main.runtimeClasspath
+    setWorkingDir("$rootDir/")
 }
 
 task sendBtc(type: JavaExec) {
     main = 'withdrawal.btc.send.BtcSendBtc'
     args getSendBtcArgs()
     classpath = sourceSets.main.runtimeClasspath
+    setWorkingDir("$rootDir/")
 }
 
 sonarqube {

@@ -1,7 +1,8 @@
 package integration.btc
 
+import com.d3.btc.helper.currency.satToBtc
+import com.d3.btc.model.BtcAddressType
 import com.github.kittinunf.result.failure
-import helper.currency.satToBtc
 import integration.btc.environment.BtcAddressGenerationTestEnvironment
 import integration.btc.environment.BtcNotaryTestEnvironment
 import integration.btc.environment.BtcRegistrationTestEnvironment
@@ -17,10 +18,10 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
-import provider.btc.address.BtcAddressType
 import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
 import util.hex
+import withdrawal.btc.handler.CurrentFeeRate
 import java.io.File
 import java.math.BigDecimal
 import java.security.KeyPair
@@ -39,22 +40,27 @@ class BtcFullPipelineTest {
     private val withdrawalEnvironment = BtcWithdrawalTestEnvironment(integrationHelper, "full_pipeline")
 
     init {
+        CurrentFeeRate.set(DEFAULT_FEE_RATE)
         integrationHelper.addNotary("test_notary", "test_notary_address")
         // Run address generation
         GlobalScope.launch {
             addressGenerationEnvironment.btcAddressGenerationInitialization.init().failure { ex -> throw ex }
         }
+        // Wait for initial address generation
+        Thread.sleep(WAIT_PREGEN_PROCESS_MILLIS * addressGenerationEnvironment.btcGenerationConfig.threshold)
+        addressGenerationEnvironment.checkIfAddressesWereGeneratedAtInitialPhase()
         // Run registration
         GlobalScope.launch {
             registrationEnvironment.btcRegistrationServiceInitialization.init()
         }
 
-        integrationHelper.generateBtcBlocks()
+        integrationHelper.generateBtcInitialBlocks()
 
         // Run notary
         GlobalScope.launch {
             val blockStorageFolder = File(notaryEnvironment.notaryConfig.bitcoin.blockStoragePath)
             //Clear bitcoin blockchain folder
+            blockStorageFolder.deleteRecursively()
             //Recreate folder
             blockStorageFolder.mkdirs()
             notaryEnvironment.btcNotaryInitialization.init().failure { ex -> fail("Cannot run BTC notary", ex) }
@@ -94,9 +100,6 @@ class BtcFullPipelineTest {
     fun testFullPipeline() {
         val amount = satToBtc(10000L)
 
-        // Trigger address generation. Source and destination addresses
-        generateFreeAddress(2)
-
         // Register source account
         val srcKeypair = Ed25519Sha3().generateKeypair()
         val srcUserName = "src_${String.getRandomString(9)}"
@@ -132,6 +135,81 @@ class BtcFullPipelineTest {
             BigDecimal(1).subtract(amount).toPlainString(),
             integrationHelper.getIrohaAccountBalance("$srcUserName@$CLIENT_DOMAIN", BTC_ASSET)
         )
+
+        addressGenerationEnvironment.btcFreeAddressesProvider.getFreeAddresses()
+            .fold({ freeAddresses ->
+                if (freeAddresses.size < addressGenerationEnvironment.btcGenerationConfig.threshold) {
+                    fail(
+                        "Not enough addresses were generated after registration" +
+                                "(${freeAddresses.size} out of ${addressGenerationEnvironment.btcGenerationConfig.threshold})."
+                    )
+                }
+            }, { ex -> fail("Cannot get free addresses", ex) })
+    }
+
+    /**
+     * Note: Iroha must be deployed to pass the test.
+     * @given all the services(notary, withdrawal, registration and address generation) are running. 2 clients are registered. 1st client has 1BTC.
+     * @when 1st client sends 10000 SAT to 2nd client multiple times
+     * @then 10000 SAT is subtracted from 1st client balance and 2nd client balance is increased by 10000 SAT multiple times
+     */
+    @Test
+    fun testFullPipelineMultipleTransfers() {
+        val totalTransfers = 5
+        val amount = satToBtc(10000L)
+
+        // Register source account
+        val srcKeypair = Ed25519Sha3().generateKeypair()
+        val srcUserName = "src_${String.getRandomString(9)}"
+        val srcBtcAddress = registerClient(srcUserName, srcKeypair)
+
+        // Register destination account
+        val destKeypair = Ed25519Sha3().generateKeypair()
+        val destUserName = "dest_${String.getRandomString(9)}"
+        val destBtcAddress = registerClient(destUserName, destKeypair)
+
+        // Send 1 BTC multiple times
+        for (transfer in 1..totalTransfers) {
+            Thread {
+                integrationHelper.sendBtc(
+                    srcBtcAddress,
+                    1,
+                    notaryEnvironment.notaryConfig.bitcoin.confidenceLevel
+                )
+            }.start()
+        }
+        Thread.sleep(DEPOSIT_WAIT_MILLIS * totalTransfers)
+        val createdTime = System.currentTimeMillis()
+        // Send 10000 SAT from source to destination multiple times
+        for (transfer in 1..totalTransfers) {
+            Thread {
+                integrationHelper.transferAssetIrohaFromClient(
+                    "$srcUserName@$CLIENT_DOMAIN",
+                    srcKeypair,
+                    "$srcUserName@$CLIENT_DOMAIN",
+                    withdrawalEnvironment.btcWithdrawalConfig.withdrawalCredential.accountId,
+                    BTC_ASSET,
+                    destBtcAddress,
+                    amount.toPlainString(),
+                    /**
+                     * Every transfer transaction must have different creation time
+                     * Otherwise some transactions may have the same tx hash
+                     * */
+                    createdTime + transfer
+                )
+            }.start()
+        }
+        Thread.sleep(WITHDRAWAL_WAIT_MILLIS * totalTransfers)
+        integrationHelper.generateBtcBlocks(notaryEnvironment.notaryConfig.bitcoin.confidenceLevel)
+        Thread.sleep(DEPOSIT_WAIT_MILLIS * totalTransfers)
+        assertEquals(
+            amount.multiply(BigDecimal(totalTransfers)).toPlainString(),
+            integrationHelper.getIrohaAccountBalance("$destUserName@$CLIENT_DOMAIN", BTC_ASSET)
+        )
+        assertEquals(
+            BigDecimal(totalTransfers).subtract(amount.multiply(BigDecimal(totalTransfers))).toPlainString(),
+            integrationHelper.getIrohaAccountBalance("$srcUserName@$CLIENT_DOMAIN", BTC_ASSET)
+        )
     }
 
     /**
@@ -153,16 +231,6 @@ class BtcFullPipelineTest {
      */
     private fun generateChangeAddress() {
         generateAddress(BtcAddressType.CHANGE)
-    }
-
-    /**
-     * Generates free Bitcoin address. This address may be registered by client later
-     * @param addressesToGenerate - number of addresses to generate
-     */
-    private fun generateFreeAddress(addressesToGenerate: Int) {
-        for (i in 1..addressesToGenerate) {
-            generateAddress(BtcAddressType.FREE)
-        }
     }
 
     /**

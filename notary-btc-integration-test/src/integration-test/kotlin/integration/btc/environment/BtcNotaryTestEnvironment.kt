@@ -1,32 +1,32 @@
 package integration.btc.environment
 
+import com.d3.btc.handler.NewBtcClientRegistrationHandler
+import com.d3.btc.listener.NewBtcClientRegistrationListener
+import com.d3.btc.provider.BtcRegisteredAddressesProvider
+import com.d3.btc.provider.network.BtcRegTestConfigProvider
 import config.BitcoinConfig
-import handler.btc.NewBtcClientRegistrationHandler
 import integration.helper.BtcIntegrationHelperUtil
-import listener.btc.NewBtcClientRegistrationListener
 import model.IrohaCredential
+import notary.btc.config.BtcNotaryConfig
 import notary.btc.init.BtcNotaryInitialization
-import provider.btc.address.BtcRegisteredAddressesProvider
-import provider.btc.network.BtcRegTestConfigProvider
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.util.ModelUtil
 import java.io.Closeable
 import java.io.File
-import java.net.InetAddress
 
 
 /**
  * Bitcoin notary service testing environment
  */
-class BtcNotaryTestEnvironment(private val integrationHelper: BtcIntegrationHelperUtil, testName: String = "") :
-    Closeable {
-
-    val notaryConfig = integrationHelper.configHelper.createBtcNotaryConfig(testName)
-
-    private val irohaCredential = IrohaCredential(
+class BtcNotaryTestEnvironment(
+    private val integrationHelper: BtcIntegrationHelperUtil,
+    testName: String = "",
+    val notaryConfig: BtcNotaryConfig = integrationHelper.configHelper.createBtcNotaryConfig(testName),
+    notaryCredential: IrohaCredential = IrohaCredential(
         notaryConfig.notaryCredential.accountId,
         ModelUtil.loadKeypair(notaryConfig.notaryCredential.pubkeyPath, notaryConfig.notaryCredential.privkeyPath).get()
     )
+) : Closeable {
 
     private val btcRegisteredAddressesProvider = BtcRegisteredAddressesProvider(
         integrationHelper.queryAPI,
@@ -39,7 +39,7 @@ class BtcNotaryTestEnvironment(private val integrationHelper: BtcIntegrationHelp
     val irohaChainListener = IrohaChainListener(
         notaryConfig.iroha.hostname,
         notaryConfig.iroha.port,
-        irohaCredential
+        notaryCredential
     )
 
     private val newBtcClientRegistrationListener =
@@ -47,23 +47,19 @@ class BtcNotaryTestEnvironment(private val integrationHelper: BtcIntegrationHelp
 
     private val wallet = org.bitcoinj.wallet.Wallet.loadFromFile(File(notaryConfig.bitcoin.walletPath))
 
-    private val peerGroup by lazy {
-        val peerGroup = integrationHelper.getPeerGroup(
-            wallet,
-            btcNetworkConfigProvider.getConfig(),
-            notaryConfig.bitcoin.blockStoragePath
-        )
-        BitcoinConfig.extractHosts(notaryConfig.bitcoin).forEach { host ->
-            peerGroup.addAddress(InetAddress.getByName(host))
-        }
-        peerGroup
-    }
+    private val peerGroup = integrationHelper.getPeerGroup(
+        wallet,
+        btcNetworkConfigProvider,
+        notaryConfig.bitcoin.blockStoragePath,
+        BitcoinConfig.extractHosts(notaryConfig.bitcoin)
+    )
+
     val btcNotaryInitialization =
         BtcNotaryInitialization(
             peerGroup,
             wallet,
             notaryConfig,
-            irohaCredential,
+            notaryCredential,
             integrationHelper.irohaAPI,
             btcRegisteredAddressesProvider,
             irohaChainListener,

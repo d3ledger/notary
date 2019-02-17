@@ -1,17 +1,19 @@
 package integration.btc.environment
 
+import com.d3.btc.fee.BtcFeeRateService
+import com.d3.btc.handler.NewBtcClientRegistrationHandler
+import com.d3.btc.helper.address.outPutToBase58Address
+import com.d3.btc.provider.BtcRegisteredAddressesProvider
+import com.d3.btc.provider.network.BtcNetworkConfigProvider
+import com.d3.btc.provider.network.BtcRegTestConfigProvider
 import config.BitcoinConfig
-import fee.BtcFeeRateService
-import handler.btc.NewBtcClientRegistrationHandler
-import helper.address.outPutToBase58Address
 import integration.helper.BtcIntegrationHelperUtil
+import io.grpc.ManagedChannelBuilder
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.TransactionOutput
 import org.bitcoinj.wallet.Wallet
-import provider.btc.address.BtcRegisteredAddressesProvider
-import provider.btc.network.BtcNetworkConfigProvider
-import provider.btc.network.BtcRegTestConfigProvider
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
@@ -25,8 +27,8 @@ import withdrawal.btc.statistics.WithdrawalStatistics
 import withdrawal.btc.transaction.*
 import java.io.Closeable
 import java.io.File
-import java.net.InetAddress
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
 
 /**
  * Bitcoin withdrawal service testing environment
@@ -37,6 +39,26 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
     val createdTransactions = ConcurrentHashMap<String, Pair<Long, Transaction>>()
 
     val btcWithdrawalConfig = integrationHelper.configHelper.createBtcWithdrawalConfig(testName)
+
+    /**
+     * It's essential to handle blocks in this service one-by-one.
+     * This is why we explicitly set single threaded executor.
+     */
+    private val executor = Executors.newSingleThreadExecutor()
+
+    private val irohaApi by lazy {
+        val irohaAPI = IrohaAPI(
+            btcWithdrawalConfig.iroha.hostname,
+            btcWithdrawalConfig.iroha.port
+        )
+        irohaAPI.setChannelForStreamingQueryStub(
+            ManagedChannelBuilder.forAddress(
+                btcWithdrawalConfig.iroha.hostname,
+                btcWithdrawalConfig.iroha.port
+            ).executor(executor).usePlaintext().build()
+        )
+        irohaAPI
+    }
 
     private val withdrawalKeypair = ModelUtil.loadKeypair(
         btcWithdrawalConfig.withdrawalCredential.pubkeyPath,
@@ -64,19 +86,18 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
 
     private val withdrawalIrohaConsumer = IrohaConsumerImpl(
         withdrawalCredential,
-        integrationHelper.irohaAPI
+        irohaApi
     )
 
     private val signaturesCollectorIrohaConsumer = IrohaConsumerImpl(
         signaturesCollectorCredential,
-        integrationHelper.irohaAPI
+        irohaApi
     )
 
-    private val btcFeeRateConsumer = IrohaConsumerImpl(btcFeeRateCredential, integrationHelper.irohaAPI)
+    private val btcFeeRateConsumer = IrohaConsumerImpl(btcFeeRateCredential, irohaApi)
 
     private val irohaChainListener = IrohaChainListener(
-        btcWithdrawalConfig.iroha.hostname,
-        btcWithdrawalConfig.iroha.port,
+        irohaApi,
         withdrawalCredential
     )
 
@@ -106,7 +127,7 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
         SignCollector(
             signaturesCollectorCredential,
             signaturesCollectorIrohaConsumer,
-            integrationHelper.irohaAPI,
+            irohaApi,
             transactionSigner
         )
 
@@ -134,17 +155,12 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
         Wallet.loadFromFile(File(btcWithdrawalConfig.bitcoin.walletPath))
     }
 
-    private val peerGroup by lazy {
-        val peerGroup = integrationHelper.getPeerGroup(
-            wallet,
-            btcNetworkConfigProvider.getConfig(),
-            btcWithdrawalConfig.bitcoin.blockStoragePath
-        )
-        BitcoinConfig.extractHosts(btcWithdrawalConfig.bitcoin).forEach { host ->
-            peerGroup.addAddress(InetAddress.getByName(host))
-        }
-        peerGroup
-    }
+    private val peerGroup = integrationHelper.getPeerGroup(
+        wallet,
+        btcNetworkConfigProvider,
+        btcWithdrawalConfig.bitcoin.blockStoragePath,
+        BitcoinConfig.extractHosts(btcWithdrawalConfig.bitcoin)
+    )
 
     private val btcFeeRateService =
         BtcFeeRateService(btcFeeRateConsumer, btcFeeRateCredential.accountId, integrationHelper.queryAPI)
@@ -196,6 +212,7 @@ class BtcWithdrawalTestEnvironment(private val integrationHelper: BtcIntegration
 
     override fun close() {
         integrationHelper.close()
+        executor.shutdownNow()
         irohaChainListener.close()
         File(btcWithdrawalConfig.bitcoin.blockStoragePath).deleteRecursively()
         btcWithdrawalInitialization.close()

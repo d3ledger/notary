@@ -1,6 +1,9 @@
 package integration.helper
 
+import config.RMQConfig
+import config.getConfigFolder
 import config.loadConfigs
+import config.loadRawConfigs
 import integration.TestConfig
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
@@ -12,6 +15,7 @@ import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountAsset
+import util.getRandomString
 import java.io.Closeable
 import java.math.BigDecimal
 import java.security.KeyPair
@@ -20,14 +24,18 @@ import java.security.PublicKey
 /**
  * Utility class that makes testing more comfortable
  */
-open class IrohaIntegrationHelperUtil : Closeable {
+open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
 
     override fun close() {
         irohaAPI.close()
-        irohaListener.close()
+        if (irohaChainListenerDelegate.isInitialized()) {
+            irohaListener.close()
+        }
     }
 
     val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
+    val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
+    val testQueue = String.getRandomString(20)
 
     val testCredential = IrohaCredential(
         testConfig.testCredentialConfig.accountId,
@@ -37,7 +45,7 @@ open class IrohaIntegrationHelperUtil : Closeable {
         ).get()
     )
 
-    open val accountHelper by lazy { IrohaAccountHelper(irohaAPI) }
+    open val accountHelper by lazy { IrohaAccountHelper(irohaAPI, peers) }
 
     open val configHelper by lazy {
         IrohaConfigHelper()
@@ -53,12 +61,17 @@ open class IrohaIntegrationHelperUtil : Closeable {
 
     val queryAPI by lazy { QueryAPI(irohaAPI, testCredential.accountId, testCredential.keyPair) }
 
+    private val irohaChainListenerDelegate = lazy {
+        IrohaChainListener(
+            testConfig.iroha.hostname,
+            testConfig.iroha.port,
+            testCredential,
+            rmqConfig,
+            testQueue
+        )
+    }
 
-    protected val irohaListener = IrohaChainListener(
-        testConfig.iroha.hostname,
-        testConfig.iroha.port,
-        testCredential
-    )
+    private val irohaListener by irohaChainListenerDelegate
 
     protected val registrationConsumer by lazy {
         IrohaConsumerImpl(accountHelper.registrationAccount, irohaAPI)
@@ -69,11 +82,13 @@ open class IrohaIntegrationHelperUtil : Closeable {
     }
 
     /**
-     * Waits for exactly one iroha block
+     * Purge all iroha blocks, call and wait for exactly one iroha block
      */
-    fun waitOneIrohaBlock() {
+    fun purgeAndwaitOneIrohaBlock(func: () -> Unit) {
         runBlocking {
-            val block = irohaListener.getBlock()
+            irohaListener.purge()
+            func()
+            val (block, _) = irohaListener.getBlock()
             logger.info { "Wait for one block ${block.blockV1.payload.height}" }
         }
     }
@@ -84,6 +99,16 @@ open class IrohaIntegrationHelperUtil : Closeable {
             accountDetailHolder,
             accountDetailSetter
         ).get()
+    }
+
+    /**
+     * Return [account] data.
+     */
+    fun getAccount(account: String): String {
+        return sidechain.iroha.util.getAccountData(
+            queryAPI,
+            account
+        ).get().toString()
     }
 
     /**
@@ -122,7 +147,6 @@ open class IrohaIntegrationHelperUtil : Closeable {
      * Query Iroha account balance
      * @param accountId - account in Iroha
      * @param assetId - asset in Iroha
-     * @param credential - credential of query creator
      * @return balance of account asset
      */
     fun getIrohaAccountBalance(accountId: String, assetId: String): String {
@@ -154,6 +178,7 @@ open class IrohaIntegrationHelperUtil : Closeable {
      * @param assetId - asset id
      * @param description - transaction description
      * @param amount - amount
+     * @param createdTime - time tx creation. Current by default.
      * @return hex representation of transaction hash
      */
     fun transferAssetIrohaFromClient(
@@ -163,11 +188,12 @@ open class IrohaIntegrationHelperUtil : Closeable {
         destAccountId: String,
         assetId: String,
         description: String,
-        amount: String
+        amount: String,
+        createdTime: Long = System.currentTimeMillis()
     ): String {
         val tx = Transaction.builder(creator)
             .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
-            .sign(kp)
+            .setCreatedTime(createdTime).sign(kp)
             .build()
         return irohaConsumer.send(tx).get()
     }
@@ -211,7 +237,7 @@ open class IrohaIntegrationHelperUtil : Closeable {
     }
 
     /**
-     * Query Iroha account balance from [accountId]. Creator is [credential].
+     * Query Iroha account balance from [accountId].
      * @return Map(assetId to balance)
      */
     fun getAccountAssets(

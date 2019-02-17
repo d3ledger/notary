@@ -15,7 +15,16 @@ import org.springframework.context.annotation.ComponentScan
 import java.util.*
 
 @SpringBootApplication
-@ComponentScan(basePackages = ["notary", "healthcheck", "provider.btc.network", "provider.btc.wallet", "listener.btc", "handler.btc", "peer"])
+@ComponentScan(
+    basePackages = [
+        "notary",
+        "com.d3.btc.healthcheck",
+        "com.d3.btc.provider.network",
+        "com.d3.btc.provider.wallet",
+        "com.d3.btc.listener",
+        "com.d3.btc.handler",
+        "com.d3.btc.peer"]
+)
 class BtcNotaryApplication
 
 private val logger = KLogging().logger
@@ -28,11 +37,10 @@ fun main(args: Array<String>) {
         app.run(*args)
     }.flatMap { context ->
         context.getBean(BtcNotaryInitialization::class.java).init()
+    }.failure { ex ->
+        logger.error("Cannot run btc notary", ex)
+        System.exit(1)
     }
-        .failure { ex ->
-            logger.error("Cannot run btc notary", ex)
-            System.exit(1)
-        }
 }
 
 private fun webPortProperties(): Map<String, String> {

@@ -2,12 +2,12 @@
 
 package generation.btc.trigger
 
+import com.d3.btc.model.BtcAddressType
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import mu.KLogging
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.ComponentScan
-import provider.btc.address.BtcAddressType
 
 @ComponentScan(basePackages = ["generation.btc.trigger"])
 class BtcFreeAddressGenerationApplication

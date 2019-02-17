@@ -1,8 +1,8 @@
 package integration.btc
 
+import com.d3.btc.helper.address.outPutToBase58Address
+import com.d3.btc.helper.currency.satToBtc
 import com.github.kittinunf.result.failure
-import helper.address.outPutToBase58Address
-import helper.currency.satToBtc
 import integration.btc.environment.BtcWithdrawalTestEnvironment
 import integration.helper.BTC_ASSET
 import integration.helper.BtcIntegrationHelperUtil
@@ -20,8 +20,8 @@ import java.math.BigDecimal
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
-const val WITHDRAWAL_WAIT_MILLIS = 17_500L
-private const val DEFAULT_FEE_RATE = 10
+const val WITHDRAWAL_WAIT_MILLIS = 15_000L
+const val DEFAULT_FEE_RATE = 10
 private const val TOTAL_TESTS = 14
 private const val FAILED_WITHDRAW_AMOUNT = 6666L
 private const val FAILED_BROADCAST_AMOUNT = 7777L
@@ -49,7 +49,7 @@ class BtcWithdrawalIntegrationTest {
         //Recreate folder
         blockStorageFolder.mkdirs()
         integrationHelper.addNotary("test", "test")
-        integrationHelper.generateBtcBlocks()
+        integrationHelper.generateBtcInitialBlocks()
         integrationHelper.genChangeBtcAddress(environment.btcWithdrawalConfig.bitcoin.walletPath)
             .fold({ address -> changeAddress = address }, { ex -> throw  ex })
         integrationHelper.preGenFreeBtcAddresses(environment.btcWithdrawalConfig.bitcoin.walletPath, TOTAL_TESTS * 2)

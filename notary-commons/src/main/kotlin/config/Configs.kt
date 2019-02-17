@@ -28,6 +28,18 @@ const val ETH_RELAY_REGISTRY_ENV = "ETH_RELAY_REGISTRY"
 private val logger = KLogging().logger
 
 /**
+ * RMQ configurations
+ */
+
+interface RMQConfig {
+    val host: String
+    val irohaExchange: String
+
+    val irohaCredential : IrohaCredentialConfig
+    val iroha: IrohaConfig
+}
+
+/**
  * Iroha configurations
  */
 interface IrohaConfig {
@@ -106,6 +118,11 @@ fun <T : Any> loadConfigs(
     return Result.of { loadValidatedConfigs(prefix, type, filename, *validators) }
 }
 
+/**
+ * Returns default D3 config folder
+ */
+fun getConfigFolder() = System.getProperty("user.dir") + "/configs"
+
 private fun <T : Any> loadValidatedConfigs(
     prefix: String,
     type: Class<T>,
@@ -114,8 +131,7 @@ private fun <T : Any> loadValidatedConfigs(
 ): T {
     val profile = getProfile()
     val (file, extension) = filename.split(".")
-    val pwd = System.getProperty("user.dir")
-    val path = "$pwd/configs${file}_$profile.$extension"
+    val path = "${getConfigFolder()}${file}_$profile.$extension"
     logger.info { "Loading config from $path, prefix $prefix" }
     val config = loadRawConfigs(prefix, type, path)
     validators.forEach { rule -> rule.validate(config) }

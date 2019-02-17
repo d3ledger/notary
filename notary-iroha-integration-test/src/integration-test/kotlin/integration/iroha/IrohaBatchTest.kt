@@ -1,5 +1,9 @@
 package integration.iroha
 
+import config.RMQConfig
+import config.getConfigFolder
+import config.loadConfigs
+import config.loadRawConfigs
 import integration.helper.IrohaConfigHelper
 import integration.helper.IrohaIntegrationHelperUtil
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
@@ -22,6 +26,7 @@ import sidechain.iroha.consumer.IrohaConverter
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountAsset
 import sidechain.iroha.util.getAccountData
+import util.getRandomId
 import util.getRandomString
 import util.hex
 import util.toHexString
@@ -42,13 +47,16 @@ class IrohaBatchTest {
     private val testCredential = integrationHelper.testCredential
 
     private val tester = testCredential.accountId
+    private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
 
     val assetDomain = "notary"
 
     val listener = IrohaChainListener(
         testConfig.iroha.hostname,
         testConfig.iroha.port,
-        testCredential
+        testCredential,
+        rmqConfig,
+        String.getRandomId()
     )
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
@@ -135,7 +143,9 @@ class IrohaBatchTest {
             val hashes = lst.map { String.hex(Utils.hash(it)) }
 
             val blockHashes = GlobalScope.async {
-                listener.getBlock().blockV1.payload.transactionsList.map {
+                val(block, ack) = listener.getBlock()
+                ack()
+                block.blockV1.payload.transactionsList.map {
                     String.hex(Utils.hash(it))
                 }
             }
@@ -253,7 +263,9 @@ class IrohaBatchTest {
             val expectedHashes = hashes.subList(0, hashes.size - 1)
 
             val blockHashes = GlobalScope.async {
-                listener.getBlock().blockV1.payload.transactionsList.map {
+                val(block, ack) = listener.getBlock()
+                ack()
+                block.blockV1.payload.transactionsList.map {
                     String.hex(Utils.hash(it))
                 }
             }

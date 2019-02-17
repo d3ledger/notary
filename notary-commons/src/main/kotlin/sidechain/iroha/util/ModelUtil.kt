@@ -13,7 +13,6 @@ import model.IrohaCredential
 import mu.KLogging
 import sidechain.iroha.consumer.IrohaConsumer
 import java.io.IOException
-import java.math.BigDecimal
 import java.math.BigInteger
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -70,20 +69,23 @@ object ModelUtil {
      * @param accountId - account to set details
      * @param key - key of detail
      * @param value - value of detail
-     * @param createdTime - time of tx creation. Current time by default
+     * @param quorum - tx quorum. 1 by default
      * @return hex representation of transaction hash
      */
     fun setAccountDetail(
         irohaConsumer: IrohaConsumer,
         accountId: String,
         key: String,
-        value: String
+        value: String,
+        createdTime: Long = System.currentTimeMillis(),
+        quorum: Int = 1
     ): Result<String, Exception> {
-        val transaction = Transaction
+        val transactionBuilder = Transaction
             .builder(irohaConsumer.creator)
             .setAccountDetail(accountId, key, value)
-            .build()
-        return irohaConsumer.send(transaction)
+            .setCreatedTime(createdTime)
+            .setQuorum(quorum)
+        return irohaConsumer.send(transactionBuilder.build())
     }
 
     /**
@@ -218,7 +220,7 @@ object ModelUtil {
      * @param assetId - asset id in Iroha
      * @param description - transfer description
      * @param amount - amount
-     * @param createdTime - time of transaction creation. Current time by default.
+     * @param creationTime - time of transaction creation. Current time by default.
      * @return hex representation of transaction hash
      */
     fun transferAssetIroha(
@@ -228,10 +230,10 @@ object ModelUtil {
         assetId: String,
         description: String,
         amount: String,
-        date: Long = System.currentTimeMillis()
+        creationTime: Long = System.currentTimeMillis()
     ): Result<String, Exception> {
         val transaction = Transaction
-            .builder(irohaConsumer.creator, date)
+            .builder(irohaConsumer.creator, creationTime)
             .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
             .build()
         return irohaConsumer.send(transaction)

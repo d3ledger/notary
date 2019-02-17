@@ -17,7 +17,7 @@ import java.util.List;
     Report creating service
  */
 public class TestReportService {
-    private static final String DATE_FORMAT = "dd.MM.yyyy hh:mm";
+    private static final String DATE_FORMAT = "dd.MM.yyyy HH:mm";
     private static final String D3_PROJECT_TITLE = "D3 test report";
 
     private final TestParser testParser = new TestParser();
@@ -26,13 +26,28 @@ public class TestReportService {
     private final TestsFilter testsFilter = new TestsFilter();
     private final CodeReader codeReader = new CodeReader();
 
+
+    /**
+     * Creates complete report for all test files located in given folders
+     *
+     * @param rootFolders root folder where all the tests are stored
+     * @return complete report
+     */
+    public Report create(List<String> rootFolders) throws IOException {
+        List<Report> reports = new ArrayList<>();
+        for (String rootFolder : rootFolders) {
+            reports.add(create(rootFolder));
+        }
+        return merge(reports);
+    }
+
     /**
      * Creates complete report for all test files located in given folder
      *
      * @param rootFolder root folder where all the tests are stored
      * @return complete report
      */
-    public Report create(String rootFolder) throws IOException {
+    private Report create(String rootFolder) throws IOException {
         Report report = new Report();
         List<String> testFiles = testsWalker.getTestFiles(rootFolder);
         Summary summary = initSummary(rootFolder);
@@ -89,7 +104,6 @@ public class TestReportService {
     private Summary initSummary(String rootFolder) {
         Summary summary = new Summary();
         summary.setGenerationDate(getCurrentDate());
-        summary.setProjectRootDir(rootFolder);
         summary.setTitle(D3_PROJECT_TITLE);
         return summary;
     }
@@ -101,5 +115,30 @@ public class TestReportService {
     private String getCurrentDate() {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT);
         return simpleDateFormat.format(new Date());
+    }
+
+
+    //Merges reports into one
+    private Report merge(List<Report> reports) {
+        if (reports == null || reports.isEmpty()) {
+            throw new IllegalArgumentException("Cannot merge reports, because there is nothing to merge");
+        } else if (reports.size() == 1) {
+            return reports.get(0);
+        }
+        Report mainReport = reports.get(0);
+        Summary mainReportSummary = mainReport.getSummary();
+        for (int i = 1; i < reports.size(); i++) {
+            Report report = reports.get(i);
+            mainReport.getTestFiles().addAll(report.getTestFiles());
+            mainReport.getNoDescriptionTestCases().addAll(report.getNoDescriptionTestCases());
+            mainReport.getReportData().addAll(report.getReportData());
+
+            Summary summary = report.getSummary();
+            mainReportSummary.setDisabledCases(mainReportSummary.getDisabledCases() + summary.getDisabledCases());
+            mainReportSummary.setFilesWithTests(mainReportSummary.getFilesWithTests() + summary.getFilesWithTests());
+            mainReportSummary.setLacksInDescription(mainReportSummary.getLacksInDescription() + summary.getLacksInDescription());
+            mainReportSummary.setTestCases(mainReportSummary.getTestCases() + summary.getTestCases());
+        }
+        return mainReport;
     }
 }

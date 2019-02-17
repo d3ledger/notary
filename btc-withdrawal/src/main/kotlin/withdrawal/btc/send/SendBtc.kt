@@ -2,6 +2,7 @@
 
 package withdrawal.btc.send
 
+import com.d3.btc.helper.currency.satToBtc
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
@@ -29,12 +30,12 @@ private val logger = KLogging().logger
  */
 fun main(args: Array<String>) {
     val destAddress = args[0]
-    val satAmount = args[1]
+    val btcAmount = satToBtc(args[1].toLong())
     loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties")
         .map { withdrawalConfig ->
             val irohaNetwork = IrohaAPI(withdrawalConfig.iroha.hostname, withdrawalConfig.iroha.port)
             sendBtc(
-                destAddress, satAmount,
+                destAddress, btcAmount.toPlainString(),
                 withdrawalConfig.withdrawalCredential.accountId,
                 IrohaConsumerImpl(createNotaryCredential(withdrawalConfig.notaryCredential), irohaNetwork)
             ).failure { ex ->
@@ -60,24 +61,24 @@ private fun createNotaryCredential(
 /**
  * Sends BTC
  * @param destinationAddress - base58 address to send money
- * @param amount - amount of BTC to send
+ * @param btcAmount - amount of BTC to send
  * @param withdrawalAccountId - withdrawal account id
  * @param notaryConsumer - notary consumer object
  */
 private fun sendBtc(
     destinationAddress: String,
-    amount: String,
+    btcAmount: String,
     withdrawalAccountId: String,
     notaryConsumer: IrohaConsumer
 ): Result<Unit, Exception> {
-    return ModelUtil.addAssetIroha(notaryConsumer, BTC_ASSET_ID, amount).flatMap {
+    return ModelUtil.addAssetIroha(notaryConsumer, BTC_ASSET_ID, btcAmount).flatMap {
         ModelUtil.transferAssetIroha(
             notaryConsumer,
             notaryConsumer.creator,
             withdrawalAccountId,
             BTC_ASSET_ID,
             destinationAddress,
-            amount
+            btcAmount
         )
     }.map { Unit }
 }

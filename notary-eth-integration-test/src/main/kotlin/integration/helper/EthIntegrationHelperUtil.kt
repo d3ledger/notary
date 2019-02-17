@@ -1,7 +1,7 @@
 package integration.helper
 
 import com.github.kittinunf.result.success
-import config.EthereumPasswords
+import config.*
 import jp.co.soramitsu.iroha.java.QueryAPI
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
@@ -16,6 +16,7 @@ import registration.eth.EthRegistrationConfig
 import registration.eth.EthRegistrationStrategyImpl
 import registration.eth.relay.RelayRegistration
 import sidechain.eth.EthChainListener
+import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import token.EthTokenInfo
@@ -270,7 +271,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         whitelist: List<String>,
         keypair: KeyPair = ModelUtil.generateKeypair()
     ): String {
-        ethRegistrationStrategy.register(name, whitelist, keypair.public.toHexString())
+        ethRegistrationStrategy.register(name, CLIENT_DOMAIN, whitelist, keypair.public.toHexString())
             .fold({ registeredEthWallet ->
                 logger.info("registered client $name with relay $registeredEthWallet")
                 return registeredEthWallet
@@ -394,9 +395,10 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      */
     fun runEthWithdrawalService(
         withdrawalServiceConfig: WithdrawalServiceConfig = configHelper.createWithdrawalConfig(),
-        relayVacuumConfig: RelayVacuumConfig = configHelper.createRelayVacuumConfig()
+        relayVacuumConfig: RelayVacuumConfig = configHelper.createRelayVacuumConfig(),
+        rmqConfig: RMQConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
     ) {
-        withdrawalservice.executeWithdrawal(withdrawalServiceConfig, configHelper.ethPasswordConfig, relayVacuumConfig)
+        withdrawalservice.executeWithdrawal(withdrawalServiceConfig, configHelper.ethPasswordConfig, relayVacuumConfig, rmqConfig)
     }
 
     /**

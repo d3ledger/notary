@@ -2,6 +2,7 @@ package registration.eth
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
+import com.github.kittinunf.result.map
 import config.EthereumPasswords
 import contract.RelayRegistry
 import mu.KLogging
@@ -55,14 +56,29 @@ class EthRegistrationStrategyImpl(
      * @param whitelist - list of addresses from client
      * @return ethereum wallet has been registered
      */
-    override fun register(name: String, whitelist: List<String>, pubkey: String): Result<String, Exception> {
+    override fun register(
+        name: String,
+        domain: String,
+        whitelist: List<String>,
+        pubkey: String
+    ): Result<String, Exception> {
         return ethFreeRelayProvider.getRelay()
             .flatMap { freeEthWallet ->
                 logger.info { "Add new relay to relay registry relayRegistry=$relayRegistry, freeWallet=$freeEthWallet, whitelist=$whitelist, creator=${credentials.address}." }
                 relayRegistry.addNewRelayAddress(freeEthWallet, whitelist).send()
                 irohaEthAccountCreator.create(
-                    freeEthWallet, whitelist, name, pubkey
+                    freeEthWallet, whitelist, name, domain, pubkey
                 )
+            }
+    }
+
+    /**
+     * Return number of free relays.
+     */
+    override fun getFreeAddressNumber(): Result<Int, Exception> {
+        return ethFreeRelayProvider.getRelays()
+            .map { freeRelays ->
+                freeRelays.size
             }
     }
 

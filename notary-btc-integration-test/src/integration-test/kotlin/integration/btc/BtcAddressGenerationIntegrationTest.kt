@@ -1,5 +1,8 @@
 package integration.btc
 
+import com.d3.btc.model.AddressInfo
+import com.d3.btc.model.BtcAddressType
+import com.d3.btc.provider.generation.ADDRESS_GENERATION_TIME_KEY
 import com.github.kittinunf.result.failure
 import integration.btc.environment.BtcAddressGenerationTestEnvironment
 import integration.helper.BtcIntegrationHelperUtil
@@ -16,20 +19,17 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
-import provider.btc.address.AddressInfo
-import provider.btc.address.BtcAddressType
-import provider.btc.generation.ADDRESS_GENERATION_TIME_KEY
 import java.io.File
 
-private const val WAIT_PREGEN_INIT_MILLIS = 10_000L
-const val WAIT_PREGEN_PROCESS_MILLIS = 15_000L
+const val WAIT_PREGEN_PROCESS_MILLIS = 20_000L
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcAddressGenerationIntegrationTest {
 
     private val integrationHelper = BtcIntegrationHelperUtil()
 
-    private val environment = BtcAddressGenerationTestEnvironment(integrationHelper)
+    private val environment =
+        BtcAddressGenerationTestEnvironment(integrationHelper)
 
     private fun createMsAddress(notaryKeys: Collection<String>): String {
         val keys = ArrayList<ECKey>()
@@ -51,7 +51,9 @@ class BtcAddressGenerationIntegrationTest {
         GlobalScope.launch {
             environment.btcAddressGenerationInitialization.init().failure { ex -> throw ex }
         }
-        Thread.sleep(WAIT_PREGEN_INIT_MILLIS)
+        // Wait for initial address generation
+        Thread.sleep(WAIT_PREGEN_PROCESS_MILLIS * environment.btcGenerationConfig.threshold)
+        environment.checkIfAddressesWereGeneratedAtInitialPhase()
     }
 
     /**

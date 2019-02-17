@@ -2,6 +2,25 @@ version: '3.5'
 
 
 services:
+
+  # D3 common registration service
+  d3-registration:
+    image: nexus.iroha.tech:19002/d3-deploy/notary-registration:${TAG-master}
+    container_name: d3-registration
+    ports:
+      - 8085:8085
+      - 7075:7075
+    volumes:
+      - ./:/opt/notary/deploy
+      - ../configs:/opt/notary/configs
+    environment:
+      - PROFILE
+      - IROHA_HOST=d3-iroha
+      - IROHA_PORT=50051
+      - CLASS=registration.RegistrationMain
+    networks:
+      - d3-network
+
   d3-eth-relay:
     image: nexus.iroha.tech:19002/d3-deploy/eth-relay:${TAG-master}
     container_name: d3-eth-relay
@@ -14,14 +33,14 @@ services:
       - PROFILE
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
+      - JAR_NAME=eth-registration.jar
       - CLASS=registration.eth.relay.DeployRelayMain
     networks:
       - d3-network
 
-
-  d3-registration:
-    image: nexus.iroha.tech:19002/d3-deploy/registration:${TAG-master}
-    container_name: d3-registration
+  d3-eth-registration:
+    image: nexus.iroha.tech:19002/d3-deploy/eth-registration:${TAG-master}
+    container_name: d3-eth-registration
     ports:
       - 8083:8083
     volumes:
@@ -32,13 +51,14 @@ services:
       - PROFILE
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
+      - JAR_NAME=eth-registration.jar
       - CLASS=registration.eth.EthRegistrationMain
     networks:
       - d3-network
 
-  d3-withdrawal:
-    image: nexus.iroha.tech:19002/d3-deploy/withdrawal:${TAG-master}
-    container_name: d3-withdrawal
+  d3-eth-withdrawal:
+    image: nexus.iroha.tech:19002/d3-deploy/eth-withdrawal:${TAG-master}
+    container_name: d3-eth-withdrawal
     volumes:
       - ./:/opt/notary/deploy
       - ../configs:/opt/notary/configs
@@ -49,10 +69,25 @@ services:
       - PROFILE
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
+      - JAR_NAME=eth-withdrawal.jar
       - CLASS=withdrawalservice.WithdrawalServiceMain
     networks:
       - d3-network
 
+  d3-btc-registration:
+    image: nexus.iroha.tech:19002/d3-deploy/btc-registration:${TAG-master}
+    container_name: d3-btc-registration
+    volumes:
+    - ./:/opt/notary/deploy
+    - ../configs:/opt/notary/configs
+    environment:
+    - PROFILE
+    - IROHA_HOST=d3-iroha
+    - IROHA_PORT=50051
+    - JAR_NAME=btc-registration.jar
+    - CLASS=com.d3.btc.registration.BtcRegistrationMain
+    networks:
+    - d3-network
 
 networks:
   d3-network:

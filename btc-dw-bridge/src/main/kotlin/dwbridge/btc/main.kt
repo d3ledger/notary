@@ -23,9 +23,19 @@ import java.util.*
 @SpringBootApplication
 @ComponentScan(
     basePackages = [
-        "provider.btc.address", "provider.btc.network", "provider.btc.wallet",
-        "withdrawal.btc.handler", "withdrawal.btc.init", "withdrawal.btc.provider", "withdrawal.btc.transaction",
-        "listener.btc", "handler.btc", "notary.btc.init", "peer", "dwbridge", "healthcheck"]
+        "com.d3.btc.provider.address",
+        "com.d3.btc.provider.network",
+        "com.d3.btc.provider.wallet",
+        "withdrawal.btc.handler",
+        "withdrawal.btc.init",
+        "withdrawal.btc.provider",
+        "withdrawal.btc.transaction",
+        "com.d3.btc.listener",
+        "com.d3.btc.handler",
+        "notary.btc.init",
+        "com.d3.btc.peer",
+        "dwbridge",
+        "com.d3.btc.healthcheck"]
 )
 class BtcDWBridgeApplication
 
