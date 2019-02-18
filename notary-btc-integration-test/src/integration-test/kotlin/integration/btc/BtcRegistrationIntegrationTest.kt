@@ -71,7 +71,7 @@ class BtcRegistrationIntegrationTest {
     @Test
     fun testRegistrationNoAddressForMyNode() {
         val clientsBeforeRegistration = environment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
-        integrationHelper.genFreeBtcAddress(environment.btcNotaryConfig.bitcoin.walletPath, "different node id")
+        integrationHelper.genFreeBtcAddress(environment.btcDepositConfig.bitcoin.walletPath, "different node id")
         val keypair = Ed25519Sha3().generateKeypair()
         val userName = String.getRandomString(9)
         val res = khttp.post(
