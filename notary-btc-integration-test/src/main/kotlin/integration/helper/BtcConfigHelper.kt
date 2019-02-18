@@ -6,7 +6,7 @@ import generation.btc.config.BtcAddressGenerationConfig
 import model.IrohaCredential
 import com.d3.btc.deposit.config.BtcDepositConfig
 import com.d3.btc.registration.config.BtcRegistrationConfig
-import withdrawal.btc.config.BtcWithdrawalConfig
+import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream

@@ -16,10 +16,10 @@ import provider.NotaryPeerListProviderImpl
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
-import withdrawal.btc.config.BtcWithdrawalConfig
-import withdrawal.btc.provider.BtcChangeAddressProvider
-import withdrawal.btc.provider.BtcWhiteListProvider
-import withdrawal.btc.statistics.WithdrawalStatistics
+import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
+import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
+import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
+import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -172,7 +172,7 @@ class BtcDWBridgeAppConfiguration {
     fun notaryPeerListProvider() =
         NotaryPeerListProviderImpl(
             withdrawalQueryAPI(),
-            withdrawal.btc.config.withdrawalConfig.notaryListStorageAccount,
-            withdrawal.btc.config.withdrawalConfig.notaryListSetterAccount
+            com.d3.btc.withdrawal.config.withdrawalConfig.notaryListStorageAccount,
+            com.d3.btc.withdrawal.config.withdrawalConfig.notaryListSetterAccount
         )
 }

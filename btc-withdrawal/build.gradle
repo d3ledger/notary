@@ -10,7 +10,7 @@ buildscript {
 }
 apply plugin: 'application'
 apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
-mainClassName = "withdrawal.btc.BtcWithdrawalMain"
+mainClassName = "com.d3.btc.withdrawal.BtcWithdrawalMain"
 
 dependencies {
     compile project(":btc")
@@ -29,13 +29,13 @@ def getSendBtcArgs() {
 }
 
 task runBtcWithdrawal(type: JavaExec) {
-    main = 'withdrawal.btc.BtcWithdrawalMain'
+    main = 'com.d3.btc.withdrawal.BtcWithdrawalMain'
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
 }
 
 task sendBtc(type: JavaExec) {
-    main = 'withdrawal.btc.send.BtcSendBtc'
+    main = 'com.d3.btc.withdrawal.send.BtcSendBtc'
     args getSendBtcArgs()
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
