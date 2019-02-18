@@ -95,7 +95,21 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
 
     /** Account that used to execute transfer commands */
     val btcWithdrawalAccount by lazy {
-        createTesterAccount("btc_withdrawal", "withdrawal", "rollback")
+        val credential = createTesterAccount("btc_withdrawal", "withdrawal", "rollback")
+        ModelUtil.grantPermissions(
+            IrohaConsumerImpl(credential, irohaAPI),
+            testCredential.accountId,
+            listOf(
+                Primitive.GrantablePermission.can_set_my_quorum,
+                Primitive.GrantablePermission.can_add_my_signatory
+            )
+        ).failure { throw it }
+        credential
+    }
+
+    /** Btc withdrawal accounts. Can be used to test multisig */
+    val btcWithdrawalAccounts by lazy {
+        makeAccountMst(btcWithdrawalAccount)
     }
 
     /** Account that collects withdrawal transaction signatures */

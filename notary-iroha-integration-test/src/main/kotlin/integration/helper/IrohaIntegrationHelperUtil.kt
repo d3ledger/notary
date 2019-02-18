@@ -59,6 +59,11 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
         IrohaConsumerImpl(testCredential, irohaAPI)
     }
 
+    /**
+     * TODO this is not very safe to use this thing
+     * Tester account has all the permissions, while accounts that will be used
+     * in production may be out of some crucial permissions by mistake.
+     */
     val queryAPI by lazy { QueryAPI(irohaAPI, testCredential.accountId, testCredential.keyPair) }
 
     private val irohaChainListenerDelegate = lazy {

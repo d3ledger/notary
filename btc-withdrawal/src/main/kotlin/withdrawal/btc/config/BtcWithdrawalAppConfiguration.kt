@@ -11,6 +11,7 @@ import model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import provider.NotaryPeerListProviderImpl
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
@@ -144,4 +145,12 @@ class BtcWithdrawalAppConfiguration {
 
     @Bean
     fun btcHosts() = BitcoinConfig.extractHosts(withdrawalConfig().bitcoin)
+
+    @Bean
+    fun notaryPeerListProvider() =
+        NotaryPeerListProviderImpl(
+            queryAPI(),
+            withdrawalConfig.notaryListStorageAccount,
+            withdrawalConfig.notaryListSetterAccount
+        )
 }

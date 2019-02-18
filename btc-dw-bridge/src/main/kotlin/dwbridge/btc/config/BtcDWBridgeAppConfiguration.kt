@@ -12,6 +12,7 @@ import notary.btc.config.BtcNotaryConfig
 import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import provider.NotaryPeerListProviderImpl
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
@@ -167,4 +168,11 @@ class BtcDWBridgeAppConfiguration {
             QueryAPI(irohaAPI(), btcFeeRateCredential.accountId, btcFeeRateCredential.keyPair)
         )
 
+    @Bean
+    fun notaryPeerListProvider() =
+        NotaryPeerListProviderImpl(
+            withdrawalQueryAPI(),
+            withdrawal.btc.config.withdrawalConfig.notaryListStorageAccount,
+            withdrawal.btc.config.withdrawalConfig.notaryListSetterAccount
+        )
 }
