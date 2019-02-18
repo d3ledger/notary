@@ -177,5 +177,6 @@ class BtcAddressGenerationTestEnvironment(
         integrationHelper.close()
         executor.shutdownNow()
         irohaListener.close()
+        irohaApi.close()
     }
 }
