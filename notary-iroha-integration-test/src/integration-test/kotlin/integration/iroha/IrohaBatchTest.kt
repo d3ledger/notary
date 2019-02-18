@@ -2,7 +2,6 @@ package integration.iroha
 
 import config.RMQConfig
 import config.getConfigFolder
-import config.loadConfigs
 import config.loadRawConfigs
 import integration.helper.IrohaConfigHelper
 import integration.helper.IrohaIntegrationHelperUtil
@@ -20,7 +19,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import sidechain.iroha.CLIENT_DOMAIN
-import sidechain.iroha.IrohaChainListener
+import sidechain.iroha.ReliableIrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverter
 import sidechain.iroha.util.ModelUtil
@@ -51,10 +50,9 @@ class IrohaBatchTest {
 
     val assetDomain = "notary"
 
-    val listener = IrohaChainListener(
+    val listener = ReliableIrohaChainListener(
         testConfig.iroha.hostname,
         testConfig.iroha.port,
-        testCredential,
         rmqConfig,
         String.getRandomId()
     )
@@ -143,7 +141,7 @@ class IrohaBatchTest {
             val hashes = lst.map { String.hex(Utils.hash(it)) }
 
             val blockHashes = GlobalScope.async {
-                val(block, ack) = listener.getBlock()
+                val (block, ack) = listener.getBlock()
                 ack()
                 block.blockV1.payload.transactionsList.map {
                     String.hex(Utils.hash(it))
@@ -263,7 +261,7 @@ class IrohaBatchTest {
             val expectedHashes = hashes.subList(0, hashes.size - 1)
 
             val blockHashes = GlobalScope.async {
-                val(block, ack) = listener.getBlock()
+                val (block, ack) = listener.getBlock()
                 ack()
                 block.blockV1.payload.transactionsList.map {
                     String.hex(Utils.hash(it))

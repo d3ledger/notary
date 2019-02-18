@@ -11,7 +11,7 @@ import jp.co.soramitsu.iroha.java.Transaction
 import kotlinx.coroutines.runBlocking
 import model.IrohaCredential
 import mu.KLogging
-import sidechain.iroha.IrohaChainListener
+import sidechain.iroha.ReliableIrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import sidechain.iroha.util.getAccountAsset
@@ -67,10 +67,9 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
     val queryAPI by lazy { QueryAPI(irohaAPI, testCredential.accountId, testCredential.keyPair) }
 
     private val irohaChainListenerDelegate = lazy {
-        IrohaChainListener(
+        ReliableIrohaChainListener(
             testConfig.iroha.hostname,
             testConfig.iroha.port,
-            testCredential,
             rmqConfig,
             testQueue
         )

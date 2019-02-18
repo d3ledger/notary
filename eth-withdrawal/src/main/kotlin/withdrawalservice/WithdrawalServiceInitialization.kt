@@ -14,7 +14,7 @@ import mu.KLogging
 import sidechain.SideChainEvent
 import sidechain.eth.consumer.EthConsumer
 import sidechain.iroha.IrohaChainHandler
-import sidechain.iroha.IrohaChainListener
+import sidechain.iroha.ReliableIrohaChainListener
 import vacuum.RelayVacuumConfig
 
 /**
@@ -38,10 +38,9 @@ class WithdrawalServiceInitialization(
      */
     private fun initIrohaChain(): Result<Observable<SideChainEvent.IrohaEvent>, Exception> {
         logger.info { "Init Iroha chain listener" }
-        return IrohaChainListener(
+        return ReliableIrohaChainListener(
             irohaHost,
             irohaPort,
-            credential,
             rmqConfig,
             withdrawalConfig.ethIrohaWithdrawalQueue
         ).getBlockObservable()
