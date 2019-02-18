@@ -10,7 +10,7 @@ import dwbridge.btc.config.dwBridgeConfig
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import mu.KLogging
-import notary.btc.init.BtcNotaryInitialization
+import com.d3.btc.deposit.init.BtcNotaryInitialization
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.ComponentScan
@@ -32,7 +32,7 @@ import java.util.*
         "withdrawal.btc.transaction",
         "com.d3.btc.listener",
         "com.d3.btc.handler",
-        "notary.btc.init",
+        "com.d3.btc.deposit.init",
         "com.d3.btc.peer",
         "dwbridge",
         "com.d3.btc.healthcheck"]

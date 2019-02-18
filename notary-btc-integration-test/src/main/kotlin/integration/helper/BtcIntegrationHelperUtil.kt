@@ -55,7 +55,7 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
         BitcoinRpcClientFactory.createClient(
             user = "test",
             password = "test",
-            host = BitcoinConfig.extractHosts(configHelper.createBtcNotaryConfig().bitcoin)[0],
+            host = BitcoinConfig.extractHosts(configHelper.createBtcDepositConfig().bitcoin)[0],
             port = 8332,
             secure = false
         )

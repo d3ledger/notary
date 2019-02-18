@@ -1,4 +1,4 @@
-package notary.btc.factory
+package com.d3.btc.deposit.factory
 
 import io.reactivex.Observable
 import jp.co.soramitsu.iroha.java.IrohaAPI

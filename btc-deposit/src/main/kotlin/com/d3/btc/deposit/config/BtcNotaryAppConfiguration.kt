@@ -1,4 +1,4 @@
-package notary.btc.config
+package com.d3.btc.deposit.config
 
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import config.BitcoinConfig
@@ -13,51 +13,51 @@ import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.util.ModelUtil
 import java.io.File
 
-val notaryConfig = loadConfigs("btc-notary", BtcNotaryConfig::class.java, "/btc/notary.properties").get()
+val depositConfig = loadConfigs("btc-deposit", BtcDepositConfig::class.java, "/btc/deposit.properties").get()
 
 @Configuration
 class BtcNotaryAppConfiguration {
 
     private val notaryKeypair = ModelUtil.loadKeypair(
-        notaryConfig.notaryCredential.pubkeyPath,
-        notaryConfig.notaryCredential.privkeyPath
+        depositConfig.notaryCredential.pubkeyPath,
+        depositConfig.notaryCredential.privkeyPath
     ).fold({ keypair -> keypair }, { ex -> throw ex })
 
-    private val notaryCredential = IrohaCredential(notaryConfig.notaryCredential.accountId, notaryKeypair)
+    private val notaryCredential = IrohaCredential(depositConfig.notaryCredential.accountId, notaryKeypair)
 
     @Bean
-    fun notaryConfig() = notaryConfig
+    fun notaryConfig() = depositConfig
 
     @Bean
-    fun irohaAPI() = IrohaAPI(notaryConfig.iroha.hostname, notaryConfig.iroha.port)
+    fun irohaAPI() = IrohaAPI(depositConfig.iroha.hostname, depositConfig.iroha.port)
 
     @Bean
     fun keypair() =
-        ModelUtil.loadKeypair(notaryConfig.notaryCredential.pubkeyPath, notaryConfig.notaryCredential.privkeyPath)
+        ModelUtil.loadKeypair(depositConfig.notaryCredential.pubkeyPath, depositConfig.notaryCredential.privkeyPath)
 
 
     @Bean
     fun btcRegisteredAddressesProvider(): BtcRegisteredAddressesProvider {
-        ModelUtil.loadKeypair(notaryConfig.notaryCredential.pubkeyPath, notaryConfig.notaryCredential.privkeyPath)
+        ModelUtil.loadKeypair(depositConfig.notaryCredential.pubkeyPath, depositConfig.notaryCredential.privkeyPath)
             .fold({ keypair ->
                 return BtcRegisteredAddressesProvider(
-                    QueryAPI(irohaAPI(), notaryConfig.notaryCredential.accountId, keypair),
-                    notaryConfig.registrationAccount,
-                    notaryConfig.notaryCredential.accountId
+                    QueryAPI(irohaAPI(), depositConfig.notaryCredential.accountId, keypair),
+                    depositConfig.registrationAccount,
+                    depositConfig.notaryCredential.accountId
                 )
             }, { ex -> throw ex })
     }
 
     @Bean
-    fun wallet() = Wallet.loadFromFile(File(notaryConfig.bitcoin.walletPath))
+    fun wallet() = Wallet.loadFromFile(File(depositConfig.bitcoin.walletPath))
 
     @Bean
     fun notaryCredential() = notaryCredential
 
     @Bean
     fun depositIrohaChainListener() = IrohaChainListener(
-        notaryConfig.iroha.hostname,
-        notaryConfig.iroha.port,
+        depositConfig.iroha.hostname,
+        depositConfig.iroha.port,
         notaryCredential
     )
 

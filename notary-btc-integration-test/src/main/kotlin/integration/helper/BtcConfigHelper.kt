@@ -4,7 +4,7 @@ import config.BitcoinConfig
 import config.loadConfigs
 import generation.btc.config.BtcAddressGenerationConfig
 import model.IrohaCredential
-import notary.btc.config.BtcNotaryConfig
+import com.d3.btc.deposit.config.BtcDepositConfig
 import com.d3.btc.registration.config.BtcRegistrationConfig
 import withdrawal.btc.config.BtcWithdrawalConfig
 import java.io.File
@@ -91,21 +91,21 @@ class BtcConfigHelper(
     }
 
     /**
-     * Creates config for Bitcoin notary
+     * Creates config for Bitcoin deposit
      * @param testName - name of the test. used to create folder for block storage
      * @param notaryIrohaCredential - notary Iroha credential. Taken from account helper by default
      * @return configuration
      */
-    fun createBtcNotaryConfig(
+    fun createBtcDepositConfig(
         testName: String = "",
         notaryIrohaCredential: IrohaCredential = accountHelper.notaryAccount
-    ): BtcNotaryConfig {
-        val btcNotaryConfig = loadConfigs("btc-notary", BtcNotaryConfig::class.java, "/btc/notary.properties").get()
-        return object : BtcNotaryConfig {
-            override val healthCheckPort = btcNotaryConfig.healthCheckPort
+    ): BtcDepositConfig {
+        val btcDepositConfig = loadConfigs("btc-deposit", BtcDepositConfig::class.java, "/btc/deposit.properties").get()
+        return object : BtcDepositConfig {
+            override val healthCheckPort = btcDepositConfig.healthCheckPort
             override val registrationAccount = accountHelper.registrationAccount.accountId
             override val iroha = createIrohaConfig()
-            override val bitcoin = createBitcoinConfig(btcNotaryConfig.bitcoin, testName)
+            override val bitcoin = createBitcoinConfig(btcDepositConfig.bitcoin, testName)
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
             override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
             override val notaryCredential = accountHelper.createCredentialConfig(notaryIrohaCredential)

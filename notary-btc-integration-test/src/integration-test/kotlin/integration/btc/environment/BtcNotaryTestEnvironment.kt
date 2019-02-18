@@ -7,8 +7,8 @@ import com.d3.btc.provider.network.BtcRegTestConfigProvider
 import config.BitcoinConfig
 import integration.helper.BtcIntegrationHelperUtil
 import model.IrohaCredential
-import notary.btc.config.BtcNotaryConfig
-import notary.btc.init.BtcNotaryInitialization
+import com.d3.btc.deposit.config.BtcDepositConfig
+import com.d3.btc.deposit.init.BtcNotaryInitialization
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.util.ModelUtil
 import java.io.Closeable
@@ -21,7 +21,7 @@ import java.io.File
 class BtcNotaryTestEnvironment(
     private val integrationHelper: BtcIntegrationHelperUtil,
     testName: String = "",
-    val notaryConfig: BtcNotaryConfig = integrationHelper.configHelper.createBtcNotaryConfig(testName),
+    val notaryConfig: BtcDepositConfig = integrationHelper.configHelper.createBtcDepositConfig(testName),
     notaryCredential: IrohaCredential = IrohaCredential(
         notaryConfig.notaryCredential.accountId,
         ModelUtil.loadKeypair(notaryConfig.notaryCredential.pubkeyPath, notaryConfig.notaryCredential.privkeyPath).get()
