@@ -38,4 +38,7 @@ interface BtcAddressGenerationConfig {
 
     //Minimum number of free addresses to keep in Iroha
     val threshold: Int
+
+    // Node id 
+    val nodeId: String
 }

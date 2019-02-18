@@ -81,5 +81,9 @@ class BtcAddressGenerationTriggerAppConfiguration {
 
     @Bean
     fun btcFreeAddressesProvider() =
-        BtcFreeAddressesProvider(btcAddressesProvider(), btcRegisteredAddressesProvider())
+        BtcFreeAddressesProvider(
+            btcAddressGenerationTriggerConfig.nodeId,
+            btcAddressesProvider(),
+            btcRegisteredAddressesProvider()
+        )
 }

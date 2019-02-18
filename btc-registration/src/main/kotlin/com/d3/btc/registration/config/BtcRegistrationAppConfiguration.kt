@@ -1,5 +1,6 @@
 package com.d3.btc.registration.config
 
+import com.d3.btc.provider.BtcFreeAddressesProvider
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.account.IrohaBtcAccountCreator
 import com.d3.btc.provider.address.BtcAddressesProvider
@@ -42,20 +43,19 @@ class BtcRegistrationAppConfiguration {
     fun btcRegistrationConfig() = btcRegistrationConfig
 
     @Bean
-    fun btcAddressesProvider(): BtcAddressesProvider {
-        return BtcAddressesProvider(
-            queryAPI(),
-            btcRegistrationConfig.mstRegistrationAccount,
-            btcRegistrationConfig.notaryAccount
-        )
-    }
-
-    @Bean
-    fun btcRegisteredAddressesProvider(): BtcRegisteredAddressesProvider {
-        return BtcRegisteredAddressesProvider(
-            queryAPI(),
-            btcRegistrationCredential.accountId,
-            btcRegistrationConfig.notaryAccount
+    fun btcFreeAddressesProvider(): BtcFreeAddressesProvider {
+        return BtcFreeAddressesProvider(
+            btcRegistrationConfig.nodeId,
+            BtcAddressesProvider(
+                queryAPI(),
+                btcRegistrationConfig.mstRegistrationAccount,
+                btcRegistrationConfig.notaryAccount
+            ),
+            BtcRegisteredAddressesProvider(
+                queryAPI(),
+                btcRegistrationCredential.accountId,
+                btcRegistrationConfig.notaryAccount
+            )
         )
     }
 

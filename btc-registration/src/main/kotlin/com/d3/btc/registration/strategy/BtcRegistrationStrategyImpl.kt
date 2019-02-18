@@ -1,10 +1,8 @@
 package com.d3.btc.registration.strategy
 
-import com.d3.btc.provider.BtcRegisteredAddressesProvider
+import com.d3.btc.provider.BtcFreeAddressesProvider
 import com.d3.btc.provider.account.IrohaBtcAccountCreator
-import com.d3.btc.provider.address.BtcAddressesProvider
 import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import org.springframework.beans.factory.annotation.Autowired
@@ -14,8 +12,7 @@ import registration.RegistrationStrategy
 //Strategy for registering BTC addresses
 @Component
 class BtcRegistrationStrategyImpl(
-    @Autowired private val btcAddressesProvider: BtcAddressesProvider,
-    @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
+    @Autowired private val btcFreeAddressesProvider: BtcFreeAddressesProvider,
     @Autowired private val irohaBtcAccountCreator: IrohaBtcAccountCreator
 ) : RegistrationStrategy {
 
@@ -26,44 +23,37 @@ class BtcRegistrationStrategyImpl(
      * @param whitelist - list of bitcoin addresses
      * @return associated BTC address
      */
+    @Synchronized
     override fun register(
         name: String,
         domain: String,
         whitelist: List<String>,
         pubkey: String
     ): Result<String, Exception> {
-        return btcAddressesProvider.getAddresses().fanout { btcRegisteredAddressesProvider.getRegisteredAddresses() }
-            .flatMap { (addresses, takenAddresses) ->
-                try {
-                    //TODO Warning. Race condition ahead. Multiple threads/nodes can register the same BTC address twice.
-                    //It fetches all free BTC addresses and takes one that was not registered
-                    val freeAddress =
-                        addresses.filter { address -> address.isFree() }
-                            .first { btcAddress -> !takenAddresses.any { takenAddress -> takenAddress.address == btcAddress.address } }
-                    irohaBtcAccountCreator.create(
-                        freeAddress.address,
-                        whitelist,
-                        name,
-                        domain,
-                        pubkey,
-                        freeAddress.info.notaryKeys
-                    )
-                } catch (e: NoSuchElementException) {
-                    throw IllegalStateException("no free btc address to register")
-                }
+        return btcFreeAddressesProvider.getFreeAddresses().flatMap { freeAddresses ->
+            if (freeAddresses.isEmpty()) {
+                throw IllegalStateException("no free btc address to register")
             }
+            val freeAddress = freeAddresses.first()
+            irohaBtcAccountCreator.create(
+                freeAddress.address,
+                whitelist,
+                name,
+                domain,
+                pubkey,
+                freeAddress.info.notaryKeys,
+                btcFreeAddressesProvider.nodeId
+            )
+        }
     }
 
     /**
      * Get number of free addresses.
      */
     override fun getFreeAddressNumber(): Result<Int, Exception> {
-        return btcAddressesProvider.getAddresses().fanout { btcRegisteredAddressesProvider.getRegisteredAddresses() }
-            .map { (addresses, takenAddresses) ->
-                addresses.filter { address -> address.isFree() }
-                    .filter { btcAddress -> !takenAddresses.any { takenAddress -> takenAddress.address == btcAddress.address } }
-                    .size
-            }
+        return btcFreeAddressesProvider.getFreeAddresses().map { freeAddresses ->
+            freeAddresses.size
+        }
     }
 
 }
