@@ -3,14 +3,18 @@ package sidechain.eth.util
 import config.EthereumConfig
 import config.EthereumPasswords
 import contract.*
+import helper.encodeFunction
 import mu.KLogging
 import okhttp3.*
+import org.web3j.abi.datatypes.Address
+import org.web3j.abi.datatypes.Type
 import org.web3j.crypto.WalletUtils
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.http.HttpService
 import org.web3j.tx.RawTransactionManager
 import org.web3j.tx.Transfer
+import org.web3j.tx.gas.StaticGasProvider
 import org.web3j.utils.Convert
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -75,8 +79,7 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
         val tokenContract = contract.BasicCoin.deploy(
             web3,
             credentials,
-            gasPrice,
-            gasLimit,
+            StaticGasProvider(gasPrice, gasLimit),
             BigInteger.valueOf(Long.MAX_VALUE),
             credentials.address
         ).send()
@@ -89,14 +92,37 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      * @return master smart contract object
      */
     fun deployRelayRegistrySmartContract(): RelayRegistry {
-        val relayRegistry = contract.RelayRegistry.deploy(
+        val relayRegistry = RelayRegistry.deploy(
             web3,
             credentials,
-            gasPrice,
-            gasLimit
+            StaticGasProvider(gasPrice, gasLimit)
         ).send()
         logger.info { "Relay Registry smart contract ${relayRegistry.contractAddress} was deployed" }
         return relayRegistry
+    }
+
+    /**
+     * Deploy [RelayRegistry] via [OwnedUpgradeabilityProxy].
+     */
+    fun deployUpgradableRelayRegistrySmartContract(): RelayRegistry {
+        // deploy implementation
+        val relayRegistry = deployRelayRegistrySmartContract()
+
+        // deploy proxy
+        val proxy = deployOwnedUpgradeabilityProxy()
+
+        // call proxy set up
+        val encoded = encodeFunction("initialize", Address(credentials.address) as Type<Any>)
+        proxy.upgradeToAndCall(relayRegistry.contractAddress, encoded, BigInteger.ZERO).send()
+
+        // load via proxy
+        val proxiedRelayRegistry = RelayRegistry.load(
+            proxy.contractAddress,
+            web3,
+            credentials,
+            StaticGasProvider(gasPrice, gasLimit)
+        )
+        return proxiedRelayRegistry
     }
 
     /**
@@ -107,12 +133,36 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
         val master = contract.Master.deploy(
             web3,
             credentials,
-            gasPrice,
-            gasLimit,
+            StaticGasProvider(gasPrice, gasLimit),
             relayRegistry
         ).send()
         logger.info { "Master smart contract ${master.contractAddress} was deployed" }
         return master
+    }
+
+    /**
+     * Deploy [Master] via [OwnedUpgradeabilityProxy].
+     */
+    fun deployUpgradableMasterSmartContract(relayRegistry: String): Master {
+        // deploy implementation
+        val master = deployMasterSmartContract(relayRegistry)
+
+        // deploy proxy
+        val proxy = deployOwnedUpgradeabilityProxy()
+
+        // call proxy set up
+        val encoded =
+            encodeFunction("initialize", Address(credentials.address) as Type<Any>, Address(relayRegistry) as Type<Any>)
+        proxy.upgradeToAndCall(master.contractAddress, encoded, BigInteger.ZERO).send()
+
+        // load via proxy
+        val proxiedMaster = Master.load(
+            proxy.contractAddress,
+            web3,
+            credentials,
+            StaticGasProvider(gasPrice, gasLimit)
+        )
+        return proxiedMaster
     }
 
     /**
@@ -124,8 +174,7 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
         val relay = contract.Relay.deploy(
             web3,
             credentials,
-            gasPrice,
-            gasLimit,
+            StaticGasProvider(gasPrice, gasLimit),
             master
         ).send()
 
@@ -134,10 +183,54 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
     }
 
     fun deployFailerContract(): Failer {
-        val failer = Failer.deploy(web3, credentials, gasPrice, gasLimit).send()
+        val failer = Failer.deploy(web3, credentials, StaticGasProvider(gasPrice, gasLimit)).send()
         logger.info { "Failer smart contract ${failer.contractAddress} was deployed" }
         return failer
     }
+
+    /**
+     * Deploy TestGreeter_v0 contract. The contract is used for upgradability testing, it is initial version.
+     * @param greeting - greeting string
+     * @return relay smart contract object
+     */
+    fun deployTestGreeter_v0(greeting: String): TestGreeter_v0 {
+        val testGreeter_v0 = TestGreeter_v0.deploy(
+            web3,
+            credentials,
+            StaticGasProvider(gasPrice, gasLimit),
+            greeting
+        ).send()
+        logger.info { "TestGreeter_v0 was deployed at ${testGreeter_v0.contractAddress}" }
+        return testGreeter_v0
+    }
+
+    /**
+     * Deploy TestGreeter_v1 contract. The contract is used for upgradability testing, it is next version..
+     * @return relay smart contract object
+     */
+    fun deployTestGreeter_v1(): TestGreeter_v1 {
+        val testGreeter_v1 = TestGreeter_v1.deploy(
+            web3,
+            credentials,
+            StaticGasProvider(gasPrice, gasLimit)
+        ).send()
+        logger.info { "TestGreeter_v1 was deployed at ${testGreeter_v1.contractAddress}" }
+        return testGreeter_v1
+    }
+
+    /**
+     * Deploy OwnedUpgradabilityProxy contract. Contract is an upgradable proxy to another contract.
+     */
+    fun deployOwnedUpgradeabilityProxy(): OwnedUpgradeabilityProxy {
+        val OwnedUpgradeabilityProxy = OwnedUpgradeabilityProxy.deploy(
+            web3,
+            credentials,
+            StaticGasProvider(gasPrice, gasLimit)
+        ).send()
+        logger.info { "OwnedUpgradeabilityProxy was deployed at ${OwnedUpgradeabilityProxy.contractAddress}" }
+        return OwnedUpgradeabilityProxy
+    }
+
 
     /**
      * Send ERC20 tokens
@@ -146,7 +239,7 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      * @param amount - amount of tokens
      */
     fun sendERC20(tokenAddress: String, toAddress: String, amount: BigInteger) {
-        val token = contract.BasicCoin.load(tokenAddress, web3, credentials, gasPrice, gasLimit)
+        val token = contract.BasicCoin.load(tokenAddress, web3, credentials, StaticGasProvider(gasPrice, gasLimit))
         token.transfer(toAddress, amount).send()
         logger.info { "ERC20 $amount with address $tokenAddress were sent to $toAddress" }
     }
@@ -158,7 +251,7 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      * @return user balance
      */
     fun getERC20Balance(tokenAddress: String, whoAddress: String): BigInteger {
-        val token = contract.BasicCoin.load(tokenAddress, web3, credentials, gasPrice, gasLimit)
+        val token = contract.BasicCoin.load(tokenAddress, web3, credentials, StaticGasProvider(gasPrice, gasLimit))
         return token.balanceOf(whoAddress).send()
     }
 

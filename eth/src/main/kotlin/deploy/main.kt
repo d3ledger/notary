@@ -30,8 +30,8 @@ fun main(args: Array<String>) {
         .map { (ethereumConfig, passwordConfig) -> DeployHelper(ethereumConfig, passwordConfig) }
         .map { deployHelper ->
 
-            val relayRegistry = deployHelper.deployRelayRegistrySmartContract()
-            val master = deployHelper.deployMasterSmartContract(relayRegistry.contractAddress)
+            val relayRegistry = deployHelper.deployUpgradableRelayRegistrySmartContract()
+            val master = deployHelper.deployUpgradableMasterSmartContract(relayRegistry.contractAddress)
 
             var result = master.addPeers(args.toList()).send().isStatusOK
             logger.info { "Peers were added" }

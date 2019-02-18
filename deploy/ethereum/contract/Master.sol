@@ -7,7 +7,8 @@ import "./IERC20.sol";
  * Provides functionality of master contract
  */
 contract Master {
-    address private owner;
+    bool internal initialized_;
+    address private owner_;
     mapping(address => bool) private peers;
     uint public peersCount;
     mapping(bytes32 => bool) private used;
@@ -30,9 +31,18 @@ contract Master {
      * Constructor. Sets contract owner to contract creator.
      */
     constructor(address relayRegistry) public {
-        owner = msg.sender;
+        initialize(msg.sender, relayRegistry);
+    }
+
+    /**
+     * Initialization of smart contract.
+     */
+    function initialize(address owner, address relayRegistry) public {
+        require(!initialized_);
+        owner_ = owner;
         relayRegistryAddress = relayRegistry;
         relayRegistryInstance = IRelayRegistry(relayRegistryAddress);
+        initialized_ = true;
     }
 
     /**
@@ -47,7 +57,7 @@ contract Master {
      * @return true if `msg.sender` is the owner of the contract.
      */
     function isOwner() public view returns(bool) {
-        return msg.sender == owner;
+        return msg.sender == owner_;
     }
 
     /**

@@ -37,6 +37,23 @@ class MasterTest {
     }
 
     /**
+     * Try to reinitialize master with another relay registry.
+     * @given master contract is deployed and initialized
+     * @when call initialize
+     * @then call failed
+     */
+    @Test
+    fun initializeAgain() {
+        cth.sendAddPeer(accGreen)
+        Assertions.assertThrows(TransactionException::class.java) {
+            master.initialize(
+                cth.deployHelper.credentials.address,
+                etherAddress
+            ).send()
+        }
+    }
+
+    /**
      * @given master account deployed
      * @when transfer 300_000_000 WEIs to master account
      * @then balance of master account increased by 300_000_000
