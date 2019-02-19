@@ -423,13 +423,7 @@ class MasterTest {
             val sigCount = 4
             val amountToSend = 1000
             val initialBalance = cth.getETHBalance(accGreen)
-            val keypairs = ArrayList<ECKeyPair>()
-            val peers = ArrayList<String>()
-            for (i in 0 until sigCount) {
-                val keypair = Keys.createEcKeyPair()
-                keypairs.add(keypair)
-                peers.add("0x" + Keys.getAddress(keypair))
-            }
+            val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
 
             val master = cth.deployMaster(
                 cth.relayRegistry.contractAddress,
@@ -447,7 +441,7 @@ class MasterTest {
                     master.contractAddress
                 )
 
-            val sigs = cth.prepareSignatures(sigCount, keypairs, finalHash)
+            val sigs = cth.prepareSignatures(sigCount, keyPairs, finalHash)
 
             master.withdraw(
                 etherAddress,
@@ -479,13 +473,7 @@ class MasterTest {
             val amountToSend = 1000
             val tokenAddress = etherAddress
             val initialBalance = cth.getETHBalance(accGreen)
-            val keypairs = ArrayList<ECKeyPair>()
-            val peers = ArrayList<String>()
-            for (i in 0 until sigCount) {
-                val keypair = Keys.createEcKeyPair()
-                keypairs.add(keypair)
-                peers.add("0x" + Keys.getAddress(keypair))
-            }
+            val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
 
             val master = cth.deployMaster(
                 cth.relayRegistry.contractAddress,
@@ -503,7 +491,7 @@ class MasterTest {
                     master.contractAddress
                 )
 
-            val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
+            val sigs = cth.prepareSignatures(realSigCount, keyPairs.subList(0, realSigCount), finalHash)
 
             master.withdraw(
                 tokenAddress,
@@ -535,13 +523,7 @@ class MasterTest {
             val amountToSend = 1000
             val tokenAddress = etherAddress
 
-            val keypairs = ArrayList<ECKeyPair>()
-            val peers = ArrayList<String>()
-            for (i in 0 until sigCount) {
-                val keypair = Keys.createEcKeyPair()
-                keypairs.add(keypair)
-                peers.add("0x" + Keys.getAddress(keypair))
-            }
+            val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
 
             val master = cth.deployMaster(
                 cth.relayRegistry.contractAddress,
@@ -557,7 +539,7 @@ class MasterTest {
                     master.contractAddress
                 )
 
-            val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
+            val sigs = cth.prepareSignatures(realSigCount, keyPairs.subList(0, realSigCount), finalHash)
 
             Assertions.assertThrows(TransactionException::class.java) {
                 master.withdraw(
@@ -587,13 +569,7 @@ class MasterTest {
             val amountToSend = 1000
             val tokenAddress = etherAddress
             val initialBalance = cth.getETHBalance(accGreen)
-            val keypairs = ArrayList<ECKeyPair>()
-            val peers = ArrayList<String>()
-            for (i in 0 until sigCount) {
-                val keypair = Keys.createEcKeyPair()
-                keypairs.add(keypair)
-                peers.add("0x" + Keys.getAddress(keypair))
-            }
+            val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
 
             val master = cth.deployMaster(
                 cth.relayRegistry.contractAddress,
@@ -611,7 +587,7 @@ class MasterTest {
                     master.contractAddress
                 )
 
-            val sigs = cth.prepareSignatures(sigCount, keypairs, finalHash)
+            val sigs = cth.prepareSignatures(sigCount, keyPairs, finalHash)
 
             master.withdraw(
                 tokenAddress,
@@ -643,13 +619,7 @@ class MasterTest {
             val amountToSend = 1000
             val tokenAddress = etherAddress
             val initialBalance = cth.getETHBalance(accGreen)
-            val keypairs = ArrayList<ECKeyPair>()
-            val peers = ArrayList<String>()
-            for (i in 0 until sigCount) {
-                val keypair = Keys.createEcKeyPair()
-                keypairs.add(keypair)
-                peers.add("0x" + Keys.getAddress(keypair))
-            }
+            val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
 
             val master = cth.deployMaster(
                 cth.relayRegistry.contractAddress,
@@ -666,7 +636,7 @@ class MasterTest {
                     master.contractAddress
                 )
 
-            val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
+            val sigs = cth.prepareSignatures(realSigCount, keyPairs.subList(0, realSigCount), finalHash)
 
             master.withdraw(
                 tokenAddress,
@@ -698,13 +668,7 @@ class MasterTest {
             val amountToSend = 1000
             val tokenAddress = etherAddress
 
-            val keypairs = ArrayList<ECKeyPair>()
-            val peers = ArrayList<String>()
-            for (i in 0 until sigCount) {
-                val keypair = Keys.createEcKeyPair()
-                keypairs.add(keypair)
-                peers.add("0x" + Keys.getAddress(keypair))
-            }
+            val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
 
             val master = cth.deployMaster(
                 cth.relayRegistry.contractAddress,
@@ -720,7 +684,7 @@ class MasterTest {
                     master.contractAddress
                 )
 
-            val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
+            val sigs = cth.prepareSignatures(realSigCount, keyPairs.subList(0, realSigCount), finalHash)
 
             Assertions.assertThrows(TransactionException::class.java) {
                 master.withdraw(
@@ -770,20 +734,15 @@ class MasterTest {
                     cth.defaultIrohaHash
                 )
 
-            val keypairs = ArrayList<ECKeyPair>()
-            val peers = ArrayList<String>()
 
-            for (i in 0 until sigCount) {
-                val keypair = Keys.createEcKeyPair()
-                keypairs.add(keypair)
-                peers.add(Keys.getAddress(keypair))
-            }
+            val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
+
             val master = cth.deployMaster(
                 cth.relayRegistry.contractAddress,
                 peers
             )
 
-            val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
+            val sigs = cth.prepareSignatures(realSigCount, keyPairs.subList(0, realSigCount), finalHash)
 
             val result = master.addPeerByPeer(
                 newPeer,
@@ -816,20 +775,13 @@ class MasterTest {
                     cth.defaultIrohaHash
                 )
 
-            val keypairs = ArrayList<ECKeyPair>()
-            val peers = ArrayList<String>()
-
-            for (i in 0 until sigCount) {
-                val keypair = Keys.createEcKeyPair()
-                keypairs.add(keypair)
-                peers.add(Keys.getAddress(keypair))
-            }
+            val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
             val master = cth.deployMaster(
                 cth.relayRegistry.contractAddress,
                 peers
             )
 
-            val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
+            val sigs = cth.prepareSignatures(realSigCount, keyPairs.subList(0, realSigCount), finalHash)
 
             Assertions.assertThrows(TransactionException::class.java) {
                 master.addPeerByPeer(
@@ -857,34 +809,29 @@ class MasterTest {
             val sigCount = 4
             val realSigCount = 4
 
-            val keypairs = ArrayList<ECKeyPair>()
-            val peers = ArrayList<String>()
-
-            for (i in 0 until sigCount) {
-                val keypair = Keys.createEcKeyPair()
-                keypairs.add(keypair)
-                peers.add(Keys.getAddress(keypair))
-            }
+            val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
 
             // deploy with peer which will be removed
-            peers.add(peerToRemove)
+
+            val withPeerToRemove = peers.toMutableList()
+            withPeerToRemove.add(peerToRemove)
             val master = cth.deployMaster(
                 cth.relayRegistry.contractAddress,
-                peers
+                withPeerToRemove
             )
 
             val finalHash =
                 hashToAddAndRemovePeer(
-                    peers.first(),
+                    withPeerToRemove.last(),
                     cth.defaultIrohaHash
                 )
 
-            val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
+            val sigs = cth.prepareSignatures(realSigCount, keyPairs.subList(0, realSigCount), finalHash)
 
             Assertions.assertTrue(master.peers(peerToRemove).send())
             Assertions.assertTrue(
                 master.removePeerByPeer(
-                    peers.first(),
+                    withPeerToRemove.last(),
                     cth.defaultByteHash,
                     sigs.vv,
                     sigs.rr,
@@ -892,7 +839,7 @@ class MasterTest {
                 ).send().isStatusOK
             )
 
-            Assertions.assertFalse(master.peers(peers.first()).send())
+            Assertions.assertFalse(master.peers(withPeerToRemove.last()).send())
         }
     }
 }

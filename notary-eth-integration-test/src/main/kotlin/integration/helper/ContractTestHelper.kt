@@ -6,6 +6,7 @@ import contract.Master
 import integration.TestConfig
 import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Hash
+import org.web3j.crypto.Keys
 import org.web3j.protocol.core.methods.response.TransactionReceipt
 import org.web3j.utils.Numeric
 import sidechain.eth.util.DeployHelper
@@ -215,6 +216,18 @@ class ContractTestHelper {
             relayAddress,
             peers
         )
+    }
+
+    fun getKeyPairsAndPeers(amount: Int): Pair<List<ECKeyPair>, List<String>> {
+        val keyPairs = ArrayList<ECKeyPair>()
+        val peers = ArrayList<String>()
+
+        for (i in 0 until amount) {
+            val keypair = Keys.createEcKeyPair()
+            keyPairs.add(keypair)
+            peers.add(Keys.getAddress(keypair))
+        }
+        return Pair(keyPairs, peers)
     }
 
     fun deployFailer(): String {
