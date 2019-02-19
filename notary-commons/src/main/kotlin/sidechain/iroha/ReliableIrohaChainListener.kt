@@ -10,7 +10,6 @@ import io.reactivex.subjects.PublishSubject
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import mu.KLogging
 import sidechain.ChainListener
-import kotlin.test.assertNotNull
 
 /**
  * Rabbit MQ based implementation of [ChainListener]
@@ -79,6 +78,7 @@ class ReliableIrohaChainListener(
     override suspend fun getBlock(autoAck: Boolean): Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit> {
         var resp: GetResponse?
         do {
+            Thread.sleep(10L)
             resp = channel.basicGet(irohaQueue, autoAck)
         } while (resp == null)
 
