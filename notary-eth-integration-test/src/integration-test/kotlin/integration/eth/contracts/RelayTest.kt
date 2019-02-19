@@ -44,8 +44,6 @@ class RelayTest {
     fun singleCorrectSignatureEtherTestRelay() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             val initialBalance = cth.getETHBalance(accGreen)
-            cth.sendAddPeer(accMain)
-            master.disableAddingNewPeers().send()
             cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
             cth.withdraw(
                 BigInteger.valueOf(1000),
@@ -68,8 +66,6 @@ class RelayTest {
     fun singleCorrectSignatureEtherTestRelayToRelay() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             val initialBalance = cth.getETHBalance(relay.contractAddress)
-            cth.sendAddPeer(accMain)
-            master.disableAddingNewPeers().send()
             cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
             cth.withdraw(
                 BigInteger.valueOf(1000),

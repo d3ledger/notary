@@ -71,9 +71,6 @@ class LongevityTest {
 
             integrationHelper.runEthNotary(ethereumPasswords, notaryConfig)
         }
-
-        // finally lock master
-        integrationHelper.lockEthMasterSmartcontract()
     }
 
     /**
