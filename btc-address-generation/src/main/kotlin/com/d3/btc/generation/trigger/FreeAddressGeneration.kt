@@ -1,6 +1,6 @@
-@file:JvmName("BtcChangeAddressGeneration")
+@file:JvmName("BtcFreeAddressGeneration")
 
-package generation.btc.trigger
+package com.d3.btc.generation.trigger
 
 import com.d3.btc.model.BtcAddressType
 import com.github.kittinunf.result.Result
@@ -9,23 +9,22 @@ import mu.KLogging
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.ComponentScan
 
-@ComponentScan(basePackages = ["generation.btc.trigger"])
-class BtcChangeAddressGenerationApplication
+@ComponentScan(basePackages = ["com.d3.btc.generation.trigger"])
+class BtcFreeAddressGenerationApplication
 
 private val logger = KLogging().logger
 /*
-   Change address generation entry point
+   Free address generation entry point
  */
 fun main(args: Array<String>) {
-    val addressType = BtcAddressType.CHANGE
+    val addressType = BtcAddressType.FREE
     Result.of {
-        AnnotationConfigApplicationContext(BtcChangeAddressGenerationApplication::class.java)
+        AnnotationConfigApplicationContext(BtcFreeAddressGenerationApplication::class.java)
     }.flatMap { context ->
-        context.getBean(AddressGenerationTrigger::class.java)
-            .startAddressGeneration(
-                addressType = addressType,
-                nodeId = btcAddressGenerationTriggerConfig.nodeId
-            )
+        context.getBean(AddressGenerationTrigger::class.java).startAddressGeneration(
+            addressType = addressType,
+            nodeId = btcAddressGenerationTriggerConfig.nodeId
+        )
     }.fold(
         {
             logger.info { "${addressType.title} address generation process was started" }

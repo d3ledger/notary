@@ -2,7 +2,7 @@ package integration.helper
 
 import config.BitcoinConfig
 import config.loadConfigs
-import generation.btc.config.BtcAddressGenerationConfig
+import com.d3.btc.generation.config.BtcAddressGenerationConfig
 import model.IrohaCredential
 import com.d3.btc.deposit.config.BtcDepositConfig
 import com.d3.btc.registration.config.BtcRegistrationConfig

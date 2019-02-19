@@ -33,7 +33,7 @@ services:
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
       - JAR_NAME=btc-address-generation.jar
-      - CLASS=generation.btc.BtcAddressGenerationMain
+      - CLASS=com.d3.btc.generation.BtcAddressGenerationMain
     networks:
       - d3-network
 

@@ -1,4 +1,4 @@
-package generation.btc.init
+package com.d3.btc.generation.init
 
 import com.d3.btc.healthcheck.HealthyService
 import com.d3.btc.model.BtcAddressType
@@ -11,8 +11,8 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import generation.btc.config.BtcAddressGenerationConfig
-import generation.btc.trigger.AddressGenerationTrigger
+import com.d3.btc.generation.config.BtcAddressGenerationConfig
+import com.d3.btc.generation.trigger.AddressGenerationTrigger
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import iroha.protocol.BlockOuterClass
