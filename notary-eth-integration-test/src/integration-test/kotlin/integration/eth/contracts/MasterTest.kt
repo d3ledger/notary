@@ -2,7 +2,6 @@ package integration.eth.contracts
 
 import contract.BasicCoin
 import contract.Master
-import contract.SoraToken
 import integration.helper.ContractTestHelper
 import integration.helper.IrohaConfigHelper
 import org.junit.jupiter.api.Assertions
@@ -11,16 +10,16 @@ import org.junit.jupiter.api.Test
 import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Keys
 import org.web3j.protocol.exceptions.TransactionException
-import sidechain.eth.util.hashToMint
 import sidechain.eth.util.hashToAddAndRemovePeer
+import sidechain.eth.util.hashToMint
 import sidechain.eth.util.hashToWithdraw
 import java.math.BigInteger
 import java.time.Duration
+import kotlin.test.assertEquals
 
 class MasterTest {
     private lateinit var cth: ContractTestHelper
     private lateinit var master: Master
-    private lateinit var soraToken: SoraToken
     private lateinit var token: BasicCoin
     private lateinit var accMain: String
     private lateinit var accGreen: String
@@ -33,7 +32,6 @@ class MasterTest {
     fun setup() {
         cth = ContractTestHelper()
         master = cth.master
-        soraToken = cth.soraToken
         token = cth.token
         accMain = cth.accMain
         accGreen = cth.accGreen
@@ -854,8 +852,6 @@ class MasterTest {
     @Test
     fun mintNewTokens4of4peers() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            Assertions.assertTrue(soraToken.transferOwnership(master.contractAddress).send().isStatusOK)
-            Assertions.assertTrue(master.setXorToken(soraToken.contractAddress).send().isStatusOK)
             val sigCount = 4
             val realSigCount = 4
 
@@ -869,14 +865,13 @@ class MasterTest {
                     cth.defaultIrohaHash
                 )
 
-            val keypairs = ArrayList<ECKeyPair>()
-            for (i in 0 until sigCount) {
-                val keypair = Keys.createEcKeyPair()
-                keypairs.add(keypair)
-                cth.sendAddPeer("0x" + Keys.getAddress(keypair))
-            }
-            master.disableAddingNewPeers().send()
-            val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
+            val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
+
+            val master = cth.deployMaster(
+                cth.relayRegistry.contractAddress,
+                peers
+            )
+            val sigs = cth.prepareSignatures(realSigCount, keyPairs.subList(0, realSigCount), finalHash)
 
             Assertions.assertTrue(
                 master.mintTokensByPeers(
@@ -888,7 +883,27 @@ class MasterTest {
                     sigs.ss
                 ).send().isStatusOK
             )
-            Assertions.assertEquals(amountToSend, soraToken.balanceOf(beneficiary).send().toInt())
+
+            Assertions.assertEquals(
+                amountToSend,
+                cth.getToken(master.xorTokenInstance().send()).balanceOf(beneficiary).send().toInt()
+            )
+        }
+    }
+
+    /**
+     * @given master contract with token
+     * @when check token balance
+     * @then master contract balance should be equals to totalSupply
+     */
+    @Test
+    fun checkMasterBalance() {
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            assertEquals(1, master.tokens.send().size)
+            assertEquals(
+                BigInteger("1618033988749894848204586834"),
+                cth.getToken(master.xorTokenInstance().send()).balanceOf(master.contractAddress).send()
+            )
         }
     }
 
@@ -900,8 +915,6 @@ class MasterTest {
     @Test
     fun mintNewTokens2of4peers() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            Assertions.assertTrue(soraToken.transferOwnership(master.contractAddress).send().isStatusOK)
-            Assertions.assertTrue(master.setXorToken(soraToken.contractAddress).send().isStatusOK)
             val sigCount = 4
             val realSigCount = 2
 
@@ -915,14 +928,13 @@ class MasterTest {
                     cth.defaultIrohaHash
                 )
 
-            val keypairs = ArrayList<ECKeyPair>()
-            for (i in 0 until sigCount) {
-                val keypair = Keys.createEcKeyPair()
-                keypairs.add(keypair)
-                cth.sendAddPeer("0x" + Keys.getAddress(keypair))
-            }
-            master.disableAddingNewPeers().send()
-            val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
+            val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
+
+            val master = cth.deployMaster(
+                cth.relayRegistry.contractAddress,
+                peers
+            )
+            val sigs = cth.prepareSignatures(realSigCount, keyPairs.subList(0, realSigCount), finalHash)
 
             Assertions.assertThrows(TransactionException::class.java) {
                 master.mintTokensByPeers(

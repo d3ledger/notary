@@ -116,17 +116,12 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
     }
 
     /**
-     * Deploy Sora token smart contract
+     * Load Sora token smart contract
      * @return Sora token instance
      */
-    fun deploySoraTokenSmartContract(): SoraToken {
-        val soraToken = contract.SoraToken.deploy(
-            web3,
-            credentials,
-            gasPrice,
-            gasLimit
-        ).send()
-        logger.info { "Sora token contract ${soraToken.contractAddress} was deployed" }
+    fun loadTokenSmartContract(tokenAddress: String): SoraToken {
+        val soraToken = contract.SoraToken.load(tokenAddress, web3, credentials, gasPrice, gasLimit)
+        logger.info { "Sora token contract ${soraToken.contractAddress} was loaded" }
         return soraToken
     }
 

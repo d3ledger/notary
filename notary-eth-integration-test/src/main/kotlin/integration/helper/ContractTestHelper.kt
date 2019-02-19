@@ -3,6 +3,7 @@ package integration.helper
 import config.EthereumPasswords
 import config.loadConfigs
 import contract.Master
+import contract.SoraToken
 import integration.TestConfig
 import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Hash
@@ -22,11 +23,9 @@ class ContractTestHelper {
         loadConfigs("test", EthereumPasswords::class.java, "/eth/ethereum_password.properties").get()
 
     val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
-
     val keypair = deployHelper.credentials.ecKeyPair
     val relayRegistry by lazy { deployHelper.deployRelayRegistrySmartContract() }
     val token by lazy { deployHelper.deployERC20TokenSmartContract() }
-    val soraToken by lazy { deployHelper.deploySoraTokenSmartContract() }
     val master by lazy {
         deployHelper.deployMasterSmartContract(
             relayRegistry.contractAddress,
@@ -238,6 +237,10 @@ class ContractTestHelper {
             peers.add(Keys.getAddress(keypair))
         }
         return Pair(keyPairs, peers)
+    }
+
+    fun getToken(tokenAddress: String): SoraToken {
+        return deployHelper.loadTokenSmartContract(tokenAddress)
     }
 
     fun deployFailer(): String {

@@ -36,13 +36,9 @@ contract Master {
         for (uint8 i = 0; i < initialPeers.length; i++) {
             addPeer(initialPeers[i]);
         }
-    }
-
-    /**
-     * Update token address
-     */
-    function setXorToken(address tokenAddress) public onlyOwner {
-        xorTokenInstance = SoraToken(tokenAddress);
+        // Create new instance of Sora token
+        xorTokenInstance = new SoraToken();
+        tokens.push(address(xorTokenInstance));
     }
 
     /**
