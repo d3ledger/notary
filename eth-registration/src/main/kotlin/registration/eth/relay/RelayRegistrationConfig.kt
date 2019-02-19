@@ -18,6 +18,9 @@ interface RelayRegistrationConfig {
     /** Address of master smart contract in Ethereum */
     val ethMasterWallet: String
 
+    /** Address of implementation of Relay contract in Ethereum */
+    val ethRelayImplementationAddress: String
+
     /** Notary Iroha account that stores relay register */
     val notaryIrohaAccount: String
 

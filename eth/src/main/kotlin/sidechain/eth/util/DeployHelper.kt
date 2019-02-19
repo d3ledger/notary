@@ -122,6 +122,8 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
             credentials,
             StaticGasProvider(gasPrice, gasLimit)
         )
+        logger.info { "Upgradable proxy to RelayRegistry contract ${proxiedRelayRegistry.contractAddress} was deployed" }
+
         return proxiedRelayRegistry
     }
 
@@ -162,6 +164,8 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
             credentials,
             StaticGasProvider(gasPrice, gasLimit)
         )
+        logger.info { "Upgradable proxy to Master contract ${proxiedMaster.contractAddress} was deployed" }
+
         return proxiedMaster
     }
 
@@ -180,6 +184,33 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
 
         logger.info { "Relay smart contract ${relay.contractAddress} was deployed" }
         return relay
+    }
+
+    /**
+     * Deploy upgradable proxy to relay contract.
+     * @param relayImplementationAddress - address to deployed implementation of Relay contract
+     * @param masterAddress - address of master contract
+     * @return [OwnedUpgradeabilityProxy] to upgradable [Relay]
+     */
+    fun deployUpgradableRelaySmartContract(relayImplementationAddress: String, masterAddress: String): Relay {
+        // deploy proxy
+        val proxy = deployOwnedUpgradeabilityProxy()
+
+        // call proxy set up
+        val encoded =
+            encodeFunction("initialize", Address(masterAddress) as Type<Any>)
+        proxy.upgradeToAndCall(relayImplementationAddress, encoded, BigInteger.ZERO).send()
+
+        // load via proxy
+        val proxiedRelay = Relay.load(
+            proxy.contractAddress,
+            web3,
+            credentials,
+            StaticGasProvider(gasPrice, gasLimit)
+        )
+        logger.info { "Upgradable proxy to Relay contract ${proxiedRelay.contractAddress} was deployed" }
+
+        return proxiedRelay
     }
 
     fun deployFailerContract(): Failer {

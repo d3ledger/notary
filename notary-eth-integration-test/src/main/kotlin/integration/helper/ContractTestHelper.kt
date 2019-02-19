@@ -25,7 +25,13 @@ class ContractTestHelper {
     val relayRegistry by lazy { deployHelper.deployUpgradableRelayRegistrySmartContract() }
     val token by lazy { deployHelper.deployERC20TokenSmartContract() }
     val master by lazy { deployHelper.deployUpgradableMasterSmartContract(relayRegistry.contractAddress) }
-    val relay by lazy { deployHelper.deployRelaySmartContract(master.contractAddress) }
+    val relayImplementation by lazy { deployHelper.deployRelaySmartContract(master.contractAddress) }
+    val relay by lazy {
+        deployHelper.deployUpgradableRelaySmartContract(
+            relayImplementation.contractAddress,
+            master.contractAddress
+        )
+    }
 
     private var addPeerCalls = BigInteger.ZERO
 

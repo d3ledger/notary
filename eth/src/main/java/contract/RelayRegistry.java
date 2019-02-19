@@ -112,7 +112,7 @@ public class RelayRegistry extends Contract {
     public RemoteCall<TransactionReceipt> initialize(String owner) {
         final Function function = new Function(
                 FUNC_INITIALIZE,
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(owner)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(owner)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }

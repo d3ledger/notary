@@ -7,6 +7,7 @@ import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.ETH_MASTER_WALLET_ENV
+import config.ETH_RELAY_IMPLEMENTATION_ADDRESS_ENV
 import config.loadConfigs
 import config.loadEthPasswords
 import jp.co.soramitsu.iroha.java.IrohaAPI
@@ -34,6 +35,9 @@ fun main(args: Array<String>) {
                 override val replenishmentPeriod = relayRegistrationConfig.replenishmentPeriod
                 override val ethMasterWallet =
                     System.getenv(ETH_MASTER_WALLET_ENV) ?: relayRegistrationConfig.ethMasterWallet
+                override val ethRelayImplementationAddress =
+                    System.getenv(ETH_RELAY_IMPLEMENTATION_ADDRESS_ENV)
+                        ?: relayRegistrationConfig.ethRelayImplementationAddress
                 override val notaryIrohaAccount = relayRegistrationConfig.notaryIrohaAccount
                 override val relayRegistrationCredential = relayRegistrationConfig.relayRegistrationCredential
                 override val iroha = relayRegistrationConfig.iroha
