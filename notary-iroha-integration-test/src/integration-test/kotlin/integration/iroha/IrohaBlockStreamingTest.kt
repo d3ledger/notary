@@ -42,8 +42,6 @@ class IrohaBlockStreamingTest {
     @BeforeEach
     fun setUp() {
         listener = ReliableIrohaChainListener(
-            testConfig.iroha.hostname,
-            testConfig.iroha.port,
             rmqConfig,
             String.getRandomId()
         )

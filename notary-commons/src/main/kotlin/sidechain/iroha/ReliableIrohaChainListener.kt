@@ -7,7 +7,6 @@ import com.rabbitmq.client.GetResponse
 import config.RMQConfig
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
-import jp.co.soramitsu.iroha.java.IrohaAPI
 import mu.KLogging
 import sidechain.ChainListener
 
@@ -15,17 +14,9 @@ import sidechain.ChainListener
  * Rabbit MQ based implementation of [ChainListener]
  */
 class ReliableIrohaChainListener(
-    private val irohaAPI: IrohaAPI,
     private val rmqConfig: RMQConfig,
     private val irohaQueue: String
 ) : ChainListener<Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit>> {
-
-    constructor(
-        irohaHost: String,
-        irohaPort: Int,
-        rmqConfig: RMQConfig,
-        irohaQueue: String
-    ) : this(IrohaAPI(irohaHost, irohaPort), rmqConfig, irohaQueue)
 
     private val factory = ConnectionFactory()
 
@@ -94,7 +85,6 @@ class ReliableIrohaChainListener(
     }
 
     override fun close() {
-        irohaAPI.close()
         consumerTag?.let {
             channel.basicCancel(it)
         }

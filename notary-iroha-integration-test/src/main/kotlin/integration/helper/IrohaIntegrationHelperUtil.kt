@@ -68,8 +68,6 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
 
     private val irohaChainListenerDelegate = lazy {
         ReliableIrohaChainListener(
-            testConfig.iroha.hostname,
-            testConfig.iroha.port,
             rmqConfig,
             testQueue
         )
