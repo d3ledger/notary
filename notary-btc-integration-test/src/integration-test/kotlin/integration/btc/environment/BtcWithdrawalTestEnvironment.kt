@@ -16,6 +16,9 @@ import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
 import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
 import com.d3.btc.withdrawal.transaction.*
 import config.BitcoinConfig
+import config.RMQConfig
+import config.getConfigFolder
+import config.loadRawConfigs
 import integration.helper.BtcIntegrationHelperUtil
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
@@ -24,7 +27,7 @@ import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.TransactionOutput
 import org.bitcoinj.wallet.Wallet
 import provider.NotaryPeerListProviderImpl
-import sidechain.iroha.IrohaChainListener
+import sidechain.iroha.ReliableIrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import java.io.Closeable
@@ -37,7 +40,7 @@ import java.util.concurrent.Executors
  */
 class BtcWithdrawalTestEnvironment(
     private val integrationHelper: BtcIntegrationHelperUtil,
-    testName: String = "",
+    testName: String = "default_test_name",
     val btcWithdrawalConfig: BtcWithdrawalConfig = integrationHelper.configHelper.createBtcWithdrawalConfig(testName),
     withdrawalCredential: IrohaCredential =
         IrohaCredential(
@@ -55,6 +58,8 @@ class BtcWithdrawalTestEnvironment(
      * This is why we explicitly set single threaded executor.
      */
     private val executor = Executors.newSingleThreadExecutor()
+
+    private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
 
     private val irohaApi by lazy {
         val irohaAPI = IrohaAPI(
@@ -98,9 +103,9 @@ class BtcWithdrawalTestEnvironment(
 
     private val btcFeeRateConsumer = IrohaConsumerImpl(btcFeeRateCredential, irohaApi)
 
-    private val irohaChainListener = IrohaChainListener(
-        irohaApi,
-        withdrawalCredential
+    private val irohaChainListener = ReliableIrohaChainListener(
+        rmqConfig,
+        testName
     )
 
     val btcRegisteredAddressesProvider = BtcRegisteredAddressesProvider(
@@ -109,8 +114,9 @@ class BtcWithdrawalTestEnvironment(
         btcWithdrawalConfig.notaryCredential.accountId
     )
 
-    val btcNetworkConfigProvider = BtcRegTestConfigProvider()
-    val btcChangeAddressProvider = BtcChangeAddressProvider(
+    private val btcNetworkConfigProvider = BtcRegTestConfigProvider()
+
+    private val btcChangeAddressProvider = BtcChangeAddressProvider(
         integrationHelper.queryAPI,
         btcWithdrawalConfig.mstRegistrationAccount,
         btcWithdrawalConfig.changeAddressesStorageAccount

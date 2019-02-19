@@ -19,6 +19,7 @@ class ReliableIrohaChainListener(
 ) : ChainListener<Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit>> {
 
     private val factory = ConnectionFactory()
+
     private val conn by lazy {
         factory.host = rmqConfig.host
         factory.newConnection()
