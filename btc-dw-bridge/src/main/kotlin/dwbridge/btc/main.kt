@@ -16,7 +16,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.EnableMBeanExport
 import util.createFolderIfDoesntExist
-import withdrawal.btc.init.BtcWithdrawalInitialization
+import com.d3.btc.withdrawal.init.BtcWithdrawalInitialization
 import java.util.*
 
 @EnableMBeanExport
@@ -26,10 +26,10 @@ import java.util.*
         "com.d3.btc.provider.address",
         "com.d3.btc.provider.network",
         "com.d3.btc.provider.wallet",
-        "withdrawal.btc.handler",
-        "withdrawal.btc.init",
-        "withdrawal.btc.provider",
-        "withdrawal.btc.transaction",
+        "com.d3.btc.withdrawal.handler",
+        "com.d3.btc.withdrawal.init",
+        "com.d3.btc.withdrawal.provider",
+        "com.d3.btc.withdrawal.transaction",
         "com.d3.btc.listener",
         "com.d3.btc.handler",
         "com.d3.btc.deposit.init",
