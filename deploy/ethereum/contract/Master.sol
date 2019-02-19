@@ -2,6 +2,7 @@ pragma solidity 0.5.4;
 
 import "./IRelayRegistry.sol";
 import "./IERC20.sol";
+import "./SoraToken.sol";
 
 /**
  * Provides functionality of master contract
@@ -15,6 +16,8 @@ contract Master {
 
     address public relayRegistryAddress;
     IRelayRegistry public relayRegistryInstance;
+
+    SoraToken public xorTokenInstance;
 
     address[] public tokens;
 
@@ -33,6 +36,9 @@ contract Master {
         for (uint8 i = 0; i < initialPeers.length; i++) {
             addPeer(initialPeers[i]);
         }
+        // Create new instance of Sora token
+        xorTokenInstance = new SoraToken();
+        tokens.push(address(xorTokenInstance));
     }
 
     /**
@@ -288,5 +294,50 @@ contract Master {
         bytes32 simple_hash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
         address res = ecrecover(simple_hash, v, r, s);
         return res;
+    }
+
+    /**
+     * Mint new XORToken
+     * @param beneficiary destination address
+     * @param amount how much to mint
+     * @param txHash hash of transaction from Iroha
+     * @param v array of signatures of tx_hash (v-component)
+     * @param r array of signatures of tx_hash (r-component)
+     * @param s array of signatures of tx_hash (s-component)
+     */
+    function mintTokensByPeers(
+        address beneficiary,
+        uint256 amount,
+        bytes32 txHash,
+        uint8[] memory v,
+        bytes32[] memory r,
+        bytes32[] memory s
+    )
+    public
+    {
+        require(address(xorTokenInstance) != address(0));
+        require(used[txHash] == false);
+        require(peersCount >= 1);
+        require(v.length == r.length);
+        require(r.length == s.length);
+        uint f = (peersCount - 1) / 3;
+        uint needSigs = peersCount - f;
+        require(s.length >= needSigs);
+
+        address[] memory recoveredAddresses = new address[](s.length);
+        for (uint i = 0; i < s.length; ++i) {
+            recoveredAddresses[i] = recoverAddress(
+                keccak256(abi.encodePacked(beneficiary, amount, txHash)),
+                v[i],
+                r[i],
+                s[i]
+            );
+            // recovered address should be in peers_
+            require(peers[recoveredAddresses[i]] == true);
+        }
+
+        require(checkForUniqueness(recoveredAddresses));
+
+        xorTokenInstance.mintTokens(beneficiary, amount);
     }
 }

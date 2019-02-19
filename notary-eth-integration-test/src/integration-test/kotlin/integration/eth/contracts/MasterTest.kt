@@ -11,9 +11,11 @@ import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Keys
 import org.web3j.protocol.exceptions.TransactionException
 import sidechain.eth.util.hashToAddAndRemovePeer
+import sidechain.eth.util.hashToMint
 import sidechain.eth.util.hashToWithdraw
 import java.math.BigInteger
 import java.time.Duration
+import kotlin.test.assertEquals
 
 class MasterTest {
     private lateinit var cth: ContractTestHelper
@@ -162,7 +164,6 @@ class MasterTest {
     fun secondWithdrawAfterVacuum() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             val initialBalance = cth.getETHBalance(accGreen)
-
             cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
             val call =
                 cth.withdraw(
@@ -840,6 +841,111 @@ class MasterTest {
             )
 
             Assertions.assertFalse(master.peers(withPeerToRemove.last()).send())
+        }
+    }
+
+    /**
+     * @given master and sora token
+     * @when try to mint
+     * @then should be minted new tokens
+     */
+    @Test
+    fun mintNewTokens4of4peers() {
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            val sigCount = 4
+            val realSigCount = 4
+
+            val beneficiary = "0xbcBCeb4D66065B7b34d1B90f4fa572829F2c6D5c"
+            val amountToSend = 1000
+
+            val finalHash =
+                hashToMint(
+                    beneficiary,
+                    amountToSend.toString(),
+                    cth.defaultIrohaHash
+                )
+
+            val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
+
+            val master = cth.deployMaster(
+                cth.relayRegistry.contractAddress,
+                peers
+            )
+            val sigs = cth.prepareSignatures(realSigCount, keyPairs.subList(0, realSigCount), finalHash)
+
+            Assertions.assertTrue(
+                master.mintTokensByPeers(
+                    beneficiary,
+                    BigInteger.valueOf(amountToSend.toLong()),
+                    cth.defaultByteHash,
+                    sigs.vv,
+                    sigs.rr,
+                    sigs.ss
+                ).send().isStatusOK
+            )
+
+            Assertions.assertEquals(
+                amountToSend,
+                cth.getToken(master.xorTokenInstance().send()).balanceOf(beneficiary).send().toInt()
+            )
+        }
+    }
+
+    /**
+     * @given master contract with token
+     * @when check token balance
+     * @then master contract balance should be equals to totalSupply
+     */
+    @Test
+    fun checkMasterBalance() {
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            assertEquals(1, master.tokens.send().size)
+            assertEquals(
+                BigInteger("1618033988749894848204586834"),
+                cth.getToken(master.xorTokenInstance().send()).balanceOf(master.contractAddress).send()
+            )
+        }
+    }
+
+    /**
+     * @given master and sora token
+     * @when try to mint
+     * @then should not be minted new tokens
+     */
+    @Test
+    fun mintNewTokens2of4peers() {
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            val sigCount = 4
+            val realSigCount = 2
+
+            val beneficiary = "0xbcBCeb4D66065B7b34d1B90f4fa572829F2c6D5c"
+            val amountToSend = 1000
+
+            val finalHash =
+                hashToMint(
+                    beneficiary,
+                    amountToSend.toString(),
+                    cth.defaultIrohaHash
+                )
+
+            val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
+
+            val master = cth.deployMaster(
+                cth.relayRegistry.contractAddress,
+                peers
+            )
+            val sigs = cth.prepareSignatures(realSigCount, keyPairs.subList(0, realSigCount), finalHash)
+
+            Assertions.assertThrows(TransactionException::class.java) {
+                master.mintTokensByPeers(
+                    beneficiary,
+                    BigInteger.valueOf(amountToSend.toLong()),
+                    cth.defaultByteHash,
+                    sigs.vv,
+                    sigs.rr,
+                    sigs.ss
+                ).send()
+            }
         }
     }
 }
