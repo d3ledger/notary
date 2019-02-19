@@ -6,7 +6,7 @@ import "./Ownable.sol";
 
 contract SoraToken is ERC20Burnable, ERC20Detailed, Ownable {
 
-    uint256 public constant INITIAL_SUPPLY = 1618033988 * (10 ** uint256(18));
+    uint256 public constant INITIAL_SUPPLY = 1618033988749894848204586834;
 
     /**
      * @dev Constructor that gives msg.sender all of existing tokens.
