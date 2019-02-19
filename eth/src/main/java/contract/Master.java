@@ -184,7 +184,7 @@ public class Master extends Contract {
 
     public RemoteCall<TransactionReceipt> setXorToken(String tokenAddress) {
         final Function function = new Function(
-                FUNC_SETXORTOKEN,
+                FUNC_SETXORTOKEN, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(tokenAddress)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
