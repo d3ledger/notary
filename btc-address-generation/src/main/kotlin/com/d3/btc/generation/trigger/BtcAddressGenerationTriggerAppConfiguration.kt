@@ -1,11 +1,11 @@
-package generation.btc.trigger
+package com.d3.btc.generation.trigger
 
 import com.d3.btc.provider.BtcFreeAddressesProvider
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.address.BtcAddressesProvider
 import com.d3.btc.provider.generation.BtcSessionProvider
 import config.loadConfigs
-import generation.btc.config.BtcAddressGenerationConfig
+import com.d3.btc.generation.config.BtcAddressGenerationConfig
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential

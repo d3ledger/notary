@@ -1,4 +1,4 @@
-package generation.btc.config
+package com.d3.btc.generation.config
 
 import config.IrohaConfig
 import config.IrohaCredentialConfig

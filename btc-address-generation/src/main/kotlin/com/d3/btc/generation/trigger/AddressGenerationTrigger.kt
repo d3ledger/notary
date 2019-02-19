@@ -1,4 +1,4 @@
-package generation.btc.trigger
+package com.d3.btc.generation.trigger
 
 import com.d3.btc.model.BtcAddressType
 import com.d3.btc.provider.BtcFreeAddressesProvider
