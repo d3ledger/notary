@@ -3,6 +3,7 @@ package integration.helper
 import com.d3.btc.helper.currency.satToBtc
 import com.d3.btc.model.AddressInfo
 import com.d3.btc.peer.SharedPeerGroup
+import com.d3.btc.provider.BtcFreeAddressesProvider
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.account.IrohaBtcAccountCreator
 import com.d3.btc.provider.address.BtcAddressesProvider
@@ -33,8 +34,13 @@ import java.io.File
 import java.math.BigDecimal
 import java.security.KeyPair
 
+// Btc asset id
 const val BTC_ASSET = "btc#bitcoin"
+// Default node id
+const val NODE_ID = "any id"
+// How many address may be generated in one batch
 private const val GENERATED_ADDRESSES_PER_BATCH = 5
+// How many blocks to generate to make Bitcoin regtest node able to send money
 private const val BTC_INITAL_BLOCKS = 101
 
 class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peers) {
@@ -49,7 +55,7 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
         BitcoinRpcClientFactory.createClient(
             user = "test",
             password = "test",
-            host = BitcoinConfig.extractHosts(configHelper.createBtcNotaryConfig().bitcoin)[0],
+            host = BitcoinConfig.extractHosts(configHelper.createBtcDepositConfig().bitcoin)[0],
             port = 8332,
             secure = false
         )
@@ -73,8 +79,11 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
             accountHelper.notaryAccount.accountId
         )
         BtcRegistrationStrategyImpl(
-            btcAddressesProvider,
-            btcTakenAddressesProvider,
+            BtcFreeAddressesProvider(
+                NODE_ID,
+                btcAddressesProvider,
+                btcTakenAddressesProvider
+            ),
             irohaBtcAccountCreator
         )
     }
@@ -118,7 +127,7 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
                     IrohaCommand.CommandSetAccountDetail(
                         accountHelper.notaryAccount.accountId,
                         address.toBase58(),
-                        AddressInfo.createFreeAddressInfo(listOf(key.publicKeyAsHex)).toJson()
+                        AddressInfo.createFreeAddressInfo(listOf(key.publicKeyAsHex), NODE_ID).toJson()
                     )
                 )
             )
@@ -148,15 +157,16 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
     /**
      * Generates one BTC address that can be registered later
      * @param walletFilePath - path to wallet file
+     * @param nodeId - node id. NODE_ID by default
      * @return randomly generated BTC address
      */
-    fun genFreeBtcAddress(walletFilePath: String): Result<Address, Exception> {
+    fun genFreeBtcAddress(walletFilePath: String, nodeId: String = NODE_ID): Result<Address, Exception> {
         val (key, address) = generateKeyAndAddress(walletFilePath)
         return ModelUtil.setAccountDetail(
             mstRegistrationIrohaConsumer,
             accountHelper.notaryAccount.accountId,
             address.toBase58(),
-            AddressInfo.createFreeAddressInfo(listOf(key.publicKeyAsHex)).toJson()
+            AddressInfo.createFreeAddressInfo(listOf(key.publicKeyAsHex), nodeId).toJson()
         ).map { address }
     }
 
@@ -171,7 +181,7 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
             mstRegistrationIrohaConsumer,
             accountHelper.changeAddressesStorageAccount.accountId,
             address.toBase58(),
-            AddressInfo.createChangeAddressInfo(listOf(key.publicKeyAsHex)).toJson()
+            AddressInfo.createChangeAddressInfo(listOf(key.publicKeyAsHex), NODE_ID).toJson()
         ).map { address }
     }
 

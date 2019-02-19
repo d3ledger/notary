@@ -8,21 +8,18 @@ import "./SoraToken.sol";
  * Provides functionality of master contract
  */
 contract Master {
-    address private owner;
-    mapping(address => bool) private peers;
+    address public owner;
+    mapping(address => bool) public peers;
     uint public peersCount;
-    mapping(bytes32 => bool) private used;
-    mapping(address => bool) private uniqueAddresses;
+    mapping(bytes32 => bool) public used;
+    mapping(address => bool) public uniqueAddresses;
 
-    address private relayRegistryAddress;
-    IRelayRegistry private relayRegistryInstance;
+    address public relayRegistryAddress;
+    IRelayRegistry public relayRegistryInstance;
 
     SoraToken public xorTokenInstance;
 
-    address[] private tokens;
-
-    // TODO: For development purpose only, https://soramitsu.atlassian.net/browse/D3-418
-    bool public isLockAddPeer = false;
+    address[] public tokens;
 
     /**
      * Emit event when master contract does not have enough assets to proceed withdraw
@@ -32,10 +29,13 @@ contract Master {
     /**
      * Constructor. Sets contract owner to contract creator.
      */
-    constructor(address relayRegistry) public {
+    constructor(address relayRegistry, address[] memory initialPeers) public {
         owner = msg.sender;
         relayRegistryAddress = relayRegistry;
         relayRegistryInstance = IRelayRegistry(relayRegistryAddress);
+        for (uint8 i = 0; i < initialPeers.length; i++) {
+            addPeer(initialPeers[i]);
+        }
     }
 
     /**
@@ -75,36 +75,87 @@ contract Master {
         return tokens;
     }
 
-
-    /**
-     * Adds new peers to list of signature verifiers. Can be called only by contract owner.
-     * @param newAddresses addresses of new peers
-     */
-    function addPeers(address[] memory newAddresses) public onlyOwner returns (uint){
-        for (uint i = 0; i < newAddresses.length; i++) {
-            addPeer(newAddresses[i]);
-        }
-        return peersCount;
-    }
-
     /**
      * Adds new peer to list of signature verifiers. Can be called only by contract owner.
      * @param newAddress address of new peer
      */
-    function addPeer(address newAddress) public onlyOwner returns(uint){
-        // TODO: For development purpose only, https://soramitsu.atlassian.net/browse/D3-418
-        require(!isLockAddPeer);
+    function addPeer(address newAddress) private returns (uint) {
         require(peers[newAddress] == false);
         peers[newAddress] = true;
         ++peersCount;
         return peersCount;
     }
 
-    /**
-     * Disable adding the new peers
-     */
-    function disableAddingNewPeers() public onlyOwner {
-        isLockAddPeer = true;
+    function removePeer(address peerAddress) private {
+        require(peers[peerAddress] == true);
+        peers[peerAddress] = false;
+        --peersCount;
+    }
+
+    function addPeerByPeer(
+        address newPeerAddress,
+        bytes32 txHash,
+        uint8[] memory v,
+        bytes32[] memory r,
+        bytes32[] memory s
+    )
+    public returns (bool)
+    {
+        require(used[txHash] == false);
+        require(peersCount >= 1);
+        require(v.length == r.length);
+        require(r.length == s.length);
+        uint f = (peersCount - 1) / 3;
+        uint needSigs = peersCount - f;
+        require(s.length >= needSigs);
+
+        address[] memory recoveredAddresses = new address[](s.length);
+        for (uint i = 0; i < s.length; ++i) {
+            recoveredAddresses[i] = recoverAddress(
+                keccak256(abi.encodePacked(newPeerAddress, txHash)),
+                v[i],
+                r[i],
+                s[i]
+            );
+            // recovered address should be in peers_
+            require(peers[recoveredAddresses[i]] == true);
+        }
+        require(checkForUniqueness(recoveredAddresses));
+        addPeer(newPeerAddress);
+        return true;
+    }
+
+    function removePeerByPeer(
+        address peerAddress,
+        bytes32 txHash,
+        uint8[] memory v,
+        bytes32[] memory r,
+        bytes32[] memory s
+    )
+    public returns (bool)
+    {
+        require(used[txHash] == false);
+        require(peersCount >= 1);
+        require(v.length == r.length);
+        require(r.length == s.length);
+        uint f = (peersCount - 1) / 3;
+        uint needSigs = peersCount - f;
+        require(s.length >= needSigs);
+
+        address[] memory recoveredAddresses = new address[](s.length);
+        for (uint i = 0; i < s.length; ++i) {
+            recoveredAddresses[i] = recoverAddress(
+                keccak256(abi.encodePacked(peerAddress, txHash)),
+                v[i],
+                r[i],
+                s[i]
+            );
+            // recovered address should be in peers_
+            require(peers[recoveredAddresses[i]] == true);
+        }
+        require(checkForUniqueness(recoveredAddresses));
+        removePeer(peerAddress);
+        return true;
     }
 
     /**
@@ -162,7 +213,6 @@ contract Master {
     )
     public
     {
-        require(isLockAddPeer);
         require(checkTokenAddress(tokenAddress));
         require(relayRegistryInstance.isWhiteListed(from, to));
         // TODO luckychess 26.06.2018 D3-101 improve require checks (copy-paste) (use modifiers)
@@ -189,6 +239,7 @@ contract Master {
             // recovered address should be in peers_
             require(peers[recoveredAddresses[i]] == true);
         }
+
         require(checkForUniqueness(recoveredAddresses));
 
         if (tokenAddress == address (0)) {

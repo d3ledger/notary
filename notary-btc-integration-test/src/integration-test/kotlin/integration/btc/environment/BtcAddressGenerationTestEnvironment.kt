@@ -7,10 +7,10 @@ import com.d3.btc.provider.generation.BtcPublicKeyProvider
 import com.d3.btc.provider.generation.BtcSessionProvider
 import com.d3.btc.provider.network.BtcRegTestConfigProvider
 import com.d3.btc.wallet.WalletFile
-import generation.btc.config.BtcAddressGenerationConfig
+import com.d3.btc.generation.config.BtcAddressGenerationConfig
 
-import generation.btc.init.BtcAddressGenerationInitialization
-import generation.btc.trigger.AddressGenerationTrigger
+import com.d3.btc.generation.init.BtcAddressGenerationInitialization
+import com.d3.btc.generation.trigger.AddressGenerationTrigger
 import integration.helper.BtcIntegrationHelperUtil
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
@@ -139,7 +139,7 @@ class BtcAddressGenerationTestEnvironment(
     )
 
     val btcFreeAddressesProvider =
-        BtcFreeAddressesProvider(btcAddressesProvider, btcRegisteredAddressesProvider)
+        BtcFreeAddressesProvider(btcGenerationConfig.nodeId, btcAddressesProvider, btcRegisteredAddressesProvider)
 
     private val addressGenerationTrigger = AddressGenerationTrigger(
         btcKeyGenSessionProvider,

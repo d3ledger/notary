@@ -73,8 +73,8 @@ public class RelayRegistry extends Contract {
     }
 
     public RemoteCall<List> getWhiteListByRelay(String relay) {
-        final Function function = new Function(FUNC_GETWHITELISTBYRELAY, 
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(relay)), 
+        final Function function = new Function(FUNC_GETWHITELISTBYRELAY,
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(relay)),
                 Arrays.<TypeReference<?>>asList(new TypeReference<DynamicArray<Address>>() {}));
         return new RemoteCall<List>(
                 new Callable<List>() {

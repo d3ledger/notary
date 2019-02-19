@@ -12,6 +12,7 @@ import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Keys
 import org.web3j.protocol.exceptions.TransactionException
 import sidechain.eth.util.hashToMint
+import sidechain.eth.util.hashToAddAndRemovePeer
 import sidechain.eth.util.hashToWithdraw
 import java.math.BigInteger
 import java.time.Duration
@@ -66,8 +67,6 @@ class MasterTest {
     @Test
     fun singleCorrectSignatureTokenTest() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            cth.sendAddPeer(accMain)
-            master.disableAddingNewPeers().send()
             master.addToken(token.contractAddress).send()
             cth.transferTokensToMaster(BigInteger.valueOf(5))
             cth.withdraw(BigInteger.valueOf(1))
@@ -84,9 +83,6 @@ class MasterTest {
     @Test
     fun singleNotEnoughSignaturesTokenTest() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            cth.sendAddPeer(accMain)
-            cth.sendAddPeer(accGreen)
-            master.disableAddingNewPeers().send()
             cth.transferTokensToMaster(BigInteger.valueOf(5))
             Assertions.assertThrows(TransactionException::class.java) { cth.withdraw(BigInteger.valueOf(1)) }
         }
@@ -101,8 +97,6 @@ class MasterTest {
     @Test
     fun notEnoughEtherTest() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            cth.sendAddPeer(accMain)
-            master.disableAddingNewPeers().send()
             cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
             val call =
                 cth.withdraw(
@@ -128,8 +122,6 @@ class MasterTest {
     @Test
     fun notEnoughTokensTest() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            cth.sendAddPeer(accMain)
-            master.disableAddingNewPeers().send()
             cth.transferTokensToMaster(BigInteger.valueOf(5))
             Assertions.assertThrows(TransactionException::class.java) { cth.withdraw(BigInteger.valueOf(10)) }
         }
@@ -145,8 +137,6 @@ class MasterTest {
     fun singleCorrectSignatureEtherTestMaster() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             val initialBalance = cth.getETHBalance(accGreen)
-            cth.sendAddPeer(accMain)
-            master.disableAddingNewPeers().send()
             cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
             cth.withdraw(
                 BigInteger.valueOf(1000),
@@ -176,8 +166,6 @@ class MasterTest {
     fun secondWithdrawAfterVacuum() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             val initialBalance = cth.getETHBalance(accGreen)
-            cth.sendAddPeer(accMain)
-            master.disableAddingNewPeers().send()
             cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
             val call =
                 cth.withdraw(
@@ -232,8 +220,6 @@ class MasterTest {
     @Test
     fun differentVRS() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            cth.sendAddPeer(accMain)
-            master.disableAddingNewPeers().send()
             cth.transferTokensToMaster(BigInteger.valueOf(5))
 
             val amount = BigInteger.valueOf(1)
@@ -274,8 +260,6 @@ class MasterTest {
     @Test
     fun sameSignatures() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            cth.sendAddPeer(accMain)
-            master.disableAddingNewPeers().send()
             cth.transferTokensToMaster(BigInteger.valueOf(5))
 
             val amount = BigInteger.valueOf(1)
@@ -315,8 +299,6 @@ class MasterTest {
     @Test
     fun wrongPeerSignature() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            cth.sendAddPeer(accMain)
-            master.disableAddingNewPeers().send()
             cth.transferTokensToMaster(BigInteger.valueOf(5))
 
             val amount = BigInteger.valueOf(1)
@@ -354,8 +336,6 @@ class MasterTest {
     @Test
     fun invalidSignature() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            cth.sendAddPeer(accMain)
-            master.disableAddingNewPeers().send()
             cth.transferTokensToMaster(BigInteger.valueOf(5))
 
             val amount = BigInteger.valueOf(1)
@@ -395,36 +375,12 @@ class MasterTest {
     @Test
     fun usedHashTest() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            cth.sendAddPeer(accMain)
-            master.disableAddingNewPeers().send()
             master.addToken(token.contractAddress).send()
             cth.transferTokensToMaster(BigInteger.valueOf(5))
             cth.withdraw(BigInteger.valueOf(1))
             Assertions.assertEquals(BigInteger.valueOf(4), token.balanceOf(master.contractAddress).send())
             Assertions.assertThrows(TransactionException::class.java) { cth.withdraw(BigInteger.valueOf(1)) }
         }
-    }
-
-    /**
-     * @given deployed master contract
-     * @when AddPeer called twice with different addresses
-     * @then both calls succeeded
-     */
-    @Test
-    fun addPeerTest() {
-        cth.sendAddPeer(accMain)
-        cth.sendAddPeer(accGreen)
-    }
-
-    /**
-     * @given deployed master contract
-     * @when AddPeer called twice with same addresses
-     * @then second call fails
-     */
-    @Test
-    fun addSamePeer() {
-        cth.sendAddPeer(accGreen)
-        Assertions.assertThrows(TransactionException::class.java) { master.addPeer(accGreen).send() }
     }
 
     /**
@@ -470,6 +426,13 @@ class MasterTest {
             val sigCount = 4
             val amountToSend = 1000
             val initialBalance = cth.getETHBalance(accGreen)
+            val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
+
+            val master = cth.deployMaster(
+                cth.relayRegistry.contractAddress,
+                peers
+            )
+
             cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
 
             val finalHash =
@@ -481,14 +444,7 @@ class MasterTest {
                     master.contractAddress
                 )
 
-            val keypairs = ArrayList<ECKeyPair>()
-            for (i in 0 until sigCount) {
-                val keypair = Keys.createEcKeyPair()
-                keypairs.add(keypair)
-                cth.sendAddPeer("0x" + Keys.getAddress(keypair))
-            }
-            master.disableAddingNewPeers().send()
-            val sigs = cth.prepareSignatures(sigCount, keypairs, finalHash)
+            val sigs = cth.prepareSignatures(sigCount, keyPairs, finalHash)
 
             master.withdraw(
                 etherAddress,
@@ -520,6 +476,13 @@ class MasterTest {
             val amountToSend = 1000
             val tokenAddress = etherAddress
             val initialBalance = cth.getETHBalance(accGreen)
+            val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
+
+            val master = cth.deployMaster(
+                cth.relayRegistry.contractAddress,
+                peers
+            )
+
             cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
 
             val finalHash =
@@ -531,14 +494,7 @@ class MasterTest {
                     master.contractAddress
                 )
 
-            val keypairs = ArrayList<ECKeyPair>()
-            for (i in 0 until sigCount) {
-                val keypair = Keys.createEcKeyPair()
-                keypairs.add(keypair)
-                cth.sendAddPeer("0x" + Keys.getAddress(keypair))
-            }
-            master.disableAddingNewPeers().send()
-            val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
+            val sigs = cth.prepareSignatures(realSigCount, keyPairs.subList(0, realSigCount), finalHash)
 
             master.withdraw(
                 tokenAddress,
@@ -570,6 +526,13 @@ class MasterTest {
             val amountToSend = 1000
             val tokenAddress = etherAddress
 
+            val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
+
+            val master = cth.deployMaster(
+                cth.relayRegistry.contractAddress,
+                peers
+            )
+
             val finalHash =
                 hashToWithdraw(
                     tokenAddress,
@@ -579,14 +542,7 @@ class MasterTest {
                     master.contractAddress
                 )
 
-            val keypairs = ArrayList<ECKeyPair>()
-            for (i in 0 until sigCount) {
-                val keypair = Keys.createEcKeyPair()
-                keypairs.add(keypair)
-                cth.sendAddPeer("0x" + Keys.getAddress(keypair))
-            }
-            master.disableAddingNewPeers().send()
-            val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
+            val sigs = cth.prepareSignatures(realSigCount, keyPairs.subList(0, realSigCount), finalHash)
 
             Assertions.assertThrows(TransactionException::class.java) {
                 master.withdraw(
@@ -616,6 +572,13 @@ class MasterTest {
             val amountToSend = 1000
             val tokenAddress = etherAddress
             val initialBalance = cth.getETHBalance(accGreen)
+            val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
+
+            val master = cth.deployMaster(
+                cth.relayRegistry.contractAddress,
+                peers
+            )
+
             cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
 
             val finalHash =
@@ -627,14 +590,7 @@ class MasterTest {
                     master.contractAddress
                 )
 
-            val keypairs = ArrayList<ECKeyPair>()
-            for (i in 0 until sigCount) {
-                val keypair = Keys.createEcKeyPair()
-                keypairs.add(keypair)
-                cth.sendAddPeer("0x" + Keys.getAddress(keypair))
-            }
-            master.disableAddingNewPeers().send()
-            val sigs = cth.prepareSignatures(sigCount, keypairs, finalHash)
+            val sigs = cth.prepareSignatures(sigCount, keyPairs, finalHash)
 
             master.withdraw(
                 tokenAddress,
@@ -666,6 +622,12 @@ class MasterTest {
             val amountToSend = 1000
             val tokenAddress = etherAddress
             val initialBalance = cth.getETHBalance(accGreen)
+            val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
+
+            val master = cth.deployMaster(
+                cth.relayRegistry.contractAddress,
+                peers
+            )
             cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
 
             val finalHash =
@@ -677,14 +639,7 @@ class MasterTest {
                     master.contractAddress
                 )
 
-            val keypairs = ArrayList<ECKeyPair>()
-            for (i in 0 until sigCount) {
-                val keypair = Keys.createEcKeyPair()
-                keypairs.add(keypair)
-                cth.sendAddPeer("0x" + Keys.getAddress(keypair))
-            }
-            master.disableAddingNewPeers().send()
-            val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
+            val sigs = cth.prepareSignatures(realSigCount, keyPairs.subList(0, realSigCount), finalHash)
 
             master.withdraw(
                 tokenAddress,
@@ -716,6 +671,13 @@ class MasterTest {
             val amountToSend = 1000
             val tokenAddress = etherAddress
 
+            val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
+
+            val master = cth.deployMaster(
+                cth.relayRegistry.contractAddress,
+                peers
+            )
+
             val finalHash =
                 hashToWithdraw(
                     tokenAddress,
@@ -725,14 +687,7 @@ class MasterTest {
                     master.contractAddress
                 )
 
-            val keypairs = ArrayList<ECKeyPair>()
-            for (i in 0 until sigCount) {
-                val keypair = Keys.createEcKeyPair()
-                keypairs.add(keypair)
-                cth.sendAddPeer("0x" + Keys.getAddress(keypair))
-            }
-            master.disableAddingNewPeers().send()
-            val sigs = cth.prepareSignatures(realSigCount, keypairs.subList(0, realSigCount), finalHash)
+            val sigs = cth.prepareSignatures(realSigCount, keyPairs.subList(0, realSigCount), finalHash)
 
             Assertions.assertThrows(TransactionException::class.java) {
                 master.withdraw(
@@ -765,19 +720,129 @@ class MasterTest {
     }
 
     /**
-     * @given relay registry and master contract
-     * @when adding all peers as a list
-     * @then all peers should be stored in the contract
+     * @given relay registry and master contracts
+     * @when try to add one more peer address by all valid peers
+     * @then the new peer should be added
      */
     @Test
-    fun addAllPeersAtOnce() {
+    fun addNewPeerByPeers4of4() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            val peers = listOf("0x01", "0x02", "0x03")
-            val result = master.addPeers(peers).send()
-            val n = master.peersCount().send()
+            val newPeer = "0x006fe444ffbaffb27813265c50a479897b8a2514"
+            val sigCount = 4
+            val realSigCount = 4
 
-            Assertions.assertTrue(result.isStatusOK)
-            Assertions.assertEquals(3, n.toInt())
+            val finalHash =
+                hashToAddAndRemovePeer(
+                    newPeer,
+                    cth.defaultIrohaHash
+                )
+
+
+            val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
+
+            val master = cth.deployMaster(
+                cth.relayRegistry.contractAddress,
+                peers
+            )
+
+            val sigs = cth.prepareSignatures(realSigCount, keyPairs.subList(0, realSigCount), finalHash)
+
+            val result = master.addPeerByPeer(
+                newPeer,
+                cth.defaultByteHash,
+                sigs.vv,
+                sigs.rr,
+                sigs.ss
+            ).send().isStatusOK
+
+            Assertions.assertTrue(result)
+            Assertions.assertTrue(master.peers(newPeer).send())
+        }
+    }
+
+    /**
+     * @given relay registry and master contracts
+     * @when try to add one more peer address by all valid peers
+     * @then the tx should be failed and new peer is not saved
+     */
+    @Test
+    fun addNewPeerByPeers2of4() {
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            val newPeer = "0x006fe444ffbaffb27813265c50a479897b8a2514"
+            val sigCount = 4
+            val realSigCount = 2
+
+            val finalHash =
+                hashToAddAndRemovePeer(
+                    newPeer,
+                    cth.defaultIrohaHash
+                )
+
+            val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
+            val master = cth.deployMaster(
+                cth.relayRegistry.contractAddress,
+                peers
+            )
+
+            val sigs = cth.prepareSignatures(realSigCount, keyPairs.subList(0, realSigCount), finalHash)
+
+            Assertions.assertThrows(TransactionException::class.java) {
+                master.addPeerByPeer(
+                    newPeer,
+                    cth.defaultByteHash,
+                    sigs.vv,
+                    sigs.rr,
+                    sigs.ss
+                ).send().isStatusOK
+            }
+
+            Assertions.assertFalse(master.peers(newPeer).send())
+        }
+    }
+
+    /**
+     * @given relay registry and master contracts
+     * @when try to remove one peer address by rest of peers
+     * @then the tx should be successful and peer is removed
+     */
+    @Test
+    fun removePeerByPeers() {
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            val peerToRemove = "0x006fe444ffbaffb27813265c50a479897b8a2514"
+            val sigCount = 4
+            val realSigCount = 4
+
+            val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
+
+            // deploy with peer which will be removed
+
+            val withPeerToRemove = peers.toMutableList()
+            withPeerToRemove.add(peerToRemove)
+            val master = cth.deployMaster(
+                cth.relayRegistry.contractAddress,
+                withPeerToRemove
+            )
+
+            val finalHash =
+                hashToAddAndRemovePeer(
+                    withPeerToRemove.last(),
+                    cth.defaultIrohaHash
+                )
+
+            val sigs = cth.prepareSignatures(realSigCount, keyPairs.subList(0, realSigCount), finalHash)
+
+            Assertions.assertTrue(master.peers(peerToRemove).send())
+            Assertions.assertTrue(
+                master.removePeerByPeer(
+                    withPeerToRemove.last(),
+                    cth.defaultByteHash,
+                    sigs.vv,
+                    sigs.rr,
+                    sigs.ss
+                ).send().isStatusOK
+            )
+
+            Assertions.assertFalse(master.peers(withPeerToRemove.last()).send())
         }
     }
 

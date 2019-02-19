@@ -2,11 +2,11 @@ package integration.helper
 
 import config.BitcoinConfig
 import config.loadConfigs
-import generation.btc.config.BtcAddressGenerationConfig
+import com.d3.btc.generation.config.BtcAddressGenerationConfig
 import model.IrohaCredential
-import notary.btc.config.BtcNotaryConfig
+import com.d3.btc.deposit.config.BtcDepositConfig
 import com.d3.btc.registration.config.BtcRegistrationConfig
-import withdrawal.btc.config.BtcWithdrawalConfig
+import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -32,6 +32,7 @@ class BtcConfigHelper(
 
         return object : BtcAddressGenerationConfig {
             override val threshold = initAddresses
+            override val nodeId = NODE_ID
             override val changeAddressesStorageAccount = accountHelper.changeAddressesStorageAccount.accountId
             override val healthCheckPort = btcPkPreGenConfig.healthCheckPort
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
@@ -55,6 +56,8 @@ class BtcConfigHelper(
         val btcWithdrawalConfig =
             loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties").get()
         return object : BtcWithdrawalConfig {
+            override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
+            override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
             override val btcFeeRateCredential = accountHelper.createCredentialConfig(accountHelper.btcFeeRateAccount)
             override val signatureCollectorCredential =
                 accountHelper.createCredentialConfig(accountHelper.btcWithdrawalSignatureCollectorAccount)
@@ -88,21 +91,21 @@ class BtcConfigHelper(
     }
 
     /**
-     * Creates config for Bitcoin notary
+     * Creates config for Bitcoin deposit
      * @param testName - name of the test. used to create folder for block storage
      * @param notaryIrohaCredential - notary Iroha credential. Taken from account helper by default
      * @return configuration
      */
-    fun createBtcNotaryConfig(
+    fun createBtcDepositConfig(
         testName: String = "",
         notaryIrohaCredential: IrohaCredential = accountHelper.notaryAccount
-    ): BtcNotaryConfig {
-        val btcNotaryConfig = loadConfigs("btc-notary", BtcNotaryConfig::class.java, "/btc/notary.properties").get()
-        return object : BtcNotaryConfig {
-            override val healthCheckPort = btcNotaryConfig.healthCheckPort
+    ): BtcDepositConfig {
+        val btcDepositConfig = loadConfigs("btc-deposit", BtcDepositConfig::class.java, "/btc/deposit.properties").get()
+        return object : BtcDepositConfig {
+            override val healthCheckPort = btcDepositConfig.healthCheckPort
             override val registrationAccount = accountHelper.registrationAccount.accountId
             override val iroha = createIrohaConfig()
-            override val bitcoin = createBitcoinConfig(btcNotaryConfig.bitcoin, testName)
+            override val bitcoin = createBitcoinConfig(btcDepositConfig.bitcoin, testName)
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
             override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
             override val notaryCredential = accountHelper.createCredentialConfig(notaryIrohaCredential)
@@ -141,6 +144,7 @@ class BtcConfigHelper(
         val btcRegistrationConfig =
             loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/btc/registration.properties").get()
         return object : BtcRegistrationConfig {
+            override val nodeId = NODE_ID
             override val healthCheckPort = btcRegistrationConfig.healthCheckPort
             override val notaryAccount = accountHelper.notaryAccount.accountId
             override val mstRegistrationAccount = accountHelper.mstRegistrationAccount.accountId
@@ -150,5 +154,4 @@ class BtcConfigHelper(
             override val iroha = createIrohaConfig()
         }
     }
-
 }

@@ -2,9 +2,11 @@ package integration.helper
 
 import config.EthereumPasswords
 import config.loadConfigs
+import contract.Master
 import integration.TestConfig
 import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Hash
+import org.web3j.crypto.Keys
 import org.web3j.protocol.core.methods.response.TransactionReceipt
 import org.web3j.utils.Numeric
 import sidechain.eth.util.DeployHelper
@@ -25,10 +27,13 @@ class ContractTestHelper {
     val relayRegistry by lazy { deployHelper.deployRelayRegistrySmartContract() }
     val token by lazy { deployHelper.deployERC20TokenSmartContract() }
     val soraToken by lazy { deployHelper.deploySoraTokenSmartContract() }
-    val master by lazy { deployHelper.deployMasterSmartContract(relayRegistry.contractAddress) }
+    val master by lazy {
+        deployHelper.deployMasterSmartContract(
+            relayRegistry.contractAddress,
+            listOf(accMain)
+        )
+    }
     val relay by lazy { deployHelper.deployRelaySmartContract(master.contractAddress) }
-
-    private var addPeerCalls = BigInteger.ZERO
 
     val etherAddress = "0x0000000000000000000000000000000000000000"
     val defaultIrohaHash = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))
@@ -54,13 +59,6 @@ class ContractTestHelper {
             ss.add(vrs.s)
         }
         return sigsData(vv, rr, ss)
-    }
-
-    fun sendAddPeer(address: String) {
-        ++addPeerCalls
-        master.addPeer(address).send()
-        // addPeer return number of added peers
-        assertEquals(addPeerCalls, master.peersCount().send())
     }
 
     fun transferTokensToMaster(amount: BigInteger) {
@@ -212,6 +210,34 @@ class ContractTestHelper {
 
     fun getERC20TokenBalance(contractAddress: String, whoAddress: String): BigInteger {
         return deployHelper.getERC20Balance(contractAddress, whoAddress)
+    }
+
+    /**
+     * Deploy master contract with predefined peers
+     * @return master contract instance
+     */
+    fun deployMaster(relayAddress: String, peers: List<String>): Master {
+        return deployHelper.deployMasterSmartContract(
+            relayAddress,
+            peers
+        )
+    }
+
+    /**
+     * Generating KeyPairs for signing the data and array of public keys (Ethereum address of initial peers)
+     * @param amount of keyPairs
+     * @return pair of keyPairs and public keys
+     */
+    fun getKeyPairsAndPeers(amount: Int): Pair<List<ECKeyPair>, List<String>> {
+        val keyPairs = ArrayList<ECKeyPair>()
+        val peers = ArrayList<String>()
+
+        for (i in 0 until amount) {
+            val keypair = Keys.createEcKeyPair()
+            keyPairs.add(keypair)
+            peers.add(Keys.getAddress(keypair))
+        }
+        return Pair(keyPairs, peers)
     }
 
     fun deployFailer(): String {

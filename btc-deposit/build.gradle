@@ -10,14 +10,14 @@ buildscript {
 }
 apply plugin: 'application'
 apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
-mainClassName = "notary.btc.BtcNotaryMain"
+mainClassName = "com.d3.btc.deposit.BtcDepositMain"
 
 dependencies {
     compile project(":btc")
 }
 
-task runBtcNotary(type: JavaExec) {
-    main = 'notary.btc.BtcNotaryMain'
+task runBtcDeposit(type: JavaExec) {
+    main = 'com.d3.btc.deposit.BtcDepositMain'
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
 }

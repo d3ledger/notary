@@ -21,7 +21,7 @@ import org.junit.jupiter.api.fail
 import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
 import util.hex
-import withdrawal.btc.handler.CurrentFeeRate
+import com.d3.btc.withdrawal.handler.CurrentFeeRate
 import java.io.File
 import java.math.BigDecimal
 import java.security.KeyPair
@@ -239,9 +239,11 @@ class BtcFullPipelineTest {
      */
     private fun generateAddress(addressType: BtcAddressType) {
         val sessionAccountName = addressType.createSessionAccountName()
-        addressGenerationEnvironment.btcKeyGenSessionProvider.createPubKeyCreationSession(sessionAccountName)
-            .fold({ logger.info { "session $sessionAccountName was created" } },
-                { ex -> fail("cannot create session", ex) })
+        addressGenerationEnvironment.btcKeyGenSessionProvider.createPubKeyCreationSession(
+            sessionAccountName,
+            addressGenerationEnvironment.btcGenerationConfig.nodeId
+        ).fold({ logger.info { "session $sessionAccountName was created" } },
+            { ex -> fail("cannot create session", ex) })
         addressGenerationEnvironment.triggerProvider.trigger(sessionAccountName)
         Thread.sleep(WAIT_PREGEN_PROCESS_MILLIS)
     }

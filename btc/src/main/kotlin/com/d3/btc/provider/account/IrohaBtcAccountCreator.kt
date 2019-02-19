@@ -25,6 +25,7 @@ class IrohaBtcAccountCreator(
      * @param domain - client domain
      * @param pubkey - client's public key
      * @param notaryKeys - keys that were used to create given address
+     * @param nodeId - node id
      * @return address associated with userName
      */
     fun create(
@@ -33,7 +34,8 @@ class IrohaBtcAccountCreator(
         userName: String,
         domain: String,
         pubkey: String,
-        notaryKeys: List<String>
+        notaryKeys: List<String>,
+        nodeId: String
     ): Result<String, Exception> {
         return irohaAccountCreator.create(
             btcAddress,
@@ -45,7 +47,8 @@ class IrohaBtcAccountCreator(
         ) {
             AddressInfo(
                 "$userName@$domain",
-                notaryKeys
+                notaryKeys,
+                nodeId
             ).toJson()
         }
     }
