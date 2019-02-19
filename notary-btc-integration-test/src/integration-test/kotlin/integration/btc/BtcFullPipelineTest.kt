@@ -1,7 +1,8 @@
 package integration.btc
 
+import com.d3.btc.helper.currency.satToBtc
+import com.d3.btc.model.BtcAddressType
 import com.github.kittinunf.result.failure
-import helper.currency.satToBtc
 import integration.btc.environment.BtcAddressGenerationTestEnvironment
 import integration.btc.environment.BtcNotaryTestEnvironment
 import integration.btc.environment.BtcRegistrationTestEnvironment
@@ -17,11 +18,10 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
-import provider.btc.address.BtcAddressType
 import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
 import util.hex
-import withdrawal.btc.handler.CurrentFeeRate
+import com.d3.btc.withdrawal.handler.CurrentFeeRate
 import java.io.File
 import java.math.BigDecimal
 import java.security.KeyPair
@@ -179,15 +179,10 @@ class BtcFullPipelineTest {
             }.start()
         }
         Thread.sleep(DEPOSIT_WAIT_MILLIS * totalTransfers)
-
+        val createdTime = System.currentTimeMillis()
         // Send 10000 SAT from source to destination multiple times
         for (transfer in 1..totalTransfers) {
             Thread {
-                /**
-                 * Every transfer transaction must have different creation time
-                 * Otherwise some transactions may have the same tx hash
-                 * */
-                val createdTime = System.currentTimeMillis() + transfer
                 integrationHelper.transferAssetIrohaFromClient(
                     "$srcUserName@$CLIENT_DOMAIN",
                     srcKeypair,
@@ -196,7 +191,11 @@ class BtcFullPipelineTest {
                     BTC_ASSET,
                     destBtcAddress,
                     amount.toPlainString(),
-                    createdTime
+                    /**
+                     * Every transfer transaction must have different creation time
+                     * Otherwise some transactions may have the same tx hash
+                     * */
+                    createdTime + transfer
                 )
             }.start()
         }
@@ -240,9 +239,11 @@ class BtcFullPipelineTest {
      */
     private fun generateAddress(addressType: BtcAddressType) {
         val sessionAccountName = addressType.createSessionAccountName()
-        addressGenerationEnvironment.btcKeyGenSessionProvider.createPubKeyCreationSession(sessionAccountName)
-            .fold({ logger.info { "session $sessionAccountName was created" } },
-                { ex -> fail("cannot create session", ex) })
+        addressGenerationEnvironment.btcKeyGenSessionProvider.createPubKeyCreationSession(
+            sessionAccountName,
+            addressGenerationEnvironment.btcGenerationConfig.nodeId
+        ).fold({ logger.info { "session $sessionAccountName was created" } },
+            { ex -> fail("cannot create session", ex) })
         addressGenerationEnvironment.triggerProvider.trigger(sessionAccountName)
         Thread.sleep(WAIT_PREGEN_PROCESS_MILLIS)
     }

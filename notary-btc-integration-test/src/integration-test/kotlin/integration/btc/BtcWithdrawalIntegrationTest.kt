@@ -1,8 +1,8 @@
 package integration.btc
 
+import com.d3.btc.helper.address.outPutToBase58Address
+import com.d3.btc.helper.currency.satToBtc
 import com.github.kittinunf.result.failure
-import helper.address.outPutToBase58Address
-import helper.currency.satToBtc
 import integration.btc.environment.BtcWithdrawalTestEnvironment
 import integration.helper.BTC_ASSET
 import integration.helper.BtcIntegrationHelperUtil
@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
-import withdrawal.btc.handler.CurrentFeeRate
+import com.d3.btc.withdrawal.handler.CurrentFeeRate
 import java.io.File
 import java.math.BigDecimal
 import kotlin.test.assertEquals
@@ -42,7 +42,6 @@ class BtcWithdrawalIntegrationTest {
     @BeforeAll
     fun setUp() {
         CurrentFeeRate.set(DEFAULT_FEE_RATE)
-        File(environment.btcWithdrawalConfig.bitcoin.blockStoragePath).mkdirs()
         val blockStorageFolder = File(environment.btcWithdrawalConfig.bitcoin.blockStoragePath)
         //Clear bitcoin blockchain folder
         blockStorageFolder.deleteRecursively()

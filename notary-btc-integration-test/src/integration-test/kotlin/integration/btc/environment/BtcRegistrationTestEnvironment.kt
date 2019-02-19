@@ -1,12 +1,13 @@
 package integration.btc.environment
 
+import com.d3.btc.provider.BtcFreeAddressesProvider
+import com.d3.btc.provider.BtcRegisteredAddressesProvider
+import com.d3.btc.provider.account.IrohaBtcAccountCreator
+import com.d3.btc.provider.address.BtcAddressesProvider
+import com.d3.btc.registration.init.BtcRegistrationServiceInitialization
 import integration.helper.BtcIntegrationHelperUtil
 import model.IrohaCredential
-import provider.btc.account.IrohaBtcAccountCreator
-import provider.btc.address.BtcAddressesProvider
-import provider.btc.address.BtcRegisteredAddressesProvider
-import registration.btc.init.BtcRegistrationServiceInitialization
-import registration.btc.strategy.BtcRegistrationStrategyImpl
+import com.d3.btc.registration.strategy.BtcRegistrationStrategyImpl
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import java.io.Closeable
@@ -18,7 +19,7 @@ class BtcRegistrationTestEnvironment(private val integrationHelper: BtcIntegrati
 
     val btcRegistrationConfig = integrationHelper.configHelper.createBtcRegistrationConfig()
 
-    val btcNotaryConfig = integrationHelper.configHelper.createBtcNotaryConfig()
+    val btcDepositConfig = integrationHelper.configHelper.createBtcDepositConfig()
 
     private val btcRegistrationCredential = ModelUtil.loadKeypair(
         btcRegistrationConfig.registrationCredential.pubkeyPath,
@@ -35,8 +36,10 @@ class BtcRegistrationTestEnvironment(private val integrationHelper: BtcIntegrati
     val btcRegistrationServiceInitialization = BtcRegistrationServiceInitialization(
         btcRegistrationConfig,
         BtcRegistrationStrategyImpl(
-            btcAddressesProvider(),
-            btcRegisteredAddressesProvider(),
+            BtcFreeAddressesProvider(
+                btcRegistrationConfig.nodeId, btcAddressesProvider(),
+                btcRegisteredAddressesProvider()
+            ),
             irohaBtcAccountCreator()
         )
     )

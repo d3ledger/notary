@@ -53,6 +53,22 @@ fun hashToWithdraw(
 }
 
 /**
+ * Calculates keccak-256 hash of several params concatenation. Params are:
+ * @param peerAddress Ethereum address of notary
+ * @param irohaHash hash of transaction in Iroha
+ * @return keccak-256 hash of all provided fields
+ */
+fun hashToAddAndRemovePeer(
+    peerAddress: String,
+    irohaHash: String
+): String {
+    return Hash.sha3(
+        peerAddress.replace("0x", "")
+                + irohaHash.replace("0x", "")
+    )
+}
+
+/**
  * Data class which stores signature splitted into components
  * @param v v component of signature
  * @param r r component of signature

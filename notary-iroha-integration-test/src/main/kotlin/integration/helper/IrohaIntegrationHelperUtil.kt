@@ -24,11 +24,13 @@ import java.security.PublicKey
 /**
  * Utility class that makes testing more comfortable
  */
-open class IrohaIntegrationHelperUtil : Closeable {
+open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
 
     override fun close() {
         irohaAPI.close()
-        irohaListener.close()
+        if (irohaChainListenerDelegate.isInitialized()) {
+            irohaListener.close()
+        }
     }
 
     val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
@@ -43,7 +45,7 @@ open class IrohaIntegrationHelperUtil : Closeable {
         ).get()
     )
 
-    open val accountHelper by lazy { IrohaAccountHelper(irohaAPI) }
+    open val accountHelper by lazy { IrohaAccountHelper(irohaAPI, peers) }
 
     open val configHelper by lazy {
         IrohaConfigHelper()
@@ -57,16 +59,24 @@ open class IrohaIntegrationHelperUtil : Closeable {
         IrohaConsumerImpl(testCredential, irohaAPI)
     }
 
+    /**
+     * TODO this is not very safe to use this thing
+     * Tester account has all the permissions, while accounts that will be used
+     * in production may be out of some crucial permissions by mistake.
+     */
     val queryAPI by lazy { QueryAPI(irohaAPI, testCredential.accountId, testCredential.keyPair) }
 
+    private val irohaChainListenerDelegate = lazy {
+        IrohaChainListener(
+            testConfig.iroha.hostname,
+            testConfig.iroha.port,
+            testCredential,
+            rmqConfig,
+            testQueue
+        )
+    }
 
-    val irohaListener = IrohaChainListener(
-        testConfig.iroha.hostname,
-        testConfig.iroha.port,
-        testCredential,
-        rmqConfig,
-        testQueue
-    )
+    private val irohaListener by irohaChainListenerDelegate
 
     protected val registrationConsumer by lazy {
         IrohaConsumerImpl(accountHelper.registrationAccount, irohaAPI)
@@ -79,7 +89,7 @@ open class IrohaIntegrationHelperUtil : Closeable {
     /**
      * Purge all iroha blocks, call and wait for exactly one iroha block
      */
-    fun purgeAndwaitOneIrohaBlock(func : () -> Unit) {
+    fun purgeAndwaitOneIrohaBlock(func: () -> Unit) {
         runBlocking {
             irohaListener.purge()
             func()

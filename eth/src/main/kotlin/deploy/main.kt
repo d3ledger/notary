@@ -32,20 +32,8 @@ fun main(args: Array<String>) {
         .map { deployHelper ->
 
             val relayRegistry = deployHelper.deployUpgradableRelayRegistrySmartContract()
-            val master = deployHelper.deployUpgradableMasterSmartContract(relayRegistry.contractAddress)
+            val master = deployHelper.deployUpgradableMasterSmartContract(relayRegistry.contractAddress, args.toList())
             val relayImplementation = deployHelper.deployRelaySmartContract(master.contractAddress)
-
-            var result = master.addPeers(args.toList()).send().isStatusOK
-            logger.info { "Peers were added" }
-
-            result = result && master.disableAddingNewPeers().send().isStatusOK
-
-            logger.info { "Master account has been locked" }
-
-            if (!result) {
-                logger.error("Error: failed to call master smart contract")
-                System.exit(1)
-            }
 
             File("master_eth_address").printWriter().use {
                 it.print(master.contractAddress)

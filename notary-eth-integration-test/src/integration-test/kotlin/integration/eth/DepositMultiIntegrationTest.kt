@@ -6,7 +6,10 @@ import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import provider.eth.ETH_PRECISION
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.util.ModelUtil
@@ -74,7 +77,6 @@ class DepositMultiIntegrationTest {
         // run 2nd instance of notary
         integrationHelper.runEthNotary(ethereumPasswords, notaryConfig)
 
-        integrationHelper.lockEthMasterSmartcontract()
     }
 
     @AfterAll

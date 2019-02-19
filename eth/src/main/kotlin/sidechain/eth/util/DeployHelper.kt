@@ -131,12 +131,13 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      * Deploy master smart contract
      * @return master smart contract object
      */
-    fun deployMasterSmartContract(relayRegistry: String): Master {
+    fun deployMasterSmartContract(relayRegistry: String, peers: List<String>): Master {
         val master = contract.Master.deploy(
             web3,
             credentials,
             StaticGasProvider(gasPrice, gasLimit),
-            relayRegistry
+            relayRegistry,
+            peers
         ).send()
         logger.info { "Master smart contract ${master.contractAddress} was deployed" }
         return master
@@ -145,9 +146,9 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
     /**
      * Deploy [Master] via [OwnedUpgradeabilityProxy].
      */
-    fun deployUpgradableMasterSmartContract(relayRegistry: String): Master {
+    fun deployUpgradableMasterSmartContract(relayRegistry: String, peers: List<String>): Master {
         // deploy implementation
-        val master = deployMasterSmartContract(relayRegistry)
+        val master = deployMasterSmartContract(relayRegistry, peers)
 
         // deploy proxy
         val proxy = deployOwnedUpgradeabilityProxy()

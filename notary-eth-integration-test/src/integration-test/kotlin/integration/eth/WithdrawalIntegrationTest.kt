@@ -3,7 +3,6 @@ package integration.eth
 import com.squareup.moshi.Moshi
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
-import jp.co.soramitsu.iroha.java.IrohaAPI
 import notary.endpoint.eth.BigIntegerMoshiAdapter
 import notary.endpoint.eth.EthNotaryResponse
 import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
@@ -40,7 +39,6 @@ class WithdrawalIntegrationTest {
 
     init {
         integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig)
-        integrationHelper.lockEthMasterSmartcontract()
     }
 
     /** Ethereum private key **/
