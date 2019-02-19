@@ -2,6 +2,7 @@ package chainadapter
 
 import com.github.kittinunf.result.map
 import com.rabbitmq.client.ConnectionFactory
+import com.rabbitmq.client.MessageProperties
 import config.RMQConfig
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
@@ -39,7 +40,12 @@ class ChainAdapter(private val rmqConfig: RMQConfig) {
                     logger.info { "Listening Iroha blocks" }
                     obs.blockingSubscribe {
                         val message = it.toByteArray()
-                        channel.basicPublish(rmqConfig.irohaExchange, "", null, message)
+                        channel.basicPublish(
+                            rmqConfig.irohaExchange,
+                            "",
+                            MessageProperties.MINIMAL_PERSISTENT_BASIC,
+                            message
+                        )
                         logger.info { "Block pushed" }
 
                     }
