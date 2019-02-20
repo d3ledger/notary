@@ -1,7 +1,6 @@
 package contract;
 
 import io.reactivex.Flowable;
-
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -88,7 +87,7 @@ public class RelayRegistry extends Contract {
     }
 
     public RemoteCall<List> getWhiteListByRelay(String relay) {
-        final Function function = new Function(FUNC_GETWHITELISTBYRELAY,
+        final Function function = new Function(FUNC_GETWHITELISTBYRELAY, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(relay)), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<DynamicArray<Address>>() {}));
         return new RemoteCall<List>(
@@ -113,7 +112,7 @@ public class RelayRegistry extends Contract {
     public RemoteCall<TransactionReceipt> initialize(String owner) {
         final Function function = new Function(
                 FUNC_INITIALIZE,
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(owner)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(owner)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }

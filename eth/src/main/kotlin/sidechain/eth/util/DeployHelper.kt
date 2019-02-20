@@ -219,6 +219,16 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
         return proxiedRelay
     }
 
+    /**
+     * Load Sora token smart contract
+     * @return Sora token instance
+     */
+    fun loadTokenSmartContract(tokenAddress: String): SoraToken {
+        val soraToken = contract.SoraToken.load(tokenAddress, web3, credentials, gasPrice, gasLimit)
+        logger.info { "Sora token contract ${soraToken.contractAddress} was loaded" }
+        return soraToken
+    }
+
     fun deployFailerContract(): Failer {
         val failer = Failer.deploy(web3, credentials, StaticGasProvider(gasPrice, gasLimit)).send()
         logger.info { "Failer smart contract ${failer.contractAddress} was deployed" }
