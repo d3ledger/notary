@@ -42,7 +42,8 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         EthConfigHelper(
             accountHelper,
             relayRegistryContract.contractAddress,
-            masterContract.contractAddress
+            masterContract.contractAddress,
+            contractTestHelper.relayImplementation.contractAddress
         )
     }
 
@@ -210,7 +211,11 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      * Deploys relay contracts in Ethereum network
      */
     fun deployRelays(relaysToDeploy: Int) {
-        relayRegistration.deploy(relaysToDeploy, masterContract.contractAddress)
+        relayRegistration.deploy(
+            relaysToDeploy,
+            contractTestHelper.relayImplementation.contractAddress,
+            masterContract.contractAddress
+        )
             .fold(
                 {
                     logger.info("Relays were deployed by ${accountHelper.registrationAccount}")
@@ -368,9 +373,6 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         val address = "http://localhost:${ethNotaryConfig.refund.port}"
         addNotary(name, address)
 
-        val ethCredential =
-            WalletUtils.loadCredentials(ethereumPasswords.credentialsPassword, ethNotaryConfig.ethereum.credentialsPath)
-
         executeNotary(ethereumPasswords, ethNotaryConfig)
 
         logger.info { "Notary $name is started on $address" }
@@ -391,7 +393,12 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         relayVacuumConfig: RelayVacuumConfig = configHelper.createRelayVacuumConfig(),
         rmqConfig: RMQConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
     ) {
-        withdrawalservice.executeWithdrawal(withdrawalServiceConfig, configHelper.ethPasswordConfig, relayVacuumConfig, rmqConfig)
+        withdrawalservice.executeWithdrawal(
+            withdrawalServiceConfig,
+            configHelper.ethPasswordConfig,
+            relayVacuumConfig,
+            rmqConfig
+        )
     }
 
     /**

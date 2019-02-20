@@ -155,7 +155,12 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
 
         // call proxy set up
         val encoded =
-            encodeFunction("initialize", Address(credentials.address) as Type<Any>, Address(relayRegistry) as Type<Any>)
+            encodeFunction(
+                "initialize",
+                Address(credentials.address) as Type<Any>,
+                Address(relayRegistry) as Type<Any>,
+                org.web3j.abi.datatypes.DynamicArray<Address>(peers.map { it -> Address(it) }) as Type<Any>
+            )
         proxy.upgradeToAndCall(master.contractAddress, encoded, BigInteger.ZERO).send()
 
         // load via proxy

@@ -74,7 +74,7 @@ contract Relay {
     function withdraw(
         address tokenAddress,
         uint256 amount,
-        address to,
+        address payable to,
         bytes32 tx_hash,
         uint8[] memory v,
         bytes32[] memory r,

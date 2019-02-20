@@ -218,17 +218,6 @@ class ContractTestHelper {
     }
 
     /**
-     * Deploy master contract with predefined peers
-     * @return master contract instance
-     */
-    fun deployMaster(relayAddress: String, peers: List<String>): Master {
-        return deployHelper.deployMasterSmartContract(
-            relayAddress,
-            peers
-        )
-    }
-
-    /**
      * Generating KeyPairs for signing the data and array of public keys (Ethereum address of initial peers)
      * @param amount of keyPairs
      * @return pair of keyPairs and public keys

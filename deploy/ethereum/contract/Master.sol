@@ -28,13 +28,13 @@ contract Master {
      * Constructor. Sets contract owner to contract creator.
      */
     constructor(address relayRegistry, address[] memory initialPeers) public {
-        initialize(msg.sender, relayRegistry);
+        initialize(msg.sender, relayRegistry, initialPeers);
     }
 
     /**
      * Initialization of smart contract.
      */
-    function initialize(address owner, address relayRegistry) public {
+    function initialize(address owner, address relayRegistry, address[] memory initialPeers) public {
         require(!initialized_);
         owner_ = owner;
         relayRegistryAddress = relayRegistry;
