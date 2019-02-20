@@ -393,9 +393,9 @@ class MasterTest {
             master.addToken(token.contractAddress).send()
             master.addToken(fakeTokenAddress).send()
             val res = master.tokens.send()
-            Assertions.assertEquals(2, res.size)
-            Assertions.assertEquals(token.contractAddress, res[0])
-            Assertions.assertEquals(fakeTokenAddress, res[1])
+            Assertions.assertEquals(3, res.size)
+            Assertions.assertEquals(token.contractAddress, res[1])
+            Assertions.assertEquals(fakeTokenAddress, res[2])
         }
     }
 
