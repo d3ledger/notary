@@ -10,7 +10,6 @@ import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import notary.eth.EthNotaryConfig
 import notary.eth.executeNotary
-import org.web3j.crypto.WalletUtils
 import provider.eth.ETH_DOMAIN
 import provider.eth.EthFreeRelayProvider
 import provider.eth.EthRelayProviderIrohaImpl
