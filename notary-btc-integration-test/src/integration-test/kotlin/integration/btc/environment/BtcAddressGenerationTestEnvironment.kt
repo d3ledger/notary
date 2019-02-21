@@ -1,5 +1,8 @@
 package integration.btc.environment
 
+import com.d3.btc.generation.config.BtcAddressGenerationConfig
+import com.d3.btc.generation.init.BtcAddressGenerationInitialization
+import com.d3.btc.generation.trigger.AddressGenerationTrigger
 import com.d3.btc.provider.BtcFreeAddressesProvider
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.address.BtcAddressesProvider
@@ -7,10 +10,6 @@ import com.d3.btc.provider.generation.BtcPublicKeyProvider
 import com.d3.btc.provider.generation.BtcSessionProvider
 import com.d3.btc.provider.network.BtcRegTestConfigProvider
 import com.d3.btc.wallet.WalletFile
-import com.d3.btc.generation.config.BtcAddressGenerationConfig
-
-import com.d3.btc.generation.init.BtcAddressGenerationInitialization
-import com.d3.btc.generation.trigger.AddressGenerationTrigger
 import integration.helper.BtcIntegrationHelperUtil
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
@@ -176,6 +175,7 @@ class BtcAddressGenerationTestEnvironment(
     override fun close() {
         integrationHelper.close()
         executor.shutdownNow()
+        irohaApi.close()
         irohaListener.close()
     }
 }

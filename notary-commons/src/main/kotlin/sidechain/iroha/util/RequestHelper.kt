@@ -8,7 +8,12 @@ import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
 import iroha.protocol.QryResponses
 import iroha.protocol.TransactionOuterClass
+import jp.co.soramitsu.iroha.java.Query
 import jp.co.soramitsu.iroha.java.QueryAPI
+import java.util.concurrent.atomic.AtomicLong
+
+//Query counter
+private val queryCounter = AtomicLong(1)
 
 /**
  * Get asset precision
@@ -56,18 +61,40 @@ fun getAccountAsset(
 /**
  * Retrieves account JSON data from Iroha
  * @param queryAPI - iroha queries network layer
- * @param acc account to retrieve relays from
+ * @param acc - account to retrieve details from
  * @return Map with account details
  */
 fun getAccountData(
     queryAPI: QueryAPI,
     acc: String
 ): Result<JsonObject, Exception> {
-    return Result.of { queryAPI.getAccount(acc) }
+    return Result.of { getAccount(queryAPI, acc) }
         .map { queryResponse ->
             val stringBuilder = StringBuilder(queryResponse.account.jsonData)
             Parser().parse(stringBuilder) as JsonObject
         }
+}
+
+/**
+ * Retrieves account from Iroha
+ * @param queryAPI - Iroha queries network layer
+ * @param accountId - account to retrieve
+ * @throws Exception if response contains error
+ * @return account
+ */
+private fun getAccount(queryAPI: QueryAPI, accountId: String): QryResponses.AccountResponse {
+    val q = Query.builder(queryAPI.accountId, queryCounter.getAndIncrement())
+        .getAccount(accountId)
+        .buildSigned(queryAPI.keyPair)
+    val res = queryAPI.api.query(q)
+    if (res.hasErrorResponse()) {
+        val errorResponse = res.errorResponse
+        throw Exception(
+            "Cannot get account. " +
+                    "Error code ${errorResponse.errorCode} ${errorResponse.reason} ${errorResponse.message}"
+        )
+    }
+    return res.accountResponse
 }
 
 /**

@@ -8,6 +8,7 @@ import org.bitcoinj.core.Block
 import org.bitcoinj.core.FilteredBlock
 import org.bitcoinj.core.Peer
 import org.bitcoinj.core.listeners.BlocksDownloadedEventListener
+import java.io.Closeable
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -20,7 +21,7 @@ private const val FEE_RATE_UPDATE_DELAY_MIN = 5
  */
 class BitcoinBlockChainFeeRateListener(
     private val btcFeeRateService: BtcFeeRateService
-) : BlocksDownloadedEventListener {
+) : BlocksDownloadedEventListener, Closeable {
 
     /**
      * Executor that periodically updates fee rate using Iroha
@@ -67,6 +68,10 @@ class BitcoinBlockChainFeeRateListener(
         }
         lastFeeRate = FeeRate(block.avgFeeRate(), block.timeSeconds)
         logger.info { "Last fee rate is $lastFeeRate" }
+    }
+
+    override fun close() {
+        feeRateSetterExecutorService.shutdownNow()
     }
 
     /**

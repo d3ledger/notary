@@ -1,5 +1,7 @@
 package com.d3.btc.generation.init
 
+import com.d3.btc.generation.config.BtcAddressGenerationConfig
+import com.d3.btc.generation.trigger.AddressGenerationTrigger
 import com.d3.btc.healthcheck.HealthyService
 import com.d3.btc.model.BtcAddressType
 import com.d3.btc.model.getAddressTypeByAccountId
@@ -11,8 +13,6 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import com.d3.btc.generation.config.BtcAddressGenerationConfig
-import com.d3.btc.generation.trigger.AddressGenerationTrigger
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import iroha.protocol.BlockOuterClass
@@ -66,10 +66,9 @@ class BtcAddressGenerationInitialization(
                     addressGenerationTrigger.startFreeAddressGenerationIfNeeded(
                         btcAddressGenerationConfig.threshold,
                         btcAddressGenerationConfig.nodeId
-                    )
-                        .fold(
-                            { "Free BTC address generation was triggered" },
-                            { ex -> logger.error("Cannot trigger address generation", ex) })
+                    ).fold(
+                        { "Free BTC address generation was triggered" },
+                        { ex -> logger.error("Cannot trigger address generation", ex) })
                 } else if (isAddressGenerationTriggered(command)) {
                     //add new public key to session account, if trigger account was changed
                     val sessionAccountName = command.setAccountDetail.key
@@ -103,7 +102,10 @@ class BtcAddressGenerationInitialization(
         command.setAccountDetail.accountId == btcAddressGenerationConfig.pubKeyTriggerAccount
 
     // Checks if new key was added
-    private fun isNewKey(command: Commands.Command) = command.setAccountDetail.accountId.endsWith("btcSession")
+    private fun isNewKey(command: Commands.Command) =
+        command.setAccountDetail.accountId.endsWith("btcSession")
+                && command.setAccountDetail.key != ADDRESS_GENERATION_TIME_KEY
+                && command.setAccountDetail.key != ADDRESS_GENERATION_NODE_ID_KEY
 
     // Generates new key
     private fun onGenerateKey(sessionAccountName: String): Result<String, Exception> {
