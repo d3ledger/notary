@@ -277,7 +277,7 @@
                 "createAsset": {
                   "assetName": "xor",
                   "domainId": "sora",
-                  "precision": 0
+                  "precision": 18
                 }
               },
               {

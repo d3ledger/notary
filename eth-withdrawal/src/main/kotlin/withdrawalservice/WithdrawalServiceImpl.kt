@@ -94,14 +94,13 @@ class WithdrawalServiceImpl(
      */
     private fun requestNotary(event: SideChainEvent.IrohaEvent.SideChainTransfer): Result<RollbackApproval, Exception> {
         // description field holds target account address
-        val asset = event.asset.replace("#ethereum", "")
-        return tokensProvider.getTokenAddress(asset)
-            .fanout { tokensProvider.getTokenPrecision(asset) }
+        return tokensProvider.getTokenAddress(event.asset)
+            .fanout { tokensProvider.getTokenPrecision(event.asset) }
             .fanout { findInAccDetail(masterAccount, event.srcAccount) }
             .map { (tokenInfo, relayAddress) ->
                 val hash = event.hash
                 val amount = event.amount
-                if (!event.asset.contains("#ethereum")) {
+                if (!event.asset.contains("#ethereum") && !event.asset.contains("#sora")) {
                     throw Exception("Incorrect asset name in Iroha event: " + event.asset)
                 }
 

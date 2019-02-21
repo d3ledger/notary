@@ -24,7 +24,7 @@ fun getAssetPrecision(
         .map { queryResponse ->
             val asset = queryResponse.asset
             if (asset.assetId.isNullOrEmpty()) {
-                throw Exception("There is no such asset.")
+                throw Exception("There is no such asset $assetId.")
             }
             asset.precision
         }

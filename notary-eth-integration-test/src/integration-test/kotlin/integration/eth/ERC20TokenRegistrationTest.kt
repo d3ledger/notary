@@ -6,8 +6,12 @@ import com.google.gson.Gson
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
 import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
+import provider.eth.ETH_DOMAIN
 import provider.eth.EthTokensProviderImpl
+import provider.eth.SORA_DOMAIN
+import provider.eth.XOR_NAME
 import token.EthTokenInfo
 import token.executeTokenRegistration
 import util.getRandomString
@@ -57,14 +61,23 @@ class ERC20TokenRegistrationTest {
             executeTokenRegistration(tokenRegistrationConfig)
             ethTokensProvider.getTokens()
                 .map { tokensFromProvider ->
-                    val expected = tokensFromProvider
-                        .map { (ethAddress, name) ->
-                            Pair(ethAddress, EthTokenInfo(name, ethTokensProvider.getTokenPrecision(name).get()))
+                    val actual = tokensFromProvider
+                        .map { (ethAddress, tokenId) ->
+                            println(tokenId)
+                            val name = tokenId.split("#").first()
+                            val domain = tokenId.split("#").last()
+                            println(name + " # " + domain)
+                            Pair(
+                                ethAddress,
+                                EthTokenInfo(name, domain, ethTokensProvider.getTokenPrecision(tokenId).get())
+                            )
                         }.sortedBy { it.first }
 
+                    // xor token is registered in any case
+                    tokens.put("0x0000000000000000000000000000000000000000", EthTokenInfo(XOR_NAME, SORA_DOMAIN, 18))
                     assertEquals(
                         tokens.toList().sortedBy { it.first },
-                        expected
+                        actual
                     )
                 }
                 .failure { ex -> fail("cannot fetch tokens", ex) }
@@ -84,7 +97,8 @@ class ERC20TokenRegistrationTest {
             createTokensFile(HashMap(), tokensFilePath)
             executeTokenRegistration(tokenRegistrationConfig)
             ethTokensProvider.getTokens().fold({ tokensFromProvider ->
-                assertTrue(tokensFromProvider.isEmpty())
+                val expected = mapOf(Pair("0x0000000000000000000000000000000000000000", "$XOR_NAME#$SORA_DOMAIN"))
+                assertEquals(expected, tokensFromProvider)
             }, { ex -> fail("cannot fetch tokens", ex) })
         }
     }
@@ -100,13 +114,13 @@ class ERC20TokenRegistrationTest {
     }
 
     //Creates randomly generated tokens as a map (token address -> token info)
-    private fun createRandomTokens(): Map<String, EthTokenInfo> {
+    private fun createRandomTokens(): MutableMap<String, EthTokenInfo> {
         val tokensToCreate = 5
         val defaultPrecision = 15
         val tokens = HashMap<String, EthTokenInfo>()
         for (i in 1..tokensToCreate) {
             val tokenName = String.getRandomString(9)
-            val tokenInfo = EthTokenInfo(tokenName, defaultPrecision)
+            val tokenInfo = EthTokenInfo(tokenName, ETH_DOMAIN, defaultPrecision)
             val tokenAddress = String.getRandomString(16)
             tokens.put(tokenAddress, tokenInfo)
         }

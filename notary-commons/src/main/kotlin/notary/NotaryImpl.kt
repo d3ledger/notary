@@ -67,13 +67,13 @@ class NotaryImpl(
                     quorum,
                     arrayListOf(
                         IrohaCommand.CommandAddAssetQuantity(
-                            "$asset#$domain",
+                            asset,
                             amount
                         ),
                         IrohaCommand.CommandTransferAsset(
                             creator,
                             account,
-                            "$asset#$domain",
+                            asset,
                             from,
                             amount
                         )
