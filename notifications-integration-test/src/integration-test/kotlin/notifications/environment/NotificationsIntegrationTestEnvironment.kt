@@ -1,5 +1,14 @@
 package notifications.environment
 
+import com.d3.notifications.config.PushAPIConfig
+import com.d3.notifications.config.SMTPConfig
+import com.d3.notifications.init.NotificationInitialization
+import com.d3.notifications.provider.D3ClientProvider
+import com.d3.notifications.push.PushServiceFactory
+import com.d3.notifications.push.WebPushAPIServiceImpl
+import com.d3.notifications.service.EmailNotificationService
+import com.d3.notifications.service.PushNotificationService
+import com.d3.notifications.smtp.SMTPServiceImpl
 import com.dumbster.smtp.SimpleSmtpServer
 import com.nhaarman.mockito_kotlin.spy
 import config.getConfigFolder
@@ -10,15 +19,6 @@ import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import nl.martijndwars.webpush.PushService
-import com.d3.notifications.config.PushAPIConfig
-import com.d3.notifications.config.SMTPConfig
-import com.d3.notifications.init.NotificationInitialization
-import com.d3.notifications.provider.D3ClientProvider
-import com.d3.notifications.push.PushServiceFactory
-import com.d3.notifications.push.WebPushAPIServiceImpl
-import com.d3.notifications.service.EmailNotificationService
-import com.d3.notifications.service.PushNotificationService
-import com.d3.notifications.smtp.SMTPServiceImpl
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.IrohaChainListener
