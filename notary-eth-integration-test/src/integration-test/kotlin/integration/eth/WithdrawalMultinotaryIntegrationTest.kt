@@ -61,7 +61,7 @@ class WithdrawalMultinotaryIntegrationTest {
         keypair1 = DeployHelper(ethereumConfig1, ethereumPasswords).credentials.ecKeyPair
 
         // run 1st instance of notary
-        notaryConfig1 = integrationHelper.configHelper.createEthNotaryConfig()
+        notaryConfig1 = integrationHelper.configHelper.createEthNotaryConfig(ethereumConfig = ethereumConfig1)
         integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig1)
 
         // create 2nd notary config
