@@ -7,6 +7,11 @@ import com.d3.btc.helper.network.addPeerConnectionStatusListener
 import com.d3.btc.helper.network.startChainDownload
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
+import com.d3.btc.withdrawal.handler.NewFeeRateWasSetHandler
+import com.d3.btc.withdrawal.handler.NewSignatureEventHandler
+import com.d3.btc.withdrawal.handler.WithdrawalTransferEventHandler
+import com.d3.btc.withdrawal.listener.BitcoinBlockChainFeeRateListener
+import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
@@ -24,11 +29,6 @@ import sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.util.getSetDetailCommands
 import sidechain.iroha.util.getTransferCommands
-import com.d3.btc.withdrawal.handler.NewFeeRateWasSetHandler
-import com.d3.btc.withdrawal.handler.NewSignatureEventHandler
-import com.d3.btc.withdrawal.handler.WithdrawalTransferEventHandler
-import com.d3.btc.withdrawal.listener.BitcoinBlockChainFeeRateListener
-import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 import java.io.Closeable
 
 /*
@@ -50,6 +50,8 @@ class BtcWithdrawalInitialization(
     @Autowired private val btcFeeRateService: BtcFeeRateService
 ) : HealthyService(), Closeable {
 
+    private val btcFeeRateListener = BitcoinBlockChainFeeRateListener(btcFeeRateService)
+
     fun init(): Result<Unit, Exception> {
         return btcChangeAddressProvider.getChangeAddress().map { changeAddress ->
             wallet.addWatchedAddress(
@@ -70,7 +72,7 @@ class BtcWithdrawalInitialization(
             logger.info { "Previously registered addresses were added to the wallet" }
         }.map {
             // Add fee rate listener
-            peerGroup.addBlocksDownloadedEventListener(BitcoinBlockChainFeeRateListener(btcFeeRateService))
+            peerGroup.addBlocksDownloadedEventListener(btcFeeRateListener)
         }.flatMap {
             initBtcBlockChain()
         }.flatMap { peerGroup ->
@@ -145,6 +147,7 @@ class BtcWithdrawalInitialization(
 
     override fun close() {
         logger.info { "Closing Bitcoin withdrawal service" }
+        btcFeeRateListener.close()
         peerGroup.stop()
     }
 

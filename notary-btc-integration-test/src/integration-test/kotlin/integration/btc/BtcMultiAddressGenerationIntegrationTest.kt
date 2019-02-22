@@ -73,7 +73,7 @@ class BtcMultiAddressGenerationIntegrationTest {
         ).fold({ BtcAddressGenerationIntegrationTest.logger.info { "session $sessionAccountName was created" } },
             { ex -> fail("cannot create session", ex) })
         environment.triggerProvider.trigger(sessionAccountName)
-        Thread.sleep(WAIT_PREGEN_PROCESS_MILLIS * peers)
+        Thread.sleep(WAIT_PREGEN_PROCESS_MILLIS)
         val sessionDetails =
             integrationHelper.getAccountDetails(
                 "$sessionAccountName@btcSession",
@@ -98,6 +98,13 @@ class BtcMultiAddressGenerationIntegrationTest {
         assertNull(generatedAddress.irohaClient)
         assertEquals(notaryKeys, generatedAddress.notaryKeys.toList())
         assertEquals(nodeId.toString(), generatedAddress.nodeId)
+        assertEquals(
+            1,
+            integrationHelper.getAccountDetails(
+                environment.btcGenerationConfig.notaryAccount,
+                environment.btcGenerationConfig.mstRegistrationAccount.accountId
+            ).size
+        )
     }
 
     private fun createMsAddress(notaryKeys: Collection<String>): String {

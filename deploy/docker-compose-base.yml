@@ -2,7 +2,7 @@ version: '3.5'
 
 services:
   d3-iroha:
-    image: hyperledger/iroha:1.0.0_rc2
+    image: hyperledger/iroha:1.0.0_rc3
     container_name: d3-iroha
     ports:
       - 50051:50051
