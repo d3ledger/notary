@@ -1,16 +1,37 @@
 package sidechain.iroha.consumer
 
 import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.flatMap
-import com.github.kittinunf.result.map
 import iroha.protocol.Endpoint
 import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.Transaction
+import jp.co.soramitsu.iroha.java.TransactionStatusObserver
 import jp.co.soramitsu.iroha.java.Utils
+import jp.co.soramitsu.iroha.java.detail.InlineTransactionStatusObserver
+import jp.co.soramitsu.iroha.java.subscription.WaitForTerminalStatus
 import model.IrohaCredential
 import mu.KLogging
 import util.hex
+import java.io.IOException
+import java.util.*
+import java.util.concurrent.TimeoutException
+
+/**
+ * Statuses that we consider terminal
+ */
+private val terminalStatuses =
+    Arrays.asList(
+        Endpoint.TxStatus.STATELESS_VALIDATION_FAILED,
+        Endpoint.TxStatus.STATEFUL_VALIDATION_FAILED,
+        Endpoint.TxStatus.COMMITTED,
+        Endpoint.TxStatus.MST_EXPIRED,
+        //We don't consider this status terminal on purpose
+        //Endpoint.TxStatus.NOT_RECEIVED,
+        Endpoint.TxStatus.REJECTED,
+        Endpoint.TxStatus.UNRECOGNIZED
+    )
+
+private val waitForTerminalStatus = WaitForTerminalStatus(terminalStatuses)
 
 /**
  * Endpoint of Iroha to write transactions
@@ -42,9 +63,14 @@ class IrohaConsumerImpl(
      */
     override fun send(tx: TransactionOuterClass.Transaction): Result<String, Exception> {
         return Result.of {
-            irohaAPI.transactionSync(tx)
-        }.flatMap {
-            checkTransactionStatus(Utils.hash(tx))
+            val txStatus = TxStatus.createEmpty()
+            irohaAPI.transaction(tx, waitForTerminalStatus)
+                .blockingSubscribe(createTxStatusObserver(txStatus))
+            when {
+                txStatus.txHash != null -> txStatus.txHash!!
+                txStatus.txException != null -> throw txStatus.txException!!
+                else -> throw IllegalStateException("Transaction has no errors or signs of completion")
+            }
         }
     }
 
@@ -72,50 +98,67 @@ class IrohaConsumerImpl(
      * @return list of hex hashes that were accepted by iroha
      */
     override fun send(lst: Iterable<TransactionOuterClass.Transaction>): Result<List<String>, Exception> {
-        irohaAPI.transactionListSync(lst)
         return Result.of {
-            lst.map {
-                Utils.hash(it)
+            val successfulTxHashesList = ArrayList<String>()
+            irohaAPI.transactionListSync(lst)
+            lst.map { tx -> Utils.hash(tx) }.forEach { txHash ->
+                val txStatus = TxStatus.createEmpty()
+                waitForTerminalStatus.subscribe(irohaAPI, txHash)
+                    .blockingSubscribe(createTxStatusObserver(txStatus))
+                if (txStatus.txHash != null) {
+                    successfulTxHashesList.add(txStatus.txHash!!)
+                } else if (txStatus.txException != null) {
+                    logger.error("Iroha batch error", txStatus.txException!!)
+                }
             }
-        }.map { hashes ->
-            hashes.map {
-                checkTransactionStatus(it)
-            }
-                .filter { res ->
-                    res.fold(
-                        { true },
-                        {
-                            logger.warn("Batch tx was failed: ", it)
-                            false
-                        }
-                    )
-                }.map { it.get() }
+            successfulTxHashesList
         }
     }
 
     /**
-     * Check if transaction is committed to Iroha
-     * @param hash - hash of transaction to check
-     * @return hex representation of hash or failure
+     * Create tx status observer
+     * @param txStatus - object that will hold tx status after observer completion
+     * @return tx status observer
      */
-    private fun checkTransactionStatus(hash: ByteArray): Result<String, Exception> {
-        return Result.of {
-            val responseObservable = irohaAPI.cmdStub.statusStream(Utils.createTxStatusRequest(hash))
-            val hex = String.hex(hash)
-            responseObservable.forEachRemaining { statusResponse ->
-                if (statusResponse.txStatus == Endpoint.TxStatus.STATEFUL_VALIDATION_FAILED) {
-                    val message =
-                        "Iroha transaction $hex received STATEFUL_VALIDATION_FAILED ${statusResponse.errOrCmdName}"
-                    logger.error { message }
-                    throw Exception(message)
-                }
+    private fun createTxStatusObserver(txStatus: TxStatus): InlineTransactionStatusObserver {
+        return TransactionStatusObserver.builder()
+            .onError { ex -> txStatus.txException = IllegalStateException(ex) }
+            .onMstExpired { expiredTx ->
+                txStatus.txException =
+                        TimeoutException("Tx ${expiredTx.txHash} MST expired. ${expiredTx.errOrCmdName}")
             }
-            hex
-        }
+            .onNotReceived { failedTx ->
+                txStatus.txException =
+                        IOException("Tx ${failedTx.txHash} was not received. ${failedTx.errOrCmdName}")
+            }
+            .onRejected { rejectedTx ->
+                txStatus.txException =
+                        IOException("Tx ${rejectedTx.txHash} was rejected. ${rejectedTx.errOrCmdName}")
+            }
+            .onTransactionFailed { failedTx ->
+                txStatus.txException = Exception("Tx ${failedTx.txHash} failed. ${failedTx.errOrCmdName}")
+            }
+            .onUnrecognizedStatus { failedTx ->
+                txStatus.txException =
+                        Exception("Tx ${failedTx.txHash} got unrecognized status. ${failedTx.errOrCmdName}")
+            }
+            .onTransactionCommitted { successTx -> txStatus.txHash = successTx.txHash.toUpperCase() }
+            .build()
     }
 
     /**
      * Logger
      */
     companion object : KLogging()
+}
+
+/**
+ * Data class that holds information about tx status
+ * @param txHash - hash of transaction
+ * @param txException - exception that occurs during transaction commitment
+ */
+private data class TxStatus(var txHash: String?, var txException: Exception?) {
+    companion object {
+        fun createEmpty() = TxStatus(null, null)
+    }
 }

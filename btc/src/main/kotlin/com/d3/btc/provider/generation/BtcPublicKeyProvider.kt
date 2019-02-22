@@ -64,6 +64,7 @@ class BtcPublicKeyProvider(
             String.getRandomId(),
             pubKey
         ).map {
+            logger.info { "New key has been generated" }
             walletFile.save()
             pubKey
         }
@@ -99,7 +100,10 @@ class BtcPublicKeyProvider(
             }
             val threshold = getSignThreshold(peers)
             val msAddress = createMsAddress(notaryKeys, threshold)
-            if (!walletFile.wallet.addWatchedAddress(msAddress)) {
+            if (walletFile.wallet.isAddressWatched(msAddress)) {
+                logger.info("Address $msAddress has been already created")
+                return@of
+            } else if (!walletFile.wallet.addWatchedAddress(msAddress)) {
                 throw IllegalStateException("BTC address $msAddress was not added to wallet")
             }
             logger.info { "Address $msAddress was added to wallet." }

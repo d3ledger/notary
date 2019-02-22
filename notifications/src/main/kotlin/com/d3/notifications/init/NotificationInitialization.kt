@@ -1,12 +1,12 @@
 package com.d3.notifications.init
 
+import com.d3.notifications.service.NotificationService
+import com.d3.notifications.service.TransferNotifyEvent
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import io.reactivex.schedulers.Schedulers
 import iroha.protocol.Commands
 import mu.KLogging
-import com.d3.notifications.service.NotificationService
-import com.d3.notifications.service.TransferNotifyEvent
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import sidechain.iroha.IrohaChainListener
@@ -29,27 +29,27 @@ class NotificationInitialization(
      * @param onIrohaChainFailure - function that will be called in case of Iroha failure
      */
     fun init(onIrohaChainFailure: () -> Unit) {
-        irohaChainListener.getIrohaBlockObservable().map { irohaObservable ->
+        irohaChainListener.getBlockObservable().map { irohaObservable ->
             irohaObservable
                 .subscribeOn(Schedulers.from(Executors.newSingleThreadExecutor()))
                 .subscribe(
                     { block ->
-                    //Get transfer commands from block
-                    getTransferCommands(block).forEach { command ->
-                        val transferAsset = command.transferAsset
-                        // Notify deposit
-                        if (isDeposit(transferAsset)) {
-                            handleDepositNotification(transferAsset)
+                        //Get transfer commands from block
+                        getTransferCommands(block).forEach { command ->
+                            val transferAsset = command.transferAsset
+                            // Notify deposit
+                            if (isDeposit(transferAsset)) {
+                                handleDepositNotification(transferAsset)
+                            }
+                            // Notify withdrawal
+                            else if (isWithdrawal(transferAsset)) {
+                                handleWithdrawalEventNotification(transferAsset)
+                            }
                         }
-                        // Notify withdrawal
-                        else if (isWithdrawal(transferAsset)) {
-                            handleWithdrawalEventNotification(transferAsset)
-                        }
-                    }
-                }, { ex ->
-                    logger.error("Error on Iroha subscribe", ex)
-                    onIrohaChainFailure()
-                })
+                    }, { ex ->
+                        logger.error("Error on Iroha subscribe", ex)
+                        onIrohaChainFailure()
+                    })
         }
     }
 

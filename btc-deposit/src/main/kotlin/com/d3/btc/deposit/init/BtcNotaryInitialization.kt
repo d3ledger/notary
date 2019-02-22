@@ -61,7 +61,7 @@ class BtcNotaryInitialization(
         //Enables short log format for Bitcoin events
         BriefLogFormatter.init()
         addPeerConnectionStatusListener(peerGroup, ::notHealthy, ::cured)
-        return irohaChainListener.getIrohaBlockObservable().map { irohaObservable ->
+        return irohaChainListener.getBlockObservable().map { irohaObservable ->
             newBtcClientRegistrationListener.listenToRegisteredClients(
                 wallet, irohaObservable
             ) {

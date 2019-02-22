@@ -6,6 +6,15 @@ import com.d3.btc.helper.address.outPutToBase58Address
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
 import com.d3.btc.provider.network.BtcRegTestConfigProvider
+import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
+import com.d3.btc.withdrawal.handler.NewFeeRateWasSetHandler
+import com.d3.btc.withdrawal.handler.NewSignatureEventHandler
+import com.d3.btc.withdrawal.handler.WithdrawalTransferEventHandler
+import com.d3.btc.withdrawal.init.BtcWithdrawalInitialization
+import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
+import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
+import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
+import com.d3.btc.withdrawal.transaction.*
 import config.BitcoinConfig
 import integration.helper.BtcIntegrationHelperUtil
 import io.grpc.ManagedChannelBuilder
@@ -18,15 +27,6 @@ import provider.NotaryPeerListProviderImpl
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
-import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
-import com.d3.btc.withdrawal.handler.NewFeeRateWasSetHandler
-import com.d3.btc.withdrawal.handler.NewSignatureEventHandler
-import com.d3.btc.withdrawal.handler.WithdrawalTransferEventHandler
-import com.d3.btc.withdrawal.init.BtcWithdrawalInitialization
-import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
-import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
-import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
-import com.d3.btc.withdrawal.transaction.*
 import java.io.Closeable
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
@@ -218,6 +218,7 @@ class BtcWithdrawalTestEnvironment(
     }
 
     override fun close() {
+        irohaApi.close()
         integrationHelper.close()
         executor.shutdownNow()
         irohaChainListener.close()

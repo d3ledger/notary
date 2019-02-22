@@ -2,7 +2,7 @@ version: '3.5'
 
 services:
   d3-iroha:
-    image: hyperledger/iroha:1.0.0_rc2
+    image: hyperledger/iroha:1.0.0_rc3
     container_name: d3-iroha
     ports:
       - 50051:50051
@@ -50,7 +50,7 @@ services:
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
       - JAR_NAME=chain-adapter.jar
-      - CLASS=chainadapter.ChainAdapterMain
+      - CLASS=com.d3.chainadapter.ChainAdapterMain
     networks:
       - d3-network
 
