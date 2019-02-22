@@ -89,7 +89,7 @@ services:
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
       - JAR_NAME=chain-adapter.jar
-      - CLASS=chainadapter.ChainAdapterMain
+      - CLASS=com.d3.chainadapter.ChainAdapterMain
     networks:
       - d3-network
 

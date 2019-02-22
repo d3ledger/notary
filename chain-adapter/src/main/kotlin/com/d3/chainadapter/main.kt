@@ -1,6 +1,6 @@
 @file:JvmName("ChainAdapterMain")
 
-package chainadapter
+package com.d3.chainadapter
 
 import config.RMQConfig
 import config.getConfigFolder
