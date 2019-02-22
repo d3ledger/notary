@@ -212,7 +212,8 @@
                   "permissions": [
                     "can_get_my_acc_ast",
                     "can_transfer",
-                    "can_receive"
+                    "can_receive",
+                    "can_add_domain_asset_qty"
                   ]
                 }
               },
@@ -599,6 +600,21 @@
                 "appendRole": {
                   "accountId": "sora@sora",
                   "roleName": "sora"
+                }
+              },
+              {
+                "addAssetQuantity": {
+                  "assetId": "xor#sora",
+                  "amount": "1618033988749894848204586834"
+                }
+              },
+              {
+                "transferAsset": {
+                  "srcAccountId": "notary@notary",
+                  "destAccountId": "sora@sora",
+                  "assetId": "xor#sora",
+                  "description": "initial supply",
+                  "amount": "1618033988749894848204586834"
                 }
               }
             ],
