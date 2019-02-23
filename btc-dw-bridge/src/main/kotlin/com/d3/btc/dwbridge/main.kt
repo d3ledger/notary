@@ -1,14 +1,14 @@
 @file:JvmName("BtcDepositWithdrawalMain")
 
-package dwbridge.btc
+package com.d3.btc.dwbridge
 
 import com.d3.btc.deposit.init.BtcNotaryInitialization
+import com.d3.btc.dwbridge.config.dwBridgeConfig
 import com.d3.btc.withdrawal.init.BtcWithdrawalInitialization
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import config.getProfile
-import dwbridge.btc.config.dwBridgeConfig
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import mu.KLogging
@@ -31,7 +31,7 @@ import util.createFolderIfDoesntExist
         "com.d3.btc.handler",
         "com.d3.btc.deposit.init",
         "com.d3.btc.peer",
-        "dwbridge",
+        "com.d3.btc.dwbridge",
         "com.d3.btc.healthcheck"]
 )
 class BtcDWBridgeApplication
