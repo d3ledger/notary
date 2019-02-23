@@ -2,6 +2,8 @@
 
 package dwbridge.btc
 
+import com.d3.btc.deposit.init.BtcNotaryInitialization
+import com.d3.btc.withdrawal.init.BtcWithdrawalInitialization
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
@@ -10,17 +12,12 @@ import dwbridge.btc.config.dwBridgeConfig
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import mu.KLogging
-import com.d3.btc.deposit.init.BtcNotaryInitialization
-import org.springframework.boot.SpringApplication
-import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.EnableMBeanExport
 import util.createFolderIfDoesntExist
-import com.d3.btc.withdrawal.init.BtcWithdrawalInitialization
-import java.util.*
 
 @EnableMBeanExport
-@SpringBootApplication
 @ComponentScan(
     basePackages = [
         "com.d3.btc.provider.address",
@@ -48,38 +45,31 @@ fun main(args: Array<String>) {
     Result.of {
         // Create block storage folder
         createFolderIfDoesntExist(dwBridgeConfig.bitcoin.blockStoragePath)
-    }
-        .map {
-            val app = SpringApplication(BtcDWBridgeApplication::class.java)
-            app.setAdditionalProfiles(getProfile())
-            app.setDefaultProperties(webPortProperties())
-            app.run(*args)
-        }.map { context ->
-            // Run withdrawal service
-            GlobalScope.launch {
-                context.getBean(BtcWithdrawalInitialization::class.java).init()
-                    .failure { ex ->
-                        logger.error("Error in withdrawal service", ex)
-                        System.exit(1)
-                    }
-            }
-
-            // Run deposit service
-            GlobalScope.launch {
-                context.getBean(BtcNotaryInitialization::class.java).init().failure { ex ->
-                    logger.error("Error in deposit service", ex)
+    }.map {
+        val context = AnnotationConfigApplicationContext()
+        context.environment.setActiveProfiles(getProfile())
+        context.register(BtcDWBridgeApplication::class.java)
+        context.refresh()
+        context
+    }.map { context ->
+        // Run withdrawal service
+        GlobalScope.launch {
+            context.getBean(BtcWithdrawalInitialization::class.java).init()
+                .failure { ex ->
+                    logger.error("Error in withdrawal service", ex)
                     System.exit(1)
                 }
+        }
+
+        // Run deposit service
+        GlobalScope.launch {
+            context.getBean(BtcNotaryInitialization::class.java).init().failure { ex ->
+                logger.error("Error in deposit service", ex)
+                System.exit(1)
             }
         }
-        .failure { ex ->
-            logger.error("Cannot run btc deposit/withdrawal bridge", ex)
-            System.exit(1)
-        }
-}
-
-private fun webPortProperties(): Map<String, String> {
-    val properties = HashMap<String, String>()
-    properties["server.port"] = dwBridgeConfig.healthCheckPort.toString()
-    return properties
+    }.failure { ex ->
+        logger.error("Cannot run btc deposit/withdrawal bridge", ex)
+        System.exit(1)
+    }
 }

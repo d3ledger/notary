@@ -29,6 +29,9 @@ class BtcNotaryAppConfiguration {
     fun notaryConfig() = depositConfig
 
     @Bean
+    fun healthCheckPort() = depositConfig.healthCheckPort
+
+    @Bean
     fun irohaAPI() = IrohaAPI(depositConfig.iroha.hostname, depositConfig.iroha.port)
 
     @Bean

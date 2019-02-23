@@ -60,6 +60,9 @@ class BtcDWBridgeAppConfiguration {
     fun notaryConfig() = depositConfig
 
     @Bean
+    fun healthCheckPort() = withdrawalConfig.healthCheckPort
+
+    @Bean
     fun irohaAPI(): IrohaAPI {
         val irohaAPI = IrohaAPI(dwBridgeConfig.iroha.hostname, dwBridgeConfig.iroha.port)
         /**
