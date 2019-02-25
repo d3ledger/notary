@@ -63,10 +63,8 @@ class ERC20TokenRegistrationTest {
                 .map { tokensFromProvider ->
                     val actual = tokensFromProvider
                         .map { (ethAddress, tokenId) ->
-                            println(tokenId)
                             val name = tokenId.split("#").first()
                             val domain = tokenId.split("#").last()
-                            println(name + " # " + domain)
                             Pair(
                                 ethAddress,
                                 EthTokenInfo(name, domain, ethTokensProvider.getTokenPrecision(tokenId).get())
