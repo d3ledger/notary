@@ -77,9 +77,7 @@ services:
       - d3-network
 
   d3-chain-adapter:
-    build:
-      context: ../
-      dockerfile: docker/chain-adapter.dockerfile
+    image: nexus.iroha.tech:19002/d3-deploy/chain-adapter:${TAG-master}
     container_name: d3-chain-adapter
     volumes:
       - ./:/opt/notary/deploy
