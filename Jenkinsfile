@@ -45,7 +45,6 @@ pipeline {
           DOCKER_NETWORK = "${scmVars.CHANGE_ID}-${scmVars.GIT_COMMIT}-${BUILD_NUMBER}"
           writeFile file: ".env", text: "SUBNET=${DOCKER_NETWORK}"
           withCredentials([usernamePassword(credentialsId: 'nexus-d3-docker', usernameVariable: 'login', passwordVariable: 'password')]) {
-            sh "echo ${login}"
             sh "docker login nexus.iroha.tech:19002 -u ${login} -p '${password}'"
 
             sh "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml pull"
