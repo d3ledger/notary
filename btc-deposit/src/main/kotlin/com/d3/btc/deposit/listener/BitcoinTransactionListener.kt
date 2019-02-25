@@ -14,6 +14,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
 
 private const val BTC_ASSET_NAME = "btc"
+private const val BTC_ASSET_DOMAIN = "bitcoin"
 private const val TWO_HOURS_MILLIS = 2 * 60 * 60 * 1000L;
 
 class BitcoinTransactionListener(
@@ -79,7 +80,7 @@ class BitcoinTransactionListener(
                     */
                     BigInteger.valueOf(blockTime.time - TWO_HOURS_MILLIS),
                     btcAddress.info.irohaClient!!,
-                    BTC_ASSET_NAME,
+                    "$BTC_ASSET_NAME#$BTC_ASSET_DOMAIN",
                     btcValue.toPlainString(),
                     ""
                 )

@@ -20,10 +20,8 @@ class NotaryImpl(
     private val notaryCredential: IrohaCredential,
     private val irohaAPI: IrohaAPI,
     private val primaryChainEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>,
-    private val domain: String,
     private val peerListProvider: NotaryPeerListProvider
 ) : Notary {
-
 
     /** Notary account in Iroha */
     private val creator = notaryCredential.accountId

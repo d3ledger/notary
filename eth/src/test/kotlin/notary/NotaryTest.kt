@@ -149,7 +149,7 @@ class NotaryTest {
 
         // source of events from side chains
         val obsEth = Observable.just<SideChainEvent.PrimaryBlockChainEvent>(custodianIntention)
-        val notary = createEthNotary(irohaCredential, irohaAPI, obsEth, peerListProvider)
+        val notary = NotaryImpl(irohaCredential, irohaAPI, obsEth, peerListProvider)
         val res = notary.irohaOutput()
         checkEthereumDepositResult(
             expectedAmount,
@@ -190,7 +190,7 @@ class NotaryTest {
 
         // source of events from side chains
         val obsEth = Observable.just<SideChainEvent.PrimaryBlockChainEvent>(custodianIntention)
-        val notary = createEthNotary(irohaCredential, irohaAPI, obsEth, peerListProvider)
+        val notary = NotaryImpl(irohaCredential, irohaAPI, obsEth, peerListProvider)
         val res = notary.irohaOutput()
         checkEthereumDepositResult(
             expectedAmount,

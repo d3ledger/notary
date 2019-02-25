@@ -12,7 +12,7 @@ import jp.co.soramitsu.iroha.java.Transaction
 import model.IrohaCredential
 import mu.KLogging
 import notary.Notary
-import notary.createEthNotary
+import notary.NotaryImpl
 import notary.endpoint.RefundServerEndpoint
 import notary.endpoint.ServerInitializationBundle
 import notary.endpoint.eth.EthRefundStrategyImpl
@@ -104,7 +104,7 @@ class EthNotaryInitialization(
             ethNotaryConfig.notaryListSetterAccount
         )
 
-        return createEthNotary(notaryCredential, irohaAPI, ethEvents, peerListProvider)
+        return NotaryImpl(notaryCredential, irohaAPI, ethEvents, peerListProvider)
     }
 
     /**
