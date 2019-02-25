@@ -3,10 +3,6 @@ buildscript {
         mavenCentral()
         jcenter()
     }
-    dependencies {
-        //Spring-boot
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:$spring_boot_version"
-    }
 }
 
 sourceSets {

@@ -1,22 +1,31 @@
 package com.d3.btc.healthcheck
 
+import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.actuate.health.Health
-import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.stereotype.Component
 
 @Component
 class ServiceInitHealthCheck(
     @Autowired
     private val healthyServices: List<HealthyService>
-) : HealthIndicator {
+) {
+    init {
+        if (healthyServices.isEmpty()) {
+            logger.warn("No healthy services were set. Health check will always return 'UP'")
+        }
+    }
 
-    override fun health(): Health {
+    fun isHealthy(): Boolean {
         healthyServices.forEach { healthyService ->
             if (!healthyService.isHealthy()) {
-                return Health.down().build()
+                return false
             }
         }
-        return Health.up().build()
+        return true
     }
+
+    /**
+     * Logger
+     */
+    companion object : KLogging()
 }
