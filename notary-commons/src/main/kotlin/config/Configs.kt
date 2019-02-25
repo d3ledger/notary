@@ -71,8 +71,6 @@ interface EthereumConfig {
  * Bitcoin configurations
  */
 interface BitcoinConfig {
-    //Path of wallet file
-    val walletPath: String
     //Path of block storage folder
     val blockStoragePath: String
     //Depth of transactions in BTC blockchain

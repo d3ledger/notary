@@ -2,6 +2,7 @@ package integration.btc
 
 import com.d3.btc.helper.address.outPutToBase58Address
 import com.d3.btc.helper.currency.satToBtc
+import com.d3.btc.withdrawal.handler.CurrentFeeRate
 import com.github.kittinunf.result.failure
 import integration.btc.environment.BtcWithdrawalTestEnvironment
 import integration.helper.BTC_ASSET
@@ -14,7 +15,6 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
-import com.d3.btc.withdrawal.handler.CurrentFeeRate
 import java.io.File
 import java.math.BigDecimal
 import kotlin.test.assertEquals
@@ -49,9 +49,9 @@ class BtcWithdrawalIntegrationTest {
         blockStorageFolder.mkdirs()
         integrationHelper.addNotary("test", "test")
         integrationHelper.generateBtcInitialBlocks()
-        integrationHelper.genChangeBtcAddress(environment.btcWithdrawalConfig.bitcoin.walletPath)
+        integrationHelper.genChangeBtcAddress(environment.btcWithdrawalConfig.btcKeysWalletPath)
             .fold({ address -> changeAddress = address }, { ex -> throw  ex })
-        integrationHelper.preGenFreeBtcAddresses(environment.btcWithdrawalConfig.bitcoin.walletPath, TOTAL_TESTS * 2)
+        integrationHelper.preGenFreeBtcAddresses(environment.btcWithdrawalConfig.btcKeysWalletPath, TOTAL_TESTS * 2)
         // This listener emulates a failure
         environment.withdrawalTransferEventHandler.addNewBtcTransactionListener { tx ->
             if (tx.outputs.any { output -> output.value.value == FAILED_WITHDRAW_AMOUNT }) {
@@ -242,14 +242,14 @@ class BtcWithdrawalIntegrationTest {
         val testClientSrcKeypair = ModelUtil.generateKeypair()
         val testClientSrc = "$randomNameSrc@$CLIENT_DOMAIN"
         val btcAddressSrc = integrationHelper.registerBtcAddress(
-            environment.btcWithdrawalConfig.bitcoin.walletPath,
+            environment.btcWithdrawalConfig.btcKeysWalletPath,
             randomNameSrc,
             testClientSrcKeypair
         )
         integrationHelper.sendBtc(btcAddressSrc, 1, environment.btcWithdrawalConfig.bitcoin.confidenceLevel)
         val randomNameDest = String.getRandomString(9)
         val btcAddressDest =
-            integrationHelper.registerBtcAddress(environment.btcWithdrawalConfig.bitcoin.walletPath, randomNameDest)
+            integrationHelper.registerBtcAddress(environment.btcWithdrawalConfig.btcKeysWalletPath, randomNameDest)
         integrationHelper.addIrohaAssetTo(testClientSrc, BTC_ASSET, amount)
         integrationHelper.transferAssetIrohaFromClient(
             testClientSrc,

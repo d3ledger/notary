@@ -42,7 +42,7 @@ class BtcConfigHelper(
             override val pubKeyTriggerAccount = btcPkPreGenConfig.pubKeyTriggerAccount
             override val notaryAccount = accountHelper.notaryAccount.accountId
             override val iroha = createIrohaConfig()
-            override val btcWalletFilePath = createTempWalletFile(btcPkPreGenConfig.btcWalletFilePath)
+            override val btcKeysWalletPath = createTempWalletFile(btcPkPreGenConfig.btcKeysWalletPath)
             override val registrationAccount = accountHelper.createCredentialConfig(accountHelper.registrationAccount)
         }
     }
@@ -57,6 +57,8 @@ class BtcConfigHelper(
             loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties").get()
         return object : BtcWithdrawalConfig {
             override val irohaBlockQueue = testName
+            override val btcKeysWalletPath = createTempWalletFile(btcWithdrawalConfig.btcKeysWalletPath)
+            override val btcTransfersWalletPath = createTempWalletFile(btcWithdrawalConfig.btcTransfersWalletPath)
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
             override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
             override val btcFeeRateCredential = accountHelper.createCredentialConfig(accountHelper.btcFeeRateAccount)
@@ -103,6 +105,7 @@ class BtcConfigHelper(
     ): BtcDepositConfig {
         val btcDepositConfig = loadConfigs("btc-deposit", BtcDepositConfig::class.java, "/btc/deposit.properties").get()
         return object : BtcDepositConfig {
+            override val btcTransferWalletPath = createTempWalletFile(btcDepositConfig.btcTransferWalletPath)
             override val healthCheckPort = btcDepositConfig.healthCheckPort
             override val registrationAccount = accountHelper.registrationAccount.accountId
             override val iroha = createIrohaConfig()
@@ -115,7 +118,6 @@ class BtcConfigHelper(
 
     private fun createBitcoinConfig(bitcoinConfig: BitcoinConfig, testName: String): BitcoinConfig {
         return object : BitcoinConfig {
-            override val walletPath = createTempWalletFile(bitcoinConfig.walletPath)
             override val blockStoragePath = createTempBlockStorageFolder(bitcoinConfig.blockStoragePath, testName)
             override val confidenceLevel = bitcoinConfig.confidenceLevel
             override val hosts = bitcoinConfig.hosts

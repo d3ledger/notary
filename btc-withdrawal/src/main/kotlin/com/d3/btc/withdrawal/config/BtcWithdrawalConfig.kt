@@ -31,4 +31,8 @@ interface BtcWithdrawalConfig {
     val notaryListSetterAccount: String
     // RabbitMQ queue that is used for listening to Iroha blocks
     val irohaBlockQueue: String
+    // Path to wallet that stores transfers(UTXO)
+    val btcTransfersWalletPath: String
+    // Path to wallet that stores keys
+    val btcKeysWalletPath: String
 }

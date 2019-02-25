@@ -9,6 +9,7 @@ import com.d3.btc.provider.account.BTC_CURRENCY_NAME_KEY
 import com.d3.btc.provider.generation.ADDRESS_GENERATION_NODE_ID_KEY
 import com.d3.btc.provider.generation.ADDRESS_GENERATION_TIME_KEY
 import com.d3.btc.provider.generation.BtcPublicKeyProvider
+import com.d3.btc.wallet.safeSave
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
@@ -19,6 +20,7 @@ import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
 import jp.co.soramitsu.iroha.java.QueryAPI
 import mu.KLogging
+import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
@@ -32,6 +34,7 @@ import sidechain.iroha.util.getSetDetailCommands
  */
 @Component
 class BtcAddressGenerationInitialization(
+    @Autowired private val keysWallet: Wallet,
     @Qualifier("registrationQueryAPI")
     @Autowired private val registrationQueryAPI: QueryAPI,
     @Autowired private val btcAddressGenerationConfig: BtcAddressGenerationConfig,
@@ -109,7 +112,7 @@ class BtcAddressGenerationInitialization(
 
     // Generates new key
     private fun onGenerateKey(sessionAccountName: String): Result<String, Exception> {
-        return btcPublicKeyProvider.createKey(sessionAccountName)
+        return btcPublicKeyProvider.createKey(sessionAccountName) { saveWallet() }
     }
 
     /**
@@ -138,11 +141,16 @@ class BtcAddressGenerationInitialization(
                     addressType,
                     time,
                     nodeId
-                )
+                ) { saveWallet() }
             } else {
                 Result.of { Unit }
             }
         }
+    }
+
+    // Safes wallet full of keys
+    private fun saveWallet() {
+        keysWallet.safeSave(btcAddressGenerationConfig.btcKeysWalletPath)
     }
 
     /**

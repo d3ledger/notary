@@ -17,20 +17,27 @@ private const val BTC_ASSET_NAME = "btc"
 private const val BTC_ASSET_DOMAIN = "bitcoin"
 private const val TWO_HOURS_MILLIS = 2 * 60 * 60 * 1000L;
 
+/**
+ * Listener that listens to interested Bitcoin transactions
+ * @param registeredAddresses - list of registered BTC addresses
+ * @param confidenceLevel - level of confidence aka depth of transaction. Recommend value is 6
+ * @param emitter - source of Bitcoin deposit events
+ * @param confidenceListenerExecutor - executor that will be used to execute confidence listener logic
+ * @param onUnspent - function that will be called right after deposit('unspent' occurrence)
+ */
 class BitcoinTransactionListener(
-    // List of registered BTC addresses
     private val registeredAddresses: List<BtcAddress>,
-    // Level of confidence aka depth of transaction. Recommend value is 6
     private val confidenceLevel: Int,
-    // Source of Bitcoin deposit events
     private val emitter: ObservableEmitter<SideChainEvent.PrimaryBlockChainEvent>,
-    // Executor that will be used to execute confidence listener logic
-    private val confidenceListenerExecutor: ExecutorService
+    private val confidenceListenerExecutor: ExecutorService,
+    private val onUnspent: () -> Unit
 ) {
     fun onTransaction(tx: Transaction, blockTime: Date) {
+        //TODO save change address
         if (!hasRegisteredAddresses(tx)) {
             return
         }
+        onUnspent()
         if (tx.confidence.depthInBlocks >= confidenceLevel) {
             //If tx has desired depth, we call function that handles it
             logger.info { "BTC was received. Tx: ${tx.hashAsString}" }
@@ -84,8 +91,10 @@ class BitcoinTransactionListener(
                     btcValue.toPlainString(),
                     ""
                 )
-                logger.info { "BTC deposit event(tx ${tx.hashAsString}, amount ${btcValue.toPlainString()}) was created. " +
-                        "Related client is ${btcAddress.info.irohaClient}. " }
+                logger.info {
+                    "BTC deposit event(tx ${tx.hashAsString}, amount ${btcValue.toPlainString()}) was created. " +
+                            "Related client is ${btcAddress.info.irohaClient}. "
+                }
                 emitter.onNext(event)
             }
         }

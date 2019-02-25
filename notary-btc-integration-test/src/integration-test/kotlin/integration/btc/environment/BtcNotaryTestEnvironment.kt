@@ -1,5 +1,7 @@
 package integration.btc.environment
 
+import com.d3.btc.deposit.config.BtcDepositConfig
+import com.d3.btc.deposit.init.BtcNotaryInitialization
 import com.d3.btc.handler.NewBtcClientRegistrationHandler
 import com.d3.btc.listener.NewBtcClientRegistrationListener
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
@@ -7,8 +9,6 @@ import com.d3.btc.provider.network.BtcRegTestConfigProvider
 import config.BitcoinConfig
 import integration.helper.BtcIntegrationHelperUtil
 import model.IrohaCredential
-import com.d3.btc.deposit.config.BtcDepositConfig
-import com.d3.btc.deposit.init.BtcNotaryInitialization
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.util.ModelUtil
 import java.io.Closeable
@@ -34,6 +34,8 @@ class BtcNotaryTestEnvironment(
         notaryConfig.notaryCredential.accountId
     )
 
+    val btcAddressGenerationConfig = integrationHelper.configHelper.createBtcAddressGenerationConfig(0)
+
     private val btcNetworkConfigProvider = BtcRegTestConfigProvider()
 
     val irohaChainListener = IrohaChainListener(
@@ -45,10 +47,10 @@ class BtcNotaryTestEnvironment(
     private val newBtcClientRegistrationListener =
         NewBtcClientRegistrationListener(NewBtcClientRegistrationHandler(btcNetworkConfigProvider))
 
-    private val wallet = org.bitcoinj.wallet.Wallet.loadFromFile(File(notaryConfig.bitcoin.walletPath))
+    private val transferWallet = org.bitcoinj.wallet.Wallet.loadFromFile(File(notaryConfig.btcTransferWalletPath))
 
     private val peerGroup = integrationHelper.getPeerGroup(
-        wallet,
+        transferWallet,
         btcNetworkConfigProvider,
         notaryConfig.bitcoin.blockStoragePath,
         BitcoinConfig.extractHosts(notaryConfig.bitcoin)
@@ -57,7 +59,7 @@ class BtcNotaryTestEnvironment(
     val btcNotaryInitialization =
         BtcNotaryInitialization(
             peerGroup,
-            wallet,
+            transferWallet,
             notaryConfig,
             notaryCredential,
             integrationHelper.irohaAPI,

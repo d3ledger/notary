@@ -7,6 +7,7 @@ import com.d3.btc.helper.network.addPeerConnectionStatusListener
 import com.d3.btc.helper.network.startChainDownload
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
+import com.d3.btc.withdrawal.config.withdrawalConfig
 import com.d3.btc.withdrawal.handler.NewFeeRateWasSetHandler
 import com.d3.btc.withdrawal.handler.NewSignatureEventHandler
 import com.d3.btc.withdrawal.handler.WithdrawalTransferEventHandler
@@ -30,6 +31,7 @@ import sidechain.iroha.ReliableIrohaChainListener
 import sidechain.iroha.util.getSetDetailCommands
 import sidechain.iroha.util.getTransferCommands
 import java.io.Closeable
+import java.io.File
 
 /*
     Class that initiates listeners that will be used to handle Bitcoin withdrawal logic
@@ -37,7 +39,7 @@ import java.io.Closeable
 @Component
 class BtcWithdrawalInitialization(
     @Autowired private val peerGroup: PeerGroup,
-    @Autowired private val wallet: Wallet,
+    @Autowired private val transferWallet: Wallet,
     @Autowired private val btcChangeAddressProvider: BtcChangeAddressProvider,
     @Qualifier("withdrawalIrohaChainListener")
     @Autowired private val irohaChainListener: ReliableIrohaChainListener,
@@ -54,22 +56,22 @@ class BtcWithdrawalInitialization(
 
     fun init(): Result<Unit, Exception> {
         return btcChangeAddressProvider.getChangeAddress().map { changeAddress ->
-            wallet.addWatchedAddress(
+            transferWallet.addWatchedAddress(
                 Address.fromBase58(btcNetworkConfigProvider.getConfig(), changeAddress.address)
             )
         }.flatMap {
             btcRegisteredAddressesProvider.getRegisteredAddresses()
         }.map { registeredAddresses ->
-            // Adding previously registered addresses to the wallet
+            // Adding previously registered addresses to the transferWallet
             registeredAddresses.map { btcAddress ->
                 Address.fromBase58(
                     btcNetworkConfigProvider.getConfig(),
                     btcAddress.address
                 )
             }.forEach { address ->
-                wallet.addWatchedAddress(address)
+                transferWallet.addWatchedAddress(address)
             }
-            logger.info { "Previously registered addresses were added to the wallet" }
+            logger.info { "Previously registered addresses were added to the transferWallet" }
         }.map {
             // Add fee rate listener
             peerGroup.addBlocksDownloadedEventListener(btcFeeRateListener)
@@ -77,7 +79,7 @@ class BtcWithdrawalInitialization(
             initBtcBlockChain()
         }.flatMap { peerGroup ->
             initWithdrawalTransferListener(
-                wallet,
+                transferWallet,
                 irohaChainListener,
                 peerGroup
             )
@@ -90,7 +92,7 @@ class BtcWithdrawalInitialization(
      * @return result of initiation process
      */
     private fun initWithdrawalTransferListener(
-        wallet: Wallet,
+        transferWallet: Wallet,
         irohaChainListener: ReliableIrohaChainListener,
         peerGroup: PeerGroup
     ): Result<Unit, Exception> {
@@ -101,7 +103,7 @@ class BtcWithdrawalInitialization(
                     // Handle transfer commands
                     getTransferCommands(block).forEach { command ->
                         withdrawalTransferEventHandler.handleTransferCommand(
-                            wallet,
+                            transferWallet,
                             command.transferAsset,
                             block.blockV1.payload.createdTime
                         )
@@ -112,15 +114,15 @@ class BtcWithdrawalInitialization(
                             newSignatureEventHandler.handleNewSignatureCommand(
                                 command.setAccountDetail,
                                 peerGroup
-                            )
+                            ) { transferWallet.saveToFile(File(withdrawalConfig.btcTransfersWalletPath)) }
                         }
                     // Handle 'set new fee rate' events
                     getSetDetailCommands(block).forEach { command ->
                         newFeeRateWasSetHandler.handleNewFeeRate(command)
                     }
-                    // Handle newly registered Bitcoin addresses. We need it to update wallet object.
+                    // Handle newly registered Bitcoin addresses. We need it to update transferWallet object.
                     getSetDetailCommands(block).forEach { command ->
-                        newBtcClientRegistrationHandler.handleNewClientCommand(command, wallet)
+                        newBtcClientRegistrationHandler.handleNewClientCommand(command, transferWallet)
                     }
                 }, { ex ->
                     notHealthy()

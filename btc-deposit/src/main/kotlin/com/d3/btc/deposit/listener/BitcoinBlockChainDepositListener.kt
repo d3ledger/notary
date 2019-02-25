@@ -12,14 +12,19 @@ import java.util.concurrent.ExecutorService
 
 private const val DAY_MILLIS = 24 * 60 * 60 * 1000L
 
-/*
-    Listener of Bitcoin blockchain events.
+/**
+ * Listener of Bitcoin blockchain events.
+ * @param btcRegisteredAddressesProvider - Bitcoin registered addresses provider
+ * @param emitter - emitter that is used to publish Bitcoin deposit events
+ * @param confidenceListenerExecutorService - executor service that is used to execute 'confidence change' events
+ * @param onUnspent - function that will be called right after deposit('unspent' occurrence)
  */
 class BitcoinBlockChainDepositListener(
     private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
     private val emitter: ObservableEmitter<SideChainEvent.PrimaryBlockChainEvent>,
     private val confidenceListenerExecutorService: ExecutorService,
-    private val confidenceLevel: Int
+    private val confidenceLevel: Int,
+    private val onUnspent: () -> Unit
 ) : BlocksDownloadedEventListener {
 
     private val processedBlocks = HashSet<String>()
@@ -45,7 +50,8 @@ class BitcoinBlockChainDepositListener(
                         registeredAddresses,
                         confidenceLevel,
                         emitter,
-                        confidenceListenerExecutorService
+                        confidenceListenerExecutorService,
+                        onUnspent
                     )
                 block.transactions?.forEach { tx ->
                     receivedCoinsListener.onTransaction(

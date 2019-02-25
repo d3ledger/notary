@@ -3,6 +3,10 @@ package com.d3.btc.withdrawal.handler
 import com.d3.btc.helper.address.isValidBtcAddress
 import com.d3.btc.helper.currency.btcToSat
 import com.d3.btc.monitoring.Monitoring
+import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
+import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
+import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
+import com.d3.btc.withdrawal.transaction.*
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import iroha.protocol.Commands
@@ -11,10 +15,6 @@ import org.bitcoinj.core.Transaction
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
-import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
-import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
-import com.d3.btc.withdrawal.transaction.*
 import java.math.BigDecimal
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -121,7 +121,7 @@ class WithdrawalTransferEventHandler(
             Pair(transaction, unspents)
         }.map { (transaction, unspents) ->
             logger.info { "Tx to sign\n$transaction" }
-            signCollector.collectSignatures(transaction, btcWithdrawalConfig.bitcoin.walletPath)
+            signCollector.collectSignatures(transaction, btcWithdrawalConfig.btcKeysWalletPath)
             Pair(transaction, unspents)
         }.map { (transaction, unspents) ->
             unsignedTransactions.markAsUnsigned(withdrawalDetails, transaction)

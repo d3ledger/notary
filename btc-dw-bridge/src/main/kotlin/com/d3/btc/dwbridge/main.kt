@@ -20,9 +20,9 @@ import util.createFolderIfDoesntExist
 @EnableMBeanExport
 @ComponentScan(
     basePackages = [
+        "com.d3.btc.wallet",
         "com.d3.btc.provider.address",
         "com.d3.btc.provider.network",
-        "com.d3.btc.provider.wallet",
         "com.d3.btc.withdrawal.handler",
         "com.d3.btc.withdrawal.init",
         "com.d3.btc.withdrawal.provider",

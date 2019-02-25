@@ -59,7 +59,7 @@ class BtcWithdrawalAppConfiguration {
     fun withdrawalStatistics() = WithdrawalStatistics.create()
 
     @Bean
-    fun wallet() = Wallet.loadFromFile(File(withdrawalConfig.bitcoin.walletPath))
+    fun transferWallet() = Wallet.loadFromFile(File(withdrawalConfig.btcTransfersWalletPath))
 
     @Bean
     fun withdrawalCredential() =
