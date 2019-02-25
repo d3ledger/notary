@@ -1,7 +1,6 @@
 package contract;
 
 import io.reactivex.Flowable;
-
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -246,7 +245,7 @@ public class Master extends Contract {
 
     public RemoteCall<TransactionReceipt> addToken(String newToken) {
         final Function function = new Function(
-                FUNC_ADDTOKEN,
+                FUNC_ADDTOKEN, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(newToken)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
@@ -338,14 +337,14 @@ public class Master extends Contract {
     }
 
     public static RemoteCall<Master> deploy(Web3j web3j, Credentials credentials, ContractGasProvider contractGasProvider, String relayRegistry, List<String> initialPeers) {
-        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(relayRegistry),
+        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(relayRegistry), 
                 new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.Address>(
                         org.web3j.abi.Utils.typeMap(initialPeers, org.web3j.abi.datatypes.Address.class))));
         return deployRemoteCall(Master.class, web3j, credentials, contractGasProvider, BINARY, encodedConstructor);
     }
 
     public static RemoteCall<Master> deploy(Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider, String relayRegistry, List<String> initialPeers) {
-        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(relayRegistry),
+        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(relayRegistry), 
                 new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.Address>(
                         org.web3j.abi.Utils.typeMap(initialPeers, org.web3j.abi.datatypes.Address.class))));
         return deployRemoteCall(Master.class, web3j, transactionManager, contractGasProvider, BINARY, encodedConstructor);
@@ -353,7 +352,7 @@ public class Master extends Contract {
 
     @Deprecated
     public static RemoteCall<Master> deploy(Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit, String relayRegistry, List<String> initialPeers) {
-        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(relayRegistry),
+        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(relayRegistry), 
                 new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.Address>(
                         org.web3j.abi.Utils.typeMap(initialPeers, org.web3j.abi.datatypes.Address.class))));
         return deployRemoteCall(Master.class, web3j, credentials, gasPrice, gasLimit, BINARY, encodedConstructor);
@@ -361,7 +360,7 @@ public class Master extends Contract {
 
     @Deprecated
     public static RemoteCall<Master> deploy(Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit, String relayRegistry, List<String> initialPeers) {
-        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(relayRegistry),
+        String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(relayRegistry), 
                 new org.web3j.abi.datatypes.DynamicArray<org.web3j.abi.datatypes.Address>(
                         org.web3j.abi.Utils.typeMap(initialPeers, org.web3j.abi.datatypes.Address.class))));
         return deployRemoteCall(Master.class, web3j, transactionManager, gasPrice, gasLimit, BINARY, encodedConstructor);

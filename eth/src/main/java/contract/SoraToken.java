@@ -1,7 +1,6 @@
 package contract;
 
 import io.reactivex.Flowable;
-
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -178,7 +177,7 @@ public class SoraToken extends Contract {
 
     public RemoteCall<TransactionReceipt> burn(BigInteger value) {
         final Function function = new Function(
-                FUNC_BURN,
+                FUNC_BURN, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(value)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
@@ -194,7 +193,7 @@ public class SoraToken extends Contract {
 
     public RemoteCall<TransactionReceipt> renounceOwnership() {
         final Function function = new Function(
-                FUNC_RENOUNCEOWNERSHIP,
+                FUNC_RENOUNCEOWNERSHIP, 
                 Arrays.<Type>asList(), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
@@ -272,7 +271,7 @@ public class SoraToken extends Contract {
     public RemoteCall<TransactionReceipt> transferOwnership(String newOwner) {
         final Function function = new Function(
                 FUNC_TRANSFEROWNERSHIP,
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(newOwner)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(newOwner)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
