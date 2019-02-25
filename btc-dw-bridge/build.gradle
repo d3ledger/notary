@@ -7,7 +7,7 @@ buildscript {
 apply plugin: 'application'
 apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
 apply plugin: 'com.github.johnrengelman.shadow'
-mainClassName = "dwbridge.btc.BtcDepositWithdrawalMain"
+mainClassName = "com.d3.btc.dwbridge.BtcDepositWithdrawalMain"
 
 dependencies {
     compile project(":btc-deposit")
@@ -15,7 +15,7 @@ dependencies {
 }
 
 task runBtcDepositWithdrawal(type: JavaExec) {
-    main = 'dwbridge.btc.BtcDepositWithdrawalMain'
+    main = 'com.d3.btc.dwbridge.BtcDepositWithdrawalMain'
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
 }

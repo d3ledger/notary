@@ -1,4 +1,4 @@
-package dwbridge.btc.config
+package com.d3.btc.dwbridge.config
 
 import config.BitcoinConfig
 import config.IrohaConfig

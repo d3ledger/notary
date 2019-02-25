@@ -1,4 +1,4 @@
-package dwbridge.btc.config
+package com.d3.btc.dwbridge.config
 
 import com.d3.btc.fee.BtcFeeRateService
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
