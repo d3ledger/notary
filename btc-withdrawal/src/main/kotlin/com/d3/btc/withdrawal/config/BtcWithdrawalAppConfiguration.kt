@@ -5,8 +5,7 @@ import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
 import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
-import config.BitcoinConfig
-import config.loadConfigs
+import config.*
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
@@ -15,7 +14,7 @@ import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import provider.NotaryPeerListProviderImpl
-import sidechain.iroha.IrohaChainListener
+import sidechain.iroha.ReliableIrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import java.io.File
@@ -26,6 +25,8 @@ val withdrawalConfig =
 
 @Configuration
 class BtcWithdrawalAppConfiguration {
+
+    private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
 
     private val withdrawalKeypair = ModelUtil.loadKeypair(
         withdrawalConfig.withdrawalCredential.pubkeyPath,
@@ -94,9 +95,8 @@ class BtcWithdrawalAppConfiguration {
     }
 
     @Bean
-    fun withdrawalIrohaChainListener() = IrohaChainListener(
-        irohaAPI(),
-        withdrawalCredential()
+    fun withdrawalIrohaChainListener() = ReliableIrohaChainListener(
+        rmqConfig, withdrawalConfig.irohaBlockQueue
     )
 
     @Bean
