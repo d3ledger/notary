@@ -3,6 +3,8 @@ package com.d3.btc.withdrawal.transaction
 import com.d3.btc.helper.address.getSignThreshold
 import com.d3.btc.helper.address.outPutToBase58Address
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
+import com.d3.btc.wallet.safeLoad
+import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.map
@@ -16,8 +18,6 @@ import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import util.hex
-import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
-import java.io.File
 
 /*
    Class that is used to sign transactions using available private keys
@@ -31,11 +31,11 @@ class TransactionSigner(
      * Signs transaction using available private keys from wallet
      *
      * @param tx - transaction to sign
-     * @param walletPath - path to wallet file. Used to take private keys
+     * @param keysWalletPath - path to wallet file. Used to take private keys
      * @return - result with list full of signatures in form "input index"->"signatureHex hex"
      */
-    fun sign(tx: Transaction, walletPath: String): Result<List<InputSignature>, Exception> {
-        return Result.of { signUnsafe(tx, Wallet.loadFromFile(File(walletPath))) }
+    fun sign(tx: Transaction, keysWalletPath: String): Result<List<InputSignature>, Exception> {
+        return Result.of { signUnsafe(tx, safeLoad(keysWalletPath)) }
     }
 
     /**

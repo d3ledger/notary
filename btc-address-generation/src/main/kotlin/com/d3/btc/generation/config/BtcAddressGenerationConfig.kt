@@ -16,7 +16,7 @@ interface BtcAddressGenerationConfig {
     val iroha: IrohaConfig
 
     //Path to BTC wallet file
-    val btcWalletFilePath: String
+    val btcKeysWalletPath: String
 
     //Account that is used to register BTC addresses
     val registrationAccount: IrohaCredentialConfig

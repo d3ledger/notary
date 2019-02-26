@@ -1,25 +1,25 @@
 package com.d3.btc.dwbridge.config
 
+import com.d3.btc.deposit.config.BtcDepositConfig
 import com.d3.btc.fee.BtcFeeRateService
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
-import io.grpc.ManagedChannelBuilder
-import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.QueryAPI
-import model.IrohaCredential
-import com.d3.btc.deposit.config.BtcDepositConfig
-import org.bitcoinj.wallet.Wallet
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import provider.NotaryPeerListProviderImpl
-import sidechain.iroha.IrohaChainListener
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.util.ModelUtil
 import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
 import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
 import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
 import config.*
+import io.grpc.ManagedChannelBuilder
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
+import model.IrohaCredential
+import org.bitcoinj.wallet.Wallet
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import provider.NotaryPeerListProviderImpl
+import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.ReliableIrohaChainListener
+import sidechain.iroha.consumer.IrohaConsumerImpl
+import sidechain.iroha.util.ModelUtil
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -62,7 +62,7 @@ class BtcDWBridgeAppConfiguration {
     fun notaryConfig() = depositConfig
 
     @Bean
-    fun healthCheckPort() = withdrawalConfig.healthCheckPort
+    fun healthCheckPort() = dwBridgeConfig.healthCheckPort
 
     @Bean
     fun irohaAPI(): IrohaAPI {
@@ -103,7 +103,7 @@ class BtcDWBridgeAppConfiguration {
     fun signatureCollectorConsumer() = IrohaConsumerImpl(signatureCollectorCredential(), irohaAPI())
 
     @Bean
-    fun wallet() = Wallet.loadFromFile(File(dwBridgeConfig.bitcoin.walletPath))
+    fun transferWallet() = Wallet.loadFromFile(File(depositConfig.btcTransferWalletPath))
 
     @Bean
     fun notaryCredential() = notaryCredential
@@ -176,7 +176,7 @@ class BtcDWBridgeAppConfiguration {
     fun notaryPeerListProvider() =
         NotaryPeerListProviderImpl(
             withdrawalQueryAPI(),
-            com.d3.btc.withdrawal.config.withdrawalConfig.notaryListStorageAccount,
-            com.d3.btc.withdrawal.config.withdrawalConfig.notaryListSetterAccount
+            withdrawalConfig.notaryListStorageAccount,
+            withdrawalConfig.notaryListSetterAccount
         )
 }

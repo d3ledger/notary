@@ -52,7 +52,7 @@ class BtcNotaryAppConfiguration {
     }
 
     @Bean
-    fun wallet() = Wallet.loadFromFile(File(depositConfig.bitcoin.walletPath))
+    fun transferWallet() = Wallet.loadFromFile(File(depositConfig.btcTransferWalletPath))
 
     @Bean
     fun notaryCredential() = notaryCredential

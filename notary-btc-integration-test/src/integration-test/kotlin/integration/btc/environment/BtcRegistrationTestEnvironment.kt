@@ -5,9 +5,9 @@ import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.account.IrohaBtcAccountCreator
 import com.d3.btc.provider.address.BtcAddressesProvider
 import com.d3.btc.registration.init.BtcRegistrationServiceInitialization
+import com.d3.btc.registration.strategy.BtcRegistrationStrategyImpl
 import integration.helper.BtcIntegrationHelperUtil
 import model.IrohaCredential
-import com.d3.btc.registration.strategy.BtcRegistrationStrategyImpl
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import java.io.Closeable
@@ -19,7 +19,7 @@ class BtcRegistrationTestEnvironment(private val integrationHelper: BtcIntegrati
 
     val btcRegistrationConfig = integrationHelper.configHelper.createBtcRegistrationConfig()
 
-    val btcDepositConfig = integrationHelper.configHelper.createBtcDepositConfig()
+    val btcAddressGenerationConfig = integrationHelper.configHelper.createBtcAddressGenerationConfig(0)
 
     private val btcRegistrationCredential = ModelUtil.loadKeypair(
         btcRegistrationConfig.registrationCredential.pubkeyPath,

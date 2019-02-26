@@ -15,12 +15,12 @@ import org.springframework.context.annotation.EnableMBeanExport
 @EnableMBeanExport
 @ComponentScan(
     basePackages = [
+        "com.d3.btc.wallet",
         "com.d3.btc.withdrawal",
         "com.d3.btc.healthcheck",
         "com.d3.btc.provider.network",
         "com.d3.btc.handler",
         "com.d3.btc.provider.address",
-        "com.d3.btc.provider.wallet",
         "com.d3.btc.peer"]
 )
 class BtcWithdrawalApplication

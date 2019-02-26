@@ -164,12 +164,12 @@ class BtcWithdrawalTestEnvironment(
             btcRollbackService
         )
 
-    private val wallet by lazy {
-        Wallet.loadFromFile(File(btcWithdrawalConfig.bitcoin.walletPath))
+    private val transferWallet by lazy {
+        Wallet.loadFromFile(File(btcWithdrawalConfig.btcTransfersWalletPath))
     }
 
     private val peerGroup = integrationHelper.getPeerGroup(
-        wallet,
+        transferWallet,
         btcNetworkConfigProvider,
         btcWithdrawalConfig.bitcoin.blockStoragePath,
         BitcoinConfig.extractHosts(btcWithdrawalConfig.bitcoin)
@@ -181,7 +181,7 @@ class BtcWithdrawalTestEnvironment(
     val btcWithdrawalInitialization by lazy {
         BtcWithdrawalInitialization(
             peerGroup,
-            wallet,
+            transferWallet,
             btcChangeAddressProvider,
             irohaChainListener,
             btcNetworkConfigProvider,

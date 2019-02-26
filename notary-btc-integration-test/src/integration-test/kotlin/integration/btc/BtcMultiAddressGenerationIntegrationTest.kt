@@ -84,7 +84,7 @@ class BtcMultiAddressGenerationIntegrationTest {
                 entry.key != ADDRESS_GENERATION_TIME_KEY
                         && entry.key != ADDRESS_GENERATION_NODE_ID_KEY
             }.map { entry -> entry.value }
-        val wallet = Wallet.loadFromFile(File(environment.btcGenerationConfig.btcWalletFilePath))
+        val wallet = Wallet.loadFromFile(File(environment.btcGenerationConfig.btcKeysWalletPath))
         notaryKeys.forEach { pubKey ->
             assertTrue(wallet.issuedReceiveKeys.any { ecKey -> ecKey.publicKeyAsHex == pubKey })
         }

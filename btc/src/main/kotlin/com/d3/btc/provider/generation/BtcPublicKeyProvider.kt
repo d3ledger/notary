@@ -4,7 +4,6 @@ import com.d3.btc.helper.address.getSignThreshold
 import com.d3.btc.model.AddressInfo
 import com.d3.btc.model.BtcAddressType
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
-import com.d3.btc.wallet.WalletFile
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import mu.KLogging
@@ -12,6 +11,7 @@ import org.bitcoinj.core.Address
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Utils
 import org.bitcoinj.script.ScriptBuilder
+import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
@@ -33,7 +33,7 @@ import util.getRandomId
  */
 @Component
 class BtcPublicKeyProvider(
-    @Autowired private val walletFile: WalletFile,
+    @Autowired private val keysWallet: Wallet,
     @Autowired private val notaryPeerListProvider: NotaryPeerListProvider,
     @Qualifier("notaryAccount")
     @Autowired private val notaryAccount: String,
@@ -52,11 +52,13 @@ class BtcPublicKeyProvider(
     /**
      * Creates notary public key and sets it into session account details
      * @param sessionAccountName - name of session account
+     * @param onKeyCreated - function that will be called right after key creation
      * @return new public key created by notary
      */
-    fun createKey(sessionAccountName: String): Result<String, Exception> {
+    fun createKey(sessionAccountName: String, onKeyCreated: () -> Unit): Result<String, Exception> {
         // Generate new key from wallet
-        val key = walletFile.wallet.freshReceiveKey()
+        val key = keysWallet.freshReceiveKey()
+        onKeyCreated()
         val pubKey = key.publicKeyAsHex
         return ModelUtil.setAccountDetail(
             sessionConsumer,
@@ -65,7 +67,6 @@ class BtcPublicKeyProvider(
             pubKey
         ).map {
             logger.info { "New key has been generated" }
-            walletFile.save()
             pubKey
         }
     }
@@ -76,13 +77,15 @@ class BtcPublicKeyProvider(
      * @param addressType - type of address to create
      * @param generationTime - time of address generation. Used in Iroha multisig
      * @param nodeId - node id
+     * @param onMsAddressCreated - function that will be called right after MS address creation
      * @return Result of operation
      */
     fun checkAndCreateMultiSigAddress(
         notaryKeys: Collection<String>,
         addressType: BtcAddressType,
         generationTime: Long,
-        nodeId: String
+        nodeId: String,
+        onMsAddressCreated: () -> Unit
     ): Result<Unit, Exception> {
         return Result.of {
             val peers = notaryPeerListProvider.getPeerList().size
@@ -100,12 +103,13 @@ class BtcPublicKeyProvider(
             }
             val threshold = getSignThreshold(peers)
             val msAddress = createMsAddress(notaryKeys, threshold)
-            if (walletFile.wallet.isAddressWatched(msAddress)) {
+            if (keysWallet.isAddressWatched(msAddress)) {
                 logger.info("Address $msAddress has been already created")
                 return@of
-            } else if (!walletFile.wallet.addWatchedAddress(msAddress)) {
+            } else if (!keysWallet.addWatchedAddress(msAddress)) {
                 throw IllegalStateException("BTC address $msAddress was not added to wallet")
             }
+            onMsAddressCreated()
             logger.info { "Address $msAddress was added to wallet." }
             val addressStorage = createAddressStorage(addressType, notaryKeys, nodeId)
             ModelUtil.setAccountDetail(
@@ -116,7 +120,6 @@ class BtcPublicKeyProvider(
                 generationTime,
                 quorum = peers
             ).fold({
-                walletFile.save()
                 logger.info { "New BTC ${addressType.title} address $msAddress was created. Node id '$nodeId'" }
             }, { ex -> throw ex })
         }
@@ -128,7 +131,7 @@ class BtcPublicKeyProvider(
      * @return true if at least one current notary key is among given notaryKeys
      */
     private fun hasMyKey(notaryKeys: Collection<String>) = notaryKeys.find { key ->
-        walletFile.wallet.issuedReceiveKeys.find { ecKey -> ecKey.publicKeyAsHex == key } != null
+        keysWallet.issuedReceiveKeys.find { ecKey -> ecKey.publicKeyAsHex == key } != null
     } != null
 
     /**
