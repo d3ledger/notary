@@ -89,7 +89,7 @@ public class Relay extends Contract {
 
     public RemoteCall<TransactionReceipt> initialize(String master) {
         final Function function = new Function(
-                FUNC_INITIALIZE,
+                FUNC_INITIALIZE, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(master)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);

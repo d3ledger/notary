@@ -1,13 +1,11 @@
 package contract;
 
 import io.reactivex.Flowable;
-
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
 import org.web3j.abi.EventEncoder;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.TypeReference;
@@ -33,7 +31,7 @@ import org.web3j.tx.gas.ContractGasProvider;
  * <p>Auto generated code.
  * <p><strong>Do not modify!</strong>
  * <p>Please use the <a href="https://docs.web3j.io/command_line.html">web3j command line tools</a>,
- * or the org.web3j.codegen.SolidityFunctionWrapperGenerator in the
+ * or the org.web3j.codegen.SolidityFunctionWrapperGenerator in the 
  * <a href="https://github.com/web3j/web3j/tree/master/codegen">codegen module</a> to update.
  *
  * <p>Generated with web3j version 4.1.1.
@@ -258,14 +256,14 @@ public class ERC20Detailed extends Contract {
 
     public static RemoteCall<ERC20Detailed> deploy(Web3j web3j, Credentials credentials, ContractGasProvider contractGasProvider, String name, String symbol, BigInteger decimals) {
         String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.Utf8String(name),
-                new org.web3j.abi.datatypes.Utf8String(symbol),
+                new org.web3j.abi.datatypes.Utf8String(symbol), 
                 new org.web3j.abi.datatypes.generated.Uint8(decimals)));
         return deployRemoteCall(ERC20Detailed.class, web3j, credentials, contractGasProvider, BINARY, encodedConstructor);
     }
 
     public static RemoteCall<ERC20Detailed> deploy(Web3j web3j, TransactionManager transactionManager, ContractGasProvider contractGasProvider, String name, String symbol, BigInteger decimals) {
         String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.Utf8String(name),
-                new org.web3j.abi.datatypes.Utf8String(symbol),
+                new org.web3j.abi.datatypes.Utf8String(symbol), 
                 new org.web3j.abi.datatypes.generated.Uint8(decimals)));
         return deployRemoteCall(ERC20Detailed.class, web3j, transactionManager, contractGasProvider, BINARY, encodedConstructor);
     }
@@ -273,7 +271,7 @@ public class ERC20Detailed extends Contract {
     @Deprecated
     public static RemoteCall<ERC20Detailed> deploy(Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit, String name, String symbol, BigInteger decimals) {
         String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.Utf8String(name),
-                new org.web3j.abi.datatypes.Utf8String(symbol),
+                new org.web3j.abi.datatypes.Utf8String(symbol), 
                 new org.web3j.abi.datatypes.generated.Uint8(decimals)));
         return deployRemoteCall(ERC20Detailed.class, web3j, credentials, gasPrice, gasLimit, BINARY, encodedConstructor);
     }
@@ -281,7 +279,7 @@ public class ERC20Detailed extends Contract {
     @Deprecated
     public static RemoteCall<ERC20Detailed> deploy(Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit, String name, String symbol, BigInteger decimals) {
         String encodedConstructor = FunctionEncoder.encodeConstructor(Arrays.<Type>asList(new org.web3j.abi.datatypes.Utf8String(name),
-                new org.web3j.abi.datatypes.Utf8String(symbol),
+                new org.web3j.abi.datatypes.Utf8String(symbol), 
                 new org.web3j.abi.datatypes.generated.Uint8(decimals)));
         return deployRemoteCall(ERC20Detailed.class, web3j, transactionManager, gasPrice, gasLimit, BINARY, encodedConstructor);
     }

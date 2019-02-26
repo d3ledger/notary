@@ -3,7 +3,6 @@ package contract;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
-
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Function;
@@ -21,7 +20,7 @@ import org.web3j.tx.gas.ContractGasProvider;
  * <p>Auto generated code.
  * <p><strong>Do not modify!</strong>
  * <p>Please use the <a href="https://docs.web3j.io/command_line.html">web3j command line tools</a>,
- * or the org.web3j.codegen.SolidityFunctionWrapperGenerator in the
+ * or the org.web3j.codegen.SolidityFunctionWrapperGenerator in the 
  * <a href="https://github.com/web3j/web3j/tree/master/codegen">codegen module</a> to update.
  *
  * <p>Generated with web3j version 4.1.1.
@@ -56,7 +55,7 @@ public class Greeter extends Contract {
     public RemoteCall<TransactionReceipt> set(BigInteger val) {
         final Function function = new Function(
                 FUNC_SET,
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(val)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(val)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
@@ -72,7 +71,7 @@ public class Greeter extends Contract {
     public RemoteCall<TransactionReceipt> initialize(BigInteger val) {
         final Function function = new Function(
                 FUNC_INITIALIZE,
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(val)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(val)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }

@@ -1,13 +1,11 @@
 package contract;
 
 import io.reactivex.Flowable;
-
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
 import org.web3j.abi.EventEncoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
@@ -29,7 +27,7 @@ import org.web3j.tx.gas.ContractGasProvider;
  * <p>Auto generated code.
  * <p><strong>Do not modify!</strong>
  * <p>Please use the <a href="https://docs.web3j.io/command_line.html">web3j command line tools</a>,
- * or the org.web3j.codegen.SolidityFunctionWrapperGenerator in the
+ * or the org.web3j.codegen.SolidityFunctionWrapperGenerator in the 
  * <a href="https://github.com/web3j/web3j/tree/master/codegen">codegen module</a> to update.
  *
  * <p>Generated with web3j version 4.1.1.
@@ -68,7 +66,7 @@ public class Owned extends Contract {
     public RemoteCall<TransactionReceipt> setOwner(String _new) {
         final Function function = new Function(
                 FUNC_SETOWNER,
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_new)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_new)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }
