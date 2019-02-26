@@ -1,12 +1,12 @@
 package integration.helper
 
-import config.BitcoinConfig
-import config.loadConfigs
-import com.d3.btc.generation.config.BtcAddressGenerationConfig
-import model.IrohaCredential
 import com.d3.btc.deposit.config.BtcDepositConfig
+import com.d3.btc.generation.config.BtcAddressGenerationConfig
 import com.d3.btc.registration.config.BtcRegistrationConfig
 import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
+import config.BitcoinConfig
+import config.loadConfigs
+import model.IrohaCredential
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -49,13 +49,14 @@ class BtcConfigHelper(
 
     /**
      * Creates config for Bitcoin withdrawal
-     * @param testName - name of the test. used to create folder for block storage
+     * @param testName - name of the test. used to create folder for block storage and queue name
      * @return configuration
      */
     fun createBtcWithdrawalConfig(testName: String = ""): BtcWithdrawalConfig {
         val btcWithdrawalConfig =
             loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties").get()
         return object : BtcWithdrawalConfig {
+            override val irohaBlockQueue = testName
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
             override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
             override val btcFeeRateCredential = accountHelper.createCredentialConfig(accountHelper.btcFeeRateAccount)
@@ -145,7 +146,6 @@ class BtcConfigHelper(
             loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/btc/registration.properties").get()
         return object : BtcRegistrationConfig {
             override val nodeId = NODE_ID
-            override val healthCheckPort = btcRegistrationConfig.healthCheckPort
             override val notaryAccount = accountHelper.notaryAccount.accountId
             override val mstRegistrationAccount = accountHelper.mstRegistrationAccount.accountId
             override val port = portCounter.incrementAndGet()

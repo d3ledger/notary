@@ -26,7 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
-import sidechain.iroha.IrohaChainListener
+import sidechain.iroha.ReliableIrohaChainListener
 import sidechain.iroha.util.getSetDetailCommands
 import sidechain.iroha.util.getTransferCommands
 import java.io.Closeable
@@ -40,7 +40,7 @@ class BtcWithdrawalInitialization(
     @Autowired private val wallet: Wallet,
     @Autowired private val btcChangeAddressProvider: BtcChangeAddressProvider,
     @Qualifier("withdrawalIrohaChainListener")
-    @Autowired private val irohaChainListener: IrohaChainListener,
+    @Autowired private val irohaChainListener: ReliableIrohaChainListener,
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider,
     @Autowired private val withdrawalTransferEventHandler: WithdrawalTransferEventHandler,
     @Autowired private val newSignatureEventHandler: NewSignatureEventHandler,
@@ -91,12 +91,13 @@ class BtcWithdrawalInitialization(
      */
     private fun initWithdrawalTransferListener(
         wallet: Wallet,
-        irohaChainListener: IrohaChainListener,
+        irohaChainListener: ReliableIrohaChainListener,
         peerGroup: PeerGroup
     ): Result<Unit, Exception> {
+        //TODO custom acknowledgement doesn't work
         return irohaChainListener.getBlockObservable().map { irohaObservable ->
             irohaObservable.subscribeOn(Schedulers.single())
-                .subscribe({ block ->
+                .subscribe({ (block, _) ->
                     // Handle transfer commands
                     getTransferCommands(block).forEach { command ->
                         withdrawalTransferEventHandler.handleTransferCommand(
