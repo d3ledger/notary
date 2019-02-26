@@ -38,7 +38,6 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
         val builder = OkHttpClient().newBuilder()
         builder.authenticator(BasicAuthenticator(ethereumPasswords))
         web3 = Web3j.build(HttpService(ethereumConfig.url, builder.build(), false))
-
     }
 
     /** credentials of ethereum user */

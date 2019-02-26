@@ -8,12 +8,15 @@ interface ERC20TokenRegistrationConfig {
     /** Iroha credentials */
     val irohaCredential: IrohaCredentialConfig
 
-    //Iroha config
+    /** Iroha config */
     val iroha: IrohaConfig
 
-    //Path to file full of tokens in json format
+    /** Path to file full of tokens in json format */
     val tokensFilePath: String
 
-    //Account that stores tokens
+    /** Account that stores tokens */
     val tokenStorageAccount: String
+
+    /** Address of XOR ERC20 contract */
+    val xorEthereumAddress: String
 }

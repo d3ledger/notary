@@ -105,12 +105,12 @@ class EthRefundStrategyImpl(
                         throw NotaryException("Refund - check transaction. Destination account is wrong '$destAccount'")
 
                     val amount = commands.transferAsset.amount
-                    val token = commands.transferAsset.assetId.dropLastWhile { it != '#' }.dropLast(1)
+                    val assetId = commands.transferAsset.assetId
                     val destEthAddress = commands.transferAsset.description
                     val srcAccountId = commands.transferAsset.srcAccountId
 
-                    val tokenInfo = tokensProvider.getTokenAddress(token)
-                        .fanout { tokensProvider.getTokenPrecision(token) }
+                    val tokenInfo = tokensProvider.getTokenAddress(assetId)
+                        .fanout { tokensProvider.getTokenPrecision(assetId) }
 
                     whiteListProvider.checkWithdrawalAddress(srcAccountId, destEthAddress)
                         .flatMap { isWhitelisted ->

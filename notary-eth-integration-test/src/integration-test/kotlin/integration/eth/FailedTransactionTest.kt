@@ -7,7 +7,9 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.web3j.protocol.exceptions.TransactionException
+import provider.eth.ETH_DOMAIN
 import sidechain.iroha.CLIENT_DOMAIN
+import token.EthTokenInfo
 import util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -69,7 +71,7 @@ class FailedTransactionTest {
             val clientAccount = String.getRandomString(9)
             integrationHelper.registerClientWithoutRelay(clientAccount, listOf())
             val coinName = String.getRandomString(9)
-            integrationHelper.addERC20Token(anotherFailerAddress, coinName, 0)
+            integrationHelper.addERC20Token(anotherFailerAddress, EthTokenInfo(coinName, ETH_DOMAIN, 0))
 
             // web3j throws exception in case of contract function call revert
             // so let's catch and ignore it

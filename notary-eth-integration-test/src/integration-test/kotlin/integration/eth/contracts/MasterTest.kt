@@ -560,13 +560,13 @@ class MasterTest {
     /**
      * @given deployed master contract
      * @when 100 different peers are added to master, 5000 Wei is transferred to master,
-     * request to withdraw 1000 Wei is sent to master with 100 signatures from added peers
+     * request to withdraw 1000 Wei is sent to master with 50 signatures from added peers
      * @then withdraw call succeeded
      */
     @Test
-    fun validSignatures100of100() {
+    fun validSignatures50of50() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            val sigCount = 100
+            val sigCount = 50
             val amountToSend = 1000
             val tokenAddress = etherAddress
             val initialBalance = cth.getETHBalance(accGreen)
@@ -608,15 +608,15 @@ class MasterTest {
 
     /**
      * @given deployed master contract
-     * @when 100 different peers are added to master, 5000 Wei is transferred to master,
+     * @when 50 different peers are added to master, 5000 Wei is transferred to master,
      * request to withdraw 1000 Wei is sent to master with 67 signatures from added peers
      * @then withdraw call succeeded
      */
     @Test
-    fun validSignatures67of100() {
+    fun validSignatures34of50() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            val sigCount = 100
-            val realSigCount = 67
+            val sigCount = 50
+            val realSigCount = 34
             val amountToSend = 1000
             val tokenAddress = etherAddress
             val initialBalance = cth.getETHBalance(accGreen)
@@ -657,15 +657,15 @@ class MasterTest {
 
     /**
      * @given deployed master contract
-     * @when 100 different peers are added to master, 5000 Wei is transferred to master,
+     * @when 50 different peers are added to master, 5000 Wei is transferred to master,
      * request to withdraw 1000 Wei is sent to master with 66 signatures from added peers
      * @then withdraw call failed
      */
     @Test
-    fun validSignatures66of100() {
+    fun validSignatures33of50() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            val sigCount = 100
-            val realSigCount = 66
+            val sigCount = 50
+            val realSigCount = 33
             val amountToSend = 1000
             val tokenAddress = etherAddress
 

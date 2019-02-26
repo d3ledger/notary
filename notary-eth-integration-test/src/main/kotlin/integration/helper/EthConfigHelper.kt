@@ -47,6 +47,7 @@ open class EthConfigHelper(
             override val iroha = createIrohaConfig()
             override val tokensFilePath = tokensFilePath_
             override val tokenStorageAccount = accountHelper.notaryAccount.accountId
+            override val xorEthereumAddress = "0x0000000000000000000000000000000000000000"
         }
     }
 

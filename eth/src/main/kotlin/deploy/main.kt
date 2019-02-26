@@ -39,6 +39,9 @@ fun main(args: Array<String>) {
             File("relay_registry_eth_address").printWriter().use {
                 it.print(relayRegistry.contractAddress)
             }
+            File("sora_token_eth_address").printWriter().use {
+                it.print(master.tokens.send().get(0))
+            }
         }
         .failure { ex ->
             logger.error("Cannot deploy smart contract", ex)
