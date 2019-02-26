@@ -1,4 +1,4 @@
-package chainadapter
+package com.d3.chainadapter
 
 import com.github.kittinunf.result.map
 import com.rabbitmq.client.ConnectionFactory

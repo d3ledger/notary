@@ -1,5 +1,7 @@
 package com.d3.btc.deposit.init
 
+import com.d3.btc.deposit.config.BtcDepositConfig
+import com.d3.btc.deposit.listener.BitcoinBlockChainDepositListener
 import com.d3.btc.healthcheck.HealthyService
 import com.d3.btc.helper.network.addPeerConnectionStatusListener
 import com.d3.btc.helper.network.startChainDownload
@@ -15,9 +17,7 @@ import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import mu.KLogging
-import com.d3.btc.deposit.config.BtcDepositConfig
-import com.d3.btc.deposit.factory.createBtcNotary
-import com.d3.btc.deposit.listener.BitcoinBlockChainDepositListener
+import notary.NotaryImpl
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.PeerGroup
 import org.bitcoinj.utils.BriefLogFormatter
@@ -61,7 +61,7 @@ class BtcNotaryInitialization(
         //Enables short log format for Bitcoin events
         BriefLogFormatter.init()
         addPeerConnectionStatusListener(peerGroup, ::notHealthy, ::cured)
-        return irohaChainListener.getIrohaBlockObservable().map { irohaObservable ->
+        return irohaChainListener.getBlockObservable().map { irohaObservable ->
             newBtcClientRegistrationListener.listenToRegisteredClients(
                 wallet, irohaObservable
             ) {
@@ -92,8 +92,7 @@ class BtcNotaryInitialization(
                 btcDepositConfig.notaryListStorageAccount,
                 btcDepositConfig.notaryListSetterAccount
             )
-            val notary =
-                createBtcNotary(irohaCredential, irohaAPI, btcEvents, peerListProvider)
+            val notary = NotaryImpl(irohaCredential, irohaAPI, btcEvents, peerListProvider)
             notary.initIrohaConsumer().failure { ex -> throw ex }
         }.map {
             startChainDownload(peerGroup)

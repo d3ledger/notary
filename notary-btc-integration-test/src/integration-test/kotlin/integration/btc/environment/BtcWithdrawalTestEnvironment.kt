@@ -6,18 +6,6 @@ import com.d3.btc.helper.address.outPutToBase58Address
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
 import com.d3.btc.provider.network.BtcRegTestConfigProvider
-import config.BitcoinConfig
-import integration.helper.BtcIntegrationHelperUtil
-import io.grpc.ManagedChannelBuilder
-import jp.co.soramitsu.iroha.java.IrohaAPI
-import model.IrohaCredential
-import org.bitcoinj.core.Transaction
-import org.bitcoinj.core.TransactionOutput
-import org.bitcoinj.wallet.Wallet
-import provider.NotaryPeerListProviderImpl
-import sidechain.iroha.IrohaChainListener
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.util.ModelUtil
 import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
 import com.d3.btc.withdrawal.handler.NewFeeRateWasSetHandler
 import com.d3.btc.withdrawal.handler.NewSignatureEventHandler
@@ -27,6 +15,21 @@ import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
 import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
 import com.d3.btc.withdrawal.transaction.*
+import config.BitcoinConfig
+import config.RMQConfig
+import config.getConfigFolder
+import config.loadRawConfigs
+import integration.helper.BtcIntegrationHelperUtil
+import io.grpc.ManagedChannelBuilder
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import model.IrohaCredential
+import org.bitcoinj.core.Transaction
+import org.bitcoinj.core.TransactionOutput
+import org.bitcoinj.wallet.Wallet
+import provider.NotaryPeerListProviderImpl
+import sidechain.iroha.ReliableIrohaChainListener
+import sidechain.iroha.consumer.IrohaConsumerImpl
+import sidechain.iroha.util.ModelUtil
 import java.io.Closeable
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
@@ -37,7 +40,7 @@ import java.util.concurrent.Executors
  */
 class BtcWithdrawalTestEnvironment(
     private val integrationHelper: BtcIntegrationHelperUtil,
-    testName: String = "",
+    testName: String = "default_test_name",
     val btcWithdrawalConfig: BtcWithdrawalConfig = integrationHelper.configHelper.createBtcWithdrawalConfig(testName),
     withdrawalCredential: IrohaCredential =
         IrohaCredential(
@@ -55,6 +58,8 @@ class BtcWithdrawalTestEnvironment(
      * This is why we explicitly set single threaded executor.
      */
     private val executor = Executors.newSingleThreadExecutor()
+
+    private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties") 
 
     private val irohaApi by lazy {
         val irohaAPI = IrohaAPI(
@@ -98,9 +103,9 @@ class BtcWithdrawalTestEnvironment(
 
     private val btcFeeRateConsumer = IrohaConsumerImpl(btcFeeRateCredential, irohaApi)
 
-    private val irohaChainListener = IrohaChainListener(
-        irohaApi,
-        withdrawalCredential
+    private val irohaChainListener = ReliableIrohaChainListener(
+        rmqConfig,
+        testName
     )
 
     val btcRegisteredAddressesProvider = BtcRegisteredAddressesProvider(
@@ -109,8 +114,9 @@ class BtcWithdrawalTestEnvironment(
         btcWithdrawalConfig.notaryCredential.accountId
     )
 
-    val btcNetworkConfigProvider = BtcRegTestConfigProvider()
-    val btcChangeAddressProvider = BtcChangeAddressProvider(
+    private val btcNetworkConfigProvider = BtcRegTestConfigProvider()
+
+    private val btcChangeAddressProvider = BtcChangeAddressProvider(
         integrationHelper.queryAPI,
         btcWithdrawalConfig.mstRegistrationAccount,
         btcWithdrawalConfig.changeAddressesStorageAccount
@@ -218,6 +224,7 @@ class BtcWithdrawalTestEnvironment(
     }
 
     override fun close() {
+        irohaApi.close()
         integrationHelper.close()
         executor.shutdownNow()
         irohaChainListener.close()

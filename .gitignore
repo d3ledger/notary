@@ -70,6 +70,7 @@ hs_err_pid*
 /btc-dw-bridge/gradle
 /btc-dw-bridge/gradlew
 /btc-dw-bridge/gradlew.bat
+/chain-adapter/build/
 *gradlew.bat
 
 # Ignore Gradle GUI config

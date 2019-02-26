@@ -48,6 +48,7 @@ open class EthConfigHelper(
             override val iroha = createIrohaConfig()
             override val tokensFilePath = tokensFilePath_
             override val tokenStorageAccount = accountHelper.notaryAccount.accountId
+            override val xorEthereumAddress = "0x0000000000000000000000000000000000000000"
         }
     }
 
@@ -85,7 +86,13 @@ open class EthConfigHelper(
     /** Test configuration of Notary with runtime dependencies */
     fun createEthNotaryConfig(
         irohaConfig: IrohaConfig = createIrohaConfig(),
-        ethereumConfig: EthereumConfig = ethNotaryConfig.ethereum,
+        ethereumConfig: EthereumConfig = object : EthereumConfig {
+            override val url = ethNotaryConfig.ethereum.url
+            override val credentialsPath = testConfig.ethereum.credentialsPath
+            override val gasPrice = ethNotaryConfig.ethereum.gasPrice
+            override val gasLimit = ethNotaryConfig.ethereum.gasLimit
+            override val confirmationPeriod = ethNotaryConfig.ethereum.confirmationPeriod
+        },
         notaryCredential_: IrohaCredentialConfig = accountHelper.createCredentialConfig(
             accountHelper.notaryAccount
         )

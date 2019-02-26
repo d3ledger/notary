@@ -9,7 +9,7 @@ dependencies {
 apply plugin: 'com.github.johnrengelman.shadow'
 
 task runIrohaChainAdapter(type: JavaExec) {
-    main = 'chainadapter.ChainAdapterMain'
+    main = 'com.d3.chainadapter.ChainAdapterMain'
     classpath = sourceSets.main.runtimeClasspath
 
     setWorkingDir("$rootDir/")

@@ -2,7 +2,7 @@ dependencies {
     compile project(":notary-commons")
 
     // Eth library
-    compile 'org.web3j:core:4.0.4'
+    compile 'org.web3j:core:4.1.1'
 
     // Waves library
     compile 'com.wavesplatform:wavesj:0.4'

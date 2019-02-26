@@ -577,7 +577,7 @@ class MasterTest {
     /**
      * @given deployed master contract
      * @when 100 different peers are added to master, 5000 Wei is transferred to master,
-     * request to withdraw 1000 Wei is sent to master with 100 signatures from added peers
+     * request to withdraw 1000 Wei is sent to master with 50 signatures from added peers
      * @then withdraw call succeeded
      */
     @Test
@@ -625,7 +625,7 @@ class MasterTest {
 
     /**
      * @given deployed master contract
-     * @when 100 different peers are added to master, 5000 Wei is transferred to master,
+     * @when 50 different peers are added to master, 5000 Wei is transferred to master,
      * request to withdraw 1000 Wei is sent to master with 67 signatures from added peers
      * @then withdraw call succeeded
      */
@@ -674,7 +674,7 @@ class MasterTest {
 
     /**
      * @given deployed master contract
-     * @when 100 different peers are added to master, 5000 Wei is transferred to master,
+     * @when 50 different peers are added to master, 5000 Wei is transferred to master,
      * request to withdraw 1000 Wei is sent to master with 66 signatures from added peers
      * @then withdraw call failed
      */

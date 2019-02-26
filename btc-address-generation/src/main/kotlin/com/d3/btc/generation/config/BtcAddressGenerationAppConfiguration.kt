@@ -69,6 +69,9 @@ class BtcAddressGenerationAppConfiguration {
     }
 
     @Bean
+    fun healthCheckPort() = btcAddressGenerationConfig.healthCheckPort
+
+    @Bean
     fun registrationQueryAPI() = QueryAPI(
         generationIrohaAPI(),
         registrationCredential.accountId,

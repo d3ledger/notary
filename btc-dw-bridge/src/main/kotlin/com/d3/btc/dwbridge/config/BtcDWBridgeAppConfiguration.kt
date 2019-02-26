@@ -1,9 +1,7 @@
-package dwbridge.btc.config
+package com.d3.btc.dwbridge.config
 
 import com.d3.btc.fee.BtcFeeRateService
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
-import config.BitcoinConfig
-import config.loadConfigs
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
@@ -20,6 +18,8 @@ import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
 import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
 import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
+import config.*
+import sidechain.iroha.ReliableIrohaChainListener
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -30,6 +30,8 @@ val dwBridgeConfig = loadConfigs("btc-dw-bridge", BtcDWBridgeConfig::class.java,
 
 @Configuration
 class BtcDWBridgeAppConfiguration {
+
+    private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
 
     private val withdrawalKeypair = ModelUtil.loadKeypair(
         withdrawalConfig.withdrawalCredential.pubkeyPath,
@@ -58,6 +60,9 @@ class BtcDWBridgeAppConfiguration {
 
     @Bean
     fun notaryConfig() = depositConfig
+
+    @Bean
+    fun healthCheckPort() = withdrawalConfig.healthCheckPort
 
     @Bean
     fun irohaAPI(): IrohaAPI {
@@ -124,9 +129,8 @@ class BtcDWBridgeAppConfiguration {
     )
 
     @Bean
-    fun withdrawalIrohaChainListener() = IrohaChainListener(
-        irohaAPI(),
-        withdrawalCredential()
+    fun withdrawalIrohaChainListener() = ReliableIrohaChainListener(
+        rmqConfig, withdrawalConfig.irohaBlockQueue
     )
 
     @Bean

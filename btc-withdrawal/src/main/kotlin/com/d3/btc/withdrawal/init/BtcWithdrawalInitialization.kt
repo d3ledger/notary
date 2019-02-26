@@ -7,6 +7,11 @@ import com.d3.btc.helper.network.addPeerConnectionStatusListener
 import com.d3.btc.helper.network.startChainDownload
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
+import com.d3.btc.withdrawal.handler.NewFeeRateWasSetHandler
+import com.d3.btc.withdrawal.handler.NewSignatureEventHandler
+import com.d3.btc.withdrawal.handler.WithdrawalTransferEventHandler
+import com.d3.btc.withdrawal.listener.BitcoinBlockChainFeeRateListener
+import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
@@ -21,14 +26,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
-import sidechain.iroha.IrohaChainListener
+import sidechain.iroha.ReliableIrohaChainListener
 import sidechain.iroha.util.getSetDetailCommands
 import sidechain.iroha.util.getTransferCommands
-import com.d3.btc.withdrawal.handler.NewFeeRateWasSetHandler
-import com.d3.btc.withdrawal.handler.NewSignatureEventHandler
-import com.d3.btc.withdrawal.handler.WithdrawalTransferEventHandler
-import com.d3.btc.withdrawal.listener.BitcoinBlockChainFeeRateListener
-import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 import java.io.Closeable
 
 /*
@@ -40,7 +40,7 @@ class BtcWithdrawalInitialization(
     @Autowired private val wallet: Wallet,
     @Autowired private val btcChangeAddressProvider: BtcChangeAddressProvider,
     @Qualifier("withdrawalIrohaChainListener")
-    @Autowired private val irohaChainListener: IrohaChainListener,
+    @Autowired private val irohaChainListener: ReliableIrohaChainListener,
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider,
     @Autowired private val withdrawalTransferEventHandler: WithdrawalTransferEventHandler,
     @Autowired private val newSignatureEventHandler: NewSignatureEventHandler,
@@ -49,6 +49,8 @@ class BtcWithdrawalInitialization(
     @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
     @Autowired private val btcFeeRateService: BtcFeeRateService
 ) : HealthyService(), Closeable {
+
+    private val btcFeeRateListener = BitcoinBlockChainFeeRateListener(btcFeeRateService)
 
     fun init(): Result<Unit, Exception> {
         return btcChangeAddressProvider.getChangeAddress().map { changeAddress ->
@@ -70,7 +72,7 @@ class BtcWithdrawalInitialization(
             logger.info { "Previously registered addresses were added to the wallet" }
         }.map {
             // Add fee rate listener
-            peerGroup.addBlocksDownloadedEventListener(BitcoinBlockChainFeeRateListener(btcFeeRateService))
+            peerGroup.addBlocksDownloadedEventListener(btcFeeRateListener)
         }.flatMap {
             initBtcBlockChain()
         }.flatMap { peerGroup ->
@@ -89,12 +91,13 @@ class BtcWithdrawalInitialization(
      */
     private fun initWithdrawalTransferListener(
         wallet: Wallet,
-        irohaChainListener: IrohaChainListener,
+        irohaChainListener: ReliableIrohaChainListener,
         peerGroup: PeerGroup
     ): Result<Unit, Exception> {
-        return irohaChainListener.getIrohaBlockObservable().map { irohaObservable ->
+        //TODO custom acknowledgement doesn't work
+        return irohaChainListener.getBlockObservable().map { irohaObservable ->
             irohaObservable.subscribeOn(Schedulers.single())
-                .subscribe({ block ->
+                .subscribe({ (block, _) ->
                     // Handle transfer commands
                     getTransferCommands(block).forEach { command ->
                         withdrawalTransferEventHandler.handleTransferCommand(
@@ -145,6 +148,7 @@ class BtcWithdrawalInitialization(
 
     override fun close() {
         logger.info { "Closing Bitcoin withdrawal service" }
+        btcFeeRateListener.close()
         peerGroup.stop()
     }
 

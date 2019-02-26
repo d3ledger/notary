@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
 import provider.eth.ETH_ADDRESS
+import provider.eth.ETH_DOMAIN
 import provider.eth.ETH_NAME
 import provider.eth.ETH_PRECISION
 import token.EthTokenInfo
@@ -45,19 +46,22 @@ class EthTokensProviderTest {
             val expectedTokens = mutableMapOf<String, EthTokenInfo>()
             (1..tokensToAdd).forEach { precision ->
                 val ethWallet = "0x$precision"
-                val tokenName = String.getRandomString(9)
-                expectedTokens[ethWallet] = EthTokenInfo(tokenName, precision)
-                integrationHelper.addERC20Token(ethWallet, tokenName, precision)
+                val tokenInfo = EthTokenInfo(String.getRandomString(9), ETH_DOMAIN, precision)
+                expectedTokens[ethWallet] = tokenInfo
+                integrationHelper.addERC20Token(ethWallet, tokenInfo)
             }
             ethTokensProvider.getTokens()
                 .fold(
                     { tokens ->
                         assertFalse(tokens.isEmpty())
                         expectedTokens.forEach { (expectedEthWallet, expectedTokenInfo) ->
-                            val (expectedName, expectedPrecision) = expectedTokenInfo
-                            assertEquals(expectedName, tokens.get(expectedEthWallet))
-                            assertEquals(expectedPrecision, ethTokensProvider.getTokenPrecision(expectedName).get())
-                            assertEquals(expectedEthWallet, ethTokensProvider.getTokenAddress(expectedName).get())
+                            val expectedName = expectedTokenInfo.name
+                            val expectedDomain = expectedTokenInfo.domain
+                            val expectedPrecision = expectedTokenInfo.precision
+                            val assetId = "$expectedName#$expectedDomain"
+                            assertEquals("$expectedName#$expectedDomain", tokens.get(expectedEthWallet))
+                            assertEquals(expectedPrecision, ethTokensProvider.getTokenPrecision(assetId).get())
+                            assertEquals(expectedEthWallet, ethTokensProvider.getTokenAddress(assetId).get())
                         }
                     },
                     { ex -> fail("Cannot get tokens", ex) })
@@ -95,10 +99,10 @@ class EthTokensProviderTest {
     @Test
     fun getEthereum() {
         assertTimeoutPreemptively(timeoutDuration) {
-            ethTokensProvider.getTokenPrecision(ETH_NAME)
+            ethTokensProvider.getTokenPrecision("$ETH_NAME#$ETH_DOMAIN")
                 .success { assertEquals(ETH_PRECISION, it) }
 
-            ethTokensProvider.getTokenAddress(ETH_NAME)
+            ethTokensProvider.getTokenAddress("$ETH_NAME#$ETH_DOMAIN")
                 .success { assertEquals(ETH_ADDRESS, it) }
         }
     }

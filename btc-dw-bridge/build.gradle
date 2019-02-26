@@ -3,16 +3,11 @@ buildscript {
         mavenCentral()
         jcenter()
     }
-    dependencies {
-        //Spring-boot
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:$spring_boot_version"
-    }
 }
 apply plugin: 'application'
 apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
-apply plugin: 'org.springframework.boot'
 apply plugin: 'com.github.johnrengelman.shadow'
-mainClassName = "dwbridge.btc.BtcDepositWithdrawalMain"
+mainClassName = "com.d3.btc.dwbridge.BtcDepositWithdrawalMain"
 
 dependencies {
     compile project(":btc-deposit")
@@ -20,7 +15,7 @@ dependencies {
 }
 
 task runBtcDepositWithdrawal(type: JavaExec) {
-    main = 'dwbridge.btc.BtcDepositWithdrawalMain'
+    main = 'com.d3.btc.dwbridge.BtcDepositWithdrawalMain'
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
 }

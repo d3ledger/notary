@@ -153,8 +153,7 @@ class WithdrawalPipelineIntegrationTest {
             )
 
             val amount = BigDecimal(1.25)
-            val domain = "ethereum"
-            val assetId = "${assetInfo.name}#$domain"
+            val assetId = "${assetInfo.name}#${assetInfo.domain}"
 
             // register client
             val res = integrationHelper.sendRegistrationRequest(

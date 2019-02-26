@@ -10,7 +10,7 @@ import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import notary.eth.EthNotaryConfig
 import notary.eth.executeNotary
-import org.web3j.crypto.WalletUtils
+import provider.eth.ETH_DOMAIN
 import provider.eth.EthFreeRelayProvider
 import provider.eth.EthRelayProviderIrohaImpl
 import provider.eth.EthTokensProviderImpl
@@ -137,7 +137,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      */
     fun deployRandomERC20Token(precision: Int = 0): Pair<EthTokenInfo, String> {
         val name = String.getRandomString(5)
-        return Pair(EthTokenInfo(name, precision), deployERC20Token(name, precision))
+        return Pair(EthTokenInfo(name, ETH_DOMAIN, precision), deployERC20Token(name, precision))
     }
 
     /**
@@ -150,7 +150,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     fun deployERC20Token(name: String, precision: Int): String {
         logger.info { "create $name ERC20 token" }
         val tokenAddress = contractTestHelper.deployHelper.deployERC20TokenSmartContract().contractAddress
-        addERC20Token(tokenAddress, name, precision)
+        addERC20Token(tokenAddress, EthTokenInfo(name, ETH_DOMAIN, precision))
         masterContract.addToken(tokenAddress).send()
         return tokenAddress
     }
@@ -165,18 +165,18 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
 
     /**
      * Add token to Iroha token provider
-     * @param tokenName - user defined token name
      * @param tokenAddress - token ERC20 smart contract address
+     * @param tokenInfo - token info
      */
-    fun addERC20Token(tokenAddress: String, tokenName: String, precision: Int) {
-        ModelUtil.createAsset(irohaConsumer, tokenName, "ethereum", precision)
+    fun addERC20Token(tokenAddress: String, tokenInfo: EthTokenInfo) {
+        ModelUtil.createAsset(irohaConsumer, tokenInfo.name, tokenInfo.domain, tokenInfo.precision)
         ModelUtil.setAccountDetail(
             tokenProviderIrohaConsumer,
             accountHelper.tokenStorageAccount.accountId,
             tokenAddress,
-            tokenName
+            "${tokenInfo.name}#${tokenInfo.domain}"
         ).success {
-            logger.info { "token $tokenName was added to ${accountHelper.tokenStorageAccount} by ${tokenProviderIrohaConsumer.creator}" }
+            logger.info { "token ${tokenInfo.name}#${tokenInfo.domain} was added to ${accountHelper.tokenStorageAccount} by ${tokenProviderIrohaConsumer.creator}" }
         }
     }
 
