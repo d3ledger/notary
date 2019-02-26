@@ -24,15 +24,21 @@ class ContractTestHelper {
 
     val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
     val keypair = deployHelper.credentials.ecKeyPair
-    val relayRegistry by lazy { deployHelper.deployRelayRegistrySmartContract() }
+    val relayRegistry by lazy { deployHelper.deployUpgradableRelayRegistrySmartContract() }
     val token by lazy { deployHelper.deployERC20TokenSmartContract() }
     val master by lazy {
-        deployHelper.deployMasterSmartContract(
+        deployHelper.deployUpgradableMasterSmartContract(
             relayRegistry.contractAddress,
             listOf(accMain)
         )
     }
-    val relay by lazy { deployHelper.deployRelaySmartContract(master.contractAddress) }
+    val relayImplementation by lazy { deployHelper.deployRelaySmartContract(master.contractAddress) }
+    val relay by lazy {
+        deployHelper.deployUpgradableRelaySmartContract(
+            relayImplementation.contractAddress,
+            master.contractAddress
+        )
+    }
 
     val etherAddress = "0x0000000000000000000000000000000000000000"
     val defaultIrohaHash = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))
@@ -209,17 +215,6 @@ class ContractTestHelper {
 
     fun getERC20TokenBalance(contractAddress: String, whoAddress: String): BigInteger {
         return deployHelper.getERC20Balance(contractAddress, whoAddress)
-    }
-
-    /**
-     * Deploy master contract with predefined peers
-     * @return master contract instance
-     */
-    fun deployMaster(relayAddress: String, peers: List<String>): Master {
-        return deployHelper.deployMasterSmartContract(
-            relayAddress,
-            peers
-        )
     }
 
     /**

@@ -15,7 +15,8 @@ import withdrawalservice.WithdrawalServiceConfig
 open class EthConfigHelper(
     private val accountHelper: IrohaAccountHelper,
     open val relayRegistryContractAddress: String,
-    open val masterContractAddress: String
+    open val masterContractAddress: String,
+    open val relayImplementaionContractAddress: String
 ) : IrohaConfigHelper() {
 
     /** Ethereum password configs */
@@ -64,6 +65,7 @@ open class EthConfigHelper(
             override val number = relayRegistrationConfig.number
             override val replenishmentPeriod = relayRegistrationConfig.replenishmentPeriod
             override val ethMasterWallet = masterContractAddress
+            override val ethRelayImplementationAddress = relayImplementaionContractAddress
             override val notaryIrohaAccount = accountHelper.notaryAccount.accountId
             override val iroha = createIrohaConfig()
             override val ethereum = relayRegistrationConfig.ethereum

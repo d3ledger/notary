@@ -7,6 +7,7 @@ import "./IERC20.sol";
  * Provides functionality of relay contract
  */
 contract Relay {
+    bool internal initialized_;
     address payable private masterAddress;
     IMaster private masterInstance;
 
@@ -20,8 +21,17 @@ contract Relay {
      * @param master address of master contract
      */
     constructor(address payable master) public {
+        initialize(master);
+    }
+
+    /**
+     * Initialization of smart contract.
+     */
+    function initialize(address payable master) public {
+        require(!initialized_);
         masterAddress = master;
         masterInstance = IMaster(masterAddress);
+        initialized_ = true;
     }
 
     /**
@@ -64,7 +74,7 @@ contract Relay {
     function withdraw(
         address tokenAddress,
         uint256 amount,
-        address to,
+        address payable to,
         bytes32 tx_hash,
         uint8[] memory v,
         bytes32[] memory r,
