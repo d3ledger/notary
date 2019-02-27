@@ -8,6 +8,7 @@ import config.loadRawConfigs
 import jp.co.soramitsu.iroha.java.QueryAPI
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
+import notary.endpoint.eth.EthWhiteListProvider
 import notary.eth.EthNotaryConfig
 import notary.eth.executeNotary
 import provider.eth.ETH_DOMAIN
@@ -122,6 +123,33 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
             irohaAPI,
             configHelper.ethPasswordConfig
         )
+    }
+
+    private val whitelistProvider by lazy {
+        EthWhiteListProvider(
+            ethRegistrationConfig.registrationCredential.accountId, queryAPI
+        )
+    }
+
+    /**
+     * Get address of first free relay.
+     */
+    fun getFreeRelay(): String {
+        return ethFreeRelayProvider.getRelay().get()
+    }
+
+    /**
+     * Get relay address of an account.
+     */
+    fun getRelayByAccount(clientId: String): String {
+        return ethRelayProvider.getRelay(clientId).get()
+    }
+
+    /**
+     * Check if address is in whitelist of a user.
+     */
+    fun isWhitelisted(clientId: String, address: String): Boolean {
+        return whitelistProvider.checkWithdrawalAddress(clientId, address).get()
     }
 
     /**

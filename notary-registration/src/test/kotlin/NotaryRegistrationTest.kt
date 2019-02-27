@@ -4,7 +4,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import mu.KLogging
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import registration.NotaryRegistrationConfig
@@ -24,7 +23,7 @@ class NotaryRegistrationTest {
             main(emptyArray())
         }
 
-        runBlocking { delay(40_000) }
+        runBlocking { delay(20_000) }
     }
 
     /**
@@ -97,9 +96,4 @@ class NotaryRegistrationTest {
         )
         assertEquals(500, res.statusCode)
     }
-
-    /**
-     * Logger
-     */
-    companion object : KLogging()
 }
