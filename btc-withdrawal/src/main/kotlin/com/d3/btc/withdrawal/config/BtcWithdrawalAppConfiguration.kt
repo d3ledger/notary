@@ -96,7 +96,7 @@ class BtcWithdrawalAppConfiguration {
 
     @Bean
     fun withdrawalIrohaChainListener() = ReliableIrohaChainListener(
-        rmqConfig, withdrawalConfig.irohaBlockQueue
+        rmqConfig, withdrawalConfig.irohaBlockQueue, Executors.newSingleThreadExecutor()
     )
 
     @Bean
