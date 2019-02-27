@@ -59,7 +59,7 @@ class BtcWithdrawalTestEnvironment(
      */
     private val executor = Executors.newSingleThreadExecutor()
 
-    private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties") 
+    private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
 
     private val irohaApi by lazy {
         val irohaAPI = IrohaAPI(
@@ -105,7 +105,8 @@ class BtcWithdrawalTestEnvironment(
 
     private val irohaChainListener = ReliableIrohaChainListener(
         rmqConfig,
-        testName
+        testName,
+        Executors.newSingleThreadExecutor()
     )
 
     val btcRegisteredAddressesProvider = BtcRegisteredAddressesProvider(
