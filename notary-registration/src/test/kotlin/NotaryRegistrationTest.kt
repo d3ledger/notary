@@ -24,7 +24,7 @@ class NotaryRegistrationTest {
             main(emptyArray())
         }
 
-        runBlocking { delay(20_000) }
+        runBlocking { delay(40_000) }
     }
 
     /**
@@ -66,6 +66,36 @@ class NotaryRegistrationTest {
         )
 
         assertEquals(200, res.statusCode)
+    }
+
+    /**
+     * Test registration
+     * @given Registration service is up and running
+     * @when POST query is sent to register a user with `name` and `pubkey` where user with 'name' already exists
+     * @then error response that userId already exists returned
+     */
+    @Test
+    fun doubleRegistration() {
+        val name = String.getRandomString(7)
+        val pubkey = Ed25519Sha3().generateKeypair().public.toHexString()
+
+        // register client
+        var res = post(
+            mapOf(
+                "name" to name,
+                "pubkey" to pubkey
+            )
+        )
+        assertEquals(200, res.statusCode)
+
+        // try to register with the same name
+        res = post(
+            mapOf(
+                "name" to name,
+                "pubkey" to pubkey
+            )
+        )
+        assertEquals(500, res.statusCode)
     }
 
     /**
