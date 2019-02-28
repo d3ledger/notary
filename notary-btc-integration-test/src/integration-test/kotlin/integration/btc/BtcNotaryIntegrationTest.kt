@@ -135,12 +135,19 @@ class BtcNotaryIntegrationTest {
             BTC_ASSET
         )
         val btcAmount = 1
+        val sendBtcThreads = ArrayList<Thread>()
         for (deposit in 1..totalDeposits) {
-            Thread {
-                integrationHelper.sendBtc(btcAddress, btcAmount)
-            }.start()
+            val sendBtcThread = Thread {
+                integrationHelper.sendBtc(btcAddress, btcAmount, 0)
+            }
+            sendBtcThreads.add(sendBtcThread)
+            sendBtcThread.start()
         }
-        Thread.sleep(DEPOSIT_WAIT_MILLIS * totalDeposits)
+        sendBtcThreads.forEach { thread ->
+            thread.join()
+        }
+        integrationHelper.generateBtcBlocks(environment.notaryConfig.bitcoin.confidenceLevel)
+        Thread.sleep(15_000)
         val newBalance = integrationHelper.getIrohaAccountBalance(testClient, BTC_ASSET)
         assertEquals(
             BigDecimal(initialBalance).add(BigDecimal(btcAmount)).multiply(totalDeposits.toBigDecimal()).toString(),

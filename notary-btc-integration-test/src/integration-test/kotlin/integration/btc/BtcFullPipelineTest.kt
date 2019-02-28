@@ -169,15 +169,18 @@ class BtcFullPipelineTest {
         val destBtcAddress = registerClient(destUserName, destKeypair)
 
         // Send 1 BTC multiple times
-        for (transfer in 1..totalTransfers) {
-            Thread {
-                integrationHelper.sendBtc(
-                    srcBtcAddress,
-                    1,
-                    notaryEnvironment.notaryConfig.bitcoin.confidenceLevel
-                )
-            }.start()
+        val sendBtcThreads = ArrayList<Thread>()
+        for (deposit in 1..totalTransfers) {
+            val sendBtcThread = Thread {
+                integrationHelper.sendBtc(srcBtcAddress, 1, 0)
+            }
+            sendBtcThreads.add(sendBtcThread)
+            sendBtcThread.start()
         }
+        sendBtcThreads.forEach { thread ->
+            thread.join()
+        }
+        integrationHelper.generateBtcBlocks(notaryEnvironment.notaryConfig.bitcoin.confidenceLevel)
         Thread.sleep(DEPOSIT_WAIT_MILLIS * totalTransfers)
         val createdTime = System.currentTimeMillis()
         // Send 10000 SAT from source to destination multiple times
