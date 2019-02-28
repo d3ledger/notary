@@ -8,6 +8,7 @@ import config.loadRawConfigs
 import jp.co.soramitsu.iroha.java.QueryAPI
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
+import notary.endpoint.eth.ETH_WHITE_LIST_KEY
 import notary.endpoint.eth.EthWhiteListProvider
 import notary.eth.EthNotaryConfig
 import notary.eth.executeNotary
@@ -15,7 +16,6 @@ import provider.eth.ETH_DOMAIN
 import provider.eth.EthFreeRelayProvider
 import provider.eth.EthRelayProviderIrohaImpl
 import provider.eth.EthTokensProviderImpl
-import registration.ETH_WHITE_LIST_KEY
 import registration.eth.EthRegistrationConfig
 import registration.eth.EthRegistrationStrategyImpl
 import registration.eth.relay.RelayRegistration

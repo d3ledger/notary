@@ -6,12 +6,14 @@ import com.github.kittinunf.result.map
 import config.EthereumPasswords
 import contract.RelayRegistry
 import mu.KLogging
+import notary.endpoint.eth.ETH_WHITE_LIST_KEY
 import okhttp3.OkHttpClient
 import org.web3j.crypto.WalletUtils
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
+import org.web3j.tx.gas.StaticGasProvider
 import provider.eth.EthFreeRelayProvider
-import registration.IrohaEthAccountCreator
+import registration.IrohaAccountCreator
 import registration.RegistrationStrategy
 import sidechain.eth.util.BasicAuthenticator
 import sidechain.iroha.consumer.IrohaConsumer
@@ -32,6 +34,9 @@ class EthRegistrationStrategyImpl(
         logger.info { "Init EthRegistrationStrategyImpl with irohaCreator=${irohaConsumer.creator}, notaryIrohaAccount=$notaryIrohaAccount" }
     }
 
+    private val irohaAccountCreator =
+        IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, "ethereum_wallet")
+
     private val credentials = WalletUtils.loadCredentials(
         passwordConfig.credentialsPassword,
         ethRegistrationConfig.ethereum.credentialsPath
@@ -43,11 +48,11 @@ class EthRegistrationStrategyImpl(
         ethRegistrationConfig.ethRelayRegistryAddress,
         web3,
         credentials,
-        BigInteger.valueOf(ethRegistrationConfig.ethereum.gasPrice),
-        BigInteger.valueOf(ethRegistrationConfig.ethereum.gasLimit)
+        StaticGasProvider(
+            BigInteger.valueOf(ethRegistrationConfig.ethereum.gasPrice),
+            BigInteger.valueOf(ethRegistrationConfig.ethereum.gasLimit)
+        )
     )
-
-    private val irohaEthAccountCreator = IrohaEthAccountCreator(irohaConsumer, notaryIrohaAccount)
 
     /**
      * Register new notary client
@@ -66,9 +71,14 @@ class EthRegistrationStrategyImpl(
             .flatMap { freeEthWallet ->
                 logger.info { "Add new relay to relay registry relayRegistry=$relayRegistry, freeWallet=$freeEthWallet, whitelist=$whitelist, creator=${credentials.address}." }
                 relayRegistry.addNewRelayAddress(freeEthWallet, whitelist).send()
-                irohaEthAccountCreator.create(
-                    freeEthWallet, whitelist, name, domain, pubkey
-                )
+                irohaAccountCreator.create(
+                    freeEthWallet,
+                    ETH_WHITE_LIST_KEY,
+                    whitelist,
+                    name,
+                    domain,
+                    pubkey
+                ) { "$name@$domain" }
             }
     }
 
