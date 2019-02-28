@@ -17,6 +17,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import io.reactivex.schedulers.Schedulers
+import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
 import mu.KLogging
 import org.bitcoinj.core.Address
@@ -79,9 +80,7 @@ class BtcWithdrawalInitialization(
             initBtcBlockChain()
         }.flatMap { peerGroup ->
             initWithdrawalTransferListener(
-                transferWallet,
-                irohaChainListener,
-                peerGroup
+                irohaChainListener
             )
         }
     }
@@ -92,43 +91,61 @@ class BtcWithdrawalInitialization(
      * @return result of initiation process
      */
     private fun initWithdrawalTransferListener(
-        transferWallet: Wallet,
-        irohaChainListener: ReliableIrohaChainListener,
-        peerGroup: PeerGroup
+        irohaChainListener: ReliableIrohaChainListener
     ): Result<Unit, Exception> {
-        //TODO custom acknowledgement doesn't work
-        return irohaChainListener.getBlockObservable().map { irohaObservable ->
+        return irohaChainListener.getBlockObservable(autoAck = false).map { irohaObservable ->
             irohaObservable.subscribeOn(Schedulers.single())
-                .subscribe({ (block, _) ->
-                    // Handle transfer commands
-                    getTransferCommands(block).forEach { command ->
-                        withdrawalTransferEventHandler.handleTransferCommand(
-                            transferWallet,
-                            command.transferAsset,
-                            block.blockV1.payload.createdTime
-                        )
-                    }
-                    // Handle signature appearance commands
-                    getSetDetailCommands(block).filter { command -> isNewWithdrawalSignature(command) }
-                        .forEach { command ->
-                            newSignatureEventHandler.handleNewSignatureCommand(
-                                command.setAccountDetail,
-                                peerGroup
-                            ) { transferWallet.saveToFile(File(withdrawalConfig.btcTransfersWalletPath)) }
-                        }
-                    // Handle 'set new fee rate' events
-                    getSetDetailCommands(block).forEach { command ->
-                        newFeeRateWasSetHandler.handleNewFeeRate(command)
-                    }
-                    // Handle newly registered Bitcoin addresses. We need it to update transferWallet object.
-                    getSetDetailCommands(block).forEach { command ->
-                        newBtcClientRegistrationHandler.handleNewClientCommand(command, transferWallet)
-                    }
+                .subscribe({ (block, ack) ->
+                    safeApplyAck({
+                        handleIrohaBlock(block)
+                    }, {
+                        ack()
+                    })
                 }, { ex ->
                     notHealthy()
                     logger.error("Error on transfer events subscription", ex)
                 })
             logger.info { "Iroha transfer events listener was initialized" }
+        }
+    }
+
+    /**
+     * Handles Iroha blocks
+     * @param block - Iroha block
+     */
+    private fun handleIrohaBlock(block: BlockOuterClass.Block) {
+        // Handle transfer commands
+        getTransferCommands(block).forEach { command ->
+            withdrawalTransferEventHandler.handleTransferCommand(
+                transferWallet,
+                command.transferAsset,
+                block.blockV1.payload.createdTime
+            )
+        }
+        // Handle signature appearance commands
+        getSetDetailCommands(block).filter { command -> isNewWithdrawalSignature(command) }
+            .forEach { command ->
+                newSignatureEventHandler.handleNewSignatureCommand(
+                    command.setAccountDetail,
+                    peerGroup
+                ) { transferWallet.saveToFile(File(withdrawalConfig.btcTransfersWalletPath)) }
+            }
+        // Handle 'set new fee rate' events
+        getSetDetailCommands(block).forEach { command ->
+            newFeeRateWasSetHandler.handleNewFeeRate(command)
+        }
+        // Handle newly registered Bitcoin addresses. We need it to update transferWallet object.
+        getSetDetailCommands(block).forEach { command ->
+            newBtcClientRegistrationHandler.handleNewClientCommand(command, transferWallet)
+        }
+    }
+
+    // Calls apply and then acknowledges it safely
+    private fun safeApplyAck(apply: () -> Unit, ack: () -> Unit) {
+        try {
+            apply()
+        } finally {
+            ack()
         }
     }
 

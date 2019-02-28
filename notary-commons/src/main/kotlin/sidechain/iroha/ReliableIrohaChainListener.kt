@@ -10,7 +10,6 @@ import io.reactivex.subjects.PublishSubject
 import mu.KLogging
 import sidechain.ChainListener
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 /**
  * Rabbit MQ based implementation of [ChainListener]
@@ -64,8 +63,10 @@ class ReliableIrohaChainListener(
                 val block = iroha.protocol.BlockOuterClass.Block.parseFrom(delivery.body)
                 logger.info { "New Iroha block arrived. Height ${block.blockV1.payload.height}" }
                 Pair(block, {
-                    if (!autoAck)
+                    if (!autoAck) {
                         channel.basicAck(delivery.envelope.deliveryTag, false)
+                        logger.info { "Iroha block delivery confirmed" }
+                    }
                 })
             }
         }
