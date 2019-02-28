@@ -65,3 +65,6 @@ project(':d3testreport').projectDir = 'd3testreport' as File
 
 include 'chain-adapter'
 project(':chain-adapter').projectDir = 'chain-adapter' as File
+
+include 'bootstrap'
+project(':bootstrap').projectDir = 'bootstrap' as File
