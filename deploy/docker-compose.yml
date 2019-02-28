@@ -79,6 +79,8 @@ services:
   d3-chain-adapter:
     image: nexus.iroha.tech:19002/d3-deploy/chain-adapter:${TAG-master}
     container_name: d3-chain-adapter
+    depends_on:
+      - d3-rmq
     volumes:
       - ./:/opt/notary/deploy
       - ../configs:/opt/notary/configs
