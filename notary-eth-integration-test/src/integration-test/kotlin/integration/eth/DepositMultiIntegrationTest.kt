@@ -1,7 +1,7 @@
 package integration.eth
 
-import config.IrohaCredentialConfig
-import config.loadEthPasswords
+import com.d3.commons.config.IrohaCredentialConfig
+import com.d3.commons.config.loadEthPasswords
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
 import kotlinx.coroutines.delay
@@ -10,10 +10,10 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import provider.eth.ETH_PRECISION
-import sidechain.iroha.CLIENT_DOMAIN
-import sidechain.iroha.util.ModelUtil
-import util.getRandomString
+import com.d3.commons.provider.eth.ETH_PRECISION
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Duration

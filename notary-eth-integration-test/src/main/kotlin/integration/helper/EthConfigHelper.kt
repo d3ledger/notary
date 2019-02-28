@@ -1,10 +1,10 @@
 package integration.helper
 
-import config.*
-import notary.eth.EthNotaryConfig
-import notary.eth.RefundConfig
-import registration.eth.EthRegistrationConfig
-import registration.eth.relay.RelayRegistrationConfig
+import com.d3.commons.config.*
+import com.d3.commons.notary.eth.EthNotaryConfig
+import com.d3.commons.notary.eth.RefundConfig
+import com.d3.commons.registration.eth.EthRegistrationConfig
+import com.d3.commons.registration.eth.relay.RelayRegistrationConfig
 import token.ERC20TokenRegistrationConfig
 import vacuum.RelayVacuumConfig
 import withdrawalservice.WithdrawalServiceConfig

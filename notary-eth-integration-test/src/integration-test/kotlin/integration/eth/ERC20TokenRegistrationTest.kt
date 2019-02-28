@@ -8,13 +8,13 @@ import integration.helper.IrohaConfigHelper
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
-import provider.eth.ETH_DOMAIN
-import provider.eth.EthTokensProviderImpl
-import provider.eth.SORA_DOMAIN
-import provider.eth.XOR_NAME
+import com.d3.commons.provider.eth.ETH_DOMAIN
+import com.d3.commons.provider.eth.EthTokensProviderImpl
+import com.d3.commons.provider.eth.SORA_DOMAIN
+import com.d3.commons.provider.eth.XOR_NAME
 import token.EthTokenInfo
 import token.executeTokenRegistration
-import util.getRandomString
+import com.d3.commons.util.getRandomString
 import java.io.File
 import java.time.Duration
 

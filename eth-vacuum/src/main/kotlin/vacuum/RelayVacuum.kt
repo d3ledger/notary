@@ -3,13 +3,13 @@ package vacuum
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import config.EthereumPasswords
+import com.d3.commons.config.EthereumPasswords
 import contract.Relay
 import jp.co.soramitsu.iroha.java.QueryAPI
 import mu.KLogging
-import provider.eth.EthRelayProviderIrohaImpl
-import provider.eth.EthTokensProviderImpl
-import sidechain.eth.util.DeployHelper
+import com.d3.commons.provider.eth.EthRelayProviderIrohaImpl
+import com.d3.commons.provider.eth.EthTokensProviderImpl
+import com.d3.commons.sidechain.eth.util.DeployHelper
 
 /**
  * Class is responsible for relay contracts vacuum

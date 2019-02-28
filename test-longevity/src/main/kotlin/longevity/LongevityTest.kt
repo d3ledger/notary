@@ -1,16 +1,16 @@
 package longevity
 
 import com.github.kittinunf.result.Result
-import config.IrohaCredentialConfig
-import config.loadEthPasswords
+import com.d3.commons.config.IrohaCredentialConfig
+import com.d3.commons.config.loadEthPasswords
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.NotaryClient
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import mu.KLogging
-import provider.eth.ETH_PRECISION
-import sidechain.iroha.util.ModelUtil
+import com.d3.commons.provider.eth.ETH_PRECISION
+import com.d3.commons.sidechain.iroha.util.ModelUtil
 import java.math.BigDecimal
 import java.math.BigInteger
 

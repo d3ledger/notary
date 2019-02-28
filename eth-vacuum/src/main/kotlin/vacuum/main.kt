@@ -3,13 +3,13 @@
 package vacuum
 
 import com.github.kittinunf.result.*
-import config.loadConfigs
-import config.loadEthPasswords
+import com.d3.commons.config.loadConfigs
+import com.d3.commons.config.loadEthPasswords
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
-import model.IrohaCredential
+import com.d3.commons.model.IrohaCredential
 import mu.KLogging
-import sidechain.iroha.util.ModelUtil
+import com.d3.commons.sidechain.iroha.util.ModelUtil
 
 private const val RELAY_VACUUM_PREFIX = "relay-vacuum"
 private val logger = KLogging().logger

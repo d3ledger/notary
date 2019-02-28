@@ -4,16 +4,16 @@ import com.d3.btc.provider.BtcFreeAddressesProvider
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.address.BtcAddressesProvider
 import com.d3.btc.provider.generation.BtcSessionProvider
-import config.loadConfigs
+import com.d3.commons.config.loadConfigs
 import com.d3.btc.generation.config.BtcAddressGenerationConfig
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
-import model.IrohaCredential
+import com.d3.commons.model.IrohaCredential
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import provider.TriggerProvider
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.util.ModelUtil
+import com.d3.commons.provider.TriggerProvider
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.sidechain.iroha.util.ModelUtil
 
 val btcAddressGenerationTriggerConfig =
     loadConfigs(

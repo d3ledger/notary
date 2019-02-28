@@ -6,11 +6,11 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import config.*
+import com.d3.commons.config.*
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import model.IrohaCredential
+import com.d3.commons.model.IrohaCredential
 import mu.KLogging
-import sidechain.iroha.util.ModelUtil
+import com.d3.commons.sidechain.iroha.util.ModelUtil
 import vacuum.RelayVacuumConfig
 
 private val logger = KLogging().logger

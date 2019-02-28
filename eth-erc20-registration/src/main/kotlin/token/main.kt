@@ -4,11 +4,11 @@ package token
 
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import config.loadConfigs
+import com.d3.commons.config.loadConfigs
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import model.IrohaCredential
+import com.d3.commons.model.IrohaCredential
 import mu.KLogging
-import sidechain.iroha.util.ModelUtil
+import com.d3.commons.sidechain.iroha.util.ModelUtil
 
 private val logger = KLogging().logger
 

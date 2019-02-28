@@ -7,10 +7,10 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.web3j.protocol.exceptions.TransactionException
-import provider.eth.ETH_DOMAIN
-import sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.provider.eth.ETH_DOMAIN
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import token.EthTokenInfo
-import util.getRandomString
+import com.d3.commons.util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Duration

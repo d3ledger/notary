@@ -2,17 +2,16 @@ package integration.helper
 
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
-import config.IrohaCredentialConfig
-import config.loadConfigs
+import com.d3.commons.config.IrohaCredentialConfig
+import com.d3.commons.config.loadConfigs
 import integration.TestConfig
 import iroha.protocol.Primitive
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import model.IrohaCredential
+import com.d3.commons.model.IrohaCredential
 import mu.KLogging
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.util.ModelUtil
-import util.getRandomString
-import util.toHexString
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.getRandomString
 import java.security.KeyPair
 
 /**
@@ -76,7 +75,7 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
 
     /** Account that used to store registered clients.*/
     val registrationAccount by lazy {
-        createTesterAccount("registration", "registration_service", "client")
+        createTesterAccount("com/d3/commons/registration", "registration_service", "client")
     }
 
     /** Account that used to store registered clients in mst fashion.*/
@@ -151,7 +150,7 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
      */
     private fun createTesterAccount(prefix: String, vararg roleName: String): IrohaCredential {
         val name = prefix + "_${String.getRandomString(9)}"
-        val domain = "notary"
+        val domain = "com/d3/commons/notary"
         // TODO - Bulat - generate new keys for account?
 
         ModelUtil.createAccount(
@@ -172,7 +171,7 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
      * Create notary account and grant set_my_quorum, transfer_my_assets and add_my_signatory permissions to test account
      */
     private fun createNotaryAccount(): IrohaCredential {
-        val credential = createTesterAccount("notary_${String.getRandomString(9)}", "notary")
+        val credential = createTesterAccount("notary_${String.getRandomString(9)}", "com/d3/commons/notary")
 
         ModelUtil.grantPermissions(
             IrohaConsumerImpl(credential, irohaAPI),

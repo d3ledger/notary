@@ -4,17 +4,17 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import config.EthereumPasswords
-import config.RMQConfig
+import com.d3.commons.config.EthereumPasswords
+import com.d3.commons.config.RMQConfig
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import model.IrohaCredential
+import com.d3.commons.model.IrohaCredential
 import mu.KLogging
-import sidechain.SideChainEvent
-import sidechain.eth.consumer.EthConsumer
-import sidechain.iroha.IrohaChainHandler
-import sidechain.iroha.ReliableIrohaChainListener
+import com.d3.commons.sidechain.SideChainEvent
+import com.d3.commons.sidechain.eth.consumer.EthConsumer
+import com.d3.commons.sidechain.iroha.IrohaChainHandler
+import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
 import vacuum.RelayVacuumConfig
 
 /**

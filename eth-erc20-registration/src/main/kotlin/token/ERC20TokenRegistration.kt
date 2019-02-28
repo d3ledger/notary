@@ -7,12 +7,12 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.Transaction
-import model.IrohaCredential
+import com.d3.commons.model.IrohaCredential
 import mu.KLogging
-import provider.eth.SORA_DOMAIN
-import provider.eth.XOR_NAME
-import sidechain.iroha.consumer.IrohaConsumer
-import sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.provider.eth.SORA_DOMAIN
+import com.d3.commons.provider.eth.XOR_NAME
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream

@@ -5,11 +5,11 @@ package deploy
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.map
-import config.EthereumConfig
-import config.loadConfigs
-import config.loadEthPasswords
+import com.d3.commons.config.EthereumConfig
+import com.d3.commons.config.loadConfigs
+import com.d3.commons.config.loadEthPasswords
 import mu.KLogging
-import sidechain.eth.util.DeployHelper
+import com.d3.commons.sidechain.eth.util.DeployHelper
 import java.math.BigInteger
 
 private val logger = KLogging().logger

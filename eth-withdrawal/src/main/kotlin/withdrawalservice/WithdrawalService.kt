@@ -1,7 +1,7 @@
 package withdrawalservice
 
 import com.github.kittinunf.result.Result
-import sidechain.SideChainEvent
+import com.d3.commons.sidechain.SideChainEvent
 
 /**
  * Withdrawal service is responsible for the withdrawal and rollback proof forming and interconnection with Ethereum.

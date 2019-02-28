@@ -27,10 +27,10 @@ import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
-import sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
-import sidechain.iroha.ReliableIrohaChainListener
-import sidechain.iroha.util.getSetDetailCommands
-import sidechain.iroha.util.getTransferCommands
+import com.d3.commons.sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
+import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
+import com.d3.commons.sidechain.iroha.util.getSetDetailCommands
+import com.d3.commons.sidechain.iroha.util.getTransferCommands
 import java.io.Closeable
 import java.io.File
 import java.util.concurrent.Executors

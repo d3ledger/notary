@@ -2,9 +2,9 @@
 
 package com.d3.chainadapter
 
-import config.RMQConfig
-import config.getConfigFolder
-import config.loadRawConfigs
+import com.d3.commons.config.RMQConfig
+import com.d3.commons.config.getConfigFolder
+import com.d3.commons.config.loadRawConfigs
 
 fun main(args: Array<String>) {
     val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")

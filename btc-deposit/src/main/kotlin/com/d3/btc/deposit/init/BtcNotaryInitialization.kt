@@ -15,9 +15,9 @@ import com.github.kittinunf.result.map
 import io.reactivex.Observable
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
-import model.IrohaCredential
+import com.d3.commons.model.IrohaCredential
 import mu.KLogging
-import notary.NotaryImpl
+import com.d3.commons.notary.NotaryImpl
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.PeerGroup
 import org.bitcoinj.utils.BriefLogFormatter
@@ -25,9 +25,9 @@ import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
-import provider.NotaryPeerListProviderImpl
-import sidechain.SideChainEvent
-import sidechain.iroha.IrohaChainListener
+import com.d3.commons.provider.NotaryPeerListProviderImpl
+import com.d3.commons.sidechain.SideChainEvent
+import com.d3.commons.sidechain.iroha.IrohaChainListener
 import java.io.Closeable
 import java.io.File
 import java.util.concurrent.Executors

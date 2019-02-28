@@ -1,7 +1,7 @@
 package token
 
-import config.IrohaConfig
-import config.IrohaCredentialConfig
+import com.d3.commons.config.IrohaConfig
+import com.d3.commons.config.IrohaCredentialConfig
 
 interface ERC20TokenRegistrationConfig {
 

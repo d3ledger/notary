@@ -7,7 +7,7 @@ import org.bitcoinj.core.Block
 import org.bitcoinj.core.FilteredBlock
 import org.bitcoinj.core.Peer
 import org.bitcoinj.core.listeners.BlocksDownloadedEventListener
-import sidechain.SideChainEvent
+import com.d3.commons.sidechain.SideChainEvent
 import java.util.concurrent.ExecutorService
 
 private const val DAY_MILLIS = 24 * 60 * 60 * 1000L

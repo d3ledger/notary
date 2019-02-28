@@ -8,14 +8,14 @@ import com.d3.btc.withdrawal.init.BtcWithdrawalInitialization
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
-import config.getProfile
+import com.d3.commons.config.getProfile
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import mu.KLogging
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.EnableMBeanExport
-import util.createFolderIfDoesntExist
+import com.d3.commons.util.createFolderIfDoesntExist
 
 @EnableMBeanExport
 @ComponentScan(

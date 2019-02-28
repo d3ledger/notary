@@ -1,7 +1,7 @@
 package com.d3.btc.dwbridge.config
 
-import config.BitcoinConfig
-import config.IrohaConfig
+import com.d3.commons.config.BitcoinConfig
+import com.d3.commons.config.IrohaConfig
 
 interface BtcDWBridgeConfig {
 

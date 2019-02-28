@@ -10,9 +10,9 @@ import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
-import provider.eth.EthFreeRelayProvider
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.util.ModelUtil.setAccountDetail
+import com.d3.commons.provider.eth.EthFreeRelayProvider
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.sidechain.iroha.util.ModelUtil.setAccountDetail
 import java.io.File
 import java.time.Duration
 

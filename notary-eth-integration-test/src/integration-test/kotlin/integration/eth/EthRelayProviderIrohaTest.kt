@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
-import provider.eth.EthRelayProviderIrohaImpl
+import com.d3.commons.provider.eth.EthRelayProviderIrohaImpl
 import java.time.Duration
 
 /**

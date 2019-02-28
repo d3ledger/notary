@@ -1,8 +1,7 @@
 package integration.helper
 
-import config.EthereumPasswords
-import config.loadConfigs
-import contract.Master
+import com.d3.commons.config.EthereumPasswords
+import com.d3.commons.config.loadConfigs
 import contract.SoraToken
 import integration.TestConfig
 import org.web3j.crypto.ECKeyPair
@@ -10,10 +9,10 @@ import org.web3j.crypto.Hash
 import org.web3j.crypto.Keys
 import org.web3j.protocol.core.methods.response.TransactionReceipt
 import org.web3j.utils.Numeric
-import sidechain.eth.util.DeployHelper
-import sidechain.eth.util.extractVRS
-import sidechain.eth.util.hashToWithdraw
-import sidechain.eth.util.signUserData
+import com.d3.commons.sidechain.eth.util.DeployHelper
+import com.d3.commons.sidechain.eth.util.extractVRS
+import com.d3.commons.sidechain.eth.util.hashToWithdraw
+import com.d3.commons.sidechain.eth.util.signUserData
 import java.math.BigInteger
 import kotlin.test.assertEquals
 
