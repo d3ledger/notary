@@ -9,20 +9,28 @@ import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import mu.KLogging
 import sidechain.ChainListener
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 /**
  * Rabbit MQ based implementation of [ChainListener]
  */
 class ReliableIrohaChainListener(
     private val rmqConfig: RMQConfig,
-    private val irohaQueue: String
+    private val irohaQueue: String,
+    private val consumerExecutorService: ExecutorService? = null
 ) : ChainListener<Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit>> {
 
     private val factory = ConnectionFactory()
 
     private val conn by lazy {
         factory.host = rmqConfig.host
-        factory.newConnection()
+        if (consumerExecutorService != null) {
+            factory.newConnection(consumerExecutorService)
+        } else {
+            factory.newConnection()
+        }
+
     }
 
     private val channel by lazy { conn.createChannel() }
@@ -45,6 +53,7 @@ class ReliableIrohaChainListener(
         val source = PublishSubject.create<Delivery>()
         val obs: Observable<Delivery> = source
         val deliverCallback = { consumerTag: String, delivery: Delivery ->
+            // This code is executed inside consumerExecutorService
             source.onNext(delivery)
         }
 
@@ -88,6 +97,7 @@ class ReliableIrohaChainListener(
         consumerTag?.let {
             channel.basicCancel(it)
         }
+        consumerExecutorService?.shutdownNow()
     }
 
     /**
