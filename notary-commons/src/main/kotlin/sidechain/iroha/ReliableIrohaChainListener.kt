@@ -51,14 +51,13 @@ class ReliableIrohaChainListener(
     override fun getBlockObservable(autoAck: Boolean): Result<Observable<Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit>>, Exception> {
 
         val source = PublishSubject.create<Delivery>()
-        val obs: Observable<Delivery> = source
         val deliverCallback = { consumerTag: String, delivery: Delivery ->
             // This code is executed inside consumerExecutorService
             source.onNext(delivery)
         }
-
-        consumerTag = channel.basicConsume(irohaQueue, autoAck, deliverCallback, { _ -> })
-
+        val obs: Observable<Delivery> = source.doOnSubscribe {
+            consumerTag = channel.basicConsume(irohaQueue, autoAck, deliverCallback, { _ -> })
+        }
         logger.info { "On subscribe to Iroha chain" }
         return Result.of {
             obs.map { delivery ->
