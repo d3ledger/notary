@@ -75,7 +75,7 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
 
     /** Account that used to store registered clients.*/
     val registrationAccount by lazy {
-        createTesterAccount("com/d3/commons/registration", "registration_service", "client")
+        createTesterAccount("registration", "registration_service", "client")
     }
 
     /** Account that used to store registered clients in mst fashion.*/
@@ -150,7 +150,7 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
      */
     private fun createTesterAccount(prefix: String, vararg roleName: String): IrohaCredential {
         val name = prefix + "_${String.getRandomString(9)}"
-        val domain = "com/d3/commons/notary"
+        val domain = "notary"
         // TODO - Bulat - generate new keys for account?
 
         ModelUtil.createAccount(
@@ -171,7 +171,7 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
      * Create notary account and grant set_my_quorum, transfer_my_assets and add_my_signatory permissions to test account
      */
     private fun createNotaryAccount(): IrohaCredential {
-        val credential = createTesterAccount("notary_${String.getRandomString(9)}", "com/d3/commons/notary")
+        val credential = createTesterAccount("notary_${String.getRandomString(9)}", "notary")
 
         ModelUtil.grantPermissions(
             IrohaConsumerImpl(credential, irohaAPI),

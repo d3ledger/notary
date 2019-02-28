@@ -48,7 +48,7 @@ class IrohaBatchTest {
     private val tester = testCredential.accountId
     private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
 
-    val assetDomain = "com/d3/commons/notary"
+    val assetDomain = "notary"
 
     val listener = ReliableIrohaChainListener(
         rmqConfig,
