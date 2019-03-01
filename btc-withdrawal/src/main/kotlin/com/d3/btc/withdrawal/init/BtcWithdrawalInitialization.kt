@@ -16,7 +16,7 @@ import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import io.reactivex.schedulers.Schedulers
+import config.RMQConfig
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
 import mu.KLogging
@@ -33,6 +33,7 @@ import sidechain.iroha.util.getSetDetailCommands
 import sidechain.iroha.util.getTransferCommands
 import java.io.Closeable
 import java.io.File
+import java.util.concurrent.Executors
 
 /*
     Class that initiates listeners that will be used to handle Bitcoin withdrawal logic
@@ -42,17 +43,26 @@ class BtcWithdrawalInitialization(
     @Autowired private val peerGroup: PeerGroup,
     @Autowired private val transferWallet: Wallet,
     @Autowired private val btcChangeAddressProvider: BtcChangeAddressProvider,
-    @Qualifier("withdrawalIrohaChainListener")
-    @Autowired private val irohaChainListener: ReliableIrohaChainListener,
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider,
     @Autowired private val withdrawalTransferEventHandler: WithdrawalTransferEventHandler,
     @Autowired private val newSignatureEventHandler: NewSignatureEventHandler,
     @Autowired private val newBtcClientRegistrationHandler: NewBtcClientRegistrationHandler,
     @Autowired private val newFeeRateWasSetHandler: NewFeeRateWasSetHandler,
     @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
-    @Autowired private val btcFeeRateService: BtcFeeRateService
+    @Autowired private val btcFeeRateService: BtcFeeRateService,
+    @Autowired private val rmqConfig: RMQConfig,
+    @Qualifier("irohaBlocksQueue")
+    @Autowired private val irohaBlocksQueue: String
 ) : HealthyService(), Closeable {
 
+    private val irohaChainListener = ReliableIrohaChainListener(
+        rmqConfig, irohaBlocksQueue,
+        consumerExecutorService = Executors.newSingleThreadExecutor(),
+        autoAck = false,
+        subscribe = { block, ack ->
+            safeApplyAck({ handleIrohaBlock(block) }, { ack() })
+        }
+    )
     private val btcFeeRateListener = BitcoinBlockChainFeeRateListener(btcFeeRateService)
 
     fun init(): Result<Unit, Exception> {
@@ -79,33 +89,24 @@ class BtcWithdrawalInitialization(
         }.flatMap {
             initBtcBlockChain()
         }.flatMap { peerGroup ->
-            initWithdrawalTransferListener(
-                irohaChainListener
-            )
+            initWithdrawalTransferListener()
         }
     }
 
     /**
      * Initiates listener that listens to withdrawal events in Iroha
-     * @param irohaChainListener - listener of Iroha blockchain
      * @return result of initiation process
      */
     private fun initWithdrawalTransferListener(
-        irohaChainListener: ReliableIrohaChainListener
     ): Result<Unit, Exception> {
-        return irohaChainListener.getBlockObservable(autoAck = false).map { irohaObservable ->
-            irohaObservable.subscribeOn(Schedulers.single())
-                .subscribe({ (block, ack) ->
-                    safeApplyAck({
-                        handleIrohaBlock(block)
-                    }, {
-                        ack()
-                    })
-                }, { ex ->
+        return Result.of {
+            irohaChainListener.getBlockObservable().map { observable ->
+                observable.doOnError { ex ->
                     notHealthy()
                     logger.error("Error on transfer events subscription", ex)
-                })
-            logger.info { "Iroha transfer events listener was initialized" }
+                }
+            }
+            Unit
         }
     }
 
@@ -167,6 +168,7 @@ class BtcWithdrawalInitialization(
 
     override fun close() {
         logger.info { "Closing Bitcoin withdrawal service" }
+        irohaChainListener.close()
         btcFeeRateListener.close()
         peerGroup.stop()
     }

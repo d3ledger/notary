@@ -14,7 +14,6 @@ import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import provider.NotaryPeerListProviderImpl
-import sidechain.iroha.ReliableIrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import java.io.File
@@ -51,6 +50,12 @@ class BtcWithdrawalAppConfiguration {
     ).fold({ keypair ->
         IrohaCredential(withdrawalConfig.btcFeeRateCredential.accountId, keypair)
     }, { ex -> throw ex })
+
+    @Bean
+    fun rmqConfig() = rmqConfig
+
+    @Bean
+    fun irohaBlocksQueue() = withdrawalConfig.irohaBlockQueue
 
     @Bean
     fun healthCheckPort() = withdrawalConfig.healthCheckPort
@@ -93,11 +98,6 @@ class BtcWithdrawalAppConfiguration {
         )
         return irohaAPI
     }
-
-    @Bean
-    fun withdrawalIrohaChainListener() = ReliableIrohaChainListener(
-        rmqConfig, withdrawalConfig.irohaBlockQueue, Executors.newSingleThreadExecutor()
-    )
 
     @Bean
     fun queryAPI() = QueryAPI(irohaAPI(), btcFeeRateCredential.accountId, btcFeeRateCredential.keyPair)

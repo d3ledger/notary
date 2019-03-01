@@ -30,7 +30,8 @@ private const val FAILED_BROADCAST_AMOUNT = 7777L
 class BtcWithdrawalIntegrationTest {
     private val integrationHelper = BtcIntegrationHelperUtil()
 
-    private val environment = BtcWithdrawalTestEnvironment(integrationHelper)
+    private val environment =
+        BtcWithdrawalTestEnvironment(integrationHelper, "withdrawal_test_${String.getRandomString(5)}")
 
     private lateinit var changeAddress: Address
 

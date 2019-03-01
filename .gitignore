@@ -150,9 +150,10 @@ deploy/bitcoin/testnet/blocks/
 deploy/bitcoin/testnet/keys.d3.wallet
 deploy/bitcoin/testnet/transfers.d3.wallet
 deploy/bitcoin/regtest/blocks/
-deploy/bitcoin/regtest/keys.d3-test.wallet
-deploy/bitcoin/regtest/transfers.d3-test.wallet
 deploy/bitcoin/mainnet/
+
+# Bitcoin test wallets
+deploy/bitcoin/regtest/test wallets/
 
 # SMTP configs
 configs/smtp.properties

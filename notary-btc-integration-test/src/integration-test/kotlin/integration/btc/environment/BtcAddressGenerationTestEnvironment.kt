@@ -32,8 +32,9 @@ private const val INIT_ADDRESSES = 3
  */
 class BtcAddressGenerationTestEnvironment(
     private val integrationHelper: BtcIntegrationHelperUtil,
+    val testName: String = "test",
     val btcGenerationConfig: BtcAddressGenerationConfig =
-        integrationHelper.configHelper.createBtcAddressGenerationConfig(INIT_ADDRESSES),
+        integrationHelper.configHelper.createBtcAddressGenerationConfig(INIT_ADDRESSES, testName),
     mstRegistrationCredential: IrohaCredential = IrohaCredential(
         btcGenerationConfig.mstRegistrationAccount.accountId,
         ModelUtil.loadKeypair(

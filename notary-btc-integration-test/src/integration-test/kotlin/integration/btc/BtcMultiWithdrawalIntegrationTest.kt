@@ -43,7 +43,7 @@ class BtcMultiWithdrawalIntegrationTest {
         integrationHelper.accountHelper.btcWithdrawalAccounts
             .forEach { withdrawalAccount ->
                 integrationHelper.addNotary("test_notary_$peerCount", "test")
-                val testName = "multi_withdrawal_${peerCount++}"
+                val testName = "multi_withdrawal_${String.getRandomString(5)}_${peerCount++}"
                 val withdrawalConfig = integrationHelper.configHelper.createBtcWithdrawalConfig(testName)
                 val environment =
                     BtcWithdrawalTestEnvironment(integrationHelper, testName, withdrawalConfig, withdrawalAccount)

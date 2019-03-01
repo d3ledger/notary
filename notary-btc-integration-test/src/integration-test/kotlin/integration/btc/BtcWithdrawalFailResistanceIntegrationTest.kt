@@ -25,7 +25,8 @@ class BtcWithdrawalFailResistanceIntegrationTest {
 
     private val integrationHelper = BtcIntegrationHelperUtil()
 
-    private val environment = BtcWithdrawalTestEnvironment(integrationHelper, "withdrawal_fail_resist")
+    private val environment =
+        BtcWithdrawalTestEnvironment(integrationHelper, "fail_resistance_${String.getRandomString(5)}")
 
     private lateinit var changeAddress: Address
 
@@ -36,6 +37,11 @@ class BtcWithdrawalFailResistanceIntegrationTest {
 
     @BeforeAll
     fun setUp() {
+        // This call simulates that the service stopped
+        environment.bindQueueWithExchange(
+            environment.btcWithdrawalConfig.irohaBlockQueue,
+            environment.rmqConfig.irohaExchange
+        )
         CurrentFeeRate.set(DEFAULT_FEE_RATE)
         val blockStorageFolder = File(environment.btcWithdrawalConfig.bitcoin.blockStoragePath)
         //Clear bitcoin blockchain folder
