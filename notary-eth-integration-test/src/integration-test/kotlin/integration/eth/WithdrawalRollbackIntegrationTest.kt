@@ -49,7 +49,7 @@ class WithdrawalRollbackIntegrationTest {
             RegistrationServiceTestEnvironment(integrationHelper).registrationInitialization.init()
         }
         ethRegistrationService = GlobalScope.launch {
-            integrationHelper.runRegistrationService(ethRegistrationConfig)
+            integrationHelper.runEthRegistrationService(ethRegistrationConfig)
         }
         withdrawalService = GlobalScope.launch {
             integrationHelper.runEthWithdrawalService(integrationHelper.configHelper.createWithdrawalConfig(false))

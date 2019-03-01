@@ -8,6 +8,6 @@ interface EthRelayProvider {
     /** Returns relays in form of (ethereum wallet -> iroha user name) */
     fun getRelays(): Result<Map<String, String>, Exception>
 
-    /** Get relay belonging to [irohaAccountId] */
-    fun getRelay(irohaAccountId: String): Result<String, Exception>
+    /** Get relays belonging to [irohaAccountId] */
+    fun getRelaysByAccountId(irohaAccountId: String): Result<Set<String>, Exception>
 }

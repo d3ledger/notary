@@ -8,6 +8,7 @@ import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import mu.KLogging
 import provider.eth.EthFreeRelayProvider
+import provider.eth.EthRelayProviderIrohaImpl
 import registration.RegistrationServiceEndpoint
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
@@ -39,17 +40,26 @@ class EthRegistrationServiceInitialization(
             .map { credential ->
                 val queryAPI = QueryAPI(irohaAPI, credential.accountId, credential.keyPair)
                 Pair(
-                    EthFreeRelayProvider(
-                        queryAPI,
-                        ethRegistrationConfig.notaryIrohaAccount,
-                        ethRegistrationConfig.relayRegistrationIrohaAccount
+                    Pair(
+                        EthFreeRelayProvider(
+                            queryAPI,
+                            ethRegistrationConfig.notaryIrohaAccount,
+                            ethRegistrationConfig.relayRegistrationIrohaAccount
+                        ),
+                        EthRelayProviderIrohaImpl(
+                            queryAPI,
+                            ethRegistrationConfig.notaryIrohaAccount,
+                            ethRegistrationConfig.relayRegistrationIrohaAccount
+                        )
                     ),
                     IrohaConsumerImpl(credential, irohaAPI)
                 )
             }
-            .map { (ethFreeRelayProvider, irohaConsumer) ->
+            .map { (providers, irohaConsumer) ->
+                val (ethFreeRelayProvider, ethRelayProvider) = providers
                 EthRegistrationStrategyImpl(
                     ethFreeRelayProvider,
+                    ethRelayProvider,
                     ethRegistrationConfig,
                     passwordConfig,
                     irohaConsumer,

@@ -62,7 +62,7 @@ class WithdrawalPipelineIntegrationTest {
             RegistrationServiceTestEnvironment(integrationHelper).registrationInitialization.init()
         }
         ethRegistrationService = GlobalScope.launch {
-            integrationHelper.runRegistrationService(ethRegistrationConfig)
+            integrationHelper.runEthRegistrationService(ethRegistrationConfig)
         }
         integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig)
         withdrawalService = GlobalScope.launch {

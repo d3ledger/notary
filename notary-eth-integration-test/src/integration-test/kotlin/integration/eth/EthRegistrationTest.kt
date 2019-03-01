@@ -1,11 +1,14 @@
 package integration.eth
 
+import config.loadConfigs
 import integration.helper.EthIntegrationHelperUtil
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import registration.NotaryRegistrationConfig
+import registration.main
 import util.getRandomString
 import util.toHexString
 import kotlin.test.assertEquals
@@ -18,27 +21,36 @@ class EthRegistrationTest {
 
     private val whitelist = "0x0000000000000000000000000000000000000000"
 
-    private val registrationConfig = integrationHelper.ethRegistrationConfig
+    val registrationConfig =
+        loadConfigs("registration", NotaryRegistrationConfig::class.java, "/registration.properties").get()
+    private val ethRegistrationConfig = integrationHelper.ethRegistrationConfig
 
     private val registrationService: Job
+    private val ethRegistrationService: Job
 
     init {
-        registrationService = GlobalScope.launch {
-            integrationHelper.runRegistrationService(registrationConfig)
+        ethRegistrationService = GlobalScope.launch {
+            integrationHelper.runEthRegistrationService(ethRegistrationConfig)
         }
-        runBlocking { delay(40_000) }
+
+        registrationService = GlobalScope.launch {
+            main(emptyArray())
+        }
+
+        runBlocking { delay(30_000) }
     }
 
     @AfterAll
     fun dropDown() {
         registrationService.cancel()
+        ethRegistrationService.cancel()
     }
 
     /**
      * Send POST request to local server
      */
     fun post(params: Map<String, String>): khttp.responses.Response {
-        return khttp.post("http://127.0.0.1:${registrationConfig.port}/users", data = params)
+        return khttp.post("http://127.0.0.1:${ethRegistrationConfig.port}/users", data = params)
     }
 
     /**
@@ -49,7 +61,7 @@ class EthRegistrationTest {
      */
     @Test
     fun healthcheck() {
-        val res = khttp.get("http://127.0.0.1:${registrationConfig.port}/actuator/health")
+        val res = khttp.get("http://127.0.0.1:${ethRegistrationConfig.port}/actuator/health")
         assertEquals(200, res.statusCode)
         assertEquals("{\"status\":\"UP\"}", res.text)
     }
@@ -70,8 +82,18 @@ class EthRegistrationTest {
         val pubkey = Ed25519Sha3().generateKeypair().public.toHexString()
         val clientId = "$name@d3"
 
-        val res = post(
-            mapOf(
+        // register in Iroha
+        var res = khttp.post(
+            "http://127.0.0.1:${registrationConfig.port}/users", data = mapOf(
+                "name" to name,
+                "pubkey" to pubkey,
+                "whitelist" to whitelist
+            )
+        )
+        assertEquals(200, res.statusCode)
+        // register in Eth
+        res = khttp.post(
+            "http://127.0.0.1:${ethRegistrationConfig.port}/users", data = mapOf(
                 "name" to name,
                 "pubkey" to pubkey,
                 "whitelist" to whitelist
@@ -80,7 +102,7 @@ class EthRegistrationTest {
         assertEquals(200, res.statusCode)
 
         // check relay address
-        assertEquals(freeRelay, integrationHelper.getRelayByAccount(clientId))
+        assertEquals(freeRelay, integrationHelper.getRelaysByAccount(clientId).first())
         // check whitelist
         assert(integrationHelper.isWhitelisted(clientId, whitelist))
     }
@@ -101,9 +123,18 @@ class EthRegistrationTest {
         val pubkey = Ed25519Sha3().generateKeypair().public.toHexString()
         val clientId = "$name@d3"
 
-        // register client
-        var res = post(
-            mapOf(
+        // register client in Iroha
+        var res = khttp.post(
+            "http://127.0.0.1:${registrationConfig.port}/users", data = mapOf(
+                "name" to name,
+                "pubkey" to pubkey,
+                "whitelist" to whitelist
+            )
+        )
+        assertEquals(200, res.statusCode)
+        // register in eth
+        res = khttp.post(
+            "http://127.0.0.1:${ethRegistrationConfig.port}/users", data = mapOf(
                 "name" to name,
                 "pubkey" to pubkey,
                 "whitelist" to whitelist
@@ -112,7 +143,7 @@ class EthRegistrationTest {
         assertEquals(200, res.statusCode)
 
         // check relay address
-        assertEquals(freeRelay, integrationHelper.getRelayByAccount(clientId))
+        assertEquals(freeRelay, integrationHelper.getRelaysByAccount(clientId).first())
         // check whitelist
         assert(integrationHelper.isWhitelisted(clientId, whitelist))
 
@@ -131,7 +162,7 @@ class EthRegistrationTest {
         assertEquals(500, res.statusCode)
 
         // check relay address the same
-        assertEquals(freeRelay, integrationHelper.getRelayByAccount(clientId))
+        assertEquals(freeRelay, integrationHelper.getRelaysByAccount(clientId).first())
         // check whitelist the same
         assert(integrationHelper.isWhitelisted(clientId, whitelist))
         assert(!integrationHelper.isWhitelisted(clientId, anotherWhitelist))

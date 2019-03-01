@@ -13,6 +13,7 @@ import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
 import org.web3j.tx.gas.StaticGasProvider
 import provider.eth.EthFreeRelayProvider
+import provider.eth.EthRelayProvider
 import registration.IrohaAccountCreator
 import registration.RegistrationStrategy
 import sidechain.eth.util.BasicAuthenticator
@@ -24,6 +25,7 @@ import java.math.BigInteger
  */
 class EthRegistrationStrategyImpl(
     private val ethFreeRelayProvider: EthFreeRelayProvider,
+    private val ethRelayProvider: EthRelayProvider,
     ethRegistrationConfig: EthRegistrationConfig,
     passwordConfig: EthereumPasswords,
     private val irohaConsumer: IrohaConsumer,
@@ -56,29 +58,40 @@ class EthRegistrationStrategyImpl(
 
     /**
      * Register new notary client
-     * @param name - client name
+     * @param accountName - client name
+     * @param domainId - client domain
      * @param pubkey - client public key
      * @param whitelist - list of addresses from client
      * @return ethereum wallet has been registered
      */
     override fun register(
-        name: String,
-        domain: String,
+        accountName: String,
+        domainId: String,
         whitelist: List<String>,
         pubkey: String
     ): Result<String, Exception> {
         return ethFreeRelayProvider.getRelay()
             .flatMap { freeEthWallet ->
-                logger.info { "Add new relay to relay registry relayRegistry=$relayRegistry, freeWallet=$freeEthWallet, whitelist=$whitelist, creator=${credentials.address}." }
-                relayRegistry.addNewRelayAddress(freeEthWallet, whitelist).send()
-                irohaAccountCreator.create(
-                    freeEthWallet,
-                    ETH_WHITE_LIST_KEY,
-                    whitelist,
-                    name,
-                    domain,
-                    pubkey
-                ) { "$name@$domain" }
+                ethRelayProvider.getRelaysByAccountId("$accountName@$domainId")
+                    .flatMap { assignedRelays ->
+                        // check that client hasn't been registered yet
+                        if (!assignedRelays.isEmpty())
+                            throw IllegalArgumentException("Client $accountName@$domainId has already been registered with relay: $assignedRelays")
+
+                        // register to Ethereum RelayRegistry
+                        logger.info { "Add new relay to relay registry relayRegistry=$relayRegistry, freeWallet=$freeEthWallet, whitelist=$whitelist, creator=${credentials.address}." }
+                        relayRegistry.addNewRelayAddress(freeEthWallet, whitelist).send()
+
+                        // register to Iroha
+                        irohaAccountCreator.create(
+                            freeEthWallet,
+                            ETH_WHITE_LIST_KEY,
+                            whitelist,
+                            accountName,
+                            domainId,
+                            pubkey
+                        ) { "$accountName@$domainId" }
+                    }
             }
     }
 

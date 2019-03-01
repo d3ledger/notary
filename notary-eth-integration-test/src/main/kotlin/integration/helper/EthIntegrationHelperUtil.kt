@@ -109,6 +109,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     private val ethRegistrationStrategy by lazy {
         EthRegistrationStrategyImpl(
             ethFreeRelayProvider,
+            ethRelayProvider,
             ethRegistrationConfig,
             configHelper.ethPasswordConfig,
             registrationConsumer,
@@ -142,8 +143,8 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /**
      * Get relay address of an account.
      */
-    fun getRelayByAccount(clientId: String): String {
-        return ethRelayProvider.getRelay(clientId).get()
+    fun getRelaysByAccount(clientId: String): Set<String> {
+        return ethRelayProvider.getRelaysByAccountId(clientId).get()
     }
 
     /**
@@ -418,7 +419,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /**
      * Run ethereum registration config
      */
-    fun runRegistrationService(registrationConfig: EthRegistrationConfig = ethRegistrationConfig) {
+    fun runEthRegistrationService(registrationConfig: EthRegistrationConfig = ethRegistrationConfig) {
         registration.eth.executeRegistration(registrationConfig, configHelper.ethPasswordConfig)
     }
 
