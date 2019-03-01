@@ -36,6 +36,6 @@ fun main(args: Array<String>) {
 
 private fun webPortProperties(): Map<String, String> {
     val properties = HashMap<String, String>()
-    properties["server.port"] = registrationConfig.healthCheckPort.toString()
+    properties["server.port"] = registrationConfig.port.toString()
     return properties
 }

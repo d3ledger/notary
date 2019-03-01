@@ -46,6 +46,7 @@ dependencies {
     compile project(":btc-address-generation")
     compile project(":btc-deposit")
     compile project(":btc-withdrawal")
+    compile project(":notary-registration")
     compile project(":notary-iroha-integration-test")
 }
 

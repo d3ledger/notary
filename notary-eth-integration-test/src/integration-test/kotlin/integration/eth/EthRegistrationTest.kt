@@ -1,14 +1,12 @@
 package integration.eth
 
-import config.loadConfigs
 import integration.helper.EthIntegrationHelperUtil
+import integration.registration.RegistrationServiceTestEnvironment
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import registration.NotaryRegistrationConfig
-import registration.main
 import util.getRandomString
 import util.toHexString
 import kotlin.test.assertEquals
@@ -21,28 +19,23 @@ class EthRegistrationTest {
 
     private val whitelist = "0x0000000000000000000000000000000000000000"
 
-    val registrationConfig =
-        loadConfigs("registration", NotaryRegistrationConfig::class.java, "/registration.properties").get()
+    private val registrationServiceEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
+
     private val ethRegistrationConfig = integrationHelper.ethRegistrationConfig
 
-    private val registrationService: Job
     private val ethRegistrationService: Job
 
     init {
+        registrationServiceEnvironment.registrationInitialization.init()
+
         ethRegistrationService = GlobalScope.launch {
             integrationHelper.runEthRegistrationService(ethRegistrationConfig)
         }
-
-        registrationService = GlobalScope.launch {
-            main(emptyArray())
-        }
-
-        runBlocking { delay(30_000) }
+        runBlocking { delay(5_000) }
     }
 
     @AfterAll
     fun dropDown() {
-        registrationService.cancel()
         ethRegistrationService.cancel()
     }
 
@@ -84,7 +77,7 @@ class EthRegistrationTest {
 
         // register in Iroha
         var res = khttp.post(
-            "http://127.0.0.1:${registrationConfig.port}/users", data = mapOf(
+            "http://127.0.0.1:${registrationServiceEnvironment.registrationConfig.port}/users", data = mapOf(
                 "name" to name,
                 "pubkey" to pubkey,
                 "whitelist" to whitelist
@@ -125,7 +118,7 @@ class EthRegistrationTest {
 
         // register client in Iroha
         var res = khttp.post(
-            "http://127.0.0.1:${registrationConfig.port}/users", data = mapOf(
+            "http://127.0.0.1:${registrationServiceEnvironment.registrationConfig.port}/users", data = mapOf(
                 "name" to name,
                 "pubkey" to pubkey,
                 "whitelist" to whitelist

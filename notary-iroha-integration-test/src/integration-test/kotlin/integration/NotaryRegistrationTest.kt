@@ -1,13 +1,12 @@
-import config.loadConfigs
+package integration
+
+import integration.helper.IrohaIntegrationHelperUtil
+import integration.registration.RegistrationServiceTestEnvironment
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import registration.NotaryRegistrationConfig
-import registration.main
 import util.getRandomString
 import util.toHexString
 import kotlin.test.assertEquals
@@ -15,22 +14,25 @@ import kotlin.test.assertEquals
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class NotaryRegistrationTest {
 
-    val registrationConfig =
-        loadConfigs("registration", NotaryRegistrationConfig::class.java, "/registration.properties").get()
+    /** Integration tests util */
+    private val integrationHelper = IrohaIntegrationHelperUtil()
+
+    private val registrationServiceEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
 
     init {
-        GlobalScope.launch {
-            main(emptyArray())
-        }
+        registrationServiceEnvironment.registrationInitialization.init()
 
-        runBlocking { delay(20_000) }
+        runBlocking { delay(35_000) }
     }
 
     /**
      * Send POST request to local server
      */
     fun post(params: Map<String, String>): khttp.responses.Response {
-        return khttp.post("http://127.0.0.1:${registrationConfig.port}/users", data = params)
+        return khttp.post(
+            "http://127.0.0.1:${registrationServiceEnvironment.registrationConfig.port}/users",
+            data = params
+        )
     }
 
     /**
@@ -41,7 +43,8 @@ class NotaryRegistrationTest {
      */
     @Test
     fun healthcheck() {
-        val res = khttp.get("http://127.0.0.1:${registrationConfig.healthCheckPort}/health")
+        val res =
+            khttp.get("http://127.0.0.1:${registrationServiceEnvironment.registrationConfig.port}/actuator/health")
         assertEquals(200, res.statusCode)
         assertEquals("{\"status\":\"UP\"}", res.text)
     }
