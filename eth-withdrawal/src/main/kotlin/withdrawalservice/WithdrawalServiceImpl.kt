@@ -57,6 +57,11 @@ class WithdrawalServiceImpl(
     private val irohaAPI: IrohaAPI,
     private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
 ) : WithdrawalService {
+
+    init {
+        logger.info { "Init withdrawal service, irohaCredentials = ${credential.accountId}, notaryAccount = $masterAccount'" }
+    }
+
     private val queryAPI by lazy { QueryAPI(irohaAPI, credential.accountId, credential.keyPair) }
     private val notaryPeerListProvider = NotaryPeerListProviderImpl(
         queryAPI,
