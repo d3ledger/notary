@@ -15,7 +15,7 @@ class BlockV1 {
     @JsonProperty("payload")
     @get:JsonProperty("payload")
     @set:JsonProperty("payload")
-    var payload: jp.co.soramitsu.bootstrap.dto.block.Payload? = null
+    var payload: Payload? = null
     @JsonIgnore
     private val additionalProperties = HashMap<String, Any>()
 

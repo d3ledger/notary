@@ -11,7 +11,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2
 class BootstrapConfig {
 
     @Bean
-    fun genesisFactories(): List<jp.co.soramitsu.bootstrap.genesis.GenesisInterface> {
+    fun genesisFactories(): List<GenesisInterface> {
         return listOf(D3TestGenesisFactory())
     }
 }

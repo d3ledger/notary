@@ -15,7 +15,7 @@ class Payload {
     @JsonProperty("transactions")
     @get:JsonProperty("transactions")
     @set:JsonProperty("transactions")
-    var transactions: List<jp.co.soramitsu.bootstrap.dto.block.Transaction>? = null
+    var transactions: List<Transaction>? = null
     @JsonProperty("txNumber")
     @get:JsonProperty("txNumber")
     @set:JsonProperty("txNumber")

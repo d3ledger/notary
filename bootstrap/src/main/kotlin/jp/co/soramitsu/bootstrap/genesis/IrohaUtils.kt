@@ -15,7 +15,7 @@ fun getIrohaPublicKeyFromHexString(hex: String?): PublicKey {
         }
         return Ed25519Sha3.publicKeyFromBytes(DatatypeConverter.parseBase64Binary(hex))
     } catch(e:Exception) {
-        throw jp.co.soramitsu.bootstrap.error.IrohaPublicKeyError("${e.javaClass}:${e.message}")
+        throw IrohaPublicKeyError("${e.javaClass}:${e.message}")
     }
 }
 
@@ -48,7 +48,7 @@ fun createAccount(
 }
 
 fun createPeers(
-    peers: List<jp.co.soramitsu.bootstrap.dto.Peer>,
+    peers: List<Peer>,
     builder: TransactionBuilder
 ) {
     peers.forEach {

@@ -16,7 +16,7 @@
               },
               {
                 "createRole": {
-                  "roleName": "tester",
+                  "roleName": "seed",
                   "permissions": [
                     "can_create_account",
                     "can_set_detail",
@@ -58,19 +58,19 @@
               },
               {
                 "createAccount": {
-                  "accountName": "test",
+                  "accountName": "seed",
                   "domainId": "notary",
                   "publicKey": "092e71b031a51adae924f7cd944f0371ae8b8502469e32693885334dedcc6001"
                 }
               },
               {
                 "appendRole": {
-                  "accountId": "test@notary",
+                  "accountId": "seed@notary",
                   "roleName": "tester"
                 }
               }
             ],
-            "creatorAccountId": "notary@notary",
+            "creatorAccountId": "seed@notary",
             "quorum": 1
           }
         }

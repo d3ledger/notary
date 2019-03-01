@@ -15,23 +15,23 @@ class Command {
     @JsonProperty("addPeer")
     @get:JsonProperty("addPeer")
     @set:JsonProperty("addPeer")
-    var addPeer: jp.co.soramitsu.bootstrap.dto.block.AddPeer? = null
+    var addPeer: AddPeer? = null
     @JsonProperty("createRole")
     @get:JsonProperty("createRole")
     @set:JsonProperty("createRole")
-    var createRole: jp.co.soramitsu.bootstrap.dto.block.CreateRole? = null
+    var createRole: CreateRole? = null
     @JsonProperty("createDomain")
     @get:JsonProperty("createDomain")
     @set:JsonProperty("createDomain")
-    var createDomain: jp.co.soramitsu.bootstrap.dto.block.CreateDomain? = null
+    var createDomain: CreateDomain? = null
     @JsonProperty("createAsset")
     @get:JsonProperty("createAsset")
     @set:JsonProperty("createAsset")
-    var createAsset: jp.co.soramitsu.bootstrap.dto.block.CreateAsset? = null
+    var createAsset: CreateAsset? = null
     @JsonProperty("createAccount")
     @get:JsonProperty("createAccount")
     @set:JsonProperty("createAccount")
-    var createAccount: jp.co.soramitsu.bootstrap.dto.block.CreateAccount? = null
+    var createAccount: CreateAccount? = null
     @JsonIgnore
     private val additionalProperties = HashMap<String, Any>()
 

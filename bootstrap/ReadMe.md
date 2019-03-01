@@ -2,12 +2,12 @@
 
 ## API documentation
 Json representation - 'http://localhost:8080/v2/api-docs' In Firefox json is more readable, so try to use it.
-SwaggerUI - 'http://localhost:8080/swagger-ui.html' In SwaggerUi it is also possible to make test calls throw browser
+SwaggerUI - 'http://localhost:8080/swagger-ui.html' In SwaggerUi it is also possible to make test calls through browser
 
 ## Description
 Service provides possibilities to automate DevOps activities.
 
-It is usable for test environments and production. Only difference is that  for test environments we 
+It is usable for test environments and production. Only difference is that for test environments we 
 may generate blockchain credentials using this service but for production owners of private keys 
 should provide public keys for us.
 

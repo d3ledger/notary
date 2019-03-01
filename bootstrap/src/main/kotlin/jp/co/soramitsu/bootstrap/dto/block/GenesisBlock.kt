@@ -15,7 +15,7 @@ class GenesisBlock {
     @JsonProperty("blockV1")
     @get:JsonProperty("blockV1")
     @set:JsonProperty("blockV1")
-    var blockV1: jp.co.soramitsu.bootstrap.dto.block.BlockV1? = null
+    var blockV1: BlockV1? = null
     @JsonIgnore
     private val additionalProperties = HashMap<String, Any>()
 

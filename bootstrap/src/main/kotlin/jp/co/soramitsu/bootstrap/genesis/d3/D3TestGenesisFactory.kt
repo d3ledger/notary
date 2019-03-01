@@ -1,14 +1,18 @@
 package jp.co.soramitsu.bootstrap.genesis.d3
 
 import com.google.protobuf.util.JsonFormat
+import jp.co.soramitsu.bootstrap.dto.AccountPrototype
+import jp.co.soramitsu.bootstrap.dto.IrohaAccountDto
+import jp.co.soramitsu.bootstrap.dto.Peer
+import jp.co.soramitsu.bootstrap.error.AccountException
 import jp.co.soramitsu.iroha.java.Transaction
 import jp.co.soramitsu.iroha.java.TransactionBuilder
 import jp.co.soramitsu.iroha.testcontainers.detail.GenesisBlockBuilder
 import jp.co.soramitsu.bootstrap.genesis.*
 import java.util.*
 
-class D3TestGenesisFactory : jp.co.soramitsu.bootstrap.genesis.GenesisInterface {
-    override fun getAccountsNeeded(): List<jp.co.soramitsu.bootstrap.dto.AccountPrototype> = D3TestContext.d3neededAccounts
+class D3TestGenesisFactory : GenesisInterface {
+    override fun getAccountsNeeded(): List<AccountPrototype> = D3TestContext.d3neededAccounts
 
     override fun getProject(): String = "D3"
 
@@ -17,8 +21,8 @@ class D3TestGenesisFactory : jp.co.soramitsu.bootstrap.genesis.GenesisInterface 
     }
 
     override fun createGenesisBlock(
-        accounts: List<jp.co.soramitsu.bootstrap.dto.IrohaAccountDto>,
-        peers: List<jp.co.soramitsu.bootstrap.dto.Peer>,
+        accounts: List<IrohaAccountDto>,
+        peers: List<Peer>,
         blockVersion: String
     ): String {
         val transactionBuilder = Transaction.builder(null)
@@ -37,14 +41,14 @@ class D3TestGenesisFactory : jp.co.soramitsu.bootstrap.genesis.GenesisInterface 
 
     private fun createAccounts(
         transactionBuilder: TransactionBuilder,
-        accountsList: List<jp.co.soramitsu.bootstrap.dto.IrohaAccountDto>
+        accountsList: List<IrohaAccountDto>
     ) {
-        val accountsMap: HashMap<String, jp.co.soramitsu.bootstrap.dto.IrohaAccountDto> = HashMap()
-        accountsList.forEach { accountsMap.putIfAbsent("${it.title}@${it.domainId}", it) }
+        val accountsMap: HashMap<String, IrohaAccountDto> = HashMap()
+        accountsList.forEach { accountsMap.putIfAbsent("${it.name}@${it.domainId}", it) }
 
         val accountErrors = checkNeendedAccountsGiven(accountsMap)
         if (accountErrors.isNotEmpty()) {
-            throw jp.co.soramitsu.bootstrap.error.AccountException(accountErrors.toString())
+            throw AccountException(accountErrors.toString())
         }
         D3TestContext.d3neededAccounts.forEach {
             val accountDto = accountsMap[it.id]
@@ -52,16 +56,16 @@ class D3TestGenesisFactory : jp.co.soramitsu.bootstrap.genesis.GenesisInterface 
                 if(!accountDto.creds.isEmpty())  {
                     transactionBuilder.createAccount(it.title, it.domainId, getIrohaPublicKeyFromHexString(accountDto.creds.get(0).public))
                 } else {
-                    throw jp.co.soramitsu.bootstrap.error.AccountException("Needed account keys are not received: ${it.id}")
+                    throw AccountException("Needed account keys are not received: ${it.id}")
                 }
 
             } else {
-                throw jp.co.soramitsu.bootstrap.error.AccountException("Needed account keys are not received: ${it.id}")
+                throw AccountException("Needed account keys are not received: ${it.id}")
             }
         }
     }
 
-    private fun checkNeendedAccountsGiven(accountsMap: HashMap<String, jp.co.soramitsu.bootstrap.dto.IrohaAccountDto>): List<String> {
+    private fun checkNeendedAccountsGiven(accountsMap: HashMap<String, IrohaAccountDto>): List<String> {
         val loosed = ArrayList<String>()
         D3TestContext.d3neededAccounts.forEach {
             if (!accountsMap.containsKey(it.id)) {
@@ -73,7 +77,7 @@ class D3TestGenesisFactory : jp.co.soramitsu.bootstrap.genesis.GenesisInterface 
 
 
     private fun createAssets(builder: TransactionBuilder) {
-        createAsset(builder, "xor", "sora", 0)
+        createAsset(builder, "xor", "sora", 18)
         createAsset(builder, "ether", "ethereum", 18)
         createAsset(builder, "btc", "bitcoin", 8)
     }

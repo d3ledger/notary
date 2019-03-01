@@ -18,24 +18,24 @@ data class BlockchainCreds(
 )
 
 data class IrohaAccountDto(
-    val title: String = "",
+    val name: String = "",
     val domainId: String = "",
-    val creds: List<jp.co.soramitsu.bootstrap.dto.BlockchainCreds> = listOf()
+    val creds: List<BlockchainCreds> = listOf()
 )
 
 data class IrohaAccount(val title: String, val domain: String, val keys: HashSet<KeyPair>) :
-    jp.co.soramitsu.bootstrap.dto.DtoFactory<jp.co.soramitsu.bootstrap.dto.IrohaAccountDto> {
-    override fun getDTO(): jp.co.soramitsu.bootstrap.dto.IrohaAccountDto {
-        val credsList: ArrayList<jp.co.soramitsu.bootstrap.dto.BlockchainCreds> = ArrayList()
+    DtoFactory<IrohaAccountDto> {
+    override fun getDTO(): IrohaAccountDto {
+        val credsList: ArrayList<BlockchainCreds> = ArrayList()
         keys.forEach {
             credsList.add(
-                jp.co.soramitsu.bootstrap.dto.BlockchainCreds(
+                BlockchainCreds(
                     DatatypeConverter.printHexBinary(it.private.encoded),
                     DatatypeConverter.printHexBinary(it.public.encoded)
                 )
             )
         }
-        return jp.co.soramitsu.bootstrap.dto.IrohaAccountDto(this.title, domain, credsList)
+        return IrohaAccountDto(this.title, domain, credsList)
     }
 }
 
@@ -43,14 +43,14 @@ data class Peer(val peerKey: String = "", val hostPort: String = "localhost:1000
 data class Project(val project: String = "D3", val environment: String = "test")
 
 data class GenesisRequest(
-    val accounts: List<jp.co.soramitsu.bootstrap.dto.IrohaAccountDto> = listOf(),
-    val peers: List<jp.co.soramitsu.bootstrap.dto.Peer> = listOf(),
+    val accounts: List<IrohaAccountDto> = emptyList(),
+    val peers: List<Peer> = listOf(),
     val blockVersion: String = "1",
-    val meta: jp.co.soramitsu.bootstrap.dto.Project = jp.co.soramitsu.bootstrap.dto.Project()
+    val meta: Project = Project()
 )
 
 data class GenesisResponse(val blockData: String? = null) :
-    jp.co.soramitsu.bootstrap.dto.Conflicatable()
+    Conflicatable()
 
 /**
  * Accounts which can't create transactions and no need to generate credentials for this accounts
@@ -58,10 +58,10 @@ data class GenesisResponse(val blockData: String? = null) :
 class PassiveAccountPrototype(
     name: String,
     domainId: String,
-    roles: List<String> = listOf(),
+    roles: List<String> = emptyList(),
     details: HashMap<String, String> = HashMap(),
     quorum: Int = 1
-) : jp.co.soramitsu.bootstrap.dto.AccountPrototype(
+) : AccountPrototype(
     name,
     domainId,
     roles,

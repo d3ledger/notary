@@ -108,9 +108,9 @@ class IrohaTest {
         accounts.forEach {
             val pubKey = it.creds.get(0).public
             if(pubKey != null) {
-                assertTrue(respBody.contains(pubKey), "pubKey not exists in block when should for account ${it.title}@${it.domainId} pubKey:${it.creds[0].public}")
+                assertTrue(respBody.contains(pubKey), "pubKey not exists in block when should for account ${it.name}@${it.domainId} pubKey:${it.creds[0].public}")
             }  else {
-                fail("pubKey not set when should for account ${it.title}@${it.domainId}")
+                fail("pubKey not set when should for account ${it.name}@${it.domainId}")
             }
         }
 

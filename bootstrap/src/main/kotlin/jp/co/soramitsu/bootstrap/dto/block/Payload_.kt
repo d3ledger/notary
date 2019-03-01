@@ -15,7 +15,7 @@ class Payload_ {
     @JsonProperty("reducedPayload")
     @get:JsonProperty("reducedPayload")
     @set:JsonProperty("reducedPayload")
-    var reducedPayload: jp.co.soramitsu.bootstrap.dto.block.ReducedPayload? = null
+    var reducedPayload: ReducedPayload? = null
     @JsonIgnore
     private val additionalProperties = HashMap<String, Any>()
 

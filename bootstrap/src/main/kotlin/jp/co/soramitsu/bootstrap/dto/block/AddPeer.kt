@@ -15,7 +15,7 @@ class AddPeer {
     @JsonProperty("peer")
     @get:JsonProperty("peer")
     @set:JsonProperty("peer")
-    var peer: jp.co.soramitsu.bootstrap.dto.block.Peer? = null
+    var peer: Peer? = null
     @JsonIgnore
     private val additionalProperties = HashMap<String, Any>()
 

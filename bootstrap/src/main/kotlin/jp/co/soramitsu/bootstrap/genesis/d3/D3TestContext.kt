@@ -6,72 +6,72 @@ import jp.co.soramitsu.bootstrap.dto.AccountPrototype
 import jp.co.soramitsu.bootstrap.dto.PassiveAccountPrototype
 
 object D3TestContext {
-    val d3neededAccounts = listOf<jp.co.soramitsu.bootstrap.dto.AccountPrototype>(
-        jp.co.soramitsu.bootstrap.dto.AccountPrototype("notary", "notary", listOf("notary")),
-        jp.co.soramitsu.bootstrap.dto.AccountPrototype(
+    val d3neededAccounts = listOf<AccountPrototype>(
+        AccountPrototype("notary", "notary", listOf("notary")),
+        AccountPrototype(
             "registration_service",
             "notary",
             listOf("registration_service", "client")
         ),
-        jp.co.soramitsu.bootstrap.dto.AccountPrototype(
+        AccountPrototype(
             "eth_registration_service",
             "notary",
             listOf("registration_service", "client", "relay_deployer", "whitelist_setter")
         ),
-        jp.co.soramitsu.bootstrap.dto.AccountPrototype(
+        AccountPrototype(
             "btc_registration_service",
             "notary",
             listOf("registration_service", "client")
         ),
-        jp.co.soramitsu.bootstrap.dto.AccountPrototype(
+        AccountPrototype(
             "mst_btc_registration_service",
             "notary",
             listOf("registration_service", "client")
         ),
-        jp.co.soramitsu.bootstrap.dto.AccountPrototype(
+        AccountPrototype(
             "eth_token_storage_service",
             "notary",
             listOf("eth_token_list_storage")
         ),
-        jp.co.soramitsu.bootstrap.dto.AccountPrototype(
+        AccountPrototype(
             "withdrawal",
             "notary",
             listOf("withdrawal")
         ),
-        jp.co.soramitsu.bootstrap.dto.AccountPrototype(
+        AccountPrototype(
             "btc_fee_rate",
             "notary",
             listOf("btc_fee_rate_setter")
         ),
-        jp.co.soramitsu.bootstrap.dto.AccountPrototype(
+        AccountPrototype(
             "btc_withdrawal_service",
             "notary",
             listOf("withdrawal", "rollback")
         ),
-        jp.co.soramitsu.bootstrap.dto.AccountPrototype(
+        AccountPrototype(
             "btc_sign_collector",
             "notary",
             listOf("signature_collector")
         ),
-        jp.co.soramitsu.bootstrap.dto.AccountPrototype(
+        AccountPrototype(
             "test",
             "notary",
             listOf("tester", "registration_service", "client")
         ),
-        jp.co.soramitsu.bootstrap.dto.AccountPrototype("vacuumer", "notary", listOf("vacuumer")),
-        jp.co.soramitsu.bootstrap.dto.PassiveAccountPrototype(
+        AccountPrototype("vacuumer", "notary", listOf("vacuumer")),
+        PassiveAccountPrototype(
             "notaries",
             "notary",
             listOf("notary_list_holder")
         ),
-        jp.co.soramitsu.bootstrap.dto.PassiveAccountPrototype(
+        PassiveAccountPrototype(
             "btc_change_addresses",
             "notary",
             details = hashMapOf(Pair("some_notary", "http://localhost:20000"))
         ),
-        jp.co.soramitsu.bootstrap.dto.PassiveAccountPrototype("gen_btc_pk_trigger", "notary"),
-        jp.co.soramitsu.bootstrap.dto.AccountPrototype("admin", "notary", listOf("admin")),
-        jp.co.soramitsu.bootstrap.dto.AccountPrototype("sora", "sora", listOf("sora"))
+        PassiveAccountPrototype("gen_btc_pk_trigger", "notary"),
+        AccountPrototype("admin", "notary", listOf("admin")),
+        AccountPrototype("sora", "sora", listOf("sora"))
     )
 
 

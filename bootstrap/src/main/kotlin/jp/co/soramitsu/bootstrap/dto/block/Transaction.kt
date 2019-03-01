@@ -15,7 +15,7 @@ class Transaction {
     @JsonProperty("payload")
     @get:JsonProperty("payload")
     @set:JsonProperty("payload")
-    var payload: jp.co.soramitsu.bootstrap.dto.block.Payload_? = null
+    var payload: Payload_? = null
     @JsonIgnore
     private val additionalProperties = HashMap<String, Any>()
 

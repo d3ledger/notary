@@ -15,7 +15,7 @@ class ReducedPayload {
     @JsonProperty("commands")
     @get:JsonProperty("commands")
     @set:JsonProperty("commands")
-    var commands: List<jp.co.soramitsu.bootstrap.dto.block.Command>? = null
+    var commands: List<Command>? = null
     @JsonProperty("createdTime")
     @get:JsonProperty("createdTime")
     @set:JsonProperty("createdTime")
