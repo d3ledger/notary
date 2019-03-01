@@ -9,7 +9,7 @@ private interface DtoFactory<out T> {
     fun getDTO(): T
 }
 
-open class Conflicatable(var errorCode: String? = null, var message: String? = null)
+open class Conflictable(var errorCode: String? = null, var message: String? = null)
 
 data class BlockchainCreds(
     val private: String? = null,
@@ -26,13 +26,10 @@ data class IrohaAccountDto(
 data class IrohaAccount(val title: String, val domain: String, val keys: HashSet<KeyPair>) :
     DtoFactory<IrohaAccountDto> {
     override fun getDTO(): IrohaAccountDto {
-        val credsList: ArrayList<BlockchainCreds> = ArrayList()
-        keys.forEach {
-            credsList.add(
-                BlockchainCreds(
-                    DatatypeConverter.printHexBinary(it.private.encoded),
-                    DatatypeConverter.printHexBinary(it.public.encoded)
-                )
+        val credsList = keys.map {
+            BlockchainCreds(
+                DatatypeConverter.printHexBinary(it.private.encoded),
+                DatatypeConverter.printHexBinary(it.public.encoded)
             )
         }
         return IrohaAccountDto(this.title, domain, credsList)
@@ -50,7 +47,7 @@ data class GenesisRequest(
 )
 
 data class GenesisResponse(val blockData: String? = null) :
-    Conflicatable()
+    Conflictable()
 
 /**
  * Accounts which can't create transactions and no need to generate credentials for this accounts
