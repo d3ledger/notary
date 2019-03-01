@@ -1,4 +1,4 @@
-package registration
+package com.d3.registration
 
 import config.IrohaConfig
 import config.IrohaCredentialConfig

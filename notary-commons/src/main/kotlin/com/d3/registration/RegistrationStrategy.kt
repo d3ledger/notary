@@ -1,9 +1,9 @@
-package registration
+package com.d3.registration
 
 import com.github.kittinunf.result.Result
 
 /**
- * Strategy for registration of a new client
+ * Strategy for com.d3.registration of a new client
  */
 interface RegistrationStrategy {
 
@@ -18,7 +18,7 @@ interface RegistrationStrategy {
     ): Result<String, Exception>
 
     /**
-     * Get a number of free addresses for registration
+     * Get a number of free addresses for com.d3.registration
      */
     fun getFreeAddressNumber(): Result<Int, Exception>
 }

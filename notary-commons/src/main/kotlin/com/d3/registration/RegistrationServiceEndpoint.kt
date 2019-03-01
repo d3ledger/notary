@@ -1,4 +1,4 @@
-package registration
+package com.d3.registration
 
 import io.ktor.application.call
 import io.ktor.application.install
@@ -28,7 +28,7 @@ class RegistrationServiceEndpoint(
 ) {
 
     init {
-        logger.info { "Start registration server on port $port" }
+        logger.info { "Start com.d3.registration server on port $port" }
 
         val server = embeddedServer(Netty, port = port) {
             install(CORS)

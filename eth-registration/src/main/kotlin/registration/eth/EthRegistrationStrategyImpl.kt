@@ -14,8 +14,8 @@ import org.web3j.protocol.http.HttpService
 import org.web3j.tx.gas.StaticGasProvider
 import provider.eth.EthFreeRelayProvider
 import provider.eth.EthRelayProvider
-import registration.IrohaAccountCreator
-import registration.RegistrationStrategy
+import com.d3.registration.IrohaAccountCreator
+import com.d3.registration.RegistrationStrategy
 import sidechain.eth.util.BasicAuthenticator
 import sidechain.iroha.consumer.IrohaConsumer
 import java.math.BigInteger

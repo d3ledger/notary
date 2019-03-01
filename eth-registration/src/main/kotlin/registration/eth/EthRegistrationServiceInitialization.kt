@@ -9,7 +9,7 @@ import model.IrohaCredential
 import mu.KLogging
 import provider.eth.EthFreeRelayProvider
 import provider.eth.EthRelayProviderIrohaImpl
-import registration.RegistrationServiceEndpoint
+import com.d3.registration.RegistrationServiceEndpoint
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 

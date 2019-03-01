@@ -1,4 +1,4 @@
-package registration
+package com.d3.registration
 
 import config.loadConfigs
 import jp.co.soramitsu.iroha.java.IrohaAPI

@@ -9,7 +9,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.junit.jupiter.api.*
 import provider.eth.ETH_PRECISION
-import registration.NotaryRegistrationConfig
+import com.d3.registration.NotaryRegistrationConfig
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString

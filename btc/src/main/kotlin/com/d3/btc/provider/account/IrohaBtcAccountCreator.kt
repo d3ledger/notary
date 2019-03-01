@@ -2,7 +2,7 @@ package com.d3.btc.provider.account
 
 import com.d3.btc.model.AddressInfo
 import com.github.kittinunf.result.Result
-import registration.IrohaAccountCreator
+import com.d3.registration.IrohaAccountCreator
 import sidechain.iroha.consumer.IrohaConsumer
 
 const val BTC_WHITE_LIST_KEY = "btc_whitelist"

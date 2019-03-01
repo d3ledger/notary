@@ -11,7 +11,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
-import registration.NotaryRegistrationConfig
+import com.d3.registration.NotaryRegistrationConfig
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
 import util.toHexString

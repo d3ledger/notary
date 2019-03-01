@@ -1,4 +1,4 @@
-package registration
+package com.d3.registration
 
 import com.github.kittinunf.result.Result
 import jp.co.soramitsu.iroha.java.Utils

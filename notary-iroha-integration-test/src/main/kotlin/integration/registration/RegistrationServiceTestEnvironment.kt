@@ -3,9 +3,9 @@ package integration.registration
 import config.loadConfigs
 import integration.helper.IrohaIntegrationHelperUtil
 import model.IrohaCredential
-import registration.NotaryRegistrationConfig
-import registration.NotaryRegistrationStrategy
-import registration.RegistrationServiceInitialization
+import com.d3.registration.NotaryRegistrationConfig
+import com.d3.registration.NotaryRegistrationStrategy
+import com.d3.registration.RegistrationServiceInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 
