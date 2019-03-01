@@ -16,7 +16,7 @@ class D3TestGenesisFactory : GenesisInterface {
 
     override fun getProject(): String = "D3"
 
-    override fun getEnvironment(): String ="test"
+    override fun getEnvironment(): String = "test"
 
     override fun createGenesisBlock(
         accounts: List<IrohaAccountDto>,
@@ -50,9 +50,13 @@ class D3TestGenesisFactory : GenesisInterface {
         }
         D3TestContext.d3neededAccounts.forEach {
             val accountDto = accountsMap[it.id]
-            if(accountDto  != null) {
-                if(!accountDto.creds.isEmpty())  {
-                    transactionBuilder.createAccount(it.title, it.domainId, getIrohaPublicKeyFromBase64(accountDto.creds.get(0).public))
+            if (accountDto != null) {
+                if (!accountDto.creds.isEmpty()) {
+                    transactionBuilder.createAccount(
+                        it.title,
+                        it.domainId,
+                        getIrohaPublicKeyFromBase64(accountDto.creds.get(0).public)
+                    )
                 } else {
                     throw AccountException("Needed account keys are not received: ${it.id}")
                 }

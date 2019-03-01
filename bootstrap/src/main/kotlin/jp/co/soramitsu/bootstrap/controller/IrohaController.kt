@@ -22,12 +22,17 @@ class IrohaController(val genesisFactories: List<GenesisInterface>) {
 
         val accounts = ArrayList<jp.co.soramitsu.bootstrap.dto.AccountPrototype>()
 
-       genesisFactories.stream()
-            .filter { it.getProject().contentEquals(project) && it.getEnvironment().contentEquals(env) }
+        genesisFactories.stream()
+            .filter {
+                it.getProject().contentEquals(project) && it.getEnvironment().contentEquals(
+                    env
+                )
+            }
             .findAny()
-            .ifPresent { it.getAccountsNeeded()
-                .filter { !it.passive }
-                .forEach { accounts.add(it) }
+            .ifPresent {
+                it.getAccountsNeeded()
+                    .filter { !it.passive }
+                    .forEach { accounts.add(it) }
             }
         return ResponseEntity.ok<List<AccountPrototype>>(accounts)
     }
@@ -78,7 +83,8 @@ class IrohaController(val genesisFactories: List<GenesisInterface>) {
             } catch (e: Exception) {
                 genesis = GenesisResponse()
                 genesis.errorCode = e.javaClass.simpleName
-                genesis.message = "Error happened for project:${request.meta.project} environment:${request.meta.environment}: ${e.message}"
+                genesis.message =
+                    "Error happened for project:${request.meta.project} environment:${request.meta.environment}: ${e.message}"
             }
         } else {
             genesis = GenesisResponse()

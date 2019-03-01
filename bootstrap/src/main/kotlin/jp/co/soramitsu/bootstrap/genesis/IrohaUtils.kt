@@ -13,12 +13,12 @@ private val log = KLogging().logger
 
 fun getIrohaPublicKeyFromBase64(hex: String?): PublicKey {
     try {
-        if(hex == null) {
+        if (hex == null) {
             throw NullPointerException("Public key string should be not null")
         }
         return Ed25519Sha3.publicKeyFromBytes(DatatypeConverter.parseBase64Binary(hex))
-    } catch(e:Exception) {
-        log.error("Error parsing publicKey",e)
+    } catch (e: Exception) {
+        log.error("Error parsing publicKey", e)
         throw IrohaPublicKeyException("${e.javaClass}:${e.message}")
     }
 }
