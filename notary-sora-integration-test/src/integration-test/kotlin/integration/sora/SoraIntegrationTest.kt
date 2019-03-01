@@ -2,6 +2,7 @@ package integration.sora
 
 import config.loadConfigs
 import integration.helper.IrohaIntegrationHelperUtil
+import integration.registration.RegistrationServiceTestEnvironment
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay

@@ -3,8 +3,8 @@ package registration
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import mu.KLogging
-import notary.IrohaOrderedBatch
 import notary.IrohaCommand
+import notary.IrohaOrderedBatch
 import notary.IrohaTransaction
 import sidechain.iroha.consumer.IrohaConsumer
 import sidechain.iroha.consumer.IrohaConverter
@@ -85,17 +85,6 @@ open class IrohaAccountCreator(
         val accountId = "$userName@$domain"
         return IrohaOrderedBatch(
             listOf(
-                IrohaTransaction(
-                    creator,
-                    getCurrentTime(),
-                    1,
-                    arrayListOf(
-                        // Create account
-                        IrohaCommand.CommandCreateAccount(
-                            userName, domain, pubkey
-                        )
-                    )
-                ),
                 IrohaTransaction(
                     creator,
                     getCurrentTime(),

@@ -1,5 +1,6 @@
 package integration.helper
 
+import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.success
 import config.EthereumPasswords
 import config.RMQConfig
@@ -283,11 +284,12 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      */
     fun registerClient(
         name: String,
+        domain: String,
         whitelist: List<String>,
         keypair: KeyPair = ModelUtil.generateKeypair()
     ): String {
         deployRelays(1)
-        return registerClientWithoutRelay(name, whitelist, keypair)
+        return registerClientWithoutRelay(name, domain, whitelist, keypair)
     }
 
     /**
@@ -295,15 +297,22 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      */
     fun registerClientWithoutRelay(
         name: String,
+        domain: String,
         whitelist: List<String>,
         keypair: KeyPair = ModelUtil.generateKeypair()
     ): String {
-        ethRegistrationStrategy.register(name, CLIENT_DOMAIN, whitelist, keypair.public.toHexString())
-            .fold({ registeredEthWallet ->
-                logger.info("registered client $name with relay $registeredEthWallet")
-                return registeredEthWallet
-            },
-                { ex -> throw RuntimeException("$name was not registered", ex) })
+        ModelUtil.createAccount(
+            irohaConsumer,
+            name,
+            domain,
+            keypair.public
+        ).flatMap {
+            ethRegistrationStrategy.register(name, CLIENT_DOMAIN, whitelist, keypair.public.toHexString())
+        }.fold({ registeredEthWallet ->
+            logger.info("registered client $name with relay $registeredEthWallet")
+            return registeredEthWallet
+        },
+            { ex -> throw RuntimeException("$name was not registered", ex) })
     }
 
     /**
@@ -311,7 +320,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      */
     fun registerRandomRelay(): String {
         // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
-        val ethWallet = registerClient(String.getRandomString(9), listOf())
+        val ethWallet = registerClient(String.getRandomString(9), CLIENT_DOMAIN, listOf())
         return ethWallet
     }
 

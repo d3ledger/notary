@@ -1,11 +1,12 @@
 package integration.eth
 
+import config.loadConfigs
 import integration.helper.EthIntegrationHelperUtil
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import integration.registration.RegistrationServiceTestEnvironment
+import kotlinx.coroutines.*
 import org.junit.jupiter.api.*
 import provider.eth.ETH_PRECISION
+import registration.NotaryRegistrationConfig
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
@@ -24,7 +25,11 @@ class WithdrawalRollbackIntegrationTest {
     private val integrationHelper = EthIntegrationHelperUtil()
 
     /** Test Registration configuration */
-    private val registrationConfig = integrationHelper.ethRegistrationConfig
+    val registrationConfig =
+        loadConfigs("registration", NotaryRegistrationConfig::class.java, "/registration.properties").get()
+
+    /** Test EthRegistration configuration */
+    private val ethRegistrationConfig = integrationHelper.ethRegistrationConfig
 
     /** Ethereum test address where we want to withdraw to */
     private val toAddress = integrationHelper.configHelper.testConfig.ethTestAccount
@@ -34,17 +39,21 @@ class WithdrawalRollbackIntegrationTest {
 
     private val registrationService: Job
 
+    private val ethRegistrationService: Job
+
     private val withdrawalService: Job
 
     init {
         integrationHelper.runEthNotary()
         registrationService = GlobalScope.launch {
-            integrationHelper.runRegistrationService(registrationConfig)
+            RegistrationServiceTestEnvironment(integrationHelper).registrationInitialization.init()
+        }
+        ethRegistrationService = GlobalScope.launch {
+            integrationHelper.runRegistrationService(ethRegistrationConfig)
         }
         withdrawalService = GlobalScope.launch {
             integrationHelper.runEthWithdrawalService(integrationHelper.configHelper.createWithdrawalConfig(false))
         }
-
     }
 
     lateinit var clientName: String
@@ -82,12 +91,21 @@ class WithdrawalRollbackIntegrationTest {
         // make sure master has enough assets
         integrationHelper.sendEth(amount, integrationHelper.masterContract.contractAddress)
 
-        // register client
-        val res = integrationHelper.sendRegistrationRequest(
+        // register client in Iroha
+        var res = integrationHelper.sendRegistrationRequest(
             clientName,
             listOf(toAddress).toString(),
             keypair.public.toHexString(),
             registrationConfig.port
+        )
+        Assertions.assertEquals(200, res.statusCode)
+
+        // register client in Ethereum
+        res = integrationHelper.sendRegistrationRequest(
+            clientName,
+            listOf(toAddress).toString(),
+            keypair.public.toHexString(),
+            ethRegistrationConfig.port
         )
         Assertions.assertEquals(200, res.statusCode)
 
