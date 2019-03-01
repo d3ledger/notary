@@ -4,7 +4,7 @@ import com.google.protobuf.util.JsonFormat
 import jp.co.soramitsu.bootstrap.dto.AccountPrototype
 import jp.co.soramitsu.bootstrap.dto.IrohaAccountDto
 import jp.co.soramitsu.bootstrap.dto.Peer
-import jp.co.soramitsu.bootstrap.error.AccountException
+import jp.co.soramitsu.bootstrap.exceptions.AccountException
 import jp.co.soramitsu.iroha.java.Transaction
 import jp.co.soramitsu.iroha.java.TransactionBuilder
 import jp.co.soramitsu.iroha.testcontainers.detail.GenesisBlockBuilder
@@ -16,9 +16,7 @@ class D3TestGenesisFactory : GenesisInterface {
 
     override fun getProject(): String = "D3"
 
-    override fun getEnvironment(): String {
-        return "test"
-    }
+    override fun getEnvironment(): String ="test"
 
     override fun createGenesisBlock(
         accounts: List<IrohaAccountDto>,
@@ -54,7 +52,7 @@ class D3TestGenesisFactory : GenesisInterface {
             val accountDto = accountsMap[it.id]
             if(accountDto  != null) {
                 if(!accountDto.creds.isEmpty())  {
-                    transactionBuilder.createAccount(it.title, it.domainId, getIrohaPublicKeyFromHexString(accountDto.creds.get(0).public))
+                    transactionBuilder.createAccount(it.title, it.domainId, getIrohaPublicKeyFromBase64(accountDto.creds.get(0).public))
                 } else {
                     throw AccountException("Needed account keys are not received: ${it.id}")
                 }

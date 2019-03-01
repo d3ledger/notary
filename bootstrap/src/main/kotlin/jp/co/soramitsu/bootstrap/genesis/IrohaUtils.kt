@@ -3,19 +3,23 @@ package jp.co.soramitsu.bootstrap.genesis
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import jp.co.soramitsu.iroha.java.TransactionBuilder
 import jp.co.soramitsu.bootstrap.dto.Peer
-import jp.co.soramitsu.bootstrap.error.IrohaPublicKeyError
+import jp.co.soramitsu.bootstrap.exceptions.IrohaPublicKeyException
+import mu.KLogging
 import java.lang.NullPointerException
 import java.security.PublicKey
 import javax.xml.bind.DatatypeConverter
 
-fun getIrohaPublicKeyFromHexString(hex: String?): PublicKey {
+private val log = KLogging().logger
+
+fun getIrohaPublicKeyFromBase64(hex: String?): PublicKey {
     try {
         if(hex == null) {
             throw NullPointerException("Public key string should be not null")
         }
         return Ed25519Sha3.publicKeyFromBytes(DatatypeConverter.parseBase64Binary(hex))
     } catch(e:Exception) {
-        throw IrohaPublicKeyError("${e.javaClass}:${e.message}")
+        log.error("Error parsing publicKey",e)
+        throw IrohaPublicKeyException("${e.javaClass}:${e.message}")
     }
 }
 
@@ -43,7 +47,7 @@ fun createAccount(
     domainId: String,
     publicKey: String
 ) {
-    builder.createAccount(name, domainId, getIrohaPublicKeyFromHexString(publicKey))
+    builder.createAccount(name, domainId, getIrohaPublicKeyFromBase64(publicKey))
 
 }
 
@@ -53,7 +57,7 @@ fun createPeers(
 ) {
     peers.forEach {
         builder
-            .addPeer(it.hostPort, getIrohaPublicKeyFromHexString(it.peerKey))
+            .addPeer(it.hostPort, getIrohaPublicKeyFromBase64(it.peerKey))
     }
 }
 

@@ -1,7 +1,7 @@
 package jp.co.soramitsu.bootstrap.dto
 
 import jp.co.soramitsu.iroha.java.TransactionBuilder
-import jp.co.soramitsu.bootstrap.genesis.getIrohaPublicKeyFromHexString
+import jp.co.soramitsu.bootstrap.genesis.getIrohaPublicKeyFromBase64
 import java.security.KeyPair
 import javax.xml.bind.DatatypeConverter
 
@@ -97,7 +97,7 @@ open class AccountPrototype(
         builder: TransactionBuilder,
         publicKey: String = "0000000000000000000000000000000000000000000000000000000000000000"
     ) {
-        builder.createAccount(title, domainId, getIrohaPublicKeyFromHexString(publicKey))
+        builder.createAccount(title, domainId, getIrohaPublicKeyFromBase64(publicKey))
         roles.forEach { builder.appendRole(id, it) }
         details.forEach { k, v -> builder.setAccountDetail(id, k, v) }
     }
