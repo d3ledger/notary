@@ -238,7 +238,7 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
                 )
             }
             .fold({ btcAddress ->
-                logger.info { "BTC address $btcAddress was registered by $irohaAccountName" }
+                logger.info { "BTC address $btcAddress was registered for $irohaAccountName@$domain" }
                 return btcAddress
             }, { ex -> throw ex })
     }

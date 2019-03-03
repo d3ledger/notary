@@ -193,6 +193,7 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
         amount: String,
         createdTime: Long = System.currentTimeMillis()
     ): String {
+        logger.info { "Transfer $amount $assetId from $srcAccountId to $destAccountId" }
         val tx = Transaction.builder(creator)
             .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
             .setCreatedTime(createdTime).sign(kp)
