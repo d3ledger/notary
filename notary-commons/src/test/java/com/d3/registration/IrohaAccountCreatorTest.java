@@ -1,4 +1,4 @@
-package registration;
+package com.d3.registration;
 
 import com.github.kittinunf.result.Result;
 import jp.co.soramitsu.iroha.java.Transaction;
@@ -11,7 +11,6 @@ import sidechain.iroha.consumer.IrohaConsumer;
 import sidechain.iroha.consumer.IrohaConverter;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
