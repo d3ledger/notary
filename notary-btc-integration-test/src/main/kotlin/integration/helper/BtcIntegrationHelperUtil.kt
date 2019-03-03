@@ -8,9 +8,11 @@ import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.account.IrohaBtcAccountCreator
 import com.d3.btc.provider.address.BtcAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
+import com.d3.btc.registration.strategy.BtcRegistrationStrategyImpl
 import com.github.jleskovar.btcrpc.BitcoinRpcClientFactory
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
+import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import config.BitcoinConfig
 import mu.KLogging
@@ -24,8 +26,6 @@ import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
-import com.d3.btc.registration.strategy.BtcRegistrationStrategyImpl
-import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.consumer.IrohaConverter
 import sidechain.iroha.util.ModelUtil
@@ -207,10 +207,11 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
     fun registerBtcAddress(
         walletFilePath: String,
         irohaAccountName: String,
+        domain: String,
         keypair: KeyPair = ModelUtil.generateKeypair()
     ): String {
         genFreeBtcAddress(walletFilePath).fold({
-            return registerBtcAddressNoPreGen(irohaAccountName, keypair)
+            return registerBtcAddressNoPreGen(irohaAccountName, domain, keypair)
         }, { ex -> throw ex })
     }
 
@@ -223,10 +224,19 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
      */
     fun registerBtcAddressNoPreGen(
         irohaAccountName: String,
+        domain: String,
         keypair: KeyPair = ModelUtil.generateKeypair(),
         whitelist: List<String> = emptyList()
     ): String {
-        btcRegistrationStrategy.register(irohaAccountName, CLIENT_DOMAIN, whitelist, keypair.public.toHexString())
+        ModelUtil.createAccount(registrationConsumer, irohaAccountName, domain, keypair.public)
+            .flatMap {
+                btcRegistrationStrategy.register(
+                    irohaAccountName,
+                    domain,
+                    whitelist,
+                    keypair.public.toHexString()
+                )
+            }
             .fold({ btcAddress ->
                 logger.info { "BTC address $btcAddress was registered by $irohaAccountName" }
                 return btcAddress
