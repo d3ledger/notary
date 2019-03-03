@@ -1,5 +1,7 @@
 package registration
 
+import com.d3.registration.RegistrationServiceEndpoint
+import com.d3.registration.RegistrationStrategy
 import com.github.kittinunf.result.Result
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
