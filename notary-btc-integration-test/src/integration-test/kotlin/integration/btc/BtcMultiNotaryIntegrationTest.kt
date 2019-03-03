@@ -16,7 +16,6 @@ import util.getRandomString
 import java.io.File
 import java.math.BigDecimal
 
-
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcMultiNotaryIntegrationTest {
 
@@ -76,7 +75,8 @@ class BtcMultiNotaryIntegrationTest {
         val btcAddress =
             integrationHelper.registerBtcAddress(
                 environments.first().notaryConfig.btcTransferWalletPath,
-                randomName
+                randomName,
+                CLIENT_DOMAIN
             )
         val initialBalance = integrationHelper.getIrohaAccountBalance(
             testClient,
