@@ -8,11 +8,12 @@ import com.d3.registration.NotaryRegistrationStrategy
 import com.d3.registration.RegistrationServiceInitialization
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
+import java.io.Closeable
 
 /**
  * Environment for registration service running in tests
  */
-class RegistrationServiceTestEnvironment(integrationHelper: IrohaIntegrationHelperUtil) {
+class RegistrationServiceTestEnvironment(private val integrationHelper: IrohaIntegrationHelperUtil) : Closeable {
 
     val registrationConfig =
         loadConfigs("registration", NotaryRegistrationConfig::class.java, "/registration.properties").get()
@@ -33,4 +34,7 @@ class RegistrationServiceTestEnvironment(integrationHelper: IrohaIntegrationHelp
 
     val registrationInitialization = RegistrationServiceInitialization(registrationConfig, registrationStrategy)
 
+    override fun close() {
+        integrationHelper.close()
+    }
 }

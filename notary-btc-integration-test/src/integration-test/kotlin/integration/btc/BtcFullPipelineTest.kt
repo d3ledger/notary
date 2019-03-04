@@ -92,6 +92,7 @@ class BtcFullPipelineTest {
     @AfterAll
     fun closeEnvironments() {
         addressGenerationEnvironment.close()
+        registrationEnvironment.close()
         btcRegistrationEnvironment.close()
         notaryEnvironment.close()
         withdrawalEnvironment.close()

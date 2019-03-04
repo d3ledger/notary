@@ -36,6 +36,7 @@ class EthRegistrationTest {
 
     @AfterAll
     fun dropDown() {
+        registrationServiceEnvironment.close()
         ethRegistrationService.cancel()
     }
 

@@ -33,6 +33,7 @@ class BtcRegistrationIntegrationTest {
 
     @AfterAll
     fun dropDown() {
+        registrationServiceEnvironment.close()
         btcRegistrationEnvironment.close()
     }
 

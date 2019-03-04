@@ -5,6 +5,7 @@ import integration.registration.RegistrationServiceTestEnvironment
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import util.getRandomString
@@ -23,6 +24,11 @@ class NotaryRegistrationTest {
         registrationServiceEnvironment.registrationInitialization.init()
 
         runBlocking { delay(35_000) }
+    }
+
+    @AfterAll
+    fun closeEnvironments() {
+        registrationServiceEnvironment.close()
     }
 
     /**
