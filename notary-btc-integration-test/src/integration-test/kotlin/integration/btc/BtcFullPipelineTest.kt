@@ -2,6 +2,7 @@ package integration.btc
 
 import com.d3.btc.helper.currency.satToBtc
 import com.d3.btc.model.BtcAddressType
+import com.d3.btc.withdrawal.handler.CurrentFeeRate
 import com.github.kittinunf.result.failure
 import integration.btc.environment.BtcAddressGenerationTestEnvironment
 import integration.btc.environment.BtcNotaryTestEnvironment
@@ -9,6 +10,7 @@ import integration.btc.environment.BtcRegistrationTestEnvironment
 import integration.btc.environment.BtcWithdrawalTestEnvironment
 import integration.helper.BTC_ASSET
 import integration.helper.BtcIntegrationHelperUtil
+import integration.registration.RegistrationServiceTestEnvironment
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -21,7 +23,7 @@ import org.junit.jupiter.api.fail
 import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
 import util.hex
-import com.d3.btc.withdrawal.handler.CurrentFeeRate
+import util.toHexString
 import java.io.File
 import java.math.BigDecimal
 import java.security.KeyPair
@@ -33,7 +35,9 @@ class BtcFullPipelineTest {
 
     private val addressGenerationEnvironment = BtcAddressGenerationTestEnvironment(integrationHelper)
 
-    private val registrationEnvironment = BtcRegistrationTestEnvironment(integrationHelper)
+    private val registrationEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
+
+    private val btcRegistrationEnvironment = BtcRegistrationTestEnvironment(integrationHelper)
 
     private val notaryEnvironment = BtcNotaryTestEnvironment(integrationHelper, "full_pipeline")
 
@@ -51,7 +55,10 @@ class BtcFullPipelineTest {
         addressGenerationEnvironment.checkIfAddressesWereGeneratedAtInitialPhase()
         // Run registration
         GlobalScope.launch {
-            registrationEnvironment.btcRegistrationServiceInitialization.init()
+            registrationEnvironment.registrationInitialization.init()
+        }
+        GlobalScope.launch {
+            btcRegistrationEnvironment.btcRegistrationServiceInitialization.init()
         }
 
         integrationHelper.generateBtcInitialBlocks()
@@ -85,7 +92,7 @@ class BtcFullPipelineTest {
     @AfterAll
     fun closeEnvironments() {
         addressGenerationEnvironment.close()
-        registrationEnvironment.close()
+        btcRegistrationEnvironment.close()
         notaryEnvironment.close()
         withdrawalEnvironment.close()
     }
@@ -222,10 +229,17 @@ class BtcFullPipelineTest {
      * @return registered Bitcoin address
      */
     private fun registerClient(userName: String, keypair: KeyPair): String {
-        val res = khttp.post(
-            "http://127.0.0.1:${registrationEnvironment.btcRegistrationConfig.port}/users",
+        var res = khttp.post(
+            "http://127.0.0.1:${registrationEnvironment.registrationConfig.port}/users",
+            data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
+        )
+        assertEquals(200, res.statusCode)
+        res = khttp.post(
+            "http://127.0.0.1:${btcRegistrationEnvironment.btcRegistrationConfig.port}/users",
             data = mapOf("name" to userName, "pubkey" to String.hex(keypair.public.encoded), "whitelist" to "")
         )
+        assertEquals(200, res.statusCode)
+
         return String(res.content)
     }
 
