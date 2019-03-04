@@ -13,10 +13,10 @@ import com.d3.btc.withdrawal.handler.NewSignatureEventHandler
 import com.d3.btc.withdrawal.handler.WithdrawalTransferEventHandler
 import com.d3.btc.withdrawal.listener.BitcoinBlockChainFeeRateListener
 import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
+import com.d3.commons.config.RMQConfig
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import config.RMQConfig
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
 import mu.KLogging
