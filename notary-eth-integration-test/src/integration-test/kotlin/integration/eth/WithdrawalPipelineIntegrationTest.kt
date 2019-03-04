@@ -35,9 +35,10 @@ class WithdrawalPipelineIntegrationTest {
     /** Refund endpoint address */
     private val refundAddress = "http://localhost:${notaryConfig.refund.port}"
 
+    private val registrationTestEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
+
     /** Test Registration configuration */
-    val registrationConfig =
-        loadConfigs("registration", NotaryRegistrationConfig::class.java, "/registration.properties").get()
+    private val registrationConfig = registrationTestEnvironment.registrationConfig
 
     /** Test EthRegistration configuration */
     private val ethRegistrationConfig = integrationHelper.ethRegistrationConfig
@@ -59,7 +60,7 @@ class WithdrawalPipelineIntegrationTest {
     init {
 
         registrationService = GlobalScope.launch {
-            RegistrationServiceTestEnvironment(integrationHelper).registrationInitialization.init()
+            registrationTestEnvironment.registrationInitialization.init()
         }
         ethRegistrationService = GlobalScope.launch {
             integrationHelper.runEthRegistrationService(ethRegistrationConfig)

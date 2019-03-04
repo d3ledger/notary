@@ -20,7 +20,7 @@ class RegistrationServiceInitialization(
      * Init registration service
      */
     fun init(): Result<Unit, Exception> {
-        logger.info { "Init registration service" }
+        logger.info { "Init registration service, registration account: ${registrationConfig.registrationCredential.accountId}" }
         return Result.of {
             RegistrationServiceEndpoint(
                 registrationConfig.port,

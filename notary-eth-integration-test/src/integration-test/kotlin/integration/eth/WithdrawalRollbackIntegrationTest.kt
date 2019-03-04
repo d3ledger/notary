@@ -24,8 +24,10 @@ class WithdrawalRollbackIntegrationTest {
     /** Integration tests util */
     private val integrationHelper = EthIntegrationHelperUtil()
 
+    private val registrationTestEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
+
     /** Test Registration configuration */
-    val registrationConfig = integrationHelper.configHelper.createRegistrationConfig(integrationHelper.accountHelper)
+    private val registrationConfig = registrationTestEnvironment.registrationConfig
 
     /** Test EthRegistration configuration */
     private val ethRegistrationConfig = integrationHelper.ethRegistrationConfig
@@ -45,7 +47,7 @@ class WithdrawalRollbackIntegrationTest {
     init {
         integrationHelper.runEthNotary()
         registrationService = GlobalScope.launch {
-            RegistrationServiceTestEnvironment(integrationHelper).registrationInitialization.init()
+            registrationTestEnvironment.registrationInitialization.init()
         }
         ethRegistrationService = GlobalScope.launch {
             integrationHelper.runEthRegistrationService(ethRegistrationConfig)
