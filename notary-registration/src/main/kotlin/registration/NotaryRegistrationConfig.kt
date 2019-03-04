@@ -11,9 +11,6 @@ interface NotaryRegistrationConfig {
     /** Registration service port */
     val port: Int
 
-    /** Port for healthchecking */
-    val healthCheckPort: Int
-
     /** Iroha configs */
     val iroha: IrohaConfig
 
