@@ -73,10 +73,11 @@ class BtcWithdrawalFailResistanceIntegrationTest {
         val randomNameSrc = String.getRandomString(9)
         val testClientSrcKeypair = ModelUtil.generateKeypair()
         val testClientSrc = "$randomNameSrc@$CLIENT_DOMAIN"
-        val btcAddressSrc = integrationHelper.registerBtcAddressNoPreGen(randomNameSrc, testClientSrcKeypair)
+        val btcAddressSrc =
+            integrationHelper.registerBtcAddressNoPreGen(randomNameSrc, CLIENT_DOMAIN, testClientSrcKeypair)
         integrationHelper.sendBtc(btcAddressSrc, 1, environment.btcWithdrawalConfig.bitcoin.confidenceLevel)
         val randomNameDest = String.getRandomString(9)
-        val btcAddressDest = integrationHelper.registerBtcAddressNoPreGen(randomNameDest)
+        val btcAddressDest = integrationHelper.registerBtcAddressNoPreGen(randomNameDest, CLIENT_DOMAIN)
         integrationHelper.addIrohaAssetTo(testClientSrc, BTC_ASSET, amount)
         integrationHelper.transferAssetIrohaFromClient(
             testClientSrc,
