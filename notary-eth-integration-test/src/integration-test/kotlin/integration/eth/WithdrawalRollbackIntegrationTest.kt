@@ -1,12 +1,12 @@
 package integration.eth
 
-import config.loadConfigs
 import integration.helper.EthIntegrationHelperUtil
 import integration.registration.RegistrationServiceTestEnvironment
-import kotlinx.coroutines.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.junit.jupiter.api.*
 import provider.eth.ETH_PRECISION
-import com.d3.registration.NotaryRegistrationConfig
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
@@ -25,8 +25,7 @@ class WithdrawalRollbackIntegrationTest {
     private val integrationHelper = EthIntegrationHelperUtil()
 
     /** Test Registration configuration */
-    val registrationConfig =
-        loadConfigs("registration", NotaryRegistrationConfig::class.java, "/registration.properties").get()
+    val registrationConfig = integrationHelper.configHelper.createRegistrationConfig(integrationHelper.accountHelper)
 
     /** Test EthRegistration configuration */
     private val ethRegistrationConfig = integrationHelper.ethRegistrationConfig

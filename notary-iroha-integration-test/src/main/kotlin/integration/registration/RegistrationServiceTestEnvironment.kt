@@ -15,8 +15,7 @@ import java.io.Closeable
  */
 class RegistrationServiceTestEnvironment(private val integrationHelper: IrohaIntegrationHelperUtil) : Closeable {
 
-    val registrationConfig =
-        loadConfigs("registration", NotaryRegistrationConfig::class.java, "/registration.properties").get()
+    val registrationConfig = integrationHelper.configHelper.createRegistrationConfig(integrationHelper.accountHelper)
 
     private val registrationCredentials = ModelUtil.loadKeypair(
         registrationConfig.registrationCredential.pubkeyPath,

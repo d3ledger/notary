@@ -1,5 +1,6 @@
 package integration.helper
 
+import com.d3.registration.NotaryRegistrationConfig
 import config.IrohaConfig
 import config.loadConfigs
 import integration.TestConfig
@@ -19,6 +20,16 @@ open class IrohaConfigHelper {
         return object : IrohaConfig {
             override val hostname = testConfig.iroha.hostname
             override val port = testConfig.iroha.port
+        }
+    }
+
+    /** Test configuration of Registration with runtime dependencies */
+    fun createRegistrationConfig(accountHelper: IrohaAccountHelper): NotaryRegistrationConfig {
+        return object : NotaryRegistrationConfig {
+            override val port = portCounter.incrementAndGet()
+            override val iroha = createIrohaConfig()
+            override val registrationCredential =
+                accountHelper.createCredentialConfig(accountHelper.registrationAccount)
         }
     }
 
