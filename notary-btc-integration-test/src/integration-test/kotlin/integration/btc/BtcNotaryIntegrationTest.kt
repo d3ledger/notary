@@ -16,7 +16,7 @@ import util.getRandomString
 import java.io.File
 import java.math.BigDecimal
 
-const val DEPOSIT_WAIT_MILLIS = 10_000L
+const val DEPOSIT_WAIT_MILLIS = 15_000L
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcNotaryIntegrationTest {
