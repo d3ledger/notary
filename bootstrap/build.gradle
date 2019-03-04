@@ -15,7 +15,6 @@ buildscript {
 apply plugin: 'application'
 apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
 apply plugin: 'com.github.johnrengelman.shadow'
-mainClassName = "jp.co.soramitsu.notary.bootstrap.BootstrapMain"
 
 dependencies {
 
@@ -51,7 +50,8 @@ dependencies {
 
     //TODO this is very dirty hack. This dependency must be removed after migration to newer version of Spring Boot
     // https://mvnrepository.com/artifact/org.hibernate/hibernate-validator
-    implementation group: 'org.hibernate', name: 'hibernate-validator', version: '6.0.14.Final'
+
+    implementation 'org.hibernate:hibernate-validator:6.0.14.Final'
 
     implementation "org.springframework.boot:spring-boot-starter-jetty:$springBootVersion"
 
@@ -59,7 +59,10 @@ dependencies {
 
     compile 'com.google.protobuf:protobuf-java-util:3.6.1'
     compile 'org.bitcoinj:bitcoinj-core:0.14.7'
-    compile 'org.web3j:crypto:4.0.4'
+
+    //Web3j
+    compile 'org.web3j:crypto:4.1.1'
+    compile 'org.web3j:core:4.1.1'
 
     testCompile "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
 
@@ -67,8 +70,11 @@ dependencies {
 
 sourceCompatibility = 1.8
 
+
+mainClassName = "jp.co.soramitsu.bootstrap.BootstrapMain"
+
 task runBootstrap(type: JavaExec ) {
-    main = 'jp.co.soramitsu.notary.bootstrap.BootstrapMain'
+    main = mainClassName
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
 }

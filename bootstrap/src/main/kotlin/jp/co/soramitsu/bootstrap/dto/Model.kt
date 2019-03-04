@@ -2,6 +2,7 @@ package jp.co.soramitsu.bootstrap.dto
 
 import jp.co.soramitsu.iroha.java.TransactionBuilder
 import jp.co.soramitsu.bootstrap.genesis.getIrohaPublicKeyFromBase64
+import org.web3j.crypto.WalletFile
 import java.security.KeyPair
 import javax.xml.bind.DatatypeConverter
 
@@ -48,6 +49,7 @@ data class GenesisRequest(
 
 data class GenesisResponse(val blockData: String? = null) :
     Conflictable()
+data class EthWallet(val file: WalletFile? = null) : Conflictable()
 
 /**
  * Accounts which can't create transactions and no need to generate credentials for this accounts
