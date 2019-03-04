@@ -11,12 +11,12 @@ import org.springframework.context.annotation.ComponentScan
 @SpringBootApplication
 @ComponentScan(basePackages = ["jp.co.soramitsu.bootstrap"])
 
-class main
+class Application
 
     private val logger = KLogging().logger
 
     fun main(args: Array<String>) {
-        val app = SpringApplication(main::class.java)
+        val app = SpringApplication(Application::class.java)
         app.run(*args)
     }
 
