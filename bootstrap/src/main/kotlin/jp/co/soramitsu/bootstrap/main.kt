@@ -1,4 +1,4 @@
-@file:JvmName("Bootstrap")
+@file:JvmName("BootstrapMain")
 
 package jp.co.soramitsu.bootstrap
 
@@ -9,12 +9,12 @@ import org.springframework.context.annotation.ComponentScan
 
 @SpringBootApplication
 @ComponentScan(basePackages = ["jp.co.soramitsu.bootstrap"])
-class BootstrapMain
+class main
 
     private val logger = KLogging().logger
 
     fun main(args: Array<String>) {
-        val app = SpringApplication(BootstrapMain::class.java)
+        val app = SpringApplication(main::class.java)
         app.run(*args)
     }
 
