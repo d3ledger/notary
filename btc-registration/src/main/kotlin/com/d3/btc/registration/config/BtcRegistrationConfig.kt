@@ -22,9 +22,6 @@ interface BtcRegistrationConfig {
     /** Iroha configuration */
     val iroha: IrohaConfig
 
-    /** Port for health check service */
-    val healthCheckPort: Int
-
     /** Node id */
     val nodeId: String
 }

@@ -14,6 +14,7 @@ import mu.KLogging
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Utils
 import org.bitcoinj.params.RegTestParams
+import org.bitcoinj.script.Script
 import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
 import org.junit.Assert.*
@@ -23,6 +24,7 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
 import java.io.File
 import java.util.*
+import kotlin.collections.ArrayList
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcMultiAddressGenerationIntegrationTest {
@@ -42,10 +44,11 @@ class BtcMultiAddressGenerationIntegrationTest {
     init {
         var peerCount = 0
         integrationHelper.accountHelper.mstRegistrationAccounts.forEach { mstRegistrationAccount ->
+            val walletPostfix = "test-multisig-generation-$peerCount"
             integrationHelper.addNotary("test_notary_${peerCount++}", "test_notary_address")
             val environment = BtcAddressGenerationTestEnvironment(
                 integrationHelper,
-                btcGenerationConfig = integrationHelper.configHelper.createBtcAddressGenerationConfig(0),
+                btcGenerationConfig = integrationHelper.configHelper.createBtcAddressGenerationConfig(0, walletPostfix),
                 mstRegistrationCredential = mstRegistrationAccount
             )
             environments.add(environment)
@@ -79,22 +82,39 @@ class BtcMultiAddressGenerationIntegrationTest {
                 "$sessionAccountName@btcSession",
                 environment.btcGenerationConfig.registrationAccount.accountId
             )
+
         val notaryKeys =
             sessionDetails.entries.filter { entry ->
                 entry.key != ADDRESS_GENERATION_TIME_KEY
                         && entry.key != ADDRESS_GENERATION_NODE_ID_KEY
             }.map { entry -> entry.value }
-        val wallet = Wallet.loadFromFile(File(environment.btcGenerationConfig.btcWalletFilePath))
-        notaryKeys.forEach { pubKey ->
-            assertTrue(wallet.issuedReceiveKeys.any { ecKey -> ecKey.publicKeyAsHex == pubKey })
+        val expectedMsAddress = createMsAddress(notaryKeys)
+        val wallets = ArrayList<Wallet>()
+        environments.forEach { env ->
+            wallets.add(Wallet.loadFromFile(File(env.btcGenerationConfig.btcKeysWalletPath)))
         }
+
+        //Check that every wallet has generated address
+        wallets.forEach { wallet ->
+            assertTrue(wallet.isWatchedScript(expectedMsAddress))
+        }
+
+        //Check that every wallet has only one public key that was used in address generation
+        val keysSavedInWallets = ArrayList<String>()
+        notaryKeys.forEach { pubKey ->
+            val walletWithKey = wallets.first { wallet ->
+                wallet.issuedReceiveKeys.any { ecKey -> ecKey.publicKeyAsHex == pubKey }
+            }
+            keysSavedInWallets.add(pubKey)
+            wallets.remove(walletWithKey)
+        }
+        assertEquals(keysSavedInWallets.size, notaryKeys.size)
         val notaryAccountDetails =
             integrationHelper.getAccountDetails(
                 environment.btcGenerationConfig.notaryAccount,
                 environment.btcGenerationConfig.mstRegistrationAccount.accountId
             )
-        val expectedMsAddress = createMsAddress(notaryKeys)
-        val generatedAddress = AddressInfo.fromJson(notaryAccountDetails[expectedMsAddress]!!)!!
+        val generatedAddress = AddressInfo.fromJson(notaryAccountDetails[msAddressToBase58(expectedMsAddress)]!!)!!
         assertNull(generatedAddress.irohaClient)
         assertEquals(notaryKeys, generatedAddress.notaryKeys.toList())
         assertEquals(nodeId.toString(), generatedAddress.nodeId)
@@ -107,14 +127,17 @@ class BtcMultiAddressGenerationIntegrationTest {
         )
     }
 
-    private fun createMsAddress(notaryKeys: Collection<String>): String {
+    private fun createMsAddress(notaryKeys: Collection<String>): Script {
         val keys = ArrayList<ECKey>()
         notaryKeys.forEach { key ->
             val ecKey = ECKey.fromPublicOnly(Utils.parseAsHexOrBase58(key))
             keys.add(ecKey)
         }
-        val script = ScriptBuilder.createP2SHOutputScript(getSignThreshold(peers), keys)
-        return script.getToAddress(RegTestParams.get()).toBase58()
+        return ScriptBuilder.createP2SHOutputScript(getSignThreshold(peers), keys)
+    }
+
+    private fun msAddressToBase58(address: Script): String {
+        return address.getToAddress(RegTestParams.get()).toBase58()
     }
 
     /**

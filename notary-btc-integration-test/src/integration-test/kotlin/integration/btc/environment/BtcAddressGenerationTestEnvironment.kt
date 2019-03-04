@@ -9,7 +9,6 @@ import com.d3.btc.provider.address.BtcAddressesProvider
 import com.d3.btc.provider.generation.BtcPublicKeyProvider
 import com.d3.btc.provider.generation.BtcSessionProvider
 import com.d3.btc.provider.network.BtcRegTestConfigProvider
-import com.d3.btc.wallet.WalletFile
 import integration.helper.BtcIntegrationHelperUtil
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
@@ -33,8 +32,9 @@ private const val INIT_ADDRESSES = 3
  */
 class BtcAddressGenerationTestEnvironment(
     private val integrationHelper: BtcIntegrationHelperUtil,
+    val testName: String = "test",
     val btcGenerationConfig: BtcAddressGenerationConfig =
-        integrationHelper.configHelper.createBtcAddressGenerationConfig(INIT_ADDRESSES),
+        integrationHelper.configHelper.createBtcAddressGenerationConfig(INIT_ADDRESSES, testName),
     mstRegistrationCredential: IrohaCredential = IrohaCredential(
         btcGenerationConfig.mstRegistrationAccount.accountId,
         ModelUtil.loadKeypair(
@@ -44,6 +44,7 @@ class BtcAddressGenerationTestEnvironment(
     )
 ) : Closeable {
 
+    private val keysWallet = Wallet.loadFromFile(File(btcGenerationConfig.btcKeysWalletPath))
     /**
      * It's essential to handle blocks in this service one-by-one.
      * This is why we explicitly set single threaded executor.
@@ -101,16 +102,13 @@ class BtcAddressGenerationTestEnvironment(
     )
 
     private fun btcPublicKeyProvider(): BtcPublicKeyProvider {
-        val file = File(btcGenerationConfig.btcWalletFilePath)
-        val wallet = Wallet.loadFromFile(file)
-        val walletFile = WalletFile(wallet, file)
         val notaryPeerListProvider = NotaryPeerListProviderImpl(
             registrationQueryAPI,
             btcGenerationConfig.notaryListStorageAccount,
             btcGenerationConfig.notaryListSetterAccount
         )
         return BtcPublicKeyProvider(
-            walletFile,
+            keysWallet,
             notaryPeerListProvider,
             btcGenerationConfig.notaryAccount,
             btcGenerationConfig.changeAddressesStorageAccount,
@@ -148,6 +146,7 @@ class BtcAddressGenerationTestEnvironment(
     )
 
     val btcAddressGenerationInitialization = BtcAddressGenerationInitialization(
+        keysWallet,
         registrationQueryAPI,
         btcGenerationConfig,
         btcPublicKeyProvider(),

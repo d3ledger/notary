@@ -1,15 +1,19 @@
 package integration.helper
 
-import config.BitcoinConfig
-import config.loadConfigs
-import com.d3.btc.generation.config.BtcAddressGenerationConfig
-import model.IrohaCredential
 import com.d3.btc.deposit.config.BtcDepositConfig
+import com.d3.btc.generation.config.BtcAddressGenerationConfig
 import com.d3.btc.registration.config.BtcRegistrationConfig
 import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
+import config.BitcoinConfig
+import config.loadConfigs
+import model.IrohaCredential
+import org.bitcoinj.params.RegTestParams
+import org.bitcoinj.wallet.Wallet
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+
+private const val TEST_WALLETS_FOLDER = "deploy/bitcoin/regtest/test wallets"
 
 /**
  * Class that handles all the configuration objects
@@ -20,9 +24,13 @@ class BtcConfigHelper(
 
     /** Creates config for BTC multisig addresses generation
      * @param initAddresses - number of addresses that will be generated at initial phase
+     * @param walletNamePostfix - postfix of wallet file name. used to keep wallets as multiple files in multisig tests.
      * @return config
      * */
-    fun createBtcAddressGenerationConfig(initAddresses: Int): BtcAddressGenerationConfig {
+    fun createBtcAddressGenerationConfig(
+        initAddresses: Int,
+        walletNamePostfix: String = "test"
+    ): BtcAddressGenerationConfig {
         val btcPkPreGenConfig =
             loadConfigs(
                 "btc-address-generation",
@@ -42,20 +50,23 @@ class BtcConfigHelper(
             override val pubKeyTriggerAccount = btcPkPreGenConfig.pubKeyTriggerAccount
             override val notaryAccount = accountHelper.notaryAccount.accountId
             override val iroha = createIrohaConfig()
-            override val btcWalletFilePath = createTempWalletFile(btcPkPreGenConfig.btcWalletFilePath)
+            override val btcKeysWalletPath = createWalletFile("keys.$walletNamePostfix")
             override val registrationAccount = accountHelper.createCredentialConfig(accountHelper.registrationAccount)
         }
     }
 
     /**
      * Creates config for Bitcoin withdrawal
-     * @param testName - name of the test. used to create folder for block storage
+     * @param testName - name of the test. used to create folder for block storage and queue name
      * @return configuration
      */
     fun createBtcWithdrawalConfig(testName: String = ""): BtcWithdrawalConfig {
         val btcWithdrawalConfig =
             loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties").get()
         return object : BtcWithdrawalConfig {
+            override val irohaBlockQueue = testName
+            override val btcKeysWalletPath = createWalletFile("keys.$testName")
+            override val btcTransfersWalletPath = createWalletFile("transfers.$testName")
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
             override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
             override val btcFeeRateCredential = accountHelper.createCredentialConfig(accountHelper.btcFeeRateAccount)
@@ -74,19 +85,15 @@ class BtcConfigHelper(
     }
 
     /*
-        Creates temporary copy of wallet file just for testing
+        Creates wallet file just for testing
      */
-    fun createTempWalletFile(btcWalletPath: String): String {
-        val newWalletFilePath = btcWalletPath.replaceFirst(".wallet", "-test.wallet")
-        val walletFile = File(newWalletFilePath)
-        if (!walletFile.exists()) {
-            FileInputStream(btcWalletPath).use { src ->
-                FileOutputStream(newWalletFilePath).use { dest ->
-                    val srcChannel = src.channel
-                    dest.channel.transferFrom(srcChannel, 0, srcChannel.size())
-                }
-            }
+    fun createWalletFile(walletNamePostfix: String): String {
+        val testWalletsFolder = File(TEST_WALLETS_FOLDER)
+        if (!testWalletsFolder.exists()) {
+            testWalletsFolder.mkdirs()
         }
+        val newWalletFilePath = "$TEST_WALLETS_FOLDER/d3.$walletNamePostfix.wallet"
+        Wallet(RegTestParams.get()).saveToFile(File(newWalletFilePath))
         return newWalletFilePath
     }
 
@@ -102,6 +109,7 @@ class BtcConfigHelper(
     ): BtcDepositConfig {
         val btcDepositConfig = loadConfigs("btc-deposit", BtcDepositConfig::class.java, "/btc/deposit.properties").get()
         return object : BtcDepositConfig {
+            override val btcTransferWalletPath = createWalletFile("transfers.$testName")
             override val healthCheckPort = btcDepositConfig.healthCheckPort
             override val registrationAccount = accountHelper.registrationAccount.accountId
             override val iroha = createIrohaConfig()
@@ -114,7 +122,6 @@ class BtcConfigHelper(
 
     private fun createBitcoinConfig(bitcoinConfig: BitcoinConfig, testName: String): BitcoinConfig {
         return object : BitcoinConfig {
-            override val walletPath = createTempWalletFile(bitcoinConfig.walletPath)
             override val blockStoragePath = createTempBlockStorageFolder(bitcoinConfig.blockStoragePath, testName)
             override val confidenceLevel = bitcoinConfig.confidenceLevel
             override val hosts = bitcoinConfig.hosts
@@ -145,7 +152,6 @@ class BtcConfigHelper(
             loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/btc/registration.properties").get()
         return object : BtcRegistrationConfig {
             override val nodeId = NODE_ID
-            override val healthCheckPort = btcRegistrationConfig.healthCheckPort
             override val notaryAccount = accountHelper.notaryAccount.accountId
             override val mstRegistrationAccount = accountHelper.mstRegistrationAccount.accountId
             override val port = portCounter.incrementAndGet()

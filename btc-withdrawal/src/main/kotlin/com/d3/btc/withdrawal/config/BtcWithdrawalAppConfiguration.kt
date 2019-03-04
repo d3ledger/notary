@@ -2,8 +2,10 @@ package com.d3.btc.withdrawal.config
 
 import com.d3.btc.fee.BtcFeeRateService
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
-import config.BitcoinConfig
-import config.loadConfigs
+import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
+import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
+import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
+import config.*
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
@@ -12,12 +14,8 @@ import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import provider.NotaryPeerListProviderImpl
-import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
-import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
-import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
-import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -26,6 +24,8 @@ val withdrawalConfig =
 
 @Configuration
 class BtcWithdrawalAppConfiguration {
+
+    private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
 
     private val withdrawalKeypair = ModelUtil.loadKeypair(
         withdrawalConfig.withdrawalCredential.pubkeyPath,
@@ -52,10 +52,19 @@ class BtcWithdrawalAppConfiguration {
     }, { ex -> throw ex })
 
     @Bean
+    fun rmqConfig() = rmqConfig
+
+    @Bean
+    fun irohaBlocksQueue() = withdrawalConfig.irohaBlockQueue
+
+    @Bean
+    fun healthCheckPort() = withdrawalConfig.healthCheckPort
+
+    @Bean
     fun withdrawalStatistics() = WithdrawalStatistics.create()
 
     @Bean
-    fun wallet() = Wallet.loadFromFile(File(withdrawalConfig.bitcoin.walletPath))
+    fun transferWallet() = Wallet.loadFromFile(File(withdrawalConfig.btcTransfersWalletPath))
 
     @Bean
     fun withdrawalCredential() =
@@ -89,12 +98,6 @@ class BtcWithdrawalAppConfiguration {
         )
         return irohaAPI
     }
-
-    @Bean
-    fun withdrawalIrohaChainListener() = IrohaChainListener(
-        irohaAPI(),
-        withdrawalCredential()
-    )
 
     @Bean
     fun queryAPI() = QueryAPI(irohaAPI(), btcFeeRateCredential.accountId, btcFeeRateCredential.keyPair)

@@ -1,6 +1,5 @@
 package com.d3.btc.generation.config
 
-import com.d3.btc.wallet.WalletFile
 import config.loadConfigs
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
@@ -69,6 +68,9 @@ class BtcAddressGenerationAppConfiguration {
     }
 
     @Bean
+    fun healthCheckPort() = btcAddressGenerationConfig.healthCheckPort
+
+    @Bean
     fun registrationQueryAPI() = QueryAPI(
         generationIrohaAPI(),
         registrationCredential.accountId,
@@ -79,11 +81,7 @@ class BtcAddressGenerationAppConfiguration {
     fun btcAddressGenerationConfig() = btcAddressGenerationConfig
 
     @Bean
-    fun walletFile(): WalletFile {
-        val walletFile = File(btcAddressGenerationConfig.btcWalletFilePath)
-        val wallet = Wallet.loadFromFile(walletFile)
-        return WalletFile(wallet, walletFile)
-    }
+    fun keysWallet() = Wallet.loadFromFile(File(btcAddressGenerationConfig.btcKeysWalletPath))
 
     @Bean
     fun notaryPeerListProvider(): NotaryPeerListProvider {

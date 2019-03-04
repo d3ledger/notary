@@ -49,8 +49,6 @@ class WithdrawalServiceInitialization(
      * Init Withdrawal Service
      */
     private fun initWithdrawalService(inputEvents: Observable<SideChainEvent.IrohaEvent>): WithdrawalService {
-        logger.info { "Init Withdrawal Service" }
-
         return WithdrawalServiceImpl(withdrawalConfig, credential, irohaAPI, inputEvents)
     }
 
@@ -78,6 +76,7 @@ class WithdrawalServiceInitialization(
                         }.failure { ex ->
                             logger.error("Cannot consume withdrawal event", ex)
                         }
+                        //TODO call ack()
                     }, { ex ->
                         logger.error("Withdrawal observable error", ex)
                     }

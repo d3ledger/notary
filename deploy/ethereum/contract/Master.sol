@@ -8,7 +8,8 @@ import "./SoraToken.sol";
  * Provides functionality of master contract
  */
 contract Master {
-    address public owner;
+    bool internal initialized_;
+    address public owner_;
     mapping(address => bool) public peers;
     uint public peersCount;
     mapping(bytes32 => bool) public used;
@@ -30,15 +31,27 @@ contract Master {
      * Constructor. Sets contract owner to contract creator.
      */
     constructor(address relayRegistry, address[] memory initialPeers) public {
-        owner = msg.sender;
+        initialize(msg.sender, relayRegistry, initialPeers);
+    }
+
+    /**
+     * Initialization of smart contract.
+     */
+    function initialize(address owner, address relayRegistry, address[] memory initialPeers) public {
+        require(!initialized_);
+
+        owner_ = owner;
         relayRegistryAddress = relayRegistry;
         relayRegistryInstance = IRelayRegistry(relayRegistryAddress);
         for (uint8 i = 0; i < initialPeers.length; i++) {
             addPeer(initialPeers[i]);
         }
+
         // Create new instance of Sora token
         xorTokenInstance = new SoraToken();
         tokens.push(address(xorTokenInstance));
+
+        initialized_ = true;
     }
 
     /**
@@ -53,7 +66,7 @@ contract Master {
      * @return true if `msg.sender` is the owner of the contract.
      */
     function isOwner() public view returns(bool) {
-        return msg.sender == owner;
+        return msg.sender == owner_;
     }
 
     /**

@@ -1,5 +1,7 @@
 package com.d3.btc.deposit.init
 
+import com.d3.btc.deposit.config.BtcDepositConfig
+import com.d3.btc.deposit.listener.BitcoinBlockChainDepositListener
 import com.d3.btc.healthcheck.HealthyService
 import com.d3.btc.helper.network.addPeerConnectionStatusListener
 import com.d3.btc.helper.network.startChainDownload
@@ -15,9 +17,7 @@ import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
 import mu.KLogging
-import com.d3.btc.deposit.config.BtcDepositConfig
-import com.d3.btc.deposit.factory.createBtcNotary
-import com.d3.btc.deposit.listener.BitcoinBlockChainDepositListener
+import notary.NotaryImpl
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.PeerGroup
 import org.bitcoinj.utils.BriefLogFormatter
@@ -29,12 +29,13 @@ import provider.NotaryPeerListProviderImpl
 import sidechain.SideChainEvent
 import sidechain.iroha.IrohaChainListener
 import java.io.Closeable
+import java.io.File
 import java.util.concurrent.Executors
 
 @Component
 class BtcNotaryInitialization(
     @Autowired private val peerGroup: PeerGroup,
-    @Autowired private val wallet: Wallet,
+    @Autowired private val transferWallet: Wallet,
     @Autowired private val btcDepositConfig: BtcDepositConfig,
     @Qualifier("notaryCredential")
     @Autowired private val irohaCredential: IrohaCredential,
@@ -63,7 +64,7 @@ class BtcNotaryInitialization(
         addPeerConnectionStatusListener(peerGroup, ::notHealthy, ::cured)
         return irohaChainListener.getBlockObservable().map { irohaObservable ->
             newBtcClientRegistrationListener.listenToRegisteredClients(
-                wallet, irohaObservable
+                transferWallet, irohaObservable
             ) {
                 // Kill deposit service if Iroha chain listener is not functioning
                 close()
@@ -72,16 +73,16 @@ class BtcNotaryInitialization(
         }.flatMap {
             btcRegisteredAddressesProvider.getRegisteredAddresses()
         }.map { registeredAddresses ->
-            // Adding previously registered addresses to the wallet
+            // Adding previously registered addresses to the transferWallet
             registeredAddresses.map { btcAddress ->
                 Address.fromBase58(
                     btcNetworkConfigProvider.getConfig(),
                     btcAddress.address
                 )
             }.forEach { address ->
-                wallet.addWatchedAddress(address)
+                transferWallet.addWatchedAddress(address)
             }
-            logger.info { "Previously registered addresses were added to the wallet" }
+            logger.info { "Previously registered addresses were added to the transferWallet" }
         }.map {
             getBtcEvents(peerGroup, btcDepositConfig.bitcoin.confidenceLevel)
         }.map { btcEvents ->
@@ -92,8 +93,7 @@ class BtcNotaryInitialization(
                 btcDepositConfig.notaryListStorageAccount,
                 btcDepositConfig.notaryListSetterAccount
             )
-            val notary =
-                createBtcNotary(irohaCredential, irohaAPI, btcEvents, peerListProvider)
+            val notary = NotaryImpl(irohaCredential, irohaAPI, btcEvents, peerListProvider)
             notary.initIrohaConsumer().failure { ex -> throw ex }
         }.map {
             startChainDownload(peerGroup)
@@ -102,7 +102,7 @@ class BtcNotaryInitialization(
 
     //Checks if address is watched by notary
     fun isWatchedAddress(btcAddress: String) =
-        wallet.isAddressWatched(Address.fromBase58(btcNetworkConfigProvider.getConfig(), btcAddress))
+        transferWallet.isAddressWatched(Address.fromBase58(btcNetworkConfigProvider.getConfig(), btcAddress))
 
     /**
      * Returns observable object full of deposit events
@@ -119,7 +119,7 @@ class BtcNotaryInitialization(
                     emitter,
                     confidenceListenerExecutorService,
                     confidenceLevel
-                )
+                ) { transferWallet.saveToFile(File(btcDepositConfig.btcTransferWalletPath)) }
             )
         }
     }

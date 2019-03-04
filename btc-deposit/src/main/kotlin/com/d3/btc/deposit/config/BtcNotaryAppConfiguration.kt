@@ -29,6 +29,9 @@ class BtcNotaryAppConfiguration {
     fun notaryConfig() = depositConfig
 
     @Bean
+    fun healthCheckPort() = depositConfig.healthCheckPort
+
+    @Bean
     fun irohaAPI() = IrohaAPI(depositConfig.iroha.hostname, depositConfig.iroha.port)
 
     @Bean
@@ -49,7 +52,7 @@ class BtcNotaryAppConfiguration {
     }
 
     @Bean
-    fun wallet() = Wallet.loadFromFile(File(depositConfig.bitcoin.walletPath))
+    fun transferWallet() = Wallet.loadFromFile(File(depositConfig.btcTransferWalletPath))
 
     @Bean
     fun notaryCredential() = notaryCredential

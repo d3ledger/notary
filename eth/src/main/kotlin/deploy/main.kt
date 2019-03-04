@@ -16,6 +16,7 @@ private val logger = KLogging().logger
 
 /**
  * Entry point to deploy smart contracts.
+ * Contracts are deployed via UpgradableProxy.
  * [args] should contain the list of notary ethereum addresses
  */
 fun main(args: Array<String>) {
@@ -30,14 +31,21 @@ fun main(args: Array<String>) {
         .map { (ethereumConfig, passwordConfig) -> DeployHelper(ethereumConfig, passwordConfig) }
         .map { deployHelper ->
 
-            val relayRegistry = deployHelper.deployRelayRegistrySmartContract()
-            val master = deployHelper.deployMasterSmartContract(relayRegistry.contractAddress, args.toList())
+            val relayRegistry = deployHelper.deployUpgradableRelayRegistrySmartContract()
+            val master = deployHelper.deployUpgradableMasterSmartContract(relayRegistry.contractAddress, args.toList())
+            val relayImplementation = deployHelper.deployRelaySmartContract(master.contractAddress)
 
             File("master_eth_address").printWriter().use {
                 it.print(master.contractAddress)
             }
             File("relay_registry_eth_address").printWriter().use {
                 it.print(relayRegistry.contractAddress)
+            }
+            File("relay_implementation_address").printWriter().use {
+                it.println(relayImplementation.contractAddress)
+            }
+            File("sora_token_eth_address").printWriter().use {
+                it.print(master.tokens.send().get(0))
             }
         }
         .failure { ex ->
