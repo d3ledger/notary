@@ -3,10 +3,6 @@ buildscript {
         mavenCentral()
         jcenter()
     }
-    dependencies {
-        //Spring-boot
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:$spring_boot_version"
-    }
 }
 
 apply plugin: 'application'
@@ -17,24 +13,8 @@ mainClassName = "registration.RegistrationMain"
 dependencies {
     compile project(":notary-commons")
 
-    //Spring-boot
-    compile("org.springframework.boot:spring-boot-starter:$spring_boot_version") {
-        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
-    }
-    compile("org.springframework.boot:spring-boot-starter-web:$spring_boot_version") {
-        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
-        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
-        exclude group: 'org.hibernate'
-    }
-    //TODO this is very dirty hack. This dependency must be removed after migration to newer version of Spring Boot
-    // https://mvnrepository.com/artifact/org.hibernate/hibernate-validator
-    compile group: 'org.hibernate', name: 'hibernate-validator', version: '6.0.14.Final'
-
-    compile "org.springframework.boot:spring-boot-starter-jetty:$spring_boot_version"
-
-    compile("org.springframework.boot:spring-boot-starter-actuator:$spring_boot_version") {
-        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
-    }
+    //Spring
+    compile group: 'org.springframework', name: 'spring-context', version: '5.1.4.RELEASE'
 
     // https://mvnrepository.com/artifact/commons-logging/commons-logging
     compile group: 'commons-logging', name: 'commons-logging', version: '1.2'
