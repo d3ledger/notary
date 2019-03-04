@@ -2,6 +2,7 @@ package integration.btc
 
 import com.d3.btc.helper.currency.satToBtc
 import com.d3.btc.model.BtcAddressType
+import com.d3.btc.withdrawal.handler.CurrentFeeRate
 import com.github.kittinunf.result.failure
 import integration.btc.environment.BtcAddressGenerationTestEnvironment
 import integration.btc.environment.BtcNotaryTestEnvironment
@@ -21,7 +22,6 @@ import org.junit.jupiter.api.fail
 import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
 import util.hex
-import com.d3.btc.withdrawal.handler.CurrentFeeRate
 import java.io.File
 import java.math.BigDecimal
 import java.security.KeyPair
@@ -29,15 +29,17 @@ import java.security.KeyPair
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcFullPipelineTest {
 
+    private val testName = "full_pipeline_${String.getRandomString(5)}"
+
     private val integrationHelper = BtcIntegrationHelperUtil()
 
-    private val addressGenerationEnvironment = BtcAddressGenerationTestEnvironment(integrationHelper)
+    private val addressGenerationEnvironment = BtcAddressGenerationTestEnvironment(integrationHelper, testName)
 
     private val registrationEnvironment = BtcRegistrationTestEnvironment(integrationHelper)
 
-    private val notaryEnvironment = BtcNotaryTestEnvironment(integrationHelper, "full_pipeline")
+    private val notaryEnvironment = BtcNotaryTestEnvironment(integrationHelper, testName)
 
-    private val withdrawalEnvironment = BtcWithdrawalTestEnvironment(integrationHelper, "full_pipeline")
+    private val withdrawalEnvironment = BtcWithdrawalTestEnvironment(integrationHelper, testName)
 
     init {
         CurrentFeeRate.set(DEFAULT_FEE_RATE)
@@ -78,7 +80,6 @@ class BtcFullPipelineTest {
             blockStorageFolder.mkdirs()
             withdrawalEnvironment.btcWithdrawalInitialization.init().failure { ex -> throw ex }
         }
-
         Thread.sleep(10_000)
     }
 

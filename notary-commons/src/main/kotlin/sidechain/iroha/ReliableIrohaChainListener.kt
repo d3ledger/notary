@@ -10,16 +10,26 @@ import io.reactivex.subjects.PublishSubject
 import mu.KLogging
 import sidechain.ChainListener
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 /**
  * Rabbit MQ based implementation of [ChainListener]
+ * @param rmqConfig - Rabbit MQ configuration
+ * @param irohaQueue - name of queue to read Iroha blocks from
+ * @param subscribe - function that will be called on new block
+ * @param consumerExecutorService - executor that is used to execure RabbitMQ consumer code.
+ * @param autoAck - enables auto acknowledgment
  */
 class ReliableIrohaChainListener(
     private val rmqConfig: RMQConfig,
     private val irohaQueue: String,
-    private val consumerExecutorService: ExecutorService? = null
+    private val subscribe: (iroha.protocol.BlockOuterClass.Block, () -> Unit) -> Unit,
+    private val consumerExecutorService: ExecutorService?,
+    private val autoAck: Boolean
 ) : ChainListener<Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit>> {
+    constructor(
+        rmqConfig: RMQConfig,
+        irohaQueue: String
+    ) : this(rmqConfig, irohaQueue, { _, _ -> }, null, true)
 
     private val factory = ConnectionFactory()
 
@@ -44,37 +54,37 @@ class ReliableIrohaChainListener(
         channel.basicQos(1)
     }
 
-
     /**
      * Returns an observable that emits a new block every time it gets it from Iroha
      */
-    override fun getBlockObservable(autoAck: Boolean): Result<Observable<Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit>>, Exception> {
-
-        val source = PublishSubject.create<Delivery>()
-        val deliverCallback = { consumerTag: String, delivery: Delivery ->
-            // This code is executed inside consumerExecutorService
-            source.onNext(delivery)
-        }
-        val obs: Observable<Delivery> = source.doOnSubscribe {
-            consumerTag = channel.basicConsume(irohaQueue, autoAck, deliverCallback, { _ -> })
-        }
-        logger.info { "On subscribe to Iroha chain" }
+    override fun getBlockObservable(
+    ): Result<Observable<Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit>>, Exception> {
         return Result.of {
-            obs.map { delivery ->
+            val source = PublishSubject.create<Delivery>()
+            val deliverCallback = { consumerTag: String, delivery: Delivery ->
+                // This code is executed inside consumerExecutorService
+                source.onNext(delivery)
+            }
+            val obs: Observable<Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit>> = source.map { delivery ->
                 val block = iroha.protocol.BlockOuterClass.Block.parseFrom(delivery.body)
-                logger.info { "New Iroha block arrived. Height ${block.blockV1.payload.height}" }
+                logger.info { "New Iroha block from RMQ arrived. Height ${block.blockV1.payload.height}" }
                 Pair(block, {
-                    if (!autoAck)
+                    if (!autoAck) {
                         channel.basicAck(delivery.envelope.deliveryTag, false)
+                        logger.info { "Iroha block delivery confirmed" }
+                    }
                 })
             }
+            obs.subscribe { (block, ack) -> subscribe(block, ack) }
+            consumerTag = channel.basicConsume(irohaQueue, autoAck, deliverCallback, { _ -> })
+            obs
         }
     }
 
     /**
      * @return a block as soon as it is committed to iroha
      */
-    override suspend fun getBlock(autoAck: Boolean): Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit> {
+    override suspend fun getBlock(): Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit> {
         var resp: GetResponse?
         do {
             Thread.sleep(10L)
