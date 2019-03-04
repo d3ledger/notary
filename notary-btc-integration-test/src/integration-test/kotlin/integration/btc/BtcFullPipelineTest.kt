@@ -54,9 +54,7 @@ class BtcFullPipelineTest {
         Thread.sleep(WAIT_PREGEN_PROCESS_MILLIS * addressGenerationEnvironment.btcGenerationConfig.threshold)
         addressGenerationEnvironment.checkIfAddressesWereGeneratedAtInitialPhase()
         // Run registration
-        GlobalScope.launch {
-            registrationEnvironment.registrationInitialization.init()
-        }
+        registrationEnvironment.registrationInitialization.init()
         GlobalScope.launch {
             btcRegistrationEnvironment.btcRegistrationServiceInitialization.init()
         }
@@ -86,7 +84,7 @@ class BtcFullPipelineTest {
             withdrawalEnvironment.btcWithdrawalInitialization.init().failure { ex -> throw ex }
         }
 
-        Thread.sleep(10_000)
+        Thread.sleep(15_000)
     }
 
     @AfterAll
