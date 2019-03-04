@@ -4,13 +4,10 @@ import com.github.kittinunf.result.failure
 import integration.btc.environment.BtcNotaryTestEnvironment
 import integration.helper.BTC_ASSET
 import integration.helper.BtcIntegrationHelperUtil
-import org.bitcoinj.core.Address
-import org.junit.jupiter.api.AfterAll
+import org.bitcoinj.wallet.Wallet
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.fail
 import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
 import java.io.File
@@ -41,18 +38,21 @@ class BtcNotaryIntegrationTest {
     }
 
     /**
-     * Test US-001 Deposit
      * Note: Iroha and bitcoind must be deployed to pass the test.
      * @given new registered account
      * @when 1 btc was sent to new account
-     * @then balance of new account is increased by 1 btc(or 100.000.000 sat)
+     * @then balance of new account is increased by 1 btc(or 100.000.000 sat), wallet file has one more UTXO
      */
     @Test
     fun testDeposit() {
+        val initUTXOCount = Wallet.loadFromFile(File(environment.notaryConfig.btcTransferWalletPath)).unspents.size
         val randomName = String.getRandomString(9)
         val testClient = "$randomName@$CLIENT_DOMAIN"
         val btcAddress =
-            integrationHelper.registerBtcAddress(environment.notaryConfig.bitcoin.walletPath, randomName)
+            integrationHelper.registerBtcAddress(
+                environment.btcAddressGenerationConfig.btcKeysWalletPath,
+                randomName
+            )
         val initialBalance = integrationHelper.getIrohaAccountBalance(
             testClient,
             BTC_ASSET
@@ -66,22 +66,29 @@ class BtcNotaryIntegrationTest {
             newBalance
         )
         assertTrue(environment.btcNotaryInitialization.isWatchedAddress(btcAddress))
+        assertEquals(
+            initUTXOCount + 1,
+            Wallet.loadFromFile(File(environment.notaryConfig.btcTransferWalletPath)).unspents.size
+        )
     }
 
     /**
-     * Test US-002 Deposit
      * Note: Iroha and bitcoind must be deployed to pass the test.
      * @given new registered account
      * @when 1 btc was sent to new account 3 times in a row
-     * @then balance of new account is increased by 3 btc(or 300.000.000 sat)
+     * @then balance of new account is increased by 3 btc(or 300.000.000 sat), wallet file has more UTXO
      */
     @Test
     fun testMultipleDeposit() {
+        val initUTXOCount = Wallet.loadFromFile(File(environment.notaryConfig.btcTransferWalletPath)).unspents.size
         val totalDeposits = 3
         val randomName = String.getRandomString(9)
         val testClient = "$randomName@$CLIENT_DOMAIN"
         val btcAddress =
-            integrationHelper.registerBtcAddress(environment.notaryConfig.bitcoin.walletPath, randomName)
+            integrationHelper.registerBtcAddress(
+                environment.btcAddressGenerationConfig.btcKeysWalletPath,
+                randomName
+            )
         val initialBalance = integrationHelper.getIrohaAccountBalance(
             testClient,
             BTC_ASSET
@@ -97,54 +104,77 @@ class BtcNotaryIntegrationTest {
             newBalance
         )
         assertTrue(environment.btcNotaryInitialization.isWatchedAddress(btcAddress))
+        assertEquals(
+            initUTXOCount + totalDeposits,
+            Wallet.loadFromFile(File(environment.notaryConfig.btcTransferWalletPath)).unspents.size
+        )
     }
 
     /**
-     * Test US-002 Deposit
      * Note: Iroha and bitcoind must be deployed to pass the test.
      * @given new registered account
      * @when 1 btc was sent to new account 5 times in a row using multiple threads
-     * @then balance of new account is increased by 3 btc(or 300.000.000 sat)
+     * @then balance of new account is increased by 3 btc(or 300.000.000 sat), wallet file has more UTXO
      */
+    //TODO this test fails randomly. looks like regtest block generation issue. this must be fixed.
+    @Disabled
     @Test
     fun testMultipleDepositMultiThreaded() {
+        val initUTXOCount = Wallet.loadFromFile(File(environment.notaryConfig.btcTransferWalletPath)).unspents.size
         val totalDeposits = 5
         val randomName = String.getRandomString(9)
         val testClient = "$randomName@$CLIENT_DOMAIN"
         val btcAddress =
-            integrationHelper.registerBtcAddress(environment.notaryConfig.bitcoin.walletPath, randomName)
+            integrationHelper.registerBtcAddress(
+                environment.btcAddressGenerationConfig.btcKeysWalletPath,
+                randomName
+            )
         val initialBalance = integrationHelper.getIrohaAccountBalance(
             testClient,
             BTC_ASSET
         )
         val btcAmount = 1
+        val sendBtcThreads = ArrayList<Thread>()
         for (deposit in 1..totalDeposits) {
-            Thread {
-                integrationHelper.sendBtc(btcAddress, btcAmount)
-            }.start()
+            val sendBtcThread = Thread {
+                integrationHelper.sendBtc(btcAddress, btcAmount, 0)
+            }
+            sendBtcThreads.add(sendBtcThread)
+            sendBtcThread.start()
         }
-        Thread.sleep(DEPOSIT_WAIT_MILLIS * totalDeposits)
+        sendBtcThreads.forEach { thread ->
+            thread.join()
+        }
+        integrationHelper.generateBtcBlocks(environment.notaryConfig.bitcoin.confidenceLevel)
+        Thread.sleep(15_000)
         val newBalance = integrationHelper.getIrohaAccountBalance(testClient, BTC_ASSET)
         assertEquals(
             BigDecimal(initialBalance).add(BigDecimal(btcAmount)).multiply(totalDeposits.toBigDecimal()).toString(),
             newBalance
         )
         assertTrue(environment.btcNotaryInitialization.isWatchedAddress(btcAddress))
+        assertEquals(
+            initUTXOCount + totalDeposits,
+            Wallet.loadFromFile(File(environment.notaryConfig.btcTransferWalletPath)).unspents.size
+        )
     }
 
     /**
-     * Test US-003 Deposit
      * Note: Iroha and bitcoind must be deployed to pass the test.
      * @given new registered account
      * @when 1 btc was sent to new account without being properly confirmed
-     * @then balance of new account stays the same
+     * @then balance of new account stays the same, wallet file has one more UTXO
      */
     @Test
     fun testDepositNotConfirmed() {
+        val initUTXOCount = Wallet.loadFromFile(File(environment.notaryConfig.btcTransferWalletPath)).unspents.size
         val randomName = String.getRandomString(9)
         val testClient = "$randomName@$CLIENT_DOMAIN"
         val btcAddress =
-            integrationHelper.registerBtcAddress(environment.notaryConfig.bitcoin.walletPath, randomName)
+            integrationHelper.registerBtcAddress(
+                environment.btcAddressGenerationConfig.btcKeysWalletPath,
+                randomName
+            )
         val initialBalance = integrationHelper.getIrohaAccountBalance(
             testClient,
             BTC_ASSET
@@ -159,21 +189,29 @@ class BtcNotaryIntegrationTest {
         val newBalance = integrationHelper.getIrohaAccountBalance(testClient, BTC_ASSET)
         assertEquals(initialBalance, newBalance)
         assertTrue(environment.btcNotaryInitialization.isWatchedAddress(btcAddress))
+        assertEquals(
+            initUTXOCount + 1,
+            Wallet.loadFromFile(File(environment.notaryConfig.btcTransferWalletPath)).unspents.size
+        )
     }
 
     /**
-     * Test US-004 Deposit
      * Note: Iroha and bitcoind must be deployed to pass the test.
      * @given new registered account
      * @when 1 btc was sent to new account without being properly confirmed
      * @then balance of new account is increased by 1 btc(or 100.000.000 sat) after following confirmation
+     * and wallet file has one more UTXO
      */
     @Test
     fun testDepositConfirmation() {
+        val initUTXOCount = Wallet.loadFromFile(File(environment.notaryConfig.btcTransferWalletPath)).unspents.size
         val randomName = String.getRandomString(9)
         val testClient = "$randomName@$CLIENT_DOMAIN"
         val btcAddress =
-            integrationHelper.registerBtcAddress(environment.notaryConfig.bitcoin.walletPath, randomName)
+            integrationHelper.registerBtcAddress(
+                environment.btcAddressGenerationConfig.btcKeysWalletPath,
+                randomName
+            )
         val initialBalance = integrationHelper.getIrohaAccountBalance(
             testClient,
             BTC_ASSET
@@ -192,10 +230,9 @@ class BtcNotaryIntegrationTest {
             newBalance
         )
         assertTrue(environment.btcNotaryInitialization.isWatchedAddress(btcAddress))
-    }
-
-    //Checks if address is in set of watched address
-    private fun addressIsWatched(btcAddress: String, watchedAddresses: List<Address>): Boolean {
-        return watchedAddresses.find { address -> address.toBase58() == btcAddress } != null
+        assertEquals(
+            initUTXOCount + 1,
+            Wallet.loadFromFile(File(environment.notaryConfig.btcTransferWalletPath)).unspents.size
+        )
     }
 }

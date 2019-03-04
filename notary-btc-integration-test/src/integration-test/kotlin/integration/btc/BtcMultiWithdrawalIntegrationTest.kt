@@ -1,6 +1,7 @@
 package integration.btc
 
 import com.d3.btc.helper.currency.satToBtc
+import com.d3.btc.withdrawal.handler.CurrentFeeRate
 import com.github.kittinunf.result.failure
 import integration.btc.environment.BtcWithdrawalTestEnvironment
 import integration.helper.BTC_ASSET
@@ -15,7 +16,6 @@ import org.junit.jupiter.api.TestInstance
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
-import com.d3.btc.withdrawal.handler.CurrentFeeRate
 import java.io.File
 import kotlin.test.assertEquals
 
@@ -43,7 +43,7 @@ class BtcMultiWithdrawalIntegrationTest {
         integrationHelper.accountHelper.btcWithdrawalAccounts
             .forEach { withdrawalAccount ->
                 integrationHelper.addNotary("test_notary_$peerCount", "test")
-                val testName = "multi_withdrawal_${peerCount++}"
+                val testName = "multi_withdrawal_${String.getRandomString(5)}_${peerCount++}"
                 val withdrawalConfig = integrationHelper.configHelper.createBtcWithdrawalConfig(testName)
                 val environment =
                     BtcWithdrawalTestEnvironment(integrationHelper, testName, withdrawalConfig, withdrawalAccount)
@@ -56,10 +56,11 @@ class BtcMultiWithdrawalIntegrationTest {
             }
         val someEnvironment = environments.first()
         integrationHelper.generateBtcInitialBlocks()
-        integrationHelper.genChangeBtcAddress(someEnvironment.btcWithdrawalConfig.bitcoin.walletPath)
+        //TODO don't forget to add chain address to transfers wallet
+        integrationHelper.genChangeBtcAddress(someEnvironment.btcWithdrawalConfig.btcKeysWalletPath)
             .fold({ address -> changeAddress = address }, { ex -> throw  ex })
         integrationHelper.preGenFreeBtcAddresses(
-            someEnvironment.btcWithdrawalConfig.bitcoin.walletPath,
+            someEnvironment.btcWithdrawalConfig.btcKeysWalletPath,
             TOTAL_TESTS * 2
         )
         environments.forEach { environment ->

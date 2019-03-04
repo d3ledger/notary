@@ -8,8 +8,12 @@ import sidechain.iroha.util.getAccountDetails
 import sidechain.iroha.util.getAssetPrecision
 
 const val ETH_NAME = "ether"
+const val ETH_DOMAIN = "ethereum"
 const val ETH_PRECISION: Int = 18
 const val ETH_ADDRESS = "0x0000000000000000000000000000000000000000"
+
+const val XOR_NAME = "xor"
+const val SORA_DOMAIN = "sora"
 
 /**
  * Implementation of [EthTokensProvider] with Iroha storage.
@@ -40,22 +44,22 @@ class EthTokensProviderImpl(
     }
 
     /**
-     * Get precision of [name] asset in Iroha.
+     * Get precision of [assetId] asset in Iroha.
      */
-    override fun getTokenPrecision(name: String): Result<Int, Exception> {
-        return if (name == ETH_NAME)
+    override fun getTokenPrecision(assetId: String): Result<Int, Exception> {
+        return if (assetId == "$ETH_NAME#$ETH_DOMAIN")
             Result.of { ETH_PRECISION }
         else getAssetPrecision(
             queryAPI,
-            "$name#ethereum"
+            assetId
         )
     }
 
     /**
-     * Get token address of [name] asset. For ether returns 0x0000000000000000000000000000000000000000
+     * Get token address of [assetId] asset. For ether returns 0x0000000000000000000000000000000000000000
      */
-    override fun getTokenAddress(name: String): Result<String, Exception> {
-        return if (name == ETH_NAME)
+    override fun getTokenAddress(assetId: String): Result<String, Exception> {
+        return if (assetId == "$ETH_NAME#$ETH_DOMAIN")
             Result.of { ETH_ADDRESS }
         else getAccountDetails(
             queryAPI,
@@ -63,7 +67,7 @@ class EthTokensProviderImpl(
             tokenSetterAccount
         ).map { tokens ->
             tokens.filterValues {
-                it == name
+                it == assetId
             }.keys.first()
         }
     }

@@ -1,14 +1,17 @@
-package dwbridge.btc.config
+package com.d3.btc.dwbridge.config
 
+import com.d3.btc.deposit.config.BtcDepositConfig
 import com.d3.btc.fee.BtcFeeRateService
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
-import config.BitcoinConfig
-import config.loadConfigs
+import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
+import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
+import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
+import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
+import config.*
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import model.IrohaCredential
-import com.d3.btc.deposit.config.BtcDepositConfig
 import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -16,10 +19,6 @@ import provider.NotaryPeerListProviderImpl
 import sidechain.iroha.IrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
-import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
-import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
-import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
-import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -30,6 +29,8 @@ val dwBridgeConfig = loadConfigs("btc-dw-bridge", BtcDWBridgeConfig::class.java,
 
 @Configuration
 class BtcDWBridgeAppConfiguration {
+
+    private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
 
     private val withdrawalKeypair = ModelUtil.loadKeypair(
         withdrawalConfig.withdrawalCredential.pubkeyPath,
@@ -57,7 +58,16 @@ class BtcDWBridgeAppConfiguration {
         IrohaCredential(depositConfig.notaryCredential.accountId, notaryKeypair)
 
     @Bean
+    fun rmqConfig() = rmqConfig
+
+    @Bean
+    fun irohaBlocksQueue() = withdrawalConfig.irohaBlockQueue
+
+    @Bean
     fun notaryConfig() = depositConfig
+
+    @Bean
+    fun healthCheckPort() = dwBridgeConfig.healthCheckPort
 
     @Bean
     fun irohaAPI(): IrohaAPI {
@@ -98,7 +108,7 @@ class BtcDWBridgeAppConfiguration {
     fun signatureCollectorConsumer() = IrohaConsumerImpl(signatureCollectorCredential(), irohaAPI())
 
     @Bean
-    fun wallet() = Wallet.loadFromFile(File(dwBridgeConfig.bitcoin.walletPath))
+    fun transferWallet() = Wallet.loadFromFile(File(depositConfig.btcTransferWalletPath))
 
     @Bean
     fun notaryCredential() = notaryCredential
@@ -121,12 +131,6 @@ class BtcDWBridgeAppConfiguration {
         dwBridgeConfig.iroha.hostname,
         dwBridgeConfig.iroha.port,
         notaryCredential()
-    )
-
-    @Bean
-    fun withdrawalIrohaChainListener() = IrohaChainListener(
-        irohaAPI(),
-        withdrawalCredential()
     )
 
     @Bean
@@ -172,7 +176,7 @@ class BtcDWBridgeAppConfiguration {
     fun notaryPeerListProvider() =
         NotaryPeerListProviderImpl(
             withdrawalQueryAPI(),
-            com.d3.btc.withdrawal.config.withdrawalConfig.notaryListStorageAccount,
-            com.d3.btc.withdrawal.config.withdrawalConfig.notaryListSetterAccount
+            withdrawalConfig.notaryListStorageAccount,
+            withdrawalConfig.notaryListSetterAccount
         )
 }

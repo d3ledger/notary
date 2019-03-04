@@ -40,6 +40,23 @@ class MasterTest {
     }
 
     /**
+     * Try to reinitialize master with another relay registry.
+     * @given master contract is deployed and initialized
+     * @when call initialize
+     * @then call failed
+     */
+    @Test
+    fun initializeAgain() {
+        Assertions.assertThrows(TransactionException::class.java) {
+            master.initialize(
+                cth.deployHelper.credentials.address,
+                etherAddress,
+                listOf("0x0000000000000000000000000000000000000000")
+            ).send()
+        }
+    }
+
+    /**
      * @given master account deployed
      * @when transfer 300_000_000 WEIs to master account
      * @then balance of master account increased by 300_000_000
@@ -384,7 +401,7 @@ class MasterTest {
     /**
      * @given deployed master contract
      * @when addToken called twice with different addresses
-     * @then both calls succeeded, both tokens are added
+     * @then both calls succeeded, both tokens are added, there are 3 tokens total (2 added + 1 XOR)
      */
     @Test
     fun addTokenTest() {
@@ -426,7 +443,7 @@ class MasterTest {
             val initialBalance = cth.getETHBalance(accGreen)
             val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
 
-            val master = cth.deployMaster(
+            val master = cth.deployHelper.deployMasterSmartContract(
                 cth.relayRegistry.contractAddress,
                 peers
             )
@@ -476,7 +493,7 @@ class MasterTest {
             val initialBalance = cth.getETHBalance(accGreen)
             val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
 
-            val master = cth.deployMaster(
+            val master = cth.deployHelper.deployMasterSmartContract(
                 cth.relayRegistry.contractAddress,
                 peers
             )
@@ -526,7 +543,7 @@ class MasterTest {
 
             val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
 
-            val master = cth.deployMaster(
+            val master = cth.deployHelper.deployMasterSmartContract(
                 cth.relayRegistry.contractAddress,
                 peers
             )
@@ -560,19 +577,19 @@ class MasterTest {
     /**
      * @given deployed master contract
      * @when 100 different peers are added to master, 5000 Wei is transferred to master,
-     * request to withdraw 1000 Wei is sent to master with 100 signatures from added peers
+     * request to withdraw 1000 Wei is sent to master with 50 signatures from added peers
      * @then withdraw call succeeded
      */
     @Test
-    fun validSignatures100of100() {
+    fun validSignatures50of50() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            val sigCount = 100
+            val sigCount = 50
             val amountToSend = 1000
             val tokenAddress = etherAddress
             val initialBalance = cth.getETHBalance(accGreen)
             val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
 
-            val master = cth.deployMaster(
+            val master = cth.deployHelper.deployMasterSmartContract(
                 cth.relayRegistry.contractAddress,
                 peers
             )
@@ -608,21 +625,21 @@ class MasterTest {
 
     /**
      * @given deployed master contract
-     * @when 100 different peers are added to master, 5000 Wei is transferred to master,
+     * @when 50 different peers are added to master, 5000 Wei is transferred to master,
      * request to withdraw 1000 Wei is sent to master with 67 signatures from added peers
      * @then withdraw call succeeded
      */
     @Test
-    fun validSignatures67of100() {
+    fun validSignatures34of50() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            val sigCount = 100
-            val realSigCount = 67
+            val sigCount = 50
+            val realSigCount = 34
             val amountToSend = 1000
             val tokenAddress = etherAddress
             val initialBalance = cth.getETHBalance(accGreen)
             val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
 
-            val master = cth.deployMaster(
+            val master = cth.deployHelper.deployMasterSmartContract(
                 cth.relayRegistry.contractAddress,
                 peers
             )
@@ -657,21 +674,21 @@ class MasterTest {
 
     /**
      * @given deployed master contract
-     * @when 100 different peers are added to master, 5000 Wei is transferred to master,
+     * @when 50 different peers are added to master, 5000 Wei is transferred to master,
      * request to withdraw 1000 Wei is sent to master with 66 signatures from added peers
      * @then withdraw call failed
      */
     @Test
-    fun validSignatures66of100() {
+    fun validSignatures33of50() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            val sigCount = 100
-            val realSigCount = 66
+            val sigCount = 50
+            val realSigCount = 33
             val amountToSend = 1000
             val tokenAddress = etherAddress
 
             val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
 
-            val master = cth.deployMaster(
+            val master = cth.deployHelper.deployMasterSmartContract(
                 cth.relayRegistry.contractAddress,
                 peers
             )
@@ -738,7 +755,7 @@ class MasterTest {
 
             val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
 
-            val master = cth.deployMaster(
+            val master = cth.deployHelper.deployMasterSmartContract(
                 cth.relayRegistry.contractAddress,
                 peers
             )
@@ -777,7 +794,7 @@ class MasterTest {
                 )
 
             val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
-            val master = cth.deployMaster(
+            val master = cth.deployHelper.deployMasterSmartContract(
                 cth.relayRegistry.contractAddress,
                 peers
             )
@@ -816,7 +833,7 @@ class MasterTest {
 
             val withPeerToRemove = peers.toMutableList()
             withPeerToRemove.add(peerToRemove)
-            val master = cth.deployMaster(
+            val master = cth.deployHelper.deployMasterSmartContract(
                 cth.relayRegistry.contractAddress,
                 withPeerToRemove
             )
@@ -867,7 +884,7 @@ class MasterTest {
 
             val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
 
-            val master = cth.deployMaster(
+            val master = cth.deployHelper.deployUpgradableMasterSmartContract(
                 cth.relayRegistry.contractAddress,
                 peers
             )
@@ -930,7 +947,7 @@ class MasterTest {
 
             val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
 
-            val master = cth.deployMaster(
+            val master = cth.deployHelper.deployUpgradableMasterSmartContract(
                 cth.relayRegistry.contractAddress,
                 peers
             )

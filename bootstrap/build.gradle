@@ -50,6 +50,7 @@ dependencies {
 
     //TODO this is very dirty hack. This dependency must be removed after migration to newer version of Spring Boot
     // https://mvnrepository.com/artifact/org.hibernate/hibernate-validator
+
     implementation 'org.hibernate:hibernate-validator:6.0.14.Final'
 
     implementation "org.springframework.boot:spring-boot-starter-jetty:$springBootVersion"
@@ -63,12 +64,12 @@ dependencies {
     compile 'org.web3j:crypto:4.1.1'
     compile 'org.web3j:core:4.1.1'
 
-
     testCompile "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
 
 }
 
 sourceCompatibility = 1.8
+
 
 mainClassName = "jp.co.soramitsu.bootstrap.BootstrapMain"
 

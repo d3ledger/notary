@@ -27,6 +27,7 @@ class SoraIntegrationTest {
 
     val domain = "sora"
     val xorAsset = "xor#$domain"
+    val soraClientId = "sora@sora"
 
     val registrationConfig =
         loadConfigs("registration", NotaryRegistrationConfig::class.java, "/registration.properties").get()
@@ -132,7 +133,6 @@ class SoraIntegrationTest {
         val keypairBob = Ed25519Sha3().generateKeypair()
         integrationHelper.createAccount(bobClientName, domain, keypairBob.public)
 
-        val soraClientId = "sora@sora"
         val soraKeyPair =
             ModelUtil.loadKeypair("deploy/iroha/keys/sora@sora.pub", "deploy/iroha/keys/sora@sora.priv").get()
         integrationHelper.addIrohaAssetTo(soraClientId, xorAsset, "35")
@@ -194,6 +194,14 @@ class SoraIntegrationTest {
         } catch (exc: Exception) {
             fail { "Expected no exceptions, but got $exc" }
         }
+    }
+
+    @Test
+    fun initialSupplyXOR() {
+        assertEquals(
+            "1618033988749894848204586834",
+            integrationHelper.getIrohaAccountBalance(soraClientId, xorAsset)
+        )
     }
 
 }

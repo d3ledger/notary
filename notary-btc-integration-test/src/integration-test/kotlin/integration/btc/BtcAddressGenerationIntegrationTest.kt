@@ -10,9 +10,11 @@ import integration.helper.BtcIntegrationHelperUtil
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import mu.KLogging
+import org.bitcoinj.core.Address
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Utils
 import org.bitcoinj.params.RegTestParams
+import org.bitcoinj.script.Script
 import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
 import org.junit.jupiter.api.AfterAll
@@ -35,14 +37,21 @@ class BtcAddressGenerationIntegrationTest {
     private val environment =
         BtcAddressGenerationTestEnvironment(integrationHelper)
 
-    private fun createMsAddress(notaryKeys: Collection<String>): String {
+    private fun createMsAddress(notaryKeys: Collection<String>): Script {
         val keys = ArrayList<ECKey>()
         notaryKeys.forEach { key ->
             val ecKey = ECKey.fromPublicOnly(Utils.parseAsHexOrBase58(key))
             keys.add(ecKey)
         }
-        val script = ScriptBuilder.createP2SHOutputScript(1, keys)
+        return ScriptBuilder.createP2SHOutputScript(1, keys)
+    }
+
+    private fun getBase58Address(script: Script): String {
         return script.getToAddress(RegTestParams.get()).toBase58()
+    }
+
+    private fun getAddress(script: Script): Address {
+        return script.getToAddress(RegTestParams.get())
     }
 
     @AfterAll
@@ -88,7 +97,7 @@ class BtcAddressGenerationIntegrationTest {
             }.map { entry -> entry.value }
         val pubKey = notaryKeys.first()
         assertNotNull(pubKey)
-        val wallet = Wallet.loadFromFile(File(environment.btcGenerationConfig.btcWalletFilePath))
+        val wallet = Wallet.loadFromFile(File(environment.btcGenerationConfig.btcKeysWalletPath))
         assertTrue(wallet.issuedReceiveKeys.any { ecKey -> ecKey.publicKeyAsHex == pubKey })
         val notaryAccountDetails =
             integrationHelper.getAccountDetails(
@@ -96,7 +105,8 @@ class BtcAddressGenerationIntegrationTest {
                 environment.btcGenerationConfig.mstRegistrationAccount.accountId
             )
         val expectedMsAddress = createMsAddress(notaryKeys)
-        val generatedAddress = AddressInfo.fromJson(notaryAccountDetails[expectedMsAddress]!!)!!
+        assertTrue(wallet.isAddressWatched(getAddress(expectedMsAddress)))
+        val generatedAddress = AddressInfo.fromJson(notaryAccountDetails[getBase58Address(expectedMsAddress)]!!)!!
         assertNull(generatedAddress.irohaClient)
         assertEquals(notaryKeys, generatedAddress.notaryKeys.toList())
         assertEquals(nodeId.toString(), generatedAddress.nodeId)
@@ -130,7 +140,7 @@ class BtcAddressGenerationIntegrationTest {
             }.map { entry -> entry.value }
         val pubKey = notaryKeys.first()
         assertNotNull(pubKey)
-        val wallet = Wallet.loadFromFile(File(environment.btcGenerationConfig.btcWalletFilePath))
+        val wallet = Wallet.loadFromFile(File(environment.btcGenerationConfig.btcKeysWalletPath))
         assertTrue(wallet.issuedReceiveKeys.any { ecKey -> ecKey.publicKeyAsHex == pubKey })
         val changeAddressStorageAccountDetails =
             integrationHelper.getAccountDetails(
@@ -138,7 +148,8 @@ class BtcAddressGenerationIntegrationTest {
                 environment.btcGenerationConfig.mstRegistrationAccount.accountId
             )
         val expectedMsAddress = createMsAddress(notaryKeys)
-        val generatedAddress = AddressInfo.fromJson(changeAddressStorageAccountDetails[expectedMsAddress]!!)!!
+        val generatedAddress =
+            AddressInfo.fromJson(changeAddressStorageAccountDetails[getBase58Address(expectedMsAddress)]!!)!!
         assertNull(generatedAddress.irohaClient)
         assertEquals(notaryKeys, generatedAddress.notaryKeys.toList())
         assertEquals(nodeId.toString(), generatedAddress.nodeId)

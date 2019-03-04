@@ -70,6 +70,7 @@ hs_err_pid*
 /btc-dw-bridge/gradle
 /btc-dw-bridge/gradlew
 /btc-dw-bridge/gradlew.bat
+/chain-adapter/build/
 *gradlew.bat
 
 # Ignore Gradle GUI config
@@ -145,13 +146,14 @@ deploy/ethereum/network
 deploy/ethereum/keys/test
 
 # Bitcoin wallets, blockchain and etc.
-deploy/bitcoin/testnet/d3.wallet
 deploy/bitcoin/testnet/blocks/
+deploy/bitcoin/testnet/keys.d3.wallet
+deploy/bitcoin/testnet/transfers.d3.wallet
 deploy/bitcoin/regtest/blocks/
-deploy/bitcoin/regtest/d3.wallet
-deploy/bitcoin/testnet/d3.wallet
-deploy/bitcoin/regtest/d3-test.wallet
 deploy/bitcoin/mainnet/
+
+# Bitcoin test wallets
+deploy/bitcoin/regtest/test wallets/
 
 # SMTP configs
 configs/smtp.properties

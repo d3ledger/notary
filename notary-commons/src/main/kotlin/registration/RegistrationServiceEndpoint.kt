@@ -53,7 +53,6 @@ class RegistrationServiceEndpoint(
                     call.respondText(response.message, status = response.code)
                 }
 
-
                 get("free-addresses/number") {
                     val response = onGetFreeAddressesNumber()
                     call.respondText(response.message, status = response.code)

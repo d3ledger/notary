@@ -21,6 +21,8 @@ const val ETH_NODE_PASSWORD_ENV = "ETH_NODE_PASSWORD"
 const val PROFILE_ENV = "PROFILE"
 //Environment variable that holds address of the master wallet
 const val ETH_MASTER_WALLET_ENV = "ETH_MASTER_WALLET"
+//Environment variable that holds address of the Relay implementation contract
+const val ETH_RELAY_IMPLEMENTATION_ADDRESS_ENV = "ETH_RELAY_IMPLEMENTATION_ADDRESS"
 //Environment variable that holds address of the relay registry
 const val ETH_RELAY_REGISTRY_ENV = "ETH_RELAY_REGISTRY"
 
@@ -71,8 +73,6 @@ interface EthereumConfig {
  * Bitcoin configurations
  */
 interface BitcoinConfig {
-    //Path of wallet file
-    val walletPath: String
     //Path of block storage folder
     val blockStoragePath: String
     //Depth of transactions in BTC blockchain

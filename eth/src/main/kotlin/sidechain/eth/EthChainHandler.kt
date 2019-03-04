@@ -5,9 +5,7 @@ import mu.KLogging
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.methods.response.EthBlock
 import org.web3j.protocol.core.methods.response.Transaction
-import provider.eth.ETH_PRECISION
-import provider.eth.EthRelayProvider
-import provider.eth.EthTokensProvider
+import provider.eth.*
 import sidechain.ChainHandler
 import sidechain.SideChainEvent
 import java.math.BigDecimal
@@ -79,7 +77,7 @@ class EthChainHandler(
                                     time,
                                     wallets[to]!!,
                                     tokenName,
-                                    BigDecimal(amount, precision.toInt()).toPlainString(),
+                                    BigDecimal(amount, precision).toPlainString(),
                                     from
                                 )
                             },
@@ -119,8 +117,8 @@ class EthChainHandler(
                     time,
                     // all non-existent keys were filtered out in parseBlock
                     wallets[tx.to]!!,
-                    "ether",
-                    BigDecimal(tx.value, ETH_PRECISION.toInt()).toPlainString(),
+                    "$ETH_NAME#$ETH_DOMAIN",
+                    BigDecimal(tx.value, ETH_PRECISION).toPlainString(),
                     tx.from
                 )
             )

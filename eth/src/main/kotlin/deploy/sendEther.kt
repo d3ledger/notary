@@ -15,7 +15,7 @@ import java.math.BigInteger
 private val logger = KLogging().logger
 
 /**
- * Send ethe.
+ * Send ethereum.
  * [args] should contain the address and amount of ether to send from genesis account
  */
 fun main(args: Array<String>) {
@@ -32,7 +32,7 @@ fun main(args: Array<String>) {
         .fanout { loadEthPasswords("predeploy", "/eth/ethereum_password.properties") }
         .map { (ethereumConfig, passwordConfig) -> DeployHelper(ethereumConfig, passwordConfig) }
         .map { deployHelper ->
-            deployHelper.sendEthereum(BigInteger.valueOf((1000000000000000000 * amount).toLong()), addr);
+            deployHelper.sendEthereum(BigInteger.valueOf((1000000000000000000 * amount).toLong()), addr)
             logger.info { "Ether was sent" }
 
         }

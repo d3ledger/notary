@@ -1,5 +1,10 @@
 package com.d3.btc.withdrawal.handler
 
+import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
+import com.d3.btc.withdrawal.transaction.BtcRollbackService
+import com.d3.btc.withdrawal.transaction.SignCollector
+import com.d3.btc.withdrawal.transaction.TransactionHelper
+import com.d3.btc.withdrawal.transaction.UnsignedTransactions
 import com.github.kittinunf.result.map
 import iroha.protocol.Commands
 import mu.KLogging
@@ -8,11 +13,6 @@ import org.bitcoinj.core.Transaction
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
-import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
-import com.d3.btc.withdrawal.transaction.BtcRollbackService
-import com.d3.btc.withdrawal.transaction.SignCollector
-import com.d3.btc.withdrawal.transaction.TransactionHelper
-import com.d3.btc.withdrawal.transaction.UnsignedTransactions
 import java.util.concurrent.CopyOnWriteArrayList
 
 /*
@@ -43,8 +43,13 @@ class NewSignatureEventHandler(
      * Handles "add new input signatures" commands
      * @param addNewSignatureCommand - command object full of signatures
      * @param peerGroup - group of Bitcoin peers. Used to broadcast withdraw transactions.
+     * @param onBroadcastSuccess - function that will be called right after successful tx broadcast
      */
-    fun handleNewSignatureCommand(addNewSignatureCommand: Commands.SetAccountDetail, peerGroup: PeerGroup) {
+    fun handleNewSignatureCommand(
+        addNewSignatureCommand: Commands.SetAccountDetail,
+        peerGroup: PeerGroup,
+        onBroadcastSuccess: () -> Unit
+    ) {
         val shortTxHash = addNewSignatureCommand.accountId.replace("@$BTC_SIGN_COLLECT_DOMAIN", "")
         val unsignedTx = unsignedTransactions.get(shortTxHash)
         if (unsignedTx == null) {
@@ -71,6 +76,8 @@ class NewSignatureEventHandler(
                     }
                     //Wait until it is broadcasted to all connected peers
                     peerGroup.broadcastTransaction(tx).future().get()
+                }.map {
+                    onBroadcastSuccess()
                 }.fold({
                     logger.info { "Tx ${tx.hashAsString} was successfully broadcasted" }
                     withdrawalStatistics.incSucceededTransfers()

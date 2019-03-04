@@ -22,4 +22,6 @@ interface BtcDepositConfig {
     val notaryListSetterAccount: String
 
     val registrationAccount: String
+
+    val btcTransferWalletPath: String
 }
