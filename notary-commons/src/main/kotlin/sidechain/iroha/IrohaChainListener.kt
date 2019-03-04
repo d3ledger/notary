@@ -23,7 +23,7 @@ class IrohaChainListener(
         credential: IrohaCredential
     ) : this(IrohaAPI(irohaHost, irohaPort), credential)
 
-    override fun getBlockObservable(autoAck: Boolean): Result<Observable<BlockOuterClass.Block>, Exception> {
+    override fun getBlockObservable(): Result<Observable<BlockOuterClass.Block>, Exception> {
         logger.info { "On subscribe to Iroha chain" }
         return ModelUtil.getBlockStreaming(irohaAPI, credential).map { observable ->
             observable.map { response ->
@@ -33,7 +33,7 @@ class IrohaChainListener(
         }
     }
 
-    override suspend fun getBlock(autoAck: Boolean): BlockOuterClass.Block {
+    override suspend fun getBlock(): BlockOuterClass.Block {
         return getBlockObservable().get().blockingFirst()
     }
 

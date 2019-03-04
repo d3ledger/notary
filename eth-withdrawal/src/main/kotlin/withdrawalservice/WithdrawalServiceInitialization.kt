@@ -76,6 +76,7 @@ class WithdrawalServiceInitialization(
                         }.failure { ex ->
                             logger.error("Cannot consume withdrawal event", ex)
                         }
+                        //TODO call ack()
                     }, { ex ->
                         logger.error("Withdrawal observable error", ex)
                     }

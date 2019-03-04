@@ -15,6 +15,7 @@ import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
 import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
 import com.d3.btc.withdrawal.transaction.*
+import com.rabbitmq.client.ConnectionFactory
 import config.BitcoinConfig
 import config.RMQConfig
 import config.getConfigFolder
@@ -27,7 +28,6 @@ import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.TransactionOutput
 import org.bitcoinj.wallet.Wallet
 import provider.NotaryPeerListProviderImpl
-import sidechain.iroha.ReliableIrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import java.io.Closeable
@@ -59,7 +59,24 @@ class BtcWithdrawalTestEnvironment(
      */
     private val executor = Executors.newSingleThreadExecutor()
 
-    private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
+    val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
+
+    /**
+     * Binds RabbitMQ queue with exchange.
+     * @param queue - queue to bind with exchange
+     * @param exchange - exchange to bind with queue
+     */
+    fun bindQueueWithExchange(queue: String, exchange: String) {
+        val factory = ConnectionFactory()
+        factory.host = rmqConfig.host
+        factory.newConnection().use { connection ->
+            connection.createChannel().use { channel ->
+                channel.exchangeDeclare(rmqConfig.irohaExchange, "fanout", true)
+                channel.queueDeclare(queue, true, false, false, null)
+                channel.queueBind(queue, exchange, "")
+            }
+        }
+    }
 
     private val irohaApi by lazy {
         val irohaAPI = IrohaAPI(
@@ -102,12 +119,6 @@ class BtcWithdrawalTestEnvironment(
     )
 
     private val btcFeeRateConsumer = IrohaConsumerImpl(btcFeeRateCredential, irohaApi)
-
-    private val irohaChainListener = ReliableIrohaChainListener(
-        rmqConfig,
-        testName,
-        Executors.newSingleThreadExecutor()
-    )
 
     val btcRegisteredAddressesProvider = BtcRegisteredAddressesProvider(
         integrationHelper.queryAPI,
@@ -184,14 +195,15 @@ class BtcWithdrawalTestEnvironment(
             peerGroup,
             transferWallet,
             btcChangeAddressProvider,
-            irohaChainListener,
             btcNetworkConfigProvider,
             withdrawalTransferEventHandler,
             newSignatureEventHandler,
             NewBtcClientRegistrationHandler(btcNetworkConfigProvider),
             NewFeeRateWasSetHandler(btcWithdrawalConfig.btcFeeRateCredential.accountId),
             btcRegisteredAddressesProvider,
-            btcFeeRateService
+            btcFeeRateService,
+            rmqConfig,
+            btcWithdrawalConfig.irohaBlockQueue
         )
     }
 
@@ -228,7 +240,6 @@ class BtcWithdrawalTestEnvironment(
         irohaApi.close()
         integrationHelper.close()
         executor.shutdownNow()
-        irohaChainListener.close()
         File(btcWithdrawalConfig.bitcoin.blockStoragePath).deleteRecursively()
         btcWithdrawalInitialization.close()
     }

@@ -7,13 +7,11 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import config.getProfile
 import mu.KLogging
-import org.springframework.boot.SpringApplication
-import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.ComponentScan
 
 private val logger = KLogging().logger
 
-@SpringBootApplication
 @ComponentScan(basePackages = ["registration"])
 class RegistrationApplication
 
@@ -22,10 +20,11 @@ class RegistrationApplication
  */
 fun main(args: Array<String>) {
     Result.of {
-        val app = SpringApplication(RegistrationApplication::class.java)
-        app.setAdditionalProfiles(getProfile())
-        app.setDefaultProperties(webPortProperties())
-        app.run(*args)
+        val context = AnnotationConfigApplicationContext()
+        context.environment.setActiveProfiles(getProfile())
+        context.register(RegistrationApplication::class.java)
+        context.refresh()
+        context
     }.flatMap { context ->
         context.getBean(RegistrationServiceInitialization::class.java).init()
     }.failure { ex ->
@@ -34,8 +33,3 @@ fun main(args: Array<String>) {
     }
 }
 
-private fun webPortProperties(): Map<String, String> {
-    val properties = HashMap<String, String>()
-    properties["server.port"] = registrationConfig.port.toString()
-    return properties
-}

@@ -17,7 +17,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import provider.NotaryPeerListProviderImpl
 import sidechain.iroha.IrohaChainListener
-import sidechain.iroha.ReliableIrohaChainListener
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import java.io.File
@@ -57,6 +56,12 @@ class BtcDWBridgeAppConfiguration {
 
     private val notaryCredential =
         IrohaCredential(depositConfig.notaryCredential.accountId, notaryKeypair)
+
+    @Bean
+    fun rmqConfig() = rmqConfig
+
+    @Bean
+    fun irohaBlocksQueue() = withdrawalConfig.irohaBlockQueue
 
     @Bean
     fun notaryConfig() = depositConfig
@@ -126,11 +131,6 @@ class BtcDWBridgeAppConfiguration {
         dwBridgeConfig.iroha.hostname,
         dwBridgeConfig.iroha.port,
         notaryCredential()
-    )
-
-    @Bean
-    fun withdrawalIrohaChainListener() = ReliableIrohaChainListener(
-        rmqConfig, withdrawalConfig.irohaBlockQueue, Executors.newSingleThreadExecutor()
     )
 
     @Bean

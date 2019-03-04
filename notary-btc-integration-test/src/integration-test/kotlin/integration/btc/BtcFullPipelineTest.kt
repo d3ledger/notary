@@ -31,17 +31,19 @@ import java.security.KeyPair
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcFullPipelineTest {
 
+    private val testName = "full_pipeline_${String.getRandomString(5)}"
+
     private val integrationHelper = BtcIntegrationHelperUtil()
 
-    private val addressGenerationEnvironment = BtcAddressGenerationTestEnvironment(integrationHelper)
+    private val addressGenerationEnvironment = BtcAddressGenerationTestEnvironment(integrationHelper, testName)
 
     private val registrationEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
 
     private val btcRegistrationEnvironment = BtcRegistrationTestEnvironment(integrationHelper)
 
-    private val notaryEnvironment = BtcNotaryTestEnvironment(integrationHelper, "full_pipeline")
+    private val notaryEnvironment = BtcNotaryTestEnvironment(integrationHelper, testName)
 
-    private val withdrawalEnvironment = BtcWithdrawalTestEnvironment(integrationHelper, "full_pipeline")
+    private val withdrawalEnvironment = BtcWithdrawalTestEnvironment(integrationHelper, testName)
 
     init {
         CurrentFeeRate.set(DEFAULT_FEE_RATE)
@@ -83,8 +85,7 @@ class BtcFullPipelineTest {
             blockStorageFolder.mkdirs()
             withdrawalEnvironment.btcWithdrawalInitialization.init().failure { ex -> throw ex }
         }
-
-        Thread.sleep(15_000)
+        Thread.sleep(10_000)
     }
 
     @AfterAll
