@@ -1,11 +1,9 @@
 package integration.registration
 
-import config.loadConfigs
-import integration.helper.IrohaIntegrationHelperUtil
-import model.IrohaCredential
-import com.d3.registration.NotaryRegistrationConfig
 import com.d3.registration.NotaryRegistrationStrategy
 import com.d3.registration.RegistrationServiceInitialization
+import integration.helper.IrohaIntegrationHelperUtil
+import model.IrohaCredential
 import sidechain.iroha.consumer.IrohaConsumerImpl
 import sidechain.iroha.util.ModelUtil
 import java.io.Closeable
