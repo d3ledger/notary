@@ -5,6 +5,10 @@ import jp.co.soramitsu.bootstrap.dto.BtcNetwork
 import jp.co.soramitsu.bootstrap.dto.BtcWallet
 import jp.co.soramitsu.bootstrap.dto.EthWallet
 import mu.KLogging
+import org.bitcoinj.crypto.MnemonicCode
+import org.bitcoinj.params.RegTestParams
+import org.bitcoinj.wallet.DeterministicSeed
+import org.bitcoinj.wallet.Wallet
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,8 +20,10 @@ import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils
+import java.io.ByteArrayOutputStream
 import java.io.File
 import javax.xml.bind.DatatypeConverter
+import kotlin.random.Random
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -58,5 +64,17 @@ class BtcTest {
         assertEquals(BtcNetwork.RegTest, respBody.network)
        /* val binary = DatatypeConverter.parseBase64Binary(respBody.file)
         FileUtils.writeByteArrayToFile(File("btc-wallet-test.wallet"), binary)*/
+    }
+
+    @Test
+    fun walletWithouSeed() {
+        val seedBytes = Random.nextBytes(DeterministicSeed.DEFAULT_SEED_ENTROPY_BITS / 8)
+        val mnemonic = MnemonicCode.INSTANCE.toMnemonic(seedBytes)
+        val passphrase = ""
+        val creationTimeSeconds = System.currentTimeMillis() / 1000
+
+        val seed = DeterministicSeed(mnemonic, null, passphrase, creationTimeSeconds)
+        val wallet = Wallet(RegTestParams.get())
+        log.info("some info")
     }
 }

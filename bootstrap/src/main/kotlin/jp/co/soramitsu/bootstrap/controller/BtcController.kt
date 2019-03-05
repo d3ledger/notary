@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.io.ByteArrayOutputStream
-import java.util.*
 import javax.xml.bind.DatatypeConverter
 import kotlin.random.Random
 
@@ -28,7 +27,7 @@ class BtcController {
     @GetMapping("/create/wallet")
     fun createWallet(): ResponseEntity<BtcWallet> {
         try {
-            return ResponseEntity.ok<BtcWallet>(createWalletVer2(network.params))
+            return ResponseEntity.ok<BtcWallet>(createWallet(network.params))
         } catch (e: Exception) {
             log.error("Error creating Bitcoin wallet", e)
             val response = BtcWallet(network = network)
@@ -38,7 +37,7 @@ class BtcController {
         }
     }
 
-    private fun createWalletVer2(netParams: NetworkParameters): BtcWallet {
+    private fun createWallet(netParams: NetworkParameters): BtcWallet {
         val seedBytes = Random.nextBytes(DeterministicSeed.DEFAULT_SEED_ENTROPY_BITS / 8)
         val mnemonic = MnemonicCode.INSTANCE.toMnemonic(seedBytes)
         val passphrase = ""
@@ -51,20 +50,6 @@ class BtcController {
         wallet.saveToFileStream(out)
         val walletBytes = out.toByteArray()
         out.reset()
-        return BtcWallet(DatatypeConverter.printBase64Binary(walletBytes), network)
-    }
-
-    private fun createBtcWallet(netParams: NetworkParameters): BtcWallet {
-        val seedBytes = Random.nextBytes(DeterministicSeed.DEFAULT_SEED_ENTROPY_BITS / 8)
-        val mnemonic = ArrayList<String>(0)
-
-        val seed =
-            DeterministicSeed(seedBytes, mnemonic, MnemonicCode.BIP39_STANDARDISATION_TIME_SECS);
-        val wallet = Wallet.fromSeed(netParams, seed)
-
-        val out = ByteArrayOutputStream(1024)
-        wallet.saveToFileStream(out)
-        val walletBytes = out.toByteArray()
         return BtcWallet(DatatypeConverter.printBase64Binary(walletBytes), network)
     }
 }
