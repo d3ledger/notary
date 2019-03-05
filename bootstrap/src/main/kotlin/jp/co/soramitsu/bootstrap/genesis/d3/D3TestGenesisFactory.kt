@@ -2,7 +2,7 @@ package jp.co.soramitsu.bootstrap.genesis.d3
 
 import com.google.protobuf.util.JsonFormat
 import jp.co.soramitsu.bootstrap.dto.AccountPrototype
-import jp.co.soramitsu.bootstrap.dto.IrohaAccountDto
+import jp.co.soramitsu.bootstrap.dto.AccountPublicInfo
 import jp.co.soramitsu.bootstrap.dto.Peer
 import jp.co.soramitsu.bootstrap.exceptions.AccountException
 import jp.co.soramitsu.iroha.java.Transaction
@@ -19,7 +19,7 @@ class D3TestGenesisFactory : GenesisInterface {
     override fun getEnvironment(): String = "test"
 
     override fun createGenesisBlock(
-        accounts: List<IrohaAccountDto>,
+        accounts: List<AccountPublicInfo>,
         peers: List<Peer>,
         blockVersion: String
     ): String {
@@ -39,23 +39,23 @@ class D3TestGenesisFactory : GenesisInterface {
 
     private fun createAccounts(
         transactionBuilder: TransactionBuilder,
-        accountsList: List<IrohaAccountDto>
+        accountsList: List<AccountPublicInfo>
     ) {
-        val accountsMap: HashMap<String, IrohaAccountDto> = HashMap()
-        accountsList.forEach { accountsMap.putIfAbsent("${it.name}@${it.domainId}", it) }
+        val accountsMap: HashMap<String, AccountPublicInfo> = HashMap()
+        accountsList.forEach { accountsMap.putIfAbsent("${it.accountName}@${it.domainId}", it) }
 
         val accountErrors = checkNeendedAccountsGiven(accountsMap)
         if (accountErrors.isNotEmpty()) {
             throw AccountException(accountErrors.toString())
         }
         D3TestContext.d3neededAccounts.forEach {
-            val accountDto = accountsMap[it.id]
-            if (accountDto != null) {
-                if (!accountDto.creds.isEmpty()) {
+            val accountPubInfo = accountsMap[it.id]
+            if (accountPubInfo != null) {
+                if (accountPubInfo.pubKeys.isNotEmpty()) {
                     transactionBuilder.createAccount(
                         it.title,
                         it.domainId,
-                        getIrohaPublicKeyFromBase64(accountDto.creds.get(0).public)
+                        getIrohaPublicKeyFromBase64(accountPubInfo.pubKeys[0])
                     )
                 } else {
                     throw AccountException("Needed account keys are not received: ${it.id}")
@@ -67,7 +67,7 @@ class D3TestGenesisFactory : GenesisInterface {
         }
     }
 
-    private fun checkNeendedAccountsGiven(accountsMap: HashMap<String, IrohaAccountDto>): List<String> {
+    private fun checkNeendedAccountsGiven(accountsMap: HashMap<String, AccountPublicInfo>): List<String> {
         val loosed = ArrayList<String>()
         D3TestContext.d3neededAccounts.forEach {
             if (!accountsMap.containsKey(it.id)) {

@@ -1,6 +1,8 @@
 package jp.co.soramitsu.bootstrap
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import jp.co.soramitsu.bootstrap.dto.AccountPublicInfo
+import jp.co.soramitsu.bootstrap.dto.Peer
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import jp.co.soramitsu.bootstrap.genesis.d3.D3TestGenesisFactory
 import junit.framework.TestCase.*
@@ -85,8 +87,8 @@ class IrohaTest {
                     mapper.writeValueAsString(
                         jp.co.soramitsu.bootstrap.dto.GenesisRequest(
                             peers = listOf(
-                                jp.co.soramitsu.bootstrap.dto.Peer(peerKey1, "firstTHost:12435"),
-                                jp.co.soramitsu.bootstrap.dto.Peer(peerKey2, "secondTHost:987654")
+                                Peer(peerKey1, "firstTHost:12435"),
+                                Peer(peerKey2, "secondTHost:987654")
                             ),
                             accounts = accounts
                         )
@@ -106,11 +108,11 @@ class IrohaTest {
         assertTrue(respBody.contains(peerKey1))
         assertTrue(respBody.contains(peerKey2))
         accounts.forEach {
-            val pubKey = it.creds.get(0).public
+            val pubKey = it.pubKeys[0]
             if(pubKey != null) {
-                assertTrue(respBody.contains(pubKey), "pubKey not exists in block when should for account ${it.name}@${it.domainId} pubKey:${it.creds[0].public}")
+                assertTrue(respBody.contains(pubKey), "pubKey not exists in block when should for account ${it.accountName}@${it.domainId} pubKey:${it.pubKeys[0]}")
             }  else {
-                fail("pubKey not set when should for account ${it.name}@${it.domainId}")
+                fail("pubKey not set when should for account ${it.accountName}@${it.domainId}")
             }
         }
 
@@ -120,7 +122,7 @@ class IrohaTest {
         assertNotNull(genesisBlock)
     }
 
-    private fun getAccounts(): List<jp.co.soramitsu.bootstrap.dto.IrohaAccountDto> {
+    private fun getAccounts(): List<AccountPublicInfo> {
         return listOf(
             createAccountDto("notary", "notary"),
             createAccountDto("registration_service", "notary"),
@@ -142,12 +144,12 @@ class IrohaTest {
         )
     }
 
-    private fun createAccountDto(title:String, domain:String): jp.co.soramitsu.bootstrap.dto.IrohaAccountDto {
-        return jp.co.soramitsu.bootstrap.dto.IrohaAccountDto(
-            title, domain, listOf(
-                jp.co.soramitsu.bootstrap.dto.BlockchainCreds(public = generatePublicKeyBase64())
+    private fun createAccountDto(title:String, domain:String): AccountPublicInfo {
+        return AccountPublicInfo(
+            listOf(
+                generatePublicKeyBase64()
+            ),domain,title
             )
-        )
     }
 
     private fun generatePublicKeyBase64() =

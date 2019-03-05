@@ -4,6 +4,7 @@ import jp.co.soramitsu.iroha.java.TransactionBuilder
 import jp.co.soramitsu.bootstrap.genesis.getIrohaPublicKeyFromBase64
 import org.web3j.crypto.WalletFile
 import java.security.KeyPair
+import javax.validation.constraints.NotNull
 import javax.xml.bind.DatatypeConverter
 
 private interface DtoFactory<out T> {
@@ -37,12 +38,13 @@ data class IrohaAccount(val title: String, val domain: String, val keys: HashSet
     }
 }
 
-data class Peer(val peerKey: String = "", val hostPort: String = "localhost:10001")
+data class Peer(@NotNull val peerKey: String = "",@NotNull val hostPort: String = "localhost:10001")
+data class AccountPublicInfo(@NotNull val pubKeys: List<String> = emptyList(),@NotNull val domainId:String? = null,@NotNull val accountName:String? = null)
 data class Project(val project: String = "D3", val environment: String = "test")
 
 data class GenesisRequest(
-    val accounts: List<IrohaAccountDto> = emptyList(),
-    val peers: List<Peer> = listOf(),
+    val accounts: List<AccountPublicInfo> = emptyList(),
+    val peers: List<Peer> = emptyList(),
     val blockVersion: String = "1",
     val meta: Project = Project()
 )
