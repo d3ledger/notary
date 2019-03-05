@@ -170,9 +170,7 @@ class WithdrawalServiceImpl(
     override fun onIrohaEvent(irohaEvent: SideChainEvent.IrohaEvent): Result<List<WithdrawalServiceOutputEvent>, Exception> {
         when (irohaEvent) {
             is SideChainEvent.IrohaEvent.SideChainTransfer -> {
-                logger.info { "Iroha transfer event to ${irohaEvent.dstAccount}" }
-
-                logger.info { "Expect withdrawal event to ${irohaEvent.dstAccount} == $masterAccount" }
+                logger.info { "Iroha transfer event to ${irohaEvent.dstAccount}, expected $masterAccount" }
 
                 if (irohaEvent.dstAccount == masterAccount) {
                     logger.info { "Withdrawal event" }

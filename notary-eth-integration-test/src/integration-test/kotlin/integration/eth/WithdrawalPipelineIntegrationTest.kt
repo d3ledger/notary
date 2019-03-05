@@ -1,6 +1,5 @@
 package integration.eth
 
-import config.loadConfigs
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
 import integration.registration.RegistrationServiceTestEnvironment
@@ -9,7 +8,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.junit.jupiter.api.*
 import provider.eth.ETH_PRECISION
-import com.d3.registration.NotaryRegistrationConfig
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
@@ -51,7 +49,6 @@ class WithdrawalPipelineIntegrationTest {
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
 
-    private val registrationService: Job
 
     private val ethRegistrationService: Job
 
@@ -59,9 +56,7 @@ class WithdrawalPipelineIntegrationTest {
 
     init {
 
-        registrationService = GlobalScope.launch {
-            registrationTestEnvironment.registrationInitialization.init()
-        }
+        registrationTestEnvironment.registrationInitialization.init()
         ethRegistrationService = GlobalScope.launch {
             integrationHelper.runEthRegistrationService(ethRegistrationConfig)
         }
@@ -85,8 +80,8 @@ class WithdrawalPipelineIntegrationTest {
 
     @AfterAll
     fun dropDown() {
+        registrationTestEnvironment.close()
         integrationHelper.close()
-        registrationService.cancel()
         withdrawalService.cancel()
     }
 

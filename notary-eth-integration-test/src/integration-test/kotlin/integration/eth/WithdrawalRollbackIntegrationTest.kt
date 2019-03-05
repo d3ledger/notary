@@ -38,17 +38,13 @@ class WithdrawalRollbackIntegrationTest {
     /** Notary account in Iroha */
     private val notaryAccount = integrationHelper.accountHelper.notaryAccount.accountId
 
-    private val registrationService: Job
-
     private val ethRegistrationService: Job
 
     private val withdrawalService: Job
 
     init {
         integrationHelper.runEthNotary()
-        registrationService = GlobalScope.launch {
-            registrationTestEnvironment.registrationInitialization.init()
-        }
+        registrationTestEnvironment.registrationInitialization.init()
         ethRegistrationService = GlobalScope.launch {
             integrationHelper.runEthRegistrationService(ethRegistrationConfig)
         }
@@ -71,8 +67,8 @@ class WithdrawalRollbackIntegrationTest {
 
     @AfterAll
     fun dropDown() {
+        registrationTestEnvironment.close()
         integrationHelper.close()
-        registrationService.cancel()
         withdrawalService.cancel()
     }
 
