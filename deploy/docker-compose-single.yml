@@ -17,7 +17,7 @@ services:
       - PROFILE
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
-      - CLASS=registration.RegistrationMain
+      - CLASS=com.d3.commons.registration.RegistrationMain
     networks:
       - d3-network
 
