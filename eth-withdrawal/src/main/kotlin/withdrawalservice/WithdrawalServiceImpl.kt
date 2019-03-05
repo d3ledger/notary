@@ -172,6 +172,8 @@ class WithdrawalServiceImpl(
             is SideChainEvent.IrohaEvent.SideChainTransfer -> {
                 logger.info { "Iroha transfer event to ${irohaEvent.dstAccount}" }
 
+                logger.info { "Expect withdrawal event to ${irohaEvent.dstAccount} == $masterAccount" }
+
                 if (irohaEvent.dstAccount == masterAccount) {
                     logger.info { "Withdrawal event" }
                     return requestNotary(irohaEvent)
