@@ -61,6 +61,7 @@ data class GenesisRequest(
 
 data class GenesisResponse(val blockData: String? = null) :
     Conflictable()
+data class EthWallet(val file: WalletFile? = null) : Conflictable()
 
 data class EthWallet(val file: WalletFile? = null) : Conflictable()
 data class BtcWallet(val file: String? = null, val network:BtcNetwork? = null) : Conflictable()

@@ -42,7 +42,7 @@ class NotaryRegistrationTest {
      */
     @Test
     fun healthcheck() {
-        val res = khttp.get("http://127.0.0.1:${registrationConfig.healthCheckPort}/health")
+        val res = khttp.get("http://127.0.0.1:${registrationConfig.port}/actuator/health")
         assertEquals(200, res.statusCode)
         assertEquals("{\"status\":\"UP\"}", res.text)
     }
