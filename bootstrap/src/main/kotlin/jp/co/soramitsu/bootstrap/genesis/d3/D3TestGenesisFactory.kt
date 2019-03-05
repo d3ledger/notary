@@ -12,6 +12,8 @@ import jp.co.soramitsu.bootstrap.genesis.*
 import java.util.*
 
 class D3TestGenesisFactory : GenesisInterface {
+
+    private val zeroPubKey = "0000000000000000000000000000000000000000000000000000000000000000"
     override fun getAccountsNeeded(): List<AccountPrototype> = D3TestContext.d3neededAccounts
 
     override fun getProject(): String = "D3"
@@ -55,12 +57,18 @@ class D3TestGenesisFactory : GenesisInterface {
                     transactionBuilder.createAccount(
                         it.title,
                         it.domainId,
-                        getIrohaPublicKeyFromBase64(accountPubInfo.pubKeys[0])
+                        getIrohaPublicKeyFromHex(accountPubInfo.pubKeys[0])
                     )
                 } else {
                     throw AccountException("Needed account keys are not received: ${it.id}")
                 }
+                if(it.passive) {
+                    transactionBuilder.createAccount(
+                        it.title,
+                        it.domainId,
+                        getIrohaPublicKeyFromHex(zeroPubKey))
 
+                }
             } else {
                 throw AccountException("Needed account keys are not received: ${it.id}")
             }

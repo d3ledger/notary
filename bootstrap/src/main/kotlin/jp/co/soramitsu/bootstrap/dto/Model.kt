@@ -1,12 +1,11 @@
 package jp.co.soramitsu.bootstrap.dto
 
 import jp.co.soramitsu.iroha.java.TransactionBuilder
-import jp.co.soramitsu.bootstrap.genesis.getIrohaPublicKeyFromBase64
+import jp.co.soramitsu.bootstrap.genesis.getIrohaPublicKeyFromHex
 import org.bitcoinj.core.NetworkParameters
 import org.bitcoinj.params.MainNetParams
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.params.TestNet3Params
-import org.bitcoinj.wallet.Wallet
 import org.web3j.crypto.WalletFile
 import java.security.KeyPair
 import javax.validation.constraints.NotNull
@@ -111,7 +110,7 @@ open class AccountPrototype(
         builder: TransactionBuilder,
         publicKey: String = "0000000000000000000000000000000000000000000000000000000000000000"
     ) {
-        builder.createAccount(title, domainId, getIrohaPublicKeyFromBase64(publicKey))
+        builder.createAccount(title, domainId, getIrohaPublicKeyFromHex(publicKey))
         roles.forEach { builder.appendRole(id, it) }
         details.forEach { k, v -> builder.setAccountDetail(id, k, v) }
     }

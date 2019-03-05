@@ -1,12 +1,10 @@
 package jp.co.soramitsu.bootstrap.controller
 
-import jp.co.soramitsu.bootstrap.dto.AccountPrototype
-import jp.co.soramitsu.bootstrap.dto.BlockchainCreds
-import jp.co.soramitsu.bootstrap.dto.GenesisRequest
-import jp.co.soramitsu.bootstrap.dto.GenesisResponse
+import jp.co.soramitsu.bootstrap.dto.*
 import jp.co.soramitsu.bootstrap.genesis.GenesisInterface
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import mu.KLogging
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import javax.xml.bind.DatatypeConverter
@@ -38,17 +36,12 @@ class IrohaController(val genesisFactories: List<GenesisInterface>) {
     }
 
     @GetMapping("/projects/genesis")
-    fun getProjects(): ResponseEntity<Map<String, String>> {
-        val response = HashMap<String, String>()
+    fun getProjects(): ResponseEntity<List<Project>> {
+        val response = ArrayList<Project>()
         genesisFactories.forEach {
-            response.putIfAbsent(it.getProject(), "")
-            var value = response.get(it.getProject())
-            response.put(
-                it.getProject(),
-                if (value!!.contentEquals("")) it.getEnvironment() else "$value:${it.getEnvironment()}"
-            )
+            response.add(Project(it.getProject(), it.getEnvironment()))
         }
-        return ResponseEntity.ok<Map<String, String>>(response)
+        return ResponseEntity.ok<List<Project>>(response)
     }
 
     @GetMapping("/create/keyPair")
@@ -57,8 +50,8 @@ class IrohaController(val genesisFactories: List<GenesisInterface>) {
 
         val keyPair = Ed25519Sha3().generateKeypair()
         val response = BlockchainCreds(
-            DatatypeConverter.printBase64Binary(keyPair.private.encoded),
-            DatatypeConverter.printBase64Binary(keyPair.public.encoded)
+            DatatypeConverter.printHexBinary(keyPair.private.encoded),
+            DatatypeConverter.printHexBinary(keyPair.public.encoded)
         )
         return ResponseEntity.ok<BlockchainCreds>(response)
     }
@@ -85,12 +78,14 @@ class IrohaController(val genesisFactories: List<GenesisInterface>) {
                 genesis.errorCode = e.javaClass.simpleName
                 genesis.message =
                     "Error happened for project:${request.meta.project} environment:${request.meta.environment}: ${e.message}"
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(genesis)
             }
         } else {
             genesis = GenesisResponse()
             genesis.errorCode = "NO_GENESIS_FACTORY"
             genesis.message =
                 "Genesis factory not found for project:${request.meta.project} environment:${request.meta.environment}"
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(genesis)
         }
         return ResponseEntity.ok<GenesisResponse>(genesis)
     }
