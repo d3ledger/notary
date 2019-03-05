@@ -12,7 +12,7 @@ import org.web3j.crypto.WalletFile
 
 @RestController
 @RequestMapping("/eth")
-class EthereumController {
+class EthController {
     private val log = KLogging().logger
 
     @GetMapping("/create/wallet")

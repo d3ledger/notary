@@ -16,6 +16,10 @@ Functionality:
 * Creation of Iroha credentials (private and public keys)
 * Creation of Iroha Genesis Block 
 
+## Startup Configuration
+You should provide environment parameter `btc.network` with one of three values: `TestNet3, MainNet, RegTest`
+Else `btc.network` parameter will be taken from application.properties file
+
 ## How to develop
 To Add generation of genesis block for new project and/or environment Create a class which should 
 implement `GenesisInterface`

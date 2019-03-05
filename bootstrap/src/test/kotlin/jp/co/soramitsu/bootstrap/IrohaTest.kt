@@ -109,16 +109,19 @@ class IrohaTest {
         assertTrue(respBody.contains(peerKey2))
         accounts.forEach {
             val pubKey = it.pubKeys[0]
-            if(pubKey != null) {
-                assertTrue(respBody.contains(pubKey), "pubKey not exists in block when should for account ${it.accountName}@${it.domainId} pubKey:${it.pubKeys[0]}")
-            }  else {
-                fail("pubKey not set when should for account ${it.accountName}@${it.domainId}")
-            }
+            assertTrue(
+                respBody.contains(pubKey),
+                "pubKey not exists in block when should for account ${it.accountName}@${it.domainId} pubKey:${it.pubKeys[0]}"
+            )
         }
 
-        val genesisResponse = mapper.readValue(respBody, jp.co.soramitsu.bootstrap.dto.GenesisResponse::class.java)
+        val genesisResponse =
+            mapper.readValue(respBody, jp.co.soramitsu.bootstrap.dto.GenesisResponse::class.java)
         assertNotNull(genesisResponse)
-        val genesisBlock = mapper.readValue(genesisResponse.blockData, jp.co.soramitsu.bootstrap.dto.block.GenesisBlock::class.java)
+        val genesisBlock = mapper.readValue(
+            genesisResponse.blockData,
+            jp.co.soramitsu.bootstrap.dto.block.GenesisBlock::class.java
+        )
         assertNotNull(genesisBlock)
     }
 
@@ -144,12 +147,12 @@ class IrohaTest {
         )
     }
 
-    private fun createAccountDto(title:String, domain:String): AccountPublicInfo {
+    private fun createAccountDto(title: String, domain: String): AccountPublicInfo {
         return AccountPublicInfo(
             listOf(
                 generatePublicKeyBase64()
-            ),domain,title
-            )
+            ), domain, title
+        )
     }
 
     private fun generatePublicKeyBase64() =
