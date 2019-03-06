@@ -1,6 +1,8 @@
 package registration
 
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.flatMap
+import com.github.kittinunf.result.map
 import jp.co.soramitsu.iroha.java.Utils
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -35,7 +37,9 @@ class NotaryRegistrationStrategy(
             name,
             domain,
             Utils.parseHexPublicKey(pubkey)
-        )
+        ).map {
+            "$name@$domain"
+        }
     }
 
     override fun getFreeAddressNumber(): Result<Int, Exception> {
