@@ -39,13 +39,7 @@ class BtcController {
     }
 
     private fun createWallet(netParams: NetworkParameters): BtcWallet {
-        val seedBytes = Random.nextBytes(DeterministicSeed.DEFAULT_SEED_ENTROPY_BITS / 8)
-        val mnemonic = MnemonicCode.INSTANCE.toMnemonic(seedBytes)
-        val passphrase = ""
-        val creationTimeSeconds = System.currentTimeMillis() / 1000
-
-        val seed = DeterministicSeed(mnemonic, null, passphrase, creationTimeSeconds)
-        val wallet = Wallet.fromSeed(netParams, seed)
+        val wallet = Wallet(netParams)
 
         val out = ByteArrayOutputStream(1024)
         wallet.saveToFileStream(out)

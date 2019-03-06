@@ -62,19 +62,9 @@ class BtcTest {
         assertNull(respBody.message)
         assertNotNull(respBody.file)
         assertEquals(BtcNetwork.RegTest, respBody.network)
-       /* val binary = DatatypeConverter.parseBase64Binary(respBody.file)
+       /* Uncomment if you'd like to look at file
+         val binary = DatatypeConverter.parseBase64Binary(respBody.file)
         FileUtils.writeByteArrayToFile(File("btc-wallet-test.wallet"), binary)*/
     }
-
-    @Test
-    fun walletWithouSeed() {
-        val seedBytes = Random.nextBytes(DeterministicSeed.DEFAULT_SEED_ENTROPY_BITS / 8)
-        val mnemonic = MnemonicCode.INSTANCE.toMnemonic(seedBytes)
-        val passphrase = ""
-        val creationTimeSeconds = System.currentTimeMillis() / 1000
-
-        val seed = DeterministicSeed(mnemonic, null, passphrase, creationTimeSeconds)
-        val wallet = Wallet(RegTestParams.get())
-        log.info("some info")
-    }
 }
+
