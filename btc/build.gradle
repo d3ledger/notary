@@ -54,7 +54,7 @@ def getBtcGenerateBlocksArgs() {
  * Usage ./gradlew btcSendToAddress -Paddress=<address> -PamountBtc=<amountBtc>
  *  */
 task btcSendToAddress(type: JavaExec) {
-    main = 'cli.BtcSendToAddressMain'
+    main = 'com.d3.btc.cli.BtcSendToAddressMain'
     args getBtcSendToAddressArgs()
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
@@ -65,7 +65,7 @@ task btcSendToAddress(type: JavaExec) {
  * Usage ./gradlew btcGenerateBlocks -Pblocks=<blocks>
  */
 task btcGenerateBlocks(type: JavaExec) {
-    main = 'cli.BtcGenerateBlocksMain'
+    main = 'com.d3.btc.cli.BtcGenerateBlocksMain'
     args getBtcGenerateBlocksArgs()
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
