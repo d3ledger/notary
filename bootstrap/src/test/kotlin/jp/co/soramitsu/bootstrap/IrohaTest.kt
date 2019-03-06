@@ -112,15 +112,15 @@ class IrohaTest {
 
         log.info("peerKey1:$peerKey1")
         log.info("peerKey2:$peerKey2")
-      /*  assertTrue(respBody.contains(peerKey1.toLowerCase()))
-        assertTrue(respBody.contains(peerKey2.toLowerCase()))
+        assertTrue(respBody.contains(peerKey1))
+        assertTrue(respBody.contains(peerKey2))
         accounts.forEach {
             val pubKey = it.pubKeys[0]
             assertTrue(
                 respBody.contains(pubKey),
                 "pubKey not exists in block when should for account ${it.accountName}@${it.domainId} pubKey:${it.pubKeys[0]}"
             )
-        }*/
+        }
 
         val genesisResponse =
             mapper.readValue(respBody, jp.co.soramitsu.bootstrap.dto.GenesisResponse::class.java)
