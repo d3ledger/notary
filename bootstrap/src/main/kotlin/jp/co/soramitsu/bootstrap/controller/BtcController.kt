@@ -8,6 +8,7 @@ import org.bitcoinj.crypto.MnemonicCode
 import org.bitcoinj.wallet.DeterministicSeed
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -22,7 +23,7 @@ class BtcController {
 
     private val log = KLogging().logger
     @Value("\${btc.network}")
-    private lateinit var network:BtcNetwork
+    private lateinit var network: BtcNetwork
 
     @GetMapping("/create/wallet")
     fun createWallet(): ResponseEntity<BtcWallet> {
@@ -33,7 +34,7 @@ class BtcController {
             val response = BtcWallet(network = network)
             response.errorCode = e.javaClass.simpleName
             response.message = e.message
-            return ResponseEntity.ok<BtcWallet>(response)
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response)
         }
     }
 

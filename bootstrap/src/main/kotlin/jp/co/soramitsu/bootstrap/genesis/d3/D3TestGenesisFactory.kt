@@ -5,10 +5,10 @@ import jp.co.soramitsu.bootstrap.dto.AccountPrototype
 import jp.co.soramitsu.bootstrap.dto.AccountPublicInfo
 import jp.co.soramitsu.bootstrap.dto.Peer
 import jp.co.soramitsu.bootstrap.exceptions.AccountException
+import jp.co.soramitsu.bootstrap.genesis.*
 import jp.co.soramitsu.iroha.java.Transaction
 import jp.co.soramitsu.iroha.java.TransactionBuilder
 import jp.co.soramitsu.iroha.testcontainers.detail.GenesisBlockBuilder
-import jp.co.soramitsu.bootstrap.genesis.*
 import java.util.*
 
 class D3TestGenesisFactory : GenesisInterface {
@@ -46,38 +46,51 @@ class D3TestGenesisFactory : GenesisInterface {
         val accountsMap: HashMap<String, AccountPublicInfo> = HashMap()
         accountsList.forEach { accountsMap.putIfAbsent("${it.accountName}@${it.domainId}", it) }
 
-        val accountErrors = checkNeendedAccountsGiven(accountsMap)
+        val accountErrors = checkAccountsGiven(accountsMap)
         if (accountErrors.isNotEmpty()) {
             throw AccountException(accountErrors.toString())
         }
-        D3TestContext.d3neededAccounts.forEach {
-            val accountPubInfo = accountsMap[it.id]
+        D3TestContext.d3neededAccounts.forEach { account ->
+            val accountPubInfo = accountsMap[account.id]
             if (accountPubInfo != null) {
                 if (accountPubInfo.pubKeys.isNotEmpty()) {
                     transactionBuilder.createAccount(
-                        it.title,
-                        it.domainId,
+                        account.title,
+                        account.domainId,
                         getIrohaPublicKeyFromHex(accountPubInfo.pubKeys[0])
                     )
+                    accountPubInfo.pubKeys.subList(1, accountPubInfo.pubKeys.size)
+                        .forEach { key ->
+                            transactionBuilder.addSignatory(
+                                account.id,
+                                getIrohaPublicKeyFromHex(key)
+                            )
+                        }
                 } else {
-                    throw AccountException("Needed account keys are not received: ${it.id}")
+                    throw AccountException("Needed account keys are not received: ${account.id}")
                 }
-            } else if(it.passive) {
+            } else if (account.passive) {
                 transactionBuilder.createAccount(
-                    it.title,
-                    it.domainId,
-                    getIrohaPublicKeyFromHex(zeroPubKey))
+                    account.title,
+                    account.domainId,
+                    getIrohaPublicKeyFromHex(zeroPubKey)
+                )
             } else {
-                throw AccountException("Needed account keys are not received: ${it.id}")
+                throw AccountException("Needed account keys are not received: ${account.id}")
             }
         }
     }
 
-    private fun checkNeendedAccountsGiven(accountsMap: HashMap<String, AccountPublicInfo>): List<String> {
+    private fun checkAccountsGiven(accountsMap: HashMap<String, AccountPublicInfo>): List<String> {
         val loosed = ArrayList<String>()
         D3TestContext.d3neededAccounts.forEach {
             if (!accountsMap.containsKey(it.id) && !it.passive) {
                 loosed.add("Needed account keys are not received: ${it.id}")
+            } else if (!it.passive) {
+                val pubKeysCount = accountsMap[it.id]?.pubKeys?.size ?: 0
+                if (it.quorum > pubKeysCount) {
+                    loosed.add("Quorum exceeds number of keys(${it.quorum}>$pubKeysCount) for account ${it.id}")
+                }
             }
         }
         return loosed

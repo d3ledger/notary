@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import jp.co.soramitsu.bootstrap.dto.AccountPublicInfo
 import jp.co.soramitsu.bootstrap.dto.Peer
 import jp.co.soramitsu.bootstrap.dto.block.GenesisBlock
-import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import jp.co.soramitsu.bootstrap.genesis.d3.D3TestGenesisFactory
+import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import mu.KLogging
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -59,7 +59,10 @@ class IrohaTest {
             .andExpect(status().isOk)
             .andReturn()
         val respBody = result.response.contentAsString
-        assertEquals("{\"errorCode\":null,\"message\":null,\"projects\":[{\"project\":\"D3\",\"environments\":[\"test\"]}]}", respBody)
+        assertEquals(
+            "{\"errorCode\":null,\"message\":null,\"projects\":[{\"project\":\"D3\",\"environments\":[\"test\"]}]}",
+            respBody
+        )
     }
 
     @Test

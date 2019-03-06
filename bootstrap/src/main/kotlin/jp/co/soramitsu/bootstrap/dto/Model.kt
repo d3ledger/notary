@@ -28,7 +28,7 @@ data class BlockchainCreds(
     val private: String? = null,
     val public: String? = null,
     val address: String? = null
-)
+) : Conflictable()
 
 data class IrohaAccountDto(
     val name: String = "",

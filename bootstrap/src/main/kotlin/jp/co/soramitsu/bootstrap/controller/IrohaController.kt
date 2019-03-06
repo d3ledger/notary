@@ -37,61 +37,78 @@ class IrohaController(val genesisFactories: List<GenesisInterface>) {
 
     @GetMapping("/projects/genesis")
     fun getProjects(): ResponseEntity<Projects> {
-        val projMap = HashMap<String, ProjectInfo>()
-        genesisFactories.forEach {
-            if(!projMap.containsKey(it.getProject())) {
-                projMap.put(it.getProject(), ProjectInfo(it.getProject(), mutableListOf(it.getEnvironment())))
-            } else {
-                projMap.get(it.getProject())?.environments?.add(it.getEnvironment())
+        try {
+            val projMap = HashMap<String, ProjectInfo>()
+            genesisFactories.forEach {
+                if (!projMap.containsKey(it.getProject())) {
+                    projMap.put(
+                        it.getProject(),
+                        ProjectInfo(it.getProject(), mutableListOf(it.getEnvironment()))
+                    )
+                } else {
+                    projMap.get(it.getProject())?.environments?.add(it.getEnvironment())
+                }
             }
+            return ResponseEntity.ok<Projects>(Projects(projMap.values))
+        } catch(e:Exception) {
+            val response = Projects()
+            response.errorCode = e.javaClass.simpleName
+            response.message = e.message
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response)
         }
-        return ResponseEntity.ok<Projects>(Projects(projMap.values))
     }
 
     @GetMapping("/create/keyPair")
     fun generateKeyPair(): ResponseEntity<BlockchainCreds> {
         log.info("Request to generate KeyPair")
-
-        val keyPair = Ed25519Sha3().generateKeypair()
-        val response = BlockchainCreds(
-            DatatypeConverter.printHexBinary(keyPair.private.encoded),
-            DatatypeConverter.printHexBinary(keyPair.public.encoded)
-        )
-        return ResponseEntity.ok<BlockchainCreds>(response)
+        try {
+            val keyPair = Ed25519Sha3().generateKeypair()
+            val response = BlockchainCreds(
+                DatatypeConverter.printHexBinary(keyPair.private.encoded),
+                DatatypeConverter.printHexBinary(keyPair.public.encoded)
+            )
+            return ResponseEntity.ok<BlockchainCreds>(response)
+        } catch (e: Exception) {
+            val response = BlockchainCreds()
+            response.errorCode = e.javaClass.simpleName
+            response.message = e.message
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response)
+        }
     }
 
-    @PostMapping("/create/genesisBlock")
-    fun generateGenericBlock(@RequestBody request: GenesisRequest): ResponseEntity<GenesisResponse> {
-        log.info("Request of genesis block")
-        val genesisFactory = genesisFactories.filter {
-            it.getProject().contentEquals(request.meta.project)
-                    && it.getEnvironment().contentEquals(request.meta.environment)
-        }.firstOrNull()
-        var genesis: GenesisResponse
-        if (genesisFactory != null) {
-            try {
-                genesis =
-                    GenesisResponse(
-                        genesisFactory.createGenesisBlock(
-                            request.accounts,
-                            request.peers
+        @PostMapping("/create/genesisBlock")
+        fun generateGenericBlock(@RequestBody request: GenesisRequest): ResponseEntity<GenesisResponse> {
+
+            log.info("Request of genesis block")
+            val genesisFactory = genesisFactories.filter {
+                it.getProject().contentEquals(request.meta.project)
+                        && it.getEnvironment().contentEquals(request.meta.environment)
+            }.firstOrNull()
+            var genesis: GenesisResponse
+            if (genesisFactory != null) {
+                try {
+                    genesis =
+                        GenesisResponse(
+                            genesisFactory.createGenesisBlock(
+                                request.accounts,
+                                request.peers
+                            )
                         )
-                    )
-            } catch (e: Exception) {
+                } catch (e: Exception) {
+                    genesis = GenesisResponse()
+                    genesis.errorCode = e.javaClass.simpleName
+                    genesis.message =
+                        "Error happened for project:${request.meta.project} environment:${request.meta.environment}: ${e.message}"
+                    return ResponseEntity.status(HttpStatus.CONFLICT).body(genesis)
+                }
+            } else {
                 genesis = GenesisResponse()
-                genesis.errorCode = e.javaClass.simpleName
+                genesis.errorCode = "NO_GENESIS_FACTORY"
                 genesis.message =
-                    "Error happened for project:${request.meta.project} environment:${request.meta.environment}: ${e.message}"
+                    "Genesis factory not found for project:${request.meta.project} environment:${request.meta.environment}"
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(genesis)
             }
-        } else {
-            genesis = GenesisResponse()
-            genesis.errorCode = "NO_GENESIS_FACTORY"
-            genesis.message =
-                "Genesis factory not found for project:${request.meta.project} environment:${request.meta.environment}"
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(genesis)
+            return ResponseEntity.ok<GenesisResponse>(genesis)
         }
-        return ResponseEntity.ok<GenesisResponse>(genesis)
     }
-}
 
