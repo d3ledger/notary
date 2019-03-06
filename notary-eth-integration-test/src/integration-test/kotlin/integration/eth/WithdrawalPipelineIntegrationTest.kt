@@ -136,7 +136,7 @@ class WithdrawalPipelineIntegrationTest {
                 toAddress,
                 decimalAmount.toPlainString()
             )
-            Thread.sleep(15_000)
+            Thread.sleep(25_000)
 
             Assertions.assertEquals(
                 initialBalance.add(amount),
@@ -205,7 +205,7 @@ class WithdrawalPipelineIntegrationTest {
                 toAddress,
                 amount.toPlainString()
             )
-            Thread.sleep(15_000)
+            Thread.sleep(25_000)
 
             Assertions.assertEquals(
                 initialBalance.add(bigIntegerValue),
