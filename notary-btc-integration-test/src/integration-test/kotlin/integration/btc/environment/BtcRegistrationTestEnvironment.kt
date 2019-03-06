@@ -63,7 +63,8 @@ class BtcRegistrationTestEnvironment(private val integrationHelper: BtcIntegrati
     private fun irohaBtcAccountCreator(): IrohaBtcAccountCreator {
         return IrohaBtcAccountCreator(
             btcClientCreatorConsumer,
-            btcRegistrationConfig.notaryAccount
+            btcRegistrationConfig.notaryAccount,
+            btcRegistrationConfig.clientStorageAccount
         )
     }
 

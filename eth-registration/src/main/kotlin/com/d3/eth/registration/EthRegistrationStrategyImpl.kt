@@ -1,22 +1,22 @@
 package com.d3.eth.registration
 
+import com.d3.commons.config.EthereumPasswords
+import com.d3.commons.registration.IrohaEthAccountCreator
+import com.d3.commons.registration.RegistrationStrategy
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
+import com.d3.commons.util.createPrettyScheduledThreadPool
+import com.d3.eth.provider.EthFreeRelayProvider
+import com.d3.eth.sidechain.util.BasicAuthenticator
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import com.d3.commons.config.EthereumPasswords
 import contract.RelayRegistry
 import mu.KLogging
 import okhttp3.OkHttpClient
 import org.web3j.crypto.WalletUtils
 import org.web3j.protocol.Web3j
-import org.web3j.protocol.http.HttpService
-import com.d3.eth.provider.EthFreeRelayProvider
-import com.d3.commons.registration.IrohaEthAccountCreator
-import com.d3.commons.registration.RegistrationStrategy
-import com.d3.eth.sidechain.util.BasicAuthenticator
-import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
-import com.d3.commons.util.createPrettyScheduledThreadPool
 import org.web3j.protocol.core.JsonRpc2_0Web3j
+import org.web3j.protocol.http.HttpService
 import java.math.BigInteger
 
 /**
@@ -58,7 +58,7 @@ class EthRegistrationStrategyImpl(
     )
 
     private val irohaEthAccountCreator =
-        IrohaEthAccountCreator(irohaConsumer, notaryIrohaAccount)
+        IrohaEthAccountCreator(irohaConsumer, notaryIrohaAccount, ethRegistrationConfig.clientStorageAccount)
 
     /**
      * Register new notary client

@@ -1,19 +1,20 @@
 package com.d3.commons.registration
 
-import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.map
-import mu.KLogging
-import com.d3.commons.notary.IrohaOrderedBatch
 import com.d3.commons.notary.IrohaCommand
+import com.d3.commons.notary.IrohaOrderedBatch
 import com.d3.commons.notary.IrohaTransaction
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.sidechain.iroha.consumer.IrohaConverter
 import com.d3.commons.sidechain.iroha.util.ModelUtil.getCurrentTime
+import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.map
+import mu.KLogging
 
 open class IrohaAccountCreator(
     private val irohaConsumer: IrohaConsumer,
     private val notaryIrohaAccount: String,
-    private val currencyName: String
+    private val currencyName: String,
+    private val clientStorageAccount: String
 ) {
 
     private val creator = irohaConsumer.creator
@@ -93,6 +94,12 @@ open class IrohaAccountCreator(
                         // Create account
                         IrohaCommand.CommandCreateAccount(
                             userName, domain, pubkey
+                        ),
+                        // Save client account
+                        IrohaCommand.CommandSetAccountDetail(
+                            clientStorageAccount,
+                            "$userName$domain",
+                            domain
                         )
                     )
                 ),

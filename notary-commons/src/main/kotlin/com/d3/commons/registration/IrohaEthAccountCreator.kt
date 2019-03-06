@@ -1,8 +1,8 @@
 package com.d3.commons.registration
 
-import com.github.kittinunf.result.Result
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
+import com.github.kittinunf.result.Result
 
 const val ETH_WHITE_LIST_KEY = "eth_whitelist"
 
@@ -11,11 +11,12 @@ const val ETH_WHITE_LIST_KEY = "eth_whitelist"
  */
 class IrohaEthAccountCreator(
     irohaConsumer: IrohaConsumer,
-    notaryIrohaAccount: String
+    notaryIrohaAccount: String,
+    clientStorageAccount: String
 ) {
 
     private val irohaAccountCreator =
-        IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, "ethereum_wallet")
+        IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, "ethereum_wallet", clientStorageAccount)
 
     /**
      * Creates new Ethereum account to Iroha with given address

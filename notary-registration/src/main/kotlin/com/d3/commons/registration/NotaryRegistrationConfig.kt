@@ -16,4 +16,7 @@ interface NotaryRegistrationConfig {
 
     /** Iroha registration service credential */
     val registrationCredential: IrohaCredentialConfig
+
+    /** Iroha account to store clients */
+    val clientStorageAccount: String
 }

@@ -85,7 +85,8 @@
                     "can_set_quorum",
                     "can_add_signatory",
                     "can_get_my_signatories",
-                    "can_remove_signatory"
+                    "can_remove_signatory",
+                    "can_grant_can_set_my_quorum"
                   ]
                 }
               },
@@ -253,7 +254,8 @@
                     "can_get_all_accounts",
                     "can_get_all_txs",
                     "can_get_blocks",
-                    "can_get_all_acc_detail"
+                    "can_get_all_acc_detail",
+                    "can_set_quorum"
                   ]
                 }
               },
@@ -331,6 +333,13 @@
                   "accountName": "brvs",
                   "domainId": "brvs",
                   "publicKey": "b9679bbf526a1c936cd1144b56a370d376fa8246b248cd72f952b45a2f20bdad"
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "client_accounts_storage",
+                  "domainId": "notary",
+                  "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
                 }
               },
               {

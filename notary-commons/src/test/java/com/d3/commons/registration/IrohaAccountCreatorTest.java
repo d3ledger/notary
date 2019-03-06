@@ -1,15 +1,15 @@
 package com.d3.commons.registration;
 
+import com.d3.commons.notary.IrohaOrderedBatch;
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer;
+import com.d3.commons.sidechain.iroha.consumer.IrohaConverter;
 import com.github.kittinunf.result.Result;
 import jp.co.soramitsu.iroha.java.Transaction;
 import kotlin.jvm.functions.Function0;
-import org.mockito.Mockito;
-import com.d3.commons.notary.IrohaOrderedBatch;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer;
-import com.d3.commons.sidechain.iroha.consumer.IrohaConverter;
+import org.mockito.Mockito;
 
 import java.util.*;
 
@@ -26,7 +26,7 @@ public class IrohaAccountCreatorTest {
     public void setUp() {
         irohaConsumer = mock(IrohaConsumer.class);
         when(irohaConsumer.getCreator()).thenReturn("creator");
-        irohaAccountCreator = Mockito.spy(new IrohaAccountCreator(irohaConsumer, "notary_account", "currency_name"));
+        irohaAccountCreator = Mockito.spy(new IrohaAccountCreator(irohaConsumer, "notary_account", "currency_name", "client_storage_account"));
         irohaConverter = IrohaConverter.INSTANCE;
     }
 

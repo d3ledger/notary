@@ -66,7 +66,8 @@ class BtcRegistrationAppConfiguration {
     fun irohaBtcAccountCreator(): IrohaBtcAccountCreator {
         return IrohaBtcAccountCreator(
             btcRegistrationConsumer(),
-            btcRegistrationConfig.notaryAccount
+            btcRegistrationConfig.notaryAccount,
+            btcRegistrationConfig.clientStorageAccount
         )
     }
 }

@@ -24,4 +24,7 @@ interface BtcRegistrationConfig {
 
     /** Node id */
     val nodeId: String
+
+    /** Iroha account to store registered clients */
+    val clientStorageAccount: String
 }

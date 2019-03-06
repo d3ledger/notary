@@ -25,4 +25,7 @@ interface EthRegistrationConfig {
     val ethRelayRegistryAddress: String
 
     val ethereum: EthereumConfig
+
+    /** Iroha account to store registered clients */
+    val clientStorageAccount: String
 }
