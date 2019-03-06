@@ -6,6 +6,7 @@ import org.bitcoinj.core.NetworkParameters
 import org.bitcoinj.params.MainNetParams
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.params.TestNet3Params
+import org.testcontainers.shaded.org.apache.commons.lang.mutable.Mutable
 import org.web3j.crypto.WalletFile
 import java.security.KeyPair
 import javax.validation.constraints.NotNull
@@ -50,13 +51,15 @@ data class IrohaAccount(val title: String, val domain: String, val keys: HashSet
 
 data class Peer(@NotNull val peerKey: String = "", @NotNull val hostPort: String = "localhost:10001")
 data class AccountPublicInfo(@NotNull val pubKeys: List<String> = emptyList(), @NotNull val domainId: String? = null, @NotNull val accountName: String? = null)
-data class Project(val project: String = "D3", val environment: String = "test")
+data class ProjectEnv(val project: String = "D3", val environment: String = "test")
+data class ProjectInfo(val project: String = "D3", val environments: MutableList<String> = mutableListOf("test"))
+data class Projects(val projects:Collection<ProjectInfo> = listOf()):Conflictable()
 
 data class GenesisRequest(
     val accounts: List<AccountPublicInfo> = emptyList(),
     val peers: List<Peer> = emptyList(),
     val blockVersion: String = "1",
-    val meta: Project = Project()
+    val meta: ProjectEnv = ProjectEnv()
 )
 
 data class GenesisResponse(val blockData: String? = null) :

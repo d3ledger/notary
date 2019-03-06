@@ -59,7 +59,7 @@ class IrohaTest {
             .andExpect(status().isOk)
             .andReturn()
         val respBody = result.response.contentAsString
-        assertEquals("[{\"project\":\"D3\",\"environment\":\"test\"}]", respBody)
+        assertEquals("{\"errorCode\":null,\"message\":null,\"projects\":[{\"project\":\"D3\",\"environments\":[\"test\"]}]}", respBody)
     }
 
     @Test

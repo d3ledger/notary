@@ -36,12 +36,16 @@ class IrohaController(val genesisFactories: List<GenesisInterface>) {
     }
 
     @GetMapping("/projects/genesis")
-    fun getProjects(): ResponseEntity<List<Project>> {
-        val response = ArrayList<Project>()
+    fun getProjects(): ResponseEntity<Projects> {
+        val projMap = HashMap<String, ProjectInfo>()
         genesisFactories.forEach {
-            response.add(Project(it.getProject(), it.getEnvironment()))
+            if(!projMap.containsKey(it.getProject())) {
+                projMap.put(it.getProject(), ProjectInfo(it.getProject(), mutableListOf(it.getEnvironment())))
+            } else {
+                projMap.get(it.getProject())?.environments?.add(it.getEnvironment())
+            }
         }
-        return ResponseEntity.ok<List<Project>>(response)
+        return ResponseEntity.ok<Projects>(Projects(projMap.values))
     }
 
     @GetMapping("/create/keyPair")
