@@ -36,9 +36,9 @@ private val logger = KLogging().logger
 interface RMQConfig {
     val host: String
     val irohaExchange: String
-
-    val irohaCredential : IrohaCredentialConfig
+    val irohaCredential: IrohaCredentialConfig
     val iroha: IrohaConfig
+    val lastReadBlockFilePath: String
 }
 
 /**

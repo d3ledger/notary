@@ -68,3 +68,6 @@ project(':chain-adapter').projectDir = 'chain-adapter' as File
 
 include 'bootstrap'
 project(':bootstrap').projectDir = 'bootstrap' as File
+
+include 'chain-adapter-integration-test'
+project(':chain-adapter-integration-test').projectDir = 'chain-adapter-integration-test' as File

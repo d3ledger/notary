@@ -22,7 +22,7 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
 
     /** A tester Iroha account with permissions to do everything */
-    private val testCredential = IrohaCredential(
+    val testCredential = IrohaCredential(
         testConfig.testCredentialConfig.accountId,
         ModelUtil.loadKeypair(
             testConfig.testCredentialConfig.pubkeyPath,
@@ -30,7 +30,7 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
         ).get()
     )
 
-    private val irohaConsumer by lazy { IrohaConsumerImpl(testCredential, irohaAPI) }
+    val irohaConsumer by lazy { IrohaConsumerImpl(testCredential, irohaAPI) }
 
     /** Notary account */
     val notaryAccount by lazy { createNotaryAccount() }

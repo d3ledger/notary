@@ -114,7 +114,9 @@ class BtcMultiAddressGenerationIntegrationTest {
                 environment.btcGenerationConfig.notaryAccount,
                 environment.btcGenerationConfig.mstRegistrationAccount.accountId
             )
-        val generatedAddress = AddressInfo.fromJson(notaryAccountDetails[msAddressToBase58(expectedMsAddress)]!!)!!
+        val msAddress = msAddressToBase58(expectedMsAddress)
+        logger.info("Expected address $msAddress")
+        val generatedAddress = AddressInfo.fromJson(notaryAccountDetails[msAddress]!!)!!
         assertNull(generatedAddress.irohaClient)
         assertEquals(notaryKeys, generatedAddress.notaryKeys.toList())
         assertEquals(nodeId.toString(), generatedAddress.nodeId)
