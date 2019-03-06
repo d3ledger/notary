@@ -187,6 +187,7 @@ class SoraIntegrationTest {
         )
 
         assertEquals(200, res.statusCode)
+        assertEquals("$name@$domain", res.text)
 
         // ensure account is created
         try {
