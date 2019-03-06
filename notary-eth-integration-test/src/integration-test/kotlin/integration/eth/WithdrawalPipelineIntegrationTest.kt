@@ -49,7 +49,6 @@ class WithdrawalPipelineIntegrationTest {
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
 
-
     private val ethRegistrationService: Job
 
     private val withdrawalService: Job
