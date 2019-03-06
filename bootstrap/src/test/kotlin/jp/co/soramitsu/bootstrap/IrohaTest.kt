@@ -101,8 +101,15 @@ class IrohaTest {
         val respBody = result.response.contentAsString
         log.info("Response: $respBody")
 
+        //check peers added
         assertTrue(respBody.contains("firstTHost:12435"))
         assertTrue(respBody.contains("secondTHost:987654"))
+
+        //Check passive - keyless accounts added
+        assertTrue(respBody.contains("notaries"))
+        assertTrue(respBody.contains("gen_btc_pk_trigge"))
+        assertTrue(respBody.contains("btc_change_addresses"))
+
         log.info("peerKey1:$peerKey1")
         log.info("peerKey2:$peerKey2")
       /*  assertTrue(respBody.contains(peerKey1.toLowerCase()))
@@ -140,7 +147,6 @@ class IrohaTest {
             createAccountDto("btc_change_addresses", "notary"),
             createAccountDto("test", "notary"),
             createAccountDto("vacuumer", "notary"),
-            createAccountDto("notaries", "notary"),
             createAccountDto("gen_btc_pk_trigger", "notary"),
             createAccountDto("admin", "notary"),
             createAccountDto("sora", "sora")

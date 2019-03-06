@@ -62,13 +62,11 @@ class D3TestGenesisFactory : GenesisInterface {
                 } else {
                     throw AccountException("Needed account keys are not received: ${it.id}")
                 }
-                if(it.passive) {
-                    transactionBuilder.createAccount(
-                        it.title,
-                        it.domainId,
-                        getIrohaPublicKeyFromHex(zeroPubKey))
-
-                }
+            } else if(it.passive) {
+                transactionBuilder.createAccount(
+                    it.title,
+                    it.domainId,
+                    getIrohaPublicKeyFromHex(zeroPubKey))
             } else {
                 throw AccountException("Needed account keys are not received: ${it.id}")
             }
@@ -78,7 +76,7 @@ class D3TestGenesisFactory : GenesisInterface {
     private fun checkNeendedAccountsGiven(accountsMap: HashMap<String, AccountPublicInfo>): List<String> {
         val loosed = ArrayList<String>()
         D3TestContext.d3neededAccounts.forEach {
-            if (!accountsMap.containsKey(it.id)) {
+            if (!accountsMap.containsKey(it.id) && !it.passive) {
                 loosed.add("Needed account keys are not received: ${it.id}")
             }
         }
