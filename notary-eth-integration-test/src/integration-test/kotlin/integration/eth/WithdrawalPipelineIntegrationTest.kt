@@ -51,8 +51,6 @@ class WithdrawalPipelineIntegrationTest {
 
     private val ethRegistrationService: Job
 
-    private val withdrawalService: Job
-
     init {
 
         registrationTestEnvironment.registrationInitialization.init()
@@ -60,9 +58,10 @@ class WithdrawalPipelineIntegrationTest {
             integrationHelper.runEthRegistrationService(ethRegistrationConfig)
         }
         integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig)
-        withdrawalService = GlobalScope.launch {
-            integrationHelper.runEthWithdrawalService()
+        registrationService = GlobalScope.launch {
+            integrationHelper.runRegistrationService(registrationConfig)
         }
+        integrationHelper.runEthWithdrawalService()
     }
 
     lateinit var clientName: String
@@ -81,7 +80,8 @@ class WithdrawalPipelineIntegrationTest {
     fun dropDown() {
         registrationTestEnvironment.close()
         integrationHelper.close()
-        withdrawalService.cancel()
+        registrationService.cancel()
+        integrationHelper.stopEthWithdrawal()
     }
 
     /**
@@ -136,7 +136,7 @@ class WithdrawalPipelineIntegrationTest {
                 toAddress,
                 decimalAmount.toPlainString()
             )
-            Thread.sleep(25_000)
+            Thread.sleep(15_000)
 
             Assertions.assertEquals(
                 initialBalance.add(amount),
@@ -205,7 +205,7 @@ class WithdrawalPipelineIntegrationTest {
                 toAddress,
                 amount.toPlainString()
             )
-            Thread.sleep(25_000)
+            Thread.sleep(15_000)
 
             Assertions.assertEquals(
                 initialBalance.add(bigIntegerValue),

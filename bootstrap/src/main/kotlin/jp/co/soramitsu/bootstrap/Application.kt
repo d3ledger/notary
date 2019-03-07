@@ -10,7 +10,6 @@ import org.springframework.context.annotation.ComponentScan
 
 @SpringBootApplication
 @ComponentScan(basePackages = ["jp.co.soramitsu.bootstrap"])
-
 class Application
 
     private val logger = KLogging().logger

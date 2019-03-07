@@ -7,6 +7,7 @@ import com.github.kittinunf.result.map
 import config.EthereumPasswords
 import config.RMQConfig
 import io.reactivex.Observable
+import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import model.IrohaCredential
@@ -29,7 +30,6 @@ class WithdrawalServiceInitialization(
     private val relayVacuumConfig: RelayVacuumConfig,
     private val rmqConfig: RMQConfig
 ) {
-
     /**
      * Init Iroha chain listener
      * @return Observable on Iroha sidechain events
@@ -52,7 +52,7 @@ class WithdrawalServiceInitialization(
         return WithdrawalServiceImpl(withdrawalConfig, credential, irohaAPI, inputEvents)
     }
 
-    private fun initEthConsumer(withdrawalService: WithdrawalService): Result<Unit, Exception> {
+    private fun initEthConsumer(withdrawalService: WithdrawalService): Result<Disposable, Exception> {
         logger.info { "Init Ether withdrawal consumer" }
 
         return Result.of {
@@ -81,19 +81,23 @@ class WithdrawalServiceInitialization(
                         logger.error("Withdrawal observable error", ex)
                     }
                 )
-            Unit
         }
     }
 
-    fun init(): Result<Unit, Exception> {
+    /**
+     * @returns [Disposable] of Iroha chain listener
+     */
+    fun init(): Result<Disposable, Exception> {
         logger.info {
             "Start withdrawal service init with iroha at ${withdrawalConfig.iroha.hostname}:${withdrawalConfig.iroha.port}"
         }
         return initIrohaChain()
             .map { initWithdrawalService(it) }
             .flatMap { initEthConsumer(it) }
-            .map { WithdrawalServiceEndpoint(withdrawalConfig.port) }
-            .map { Unit }
+            .map { disposable ->
+                WithdrawalServiceEndpoint(withdrawalConfig.port)
+                disposable
+            }
     }
 
     /**

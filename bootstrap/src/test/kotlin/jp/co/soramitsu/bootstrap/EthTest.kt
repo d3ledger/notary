@@ -49,6 +49,5 @@ class EthTest {
         assertNotNull(wallet.crypto.cipher)
         assertNotNull(wallet.crypto.cipherparams.iv)
         assertNotNull(wallet.crypto.kdf)
-
     }
 }

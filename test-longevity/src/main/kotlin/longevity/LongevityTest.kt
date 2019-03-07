@@ -79,10 +79,14 @@ class LongevityTest {
     private fun runServices() {
         runNotaries()
         GlobalScope.launch { integrationHelper.runEthRegistrationService() }
-        GlobalScope.launch { integrationHelper.runEthWithdrawalService() }
+        integrationHelper.runEthWithdrawalService()
 
         // wait until services are up
         Thread.sleep(10_000)
+    }
+
+    private fun stopServices() {
+        integrationHelper.stopEthWithdrawal()
     }
 
     /**
@@ -163,6 +167,8 @@ class LongevityTest {
         integrationHelper.sendEth(toMaster, integrationHelper.masterContract.contractAddress)
 
         runTest()
+
+        stopServices()
     }
 
     /**
