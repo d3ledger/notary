@@ -70,7 +70,7 @@ class ChainAdapterUnreadIntegrationTest {
             }
             logger.info { consumedTransactions }
             assertEquals(transactionsAfterStart + transactionsAfterStart, consumedTransactions.size)
-            assertTrue(environment.isOrdered((consumedTransactions)))
+            assertEquals(consumedTransactions.sort(), consumedTransactions)
             assertEquals(
                 environment.adapter.getLastReadBlock(),
                 environment.lastReadBlockProvider.getLastBlockHeight()

@@ -51,12 +51,12 @@ class ChainAdapterIntegrationTest {
         ).use { reliableChainListener ->
             //Start consuming
             reliableChainListener.getBlockObservable()
-            for (transaction in 1..transactions) {
+            repeat(transactions) {
                 environment.createDummyTransaction()
             }
             logger.info { consumedBlocks }
             assertEquals(transactions, consumedBlocks.size)
-            assertTrue(environment.isOrdered((consumedBlocks)))
+            assertEquals(consumedBlocks.sort(), consumedBlocks)
             assertEquals(environment.adapter.getLastReadBlock(), environment.lastReadBlockProvider.getLastBlockHeight())
             assertEquals(consumedBlocks.last(), environment.adapter.getLastReadBlock())
         }
@@ -84,7 +84,7 @@ class ChainAdapterIntegrationTest {
         ).use { reliableChainListener ->
             //Start consuming
             reliableChainListener.getBlockObservable()
-            for (transaction in 1..transactions) {
+            repeat(transactions) {
                 environment.createDummyTransaction()
             }
             logger.info { consumedBlocks }

@@ -24,7 +24,7 @@ configurations {
 
 task integrationTest(type: Test) {
     group = LifecycleBasePlugin.VERIFICATION_GROUP
-    description = 'Runs the integration tests.'
+    description = 'Runs chain-adapter integration tests'
 
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath

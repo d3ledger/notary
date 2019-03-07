@@ -89,19 +89,6 @@ class ChainAdapterIntegrationTestEnvironment : Closeable {
         return command.hasSetAccountDetail() && command.setAccountDetail.value == dummyValue
     }
 
-    // Checks if read blocks list is ordered
-    fun isOrdered(readBlocks: List<Long>): Boolean {
-        if (readBlocks.isEmpty() || readBlocks.size == 1) {
-            return true
-        }
-        for (i in 1..(readBlocks.size - 1)) {
-            if (readBlocks[i - 1] > readBlocks[i]) {
-                return false
-            }
-        }
-        return true
-    }
-
     override fun close() {
         integrationTestHelper.close()
         consumerExecutorService.shutdownNow()
