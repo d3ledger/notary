@@ -4,7 +4,6 @@ import com.github.kittinunf.result.failure
 import integration.chainadapter.environment.ChainAdapterIntegrationTestEnvironment
 import mu.KLogging
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -56,12 +55,11 @@ class ChainAdapterIntegrationTest {
             }
             logger.info { consumedBlocks }
             assertEquals(transactions, consumedBlocks.size)
-            assertEquals(consumedBlocks.sort(), consumedBlocks)
+            assertEquals(consumedBlocks.sorted(), consumedBlocks)
             assertEquals(environment.adapter.getLastReadBlock(), environment.lastReadBlockProvider.getLastBlockHeight())
             assertEquals(consumedBlocks.last(), environment.adapter.getLastReadBlock())
         }
     }
-
 
     /**
      * Note: Iroha must be deployed to pass the test.
@@ -91,6 +89,42 @@ class ChainAdapterIntegrationTest {
             assertEquals(1, consumedBlocks.size)
         }
     }
+
+    /**
+     * Note: Iroha must be deployed to pass the test.
+     * @given running chain-adapter
+     * @when new transactions appear in Iroha blockchain and consumer acknowledges every transaction manually
+     * @then RabbitMQ consumer reads new transactions
+     * in the same order as they were published
+     */
+    @Test
+    fun testRuntimeBlocksManualAck() {
+        val transactions = 10
+        val queueName = String.getRandomString(5)
+        val consumedBlocks = Collections.synchronizedList(ArrayList<Long>())
+        ReliableIrohaChainListener(
+            environment.rmqConfig,
+            queueName,
+            { block, ack ->
+                consumedBlocks.add(block.blockV1.payload.height)
+                ack()
+            },
+            environment.consumerExecutorService,
+            false
+        ).use { reliableChainListener ->
+            //Start consuming
+            reliableChainListener.getBlockObservable()
+            repeat(transactions) {
+                environment.createDummyTransaction()
+            }
+            logger.info { consumedBlocks }
+            assertEquals(transactions, consumedBlocks.size)
+            assertEquals(consumedBlocks.sorted(), consumedBlocks)
+            assertEquals(environment.adapter.getLastReadBlock(), environment.lastReadBlockProvider.getLastBlockHeight())
+            assertEquals(consumedBlocks.last(), environment.adapter.getLastReadBlock())
+        }
+    }
+
 
     /**
      * Logger

@@ -56,7 +56,7 @@ class ChainAdapterUnreadIntegrationTest {
             reliableChainListener.getBlockObservable()
             // Before start
             logger.info { "Start send dummy transactions before service start" }
-            for (transaction in 1..transactionsBeforeStart) {
+            repeat(transactionsBeforeStart) {
                 environment.createDummyTransaction(testKey = transactionsCount.toString())
                 transactionsCount++
             }
@@ -64,13 +64,13 @@ class ChainAdapterUnreadIntegrationTest {
             environment.adapter.init()
             // After start
             logger.info { "Start send dummy transactions after service start" }
-            for (transaction in 1..transactionsAfterStart) {
+            repeat(transactionsAfterStart) {
                 environment.createDummyTransaction(testKey = transactionsCount.toString())
                 transactionsCount++
             }
             logger.info { consumedTransactions }
             assertEquals(transactionsAfterStart + transactionsAfterStart, consumedTransactions.size)
-            assertEquals(consumedTransactions.sort(), consumedTransactions)
+            assertEquals(consumedTransactions.sorted(), consumedTransactions)
             assertEquals(
                 environment.adapter.getLastReadBlock(),
                 environment.lastReadBlockProvider.getLastBlockHeight()
