@@ -31,7 +31,7 @@ dependencies {
     testCompile "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
 
     //Iroha-java related
-    implementation('com.github.hyperledger.iroha-java:testcontainers:2.0.0') {
+    implementation('com.github.hyperledger.iroha-java:testcontainers:3.1.0') {
         exclude group: 'org.slf4j'
     }
 
