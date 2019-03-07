@@ -1,9 +1,11 @@
 package jp.co.soramitsu.bootstrap
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
+import jp.co.soramitsu.bootstrap.dto.AccountPublicInfo
+import jp.co.soramitsu.bootstrap.dto.Peer
+import jp.co.soramitsu.bootstrap.dto.block.GenesisBlock
 import jp.co.soramitsu.bootstrap.genesis.d3.D3TestGenesisFactory
-import junit.framework.TestCase.*
+import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import mu.KLogging
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -57,7 +59,10 @@ class IrohaTest {
             .andExpect(status().isOk)
             .andReturn()
         val respBody = result.response.contentAsString
-        assertEquals("{\"D3\":\"test\"}", respBody)
+        assertEquals(
+            "{\"errorCode\":null,\"message\":null,\"projects\":[{\"project\":\"D3\",\"environments\":[\"test\"]}]}",
+            respBody
+        )
     }
 
     @Test
@@ -75,8 +80,8 @@ class IrohaTest {
 
     @Test
     fun testGenesisBlock() {
-        val peerKey1 = generatePublicKeyBase64()
-        val peerKey2 = generatePublicKeyBase64()
+        val peerKey1 = generatePublicKeyHex()
+        val peerKey2 = generatePublicKeyHex()
         val accounts = getAccounts()
 
         val result: MvcResult = mvc
@@ -85,8 +90,8 @@ class IrohaTest {
                     mapper.writeValueAsString(
                         jp.co.soramitsu.bootstrap.dto.GenesisRequest(
                             peers = listOf(
-                                jp.co.soramitsu.bootstrap.dto.Peer(peerKey1, "firstTHost:12435"),
-                                jp.co.soramitsu.bootstrap.dto.Peer(peerKey2, "secondTHost:987654")
+                                Peer(peerKey1, "firstTHost:12435"),
+                                Peer(peerKey2, "secondTHost:987654")
                             ),
                             accounts = accounts
                         )
@@ -99,28 +104,38 @@ class IrohaTest {
         val respBody = result.response.contentAsString
         log.info("Response: $respBody")
 
+        //check peers added
         assertTrue(respBody.contains("firstTHost:12435"))
         assertTrue(respBody.contains("secondTHost:987654"))
+
+        //Check passive - keyless accounts added
+        assertTrue(respBody.contains("notaries"))
+        assertTrue(respBody.contains("gen_btc_pk_trigge"))
+        assertTrue(respBody.contains("btc_change_addresses"))
+
         log.info("peerKey1:$peerKey1")
         log.info("peerKey2:$peerKey2")
         assertTrue(respBody.contains(peerKey1))
         assertTrue(respBody.contains(peerKey2))
         accounts.forEach {
-            val pubKey = it.creds.get(0).public
-            if(pubKey != null) {
-                assertTrue(respBody.contains(pubKey), "pubKey not exists in block when should for account ${it.name}@${it.domainId} pubKey:${it.creds[0].public}")
-            }  else {
-                fail("pubKey not set when should for account ${it.name}@${it.domainId}")
-            }
+            val pubKey = it.pubKeys[0]
+            assertTrue(
+                respBody.contains(pubKey),
+                "pubKey not exists in block when should for account ${it.accountName}@${it.domainId} pubKey:${it.pubKeys[0]}"
+            )
         }
 
-        val genesisResponse = mapper.readValue(respBody, jp.co.soramitsu.bootstrap.dto.GenesisResponse::class.java)
+        val genesisResponse =
+            mapper.readValue(respBody, jp.co.soramitsu.bootstrap.dto.GenesisResponse::class.java)
         assertNotNull(genesisResponse)
-        val genesisBlock = mapper.readValue(genesisResponse.blockData, jp.co.soramitsu.bootstrap.dto.block.GenesisBlock::class.java)
+        val genesisBlock = mapper.readValue(
+            genesisResponse.blockData,
+            GenesisBlock::class.java
+        )
         assertNotNull(genesisBlock)
     }
 
-    private fun getAccounts(): List<jp.co.soramitsu.bootstrap.dto.IrohaAccountDto> {
+    private fun getAccounts(): List<AccountPublicInfo> {
         return listOf(
             createAccountDto("notary", "notary"),
             createAccountDto("registration_service", "notary"),
@@ -135,22 +150,21 @@ class IrohaTest {
             createAccountDto("btc_change_addresses", "notary"),
             createAccountDto("test", "notary"),
             createAccountDto("vacuumer", "notary"),
-            createAccountDto("notaries", "notary"),
             createAccountDto("gen_btc_pk_trigger", "notary"),
             createAccountDto("admin", "notary"),
             createAccountDto("sora", "sora")
         )
     }
 
-    private fun createAccountDto(title:String, domain:String): jp.co.soramitsu.bootstrap.dto.IrohaAccountDto {
-        return jp.co.soramitsu.bootstrap.dto.IrohaAccountDto(
-            title, domain, listOf(
-                jp.co.soramitsu.bootstrap.dto.BlockchainCreds(public = generatePublicKeyBase64())
-            )
+    private fun createAccountDto(title: String, domain: String): AccountPublicInfo {
+        return AccountPublicInfo(
+            listOf(
+                generatePublicKeyHex()
+            ), domain, title
         )
     }
 
-    private fun generatePublicKeyBase64() =
-        DatatypeConverter.printBase64Binary(Ed25519Sha3().generateKeypair().public.encoded)
+    private fun generatePublicKeyHex() =
+        DatatypeConverter.printHexBinary(Ed25519Sha3().generateKeypair().public.encoded)
 }
 

@@ -2,6 +2,7 @@ package jp.co.soramitsu.bootstrap.controller
 
 import jp.co.soramitsu.bootstrap.dto.EthWallet
 import mu.KLogging
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -12,7 +13,7 @@ import org.web3j.crypto.WalletFile
 
 @RestController
 @RequestMapping("/eth")
-class EthereumController {
+class EthController {
     private val log = KLogging().logger
 
     @GetMapping("/create/wallet")
@@ -25,7 +26,7 @@ class EthereumController {
             val response = EthWallet()
             response.errorCode = e.javaClass.simpleName
             response.message = e.message
-            return ResponseEntity.ok<EthWallet>(response)
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response)
         }
     }
 }
