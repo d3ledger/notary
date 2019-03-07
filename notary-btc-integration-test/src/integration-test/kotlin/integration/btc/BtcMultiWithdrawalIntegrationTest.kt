@@ -9,10 +9,7 @@ import integration.helper.BtcIntegrationHelperUtil
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.bitcoinj.core.Address
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.*
 import sidechain.iroha.CLIENT_DOMAIN
 import sidechain.iroha.util.ModelUtil
 import util.getRandomString
@@ -21,6 +18,7 @@ import kotlin.test.assertEquals
 
 private const val TOTAL_TESTS = 1
 
+@Disabled
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcMultiWithdrawalIntegrationTest {
 
