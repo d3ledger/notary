@@ -34,17 +34,12 @@ class WithdrawalRollbackIntegrationTest {
 
     private val registrationService: Job
 
-    private val withdrawalService: Job
-
     init {
         integrationHelper.runEthNotary()
         registrationService = GlobalScope.launch {
             integrationHelper.runRegistrationService(registrationConfig)
         }
-        withdrawalService = GlobalScope.launch {
-            integrationHelper.runEthWithdrawalService(integrationHelper.configHelper.createWithdrawalConfig(false))
-        }
-
+        integrationHelper.runEthWithdrawalService(integrationHelper.configHelper.createWithdrawalConfig(false))
     }
 
     lateinit var clientName: String
@@ -61,9 +56,9 @@ class WithdrawalRollbackIntegrationTest {
 
     @AfterAll
     fun dropDown() {
+        integrationHelper.stopEthWithdrawal()
         integrationHelper.close()
         registrationService.cancel()
-        withdrawalService.cancel()
     }
 
     /**
@@ -110,7 +105,7 @@ class WithdrawalRollbackIntegrationTest {
             decimalAmount.toPlainString()
         )
 
-        Thread.sleep(20_000)
+        Thread.sleep(40_000)
 
         Assertions.assertEquals(
             initialBalance,

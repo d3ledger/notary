@@ -45,16 +45,12 @@ class WithdrawalPipelineIntegrationTest {
 
     private val registrationService: Job
 
-    private val withdrawalService: Job
-
     init {
         integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig)
         registrationService = GlobalScope.launch {
             integrationHelper.runRegistrationService(registrationConfig)
         }
-        withdrawalService = GlobalScope.launch {
-            integrationHelper.runEthWithdrawalService()
-        }
+        integrationHelper.runEthWithdrawalService()
     }
 
     lateinit var clientName: String
@@ -73,7 +69,7 @@ class WithdrawalPipelineIntegrationTest {
     fun dropDown() {
         integrationHelper.close()
         registrationService.cancel()
-        withdrawalService.cancel()
+        integrationHelper.stopEthWithdrawal()
     }
 
     /**

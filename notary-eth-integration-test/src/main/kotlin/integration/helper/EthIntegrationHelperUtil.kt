@@ -5,7 +5,11 @@ import config.EthereumPasswords
 import config.RMQConfig
 import config.getConfigFolder
 import config.loadRawConfigs
+import io.reactivex.disposables.Disposable
 import jp.co.soramitsu.iroha.java.QueryAPI
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import notary.eth.EthNotaryConfig
@@ -385,6 +389,9 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         registration.eth.executeRegistration(registrationConfig, configHelper.ethPasswordConfig)
     }
 
+    var withdrawalServiceJob: Job? = null
+    var disposableWithdrawalService: Disposable? = null
+
     /**
      * Run withdrawal service
      */
@@ -393,12 +400,20 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         relayVacuumConfig: RelayVacuumConfig = configHelper.createRelayVacuumConfig(),
         rmqConfig: RMQConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
     ) {
-        withdrawalservice.executeWithdrawal(
-            withdrawalServiceConfig,
-            configHelper.ethPasswordConfig,
-            relayVacuumConfig,
-            rmqConfig
-        )
+        withdrawalServiceJob = GlobalScope.launch {
+
+            disposableWithdrawalService = withdrawalservice.executeWithdrawal(
+                withdrawalServiceConfig,
+                configHelper.ethPasswordConfig,
+                relayVacuumConfig,
+                rmqConfig
+            ).get()
+        }
+    }
+
+    fun stopEthWithdrawal() {
+        withdrawalServiceJob?.cancel()
+        disposableWithdrawalService?.dispose()
     }
 
     /**
