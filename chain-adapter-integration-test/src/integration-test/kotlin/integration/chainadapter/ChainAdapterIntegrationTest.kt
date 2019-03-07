@@ -53,6 +53,8 @@ class ChainAdapterIntegrationTest {
             repeat(transactions) {
                 environment.createDummyTransaction()
             }
+            //Wait a little until consumed
+            Thread.sleep(2_000)
             logger.info { consumedBlocks }
             assertEquals(transactions, consumedBlocks.size)
             assertEquals(consumedBlocks.sorted(), consumedBlocks)
@@ -85,6 +87,8 @@ class ChainAdapterIntegrationTest {
             repeat(transactions) {
                 environment.createDummyTransaction()
             }
+            //Wait a little until consumed
+            Thread.sleep(2_000)
             logger.info { consumedBlocks }
             assertEquals(1, consumedBlocks.size)
         }
@@ -117,6 +121,8 @@ class ChainAdapterIntegrationTest {
             repeat(transactions) {
                 environment.createDummyTransaction()
             }
+            //Wait a little until consumed
+            Thread.sleep(2_000)
             logger.info { consumedBlocks }
             assertEquals(transactions, consumedBlocks.size)
             assertEquals(consumedBlocks.sorted(), consumedBlocks)
