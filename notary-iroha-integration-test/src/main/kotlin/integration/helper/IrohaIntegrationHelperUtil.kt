@@ -141,6 +141,7 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
      * @param amount - amount to add
      */
     fun addIrohaAssetTo(accountId: String, assetId: String, amount: BigDecimal) {
+        logger.info { "Add $amount $assetId to $accountId" }
         addIrohaAssetTo(accountId, assetId, amount.toPlainString())
     }
 
