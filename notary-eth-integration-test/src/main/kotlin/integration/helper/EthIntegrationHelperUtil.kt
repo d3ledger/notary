@@ -137,6 +137,11 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         )
     }
 
+    override fun close() {
+        stopEthWithdrawal()
+        super.close()
+    }
+
     /**
      * Get address of first free relay.
      */

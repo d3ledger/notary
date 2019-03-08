@@ -52,15 +52,11 @@ class WithdrawalPipelineIntegrationTest {
     private val ethRegistrationService: Job
 
     init {
-
         registrationTestEnvironment.registrationInitialization.init()
         ethRegistrationService = GlobalScope.launch {
             integrationHelper.runEthRegistrationService(ethRegistrationConfig)
         }
         integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig)
-        registrationService = GlobalScope.launch {
-            integrationHelper.runRegistrationService(registrationConfig)
-        }
         integrationHelper.runEthWithdrawalService()
     }
 
@@ -79,9 +75,8 @@ class WithdrawalPipelineIntegrationTest {
     @AfterAll
     fun dropDown() {
         registrationTestEnvironment.close()
+        ethRegistrationService.cancel()
         integrationHelper.close()
-        registrationService.cancel()
-        integrationHelper.stopEthWithdrawal()
     }
 
     /**

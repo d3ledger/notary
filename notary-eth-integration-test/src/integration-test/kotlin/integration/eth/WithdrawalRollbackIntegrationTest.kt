@@ -64,9 +64,8 @@ class WithdrawalRollbackIntegrationTest {
     @AfterAll
     fun dropDown() {
         registrationTestEnvironment.close()
-        integrationHelper.stopEthWithdrawal()
+        ethRegistrationService.cancel()
         integrationHelper.close()
-        registrationService.cancel()
     }
 
     /**
