@@ -3,9 +3,9 @@ package integration.eth
 import com.squareup.moshi.Moshi
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
-import com.d3.eth.commons.BigIntegerMoshiAdapter
-import com.d3.eth.commons.EthNotaryResponse
-import com.d3.eth.commons.EthNotaryResponseMoshiAdapter
+import com.d3.eth.notary.endpoint.BigIntegerMoshiAdapter
+import com.d3.eth.notary.endpoint.EthNotaryResponse
+import com.d3.eth.notary.endpoint.EthNotaryResponseMoshiAdapter
 import com.d3.eth.notary.ENDPOINT_ETHEREUM
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals

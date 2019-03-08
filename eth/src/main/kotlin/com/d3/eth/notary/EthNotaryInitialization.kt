@@ -13,9 +13,9 @@ import com.d3.commons.model.IrohaCredential
 import mu.KLogging
 import com.d3.commons.notary.Notary
 import com.d3.commons.notary.NotaryImpl
-import com.d3.eth.commons.RefundServerEndpoint
+import com.d3.eth.notary.endpoint.RefundServerEndpoint
 import com.d3.commons.notary.endpoint.ServerInitializationBundle
-import com.d3.eth.commons.EthRefundStrategyImpl
+import com.d3.eth.notary.endpoint.EthRefundStrategyImpl
 import okhttp3.OkHttpClient
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService

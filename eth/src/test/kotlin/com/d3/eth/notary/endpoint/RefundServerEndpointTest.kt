@@ -1,6 +1,5 @@
 package com.d3.eth.notary.endpoint
 
-import com.d3.eth.commons.*
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock

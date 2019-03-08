@@ -1,4 +1,4 @@
-package com.d3.eth.commons
+package com.d3.eth.notary.endpoint
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout

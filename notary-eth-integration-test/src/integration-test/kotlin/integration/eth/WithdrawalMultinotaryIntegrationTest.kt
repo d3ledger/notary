@@ -6,9 +6,9 @@ import com.d3.commons.config.loadEthPasswords
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
 import khttp.get
-import com.d3.eth.commons.BigIntegerMoshiAdapter
-import com.d3.eth.commons.EthNotaryResponse
-import com.d3.eth.commons.EthNotaryResponseMoshiAdapter
+import com.d3.eth.notary.endpoint.BigIntegerMoshiAdapter
+import com.d3.eth.notary.endpoint.EthNotaryResponse
+import com.d3.eth.notary.endpoint.EthNotaryResponseMoshiAdapter
 import com.d3.eth.notary.ENDPOINT_ETHEREUM
 import com.d3.eth.notary.EthNotaryConfig
 import org.junit.jupiter.api.AfterAll
