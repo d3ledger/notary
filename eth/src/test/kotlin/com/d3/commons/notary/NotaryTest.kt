@@ -29,8 +29,8 @@ class NotaryTest {
     }
 
     private val credentialConfig = mock<IrohaCredentialConfig>() {
-        on { privkeyPath } doReturn "com/d3/eth/deploy/iroha/keys/test@notary.priv"
-        on { pubkeyPath } doReturn "com/d3/eth/deploy/iroha/keys/test@notary.pub"
+        on { privkeyPath } doReturn "deploy/iroha/keys/test@notary.priv"
+        on { pubkeyPath } doReturn "deploy/iroha/keys/test@notary.pub"
         on { accountId } doReturn "creator@iroha"
     }
 

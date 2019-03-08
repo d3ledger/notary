@@ -34,10 +34,10 @@ class WithdrawalMultinotaryIntegrationTest {
     private val integrationHelper = EthIntegrationHelperUtil()
 
     /** Path to public key of 2nd instance of notary */
-    private val pubkeyPath = "com/d3/eth/deploy/iroha/keys/notary2@notary.pub"
+    private val pubkeyPath = "deploy/iroha/keys/notary2@notary.pub"
 
     /** Path to private key of 2nd instance of notary */
-    private val privkeyPath = "com/d3/eth/deploy/iroha/keys/notary2@notary.priv"
+    private val privkeyPath = "deploy/iroha/keys/notary2@notary.priv"
 
     private val notaryConfig1: EthNotaryConfig
 
