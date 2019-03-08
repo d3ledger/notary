@@ -1,13 +1,13 @@
 package integration.helper
 
 import com.d3.commons.config.*
-import com.d3.commons.notary.eth.EthNotaryConfig
-import com.d3.commons.notary.eth.RefundConfig
-import com.d3.commons.registration.eth.EthRegistrationConfig
-import com.d3.commons.registration.eth.relay.RelayRegistrationConfig
-import token.ERC20TokenRegistrationConfig
-import vacuum.RelayVacuumConfig
-import withdrawalservice.WithdrawalServiceConfig
+import com.d3.eth.notary.EthNotaryConfig
+import com.d3.eth.notary.RefundConfig
+import com.d3.eth.registration.EthRegistrationConfig
+import com.d3.eth.registration.relay.RelayRegistrationConfig
+import com.d3.eth.token.ERC20TokenRegistrationConfig
+import com.d3.eth.vacuum.RelayVacuumConfig
+import com.d3.eth.withdrawal.withdrawalservice.WithdrawalServiceConfig
 
 /**
  *Class that handles all the configuration objects.

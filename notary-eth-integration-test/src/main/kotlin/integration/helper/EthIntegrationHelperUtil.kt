@@ -8,25 +8,26 @@ import com.d3.commons.config.loadRawConfigs
 import jp.co.soramitsu.iroha.java.QueryAPI
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
-import com.d3.commons.notary.eth.EthNotaryConfig
-import com.d3.commons.notary.eth.executeNotary
-import com.d3.commons.provider.eth.ETH_DOMAIN
-import com.d3.commons.provider.eth.EthFreeRelayProvider
-import com.d3.commons.provider.eth.EthRelayProviderIrohaImpl
-import com.d3.commons.provider.eth.EthTokensProviderImpl
+import com.d3.eth.notary.EthNotaryConfig
+import com.d3.eth.notary.executeNotary
+import com.d3.eth.provider.ETH_DOMAIN
+import com.d3.eth.provider.EthFreeRelayProvider
+import com.d3.eth.provider.EthRelayProviderIrohaImpl
+import com.d3.eth.provider.EthTokensProviderImpl
 import com.d3.commons.registration.ETH_WHITE_LIST_KEY
-import com.d3.commons.registration.eth.EthRegistrationConfig
-import com.d3.commons.registration.eth.EthRegistrationStrategyImpl
-import com.d3.commons.registration.eth.relay.RelayRegistration
-import com.d3.commons.sidechain.eth.EthChainListener
+import com.d3.eth.registration.EthRegistrationConfig
+import com.d3.eth.registration.EthRegistrationStrategyImpl
+import com.d3.eth.registration.relay.RelayRegistration
+import com.d3.eth.sidechain.EthChainListener
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
-import token.EthTokenInfo
+import com.d3.eth.token.EthTokenInfo
 import com.d3.commons.util.getRandomString
 import com.d3.commons.util.toHexString
-import vacuum.RelayVacuumConfig
-import withdrawalservice.WithdrawalServiceConfig
+import com.d3.eth.registration.executeRegistration
+import com.d3.eth.vacuum.RelayVacuumConfig
+import com.d3.eth.withdrawal.withdrawalservice.WithdrawalServiceConfig
 import java.math.BigInteger
 import java.security.KeyPair
 
@@ -382,7 +383,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      * Run ethereum registration config
      */
     fun runRegistrationService(registrationConfig: EthRegistrationConfig = ethRegistrationConfig) {
-        com.d3.commons.registration.eth.executeRegistration(registrationConfig, configHelper.ethPasswordConfig)
+        executeRegistration(registrationConfig, configHelper.ethPasswordConfig)
     }
 
     /**
@@ -393,7 +394,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         relayVacuumConfig: RelayVacuumConfig = configHelper.createRelayVacuumConfig(),
         rmqConfig: RMQConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
     ) {
-        withdrawalservice.executeWithdrawal(
+        com.d3.eth.withdrawal.withdrawalservice.executeWithdrawal(
             withdrawalServiceConfig,
             configHelper.ethPasswordConfig,
             relayVacuumConfig,

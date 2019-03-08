@@ -6,21 +6,21 @@ import com.d3.commons.config.loadEthPasswords
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
 import khttp.get
-import com.d3.commons.notary.endpoint.eth.BigIntegerMoshiAdapter
-import com.d3.commons.notary.endpoint.eth.EthNotaryResponse
-import com.d3.commons.notary.endpoint.eth.EthNotaryResponseMoshiAdapter
-import com.d3.commons.notary.eth.ENDPOINT_ETHEREUM
-import com.d3.commons.notary.eth.EthNotaryConfig
+import com.d3.eth.commons.BigIntegerMoshiAdapter
+import com.d3.eth.commons.EthNotaryResponse
+import com.d3.eth.commons.EthNotaryResponseMoshiAdapter
+import com.d3.eth.notary.ENDPOINT_ETHEREUM
+import com.d3.eth.notary.EthNotaryConfig
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.web3j.crypto.ECKeyPair
-import com.d3.commons.provider.eth.ETH_PRECISION
-import com.d3.commons.provider.eth.EthRelayProviderIrohaImpl
-import com.d3.commons.sidechain.eth.util.DeployHelper
-import com.d3.commons.sidechain.eth.util.hashToWithdraw
-import com.d3.commons.sidechain.eth.util.signUserData
+import com.d3.eth.provider.ETH_PRECISION
+import com.d3.eth.provider.EthRelayProviderIrohaImpl
+import com.d3.eth.sidechain.util.DeployHelper
+import com.d3.eth.sidechain.util.hashToWithdraw
+import com.d3.eth.sidechain.util.signUserData
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomString
@@ -34,10 +34,10 @@ class WithdrawalMultinotaryIntegrationTest {
     private val integrationHelper = EthIntegrationHelperUtil()
 
     /** Path to public key of 2nd instance of notary */
-    private val pubkeyPath = "deploy/iroha/keys/notary2@notary.pub"
+    private val pubkeyPath = "com/d3/eth/deploy/iroha/keys/notary2@notary.pub"
 
     /** Path to private key of 2nd instance of notary */
-    private val privkeyPath = "deploy/iroha/keys/notary2@notary.priv"
+    private val privkeyPath = "com/d3/eth/deploy/iroha/keys/notary2@notary.priv"
 
     private val notaryConfig1: EthNotaryConfig
 

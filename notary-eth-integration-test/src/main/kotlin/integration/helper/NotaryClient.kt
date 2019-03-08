@@ -4,7 +4,7 @@ import com.d3.commons.config.EthereumConfig
 import com.d3.commons.config.EthereumPasswords
 import com.d3.commons.model.IrohaCredential
 import mu.KLogging
-import com.d3.commons.sidechain.eth.util.DeployHelper
+import com.d3.eth.sidechain.util.DeployHelper
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomString
 import com.d3.commons.util.toHexString

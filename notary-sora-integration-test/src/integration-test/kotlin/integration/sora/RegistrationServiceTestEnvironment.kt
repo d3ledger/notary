@@ -31,6 +31,7 @@ class RegistrationServiceTestEnvironment(private val integrationHelper: IrohaInt
 
     private val registrationStrategy = NotaryRegistrationStrategy(irohaConsumer)
 
-    val registrationInitialization = RegistrationServiceInitialization(registrationConfig, registrationStrategy)
+    val registrationInitialization =
+        RegistrationServiceInitialization(registrationConfig, registrationStrategy)
 
 }

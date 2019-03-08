@@ -10,7 +10,7 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import com.d3.commons.provider.eth.ETH_PRECISION
+import com.d3.eth.provider.ETH_PRECISION
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomString
@@ -43,10 +43,10 @@ class DepositMultiIntegrationTest {
     }
 
     /** Path to public key of 2nd instance of notary */
-    private val pubkeyPath2 = "deploy/iroha/keys/notary1@notary.pub"
+    private val pubkeyPath2 = "com/d3/eth/deploy/iroha/keys/notary1@notary.pub"
 
     /** Path to private key of 2nd instance of notary */
-    private val privkeyPath2 = "deploy/iroha/keys/notary1@notary.priv"
+    private val privkeyPath2 = "com/d3/eth/deploy/iroha/keys/notary1@notary.priv"
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
 
@@ -63,7 +63,7 @@ class DepositMultiIntegrationTest {
 
         val ethereumPasswords = loadEthPasswords("test", "/eth/ethereum_password.properties").get()
         val ethereumConfig =
-            integrationHelper.configHelper.createEthereumConfig("deploy/ethereum/keys/local/notary1.key")
+            integrationHelper.configHelper.createEthereumConfig("com/d3/eth/deploy/ethereum/keys/local/notary1.key")
         val notaryConfig =
             integrationHelper.configHelper.createEthNotaryConfig(
                 ethereumConfig = ethereumConfig,

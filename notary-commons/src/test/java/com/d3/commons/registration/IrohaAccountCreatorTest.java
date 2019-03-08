@@ -3,6 +3,7 @@ package com.d3.commons.registration;
 import com.github.kittinunf.result.Result;
 import jp.co.soramitsu.iroha.java.Transaction;
 import kotlin.jvm.functions.Function0;
+import org.mockito.Mockito;
 import com.d3.commons.notary.IrohaOrderedBatch;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +26,7 @@ public class IrohaAccountCreatorTest {
     public void setUp() {
         irohaConsumer = mock(IrohaConsumer.class);
         when(irohaConsumer.getCreator()).thenReturn("creator");
-        irohaAccountCreator = spy(new IrohaAccountCreator(irohaConsumer, "notary_account", "currency_name"));
+        irohaAccountCreator = Mockito.spy(new IrohaAccountCreator(irohaConsumer, "notary_account", "currency_name"));
         irohaConverter = IrohaConverter.INSTANCE;
     }
 

@@ -8,7 +8,7 @@ import io.reactivex.Observable
 import io.reactivex.observers.TestObserver
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import com.d3.commons.model.IrohaCredential
-import com.d3.commons.notary.eth.EthNotaryConfig
+import com.d3.eth.notary.EthNotaryConfig
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import com.d3.commons.provider.NotaryPeerListProvider
@@ -29,8 +29,8 @@ class NotaryTest {
     }
 
     private val credentialConfig = mock<IrohaCredentialConfig>() {
-        on { privkeyPath } doReturn "deploy/iroha/keys/test@notary.priv"
-        on { pubkeyPath } doReturn "deploy/iroha/keys/test@notary.pub"
+        on { privkeyPath } doReturn "com/d3/eth/deploy/iroha/keys/test@notary.priv"
+        on { pubkeyPath } doReturn "com/d3/eth/deploy/iroha/keys/test@notary.pub"
         on { accountId } doReturn "creator@iroha"
     }
 

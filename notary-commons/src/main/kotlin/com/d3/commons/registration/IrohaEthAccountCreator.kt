@@ -14,7 +14,8 @@ class IrohaEthAccountCreator(
     notaryIrohaAccount: String
 ) {
 
-    private val irohaAccountCreator = IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, "ethereum_wallet")
+    private val irohaAccountCreator =
+        IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, "ethereum_wallet")
 
     /**
      * Creates new Ethereum account to Iroha with given address

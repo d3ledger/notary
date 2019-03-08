@@ -15,7 +15,8 @@ class IrohaBtcAccountCreator(
     irohaConsumer: IrohaConsumer,
     notaryIrohaAccount: String
 ) {
-    private val irohaAccountCreator = IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, BTC_CURRENCY_NAME_KEY)
+    private val irohaAccountCreator =
+        IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, BTC_CURRENCY_NAME_KEY)
 
     /**
      * Creates new Bitcoin account to Iroha with given address

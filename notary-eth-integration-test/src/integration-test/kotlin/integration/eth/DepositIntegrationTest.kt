@@ -6,7 +6,7 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import com.d3.commons.provider.eth.ETH_PRECISION
+import com.d3.eth.provider.ETH_PRECISION
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.util.getRandomString
 import java.math.BigDecimal

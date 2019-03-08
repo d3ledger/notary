@@ -9,7 +9,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import mu.KLogging
-import com.d3.commons.provider.eth.ETH_PRECISION
+import com.d3.eth.provider.ETH_PRECISION
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import java.math.BigDecimal
 import java.math.BigInteger
