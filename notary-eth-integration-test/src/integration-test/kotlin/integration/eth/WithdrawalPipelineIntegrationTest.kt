@@ -57,7 +57,8 @@ class WithdrawalPipelineIntegrationTest {
             integrationHelper.runEthRegistrationService(ethRegistrationConfig)
         }
         integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig)
-        integrationHelper.runEthWithdrawalService()
+        // TODO uncomment
+//        integrationHelper.runEthWithdrawalService()
     }
 
     lateinit var clientName: String
