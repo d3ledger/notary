@@ -8,7 +8,7 @@ import mu.KLogging
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import sidechain.iroha.util.getSetDetailCommands
+import com.d3.commons.sidechain.iroha.util.getSetDetailCommands
 import java.util.concurrent.Executors
 
 /**

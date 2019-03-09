@@ -1,8 +1,8 @@
 package com.d3.btc.withdrawal.config
 
-import config.BitcoinConfig
-import config.IrohaConfig
-import config.IrohaCredentialConfig
+import com.d3.commons.config.BitcoinConfig
+import com.d3.commons.config.IrohaConfig
+import com.d3.commons.config.IrohaCredentialConfig
 
 interface BtcWithdrawalConfig {
     // Web port for health check service

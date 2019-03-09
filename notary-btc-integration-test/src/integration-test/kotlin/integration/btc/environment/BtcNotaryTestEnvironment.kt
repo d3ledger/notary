@@ -6,11 +6,11 @@ import com.d3.btc.handler.NewBtcClientRegistrationHandler
 import com.d3.btc.listener.NewBtcClientRegistrationListener
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcRegTestConfigProvider
-import config.BitcoinConfig
+import com.d3.commons.config.BitcoinConfig
 import integration.helper.BtcIntegrationHelperUtil
-import model.IrohaCredential
-import sidechain.iroha.IrohaChainListener
-import sidechain.iroha.util.ModelUtil
+import com.d3.commons.model.IrohaCredential
+import com.d3.commons.sidechain.iroha.IrohaChainListener
+import com.d3.commons.sidechain.iroha.util.ModelUtil
 import java.io.Closeable
 import java.io.File
 

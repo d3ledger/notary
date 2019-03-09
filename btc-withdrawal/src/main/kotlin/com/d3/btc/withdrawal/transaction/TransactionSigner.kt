@@ -17,7 +17,7 @@ import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import util.hex
+import com.d3.commons.util.hex
 
 /*
    Class that is used to sign transactions using available private keys

@@ -4,7 +4,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import jp.co.soramitsu.iroha.java.QueryAPI
 import com.d3.notifications.client.D3Client
-import sidechain.iroha.util.getAccountDetails
+import com.d3.commons.sidechain.iroha.util.getAccountDetails
 
 /**
  * Class that is used to get information about D3 clients

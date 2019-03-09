@@ -4,14 +4,12 @@ import com.d3.btc.deposit.config.BtcDepositConfig
 import com.d3.btc.generation.config.BtcAddressGenerationConfig
 import com.d3.btc.registration.config.BtcRegistrationConfig
 import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
-import config.BitcoinConfig
-import config.loadConfigs
-import model.IrohaCredential
+import com.d3.commons.config.BitcoinConfig
+import com.d3.commons.config.loadConfigs
+import com.d3.commons.model.IrohaCredential
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.wallet.Wallet
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
 
 private const val TEST_WALLETS_FOLDER = "deploy/bitcoin/regtest/test wallets"
 

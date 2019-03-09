@@ -11,9 +11,9 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
-import sidechain.iroha.CLIENT_DOMAIN
-import util.getRandomString
-import util.toHexString
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
 import java.math.BigInteger
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

@@ -9,7 +9,7 @@ sonarqube {
 }
 
 task runERC20TokenRegistration(type: JavaExec) {
-    main = 'token.ERC20TokenRegistrationMain'
+    main = 'com.d3.eth.token.ERC20TokenRegistrationMain'
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
 }

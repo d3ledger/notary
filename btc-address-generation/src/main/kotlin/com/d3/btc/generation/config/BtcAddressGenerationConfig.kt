@@ -1,7 +1,7 @@
 package com.d3.btc.generation.config
 
-import config.IrohaConfig
-import config.IrohaCredentialConfig
+import com.d3.commons.config.IrohaConfig
+import com.d3.commons.config.IrohaCredentialConfig
 
 interface BtcAddressGenerationConfig {
     /*

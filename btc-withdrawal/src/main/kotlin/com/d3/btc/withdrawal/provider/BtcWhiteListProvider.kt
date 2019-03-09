@@ -2,7 +2,7 @@ package com.d3.btc.withdrawal.provider
 
 import com.d3.btc.provider.account.BTC_WHITE_LIST_KEY
 import jp.co.soramitsu.iroha.java.QueryAPI
-import provider.WhiteListProvider
+import com.d3.commons.provider.WhiteListProvider
 
 /*
     White list provider for Bitcoin services

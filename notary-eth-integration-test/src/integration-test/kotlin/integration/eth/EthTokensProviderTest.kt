@@ -8,12 +8,12 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
-import provider.eth.ETH_ADDRESS
-import provider.eth.ETH_DOMAIN
-import provider.eth.ETH_NAME
-import provider.eth.ETH_PRECISION
-import token.EthTokenInfo
-import util.getRandomString
+import com.d3.eth.provider.ETH_ADDRESS
+import com.d3.eth.provider.ETH_DOMAIN
+import com.d3.eth.provider.ETH_NAME
+import com.d3.eth.provider.ETH_PRECISION
+import com.d3.eth.token.EthTokenInfo
+import com.d3.commons.util.getRandomString
 import java.time.Duration
 
 /**

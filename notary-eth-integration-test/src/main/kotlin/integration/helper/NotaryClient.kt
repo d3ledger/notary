@@ -1,13 +1,13 @@
 package integration.helper
 
-import config.EthereumConfig
-import config.EthereumPasswords
-import model.IrohaCredential
+import com.d3.commons.config.EthereumConfig
+import com.d3.commons.config.EthereumPasswords
+import com.d3.commons.model.IrohaCredential
 import mu.KLogging
-import sidechain.eth.util.DeployHelper
-import sidechain.iroha.util.ModelUtil
-import util.getRandomString
-import util.toHexString
+import com.d3.eth.sidechain.util.DeployHelper
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
 import java.math.BigInteger
 
 /**

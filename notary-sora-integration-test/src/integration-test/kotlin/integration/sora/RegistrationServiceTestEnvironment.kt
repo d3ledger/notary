@@ -1,13 +1,13 @@
 package integration.sora
 
-import config.loadConfigs
+import com.d3.commons.config.loadConfigs
 import integration.helper.IrohaIntegrationHelperUtil
-import model.IrohaCredential
-import registration.NotaryRegistrationConfig
-import registration.NotaryRegistrationStrategy
-import registration.RegistrationServiceInitialization
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.util.ModelUtil
+import com.d3.commons.model.IrohaCredential
+import com.d3.commons.registration.NotaryRegistrationConfig
+import com.d3.commons.registration.NotaryRegistrationStrategy
+import com.d3.commons.registration.RegistrationServiceInitialization
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.sidechain.iroha.util.ModelUtil
 
 /**
  * Environment for registration service running in tests
@@ -31,6 +31,7 @@ class RegistrationServiceTestEnvironment(private val integrationHelper: IrohaInt
 
     private val registrationStrategy = NotaryRegistrationStrategy(irohaConsumer)
 
-    val registrationInitialization = RegistrationServiceInitialization(registrationConfig, registrationStrategy)
+    val registrationInitialization =
+        RegistrationServiceInitialization(registrationConfig, registrationStrategy)
 
 }

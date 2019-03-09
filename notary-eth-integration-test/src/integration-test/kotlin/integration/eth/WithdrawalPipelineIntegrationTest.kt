@@ -6,11 +6,11 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.junit.jupiter.api.*
-import provider.eth.ETH_PRECISION
-import sidechain.iroha.CLIENT_DOMAIN
-import sidechain.iroha.util.ModelUtil
-import util.getRandomString
-import util.toHexString
+import com.d3.eth.provider.ETH_PRECISION
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.security.KeyPair
@@ -304,7 +304,7 @@ class WithdrawalPipelineIntegrationTest {
 
             assertEquals(400, res.statusCode)
             assertEquals(
-                "notary.endpoint.eth.NotaryException: ${withdrawalEthAddress} not in whitelist",
+                "com.d3.eth.notary.endpoint.NotaryException: ${withdrawalEthAddress} not in whitelist",
                 res.jsonObject.get("reason")
             )
         }

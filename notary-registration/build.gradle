@@ -8,7 +8,7 @@ buildscript {
 apply plugin: 'application'
 apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
 apply plugin: 'com.github.johnrengelman.shadow'
-mainClassName = "registration.RegistrationMain"
+mainClassName = "com.d3.commons.registration.RegistrationMain"
 
 dependencies {
     compile project(":notary-commons")
@@ -21,7 +21,7 @@ dependencies {
 }
 
 task runRegistration(type: JavaExec) {
-    main = 'registration.RegistrationMain'
+    main = 'com.d3.commons.registration.RegistrationMain' 
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
 }

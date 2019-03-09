@@ -7,14 +7,14 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import mu.KLogging
-import notary.IrohaOrderedBatch
-import notary.IrohaTransaction
+import com.d3.commons.notary.IrohaOrderedBatch
+import com.d3.commons.notary.IrohaTransaction
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
-import provider.TriggerProvider
-import sidechain.iroha.consumer.IrohaConsumer
-import sidechain.iroha.consumer.IrohaConverter
+import com.d3.commons.provider.TriggerProvider
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
+import com.d3.commons.sidechain.iroha.consumer.IrohaConverter
 
 /*
     Class that is used to start address generation process
