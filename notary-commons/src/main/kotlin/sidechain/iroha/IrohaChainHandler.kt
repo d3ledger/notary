@@ -15,7 +15,7 @@ class IrohaChainHandler : ChainHandler<iroha.protocol.BlockOuterClass.Block> {
      * Parse Iroha block for interesting commands
      */
     override fun parseBlock(block: iroha.protocol.BlockOuterClass.Block): List<SideChainEvent.IrohaEvent> {
-        logger.info { "Iroha chain handler" }
+        logger.info { "Iroha chain handler for block ${block.blockV1.payload.height}" }
 
         var hash = ""
         return block.blockV1.payload.transactionsList
