@@ -15,11 +15,8 @@ import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import mu.KLogging
-import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.fail
 import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
 import util.hex
@@ -28,6 +25,7 @@ import java.io.File
 import java.math.BigDecimal
 import java.security.KeyPair
 
+@Disabled
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcFullPipelineTest {
 

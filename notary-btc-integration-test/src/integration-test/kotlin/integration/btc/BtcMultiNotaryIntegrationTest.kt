@@ -6,16 +6,15 @@ import integration.helper.BTC_ASSET
 import integration.helper.BtcIntegrationHelperUtil
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.fail
 import sidechain.iroha.CLIENT_DOMAIN
 import util.getRandomString
 import java.io.File
 import java.math.BigDecimal
 
+
+@Disabled
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcMultiNotaryIntegrationTest {
 
