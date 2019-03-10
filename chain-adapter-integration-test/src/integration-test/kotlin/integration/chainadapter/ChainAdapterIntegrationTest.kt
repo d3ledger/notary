@@ -1,5 +1,7 @@
 package integration.chainadapter
 
+import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
+import com.d3.commons.util.getRandomString
 import com.github.kittinunf.result.failure
 import integration.chainadapter.environment.ChainAdapterIntegrationTestEnvironment
 import mu.KLogging
@@ -8,8 +10,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import sidechain.iroha.ReliableIrohaChainListener
-import util.getRandomString
 import java.util.*
 
 

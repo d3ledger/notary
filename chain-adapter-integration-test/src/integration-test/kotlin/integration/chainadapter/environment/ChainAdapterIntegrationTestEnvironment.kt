@@ -2,16 +2,16 @@ package integration.chainadapter.environment
 
 import com.d3.chainadapter.adapter.ChainAdapter
 import com.d3.chainadapter.provider.FileBasedLastReadBlockProvider
+import com.d3.commons.model.IrohaCredential
+import com.d3.commons.sidechain.iroha.IrohaChainListener
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.getRandomString
 import integration.helper.ChainAdapterConfigHelper
 import integration.helper.IrohaIntegrationHelperUtil
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.Commands
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
-import model.IrohaCredential
-import sidechain.iroha.IrohaChainListener
-import sidechain.iroha.util.ModelUtil
-import util.getRandomString
 import java.io.Closeable
 import java.util.concurrent.Executors
 

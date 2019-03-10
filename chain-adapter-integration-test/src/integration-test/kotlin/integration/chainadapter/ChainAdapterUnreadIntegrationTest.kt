@@ -1,14 +1,13 @@
 package integration.chainadapter
 
+import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
+import com.d3.commons.util.getRandomString
 import integration.chainadapter.environment.ChainAdapterIntegrationTestEnvironment
 import mu.KLogging
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import sidechain.iroha.ReliableIrohaChainListener
-import util.getRandomString
 import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

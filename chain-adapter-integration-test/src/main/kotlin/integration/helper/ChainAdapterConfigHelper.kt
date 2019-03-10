@@ -1,9 +1,9 @@
 package integration.helper
 
-import config.RMQConfig
-import config.getConfigFolder
-import config.loadRawConfigs
-import util.getRandomString
+import com.d3.commons.config.RMQConfig
+import com.d3.commons.config.getConfigFolder
+import com.d3.commons.config.loadRawConfigs
+import com.d3.commons.util.getRandomString
 import java.io.File
 import java.io.IOException
 

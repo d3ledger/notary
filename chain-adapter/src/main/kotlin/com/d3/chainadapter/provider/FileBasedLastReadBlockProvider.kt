@@ -1,6 +1,6 @@
 package com.d3.chainadapter.provider
 
-import config.RMQConfig
+import com.d3.commons.config.RMQConfig
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
