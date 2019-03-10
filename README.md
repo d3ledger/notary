@@ -17,7 +17,7 @@ Now you can register clients and launch subsystems.
 1) Run common services
 2) Provide ethereum passwords `configs/eth/ethereum_password_mainnet.properties` (ask someone from maintainers team about the format)
 3) Deploy Ethereum master contract and relay registry contract, provide notary ethereum accounts `gradle runPreDeployEthereum --args="0x6826d84158e516f631bbf14586a9be7e255b2d23"` 
-4) Run notary service `PROFILE=mainnet gradle runEthNotary`
+4) Run deposit service `PROFILE=mainnet gradle runEthDeposit`
 5) Run registration service `PROFILE=mainnet gradle runEthRegistration`
 6) Run withdrawal service `PROFILE=mainnet gradle runWithdrawal`
 7) Deploy relay smart contract (one relay per one client registration) `PROFILE=mainnet gradle runDeployRelay`. Ensure relay is deployed on etherscan.io
@@ -29,7 +29,7 @@ Passwords for Ethereum network may be set in 3 different ways:
 
 1) Using `eth/ethereum_password.properties` file.
 2) Using environment variables(`ETH_CREDENTIALS_PASSWORD`, `ETH_NODE_LOGIN` and `ETH_NODE_PASSWORD`).
-3) Using command line arguments. For example `gradle runEthNotary -PcredentialsPassword=test -PnodeLogin=login -PnodePassword=password`
+3) Using command line arguments. For example `gradle runEthDeposit -PcredentialsPassword=test -PnodeLogin=login -PnodePassword=password`
 
 Configurations have the following priority:
 

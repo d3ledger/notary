@@ -1,4 +1,4 @@
-package com.d3.eth.notary
+package com.d3.eth.deposit
 
 import com.d3.commons.config.EthereumConfig
 import com.d3.commons.config.IrohaConfig
@@ -9,8 +9,8 @@ interface RefundConfig {
     val port: Int
 }
 
-/** Configuration of notary */
-interface EthNotaryConfig {
+/** Configuration of deposit */
+interface EthDepositConfig {
     /** Iroha account that has registered wallets */
     val registrationServiceIrohaAccount: String
 

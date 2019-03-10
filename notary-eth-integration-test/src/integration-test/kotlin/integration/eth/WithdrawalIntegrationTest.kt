@@ -3,10 +3,10 @@ package integration.eth
 import com.squareup.moshi.Moshi
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
-import com.d3.eth.notary.endpoint.BigIntegerMoshiAdapter
-import com.d3.eth.notary.endpoint.EthNotaryResponse
-import com.d3.eth.notary.endpoint.EthNotaryResponseMoshiAdapter
-import com.d3.eth.notary.ENDPOINT_ETHEREUM
+import com.d3.eth.deposit.endpoint.BigIntegerMoshiAdapter
+import com.d3.eth.deposit.endpoint.EthNotaryResponse
+import com.d3.eth.deposit.endpoint.EthNotaryResponseMoshiAdapter
+import com.d3.eth.deposit.ENDPOINT_ETHEREUM
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
@@ -32,18 +32,18 @@ class WithdrawalIntegrationTest {
     /** Integration tests util */
     private val integrationHelper = EthIntegrationHelperUtil()
 
-    /** Test Notary configuration */
-    private val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig()
+    /** Test Deposit configuration */
+    private val depositConfig = integrationHelper.configHelper.createEthDepositConfig()
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
 
     init {
-        integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig)
+        integrationHelper.runEthDeposit(ethDepositConfig = depositConfig)
     }
 
     /** Ethereum private key **/
     private val keypair = DeployHelper(
-        notaryConfig.ethereum,
+        depositConfig.ethereum,
         integrationHelper.configHelper.ethPasswordConfig
     ).credentials.ecKeyPair
 
@@ -62,7 +62,7 @@ class WithdrawalIntegrationTest {
     @Test
     fun testRefund() {
         assertTimeoutPreemptively(timeoutDuration) {
-            val masterAccount = notaryConfig.notaryCredential.accountId
+            val masterAccount = depositConfig.notaryCredential.accountId
             val amount = "64203"
             val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(ETH_PRECISION)
             val assetId = "ether#ethereum"
@@ -94,7 +94,7 @@ class WithdrawalIntegrationTest {
 
             // query
             val res =
-                khttp.get("http://127.0.0.1:${notaryConfig.refund.port}/$ENDPOINT_ETHEREUM/$hash")
+                khttp.get("http://127.0.0.1:${depositConfig.refund.port}/$ENDPOINT_ETHEREUM/$hash")
 
             val moshi = Moshi
                 .Builder()

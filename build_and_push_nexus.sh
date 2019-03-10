@@ -40,7 +40,7 @@ docker build -t nexus.iroha.tech:19002/d3-deploy/notary-registration:$TAG -f doc
 # ETH
 docker build -t nexus.iroha.tech:19002/d3-deploy/eth-relay:$TAG -f docker/eth-relay.dockerfile .
 docker build -t nexus.iroha.tech:19002/d3-deploy/eth-registration:$TAG  -f docker/eth-registration.dockerfile .
-docker build -t nexus.iroha.tech:19002/d3-deploy/notary:$TAG  -f docker/notary.dockerfile .
+docker build -t nexus.iroha.tech:19002/d3-deploy/notary:$TAG  -f docker/eth-deposit.dockerfile .
 docker build -t nexus.iroha.tech:19002/d3-deploy/eth-withdrawal:$TAG  -f docker/eth-withdrawal.dockerfile .
 
 # BTC

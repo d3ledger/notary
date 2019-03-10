@@ -91,7 +91,7 @@ wrapper {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'notary.eth.EthNotaryMain'
+        attributes 'Main-Class': 'notary.eth.EthDepositMain'
     }
 }
 

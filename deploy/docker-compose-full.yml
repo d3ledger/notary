@@ -17,8 +17,8 @@ services:
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
       - ETH_CREDENTIALS_PASSWORD
-      - JAR_NAME=eth-notary.jar
-      - CLASS=com.d3.eth.notary.EthNotaryMain
+      - JAR_NAME=eth-deposit.jar
+      - CLASS=com.d3.eth.notary.EthDepositMain
     networks:
       - d3-network
 

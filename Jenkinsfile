@@ -141,7 +141,7 @@ pipeline {
 
               ethRelay = docker.build("nexus.iroha.tech:19002/${login}/eth-relay:${TAG}", "-f docker/eth-relay.dockerfile .")
               ethRegistration = docker.build("nexus.iroha.tech:19002/${login}/eth-registration:${TAG}", "-f docker/eth-registration.dockerfile .")
-              notary = docker.build("nexus.iroha.tech:19002/${login}/notary:${TAG}", "-f docker/notary.dockerfile .")
+              notary = docker.build("nexus.iroha.tech:19002/${login}/notary:${TAG}", "-f docker/eth-deposit.dockerfile .")
               ethWithdrawal = docker.build("nexus.iroha.tech:19002/${login}/eth-withdrawal:${TAG}", "-f docker/eth-withdrawal.dockerfile .")
 
               btcAddressGeneration = docker.build("nexus.iroha.tech:19002/${login}/btc-address-generation:${TAG}", "-f docker/btc-address-generation.dockerfile .")

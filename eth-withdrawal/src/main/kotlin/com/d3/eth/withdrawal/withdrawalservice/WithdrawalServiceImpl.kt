@@ -9,9 +9,9 @@ import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import com.d3.commons.model.IrohaCredential
 import mu.KLogging
-import com.d3.eth.notary.endpoint.BigIntegerMoshiAdapter
-import com.d3.eth.notary.endpoint.EthNotaryResponse
-import com.d3.eth.notary.endpoint.EthNotaryResponseMoshiAdapter
+import com.d3.eth.deposit.endpoint.BigIntegerMoshiAdapter
+import com.d3.eth.deposit.endpoint.EthNotaryResponse
+import com.d3.eth.deposit.endpoint.EthNotaryResponseMoshiAdapter
 import com.d3.commons.provider.NotaryPeerListProviderImpl
 import com.d3.eth.provider.EthTokensProvider
 import com.d3.eth.provider.EthTokensProviderImpl

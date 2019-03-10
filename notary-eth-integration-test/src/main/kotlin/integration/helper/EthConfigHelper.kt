@@ -1,8 +1,8 @@
 package integration.helper
 
 import com.d3.commons.config.*
-import com.d3.eth.notary.EthNotaryConfig
-import com.d3.eth.notary.RefundConfig
+import com.d3.eth.deposit.EthDepositConfig
+import com.d3.eth.deposit.RefundConfig
 import com.d3.eth.registration.EthRegistrationConfig
 import com.d3.eth.registration.relay.RelayRegistrationConfig
 import com.d3.eth.token.ERC20TokenRegistrationConfig
@@ -22,12 +22,12 @@ open class EthConfigHelper(
     /** Ethereum password configs */
     val ethPasswordConfig = loadEthPasswords("test", "/eth/ethereum_password.properties").get()
 
-    /** Configuration for notary instance */
-    private val ethNotaryConfig by lazy {
+    /** Configuration for deposit instance */
+    private val ethDepositConfig by lazy {
         loadConfigs(
-            "eth-notary",
-            EthNotaryConfig::class.java,
-            "/eth/notary.properties"
+            "eth-deposit",
+            EthDepositConfig::class.java,
+            "/eth/deposit.properties"
         ).get()
     }
 
@@ -83,21 +83,21 @@ open class EthConfigHelper(
         }
     }
 
-    /** Test configuration of Notary with runtime dependencies */
-    fun createEthNotaryConfig(
+    /** Test configuration of Deposit with runtime dependencies */
+    fun createEthDepositConfig(
         irohaConfig: IrohaConfig = createIrohaConfig(),
         ethereumConfig: EthereumConfig = object : EthereumConfig {
-            override val url = ethNotaryConfig.ethereum.url
+            override val url = ethDepositConfig.ethereum.url
             override val credentialsPath = testConfig.ethereum.credentialsPath
-            override val gasPrice = ethNotaryConfig.ethereum.gasPrice
-            override val gasLimit = ethNotaryConfig.ethereum.gasLimit
-            override val confirmationPeriod = ethNotaryConfig.ethereum.confirmationPeriod
+            override val gasPrice = ethDepositConfig.ethereum.gasPrice
+            override val gasLimit = ethDepositConfig.ethereum.gasLimit
+            override val confirmationPeriod = ethDepositConfig.ethereum.confirmationPeriod
         },
         notaryCredential_: IrohaCredentialConfig = accountHelper.createCredentialConfig(
             accountHelper.notaryAccount
         )
-    ): EthNotaryConfig {
-        return object : EthNotaryConfig {
+    ): EthDepositConfig {
+        return object : EthDepositConfig {
             override val registrationServiceIrohaAccount = accountHelper.registrationAccount.accountId
             override val tokenStorageAccount = accountHelper.tokenStorageAccount.accountId
             override val tokenSetterAccount = accountHelper.tokenSetterAccount.accountId
@@ -108,7 +108,7 @@ open class EthConfigHelper(
             override val refund = createRefundConfig()
             override val iroha = irohaConfig
             override val ethereum = ethereumConfig
-            override val withdrawalAccountId = ethNotaryConfig.withdrawalAccountId
+            override val withdrawalAccountId = ethDepositConfig.withdrawalAccountId
         }
     }
 
@@ -185,13 +185,13 @@ open class EthConfigHelper(
      * @param credentialsPath path to Ethereum credentials file (.key)
      * @return EthereumConfig object
      */
-    fun createEthereumConfig(credentialsPath: String = ethNotaryConfig.ethereum.credentialsPath): EthereumConfig {
+    fun createEthereumConfig(credentialsPath: String = ethDepositConfig.ethereum.credentialsPath): EthereumConfig {
         return object : EthereumConfig {
-            override val confirmationPeriod = ethNotaryConfig.ethereum.confirmationPeriod
+            override val confirmationPeriod = ethDepositConfig.ethereum.confirmationPeriod
             override val credentialsPath = credentialsPath
-            override val gasLimit = ethNotaryConfig.ethereum.gasLimit
-            override val gasPrice = ethNotaryConfig.ethereum.gasPrice
-            override val url = ethNotaryConfig.ethereum.url
+            override val gasLimit = ethDepositConfig.ethereum.gasLimit
+            override val gasPrice = ethDepositConfig.ethereum.gasPrice
+            override val url = ethDepositConfig.ethereum.url
         }
     }
 
