@@ -26,11 +26,11 @@ class WithdrawalPipelineIntegrationTest {
     /** Integration tests util */
     private val integrationHelper = EthIntegrationHelperUtil()
 
-    /** Test Notary configuration */
-    private val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig()
+    /** Test Deposit configuration */
+    private val depositConfig = integrationHelper.configHelper.createEthDepositConfig()
 
     /** Refund endpoint address */
-    private val refundAddress = "http://localhost:${notaryConfig.refund.port}"
+    private val refundAddress = "http://localhost:${depositConfig.refund.port}"
 
     /** Test Registration configuration */
     private val registrationConfig = integrationHelper.ethRegistrationConfig
@@ -48,7 +48,7 @@ class WithdrawalPipelineIntegrationTest {
     private val withdrawalService: Job
 
     init {
-        integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig)
+        integrationHelper.runEthDeposit(ethDepositConfig = depositConfig)
         registrationService = GlobalScope.launch {
             integrationHelper.runRegistrationService(registrationConfig)
         }
@@ -304,7 +304,7 @@ class WithdrawalPipelineIntegrationTest {
 
             assertEquals(400, res.statusCode)
             assertEquals(
-                "com.d3.eth.notary.endpoint.NotaryException: ${withdrawalEthAddress} not in whitelist",
+                "com.d3.eth.deposit.endpoint.NotaryException: ${withdrawalEthAddress} not in whitelist",
                 res.jsonObject.get("reason")
             )
         }

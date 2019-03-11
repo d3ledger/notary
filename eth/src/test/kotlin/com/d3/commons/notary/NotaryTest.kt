@@ -8,7 +8,7 @@ import io.reactivex.Observable
 import io.reactivex.observers.TestObserver
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import com.d3.commons.model.IrohaCredential
-import com.d3.eth.notary.EthNotaryConfig
+import com.d3.eth.deposit.EthDepositConfig
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import com.d3.commons.provider.NotaryPeerListProvider
@@ -38,7 +38,7 @@ class NotaryTest {
     private val irohaAPI = mock<IrohaAPI>()
 
     /** Configuration for notary */
-    private val notaryConfig = mock<EthNotaryConfig>() {
+    private val notaryConfig = mock<EthDepositConfig>() {
         on { iroha } doReturn irohaConfig
         on { notaryListStorageAccount } doReturn "listener@notary"
         on { notaryListSetterAccount } doReturn "setter@notary"

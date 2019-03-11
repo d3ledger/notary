@@ -41,7 +41,7 @@ class LongevityTest {
     /** Run 4 instances of notary */
     private fun runNotaries() {
         // run first instance with default configs
-        integrationHelper.runEthNotary()
+        integrationHelper.runEthDeposit()
 
         // launch the rest
         (1..3).forEach {
@@ -56,8 +56,8 @@ class LongevityTest {
             val ethereumConfig =
                 integrationHelper.configHelper.createEthereumConfig("deploy/ethereum/keys/local/notary$it.key")
 
-            val notaryConfig =
-                integrationHelper.configHelper.createEthNotaryConfig(
+            val depositConfig =
+                integrationHelper.configHelper.createEthDepositConfig(
                     ethereumConfig = ethereumConfig,
                     notaryCredential_ = irohaCredential
                 )
@@ -69,7 +69,7 @@ class LongevityTest {
                 ).get()
             )
 
-            integrationHelper.runEthNotary(ethereumPasswords, notaryConfig)
+            integrationHelper.runEthDeposit(ethereumPasswords, depositConfig)
         }
     }
 

@@ -37,7 +37,7 @@ class WithdrawalRollbackIntegrationTest {
     private val withdrawalService: Job
 
     init {
-        integrationHelper.runEthNotary()
+        integrationHelper.runEthDeposit()
         registrationService = GlobalScope.launch {
             integrationHelper.runRegistrationService(registrationConfig)
         }

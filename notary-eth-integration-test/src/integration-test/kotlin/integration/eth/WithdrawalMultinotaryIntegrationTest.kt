@@ -6,11 +6,11 @@ import com.d3.commons.config.loadEthPasswords
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
 import khttp.get
-import com.d3.eth.notary.endpoint.BigIntegerMoshiAdapter
-import com.d3.eth.notary.endpoint.EthNotaryResponse
-import com.d3.eth.notary.endpoint.EthNotaryResponseMoshiAdapter
-import com.d3.eth.notary.ENDPOINT_ETHEREUM
-import com.d3.eth.notary.EthNotaryConfig
+import com.d3.eth.deposit.endpoint.BigIntegerMoshiAdapter
+import com.d3.eth.deposit.endpoint.EthNotaryResponse
+import com.d3.eth.deposit.endpoint.EthNotaryResponseMoshiAdapter
+import com.d3.eth.deposit.ENDPOINT_ETHEREUM
+import com.d3.eth.deposit.EthDepositConfig
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -39,42 +39,42 @@ class WithdrawalMultinotaryIntegrationTest {
     /** Path to private key of 2nd instance of notary */
     private val privkeyPath = "deploy/iroha/keys/notary2@notary.priv"
 
-    private val notaryConfig1: EthNotaryConfig
+    private val depositConfig1: EthDepositConfig
 
-    private val notaryConfig2: EthNotaryConfig
+    private val depositConfig2: EthDepositConfig
 
     private val keypair1: ECKeyPair
 
     private val keypair2: ECKeyPair
 
-    private val ethereumPasswords = loadEthPasswords("eth-notary", "/eth/ethereum_password.properties").get()
+    private val ethereumPasswords = loadEthPasswords("eth-deposit", "/eth/ethereum_password.properties").get()
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
 
     init {
-        val notaryConfig = loadConfigs("eth-notary", EthNotaryConfig::class.java, "/eth/notary.properties").get()
+        val notaryConfig = loadConfigs("eth-deposit", EthDepositConfig::class.java, "/eth/deposit.properties").get()
         val ethKeyPath = notaryConfig.ethereum.credentialsPath
 
-        // create 1st notary config
+        // create 1st deposit config
         val ethereumConfig1 = integrationHelper.configHelper.createEthereumConfig(ethKeyPath)
 
         keypair1 = DeployHelper(ethereumConfig1, ethereumPasswords).credentials.ecKeyPair
 
-        // run 1st instance of notary
-        notaryConfig1 = integrationHelper.configHelper.createEthNotaryConfig(ethereumConfig = ethereumConfig1)
-        integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig1)
+        // run 1st instance of deposit
+        depositConfig1 = integrationHelper.configHelper.createEthDepositConfig(ethereumConfig = ethereumConfig1)
+        integrationHelper.runEthDeposit(ethDepositConfig = depositConfig1)
 
-        // create 2nd notary config
+        // create 2nd deposit config
         val ethereumConfig2 =
             integrationHelper.configHelper.createEthereumConfig(ethKeyPath.split(".key").first() + "2.key")
-        notaryConfig2 = integrationHelper.configHelper.createEthNotaryConfig(ethereumConfig = ethereumConfig2)
+        depositConfig2 = integrationHelper.configHelper.createEthDepositConfig(ethereumConfig = ethereumConfig2)
 
         keypair2 = DeployHelper(ethereumConfig2, ethereumPasswords).credentials.ecKeyPair
 
         integrationHelper.accountHelper.addNotarySignatory(ModelUtil.loadKeypair(pubkeyPath, privkeyPath).get())
 
-        // run 2nd instance of notary
-        integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig2)
+        // run 2nd instance of deposit
+        integrationHelper.runEthDeposit(ethDepositConfig = depositConfig2)
 
     }
 
@@ -125,7 +125,7 @@ class WithdrawalMultinotaryIntegrationTest {
 
             // query 1
             val res1 =
-                get("http://127.0.0.1:${notaryConfig1.refund.port}/$ENDPOINT_ETHEREUM/$hash")
+                get("http://127.0.0.1:${depositConfig1.refund.port}/$ENDPOINT_ETHEREUM/$hash")
 
             val moshi = Moshi
                 .Builder()
@@ -158,7 +158,7 @@ class WithdrawalMultinotaryIntegrationTest {
 
             // query 2
             val res2 =
-                get("http://127.0.0.1:${notaryConfig2.refund.port}/$ENDPOINT_ETHEREUM/$hash")
+                get("http://127.0.0.1:${depositConfig2.refund.port}/$ENDPOINT_ETHEREUM/$hash")
 
             val response2 = ethNotaryAdapter.fromJson(res2.jsonObject.toString())
 

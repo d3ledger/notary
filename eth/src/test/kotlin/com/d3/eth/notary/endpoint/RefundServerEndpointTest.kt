@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import com.d3.commons.notary.endpoint.ServerInitializationBundle
+import com.d3.eth.deposit.endpoint.*
 import java.math.BigInteger
 
 /**

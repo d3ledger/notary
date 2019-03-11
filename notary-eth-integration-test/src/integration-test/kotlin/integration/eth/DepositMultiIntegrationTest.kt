@@ -52,7 +52,7 @@ class DepositMultiIntegrationTest {
 
     init {
         // run notary
-        integrationHelper.runEthNotary()
+        integrationHelper.runEthDeposit()
 
         // create 2nd notary config
         val irohaCredential = object : IrohaCredentialConfig {
@@ -64,8 +64,8 @@ class DepositMultiIntegrationTest {
         val ethereumPasswords = loadEthPasswords("test", "/eth/ethereum_password.properties").get()
         val ethereumConfig =
             integrationHelper.configHelper.createEthereumConfig("deploy/ethereum/keys/local/notary1.key")
-        val notaryConfig =
-            integrationHelper.configHelper.createEthNotaryConfig(
+        val depositConfig =
+            integrationHelper.configHelper.createEthDepositConfig(
                 ethereumConfig = ethereumConfig,
                 notaryCredential_ = irohaCredential
             )
@@ -75,7 +75,7 @@ class DepositMultiIntegrationTest {
         integrationHelper.accountHelper.addNotarySignatory(keypair)
 
         // run 2nd instance of notary
-        integrationHelper.runEthNotary(ethereumPasswords, notaryConfig)
+        integrationHelper.runEthDeposit(ethereumPasswords, depositConfig)
 
     }
 

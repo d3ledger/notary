@@ -23,7 +23,7 @@ class FailedTransactionTest {
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
 
     init {
-        integrationHelper.runEthNotary()
+        integrationHelper.runEthDeposit()
     }
 
     @AfterAll

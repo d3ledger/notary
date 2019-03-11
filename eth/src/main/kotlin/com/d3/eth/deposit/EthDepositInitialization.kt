@@ -1,4 +1,4 @@
-package com.d3.eth.notary
+package com.d3.eth.deposit
 
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
@@ -13,9 +13,9 @@ import com.d3.commons.model.IrohaCredential
 import mu.KLogging
 import com.d3.commons.notary.Notary
 import com.d3.commons.notary.NotaryImpl
-import com.d3.eth.notary.endpoint.RefundServerEndpoint
+import com.d3.eth.deposit.endpoint.RefundServerEndpoint
 import com.d3.commons.notary.endpoint.ServerInitializationBundle
-import com.d3.eth.notary.endpoint.EthRefundStrategyImpl
+import com.d3.eth.deposit.endpoint.EthRefundStrategyImpl
 import okhttp3.OkHttpClient
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.http.HttpService
@@ -31,14 +31,14 @@ import java.math.BigInteger
 const val ENDPOINT_ETHEREUM = "eth"
 
 /**
- * Class for notary instantiation
+ * Class for deposit instantiation
  * @param ethRelayProvider - provides with white list of ethereum wallets
  * @param ethTokensProvider - provides with white list of ethereum ERC20 tokens
  */
-class EthNotaryInitialization(
+class EthDepositInitialization(
     private val notaryCredential: IrohaCredential,
     private val irohaAPI: IrohaAPI,
-    private val ethNotaryConfig: EthNotaryConfig,
+    private val ethDepositConfig: EthDepositConfig,
     private val passwordsConfig: EthereumPasswords,
     private val ethRelayProvider: EthRelayProvider,
     private val ethTokensProvider: EthTokensProvider
@@ -47,7 +47,7 @@ class EthNotaryInitialization(
      * Init notary
      */
     fun init(): Result<Unit, Exception> {
-        logger.info { "Eth notary initialization" }
+        logger.info { "Eth deposit initialization" }
         return initEthChain()
             .map { ethEvent ->
                 initNotary(ethEvent)
@@ -65,13 +65,13 @@ class EthNotaryInitialization(
 
         val builder = OkHttpClient().newBuilder()
         builder.authenticator(BasicAuthenticator(passwordsConfig))
-        val web3 = Web3j.build(HttpService(ethNotaryConfig.ethereum.url, builder.build(), false))
+        val web3 = Web3j.build(HttpService(ethDepositConfig.ethereum.url, builder.build(), false))
 
         /** List of all observable wallets */
         val ethHandler = EthChainHandler(web3, ethRelayProvider, ethTokensProvider)
         return EthChainListener(
             web3,
-            BigInteger.valueOf(ethNotaryConfig.ethereum.confirmationPeriod)
+            BigInteger.valueOf(ethDepositConfig.ethereum.confirmationPeriod)
         ).getBlockObservable()
             .map { observable ->
                 observable.flatMapIterable { ethHandler.parseBlock(it) }
@@ -89,7 +89,7 @@ class EthNotaryInitialization(
         irohaAPI.transactionSync(
             Transaction.builder(notaryCredential.accountId)
                 .grantPermission(
-                    ethNotaryConfig.withdrawalAccountId,
+                    ethDepositConfig.withdrawalAccountId,
                     Primitive.GrantablePermission.can_transfer_my_assets
                 )
                 .sign(notaryCredential.keyPair)
@@ -100,8 +100,8 @@ class EthNotaryInitialization(
 
         val peerListProvider = NotaryPeerListProviderImpl(
             queryAPI,
-            ethNotaryConfig.notaryListStorageAccount,
-            ethNotaryConfig.notaryListSetterAccount
+            ethDepositConfig.notaryListStorageAccount,
+            ethDepositConfig.notaryListSetterAccount
         )
 
         return NotaryImpl(notaryCredential, irohaAPI, ethEvents, peerListProvider)
@@ -113,12 +113,12 @@ class EthNotaryInitialization(
     private fun initRefund() {
         logger.info { "Init Refund endpoint" }
         RefundServerEndpoint(
-            ServerInitializationBundle(ethNotaryConfig.refund.port, ENDPOINT_ETHEREUM),
+            ServerInitializationBundle(ethDepositConfig.refund.port, ENDPOINT_ETHEREUM),
             EthRefundStrategyImpl(
-                ethNotaryConfig,
+                ethDepositConfig,
                 irohaAPI,
                 notaryCredential,
-                ethNotaryConfig.ethereum,
+                ethDepositConfig.ethereum,
                 passwordsConfig,
                 ethTokensProvider
             )

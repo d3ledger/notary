@@ -8,8 +8,8 @@ import com.d3.commons.config.loadRawConfigs
 import jp.co.soramitsu.iroha.java.QueryAPI
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
-import com.d3.eth.notary.EthNotaryConfig
-import com.d3.eth.notary.executeNotary
+import com.d3.eth.deposit.EthDepositConfig
+import com.d3.eth.deposit.executeDeposit
 import com.d3.eth.provider.ETH_DOMAIN
 import com.d3.eth.provider.EthFreeRelayProvider
 import com.d3.eth.provider.EthRelayProviderIrohaImpl
@@ -366,15 +366,15 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /**
      * Run Ethereum notary process
      */
-    fun runEthNotary(
+    fun runEthDeposit(
         ethereumPasswords: EthereumPasswords = configHelper.ethPasswordConfig,
-        ethNotaryConfig: EthNotaryConfig = configHelper.createEthNotaryConfig()
+        ethDepositConfig: EthDepositConfig = configHelper.createEthDepositConfig()
     ) {
         val name = String.getRandomString(9)
-        val address = "http://localhost:${ethNotaryConfig.refund.port}"
+        val address = "http://localhost:${ethDepositConfig.refund.port}"
         addNotary(name, address)
 
-        executeNotary(ethereumPasswords, ethNotaryConfig)
+        executeDeposit(ethereumPasswords, ethDepositConfig)
 
         logger.info { "Notary $name is started on $address" }
     }
