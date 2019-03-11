@@ -3,6 +3,9 @@ package integration.btc
 import com.d3.btc.helper.address.outPutToBase58Address
 import com.d3.btc.helper.currency.satToBtc
 import com.d3.btc.withdrawal.handler.CurrentFeeRate
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.getRandomString
 import com.github.kittinunf.result.failure
 import integration.btc.environment.BtcWithdrawalTestEnvironment
 import integration.helper.BTC_ASSET
@@ -12,9 +15,6 @@ import mu.KLogging
 import org.bitcoinj.core.Address
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertNotNull
-import sidechain.iroha.CLIENT_DOMAIN
-import sidechain.iroha.util.ModelUtil
-import util.getRandomString
 import java.io.File
 import java.math.BigDecimal
 import kotlin.test.assertEquals

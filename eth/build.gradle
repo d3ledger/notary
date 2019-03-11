@@ -18,7 +18,7 @@ sonarqube {
 }
 
 task runSendEther(type: JavaExec) {
-    main = 'deploy.EthSendEther'
+    main = 'com.d3.eth.deploy.EthSendEther'
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
 }
@@ -26,13 +26,13 @@ task runSendEther(type: JavaExec) {
 
 // Deploy ethereum smart contracts - RelayRegistry, Master, add notaries wallets to Master and lock Master.
 task runPreDeployEthereum(type: JavaExec) {
-    main = 'deploy.EthPreDeployMain'
+    main = 'com.d3.eth.deploy.EthPreDeployMain'
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
 }
 
 task runEthNotary(type: JavaExec) {
-    main = 'notary.eth.EthNotaryMain'
+    main = 'com.d3.eth.notary.EthNotaryMain'
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
 }

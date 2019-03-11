@@ -7,7 +7,7 @@ import io.reactivex.ObservableEmitter
 import mu.KLogging
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.TransactionConfidence
-import sidechain.SideChainEvent
+import com.d3.commons.sidechain.SideChainEvent
 import java.math.BigInteger
 import java.util.*
 import java.util.concurrent.ExecutorService
@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 private const val BTC_ASSET_NAME = "btc"
 private const val BTC_ASSET_DOMAIN = "bitcoin"
-private const val TWO_HOURS_MILLIS = 2 * 60 * 60 * 1000L;
+private const val TWO_HOURS_MILLIS = 2 * 60 * 60 * 1000L
 
 /**
  * Listener that listens to interested Bitcoin transactions

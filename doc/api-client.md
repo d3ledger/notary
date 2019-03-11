@@ -18,23 +18,35 @@ That's why D3 services provide registration of new client via HTTP POST request.
 * **Parameters:**
 
     * ***name*** - client name
-    * ***whitelist*** - comma separated list of addresses where withdrawal is possible
+    * ***domain*** - client domain
     * ***pubkey*** - Iroha public key of client. Client should generate keypair herself
 
 * **Successfull Response:**
 
   * **Code:** `200` <br />
-    **Content:** `:client_relay_address`
+    **Content:** `:clientId`
     
-    client_relay_address - is Ethereum address associated to the user. All assets sent to
-    the relay address will be added to the client account
+    clientId - client id in Iroha
     
 * **Example:**
   
-      curl -F "name=myname" \
+      curl -v -F "name=myname" \
       -F "pubkey=e48e003991142b90a3569d6804738c69296f339216166a3e6d20d6380afb25b1" \
-      -F "whitelist=0x6826d84158e516f631bBf14586a9BE7e255b2D23" \
-      http://localhost:8083/users
+      -F "domain=d3" \
+      http://localhost:8085/users
+      
+* **Example response:**
+    
+    **Code:** `200` <br />
+    
+    **Content:** `myname@d3`
+              
+* **Example error response:**
+    
+    **Code:** `500` <br />
+    
+    **Content:** `Response has been failed. java.lang.Exception: Tx 9fd23b3372dd772ca17b400d3abecf2160d1f6d8e0afc7d7b2f5c4de956051fc failed. CreateAccount`
+      
 
 ### Get free addresses number
 

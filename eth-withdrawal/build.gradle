@@ -11,7 +11,7 @@ sonarqube {
 }
 
 task runWithdrawal(type: JavaExec) {
-    main = 'withdrawalservice.WithdrawalServiceMain'
+    main = 'com.d3.eth.withdrawal.withdrawalservice.WithdrawalServiceMain'
     classpath = sourceSets.main.runtimeClasspath
 
     args getEthPasswordsArgs()

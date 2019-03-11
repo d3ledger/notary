@@ -2,8 +2,8 @@ package com.d3.btc.provider.account
 
 import com.d3.btc.model.AddressInfo
 import com.github.kittinunf.result.Result
-import com.d3.registration.IrohaAccountCreator
-import sidechain.iroha.consumer.IrohaConsumer
+import com.d3.commons.registration.IrohaAccountCreator
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 
 const val BTC_WHITE_LIST_KEY = "btc_whitelist"
 const val BTC_CURRENCY_NAME_KEY = "bitcoin"
@@ -15,7 +15,8 @@ class IrohaBtcAccountCreator(
     irohaConsumer: IrohaConsumer,
     notaryIrohaAccount: String
 ) {
-    private val irohaAccountCreator = IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, BTC_CURRENCY_NAME_KEY)
+    private val irohaAccountCreator =
+        IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, BTC_CURRENCY_NAME_KEY)
 
     /**
      * Creates new Bitcoin account to Iroha with given address

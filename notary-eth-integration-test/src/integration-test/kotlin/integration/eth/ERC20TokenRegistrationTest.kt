@@ -8,13 +8,13 @@ import integration.helper.IrohaConfigHelper
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
-import provider.eth.ETH_DOMAIN
-import provider.eth.EthTokensProviderImpl
-import provider.eth.SORA_DOMAIN
-import provider.eth.XOR_NAME
-import token.EthTokenInfo
-import token.executeTokenRegistration
-import util.getRandomString
+import com.d3.eth.provider.ETH_DOMAIN
+import com.d3.eth.provider.EthTokensProviderImpl
+import com.d3.eth.provider.SORA_DOMAIN
+import com.d3.eth.provider.XOR_NAME
+import com.d3.eth.token.EthTokenInfo
+import com.d3.eth.token.executeTokenRegistration
+import com.d3.commons.util.getRandomString
 import java.io.File
 import java.time.Duration
 
@@ -67,12 +67,19 @@ class ERC20TokenRegistrationTest {
                             val domain = tokenId.split("#").last()
                             Pair(
                                 ethAddress,
-                                EthTokenInfo(name, domain, ethTokensProvider.getTokenPrecision(tokenId).get())
+                                EthTokenInfo(
+                                    name,
+                                    domain,
+                                    ethTokensProvider.getTokenPrecision(tokenId).get()
+                                )
                             )
                         }.sortedBy { it.first }
 
                     // xor token is registered in any case
-                    tokens.put("0x0000000000000000000000000000000000000000", EthTokenInfo(XOR_NAME, SORA_DOMAIN, 18))
+                    tokens.put(
+                        "0x0000000000000000000000000000000000000000",
+                        EthTokenInfo(XOR_NAME, SORA_DOMAIN, 18)
+                    )
                     assertEquals(
                         tokens.toList().sortedBy { it.first },
                         actual

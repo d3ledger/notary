@@ -1,21 +1,21 @@
 package integration.helper
 
-import config.RMQConfig
-import config.getConfigFolder
-import config.loadConfigs
-import config.loadRawConfigs
+import com.d3.commons.config.RMQConfig
+import com.d3.commons.config.getConfigFolder
+import com.d3.commons.config.loadConfigs
+import com.d3.commons.config.loadRawConfigs
 import integration.TestConfig
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import jp.co.soramitsu.iroha.java.Transaction
 import kotlinx.coroutines.runBlocking
-import model.IrohaCredential
+import com.d3.commons.model.IrohaCredential
 import mu.KLogging
-import sidechain.iroha.ReliableIrohaChainListener
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.util.ModelUtil
-import sidechain.iroha.util.getAccountAsset
-import util.getRandomString
+import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.sidechain.iroha.util.getAccountAsset
+import com.d3.commons.util.getRandomString
 import java.io.Closeable
 import java.math.BigDecimal
 import java.security.KeyPair
@@ -96,7 +96,7 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
     }
 
     fun getAccountDetails(accountDetailHolder: String, accountDetailSetter: String): Map<String, String> {
-        return sidechain.iroha.util.getAccountDetails(
+        return com.d3.commons.sidechain.iroha.util.getAccountDetails(
             queryAPI,
             accountDetailHolder,
             accountDetailSetter
@@ -107,7 +107,7 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
      * Return [account] data.
      */
     fun getAccount(account: String): String {
-        return sidechain.iroha.util.getAccountData(
+        return com.d3.commons.sidechain.iroha.util.getAccountData(
             queryAPI,
             account
         ).get().toString()

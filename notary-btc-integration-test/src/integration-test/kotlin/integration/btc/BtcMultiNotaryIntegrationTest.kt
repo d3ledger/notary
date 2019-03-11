@@ -1,5 +1,7 @@
 package integration.btc
 
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.util.getRandomString
 import com.github.kittinunf.result.failure
 import integration.btc.environment.BtcNotaryTestEnvironment
 import integration.helper.BTC_ASSET
@@ -8,8 +10,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import sidechain.iroha.CLIENT_DOMAIN
-import util.getRandomString
 import java.io.File
 import java.math.BigDecimal
 

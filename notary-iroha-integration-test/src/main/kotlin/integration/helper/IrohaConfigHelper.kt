@@ -1,8 +1,8 @@
 package integration.helper
 
-import com.d3.registration.NotaryRegistrationConfig
-import config.IrohaConfig
-import config.loadConfigs
+import com.d3.commons.config.IrohaConfig
+import com.d3.commons.config.loadConfigs
+import com.d3.commons.registration.NotaryRegistrationConfig
 import integration.TestConfig
 import java.util.concurrent.atomic.AtomicInteger
 

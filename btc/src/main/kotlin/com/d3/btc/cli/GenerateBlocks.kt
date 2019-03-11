@@ -4,7 +4,7 @@ package com.d3.btc.cli
 
 import com.github.jleskovar.btcrpc.BitcoinRpcClientFactory
 import com.github.kittinunf.result.Result
-import config.loadConfigs
+import com.d3.commons.config.loadConfigs
 import mu.KLogging
 
 private val logger = KLogging().logger

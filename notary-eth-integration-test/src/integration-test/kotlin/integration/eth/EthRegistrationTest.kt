@@ -1,5 +1,7 @@
 package integration.eth
 
+import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
 import integration.helper.EthIntegrationHelperUtil
 import integration.registration.RegistrationServiceTestEnvironment
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
@@ -7,8 +9,6 @@ import kotlinx.coroutines.*
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import util.getRandomString
-import util.toHexString
 import kotlin.test.assertEquals
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

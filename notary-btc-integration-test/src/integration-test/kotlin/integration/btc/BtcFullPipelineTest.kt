@@ -3,6 +3,10 @@ package integration.btc
 import com.d3.btc.helper.currency.satToBtc
 import com.d3.btc.model.BtcAddressType
 import com.d3.btc.withdrawal.handler.CurrentFeeRate
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.util.getRandomString
+import com.d3.commons.util.hex
+import com.d3.commons.util.toHexString
 import com.github.kittinunf.result.failure
 import integration.btc.environment.BtcAddressGenerationTestEnvironment
 import integration.btc.environment.BtcNotaryTestEnvironment
@@ -17,10 +21,6 @@ import kotlinx.coroutines.launch
 import mu.KLogging
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import sidechain.iroha.CLIENT_DOMAIN
-import util.getRandomString
-import util.hex
-import util.toHexString
 import java.io.File
 import java.math.BigDecimal
 import java.security.KeyPair

@@ -1,18 +1,18 @@
 package com.d3.btc.generation.config
 
-import config.loadConfigs
+import com.d3.commons.config.loadConfigs
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
-import model.IrohaCredential
+import com.d3.commons.model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import provider.NotaryPeerListProvider
-import provider.NotaryPeerListProviderImpl
-import sidechain.iroha.IrohaChainListener
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.util.ModelUtil
+import com.d3.commons.provider.NotaryPeerListProvider
+import com.d3.commons.provider.NotaryPeerListProviderImpl
+import com.d3.commons.sidechain.iroha.IrohaChainListener
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.sidechain.iroha.util.ModelUtil
 import java.io.File
 import java.util.concurrent.Executors
 

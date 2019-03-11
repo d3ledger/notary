@@ -1,6 +1,6 @@
 package com.d3.btc.model
 
-import util.getRandomId
+import com.d3.commons.util.getRandomId
 
 //Enumeration full of Bitcoin address types
 enum class BtcAddressType(val title: String) {

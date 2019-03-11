@@ -1,11 +1,11 @@
 package integration.registration
 
-import com.d3.registration.NotaryRegistrationStrategy
-import com.d3.registration.RegistrationServiceInitialization
+import com.d3.commons.model.IrohaCredential
+import com.d3.commons.registration.NotaryRegistrationStrategy
+import com.d3.commons.registration.RegistrationServiceInitialization
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.sidechain.iroha.util.ModelUtil
 import integration.helper.IrohaIntegrationHelperUtil
-import model.IrohaCredential
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.util.ModelUtil
 import java.io.Closeable
 
 /**
@@ -29,7 +29,8 @@ class RegistrationServiceTestEnvironment(private val integrationHelper: IrohaInt
 
     private val registrationStrategy = NotaryRegistrationStrategy(irohaConsumer)
 
-    val registrationInitialization = RegistrationServiceInitialization(registrationConfig, registrationStrategy)
+    val registrationInitialization =
+        RegistrationServiceInitialization(registrationConfig, registrationStrategy)
 
     override fun close() {
         integrationHelper.close()

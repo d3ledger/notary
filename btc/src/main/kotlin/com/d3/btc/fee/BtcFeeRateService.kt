@@ -5,11 +5,11 @@ import com.github.kittinunf.result.map
 import com.squareup.moshi.Moshi
 import jp.co.soramitsu.iroha.java.QueryAPI
 import mu.KLogging
-import sidechain.iroha.consumer.IrohaConsumer
-import sidechain.iroha.util.ModelUtil
-import sidechain.iroha.util.getAccountDetails
-import util.irohaEscape
-import util.irohaUnEscape
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.sidechain.iroha.util.getAccountDetails
+import com.d3.commons.util.irohaEscape
+import com.d3.commons.util.irohaUnEscape
 
 const val BTC_FEE_RATE_KEY = "btcFeeRate"
 private val feeRateJsonAdapter = Moshi.Builder().build().adapter(FeeRate::class.java)

@@ -1,8 +1,8 @@
 package integration
 
-import config.EthereumConfig
-import config.IrohaConfig
-import config.IrohaCredentialConfig
+import com.d3.commons.config.EthereumConfig
+import com.d3.commons.config.IrohaConfig
+import com.d3.commons.config.IrohaCredentialConfig
 
 interface TestConfig {
     val ethTestAccount: String

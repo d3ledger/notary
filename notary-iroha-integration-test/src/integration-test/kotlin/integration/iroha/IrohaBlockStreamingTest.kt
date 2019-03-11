@@ -1,9 +1,9 @@
 package integration.iroha
 
 import com.github.kittinunf.result.map
-import config.RMQConfig
-import config.getConfigFolder
-import config.loadRawConfigs
+import com.d3.commons.config.RMQConfig
+import com.d3.commons.config.getConfigFolder
+import com.d3.commons.config.loadRawConfigs
 import integration.helper.IrohaConfigHelper
 import integration.helper.IrohaIntegrationHelperUtil
 import io.reactivex.schedulers.Schedulers
@@ -14,9 +14,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import sidechain.iroha.ReliableIrohaChainListener
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import util.getRandomId
+import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.util.getRandomId
 import java.time.Duration
 
 /**
