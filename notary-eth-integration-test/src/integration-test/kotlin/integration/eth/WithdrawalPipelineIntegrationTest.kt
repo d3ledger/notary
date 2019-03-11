@@ -57,8 +57,7 @@ class WithdrawalPipelineIntegrationTest {
             integrationHelper.runEthRegistrationService(ethRegistrationConfig)
         }
         integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig)
-        // TODO uncomment
-//        integrationHelper.runEthWithdrawalService()
+        integrationHelper.runEthWithdrawalService()
     }
 
     lateinit var clientName: String
@@ -78,6 +77,7 @@ class WithdrawalPipelineIntegrationTest {
         registrationTestEnvironment.close()
         ethRegistrationService.cancel()
         integrationHelper.close()
+        integrationHelper.stopEthWithdrawal()
     }
 
     /**
@@ -132,7 +132,7 @@ class WithdrawalPipelineIntegrationTest {
                 toAddress,
                 decimalAmount.toPlainString()
             )
-            Thread.sleep(25_000)
+            Thread.sleep(20_000)
 
             Assertions.assertEquals(
                 initialBalance.add(amount),
@@ -201,7 +201,7 @@ class WithdrawalPipelineIntegrationTest {
                 toAddress,
                 amount.toPlainString()
             )
-            Thread.sleep(25_000)
+            Thread.sleep(20_000)
 
             Assertions.assertEquals(
                 initialBalance.add(bigIntegerValue),

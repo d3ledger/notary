@@ -19,8 +19,6 @@ class EthRelayProviderIrohaTest {
 
     val integrationHelper = EthIntegrationHelperUtil()
 
-    val testConfig = integrationHelper.configHelper.testConfig
-
     /** Iroha account that holds details */
     private val relayStorage = integrationHelper.accountHelper.notaryAccount.accountId
 

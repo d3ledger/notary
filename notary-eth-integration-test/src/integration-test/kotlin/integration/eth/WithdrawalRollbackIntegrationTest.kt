@@ -66,6 +66,7 @@ class WithdrawalRollbackIntegrationTest {
         registrationTestEnvironment.close()
         ethRegistrationService.cancel()
         integrationHelper.close()
+        integrationHelper.stopEthWithdrawal()
     }
 
     /**
