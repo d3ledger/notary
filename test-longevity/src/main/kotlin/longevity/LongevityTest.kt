@@ -78,7 +78,7 @@ class LongevityTest {
      */
     private fun runServices() {
         runNotaries()
-        GlobalScope.launch { integrationHelper.runRegistrationService() }
+        GlobalScope.launch { integrationHelper.runEthRegistrationService() }
         GlobalScope.launch { integrationHelper.runEthWithdrawalService() }
 
         // wait until services are up
