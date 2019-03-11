@@ -11,7 +11,7 @@ sonarqube {
 }
 
 task runVacuumRelay(type: JavaExec) {
-    main = 'vacuum.VacuumRelayMain'
+    main = 'com.d3.eth.vacuum.VacuumRelayMain'
     classpath = sourceSets.main.runtimeClasspath
 
     args getEthPasswordsArgs()

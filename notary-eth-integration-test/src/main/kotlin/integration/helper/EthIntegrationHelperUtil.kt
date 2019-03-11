@@ -1,10 +1,10 @@
 package integration.helper
 
 import com.github.kittinunf.result.success
-import config.EthereumPasswords
-import config.RMQConfig
-import config.getConfigFolder
-import config.loadRawConfigs
+import com.d3.commons.config.EthereumPasswords
+import com.d3.commons.config.RMQConfig
+import com.d3.commons.config.getConfigFolder
+import com.d3.commons.config.loadRawConfigs
 import io.reactivex.disposables.Disposable
 import jp.co.soramitsu.iroha.java.QueryAPI
 import kotlinx.coroutines.GlobalScope
@@ -12,25 +12,26 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
-import notary.eth.EthNotaryConfig
-import notary.eth.executeNotary
-import provider.eth.ETH_DOMAIN
-import provider.eth.EthFreeRelayProvider
-import provider.eth.EthRelayProviderIrohaImpl
-import provider.eth.EthTokensProviderImpl
-import registration.ETH_WHITE_LIST_KEY
-import registration.eth.EthRegistrationConfig
-import registration.eth.EthRegistrationStrategyImpl
-import registration.eth.relay.RelayRegistration
-import sidechain.eth.EthChainListener
-import sidechain.iroha.CLIENT_DOMAIN
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.util.ModelUtil
-import token.EthTokenInfo
-import util.getRandomString
-import util.toHexString
-import vacuum.RelayVacuumConfig
-import withdrawalservice.WithdrawalServiceConfig
+import com.d3.eth.notary.EthNotaryConfig
+import com.d3.eth.notary.executeNotary
+import com.d3.eth.provider.ETH_DOMAIN
+import com.d3.eth.provider.EthFreeRelayProvider
+import com.d3.eth.provider.EthRelayProviderIrohaImpl
+import com.d3.eth.provider.EthTokensProviderImpl
+import com.d3.commons.registration.ETH_WHITE_LIST_KEY
+import com.d3.eth.registration.EthRegistrationConfig
+import com.d3.eth.registration.EthRegistrationStrategyImpl
+import com.d3.eth.registration.relay.RelayRegistration
+import com.d3.eth.sidechain.EthChainListener
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.eth.token.EthTokenInfo
+import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
+import com.d3.eth.registration.executeRegistration
+import com.d3.eth.vacuum.RelayVacuumConfig
+import com.d3.eth.withdrawal.withdrawalservice.WithdrawalServiceConfig
 import java.math.BigInteger
 import java.security.KeyPair
 
@@ -386,7 +387,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      * Run ethereum registration config
      */
     fun runRegistrationService(registrationConfig: EthRegistrationConfig = ethRegistrationConfig) {
-        registration.eth.executeRegistration(registrationConfig, configHelper.ethPasswordConfig)
+        executeRegistration(registrationConfig, configHelper.ethPasswordConfig)
     }
 
     var withdrawalServiceJob: Job? = null
@@ -401,8 +402,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         rmqConfig: RMQConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
     ) {
         withdrawalServiceJob = GlobalScope.launch {
-
-            disposableWithdrawalService = withdrawalservice.executeWithdrawal(
+            disposableWithdrawalService = com.d3.eth.withdrawal.withdrawalservice.executeWithdrawal(
                 withdrawalServiceConfig,
                 configHelper.ethPasswordConfig,
                 relayVacuumConfig,

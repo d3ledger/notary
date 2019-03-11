@@ -3,11 +3,11 @@ package com.d3.chainadapter
 import com.github.kittinunf.result.map
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.MessageProperties
-import config.RMQConfig
+import com.d3.commons.config.RMQConfig
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import model.IrohaCredential
+import com.d3.commons.model.IrohaCredential
 import mu.KLogging
-import sidechain.iroha.util.ModelUtil
+import com.d3.commons.sidechain.iroha.util.ModelUtil
 
 class ChainAdapter(private val rmqConfig: RMQConfig) {
 

@@ -16,9 +16,9 @@ import org.apache.http.StatusLine
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import sidechain.iroha.CLIENT_DOMAIN
-import sidechain.iroha.util.ModelUtil
-import util.irohaEscape
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.irohaEscape
 import java.math.BigDecimal
 
 const val BTC_ASSET = "btc#bitcoin"

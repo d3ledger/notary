@@ -9,9 +9,9 @@ import iroha.protocol.Commands
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import sidechain.iroha.IrohaChainListener
-import sidechain.iroha.NOTARY_DOMAIN
-import sidechain.iroha.util.getTransferCommands
+import com.d3.commons.sidechain.iroha.IrohaChainListener
+import com.d3.commons.sidechain.iroha.NOTARY_DOMAIN
+import com.d3.commons.sidechain.iroha.util.getTransferCommands
 import java.math.BigDecimal
 import java.util.concurrent.Executors
 

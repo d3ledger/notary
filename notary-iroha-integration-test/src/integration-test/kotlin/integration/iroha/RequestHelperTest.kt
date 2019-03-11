@@ -5,7 +5,7 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import sidechain.iroha.util.getAccountAsset
+import com.d3.commons.sidechain.iroha.util.getAccountAsset
 
 /**
  * Test helper class for Iroha queries

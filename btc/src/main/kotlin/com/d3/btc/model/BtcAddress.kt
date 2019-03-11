@@ -1,7 +1,7 @@
 package com.d3.btc.model
 
 import com.squareup.moshi.Moshi
-import util.irohaEscape
+import com.d3.commons.util.irohaEscape
 
 private val addressInfoJsonAdapter = Moshi.Builder().build().adapter(AddressInfo::class.java)
 

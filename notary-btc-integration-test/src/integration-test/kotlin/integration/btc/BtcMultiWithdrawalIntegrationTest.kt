@@ -2,6 +2,9 @@ package integration.btc
 
 import com.d3.btc.helper.currency.satToBtc
 import com.d3.btc.withdrawal.handler.CurrentFeeRate
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.getRandomString
 import com.github.kittinunf.result.failure
 import integration.btc.environment.BtcWithdrawalTestEnvironment
 import integration.helper.BTC_ASSET
@@ -9,18 +12,13 @@ import integration.helper.BtcIntegrationHelperUtil
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.bitcoinj.core.Address
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
-import sidechain.iroha.CLIENT_DOMAIN
-import sidechain.iroha.util.ModelUtil
-import util.getRandomString
+import org.junit.jupiter.api.*
 import java.io.File
 import kotlin.test.assertEquals
 
 private const val TOTAL_TESTS = 1
 
+@Disabled
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcMultiWithdrawalIntegrationTest {
 

@@ -1,7 +1,7 @@
 package integration.helper
 
-import config.IrohaConfig
-import config.loadConfigs
+import com.d3.commons.config.IrohaConfig
+import com.d3.commons.config.loadConfigs
 import integration.TestConfig
 import java.util.concurrent.atomic.AtomicInteger
 

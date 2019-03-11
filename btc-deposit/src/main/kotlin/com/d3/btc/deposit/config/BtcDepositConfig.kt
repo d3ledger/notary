@@ -1,8 +1,8 @@
 package com.d3.btc.deposit.config
 
-import config.BitcoinConfig
-import config.IrohaConfig
-import config.IrohaCredentialConfig
+import com.d3.commons.config.BitcoinConfig
+import com.d3.commons.config.IrohaConfig
+import com.d3.commons.config.IrohaCredentialConfig
 
 /** Configuration of Bitcoin deposit */
 interface BtcDepositConfig {

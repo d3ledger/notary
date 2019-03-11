@@ -1,5 +1,6 @@
 package integration.eth
 
+import com.d3.eth.vacuum.executeVacuum
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
 import mu.KLogging
@@ -54,7 +55,7 @@ class VacuumIntegrationTest {
             }
             val initialMasterBalance = integrationHelper.getMasterEthBalance()
             logger.info("initialMasterBalance $initialMasterBalance")
-            vacuum.executeVacuum(
+            executeVacuum(
                 integrationHelper.configHelper.createRelayVacuumConfig()
             )
             Thread.sleep(30_000)

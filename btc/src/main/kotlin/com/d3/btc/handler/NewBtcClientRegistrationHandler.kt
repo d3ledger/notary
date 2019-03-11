@@ -7,7 +7,7 @@ import org.bitcoinj.core.Address
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 
 /**
  * Class that is used to handle client registration commands

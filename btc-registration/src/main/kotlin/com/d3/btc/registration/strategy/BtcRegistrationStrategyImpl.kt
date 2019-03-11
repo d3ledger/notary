@@ -7,7 +7,7 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import registration.RegistrationStrategy
+import com.d3.commons.registration.RegistrationStrategy
 
 //Strategy for registering BTC addresses
 @Component

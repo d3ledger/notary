@@ -9,10 +9,10 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
-import model.IrohaCredential
+import com.d3.commons.model.IrohaCredential
 import mu.KLogging
-import notary.IrohaCommand
-import notary.IrohaTransaction
+import com.d3.commons.notary.IrohaCommand
+import com.d3.commons.notary.IrohaTransaction
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.crypto.TransactionSignature
@@ -20,15 +20,15 @@ import org.bitcoinj.script.ScriptBuilder
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
-import sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
-import sidechain.iroha.consumer.IrohaConsumer
-import sidechain.iroha.consumer.IrohaConverter
-import sidechain.iroha.util.ModelUtil
-import sidechain.iroha.util.getAccountDetails
-import util.getRandomId
-import util.hex
-import util.irohaEscape
-import util.unHex
+import com.d3.commons.sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
+import com.d3.commons.sidechain.iroha.consumer.IrohaConverter
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.sidechain.iroha.util.getAccountDetails
+import com.d3.commons.util.getRandomId
+import com.d3.commons.util.hex
+import com.d3.commons.util.irohaEscape
+import com.d3.commons.util.unHex
 
 /*
     Class that is used to collect signatures in Iroha

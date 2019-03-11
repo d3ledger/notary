@@ -2,7 +2,7 @@ package integration.eth.contracts
 
 import contract.TestGreeter_v0
 import contract.TestGreeter_v1
-import helper.encodeFunction
+import com.d3.eth.helper.encodeFunction
 import integration.helper.ContractTestHelper
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test

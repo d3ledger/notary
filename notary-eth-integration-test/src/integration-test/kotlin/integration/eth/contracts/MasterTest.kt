@@ -10,9 +10,9 @@ import org.junit.jupiter.api.Test
 import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Keys
 import org.web3j.protocol.exceptions.TransactionException
-import sidechain.eth.util.hashToAddAndRemovePeer
-import sidechain.eth.util.hashToMint
-import sidechain.eth.util.hashToWithdraw
+import com.d3.eth.sidechain.util.hashToAddAndRemovePeer
+import com.d3.eth.sidechain.util.hashToMint
+import com.d3.eth.sidechain.util.hashToWithdraw
 import java.math.BigInteger
 import java.time.Duration
 import kotlin.test.assertEquals

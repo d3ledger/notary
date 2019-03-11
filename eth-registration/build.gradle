@@ -11,7 +11,7 @@ sonarqube {
 }
 
 task runEthRegistration(type: JavaExec) {
-    main = 'registration.eth.EthRegistrationMain'
+    main = 'com.d3.eth.registration.EthRegistrationMain'
     classpath = sourceSets.main.runtimeClasspath
 
     args getEthPasswordsArgs()
@@ -19,7 +19,7 @@ task runEthRegistration(type: JavaExec) {
 }
 
 task runDeployRelay(type: JavaExec) {
-    main = 'registration.eth.relay.DeployRelayMain'
+    main = 'com.d3.eth.registration.relay.DeployRelayMain'
     classpath = sourceSets.main.runtimeClasspath
 
     args getEthPasswordsArgs()

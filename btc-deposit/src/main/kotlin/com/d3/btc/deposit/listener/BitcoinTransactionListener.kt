@@ -7,7 +7,7 @@ import io.reactivex.ObservableEmitter
 import mu.KLogging
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.TransactionConfidence
-import sidechain.SideChainEvent
+import com.d3.commons.sidechain.SideChainEvent
 import java.math.BigInteger
 import java.util.*
 import java.util.concurrent.ExecutorService
