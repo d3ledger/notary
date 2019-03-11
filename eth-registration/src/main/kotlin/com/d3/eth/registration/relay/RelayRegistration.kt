@@ -1,18 +1,18 @@
 package com.d3.eth.registration.relay
 
+import com.d3.commons.config.EthereumPasswords
+import com.d3.commons.model.IrohaCredential
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.eth.provider.EthFreeRelayProvider
+import com.d3.eth.sidechain.util.DeployHelper
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
-import com.github.kittinunf.result.map
-import com.d3.commons.config.EthereumPasswords
+import com.github.kittinunf.result.flatMap
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import com.d3.commons.model.IrohaCredential
 import mu.KLogging
-import com.d3.eth.provider.EthFreeRelayProvider
-import com.d3.eth.sidechain.util.DeployHelper
-import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
-import com.d3.commons.sidechain.iroha.util.ModelUtil
 import java.io.File
 
 /**
@@ -49,8 +49,9 @@ class RelayRegistration(
         ethRelayImplementationAddress: String,
         ethMasterWallet: String
     ): Result<Unit, Exception> {
-        logger.info { "Deploy $relaysToDeploy ethereum relays" }
         return Result.of {
+            logger.info { "Deploy $relaysToDeploy ethereum relays" }
+
             (1..relaysToDeploy).forEach { _ ->
                 val relayWallet =
                     deployHelper.deployUpgradableRelaySmartContract(ethRelayImplementationAddress, ethMasterWallet)
@@ -73,15 +74,14 @@ class RelayRegistration(
             while (true) {
                 logger.info { "Relay replenishment triggered" }
 
-                freeRelayProvider.getRelays().map { relays ->
+                freeRelayProvider.getRelays().flatMap { relays ->
                     logger.info { "Free relays: ${relays.size}" }
                     val toDeploy = relayRegistrationConfig.number - relays.size
-                    if (toDeploy > 0)
-                        deploy(
-                            toDeploy,
-                            relayRegistrationConfig.ethRelayImplementationAddress,
-                            relayRegistrationConfig.ethMasterWallet
-                        )
+                    deploy(
+                        toDeploy,
+                        relayRegistrationConfig.ethRelayImplementationAddress,
+                        relayRegistrationConfig.ethMasterWallet
+                    )
                 }.failure { throw it }
 
                 runBlocking { delay(relayRegistrationConfig.replenishmentPeriod * 1000) }
