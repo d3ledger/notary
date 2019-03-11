@@ -58,10 +58,6 @@ class WithdrawalServiceImpl(
     private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
 ) : WithdrawalService {
 
-    init {
-        logger.info { "Init withdrawal service, irohaCredentials = ${credential.accountId}, notaryAccount = $masterAccount'" }
-    }
-
     private val queryAPI by lazy { QueryAPI(irohaAPI, credential.accountId, credential.keyPair) }
     private val notaryPeerListProvider = NotaryPeerListProviderImpl(
         queryAPI,
@@ -77,6 +73,10 @@ class WithdrawalServiceImpl(
     private val masterAccount = withdrawalServiceConfig.notaryIrohaAccount
 
     private val irohaConsumer: IrohaConsumer by lazy { IrohaConsumerImpl(credential, irohaAPI) }
+
+    init {
+        logger.info { "Init withdrawal service, irohaCredentials = ${credential.accountId}, notaryAccount = $masterAccount'" }
+    }
 
     private fun findInAccDetail(acc: String, name: String): Result<String, Exception> {
         return getAccountDetails(
@@ -170,7 +170,7 @@ class WithdrawalServiceImpl(
     override fun onIrohaEvent(irohaEvent: SideChainEvent.IrohaEvent): Result<List<WithdrawalServiceOutputEvent>, Exception> {
         when (irohaEvent) {
             is SideChainEvent.IrohaEvent.SideChainTransfer -> {
-                logger.info { "Iroha transfer event to ${irohaEvent.dstAccount}" }
+                logger.info { "Iroha transfer event to ${irohaEvent.dstAccount}, expected $masterAccount" }
 
                 if (irohaEvent.dstAccount == masterAccount) {
                     logger.info { "Withdrawal event" }
