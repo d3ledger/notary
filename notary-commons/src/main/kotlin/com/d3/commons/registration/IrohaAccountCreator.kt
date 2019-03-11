@@ -90,17 +90,6 @@ open class IrohaAccountCreator(
                     getCurrentTime(),
                     1,
                     arrayListOf(
-                        // Create account
-                        IrohaCommand.CommandCreateAccount(
-                            userName, domain, pubkey
-                        )
-                    )
-                ),
-                IrohaTransaction(
-                    creator,
-                    getCurrentTime(),
-                    1,
-                    arrayListOf(
                         // Set user wallet/address in account detail
                         IrohaCommand.CommandSetAccountDetail(
                             accountId,

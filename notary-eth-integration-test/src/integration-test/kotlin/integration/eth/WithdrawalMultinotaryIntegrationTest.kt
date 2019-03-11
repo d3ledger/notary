@@ -1,29 +1,29 @@
 package integration.eth
 
-import com.squareup.moshi.Moshi
 import com.d3.commons.config.loadConfigs
 import com.d3.commons.config.loadEthPasswords
-import integration.helper.EthIntegrationHelperUtil
-import integration.helper.IrohaConfigHelper
-import khttp.get
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.getRandomString
+import com.d3.eth.notary.ENDPOINT_ETHEREUM
+import com.d3.eth.notary.EthNotaryConfig
 import com.d3.eth.notary.endpoint.BigIntegerMoshiAdapter
 import com.d3.eth.notary.endpoint.EthNotaryResponse
 import com.d3.eth.notary.endpoint.EthNotaryResponseMoshiAdapter
-import com.d3.eth.notary.ENDPOINT_ETHEREUM
-import com.d3.eth.notary.EthNotaryConfig
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
-import org.web3j.crypto.ECKeyPair
 import com.d3.eth.provider.ETH_PRECISION
 import com.d3.eth.provider.EthRelayProviderIrohaImpl
 import com.d3.eth.sidechain.util.DeployHelper
 import com.d3.eth.sidechain.util.hashToWithdraw
 import com.d3.eth.sidechain.util.signUserData
-import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
-import com.d3.commons.sidechain.iroha.util.ModelUtil
-import com.d3.commons.util.getRandomString
+import com.squareup.moshi.Moshi
+import integration.helper.EthIntegrationHelperUtil
+import integration.helper.IrohaConfigHelper
+import khttp.get
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.web3j.crypto.ECKeyPair
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Duration
@@ -102,7 +102,12 @@ class WithdrawalMultinotaryIntegrationTest {
             // create
             val client = String.getRandomString(9)
             val clientId = "$client@$CLIENT_DOMAIN"
-            integrationHelper.registerClient(client, listOf(ethWallet), integrationHelper.testCredential.keyPair)
+            integrationHelper.registerClient(
+                client,
+                CLIENT_DOMAIN,
+                listOf(ethWallet),
+                integrationHelper.testCredential.keyPair
+            )
             integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
             val relay = EthRelayProviderIrohaImpl(
                 integrationHelper.queryAPI,

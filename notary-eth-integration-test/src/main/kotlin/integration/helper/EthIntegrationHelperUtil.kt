@@ -1,33 +1,35 @@
 package integration.helper
 
-import com.github.kittinunf.result.success
 import com.d3.commons.config.EthereumPasswords
 import com.d3.commons.config.RMQConfig
 import com.d3.commons.config.getConfigFolder
 import com.d3.commons.config.loadRawConfigs
-import jp.co.soramitsu.iroha.java.QueryAPI
-import kotlinx.coroutines.runBlocking
-import mu.KLogging
+import com.d3.commons.registration.ETH_WHITE_LIST_KEY
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
 import com.d3.eth.notary.EthNotaryConfig
+import com.d3.eth.notary.endpoint.EthWhiteListProvider
 import com.d3.eth.notary.executeNotary
 import com.d3.eth.provider.ETH_DOMAIN
 import com.d3.eth.provider.EthFreeRelayProvider
 import com.d3.eth.provider.EthRelayProviderIrohaImpl
 import com.d3.eth.provider.EthTokensProviderImpl
-import com.d3.commons.registration.ETH_WHITE_LIST_KEY
 import com.d3.eth.registration.EthRegistrationConfig
 import com.d3.eth.registration.EthRegistrationStrategyImpl
+import com.d3.eth.registration.executeRegistration
 import com.d3.eth.registration.relay.RelayRegistration
 import com.d3.eth.sidechain.EthChainListener
-import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
-import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
-import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.eth.token.EthTokenInfo
-import com.d3.commons.util.getRandomString
-import com.d3.commons.util.toHexString
-import com.d3.eth.registration.executeRegistration
 import com.d3.eth.vacuum.RelayVacuumConfig
 import com.d3.eth.withdrawal.withdrawalservice.WithdrawalServiceConfig
+import com.github.kittinunf.result.flatMap
+import com.github.kittinunf.result.success
+import jp.co.soramitsu.iroha.java.QueryAPI
+import kotlinx.coroutines.runBlocking
+import mu.KLogging
 import java.math.BigInteger
 import java.security.KeyPair
 
@@ -108,6 +110,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     private val ethRegistrationStrategy by lazy {
         EthRegistrationStrategyImpl(
             ethFreeRelayProvider,
+            ethRelayProvider,
             ethRegistrationConfig,
             configHelper.ethPasswordConfig,
             registrationConsumer,
@@ -123,6 +126,33 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
             irohaAPI,
             configHelper.ethPasswordConfig
         )
+    }
+
+    private val whitelistProvider by lazy {
+        EthWhiteListProvider(
+            ethRegistrationConfig.registrationCredential.accountId, queryAPI
+        )
+    }
+
+    /**
+     * Get address of first free relay.
+     */
+    fun getFreeRelay(): String {
+        return ethFreeRelayProvider.getRelay().get()
+    }
+
+    /**
+     * Get relay address of an account.
+     */
+    fun getRelaysByAccount(clientId: String): Set<String> {
+        return ethRelayProvider.getRelaysByAccountId(clientId).get()
+    }
+
+    /**
+     * Check if address is in whitelist of a user.
+     */
+    fun isWhitelisted(clientId: String, address: String): Boolean {
+        return whitelistProvider.checkWithdrawalAddress(clientId, address).get()
     }
 
     /**
@@ -256,11 +286,12 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      */
     fun registerClient(
         name: String,
+        domain: String,
         whitelist: List<String>,
         keypair: KeyPair = ModelUtil.generateKeypair()
     ): String {
         deployRelays(1)
-        return registerClientWithoutRelay(name, whitelist, keypair)
+        return registerClientWithoutRelay(name, domain, whitelist, keypair)
     }
 
     /**
@@ -268,15 +299,22 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      */
     fun registerClientWithoutRelay(
         name: String,
+        domain: String,
         whitelist: List<String>,
         keypair: KeyPair = ModelUtil.generateKeypair()
     ): String {
-        ethRegistrationStrategy.register(name, CLIENT_DOMAIN, whitelist, keypair.public.toHexString())
-            .fold({ registeredEthWallet ->
-                logger.info("registered client $name with relay $registeredEthWallet")
-                return registeredEthWallet
-            },
-                { ex -> throw RuntimeException("$name was not registered", ex) })
+        ModelUtil.createAccount(
+            irohaConsumer,
+            name,
+            domain,
+            keypair.public
+        ).flatMap {
+            ethRegistrationStrategy.register(name, CLIENT_DOMAIN, whitelist, keypair.public.toHexString())
+        }.fold({ registeredEthWallet ->
+            logger.info("registered client $name with relay $registeredEthWallet")
+            return registeredEthWallet
+        },
+            { ex -> throw RuntimeException("$name was not registered", ex) })
     }
 
     /**
@@ -284,7 +322,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      */
     fun registerRandomRelay(): String {
         // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
-        val ethWallet = registerClient(String.getRandomString(9), listOf())
+        val ethWallet = registerClient(String.getRandomString(9), CLIENT_DOMAIN, listOf())
         return ethWallet
     }
 
@@ -382,7 +420,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /**
      * Run ethereum registration config
      */
-    fun runRegistrationService(registrationConfig: EthRegistrationConfig = ethRegistrationConfig) {
+    fun runEthRegistrationService(registrationConfig: EthRegistrationConfig = ethRegistrationConfig) {
         executeRegistration(registrationConfig, configHelper.ethPasswordConfig)
     }
 

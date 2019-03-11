@@ -1,16 +1,17 @@
 package integration.eth
 
-import integration.helper.EthIntegrationHelperUtil
-import integration.helper.IrohaConfigHelper
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import org.junit.jupiter.api.*
-import com.d3.eth.provider.ETH_PRECISION
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomString
 import com.d3.commons.util.toHexString
+import com.d3.eth.provider.ETH_PRECISION
+import integration.helper.EthIntegrationHelperUtil
+import integration.helper.IrohaConfigHelper
+import integration.registration.RegistrationServiceTestEnvironment
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import org.junit.jupiter.api.*
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.security.KeyPair
@@ -32,8 +33,13 @@ class WithdrawalPipelineIntegrationTest {
     /** Refund endpoint address */
     private val refundAddress = "http://localhost:${notaryConfig.refund.port}"
 
+    private val registrationTestEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
+
     /** Test Registration configuration */
-    private val registrationConfig = integrationHelper.ethRegistrationConfig
+    private val registrationConfig = registrationTestEnvironment.registrationConfig
+
+    /** Test EthRegistration configuration */
+    private val ethRegistrationConfig = integrationHelper.ethRegistrationConfig
 
     /** Ethereum test address where we want to withdraw to */
     private val toAddress = integrationHelper.configHelper.testConfig.ethTestAccount
@@ -43,15 +49,16 @@ class WithdrawalPipelineIntegrationTest {
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
 
-    private val registrationService: Job
+    private val ethRegistrationService: Job
 
     private val withdrawalService: Job
 
     init {
-        integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig)
-        registrationService = GlobalScope.launch {
-            integrationHelper.runRegistrationService(registrationConfig)
+        registrationTestEnvironment.registrationInitialization.init()
+        ethRegistrationService = GlobalScope.launch {
+            integrationHelper.runEthRegistrationService(ethRegistrationConfig)
         }
+        integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig)
         withdrawalService = GlobalScope.launch {
             integrationHelper.runEthWithdrawalService()
         }
@@ -71,9 +78,10 @@ class WithdrawalPipelineIntegrationTest {
 
     @AfterAll
     fun dropDown() {
-        integrationHelper.close()
-        registrationService.cancel()
+        registrationTestEnvironment.close()
+        ethRegistrationService.cancel()
         withdrawalService.cancel()
+        integrationHelper.close()
     }
 
     /**
@@ -93,12 +101,21 @@ class WithdrawalPipelineIntegrationTest {
             // make sure master has enough assets
             integrationHelper.sendEth(amount, integrationHelper.masterContract.contractAddress)
 
-            // register client
-            val res = integrationHelper.sendRegistrationRequest(
+            // register client in Iroha
+            var res = integrationHelper.sendRegistrationRequest(
                 clientName,
                 listOf(toAddress).toString(),
                 keypair.public.toHexString(),
                 registrationConfig.port
+            )
+            Assertions.assertEquals(200, res.statusCode)
+
+            // register client in Ethereum
+            res = integrationHelper.sendRegistrationRequest(
+                clientName,
+                listOf(toAddress).toString(),
+                keypair.public.toHexString(),
+                ethRegistrationConfig.port
             )
             Assertions.assertEquals(200, res.statusCode)
 
@@ -119,7 +136,7 @@ class WithdrawalPipelineIntegrationTest {
                 toAddress,
                 decimalAmount.toPlainString()
             )
-            Thread.sleep(15_000)
+            Thread.sleep(20_000)
 
             Assertions.assertEquals(
                 initialBalance.add(amount),
@@ -155,12 +172,21 @@ class WithdrawalPipelineIntegrationTest {
             val amount = BigDecimal(1.25)
             val assetId = "${assetInfo.name}#${assetInfo.domain}"
 
-            // register client
-            val res = integrationHelper.sendRegistrationRequest(
+            // register client in Iroha
+            var res = integrationHelper.sendRegistrationRequest(
                 clientName,
                 listOf(toAddress).toString(),
                 keypair.public.toHexString(),
                 registrationConfig.port
+            )
+            Assertions.assertEquals(200, res.statusCode)
+
+            // register client in Ethereum
+            res = integrationHelper.sendRegistrationRequest(
+                clientName,
+                listOf(toAddress).toString(),
+                keypair.public.toHexString(),
+                ethRegistrationConfig.port
             )
             Assertions.assertEquals(200, res.statusCode)
 
@@ -179,7 +205,7 @@ class WithdrawalPipelineIntegrationTest {
                 toAddress,
                 amount.toPlainString()
             )
-            Thread.sleep(15_000)
+            Thread.sleep(20_000)
 
             Assertions.assertEquals(
                 initialBalance.add(bigIntegerValue),
@@ -197,7 +223,7 @@ class WithdrawalPipelineIntegrationTest {
     @Test
     fun testWithdrawInWhitelist() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            integrationHelper.registerClient(clientName, listOf(toAddress, "0x123"), keypair)
+            integrationHelper.registerClient(clientName, CLIENT_DOMAIN, listOf(toAddress, "0x123"), keypair)
 
             val amount = BigDecimal(125)
             val assetId = "ether#ethereum"
@@ -236,7 +262,7 @@ class WithdrawalPipelineIntegrationTest {
     fun testWithdrawEmptyWhitelist() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
-            integrationHelper.registerClient(clientName, listOf(), keypair)
+            integrationHelper.registerClient(clientName, CLIENT_DOMAIN, listOf(), keypair)
 
             val withdrawalEthAddress = "0x123"
 
@@ -275,7 +301,7 @@ class WithdrawalPipelineIntegrationTest {
     @Test
     fun testWithdrawNotInWhitelist() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            integrationHelper.registerClient(clientName, listOf("0x123"), keypair)
+            integrationHelper.registerClient(clientName, CLIENT_DOMAIN, listOf("0x123"), keypair)
             integrationHelper.setWhitelist(clientId, listOf("0x123"))
 
             val withdrawalEthAddress = "0x321"

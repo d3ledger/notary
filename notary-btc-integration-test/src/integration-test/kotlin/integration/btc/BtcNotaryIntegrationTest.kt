@@ -51,7 +51,8 @@ class BtcNotaryIntegrationTest {
         val btcAddress =
             integrationHelper.registerBtcAddress(
                 environment.btcAddressGenerationConfig.btcKeysWalletPath,
-                randomName
+                randomName,
+                CLIENT_DOMAIN
             )
         val initialBalance = integrationHelper.getIrohaAccountBalance(
             testClient,
@@ -87,7 +88,8 @@ class BtcNotaryIntegrationTest {
         val btcAddress =
             integrationHelper.registerBtcAddress(
                 environment.btcAddressGenerationConfig.btcKeysWalletPath,
-                randomName
+                randomName,
+                CLIENT_DOMAIN
             )
         val initialBalance = integrationHelper.getIrohaAccountBalance(
             testClient,
@@ -127,7 +129,8 @@ class BtcNotaryIntegrationTest {
         val btcAddress =
             integrationHelper.registerBtcAddress(
                 environment.btcAddressGenerationConfig.btcKeysWalletPath,
-                randomName
+                randomName,
+                CLIENT_DOMAIN
             )
         val initialBalance = integrationHelper.getIrohaAccountBalance(
             testClient,
@@ -173,7 +176,8 @@ class BtcNotaryIntegrationTest {
         val btcAddress =
             integrationHelper.registerBtcAddress(
                 environment.btcAddressGenerationConfig.btcKeysWalletPath,
-                randomName
+                randomName,
+                CLIENT_DOMAIN
             )
         val initialBalance = integrationHelper.getIrohaAccountBalance(
             testClient,
@@ -210,7 +214,8 @@ class BtcNotaryIntegrationTest {
         val btcAddress =
             integrationHelper.registerBtcAddress(
                 environment.btcAddressGenerationConfig.btcKeysWalletPath,
-                randomName
+                randomName,
+                CLIENT_DOMAIN
             )
         val initialBalance = integrationHelper.getIrohaAccountBalance(
             testClient,
