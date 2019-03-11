@@ -89,13 +89,47 @@ private fun getAccount(queryAPI: QueryAPI, accountId: String): QryResponses.Acco
     val res = queryAPI.api.query(q)
     if (res.hasErrorResponse()) {
         val errorResponse = res.errorResponse
-        throw Exception(
-            "Cannot get account. " +
-                    "Error code ${errorResponse.errorCode} ${errorResponse.reason} ${errorResponse.message}"
-        )
+        throw Exception("Cannot get account. ${getErrorMessage(errorResponse)}")
     }
     return res.accountResponse
 }
+
+/**
+ * Returns raw query response with Iroha block.
+ * May be used to handle Iroha error codes manually
+ * @param queryAPI - Iroha queries network layer
+ * @param height - height of Iroha block to get
+ * @return Iroha block
+ */
+fun getBlockRawResponse(queryAPI: QueryAPI, height: Long): QryResponses.QueryResponse {
+    val q = Query.builder(queryAPI.accountId, queryCounter.getAndIncrement())
+        .getBlock(height)
+        .buildSigned(queryAPI.keyPair)
+    return queryAPI.api.query(q);
+}
+
+/**
+ * Returns Iroha block by its height
+ * @param queryAPI - Iroha queries network layer
+ * @param height - height of Iroha block to get
+ * @return Iroha block response
+ */
+fun getBlock(queryAPI: QueryAPI, height: Long): QryResponses.BlockResponse {
+    val res = getBlockRawResponse(queryAPI, height)
+    if (res.hasErrorResponse()) {
+        val errorResponse = res.errorResponse
+        throw Exception("Cannot get block. ${getErrorMessage(errorResponse)}")
+    }
+    return res.blockResponse
+}
+
+/**
+ * Returns pretty formatted error message. May be used in exceptions.
+ * @param errorResponse - error response that is used to created pretty error message
+ */
+fun getErrorMessage(errorResponse: QryResponses.ErrorResponse) =
+    "Error code ${errorResponse.errorCode} reason ${errorResponse.reason} ${errorResponse.message}"
+
 
 /**
  * Retrieves account details by setter from Iroha

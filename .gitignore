@@ -71,6 +71,9 @@ hs_err_pid*
 /btc-dw-bridge/gradlew
 /btc-dw-bridge/gradlew.bat
 /chain-adapter/build/
+/chain-adapter-integration-test/build/
+/chain-adapter-integration-test/gradle/
+/chain-adapter-integration-test/gradlew
 *gradlew.bat
 
 # Ignore Gradle GUI config
@@ -151,6 +154,9 @@ deploy/bitcoin/testnet/keys.d3.wallet
 deploy/bitcoin/testnet/transfers.d3.wallet
 deploy/bitcoin/regtest/blocks/
 deploy/bitcoin/mainnet/
+
+# Chain-adapter files
+deploy/chain-adapter/
 
 # Bitcoin test wallets
 deploy/bitcoin/regtest/test wallets/

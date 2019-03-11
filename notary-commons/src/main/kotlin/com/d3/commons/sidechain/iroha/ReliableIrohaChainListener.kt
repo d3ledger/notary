@@ -7,9 +7,13 @@ import com.rabbitmq.client.GetResponse
 import com.d3.commons.config.RMQConfig
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
+import iroha.protocol.BlockOuterClass
 import mu.KLogging
 import com.d3.commons.sidechain.ChainListener
 import java.util.concurrent.ExecutorService
+
+
+private const val DEFAULT_LAST_READ_BLOCK = -1L
 
 /**
  * Rabbit MQ based implementation of [ChainListener]
@@ -32,6 +36,9 @@ class ReliableIrohaChainListener(
     ) : this(rmqConfig, irohaQueue, { _, _ -> }, null, true)
 
     private val factory = ConnectionFactory()
+
+    // Last read Iroha block number. Used to detect double read.
+    private var lastReadBlockNum: Long = DEFAULT_LAST_READ_BLOCK
 
     private val conn by lazy {
         factory.host = rmqConfig.host
@@ -58,23 +65,31 @@ class ReliableIrohaChainListener(
      * Returns an observable that emits a new block every time it gets it from Iroha
      */
     override fun getBlockObservable(
-    ): Result<Observable<Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit>>, Exception> {
+    ): Result<Observable<Pair<BlockOuterClass.Block, () -> Unit>>, Exception> {
         return Result.of {
-            val source = PublishSubject.create<Delivery>()
+            val source = PublishSubject.create<Pair<BlockOuterClass.Block, Long>>()
             val deliverCallback = { consumerTag: String, delivery: Delivery ->
                 // This code is executed inside consumerExecutorService
-                source.onNext(delivery)
-            }
-            val obs: Observable<Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit>> = source.map { delivery ->
                 val block = iroha.protocol.BlockOuterClass.Block.parseFrom(delivery.body)
-                logger.info { "New Iroha block from RMQ arrived. Height ${block.blockV1.payload.height}" }
-                Pair(block, {
+                //TODO shall we ignore too old blocks?
+                if (ableToHandleBlock(block)) {
+                    source.onNext(Pair(block, delivery.envelope.deliveryTag))
+                } else {
+                    logger.warn { "Not able to handle Iroha block ${block.blockV1.payload.height}" }
                     if (!autoAck) {
-                        channel.basicAck(delivery.envelope.deliveryTag, false)
-                        logger.info { "Iroha block delivery confirmed" }
+                        confirmDelivery(delivery.envelope.deliveryTag)
                     }
-                })
+                }
             }
+            val obs: Observable<Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit>> =
+                source.map { (block, deliveryTag) ->
+                    logger.info { "New Iroha block from RMQ arrived. Height ${block.blockV1.payload.height}" }
+                    Pair(block, {
+                        if (!autoAck) {
+                            confirmDelivery(deliveryTag)
+                        }
+                    })
+                }
             obs.subscribe { (block, ack) -> subscribe(block, ack) }
             consumerTag = channel.basicConsume(irohaQueue, autoAck, deliverCallback, { _ -> })
             obs
@@ -94,8 +109,41 @@ class ReliableIrohaChainListener(
         val block = iroha.protocol.BlockOuterClass.Block.parseFrom(resp.body)
         return Pair(block, {
             if (!autoAck)
-                channel.basicAck(resp.envelope.deliveryTag, false)
+                confirmDelivery(resp.envelope.deliveryTag)
         })
+    }
+
+    /**
+     * Checks if we are able to handle Iroha block
+     * @param block - Iroha block to check
+     * @return true if able
+     */
+    @Synchronized
+    private fun ableToHandleBlock(block: BlockOuterClass.Block): Boolean {
+        val height = block.blockV1.payload.height
+        if (lastReadBlockNum == DEFAULT_LAST_READ_BLOCK) {
+            //This is the very first block
+            lastReadBlockNum = height
+            return true
+        } else if (height <= lastReadBlockNum) {
+            logger.warn("Iroha block $height has been read previously")
+            return false
+        }
+        val missedBlocks = height - lastReadBlockNum
+        if (missedBlocks > 1) {
+            logger.warn("Missed Iroha blocks $missedBlocks")
+        }
+        lastReadBlockNum = height
+        return true
+    }
+
+    /**
+     * Confirms Iroha block delivery
+     * @param deliveryTag - delivery to confirm
+     */
+    private fun confirmDelivery(deliveryTag: Long) {
+        channel.basicAck(deliveryTag, false)
+        logger.info { "Iroha block delivery confirmed" }
     }
 
     fun purge() {

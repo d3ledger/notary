@@ -172,6 +172,18 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
     }
 
     /**
+     * Creates dummy setAccountDetail transaction
+     */
+    fun createDummyTransaction(key: String, value: String) {
+        ModelUtil.setAccountDetail(
+            accountHelper.irohaConsumer,
+            accountHelper.testCredential.accountId,
+            key,
+            value
+        )
+    }
+
+    /**
      * Transfer asset in iroha with custom creator
      * @param creator - iroha transaction creator
      * @param kp - keypair
