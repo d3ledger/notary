@@ -105,7 +105,7 @@ class WithdrawalRollbackIntegrationTest {
             decimalAmount.toPlainString()
         )
 
-        Thread.sleep(40_000)
+        Thread.sleep(20_000)
 
         Assertions.assertEquals(
             initialBalance,
