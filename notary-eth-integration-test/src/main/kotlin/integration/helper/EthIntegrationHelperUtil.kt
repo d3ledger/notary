@@ -129,6 +129,14 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         )
     }
 
+    var withdrawalServiceJob: Job? = null
+    var disposableWithdrawalService: Disposable? = null
+
+    override fun close() {
+        stopEthWithdrawal()
+        super.close()
+    }
+
     /**
      * Returns ETH balance for a given address
      */
@@ -389,9 +397,6 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     fun runRegistrationService(registrationConfig: EthRegistrationConfig = ethRegistrationConfig) {
         executeRegistration(registrationConfig, configHelper.ethPasswordConfig)
     }
-
-    var withdrawalServiceJob: Job? = null
-    var disposableWithdrawalService: Disposable? = null
 
     /**
      * Run withdrawal service
