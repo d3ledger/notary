@@ -1,6 +1,6 @@
 package integration.sora
 
-import config.loadConfigs
+import com.d3.commons.config.loadConfigs
 import integration.helper.IrohaIntegrationHelperUtil
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import kotlinx.coroutines.GlobalScope
@@ -10,10 +10,10 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
-import registration.NotaryRegistrationConfig
-import sidechain.iroha.util.ModelUtil
-import util.getRandomString
-import util.toHexString
+import com.d3.commons.registration.NotaryRegistrationConfig
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
 import kotlin.test.assertEquals
 
 /**

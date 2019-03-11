@@ -11,12 +11,13 @@ import javax.xml.bind.DatatypeConverter
 
 private val log = KLogging().logger
 
-fun getIrohaPublicKeyFromBase64(hex: String?): PublicKey {
+fun getIrohaPublicKeyFromHex(hex: String?): PublicKey {
     try {
         if (hex == null) {
             throw NullPointerException("Public key string should be not null")
         }
-        return Ed25519Sha3.publicKeyFromBytes(DatatypeConverter.parseBase64Binary(hex))
+        val binaryKey = DatatypeConverter.parseHexBinary(hex)
+        return Ed25519Sha3.publicKeyFromBytes(binaryKey)
     } catch (e: Exception) {
         log.error("Error parsing publicKey", e)
         throw IrohaPublicKeyException("${e.javaClass}:${e.message}")
@@ -47,7 +48,7 @@ fun createAccount(
     domainId: String,
     publicKey: String
 ) {
-    builder.createAccount(name, domainId, getIrohaPublicKeyFromBase64(publicKey))
+    builder.createAccount(name, domainId, getIrohaPublicKeyFromHex(publicKey))
 
 }
 
@@ -57,7 +58,7 @@ fun createPeers(
 ) {
     peers.forEach {
         builder
-            .addPeer(it.hostPort, getIrohaPublicKeyFromBase64(it.peerKey))
+            .addPeer(it.hostPort, getIrohaPublicKeyFromHex(it.peerKey))
     }
 }
 

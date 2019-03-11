@@ -3,7 +3,7 @@ package com.d3.btc.monitoring
 import com.github.kittinunf.result.Result
 import org.springframework.jmx.export.annotation.ManagedAttribute
 import org.springframework.jmx.export.annotation.ManagedResource
-import util.toJson
+import com.d3.commons.util.toJson
 
 /*
  *  Class that was developed to help you monitor things

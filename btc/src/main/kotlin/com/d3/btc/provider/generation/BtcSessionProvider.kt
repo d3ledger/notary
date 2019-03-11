@@ -3,13 +3,13 @@ package com.d3.btc.provider.generation
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import model.IrohaCredential
-import notary.IrohaCommand
-import notary.IrohaTransaction
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaConverter
-import sidechain.iroha.util.ModelUtil
-import util.hex
+import com.d3.commons.model.IrohaCredential
+import com.d3.commons.notary.IrohaCommand
+import com.d3.commons.notary.IrohaTransaction
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.sidechain.iroha.consumer.IrohaConverter
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.hex
 
 private const val BTC_SESSION_DOMAIN = "btcSession"
 const val ADDRESS_GENERATION_TIME_KEY = "addressGenerationTime"

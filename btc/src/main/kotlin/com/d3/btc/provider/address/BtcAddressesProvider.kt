@@ -6,7 +6,7 @@ import com.d3.btc.monitoring.Monitoring
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import jp.co.soramitsu.iroha.java.QueryAPI
-import sidechain.iroha.util.getAccountDetails
+import com.d3.commons.sidechain.iroha.util.getAccountDetails
 
 //Class that provides all created BTC addresses
 class BtcAddressesProvider(

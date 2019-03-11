@@ -7,9 +7,9 @@ import com.d3.btc.provider.address.BtcAddressesProvider
 import com.d3.btc.registration.init.BtcRegistrationServiceInitialization
 import com.d3.btc.registration.strategy.BtcRegistrationStrategyImpl
 import integration.helper.BtcIntegrationHelperUtil
-import model.IrohaCredential
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.util.ModelUtil
+import com.d3.commons.model.IrohaCredential
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.sidechain.iroha.util.ModelUtil
 import java.io.Closeable
 
 /**

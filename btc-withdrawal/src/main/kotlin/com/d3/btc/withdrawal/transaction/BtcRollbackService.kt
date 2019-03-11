@@ -5,9 +5,9 @@ import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
-import provider.NotaryPeerListProvider
-import sidechain.iroha.consumer.IrohaConsumer
-import sidechain.iroha.util.ModelUtil
+import com.d3.commons.provider.NotaryPeerListProvider
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
+import com.d3.commons.sidechain.iroha.util.ModelUtil
 
 private const val BTC_ASSET_ID = "btc#bitcoin"
 

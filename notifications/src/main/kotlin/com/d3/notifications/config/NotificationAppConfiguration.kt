@@ -3,17 +3,17 @@ package com.d3.notifications.config
 import com.d3.notifications.provider.D3ClientProvider
 import com.d3.notifications.push.PushServiceFactory
 import com.d3.notifications.smtp.SMTPServiceImpl
-import config.getConfigFolder
-import config.loadRawConfigs
+import com.d3.commons.config.getConfigFolder
+import com.d3.commons.config.loadRawConfigs
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
-import model.IrohaCredential
+import com.d3.commons.model.IrohaCredential
 import nl.martijndwars.webpush.PushService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import sidechain.iroha.IrohaChainListener
-import sidechain.iroha.util.ModelUtil
+import com.d3.commons.sidechain.iroha.IrohaChainListener
+import com.d3.commons.sidechain.iroha.util.ModelUtil
 import java.io.File
 
 val notificationsConfig = loadRawConfigs(
