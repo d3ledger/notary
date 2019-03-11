@@ -304,7 +304,7 @@ class WithdrawalPipelineIntegrationTest {
 
             assertEquals(400, res.statusCode)
             assertEquals(
-                "com.d3.eth.deposit.NotaryException: ${withdrawalEthAddress} not in whitelist",
+                "com.d3.eth.deposit.endpoint.NotaryException: ${withdrawalEthAddress} not in whitelist",
                 res.jsonObject.get("reason")
             )
         }
