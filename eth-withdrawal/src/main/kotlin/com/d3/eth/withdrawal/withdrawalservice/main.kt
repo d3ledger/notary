@@ -2,20 +2,22 @@
 
 package com.d3.eth.withdrawal.withdrawalservice
 
+import com.d3.commons.config.*
+import com.d3.commons.model.IrohaCredential
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.eth.vacuum.RelayVacuumConfig
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import com.d3.commons.config.*
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import com.d3.commons.model.IrohaCredential
 import mu.KLogging
-import com.d3.commons.sidechain.iroha.util.ModelUtil
-import com.d3.eth.vacuum.RelayVacuumConfig
 
 private val logger = KLogging().logger
 
 private const val RELAY_VACUUM_PREFIX = "relay-vacuum"
+
+const val ETH_WITHDRAWAL_SERVICE_NAME = "eth-withdrawal"
 
 /**
  * Main entry point of Withdrawal Service app

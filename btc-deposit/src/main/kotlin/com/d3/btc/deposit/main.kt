@@ -12,6 +12,8 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.EnableMBeanExport
 
+const val BTC_DEPOSIT_SERVICE_NAME="btc-deposit"
+
 @EnableMBeanExport
 @ComponentScan(
     basePackages = [

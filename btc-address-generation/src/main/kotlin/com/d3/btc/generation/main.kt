@@ -11,6 +11,8 @@ import mu.KLogging
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.ComponentScan
 
+const val BTC_ADDRESS_GENERATION_SERVICE_NAME = "btc-add-gen"
+
 @ComponentScan(
     basePackages = [
         "com.d3.btc.generation",

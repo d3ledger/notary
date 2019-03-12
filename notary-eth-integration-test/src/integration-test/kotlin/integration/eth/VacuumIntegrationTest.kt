@@ -4,10 +4,7 @@ import com.d3.eth.vacuum.executeVacuum
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
 import mu.KLogging
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.*
 import java.math.BigInteger
 import java.time.Duration
 
@@ -36,6 +33,7 @@ class VacuumIntegrationTest {
     @Test
     fun testVacuum() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             deployFewTokens()
             integrationHelper.deployRelays(2)
             integrationHelper.registerRandomRelay()

@@ -1,10 +1,12 @@
 package com.d3.chainadapter.adapter
 
+import com.d3.chainadapter.CHAIN_ADAPTER_SERVICE_NAME
 import com.d3.chainadapter.provider.LastReadBlockProvider
 import com.d3.commons.config.RMQConfig
 import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.util.getBlockRawResponse
 import com.d3.commons.sidechain.iroha.util.getErrorMessage
+import com.d3.commons.util.createPrettySingleThreadPool
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import com.rabbitmq.client.Channel
@@ -17,7 +19,6 @@ import jp.co.soramitsu.iroha.java.QueryAPI
 import mu.KLogging
 import java.io.Closeable
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
 
 private const val BAD_IROHA_BLOCK_HEIGHT_ERROR_CODE = 3
@@ -36,7 +37,9 @@ class ChainAdapter(
     private val connectionFactory = ConnectionFactory()
     private val lastReadBlock = AtomicLong()
     private val publishUnreadLatch = CountDownLatch(1)
-    private val subscriberExecutorService = Executors.newSingleThreadExecutor()
+    private val subscriberExecutorService = createPrettySingleThreadPool(
+        CHAIN_ADAPTER_SERVICE_NAME, "iroha-chain-subscriber"
+    )
 
     init {
         connectionFactory.host = rmqConfig.host

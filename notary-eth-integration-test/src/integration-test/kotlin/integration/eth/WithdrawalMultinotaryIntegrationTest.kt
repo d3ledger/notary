@@ -93,6 +93,7 @@ class WithdrawalMultinotaryIntegrationTest {
     @Test
     fun testRefund() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             val masterAccount = integrationHelper.accountHelper.notaryAccount.accountId
             val amount = "64203"
             val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(ETH_PRECISION)

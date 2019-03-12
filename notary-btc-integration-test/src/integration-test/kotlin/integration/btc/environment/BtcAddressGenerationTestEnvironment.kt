@@ -1,5 +1,6 @@
 package integration.btc.environment
 
+import com.d3.btc.generation.BTC_ADDRESS_GENERATION_SERVICE_NAME
 import com.d3.btc.generation.config.BtcAddressGenerationConfig
 import com.d3.btc.generation.init.BtcAddressGenerationInitialization
 import com.d3.btc.generation.trigger.AddressGenerationTrigger
@@ -9,20 +10,20 @@ import com.d3.btc.provider.address.BtcAddressesProvider
 import com.d3.btc.provider.generation.BtcPublicKeyProvider
 import com.d3.btc.provider.generation.BtcSessionProvider
 import com.d3.btc.provider.network.BtcRegTestConfigProvider
-import integration.helper.BtcIntegrationHelperUtil
-import io.grpc.ManagedChannelBuilder
-import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.QueryAPI
 import com.d3.commons.model.IrohaCredential
-import org.bitcoinj.wallet.Wallet
 import com.d3.commons.provider.NotaryPeerListProviderImpl
 import com.d3.commons.provider.TriggerProvider
 import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.createPrettySingleThreadPool
+import integration.helper.BtcIntegrationHelperUtil
+import io.grpc.ManagedChannelBuilder
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
+import org.bitcoinj.wallet.Wallet
 import java.io.Closeable
 import java.io.File
-import java.util.concurrent.Executors
 
 //How many addresses to generate at initial phase
 private const val INIT_ADDRESSES = 3
@@ -49,7 +50,7 @@ class BtcAddressGenerationTestEnvironment(
      * It's essential to handle blocks in this service one-by-one.
      * This is why we explicitly set single threaded executor.
      */
-    private val executor = Executors.newSingleThreadExecutor()
+    private val executor = createPrettySingleThreadPool(BTC_ADDRESS_GENERATION_SERVICE_NAME, "iroha-chain-listener")
 
     private val irohaApi by lazy {
         val irohaAPI = IrohaAPI(

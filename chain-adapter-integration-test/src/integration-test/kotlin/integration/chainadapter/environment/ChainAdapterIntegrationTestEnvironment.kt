@@ -1,10 +1,12 @@
 package integration.chainadapter.environment
 
+import com.d3.chainadapter.CHAIN_ADAPTER_SERVICE_NAME
 import com.d3.chainadapter.adapter.ChainAdapter
 import com.d3.chainadapter.provider.FileBasedLastReadBlockProvider
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.createPrettySingleThreadPool
 import com.d3.commons.util.getRandomString
 import integration.helper.ChainAdapterConfigHelper
 import integration.helper.IrohaIntegrationHelperUtil
@@ -13,7 +15,6 @@ import iroha.protocol.Commands
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import java.io.Closeable
-import java.util.concurrent.Executors
 
 /**
  * Chain adapter test environment
@@ -31,7 +32,7 @@ class ChainAdapterIntegrationTestEnvironment : Closeable {
         integrationTestHelper.accountHelper.irohaConsumer
     }
 
-    val consumerExecutorService = Executors.newSingleThreadExecutor()
+    val consumerExecutorService = createPrettySingleThreadPool(CHAIN_ADAPTER_SERVICE_NAME, "iroha-blocks-consumer")
 
     private val chainAdapterConfigHelper = ChainAdapterConfigHelper()
 
@@ -50,7 +51,12 @@ class ChainAdapterIntegrationTestEnvironment : Closeable {
         irohaAPI.setChannelForStreamingQueryStub(
             ManagedChannelBuilder.forAddress(
                 rmqConfig.iroha.hostname, rmqConfig.iroha.port
-            ).executor(Executors.newSingleThreadExecutor()).usePlaintext().build()
+            ).executor(
+                createPrettySingleThreadPool(
+                    CHAIN_ADAPTER_SERVICE_NAME,
+                    "iroha-chain-listener"
+                )
+            ).usePlaintext().build()
         )
     }
 

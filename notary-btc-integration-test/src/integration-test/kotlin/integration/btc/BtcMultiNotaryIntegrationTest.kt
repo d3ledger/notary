@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import java.io.File
 import java.math.BigDecimal
 
-
 @Disabled
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcMultiNotaryIntegrationTest {

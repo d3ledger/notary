@@ -17,6 +17,8 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.EnableMBeanExport
 import com.d3.commons.util.createFolderIfDoesntExist
 
+const val BTC_DW_BRIDGE_SERVICE_NAME = "btc-dw-bridge"
+
 @EnableMBeanExport
 @ComponentScan(
     basePackages = [

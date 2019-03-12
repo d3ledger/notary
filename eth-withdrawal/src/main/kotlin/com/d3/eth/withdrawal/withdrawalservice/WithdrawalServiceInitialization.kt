@@ -1,21 +1,23 @@
 package com.d3.eth.withdrawal.withdrawalservice
 
+import com.d3.commons.config.EthereumPasswords
+import com.d3.commons.config.RMQConfig
+import com.d3.commons.model.IrohaCredential
+import com.d3.commons.sidechain.SideChainEvent
+import com.d3.commons.sidechain.iroha.IrohaChainHandler
+import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
+import com.d3.commons.util.createPrettyFixThreadPool
+import com.d3.commons.util.createPrettySingleThreadPool
+import com.d3.eth.vacuum.RelayVacuumConfig
+import com.d3.eth.withdrawal.consumer.EthConsumer
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import com.d3.commons.config.EthereumPasswords
-import com.d3.commons.config.RMQConfig
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import com.d3.commons.model.IrohaCredential
 import mu.KLogging
-import com.d3.commons.sidechain.SideChainEvent
-import com.d3.commons.sidechain.iroha.IrohaChainHandler
-import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
-import com.d3.eth.vacuum.RelayVacuumConfig
-import com.d3.eth.withdrawal.consumer.EthConsumer
 
 /**
  * @param withdrawalConfig - configuration for withdrawal service
@@ -38,7 +40,8 @@ class WithdrawalServiceInitialization(
         logger.info { "Init Iroha chain listener" }
         return ReliableIrohaChainListener(
             rmqConfig,
-            withdrawalConfig.ethIrohaWithdrawalQueue
+            withdrawalConfig.ethIrohaWithdrawalQueue,
+            createPrettySingleThreadPool(ETH_WITHDRAWAL_SERVICE_NAME, "rmq-consumer")
         ).getBlockObservable()
             .map { observable ->
                 observable.flatMapIterable { (block, _) -> IrohaChainHandler().parseBlock(block) }
@@ -62,7 +65,14 @@ class WithdrawalServiceInitialization(
                 relayVacuumConfig
             )
             withdrawalService.output()
-                .subscribeOn(Schedulers.newThread())
+                .subscribeOn(
+                    Schedulers.from(
+                        createPrettyFixThreadPool(
+                            ETH_WITHDRAWAL_SERVICE_NAME,
+                            "event-handler"
+                        )
+                    )
+                )
                 .subscribe(
                     { res ->
                         res.map { withdrawalEvents ->

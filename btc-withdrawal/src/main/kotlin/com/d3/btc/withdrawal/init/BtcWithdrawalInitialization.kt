@@ -7,6 +7,7 @@ import com.d3.btc.helper.network.addPeerConnectionStatusListener
 import com.d3.btc.helper.network.startChainDownload
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
+import com.d3.btc.withdrawal.BTC_WITHDRAWAL_SERVICE_NAME
 import com.d3.btc.withdrawal.config.withdrawalConfig
 import com.d3.btc.withdrawal.handler.NewFeeRateWasSetHandler
 import com.d3.btc.withdrawal.handler.NewSignatureEventHandler
@@ -14,6 +15,12 @@ import com.d3.btc.withdrawal.handler.WithdrawalTransferEventHandler
 import com.d3.btc.withdrawal.listener.BitcoinBlockChainFeeRateListener
 import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 import com.d3.commons.config.RMQConfig
+import com.d3.commons.sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
+import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
+import com.d3.commons.sidechain.iroha.util.getSetDetailCommands
+import com.d3.commons.sidechain.iroha.util.getTransferCommands
+import com.d3.commons.util.createPrettySingleThreadPool
+import com.d3.commons.util.namedThreadFactory
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
@@ -27,10 +34,6 @@ import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
-import com.d3.commons.sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
-import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
-import com.d3.commons.sidechain.iroha.util.getSetDetailCommands
-import com.d3.commons.sidechain.iroha.util.getTransferCommands
 import java.io.Closeable
 import java.io.File
 import java.util.concurrent.Executors
@@ -57,7 +60,10 @@ class BtcWithdrawalInitialization(
 
     private val irohaChainListener = ReliableIrohaChainListener(
         rmqConfig, irohaBlocksQueue,
-        consumerExecutorService = Executors.newSingleThreadExecutor(),
+        consumerExecutorService = createPrettySingleThreadPool(
+            BTC_WITHDRAWAL_SERVICE_NAME,
+            "rmq-consumer"
+        ),
         autoAck = false,
         subscribe = { block, ack ->
             safeApplyAck({ handleIrohaBlock(block) }, { ack() })

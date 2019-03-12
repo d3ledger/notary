@@ -35,6 +35,13 @@ class ReliableIrohaChainListener(
         irohaQueue: String
     ) : this(rmqConfig, irohaQueue, { _, _ -> }, null, true)
 
+    constructor(
+        rmqConfig: RMQConfig,
+        irohaQueue: String,
+        consumerExecutorService: ExecutorService
+    ) : this(rmqConfig, irohaQueue, { _, _ -> }, consumerExecutorService, true)
+
+
     private val factory = ConnectionFactory()
 
     // Last read Iroha block number. Used to detect double read.

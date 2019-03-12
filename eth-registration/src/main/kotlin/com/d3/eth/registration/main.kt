@@ -14,6 +14,8 @@ import mu.KLogging
 
 private val logger = KLogging().logger
 
+const val ETH_REGISTRATION_SERVICE_NAME = "eth-registration"
+
 /**
  * Entry point for Registration Service
  */

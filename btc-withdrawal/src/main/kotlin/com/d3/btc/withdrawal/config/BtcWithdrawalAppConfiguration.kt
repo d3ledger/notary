@@ -2,6 +2,7 @@ package com.d3.btc.withdrawal.config
 
 import com.d3.btc.fee.BtcFeeRateService
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
+import com.d3.btc.withdrawal.BTC_WITHDRAWAL_SERVICE_NAME
 import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
 import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
@@ -10,6 +11,7 @@ import com.d3.commons.model.IrohaCredential
 import com.d3.commons.provider.NotaryPeerListProviderImpl
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.createPrettySingleThreadPool
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
@@ -94,7 +96,12 @@ class BtcWithdrawalAppConfiguration {
             ManagedChannelBuilder.forAddress(
                 withdrawalConfig.iroha.hostname,
                 withdrawalConfig.iroha.port
-            ).executor(Executors.newSingleThreadExecutor()).usePlaintext().build()
+            ).executor(
+                createPrettySingleThreadPool(
+                    BTC_WITHDRAWAL_SERVICE_NAME,
+                    "iroha-chain-listener"
+                )
+            ).usePlaintext().build()
         )
         return irohaAPI
     }
