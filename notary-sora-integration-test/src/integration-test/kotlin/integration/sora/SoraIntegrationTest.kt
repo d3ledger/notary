@@ -24,15 +24,17 @@ class SoraIntegrationTest {
 
     val integrationHelper = IrohaIntegrationHelperUtil()
 
+    val registrationEnvironmetn = RegistrationServiceTestEnvironment(integrationHelper)
+
     val domain = "sora"
     val xorAsset = "xor#$domain"
     val soraClientId = "sora@sora"
 
-    val registrationConfig = integrationHelper.configHelper.createRegistrationConfig(integrationHelper.accountHelper)
+    val registrationConfig = registrationEnvironmetn.registrationConfig
 
     init {
         GlobalScope.launch {
-            RegistrationServiceTestEnvironment(integrationHelper).registrationInitialization.init()
+            registrationEnvironmetn.registrationInitialization.init()
         }
 
         runBlocking { delay(20_000) }
