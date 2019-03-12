@@ -131,6 +131,7 @@ contract Master {
         }
         require(checkForUniqueness(recoveredAddresses));
         addPeer(newPeerAddress);
+        used[txHash] = true;
         return true;
     }
 
@@ -164,6 +165,7 @@ contract Master {
         }
         require(checkForUniqueness(recoveredAddresses));
         removePeer(peerAddress);
+        used[txHash] = true;
         return true;
     }
 
@@ -352,5 +354,6 @@ contract Master {
         require(checkForUniqueness(recoveredAddresses));
 
         xorTokenInstance.mintTokens(beneficiary, amount);
+        used[txHash] = true;
     }
 }
