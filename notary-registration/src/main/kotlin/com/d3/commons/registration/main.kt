@@ -12,7 +12,7 @@ import org.springframework.context.annotation.ComponentScan
 
 private val logger = KLogging().logger
 
-@ComponentScan(basePackages = ["registration"])
+@ComponentScan(basePackages = ["com.d3.commons.registration"])
 class RegistrationApplication
 
 /**
