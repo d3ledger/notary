@@ -245,9 +245,28 @@
                 }
               },
               {
+                "createRole": {
+                  "roleName": "brvs",
+                  "permissions": [
+                    "can_add_signatory",
+                    "can_get_all_signatories",
+                    "can_get_all_accounts",
+                    "can_get_all_txs",
+                    "can_get_blocks",
+                    "can_get_all_acc_detail"
+                  ]
+                }
+              },
+              {
                 "createDomain": {
                   "domainId": "notary",
                   "defaultRole": "none"
+                }
+              },
+              {
+                "createDomain": {
+                  "domainId": "brvs",
+                  "defaultRole": "brvs"
                 }
               },
               {
@@ -305,6 +324,13 @@
                   "assetName": "btc",
                   "domainId": "bitcoin",
                   "precision": 8
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "brvs",
+                  "domainId": "brvs",
+                  "publicKey": "b9679bbf526a1c936cd1144b56a370d376fa8246b248cd72f952b45a2f20bdad"
                 }
               },
               {

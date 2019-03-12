@@ -54,3 +54,13 @@ services:
     container_name: d3-chain-adapter-${SUBNET}
     networks:
     - d3-notary
+
+  d3-brvs-mongodb:
+    container_name: d3-brvs-mongodb-${SUBNET}
+    networks:
+    - d3-notary
+
+  d3-brvs:
+    container_name: d3-brvs-${SUBNET}
+    networks:
+    - d3-notary
