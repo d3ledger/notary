@@ -49,7 +49,11 @@ class WithdrawalRollbackIntegrationTest {
             integrationHelper.runEthRegistrationService(ethRegistrationConfig)
         }
         withdrawalService = GlobalScope.launch {
-            integrationHelper.runEthWithdrawalService(integrationHelper.configHelper.createWithdrawalConfig(false))
+            integrationHelper.runEthWithdrawalService(
+                integrationHelper.configHelper.createWithdrawalConfig(
+                    String.getRandomString(9), false
+                )
+            )
         }
     }
 
@@ -126,7 +130,7 @@ class WithdrawalRollbackIntegrationTest {
             decimalAmount.toPlainString()
         )
 
-        Thread.sleep(20_000)
+        Thread.sleep(35_000)
 
         Assertions.assertEquals(
             initialBalance,
