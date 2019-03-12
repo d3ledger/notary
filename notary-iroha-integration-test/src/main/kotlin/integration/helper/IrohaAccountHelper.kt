@@ -1,17 +1,17 @@
 package integration.helper
 
-import com.github.kittinunf.result.failure
-import com.github.kittinunf.result.flatMap
 import com.d3.commons.config.IrohaCredentialConfig
 import com.d3.commons.config.loadConfigs
-import integration.TestConfig
-import iroha.protocol.Primitive
-import jp.co.soramitsu.iroha.java.IrohaAPI
 import com.d3.commons.model.IrohaCredential
-import mu.KLogging
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomString
+import com.github.kittinunf.result.failure
+import com.github.kittinunf.result.flatMap
+import integration.TestConfig
+import iroha.protocol.Primitive
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import mu.KLogging
 import java.security.KeyPair
 
 /**
@@ -168,7 +168,7 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
     }
 
     /**
-     * Create notary account and grant set_my_quorum, transfer_my_assets and add_my_signatory permissions to test account
+     * Create notary account and grant set_my_quorum, transfer_my_assets, add_my_signatory and can_set_my_account_detail permissions to test account
      */
     private fun createNotaryAccount(): IrohaCredential {
         val credential = createTesterAccount("notary_${String.getRandomString(9)}", "notary")
@@ -179,7 +179,8 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
             listOf(
                 Primitive.GrantablePermission.can_set_my_quorum,
                 Primitive.GrantablePermission.can_add_my_signatory,
-                Primitive.GrantablePermission.can_transfer_my_assets
+                Primitive.GrantablePermission.can_transfer_my_assets,
+                Primitive.GrantablePermission.can_set_my_account_detail
             )
         ).failure { throw it }
 
