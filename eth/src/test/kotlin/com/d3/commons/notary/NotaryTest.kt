@@ -1,19 +1,19 @@
 package com.d3.commons.notary
 
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
 import com.d3.commons.config.IrohaConfig
 import com.d3.commons.config.IrohaCredentialConfig
-import io.reactivex.Observable
-import io.reactivex.observers.TestObserver
-import jp.co.soramitsu.iroha.java.IrohaAPI
 import com.d3.commons.model.IrohaCredential
-import com.d3.eth.notary.EthNotaryConfig
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.fail
 import com.d3.commons.provider.NotaryPeerListProvider
 import com.d3.commons.sidechain.SideChainEvent
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.eth.deposit.EthDepositConfig
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.mock
+import io.reactivex.Observable
+import io.reactivex.observers.TestObserver
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
 import java.math.BigInteger
 import kotlin.test.assertEquals
 
@@ -38,7 +38,7 @@ class NotaryTest {
     private val irohaAPI = mock<IrohaAPI>()
 
     /** Configuration for notary */
-    private val notaryConfig = mock<EthNotaryConfig>() {
+    private val notaryConfig = mock<EthDepositConfig>() {
         on { iroha } doReturn irohaConfig
         on { notaryListStorageAccount } doReturn "listener@notary"
         on { notaryListSetterAccount } doReturn "setter@notary"

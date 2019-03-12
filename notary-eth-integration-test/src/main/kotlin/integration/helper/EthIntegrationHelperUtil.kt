@@ -10,9 +10,9 @@ import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomString
 import com.d3.commons.util.toHexString
-import com.d3.eth.notary.EthNotaryConfig
-import com.d3.eth.notary.endpoint.EthWhiteListProvider
-import com.d3.eth.notary.executeNotary
+import com.d3.eth.deposit.EthDepositConfig
+import com.d3.eth.deposit.endpoint.EthWhiteListProvider
+import com.d3.eth.deposit.executeDeposit
 import com.d3.eth.provider.ETH_DOMAIN
 import com.d3.eth.provider.EthFreeRelayProvider
 import com.d3.eth.provider.EthRelayProviderIrohaImpl
@@ -404,15 +404,15 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /**
      * Run Ethereum notary process
      */
-    fun runEthNotary(
+    fun runEthDeposit(
         ethereumPasswords: EthereumPasswords = configHelper.ethPasswordConfig,
-        ethNotaryConfig: EthNotaryConfig = configHelper.createEthNotaryConfig()
+        ethDepositConfig: EthDepositConfig = configHelper.createEthDepositConfig()
     ) {
         val name = String.getRandomString(9)
-        val address = "http://localhost:${ethNotaryConfig.refund.port}"
+        val address = "http://localhost:${ethDepositConfig.refund.port}"
         addNotary(name, address)
 
-        executeNotary(ethereumPasswords, ethNotaryConfig)
+        executeDeposit(ethereumPasswords, ethDepositConfig)
 
         logger.info { "Notary $name is started on $address" }
     }

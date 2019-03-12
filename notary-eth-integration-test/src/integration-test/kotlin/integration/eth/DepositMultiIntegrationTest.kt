@@ -2,6 +2,10 @@ package integration.eth
 
 import com.d3.commons.config.IrohaCredentialConfig
 import com.d3.commons.config.loadEthPasswords
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.getRandomString
+import com.d3.eth.provider.ETH_PRECISION
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
 import kotlinx.coroutines.delay
@@ -10,10 +14,6 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import com.d3.eth.provider.ETH_PRECISION
-import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
-import com.d3.commons.sidechain.iroha.util.ModelUtil
-import com.d3.commons.util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Duration
@@ -52,7 +52,7 @@ class DepositMultiIntegrationTest {
 
     init {
         // run notary
-        integrationHelper.runEthNotary()
+        integrationHelper.runEthDeposit()
 
         // create 2nd notary config
         val irohaCredential = object : IrohaCredentialConfig {
@@ -64,8 +64,8 @@ class DepositMultiIntegrationTest {
         val ethereumPasswords = loadEthPasswords("test", "/eth/ethereum_password.properties").get()
         val ethereumConfig =
             integrationHelper.configHelper.createEthereumConfig("deploy/ethereum/keys/local/notary1.key")
-        val notaryConfig =
-            integrationHelper.configHelper.createEthNotaryConfig(
+        val depositConfig =
+            integrationHelper.configHelper.createEthDepositConfig(
                 ethereumConfig = ethereumConfig,
                 notaryCredential_ = irohaCredential
             )
@@ -75,7 +75,7 @@ class DepositMultiIntegrationTest {
         integrationHelper.accountHelper.addNotarySignatory(keypair)
 
         // run 2nd instance of notary
-        integrationHelper.runEthNotary(ethereumPasswords, notaryConfig)
+        integrationHelper.runEthDeposit(ethereumPasswords, depositConfig)
 
     }
 

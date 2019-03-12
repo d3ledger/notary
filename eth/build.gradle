@@ -31,8 +31,8 @@ task runPreDeployEthereum(type: JavaExec) {
     setWorkingDir("$rootDir/")
 }
 
-task runEthNotary(type: JavaExec) {
-    main = 'com.d3.eth.notary.EthNotaryMain'
+task runEthDeposit(type: JavaExec) {
+    main = 'com.d3.eth.deposit.EthDepositMain'
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
 }

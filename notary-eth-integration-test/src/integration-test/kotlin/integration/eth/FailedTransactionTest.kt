@@ -1,5 +1,9 @@
 package integration.eth
 
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.util.getRandomString
+import com.d3.eth.provider.ETH_DOMAIN
+import com.d3.eth.token.EthTokenInfo
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
 import org.junit.jupiter.api.AfterAll
@@ -7,10 +11,6 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.web3j.protocol.exceptions.TransactionException
-import com.d3.eth.provider.ETH_DOMAIN
-import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
-import com.d3.eth.token.EthTokenInfo
-import com.d3.commons.util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Duration
@@ -23,7 +23,7 @@ class FailedTransactionTest {
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
 
     init {
-        integrationHelper.runEthNotary()
+        integrationHelper.runEthDeposit()
     }
 
     @AfterAll
@@ -71,7 +71,8 @@ class FailedTransactionTest {
             val clientAccount = String.getRandomString(9)
             integrationHelper.registerClientWithoutRelay(clientAccount, CLIENT_DOMAIN, listOf())
             val coinName = String.getRandomString(9)
-            integrationHelper.addERC20Token(anotherFailerAddress,
+            integrationHelper.addERC20Token(
+                anotherFailerAddress,
                 EthTokenInfo(coinName, ETH_DOMAIN, 0)
             )
 

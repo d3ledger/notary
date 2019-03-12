@@ -1,23 +1,23 @@
-package com.d3.eth.notary.endpoint
+package com.d3.eth.deposit.endpoint
 
-import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.fanout
-import com.github.kittinunf.result.flatMap
 import com.d3.commons.config.EthereumConfig
 import com.d3.commons.config.EthereumPasswords
-import iroha.protocol.TransactionOuterClass.Transaction
-import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.QueryAPI
 import com.d3.commons.model.IrohaCredential
-import mu.KLogging
-import com.d3.eth.notary.EthNotaryConfig
-import org.web3j.crypto.ECKeyPair
+import com.d3.commons.sidechain.iroha.util.getSingleTransaction
+import com.d3.eth.deposit.EthDepositConfig
 import com.d3.eth.provider.EthRelayProviderIrohaImpl
 import com.d3.eth.provider.EthTokensProvider
 import com.d3.eth.sidechain.util.DeployHelper
 import com.d3.eth.sidechain.util.hashToWithdraw
 import com.d3.eth.sidechain.util.signUserData
-import com.d3.commons.sidechain.iroha.util.getSingleTransaction
+import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.fanout
+import com.github.kittinunf.result.flatMap
+import iroha.protocol.TransactionOuterClass.Transaction
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
+import mu.KLogging
+import org.web3j.crypto.ECKeyPair
 import java.math.BigDecimal
 
 class NotaryException(reason: String) : Exception(reason)
@@ -26,7 +26,7 @@ class NotaryException(reason: String) : Exception(reason)
  * Class performs effective implementation of refund strategy for Ethereum
  */
 class EthRefundStrategyImpl(
-    notaryConfig: EthNotaryConfig,
+    depositConfig: EthDepositConfig,
     irohaAPI: IrohaAPI,
     private val credential: IrohaCredential,
     ethereumConfig: EthereumConfig,
@@ -37,11 +37,11 @@ class EthRefundStrategyImpl(
     private val relayProvider = EthRelayProviderIrohaImpl(
         queryAPI,
         credential.accountId,
-        notaryConfig.registrationServiceIrohaAccount
+        depositConfig.registrationServiceIrohaAccount
     )
 
     private val whiteListProvider = EthWhiteListProvider(
-        notaryConfig.whitelistSetter, queryAPI
+        depositConfig.whitelistSetter, queryAPI
     )
 
     private var ecKeyPair: ECKeyPair = DeployHelper(ethereumConfig, ethereumPasswords).credentials.ecKeyPair

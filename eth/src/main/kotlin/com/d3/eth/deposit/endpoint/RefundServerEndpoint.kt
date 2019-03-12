@@ -1,5 +1,6 @@
-package com.d3.eth.notary.endpoint
+package com.d3.eth.deposit.endpoint
 
+import com.d3.commons.notary.endpoint.ServerInitializationBundle
 import com.squareup.moshi.Moshi
 import io.ktor.application.call
 import io.ktor.application.install
@@ -14,7 +15,6 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import mu.KLogging
-import com.d3.commons.notary.endpoint.ServerInitializationBundle
 import java.math.BigInteger
 
 data class Response(val code: HttpStatusCode, val message: String)
