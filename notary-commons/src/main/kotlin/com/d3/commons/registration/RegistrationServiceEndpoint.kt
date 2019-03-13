@@ -16,6 +16,9 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import mu.KLogging
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.squareup.moshi.Moshi
+import java.io.PrintWriter
+import java.io.StringWriter
 
 data class Response(val code: HttpStatusCode, val message: String)
 
@@ -26,6 +29,9 @@ class RegistrationServiceEndpoint(
     port: Int,
     private val registrationStrategy: RegistrationStrategy
 ) {
+    // Moshi adapter for response serialization
+    val moshiAdapter = Moshi.Builder().build()!!.adapter(Map::class.java)!!
+
 
     init {
         logger.info { "Start registration server on port $port" }
@@ -96,11 +102,22 @@ class RegistrationServiceEndpoint(
                 logger.info {
                     "Client $name@$clientDomain was successfully registered with address $address"
                 }
-                return Response(HttpStatusCode.OK, address)
+
+                val response = mapOf("clientId" to address)
+                val serialized = moshiAdapter.toJson(response)
+
+                return Response(HttpStatusCode.OK, serialized)
             },
             { ex ->
                 logger.error("Cannot register client $name", ex)
-                return responseError(HttpStatusCode.InternalServerError, ex.toString())
+
+                val sw = StringWriter()
+                ex.printStackTrace(PrintWriter(sw))
+
+                val response = mapOf("message" to ex.message, "details" to ex.toString(), "stacktrace" to sw.toString())
+                val serialized = moshiAdapter.toJson(response)
+
+                return responseError(HttpStatusCode.InternalServerError, serialized)
             })
     }
 
