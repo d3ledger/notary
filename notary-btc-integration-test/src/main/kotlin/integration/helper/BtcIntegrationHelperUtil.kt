@@ -5,7 +5,7 @@ import com.d3.btc.model.AddressInfo
 import com.d3.btc.peer.SharedPeerGroup
 import com.d3.btc.provider.BtcFreeAddressesProvider
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
-import com.d3.btc.provider.account.IrohaBtcAccountCreator
+import com.d3.btc.provider.account.IrohaBtcAccountRegistrator
 import com.d3.btc.provider.address.BtcAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
 import com.d3.btc.registration.strategy.BtcRegistrationStrategyImpl
@@ -74,7 +74,7 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
                 accountHelper.registrationAccount.accountId,
                 accountHelper.notaryAccount.accountId
             )
-        val irohaBtcAccountCreator = IrohaBtcAccountCreator(
+        val irohaBtcAccountCreator = IrohaBtcAccountRegistrator(
             registrationConsumer,
             accountHelper.notaryAccount.accountId
         )

@@ -1,7 +1,7 @@
 package com.d3.btc.registration.strategy
 
 import com.d3.btc.provider.BtcFreeAddressesProvider
-import com.d3.btc.provider.account.IrohaBtcAccountCreator
+import com.d3.btc.provider.account.IrohaBtcAccountRegistrator
 import com.d3.commons.registration.RegistrationStrategy
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component
 @Component
 class BtcRegistrationStrategyImpl(
     @Autowired private val btcFreeAddressesProvider: BtcFreeAddressesProvider,
-    @Autowired private val irohaBtcAccountCreator: IrohaBtcAccountCreator
+    @Autowired private val irohaBtcAccountCreator: IrohaBtcAccountRegistrator
 ) : RegistrationStrategy {
 
     /**

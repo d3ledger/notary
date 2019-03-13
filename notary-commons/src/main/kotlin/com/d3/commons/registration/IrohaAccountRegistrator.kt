@@ -10,7 +10,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import mu.KLogging
 
-open class IrohaAccountCreator(
+open class IrohaAccountRegistrator(
     private val irohaConsumer: IrohaConsumer,
     private val notaryIrohaAccount: String,
     private val currencyName: String
@@ -28,7 +28,7 @@ open class IrohaAccountCreator(
      * @param notaryStorageStrategy - function that defines the way newly created account data will be stored in notary
      * @return address associated with userName
      */
-    fun create(
+    fun register(
         currencyAddress: String,
         whitelistKey: String,
         whitelist: List<String>,

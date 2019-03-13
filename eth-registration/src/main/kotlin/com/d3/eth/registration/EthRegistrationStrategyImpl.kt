@@ -1,8 +1,7 @@
 package com.d3.eth.registration
 
 import com.d3.commons.config.EthereumPasswords
-import com.d3.commons.registration.ETH_WHITE_LIST_KEY
-import com.d3.commons.registration.IrohaAccountCreator
+import com.d3.commons.registration.IrohaEthAccountRegistrator
 import com.d3.commons.registration.RegistrationStrategy
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.eth.provider.EthFreeRelayProvider
@@ -36,8 +35,8 @@ class EthRegistrationStrategyImpl(
         logger.info { "Init EthRegistrationStrategyImpl with irohaCreator=${irohaConsumer.creator}, notaryIrohaAccount=$notaryIrohaAccount" }
     }
 
-    private val irohaAccountCreator =
-        IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, "ethereum_wallet")
+    private val ethereumAccountRegistrator =
+        IrohaEthAccountRegistrator(irohaConsumer, notaryIrohaAccount)
 
     private val credentials = WalletUtils.loadCredentials(
         passwordConfig.credentialsPassword,
@@ -87,14 +86,13 @@ class EthRegistrationStrategyImpl(
                         relayRegistry.addNewRelayAddress(freeEthWallet, whitelist).send()
 
                         // register relay to Iroha
-                        irohaAccountCreator.create(
+                        ethereumAccountRegistrator.register(
                             freeEthWallet,
-                            ETH_WHITE_LIST_KEY,
                             whitelist,
                             accountName,
                             domainId,
                             publicKey
-                        ) { "$accountName@$domainId" }
+                        )
                     }
             }
     }
