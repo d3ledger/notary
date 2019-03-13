@@ -3,12 +3,11 @@ package integration.eth
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
 import com.d3.eth.provider.EthRelayProviderIrohaImpl
+import org.junit.jupiter.api.Assertions.*
 import java.time.Duration
 
 /**
@@ -18,8 +17,6 @@ import java.time.Duration
 class EthRelayProviderIrohaTest {
 
     val integrationHelper = EthIntegrationHelperUtil()
-
-    val testConfig = integrationHelper.configHelper.testConfig
 
     /** Iroha account that holds details */
     private val relayStorage = integrationHelper.accountHelper.notaryAccount.accountId
@@ -87,5 +84,15 @@ class EthRelayProviderIrohaTest {
                     { ex -> fail("result has exception", ex) }
                 )
         }
+    }
+
+    @Test
+    fun testGetByAccountNotFound() {
+        val res = EthRelayProviderIrohaImpl(
+            integrationHelper.queryAPI,
+            integrationHelper.testCredential.accountId,
+            relaySetter
+        ).getRelayByAccountId("nonexist@domain")
+        assertFalse(res.get().isPresent)
     }
 }

@@ -14,7 +14,7 @@ interface RegistrationStrategy {
         accountName: String,
         domainId: String,
         whitelist: List<String>,
-        pubkey: String
+        publicKey: String
     ): Result<String, Exception>
 
     /**

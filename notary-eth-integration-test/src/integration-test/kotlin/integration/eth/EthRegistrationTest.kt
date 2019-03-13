@@ -96,7 +96,7 @@ class EthRegistrationTest {
         assertEquals(200, res.statusCode)
 
         // check relay address
-        assertEquals(freeRelay, integrationHelper.getRelaysByAccount(clientId).first())
+        assertEquals(freeRelay, integrationHelper.getRelayByAccount(clientId).get())
         // check whitelist
         assert(integrationHelper.isWhitelisted(clientId, whitelist))
     }
@@ -137,7 +137,7 @@ class EthRegistrationTest {
         assertEquals(200, res.statusCode)
 
         // check relay address
-        assertEquals(freeRelay, integrationHelper.getRelaysByAccount(clientId).first())
+        assertEquals(freeRelay, integrationHelper.getRelayByAccount(clientId).get())
         // check whitelist
         assert(integrationHelper.isWhitelisted(clientId, whitelist))
 
@@ -156,7 +156,7 @@ class EthRegistrationTest {
         assertEquals(500, res.statusCode)
 
         // check relay address the same
-        assertEquals(freeRelay, integrationHelper.getRelaysByAccount(clientId).first())
+        assertEquals(freeRelay, integrationHelper.getRelayByAccount(clientId).get())
         // check whitelist the same
         assert(integrationHelper.isWhitelisted(clientId, whitelist))
         assert(!integrationHelper.isWhitelisted(clientId, anotherWhitelist))

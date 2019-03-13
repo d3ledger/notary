@@ -125,7 +125,7 @@ class EthRefundStrategyImpl(
                                 logger.error { errorMsg }
                                 throw NotaryException(errorMsg)
                             }
-                            relayProvider.getRelaysByAccountId(commands.transferAsset.srcAccountId)
+                            relayProvider.getRelayByAccountId(commands.transferAsset.srcAccountId)
                         }.fanout {
                             tokenInfo
                         }.fold(
@@ -137,7 +137,7 @@ class EthRefundStrategyImpl(
                                     tokenInfo.first,
                                     decimalAmount,
                                     request.irohaTx,
-                                    relayAddress.first()
+                                    relayAddress.orElseThrow { Exception("Relay addres  not found for user ${commands.transferAsset.srcAccountId}") }
                                 )
                             },
                             { throw it }

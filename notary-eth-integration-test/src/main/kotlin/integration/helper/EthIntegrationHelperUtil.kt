@@ -32,6 +32,7 @@ import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import java.math.BigInteger
 import java.security.KeyPair
+import java.util.*
 
 /**
  * Utility class that makes testing more comfortable.
@@ -144,8 +145,8 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /**
      * Get relay address of an account.
      */
-    fun getRelaysByAccount(clientId: String): Set<String> {
-        return ethRelayProvider.getRelaysByAccountId(clientId).get()
+    fun getRelayByAccount(clientId: String): Optional<String> {
+        return ethRelayProvider.getRelayByAccountId(clientId).get()
     }
 
     /**

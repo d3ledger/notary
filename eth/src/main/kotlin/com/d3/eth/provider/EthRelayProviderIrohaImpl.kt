@@ -1,10 +1,11 @@
 package com.d3.eth.provider
 
+import com.d3.commons.sidechain.iroha.util.getAccountDetails
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import jp.co.soramitsu.iroha.java.QueryAPI
 import mu.KLogging
-import com.d3.commons.sidechain.iroha.util.getAccountDetails
+import java.util.*
 
 /**
  * Implementation of [EthRelayProvider] with Iroha storage.
@@ -40,9 +41,13 @@ class EthRelayProviderIrohaImpl(
     }
 
     /** Get relay belonging to [irohaAccountId] */
-    override fun getRelaysByAccountId(irohaAccountId: String): Result<Set<String>, Exception> {
+    override fun getRelayByAccountId(irohaAccountId: String): Result<Optional<String>, Exception> {
         return getRelays().map { relays ->
-            relays.filter { it.value == irohaAccountId }.keys
+            val filtered = relays.filter { it.value == irohaAccountId }.keys
+            if (filtered.isEmpty())
+                Optional.empty()
+            else
+                Optional.of(filtered.first())
         }
     }
 
