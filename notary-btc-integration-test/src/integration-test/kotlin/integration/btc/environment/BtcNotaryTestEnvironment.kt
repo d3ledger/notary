@@ -1,5 +1,6 @@
 package integration.btc.environment
 
+import com.d3.btc.deposit.BTC_DEPOSIT_SERVICE_NAME
 import com.d3.btc.deposit.config.BtcDepositConfig
 import com.d3.btc.deposit.init.BtcNotaryInitialization
 import com.d3.btc.handler.NewBtcClientRegistrationHandler
@@ -7,10 +8,11 @@ import com.d3.btc.listener.NewBtcClientRegistrationListener
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcRegTestConfigProvider
 import com.d3.commons.config.BitcoinConfig
-import integration.helper.BtcIntegrationHelperUtil
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.createPrettySingleThreadPool
+import integration.helper.BtcIntegrationHelperUtil
 import java.io.Closeable
 import java.io.File
 
@@ -45,7 +47,10 @@ class BtcNotaryTestEnvironment(
     )
 
     private val newBtcClientRegistrationListener =
-        NewBtcClientRegistrationListener(NewBtcClientRegistrationHandler(btcNetworkConfigProvider))
+        NewBtcClientRegistrationListener(
+            NewBtcClientRegistrationHandler(btcNetworkConfigProvider),
+            createPrettySingleThreadPool(BTC_DEPOSIT_SERVICE_NAME, "reg-clients-listener")
+        )
 
     private val transferWallet = org.bitcoinj.wallet.Wallet.loadFromFile(File(notaryConfig.btcTransferWalletPath))
 

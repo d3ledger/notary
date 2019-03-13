@@ -16,6 +16,7 @@ private const val DAY_MILLIS = 24 * 60 * 60 * 1000L
 private const val INIT_TIME_FEE_RATE_UPDATE_DELAY_MIN = 1
 private const val FEE_RATE_UPDATE_DELAY_MIN = 5
 
+//TODO this class must be removed. It makes no sense anymore.
 /**
  * This listener listens to fee rate changes
  */

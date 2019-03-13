@@ -169,10 +169,10 @@ class BtcFullPipelineTest {
 
         // Send 1 BTC multiple times
         val sendBtcThreads = ArrayList<Thread>()
-        for (deposit in 1..totalTransfers) {
-            val sendBtcThread = Thread {
+        for (transfer in 1..totalTransfers) {
+            val sendBtcThread = Thread({
                 integrationHelper.sendBtc(srcBtcAddress, 1, 0)
-            }
+            }, "transfer-thread-$transfer")
             sendBtcThreads.add(sendBtcThread)
             sendBtcThread.start()
         }

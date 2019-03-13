@@ -6,6 +6,7 @@ import com.d3.btc.helper.address.outPutToBase58Address
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
 import com.d3.btc.provider.network.BtcRegTestConfigProvider
+import com.d3.btc.withdrawal.BTC_WITHDRAWAL_SERVICE_NAME
 import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
 import com.d3.btc.withdrawal.handler.NewFeeRateWasSetHandler
 import com.d3.btc.withdrawal.handler.NewSignatureEventHandler
@@ -23,6 +24,7 @@ import com.d3.commons.model.IrohaCredential
 import com.d3.commons.provider.NotaryPeerListProviderImpl
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.createPrettySingleThreadPool
 import com.rabbitmq.client.ConnectionFactory
 import integration.helper.BtcIntegrationHelperUtil
 import io.grpc.ManagedChannelBuilder
@@ -57,7 +59,7 @@ class BtcWithdrawalTestEnvironment(
      * It's essential to handle blocks in this service one-by-one.
      * This is why we explicitly set single threaded executor.
      */
-    private val executor = Executors.newSingleThreadExecutor()
+    private val executor = createPrettySingleThreadPool(BTC_WITHDRAWAL_SERVICE_NAME, "iroha-chain-listener")
 
     val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
 

@@ -1,5 +1,6 @@
 package com.d3.btc.deposit.init
 
+import com.d3.btc.deposit.BTC_DEPOSIT_SERVICE_NAME
 import com.d3.btc.deposit.config.BtcDepositConfig
 import com.d3.btc.deposit.listener.BitcoinBlockChainDepositListener
 import com.d3.btc.healthcheck.HealthyService
@@ -8,6 +9,13 @@ import com.d3.btc.helper.network.startChainDownload
 import com.d3.btc.listener.NewBtcClientRegistrationListener
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
+import com.d3.commons.model.IrohaCredential
+import com.d3.commons.notary.NotaryImpl
+import com.d3.commons.provider.NotaryPeerListProviderImpl
+import com.d3.commons.sidechain.SideChainEvent
+import com.d3.commons.sidechain.iroha.IrohaChainListener
+import com.d3.commons.util.createPrettySingleThreadPool
+import com.d3.commons.util.namedThreadFactory
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
@@ -15,9 +23,7 @@ import com.github.kittinunf.result.map
 import io.reactivex.Observable
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
-import com.d3.commons.model.IrohaCredential
 import mu.KLogging
-import com.d3.commons.notary.NotaryImpl
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.PeerGroup
 import org.bitcoinj.utils.BriefLogFormatter
@@ -25,9 +31,6 @@ import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
-import com.d3.commons.provider.NotaryPeerListProviderImpl
-import com.d3.commons.sidechain.SideChainEvent
-import com.d3.commons.sidechain.iroha.IrohaChainListener
 import java.io.Closeable
 import java.io.File
 import java.util.concurrent.Executors
@@ -49,10 +52,13 @@ class BtcNotaryInitialization(
 
 
     // Executor that will be used to execute Bitcoin deposit listener logic
-    private val blockChainDepositListenerExecutor = Executors.newSingleThreadExecutor()
+    private val blockChainDepositListenerExecutor =
+        createPrettySingleThreadPool(BTC_DEPOSIT_SERVICE_NAME, "blockchain-deposit-listener")
+
 
     // Executor that will be used to execute transaction confidence listener logic
-    private val confidenceListenerExecutorService = Executors.newSingleThreadExecutor()
+    private val confidenceListenerExecutorService =
+        createPrettySingleThreadPool(BTC_DEPOSIT_SERVICE_NAME, "tx-confidence-listener")
 
     /**
      * Init notary

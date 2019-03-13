@@ -1,16 +1,16 @@
 package integration.eth
 
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
+import com.d3.eth.provider.ETH_PRECISION
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.junit.jupiter.api.*
-import com.d3.eth.provider.ETH_PRECISION
-import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
-import com.d3.commons.sidechain.iroha.util.ModelUtil
-import com.d3.commons.util.getRandomString
-import com.d3.commons.util.toHexString
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.security.KeyPair
@@ -85,6 +85,7 @@ class WithdrawalPipelineIntegrationTest {
     @Test
     fun testFullWithdrawalPipeline() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             val amount = BigInteger.valueOf(1251400000000)
 
             // deploy free relay
@@ -137,6 +138,7 @@ class WithdrawalPipelineIntegrationTest {
     @Test
     fun testFullWithdrawalPipelineErc20() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             val precision = 2
 
             // deploy free relay
@@ -197,6 +199,7 @@ class WithdrawalPipelineIntegrationTest {
     @Test
     fun testWithdrawInWhitelist() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             integrationHelper.registerClient(clientName, listOf(toAddress, "0x123"), keypair)
 
             val amount = BigDecimal(125)
@@ -235,6 +238,7 @@ class WithdrawalPipelineIntegrationTest {
     @Test
     fun testWithdrawEmptyWhitelist() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
             integrationHelper.registerClient(clientName, listOf(), keypair)
 
@@ -275,6 +279,7 @@ class WithdrawalPipelineIntegrationTest {
     @Test
     fun testWithdrawNotInWhitelist() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             integrationHelper.registerClient(clientName, listOf("0x123"), keypair)
             integrationHelper.setWhitelist(clientId, listOf("0x123"))
 

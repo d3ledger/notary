@@ -1,6 +1,7 @@
 package com.d3.btc.dwbridge.config
 
 import com.d3.btc.deposit.config.BtcDepositConfig
+import com.d3.btc.dwbridge.BTC_DW_BRIDGE_SERVICE_NAME
 import com.d3.btc.fee.BtcFeeRateService
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
@@ -13,6 +14,7 @@ import com.d3.commons.provider.NotaryPeerListProviderImpl
 import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.createPrettySingleThreadPool
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
@@ -20,7 +22,6 @@ import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.io.File
-import java.util.concurrent.Executors
 
 val withdrawalConfig =
     loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties").get()
@@ -80,10 +81,19 @@ class BtcDWBridgeAppConfiguration {
             ManagedChannelBuilder.forAddress(
                 dwBridgeConfig.iroha.hostname,
                 dwBridgeConfig.iroha.port
-            ).executor(Executors.newSingleThreadExecutor()).usePlaintext().build()
+            ).executor(
+                createPrettySingleThreadPool(
+                    BTC_DW_BRIDGE_SERVICE_NAME,
+                    "iroha-chain-listener"
+                )
+            ).usePlaintext().build()
         )
         return irohaAPI
     }
+
+    @Bean
+    fun registeredClientsListenerExecutor() =
+        createPrettySingleThreadPool(BTC_DW_BRIDGE_SERVICE_NAME, "reg-clients-listener")
 
     @Bean
     fun btcRegisteredAddressesProvider(): BtcRegisteredAddressesProvider {

@@ -56,6 +56,7 @@ class ERC20TokenRegistrationTest {
     @Test
     fun testTokenRegistration() {
         assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             val tokens = createRandomTokens()
             createTokensFile(tokens, tokensFilePath)
             executeTokenRegistration(tokenRegistrationConfig)
@@ -98,6 +99,7 @@ class ERC20TokenRegistrationTest {
     @Test
     fun testTokenRegistrationEmptyTokenFile() {
         assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             createTokensFile(HashMap(), tokensFilePath)
             executeTokenRegistration(tokenRegistrationConfig)
             ethTokensProvider.getTokens().fold({ tokensFromProvider ->
