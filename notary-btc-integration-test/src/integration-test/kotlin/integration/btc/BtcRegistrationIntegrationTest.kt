@@ -14,6 +14,7 @@ import org.junit.jupiter.api.fail
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.util.getRandomString
 import com.d3.commons.util.toHexString
+import com.squareup.moshi.Moshi
 import java.math.BigInteger
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -22,6 +23,11 @@ class BtcRegistrationIntegrationTest {
     private val integrationHelper = BtcIntegrationHelperUtil()
 
     private val environment = BtcRegistrationTestEnvironment(integrationHelper)
+
+    // Moshi adapter for response JSON deserealization
+    val moshiAdapter = Moshi
+        .Builder()
+        .build()!!.adapter(Map::class.java)!!
 
     init {
         environment.btcRegistrationServiceInitialization.init()
@@ -49,7 +55,10 @@ class BtcRegistrationIntegrationTest {
             data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
         )
         assertEquals(200, res.statusCode)
-        val registeredBtcAddress = String(res.content)
+
+        val response = moshiAdapter.fromJson(res.jsonObject.toString())!!
+        val registeredBtcAddress = response["clientId"]
+
         environment.btcTakenAddressesProvider.getRegisteredAddresses().fold({ addresses ->
             assertEquals(
                 "$userName@$CLIENT_DOMAIN",
@@ -108,7 +117,8 @@ class BtcRegistrationIntegrationTest {
                 data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
             )
             assertEquals(200, res.statusCode)
-            val registeredBtcAddress = String(res.content)
+            val response = moshiAdapter.fromJson(res.jsonObject.toString())!!
+            val registeredBtcAddress = response["clientId"].toString()
             assertFalse(takenAddresses.contains(registeredBtcAddress))
             takenAddresses.add(registeredBtcAddress)
             environment.btcTakenAddressesProvider.getRegisteredAddresses().fold({ addresses ->
