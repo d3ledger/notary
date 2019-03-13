@@ -11,7 +11,7 @@ private val log = KLogging().logger
 
 /**
  * Creates thread factory that may be used in thread pool.
- * Format is [serviceName-purpose-th-(thread number)-id-(thread id)]
+ * Format is [serviceName:purpose:th-(thread number):id-(thread id)]
  * @param serviceName - name of service (withdrawal, deposit and etc)
  * @param purpose - purpose of thread (Iroha listener, Ethereum tx listener and etc)
  * @return thread factory
@@ -24,7 +24,7 @@ fun namedThreadFactory(
         private val threadCounter = AtomicInteger(0)
         override fun newThread(runnable: Runnable): Thread {
             val thread = Executors.defaultThreadFactory().newThread(runnable)
-            thread.name = "$serviceName-$purpose-th-${threadCounter.getAndIncrement()}-id-${thread.id}"
+            thread.name = "$serviceName:$purpose:th-${threadCounter.getAndIncrement()}:id-${thread.id}"
             return thread
         }
     }
