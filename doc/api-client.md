@@ -53,14 +53,7 @@ That's why D3 services provide registration of new client via HTTP POST request.
     
         {
             "message": "Tx 12851857e1a929f490275e2850383484a3bed342d37a5db851748f888fe7ee01 failed. CreateAccount",
-            "details": "java.lang.Exception: Tx 12851857e1a929f490275e2850383484a3bed342d37a5db851748f888fe7ee01 failed. CreateAccount",
-            "stacktrace": "java.lang.Exception: Tx 12851857e1a929f490275e2850383484a3bed342d37a5db851748f888fe7ee01 failed. CreateAccount\n\tat
-             com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl$createTxStatusObserver$5.accept(IrohaConsumerImpl.kt:139)\n\tat
-              com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl$createTxStatusObserver$5.accept(IrohaConsumerImpl.kt:41)\n\tat
-               jp.co.soramitsu.iroha.java.detail.InlineTransactionStatusObserver.onTransactionFailed(InlineTransactionStatusObserver.java:60)\n\tat
-                jp.co.soramitsu.iroha.java.detail.router.Router.processType(Router.java:46)\n\tat
-                 jp.co.soramitsu.iroha.java.detail.router.Router.process(Router.java:67)\n\tat
-                 ..."
+            "details": "java.lang.Exception: Tx 12851857e1a929f490275e2850383484a3bed342d37a5db851748f888fe7ee01 failed. CreateAccount"
          }
       
 

@@ -111,10 +111,7 @@ class RegistrationServiceEndpoint(
             { ex ->
                 logger.error("Cannot register client $name", ex)
 
-                val sw = StringWriter()
-                ex.printStackTrace(PrintWriter(sw))
-
-                val response = mapOf("message" to ex.message, "details" to ex.toString(), "stacktrace" to sw.toString())
+                val response = mapOf("message" to ex.message, "details" to ex.toString())
                 val serialized = moshiAdapter.toJson(response)
 
                 return responseError(HttpStatusCode.InternalServerError, serialized)
