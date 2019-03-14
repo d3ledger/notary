@@ -23,9 +23,11 @@ import com.d3.commons.provider.NotaryPeerListProviderImpl
 import com.d3.eth.provider.EthRelayProvider
 import com.d3.eth.provider.EthTokensProvider
 import com.d3.commons.sidechain.SideChainEvent
+import com.d3.commons.util.createPrettyScheduledThreadPool
 import com.d3.eth.sidechain.EthChainHandler
 import com.d3.eth.sidechain.EthChainListener
 import com.d3.eth.sidechain.util.BasicAuthenticator
+import org.web3j.protocol.core.JsonRpc2_0Web3j
 import java.math.BigInteger
 
 const val ENDPOINT_ETHEREUM = "eth"
@@ -65,7 +67,11 @@ class EthDepositInitialization(
 
         val builder = OkHttpClient().newBuilder()
         builder.authenticator(BasicAuthenticator(passwordsConfig))
-        val web3 = Web3j.build(HttpService(ethDepositConfig.ethereum.url, builder.build(), false))
+        val web3 = Web3j.build(
+            HttpService(ethDepositConfig.ethereum.url, builder.build(), false),
+            JsonRpc2_0Web3j.DEFAULT_BLOCK_TIME.toLong(),
+            createPrettyScheduledThreadPool(ETH_DEPOSIT_SERVICE_NAME, "web3j")
+        )
 
         /** List of all observable wallets */
         val ethHandler = EthChainHandler(web3, ethRelayProvider, ethTokensProvider)

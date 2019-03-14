@@ -16,6 +16,8 @@ import mu.KLogging
 
 private val logger = KLogging().logger
 
+const val ETH_DEPOSIT_SERVICE_NAME = "eth-deposit"
+
 /**
  * Application entry point
  */

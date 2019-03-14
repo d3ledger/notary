@@ -2,6 +2,7 @@ package com.d3.eth.sidechain.util
 
 import com.d3.commons.config.EthereumConfig
 import com.d3.commons.config.EthereumPasswords
+import com.d3.commons.util.createPrettyScheduledThreadPool
 import contract.*
 import com.d3.eth.helper.encodeFunction
 import mu.KLogging
@@ -12,6 +13,7 @@ import org.web3j.abi.datatypes.Type
 import org.web3j.crypto.WalletUtils
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.DefaultBlockParameterName
+import org.web3j.protocol.core.JsonRpc2_0Web3j.DEFAULT_BLOCK_TIME
 import org.web3j.protocol.http.HttpService
 import org.web3j.tx.RawTransactionManager
 import org.web3j.tx.Transfer
@@ -42,7 +44,10 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
     init {
         val builder = OkHttpClient().newBuilder()
         builder.authenticator(BasicAuthenticator(ethereumPasswords))
-        web3 = Web3j.build(HttpService(ethereumConfig.url, builder.build(), false))
+        web3 = Web3j.build(
+            HttpService(ethereumConfig.url, builder.build(), false), DEFAULT_BLOCK_TIME.toLong(),
+            createPrettyScheduledThreadPool(DeployHelper::class.simpleName!!, "web3j")
+        )
     }
 
     /** credentials of ethereum user */

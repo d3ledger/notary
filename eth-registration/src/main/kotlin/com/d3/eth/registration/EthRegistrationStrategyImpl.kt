@@ -15,6 +15,8 @@ import com.d3.commons.registration.IrohaEthAccountCreator
 import com.d3.commons.registration.RegistrationStrategy
 import com.d3.eth.sidechain.util.BasicAuthenticator
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
+import com.d3.commons.util.createPrettyScheduledThreadPool
+import org.web3j.protocol.core.JsonRpc2_0Web3j
 import java.math.BigInteger
 
 /**
@@ -41,7 +43,11 @@ class EthRegistrationStrategyImpl(
             passwordConfig
         )
     )!!
-    private val web3 = Web3j.build(HttpService(ethRegistrationConfig.ethereum.url, builder.build(), false))!!
+    private val web3 = Web3j.build(
+        HttpService(ethRegistrationConfig.ethereum.url, builder.build(), false),
+        JsonRpc2_0Web3j.DEFAULT_BLOCK_TIME.toLong(),
+        createPrettyScheduledThreadPool(ETH_REGISTRATION_SERVICE_NAME, "web3j")
+    )
 
     private val relayRegistry = RelayRegistry.load(
         ethRegistrationConfig.ethRelayRegistryAddress,

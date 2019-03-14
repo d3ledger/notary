@@ -12,6 +12,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.ComponentScan
 
 private val logger = KLogging().logger
+const val BTC_REGISTRATION_SERVICE_NAME="btc-registration"
 
 @ComponentScan(basePackages = ["com.d3.btc.registration"])
 class BtcRegistrationApplication
