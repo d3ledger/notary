@@ -55,6 +55,9 @@ class NotaryRegistrationStrategy(
             }
     }
 
+    /**
+     * Creates the registration batch allowing BRVS receive needed power relatively to the user
+     */
     private fun createRegistrationBatch(
         name: String,
         domain: String,
@@ -64,6 +67,7 @@ class NotaryRegistrationStrategy(
 
         val irohaBatch = IrohaOrderedBatch(
             listOf(
+                // First step is to create user account but with our own key, not user's one
                 IrohaTransaction(
                     irohaConsumer.creator,
                     ModelUtil.getCurrentTime(),
@@ -80,7 +84,8 @@ class NotaryRegistrationStrategy(
                         )
                     )
                 ),
-
+                // Second step is to give permissions from the user to brvs and registration service
+                // Here we need our own key to sign this stuff
                 IrohaTransaction(
                     newUserAccountId,
                     ModelUtil.getCurrentTime(),
@@ -107,6 +112,10 @@ class NotaryRegistrationStrategy(
                         )
                     )
                 ),
+                // Finally we need to add user's original pub key to the signatories list
+                // But we need to increase user's quorum to prohibit transactions using only user's key
+                // Several moments later BRVS react on the createAccountTransaction and
+                // user's quorum will be set as 1+2/3 of BRVS instances for now
                 IrohaTransaction(
                     irohaConsumer.creator,
                     ModelUtil.getCurrentTime(),
