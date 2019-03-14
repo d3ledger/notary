@@ -1,17 +1,16 @@
 package com.d3.commons.sidechain.iroha
 
+import com.d3.commons.config.RMQConfig
+import com.d3.commons.sidechain.ChainListener
 import com.github.kittinunf.result.Result
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.Delivery
 import com.rabbitmq.client.GetResponse
-import com.d3.commons.config.RMQConfig
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import iroha.protocol.BlockOuterClass
 import mu.KLogging
-import com.d3.commons.sidechain.ChainListener
 import java.util.concurrent.ExecutorService
-
 
 private const val DEFAULT_LAST_READ_BLOCK = -1L
 

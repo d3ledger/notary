@@ -65,7 +65,7 @@ public class Owned extends Contract {
 
     public RemoteCall<TransactionReceipt> setOwner(String _new) {
         final Function function = new Function(
-                FUNC_SETOWNER,
+                FUNC_SETOWNER, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_new)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);

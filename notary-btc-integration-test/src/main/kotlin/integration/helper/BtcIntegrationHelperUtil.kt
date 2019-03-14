@@ -5,18 +5,24 @@ import com.d3.btc.model.AddressInfo
 import com.d3.btc.peer.SharedPeerGroup
 import com.d3.btc.provider.BtcFreeAddressesProvider
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
-import com.d3.btc.provider.account.IrohaBtcAccountCreator
+import com.d3.btc.provider.account.IrohaBtcAccountRegistrator
 import com.d3.btc.provider.address.BtcAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
-import com.github.jleskovar.btcrpc.BitcoinRpcClientFactory
-import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.failure
-import com.github.kittinunf.result.map
+import com.d3.btc.registration.strategy.BtcRegistrationStrategyImpl
 import com.d3.commons.config.BitcoinConfig
-import mu.KLogging
 import com.d3.commons.notary.IrohaCommand
 import com.d3.commons.notary.IrohaOrderedBatch
 import com.d3.commons.notary.IrohaTransaction
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.sidechain.iroha.consumer.IrohaConverter
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.toHexString
+import com.github.jleskovar.btcrpc.BitcoinRpcClientFactory
+import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.failure
+import com.github.kittinunf.result.flatMap
+import com.github.kittinunf.result.map
+import mu.KLogging
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.PeerGroup
@@ -24,12 +30,6 @@ import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
-import com.d3.btc.registration.strategy.BtcRegistrationStrategyImpl
-import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
-import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
-import com.d3.commons.sidechain.iroha.consumer.IrohaConverter
-import com.d3.commons.sidechain.iroha.util.ModelUtil
-import com.d3.commons.util.toHexString
 import java.io.File
 import java.math.BigDecimal
 import java.security.KeyPair
@@ -74,7 +74,7 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
                 accountHelper.registrationAccount.accountId,
                 accountHelper.notaryAccount.accountId
             )
-        val irohaBtcAccountCreator = IrohaBtcAccountCreator(
+        val irohaBtcAccountCreator = IrohaBtcAccountRegistrator(
             registrationConsumer,
             accountHelper.notaryAccount.accountId
         )
@@ -207,10 +207,11 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
     fun registerBtcAddress(
         walletFilePath: String,
         irohaAccountName: String,
+        domain: String,
         keypair: KeyPair = ModelUtil.generateKeypair()
     ): String {
         genFreeBtcAddress(walletFilePath).fold({
-            return registerBtcAddressNoPreGen(irohaAccountName, keypair)
+            return registerBtcAddressNoPreGen(irohaAccountName, domain, keypair)
         }, { ex -> throw ex })
     }
 
@@ -223,12 +224,21 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
      */
     fun registerBtcAddressNoPreGen(
         irohaAccountName: String,
+        domain: String,
         keypair: KeyPair = ModelUtil.generateKeypair(),
         whitelist: List<String> = emptyList()
     ): String {
-        btcRegistrationStrategy.register(irohaAccountName, CLIENT_DOMAIN, whitelist, keypair.public.toHexString())
+        ModelUtil.createAccount(registrationConsumer, irohaAccountName, domain, keypair.public)
+            .flatMap {
+                btcRegistrationStrategy.register(
+                    irohaAccountName,
+                    domain,
+                    whitelist,
+                    keypair.public.toHexString()
+                )
+            }
             .fold({ btcAddress ->
-                logger.info { "BTC address $btcAddress was registered by $irohaAccountName" }
+                logger.info { "BTC address $btcAddress was registered for $irohaAccountName@$domain" }
                 return btcAddress
             }, { ex -> throw ex })
     }

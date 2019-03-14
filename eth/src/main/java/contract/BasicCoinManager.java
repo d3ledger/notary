@@ -103,7 +103,7 @@ public class BasicCoinManager extends Contract {
 
     public RemoteCall<TransactionReceipt> setOwner(String _new) {
         final Function function = new Function(
-                FUNC_SETOWNER,
+                FUNC_SETOWNER, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_new)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
@@ -138,7 +138,7 @@ public class BasicCoinManager extends Contract {
                     public Tuple3<String, String, String> call() throws Exception {
                         List<Type> results = executeCallMultipleValueReturn(function);
                         return new Tuple3<String, String, String>(
-                                (String) results.get(0).getValue(),
+                                (String) results.get(0).getValue(), 
                                 (String) results.get(1).getValue(), 
                                 (String) results.get(2).getValue());
                     }
@@ -147,7 +147,7 @@ public class BasicCoinManager extends Contract {
 
     public RemoteCall<TransactionReceipt> drain() {
         final Function function = new Function(
-                FUNC_DRAIN,
+                FUNC_DRAIN, 
                 Arrays.<Type>asList(), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
@@ -178,7 +178,7 @@ public class BasicCoinManager extends Contract {
                     public Tuple3<String, String, String> call() throws Exception {
                         List<Type> results = executeCallMultipleValueReturn(function);
                         return new Tuple3<String, String, String>(
-                                (String) results.get(0).getValue(),
+                                (String) results.get(0).getValue(), 
                                 (String) results.get(1).getValue(), 
                                 (String) results.get(2).getValue());
                     }

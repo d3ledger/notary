@@ -70,7 +70,7 @@ public class Ownable extends Contract {
 
     public RemoteCall<TransactionReceipt> renounceOwnership() {
         final Function function = new Function(
-                FUNC_RENOUNCEOWNERSHIP,
+                FUNC_RENOUNCEOWNERSHIP, 
                 Arrays.<Type>asList(), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
@@ -94,7 +94,7 @@ public class Ownable extends Contract {
 
     public RemoteCall<TransactionReceipt> transferOwnership(String newOwner) {
         final Function function = new Function(
-                FUNC_TRANSFEROWNERSHIP,
+                FUNC_TRANSFEROWNERSHIP, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(newOwner)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);

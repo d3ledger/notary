@@ -73,7 +73,8 @@ class BtcMultiNotaryIntegrationTest {
         val btcAddress =
             integrationHelper.registerBtcAddress(
                 environments.first().notaryConfig.btcTransferWalletPath,
-                randomName
+                randomName,
+                CLIENT_DOMAIN
             )
         val initialBalance = integrationHelper.getIrohaAccountBalance(
             testClient,
