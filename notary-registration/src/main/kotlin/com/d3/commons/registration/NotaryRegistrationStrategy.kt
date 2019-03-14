@@ -104,6 +104,10 @@ class NotaryRegistrationStrategy(
                         ),
                         IrohaCommand.CommandGrantPermission(
                             irohaConsumer.creator,
+                            Primitive.GrantablePermission.can_set_my_quorum_VALUE
+                        ),
+                        IrohaCommand.CommandGrantPermission(
+                            irohaConsumer.creator,
                             Primitive.GrantablePermission.can_add_my_signatory_VALUE
                         ),
                         IrohaCommand.CommandGrantPermission(
@@ -144,10 +148,10 @@ class NotaryRegistrationStrategy(
         }.map { (createAccountTx, newSignatoryTx) ->
             listOf<TransactionOuterClass.Transaction>(
                 createAccountTx.build(),
-                newSignatoryTx.build(),
                 trueBatch[1]
                     .sign(primaryKeyPair)
-                    .build()
+                    .build(),
+                newSignatoryTx.build()
             )
         }
     }
