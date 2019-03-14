@@ -74,7 +74,7 @@ services:
     command: mongod --smallfiles
 
   d3-brvs:
-    image: mingela/brvs:1.0.0_rc3
+    image: mingela/brvs:1.0.0_rc4-hotfix1
     container_name: d3-brvs
     depends_on:
     - d3-rmq
