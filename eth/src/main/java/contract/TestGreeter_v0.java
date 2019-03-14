@@ -54,7 +54,7 @@ public class TestGreeter_v0 extends Contract {
 
     public RemoteCall<TransactionReceipt> set(String greeting) {
         final Function function = new Function(
-                FUNC_SET,
+                FUNC_SET, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Utf8String(greeting)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
@@ -70,7 +70,7 @@ public class TestGreeter_v0 extends Contract {
 
     public RemoteCall<TransactionReceipt> initialize(String greeting) {
         final Function function = new Function(
-                FUNC_INITIALIZE,
+                FUNC_INITIALIZE, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Utf8String(greeting)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);

@@ -1,5 +1,8 @@
 package integration.eth.contracts
 
+import com.d3.eth.sidechain.util.hashToAddAndRemovePeer
+import com.d3.eth.sidechain.util.hashToMint
+import com.d3.eth.sidechain.util.hashToWithdraw
 import contract.BasicCoin
 import contract.Master
 import integration.helper.ContractTestHelper
@@ -8,11 +11,9 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.web3j.crypto.ECKeyPair
+import org.web3j.crypto.Hash
 import org.web3j.crypto.Keys
 import org.web3j.protocol.exceptions.TransactionException
-import com.d3.eth.sidechain.util.hashToAddAndRemovePeer
-import com.d3.eth.sidechain.util.hashToMint
-import com.d3.eth.sidechain.util.hashToWithdraw
 import java.math.BigInteger
 import java.time.Duration
 import kotlin.test.assertEquals
@@ -746,12 +747,10 @@ class MasterTest {
             val sigCount = 4
             val realSigCount = 4
 
-            val finalHash =
-                hashToAddAndRemovePeer(
-                    newPeer,
-                    cth.defaultIrohaHash
-                )
-
+            val finalHash = hashToAddAndRemovePeer(
+                newPeer,
+                cth.defaultIrohaHash
+            )
 
             val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
 
@@ -772,6 +771,79 @@ class MasterTest {
 
             Assertions.assertTrue(result)
             Assertions.assertTrue(master.peers(newPeer).send())
+        }
+    }
+
+    /**
+     * @given relay registry and master contracts, peer is added with hash
+     * @when try to remove peer address by all valid peers and then add peer by used hash
+     * @then the peer should not be added again if tx hash is already used
+     */
+    @Test
+    fun addNewPeerByPeersUseSameHash() {
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            val newPeer = "0x006fe444ffbaffb27813265c50a479897b8a2512"
+            val sigCount = 4
+            val realSigCount = 4
+
+            val finalHash = hashToAddAndRemovePeer(
+                newPeer,
+                cth.defaultIrohaHash
+            )
+
+            val (keyPairs, peers) = cth.getKeyPairsAndPeers(sigCount)
+
+            val master = cth.deployHelper.deployMasterSmartContract(
+                cth.relayRegistry.contractAddress,
+                peers
+            )
+
+            val sigs = cth.prepareSignatures(realSigCount, keyPairs.subList(0, realSigCount), finalHash)
+
+            // first call
+            val resultAdd = master.addPeerByPeer(
+                newPeer,
+                cth.defaultByteHash,
+                sigs.vv,
+                sigs.rr,
+                sigs.ss
+            ).send().isStatusOK
+
+            Assertions.assertTrue(resultAdd)
+            Assertions.assertTrue(master.peers(newPeer).send())
+
+            val removeIrohaHash = Hash.sha3(String.format("%064x", BigInteger.valueOf(54321)))
+            val removeHash = hashToAddAndRemovePeer(
+                newPeer,
+                removeIrohaHash
+            )
+            val removeByteHash = cth.itohaHashToByteHash(removeIrohaHash)
+            val removeSigs = cth.prepareSignatures(realSigCount, keyPairs.subList(0, realSigCount), removeHash)
+
+            // remove peer
+            val resultRemove = master.removePeerByPeer(
+                newPeer,
+                removeByteHash,
+                removeSigs.vv,
+                removeSigs.rr,
+                removeSigs.ss
+            ).send().isStatusOK
+
+            Assertions.assertTrue(resultRemove)
+            Assertions.assertFalse(master.peers(newPeer).send())
+
+            // second call to add peer with the same hash
+            Assertions.assertThrows(TransactionException::class.java) {
+                master.addPeerByPeer(
+                    newPeer,
+                    cth.defaultByteHash,
+                    sigs.vv,
+                    sigs.rr,
+                    sigs.ss
+                ).send()
+            }
+
+            Assertions.assertFalse(master.peers(newPeer).send())
         }
     }
 
@@ -904,6 +976,35 @@ class MasterTest {
             Assertions.assertEquals(
                 amountToSend,
                 cth.getToken(master.xorTokenInstance().send()).balanceOf(beneficiary).send().toInt()
+            )
+        }
+    }
+
+    /**
+     * @given master contract and sora token and mint is called with Iroha hash
+     * @when mint is called with the same hash
+     * @then mint call fails
+     */
+    @Test
+    fun mintWithSameHash() {
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            val beneficiary = "0xbcBCeb4D66065B7b34d1B90f4fa572829F2c6D5c"
+            val amountToSend: Long = 1000
+
+            val result = cth.mintByPeer(beneficiary, amountToSend).isStatusOK
+
+            Assertions.assertTrue(result)
+            Assertions.assertEquals(
+                amountToSend,
+                cth.getToken(master.xorTokenInstance().send()).balanceOf(beneficiary).send().toLong()
+            )
+
+            Assertions.assertThrows(TransactionException::class.java) {
+                cth.mintByPeer(beneficiary, amountToSend)
+            }
+            Assertions.assertEquals(
+                amountToSend,
+                cth.getToken(master.xorTokenInstance().send()).balanceOf(beneficiary).send().toLong()
             )
         }
     }
