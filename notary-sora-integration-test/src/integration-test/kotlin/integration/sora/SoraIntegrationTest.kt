@@ -14,6 +14,7 @@ import com.d3.commons.registration.NotaryRegistrationConfig
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomString
 import com.d3.commons.util.toHexString
+import com.squareup.moshi.Moshi
 import kotlin.test.assertEquals
 
 /**
@@ -31,6 +32,11 @@ class SoraIntegrationTest {
 
     val registrationConfig =
         loadConfigs("registration", NotaryRegistrationConfig::class.java, "/registration.properties").get()
+
+    // Moshi adapter for response JSON deserealization
+    val moshiAdapter = Moshi
+        .Builder()
+        .build()!!.adapter(Map::class.java)!!
 
     init {
         GlobalScope.launch {
@@ -187,7 +193,10 @@ class SoraIntegrationTest {
         )
 
         assertEquals(200, res.statusCode)
-        assertEquals("$name@$domain", res.text)
+
+        val response = moshiAdapter.fromJson(res.jsonObject.toString())!!
+        val actualClientId = response["clientId"]
+        assertEquals("$name@$domain", actualClientId)
 
         // ensure account is created
         try {
