@@ -146,8 +146,6 @@ class BtcConfigHelper(
     }
 
     fun createBtcRegistrationConfig(): BtcRegistrationConfig {
-        val btcRegistrationConfig =
-            loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/btc/registration.properties").get()
         return object : BtcRegistrationConfig {
             override val nodeId = NODE_ID
             override val notaryAccount = accountHelper.notaryAccount.accountId
@@ -156,6 +154,7 @@ class BtcConfigHelper(
             override val registrationCredential =
                 accountHelper.createCredentialConfig(accountHelper.registrationAccount)
             override val iroha = createIrohaConfig()
+            override val clientStorageAccount = accountHelper.clientStorageAccount
         }
     }
 }

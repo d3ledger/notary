@@ -2,13 +2,13 @@
 
 package com.d3.eth.registration
 
-import com.github.kittinunf.result.failure
-import com.github.kittinunf.result.fanout
-import com.github.kittinunf.result.map
 import com.d3.commons.config.ETH_RELAY_REGISTRY_ENV
 import com.d3.commons.config.EthereumPasswords
 import com.d3.commons.config.loadConfigs
 import com.d3.commons.config.loadEthPasswords
+import com.github.kittinunf.result.failure
+import com.github.kittinunf.result.fanout
+import com.github.kittinunf.result.map
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import mu.KLogging
 
@@ -31,6 +31,7 @@ fun main(args: Array<String>) {
                 override val notaryIrohaAccount = ethRegistrationConfig.notaryIrohaAccount
                 override val iroha = ethRegistrationConfig.iroha
                 override val registrationCredential = ethRegistrationConfig.registrationCredential
+                override val clientStorageAccount = ethRegistrationConfig.clientStorageAccount
             }
         }
         .fanout { loadEthPasswords("eth-registration", "/eth/ethereum_password.properties", args) }

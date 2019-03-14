@@ -113,7 +113,7 @@ services:
       - d3-network
 
   d3-brvs:
-    image: mingela/brvs:1.0.0_rc3
+    image: mingela/brvs:1.0.0_rc4-hotfix1
     container_name: d3-brvs
     ports:
       - 8080:8080

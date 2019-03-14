@@ -35,7 +35,7 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
     /** Notary account */
     val notaryAccount by lazy { createNotaryAccount() }
 
-    val clientStorageAccount by lazy { createTesterAccount("client_accounts_storage").accountId }
+    val clientStorageAccount by lazy { createTesterAccount("client_accounts").accountId }
 
     /**
      * Makes given account multisignature

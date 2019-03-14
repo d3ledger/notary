@@ -43,4 +43,11 @@ class NotaryRegistrationAppConfiguration {
 
     @Bean
     fun clientStorageAccount() = registrationConfig().clientStorageAccount
+
+    @Bean
+    fun brvsAccount() = registrationConfig().brvsAccount
+
+    @Bean
+    fun primaryKeyPair() =
+        ModelUtil.loadKeypair(registrationConfig.primaryPubkeyPath, registrationConfig.primaryPrivkeyPath).get()
 }

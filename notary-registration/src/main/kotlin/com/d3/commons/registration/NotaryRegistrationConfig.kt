@@ -19,4 +19,13 @@ interface NotaryRegistrationConfig {
 
     /** Iroha account to store clients */
     val clientStorageAccount: String
+
+    /** Iroha account of validator service */
+    val brvsAccount: String
+
+    /** Path to a fake pubkey to register user accounts with first**/
+    val primaryPubkeyPath: String
+
+    /** Path to a fake privkey conforming to the pub one to register user accounts with first**/
+    val primaryPrivkeyPath: String
 }

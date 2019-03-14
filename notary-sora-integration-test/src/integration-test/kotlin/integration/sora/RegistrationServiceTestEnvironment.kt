@@ -29,8 +29,18 @@ class RegistrationServiceTestEnvironment(integrationHelper: IrohaIntegrationHelp
 
     private val irohaConsumer = IrohaConsumerImpl(registrationCredentials, integrationHelper.irohaAPI)
 
+    private val primaryKeyPair = ModelUtil.loadKeypair(
+        registrationConfig.primaryPubkeyPath,
+        registrationConfig.primaryPrivkeyPath
+    ).get()
+
     private val registrationStrategy =
-        NotaryRegistrationStrategy(irohaConsumer, registrationConfig.clientStorageAccount)
+        NotaryRegistrationStrategy(
+            irohaConsumer,
+            registrationConfig.clientStorageAccount,
+            registrationConfig.brvsAccount,
+            primaryKeyPair
+        )
 
     val registrationInitialization =
         RegistrationServiceInitialization(registrationConfig, registrationStrategy)
