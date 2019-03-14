@@ -14,6 +14,10 @@ open class IrohaConfigHelper {
     /** Configurations for tests */
     val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
 
+    /** Configuration for registration */
+    private val registrationConfig =
+        loadConfigs("registration", NotaryRegistrationConfig::class.java, "/local.properties").get()
+
     /** Test configuration for Iroha */
     fun createIrohaConfig(
     ): IrohaConfig {
@@ -30,6 +34,10 @@ open class IrohaConfigHelper {
             override val iroha = createIrohaConfig()
             override val registrationCredential =
                 accountHelper.createCredentialConfig(accountHelper.registrationAccount)
+            override val clientStorageAccount = registrationConfig.clientStorageAccount
+            override val brvsAccount = registrationConfig.brvsAccount
+            override val primaryPubkeyPath = registrationConfig.primaryPubkeyPath
+            override val primaryPrivkeyPath = registrationConfig.primaryPrivkeyPath
         }
     }
 
