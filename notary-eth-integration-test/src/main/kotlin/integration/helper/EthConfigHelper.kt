@@ -156,7 +156,6 @@ open class EthConfigHelper(
             override val iroha = createIrohaConfig()
             override val registrationCredential =
                 accountHelper.createCredentialConfig(accountHelper.registrationAccount)
-            override val clientStorageAccount = accountHelper.clientStorageAccount
         }
     }
 

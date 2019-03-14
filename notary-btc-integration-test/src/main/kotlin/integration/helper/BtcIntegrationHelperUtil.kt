@@ -76,8 +76,7 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
             )
         val irohaBtcAccountCreator = IrohaBtcAccountRegistrator(
             registrationConsumer,
-            accountHelper.notaryAccount.accountId,
-            accountHelper.clientStorageAccount
+            accountHelper.notaryAccount.accountId
         )
         BtcRegistrationStrategyImpl(
             BtcFreeAddressesProvider(

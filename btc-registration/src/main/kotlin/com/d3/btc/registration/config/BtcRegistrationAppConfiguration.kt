@@ -5,13 +5,13 @@ import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.account.IrohaBtcAccountRegistrator
 import com.d3.btc.provider.address.BtcAddressesProvider
 import com.d3.commons.config.loadConfigs
-import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.QueryAPI
 import com.d3.commons.model.IrohaCredential
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 
 val btcRegistrationConfig =
     loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/btc/registration.properties").get()
@@ -66,8 +66,7 @@ class BtcRegistrationAppConfiguration {
     fun irohaBtcAccountCreator(): IrohaBtcAccountRegistrator {
         return IrohaBtcAccountRegistrator(
             btcRegistrationConsumer(),
-            btcRegistrationConfig.notaryAccount,
-            btcRegistrationConfig.clientStorageAccount
+            btcRegistrationConfig.notaryAccount
         )
     }
 }

@@ -31,7 +31,6 @@ fun main(args: Array<String>) {
                 override val notaryIrohaAccount = ethRegistrationConfig.notaryIrohaAccount
                 override val iroha = ethRegistrationConfig.iroha
                 override val registrationCredential = ethRegistrationConfig.registrationCredential
-                override val clientStorageAccount = ethRegistrationConfig.clientStorageAccount
             }
         }
         .fanout { loadEthPasswords("eth-registration", "/eth/ethereum_password.properties", args) }

@@ -154,7 +154,6 @@ class BtcConfigHelper(
             override val registrationCredential =
                 accountHelper.createCredentialConfig(accountHelper.registrationAccount)
             override val iroha = createIrohaConfig()
-            override val clientStorageAccount = accountHelper.clientStorageAccount
         }
     }
 }
