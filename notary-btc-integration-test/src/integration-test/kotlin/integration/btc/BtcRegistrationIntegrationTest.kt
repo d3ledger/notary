@@ -2,6 +2,7 @@ package integration.btc
 
 import integration.btc.environment.BtcRegistrationTestEnvironment
 import integration.helper.BtcIntegrationHelperUtil
+import integration.registration.RegistrationServiceTestEnvironment
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -21,16 +22,19 @@ class BtcRegistrationIntegrationTest {
 
     private val integrationHelper = BtcIntegrationHelperUtil()
 
-    private val environment = BtcRegistrationTestEnvironment(integrationHelper)
+    private val btcRegistrationEnvironment = BtcRegistrationTestEnvironment(integrationHelper)
+    private val registrationServiceEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
 
     init {
-        environment.btcRegistrationServiceInitialization.init()
+        registrationServiceEnvironment.registrationInitialization.init()
+        btcRegistrationEnvironment.btcRegistrationServiceInitialization.init()
         runBlocking { delay(5_000) }
     }
 
     @AfterAll
     fun dropDown() {
-        environment.close()
+        registrationServiceEnvironment.close()
+        btcRegistrationEnvironment.close()
     }
 
     /**
@@ -41,16 +45,21 @@ class BtcRegistrationIntegrationTest {
      */
     @Test
     fun testRegistration() {
-        integrationHelper.genFreeBtcAddress(environment.btcAddressGenerationConfig.btcKeysWalletPath)
+        integrationHelper.genFreeBtcAddress(btcRegistrationEnvironment.btcAddressGenerationConfig.btcKeysWalletPath)
         val keypair = Ed25519Sha3().generateKeypair()
         val userName = String.getRandomString(9)
-        val res = khttp.post(
-            "http://127.0.0.1:${environment.btcRegistrationConfig.port}/users",
+        var res = khttp.post(
+            "http://127.0.0.1:${registrationServiceEnvironment.registrationConfig.port}/users",
+            data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
+        )
+        assertEquals(200, res.statusCode)
+        res = khttp.post(
+            "http://127.0.0.1:${btcRegistrationEnvironment.btcRegistrationConfig.port}/users",
             data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
         )
         assertEquals(200, res.statusCode)
         val registeredBtcAddress = String(res.content)
-        environment.btcTakenAddressesProvider.getRegisteredAddresses().fold({ addresses ->
+        btcRegistrationEnvironment.btcTakenAddressesProvider.getRegisteredAddresses().fold({ addresses ->
             assertEquals(
                 "$userName@$CLIENT_DOMAIN",
                 addresses.first { btcAddress -> btcAddress.address == registeredBtcAddress }.info.irohaClient
@@ -70,19 +79,28 @@ class BtcRegistrationIntegrationTest {
      */
     @Test
     fun testRegistrationNoAddressForMyNode() {
-        val clientsBeforeRegistration = environment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
-        integrationHelper.genFreeBtcAddress(environment.btcAddressGenerationConfig.btcKeysWalletPath, "different node id")
+        val clientsBeforeRegistration =
+            btcRegistrationEnvironment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
+        integrationHelper.genFreeBtcAddress(
+            btcRegistrationEnvironment.btcAddressGenerationConfig.btcKeysWalletPath,
+            "different node id"
+        )
         val keypair = Ed25519Sha3().generateKeypair()
         val userName = String.getRandomString(9)
-        val res = khttp.post(
-            "http://127.0.0.1:${environment.btcRegistrationConfig.port}/users",
+        var res = khttp.post(
+            "http://127.0.0.1:${registrationServiceEnvironment.registrationConfig.port}/users",
+            data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
+        )
+        assertEquals(200, res.statusCode)
+        res = khttp.post(
+            "http://127.0.0.1:${btcRegistrationEnvironment.btcRegistrationConfig.port}/users",
             data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
         )
 
         assertEquals(500, res.statusCode)
         assertEquals(
             clientsBeforeRegistration,
-            environment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
+            btcRegistrationEnvironment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
         )
     }
 
@@ -96,22 +114,31 @@ class BtcRegistrationIntegrationTest {
     fun testRegistrationMultiple() {
         val takenAddresses = HashSet<String>()
         val addressesToRegister = 3
-        integrationHelper.preGenFreeBtcAddresses(environment.btcAddressGenerationConfig.btcKeysWalletPath, addressesToRegister)
+        integrationHelper.preGenFreeBtcAddresses(
+            btcRegistrationEnvironment.btcAddressGenerationConfig.btcKeysWalletPath,
+            addressesToRegister
+        )
         for (i in 1..addressesToRegister) {
-            val num = khttp.get("http://127.0.0.1:${environment.btcRegistrationConfig.port}/free-addresses/number")
+            val num =
+                khttp.get("http://127.0.0.1:${btcRegistrationEnvironment.btcRegistrationConfig.port}/free-addresses/number")
             assertEquals((addressesToRegister - i + 1).toString(), num.text)
 
             val keypair = Ed25519Sha3().generateKeypair()
             val userName = String.getRandomString(9)
-            val res = khttp.post(
-                "http://127.0.0.1:${environment.btcRegistrationConfig.port}/users",
+            var res = khttp.post(
+                "http://127.0.0.1:${registrationServiceEnvironment.registrationConfig.port}/users",
+                data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
+            )
+            assertEquals(200, res.statusCode)
+            res = khttp.post(
+                "http://127.0.0.1:${btcRegistrationEnvironment.btcRegistrationConfig.port}/users",
                 data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
             )
             assertEquals(200, res.statusCode)
             val registeredBtcAddress = String(res.content)
             assertFalse(takenAddresses.contains(registeredBtcAddress))
             takenAddresses.add(registeredBtcAddress)
-            environment.btcTakenAddressesProvider.getRegisteredAddresses().fold({ addresses ->
+            btcRegistrationEnvironment.btcTakenAddressesProvider.getRegisteredAddresses().fold({ addresses ->
                 assertEquals(
                     "$userName@$CLIENT_DOMAIN",
                     addresses.first { btcAddress -> btcAddress.address == registeredBtcAddress }.info.irohaClient
@@ -123,7 +150,8 @@ class BtcRegistrationIntegrationTest {
             )
         }
 
-        val num = khttp.get("http://127.0.0.1:${environment.btcRegistrationConfig.port}/free-addresses/number")
+        val num =
+            khttp.get("http://127.0.0.1:${btcRegistrationEnvironment.btcRegistrationConfig.port}/free-addresses/number")
         assertEquals("0", num.text)
 
     }
@@ -136,21 +164,28 @@ class BtcRegistrationIntegrationTest {
      */
     @Test
     fun testRegistrationNoFree() {
-        val clientsBeforeRegistration = environment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
+        val clientsBeforeRegistration =
+            btcRegistrationEnvironment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
         val keypair = Ed25519Sha3().generateKeypair()
         val userName = String.getRandomString(9)
 
-        val num = khttp.get("http://127.0.0.1:${environment.btcRegistrationConfig.port}/free-addresses/number")
+        val num =
+            khttp.get("http://127.0.0.1:${btcRegistrationEnvironment.btcRegistrationConfig.port}/free-addresses/number")
         assertEquals("0", num.text)
 
-        val res = khttp.post(
-            "http://127.0.0.1:${environment.btcRegistrationConfig.port}/users",
+        var res = khttp.post(
+            "http://127.0.0.1:${registrationServiceEnvironment.registrationConfig.port}/users",
+            data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
+        )
+        assertEquals(200, res.statusCode)
+        res = khttp.post(
+            "http://127.0.0.1:${btcRegistrationEnvironment.btcRegistrationConfig.port}/users",
             data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
         )
         assertEquals(500, res.statusCode)
         assertEquals(
             clientsBeforeRegistration,
-            environment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
+            btcRegistrationEnvironment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
         )
     }
 
@@ -162,22 +197,29 @@ class BtcRegistrationIntegrationTest {
      */
     @Test
     fun testRegistrationOnlyChangeAddresses() {
-        val clientsBeforeRegistration = environment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
-        integrationHelper.genChangeBtcAddress(environment.btcAddressGenerationConfig.btcKeysWalletPath)
+        val clientsBeforeRegistration =
+            btcRegistrationEnvironment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
+        integrationHelper.genChangeBtcAddress(btcRegistrationEnvironment.btcAddressGenerationConfig.btcKeysWalletPath)
 
-        val num = khttp.get("http://127.0.0.1:${environment.btcRegistrationConfig.port}/free-addresses/number")
+        val num =
+            khttp.get("http://127.0.0.1:${btcRegistrationEnvironment.btcRegistrationConfig.port}/free-addresses/number")
         assertEquals("0", num.text)
 
         val keypair = Ed25519Sha3().generateKeypair()
         val userName = String.getRandomString(9)
-        val res = khttp.post(
-            "http://127.0.0.1:${environment.btcRegistrationConfig.port}/users",
+        var res = khttp.post(
+            "http://127.0.0.1:${registrationServiceEnvironment.registrationConfig.port}/users",
+            data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
+        )
+        assertEquals(200, res.statusCode)
+        res = khttp.post(
+            "http://127.0.0.1:${btcRegistrationEnvironment.btcRegistrationConfig.port}/users",
             data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
         )
         assertEquals(500, res.statusCode)
         assertEquals(
             clientsBeforeRegistration,
-            environment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
+            btcRegistrationEnvironment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
         )
     }
 }

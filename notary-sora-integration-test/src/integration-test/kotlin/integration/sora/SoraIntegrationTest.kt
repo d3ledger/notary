@@ -1,7 +1,10 @@
 package integration.sora
 
-import com.d3.commons.config.loadConfigs
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
 import integration.helper.IrohaIntegrationHelperUtil
+import integration.registration.RegistrationServiceTestEnvironment
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -10,10 +13,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
-import com.d3.commons.registration.NotaryRegistrationConfig
-import com.d3.commons.sidechain.iroha.util.ModelUtil
-import com.d3.commons.util.getRandomString
-import com.d3.commons.util.toHexString
 import kotlin.test.assertEquals
 
 /**
@@ -25,16 +24,17 @@ class SoraIntegrationTest {
 
     val integrationHelper = IrohaIntegrationHelperUtil()
 
+    val registrationEnvironmetn = RegistrationServiceTestEnvironment(integrationHelper)
+
     val domain = "sora"
     val xorAsset = "xor#$domain"
     val soraClientId = "sora@sora"
 
-    val registrationConfig =
-        loadConfigs("registration", NotaryRegistrationConfig::class.java, "/registration.properties").get()
+    val registrationConfig = registrationEnvironmetn.registrationConfig
 
     init {
         GlobalScope.launch {
-            RegistrationServiceTestEnvironment(integrationHelper).registrationInitialization.init()
+            registrationEnvironmetn.registrationInitialization.init()
         }
 
         runBlocking { delay(20_000) }

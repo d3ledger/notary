@@ -1,16 +1,16 @@
 package longevity
 
-import com.github.kittinunf.result.Result
 import com.d3.commons.config.IrohaCredentialConfig
 import com.d3.commons.config.loadEthPasswords
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.eth.provider.ETH_PRECISION
+import com.github.kittinunf.result.Result
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.NotaryClient
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import mu.KLogging
-import com.d3.eth.provider.ETH_PRECISION
-import com.d3.commons.sidechain.iroha.util.ModelUtil
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -78,7 +78,7 @@ class LongevityTest {
      */
     private fun runServices() {
         runNotaries()
-        GlobalScope.launch { integrationHelper.runRegistrationService() }
+        GlobalScope.launch { integrationHelper.runEthRegistrationService() }
         GlobalScope.launch { integrationHelper.runEthWithdrawalService() }
 
         // wait until services are up
@@ -122,7 +122,7 @@ class LongevityTest {
                     logger.info { "Clietn ${client.name} eth balance: $ethBalanceBefore after deposit" }
                     logger.info { "Client ${client.name} iroha balance $irohaBalanceBefore after deposit" }
 
-                    val decimalAmount = BigDecimal(amount, ETH_PRECISION.toInt())
+                    val decimalAmount = BigDecimal(amount, ETH_PRECISION)
 
                     if (!BigDecimal(irohaBalanceBefore).equals(decimalAmount))
                         logger.warn { "Client ${client.name} has wrong iroha balance. Expected ${decimalAmount.toPlainString()}, but got before: $irohaBalanceBefore" }
@@ -141,10 +141,10 @@ class LongevityTest {
                     if (!ethBalanceBefore.add(amount).equals(ethBalanceAfter))
                         logger.warn { "Client ${client.name} has wrong eth balance. Expected equal but got before: $ethBalanceBefore, after: $ethBalanceAfter" }
 
-                    if (!BigDecimal(irohaBalanceBefore).equals(BigDecimal(amount, ETH_PRECISION.toInt())))
+                    if (!BigDecimal(irohaBalanceBefore).equals(BigDecimal(amount, ETH_PRECISION)))
                         logger.warn { "Client ${client.name} has wrong iroha balance. Expected 0, but got after: $irohaBalanceBefore" }
 
-                    if (!BigDecimal(irohaBalanceAfter).equals(BigDecimal(BigInteger.ZERO, ETH_PRECISION.toInt())))
+                    if (!BigDecimal(irohaBalanceAfter).equals(BigDecimal(BigInteger.ZERO, ETH_PRECISION)))
                         logger.warn { "Client ${client.name} has wrong iroha balance. Expected 0, but got after: $irohaBalanceAfter" }
                 }
             }

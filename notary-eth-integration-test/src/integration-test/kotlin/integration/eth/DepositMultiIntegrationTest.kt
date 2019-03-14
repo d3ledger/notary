@@ -2,6 +2,10 @@ package integration.eth
 
 import com.d3.commons.config.IrohaCredentialConfig
 import com.d3.commons.config.loadEthPasswords
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.getRandomString
+import com.d3.eth.provider.ETH_PRECISION
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
 import kotlinx.coroutines.delay
@@ -10,10 +14,6 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import com.d3.eth.provider.ETH_PRECISION
-import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
-import com.d3.commons.sidechain.iroha.util.ModelUtil
-import com.d3.commons.util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Duration
@@ -39,7 +39,7 @@ class DepositMultiIntegrationTest {
     private fun registerRelay(): String {
         integrationHelper.deployRelays(1)
         // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
-        return integrationHelper.registerClient(clientIrohaAccount, listOf())
+        return integrationHelper.registerClient(clientIrohaAccount, CLIENT_DOMAIN, listOf())
     }
 
     /** Path to public key of 2nd instance of notary */

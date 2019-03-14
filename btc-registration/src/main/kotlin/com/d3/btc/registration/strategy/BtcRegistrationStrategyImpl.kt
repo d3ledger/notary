@@ -1,34 +1,35 @@
 package com.d3.btc.registration.strategy
 
 import com.d3.btc.provider.BtcFreeAddressesProvider
-import com.d3.btc.provider.account.IrohaBtcAccountCreator
+import com.d3.btc.provider.account.IrohaBtcAccountRegistrator
+import com.d3.commons.registration.RegistrationStrategy
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import com.d3.commons.registration.RegistrationStrategy
 
 //Strategy for registering BTC addresses
 @Component
 class BtcRegistrationStrategyImpl(
     @Autowired private val btcFreeAddressesProvider: BtcFreeAddressesProvider,
-    @Autowired private val irohaBtcAccountCreator: IrohaBtcAccountCreator
+    @Autowired private val irohaBtcAccountCreator: IrohaBtcAccountRegistrator
 ) : RegistrationStrategy {
 
     /**
      * Registers new Iroha client and associates BTC address to it
-     * @param name - client name
-     * @param pubkey - client public key
+     * @param accountName - client name
+     * @param domainId - client domain
      * @param whitelist - list of bitcoin addresses
+     * @param publicKey - client public key
      * @return associated BTC address
      */
     @Synchronized
     override fun register(
-        name: String,
-        domain: String,
+        accountName: String,
+        domainId: String,
         whitelist: List<String>,
-        pubkey: String
+        publicKey: String
     ): Result<String, Exception> {
         return btcFreeAddressesProvider.getFreeAddresses().flatMap { freeAddresses ->
             if (freeAddresses.isEmpty()) {
@@ -38,9 +39,9 @@ class BtcRegistrationStrategyImpl(
             irohaBtcAccountCreator.create(
                 freeAddress.address,
                 whitelist,
-                name,
-                domain,
-                pubkey,
+                accountName,
+                domainId,
+                publicKey,
                 freeAddress.info.notaryKeys,
                 btcFreeAddressesProvider.nodeId
             )

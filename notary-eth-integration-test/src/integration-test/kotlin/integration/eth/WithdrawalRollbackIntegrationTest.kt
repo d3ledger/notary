@@ -6,6 +6,7 @@ import com.d3.commons.util.getRandomString
 import com.d3.commons.util.toHexString
 import com.d3.eth.provider.ETH_PRECISION
 import integration.helper.EthIntegrationHelperUtil
+import integration.registration.RegistrationServiceTestEnvironment
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -23,8 +24,13 @@ class WithdrawalRollbackIntegrationTest {
     /** Integration tests util */
     private val integrationHelper = EthIntegrationHelperUtil()
 
+    private val registrationTestEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
+
     /** Test Registration configuration */
-    private val registrationConfig = integrationHelper.ethRegistrationConfig
+    private val registrationConfig = registrationTestEnvironment.registrationConfig
+
+    /** Test EthRegistration configuration */
+    private val ethRegistrationConfig = integrationHelper.ethRegistrationConfig
 
     /** Ethereum test address where we want to withdraw to */
     private val toAddress = integrationHelper.configHelper.testConfig.ethTestAccount
@@ -32,19 +38,23 @@ class WithdrawalRollbackIntegrationTest {
     /** Notary account in Iroha */
     private val notaryAccount = integrationHelper.accountHelper.notaryAccount.accountId
 
-    private val registrationService: Job
+    private val ethRegistrationService: Job
 
     private val withdrawalService: Job
 
     init {
         integrationHelper.runEthDeposit()
-        registrationService = GlobalScope.launch {
-            integrationHelper.runRegistrationService(registrationConfig)
+        registrationTestEnvironment.registrationInitialization.init()
+        ethRegistrationService = GlobalScope.launch {
+            integrationHelper.runEthRegistrationService(ethRegistrationConfig)
         }
         withdrawalService = GlobalScope.launch {
-            integrationHelper.runEthWithdrawalService(integrationHelper.configHelper.createWithdrawalConfig(false))
+            integrationHelper.runEthWithdrawalService(
+                integrationHelper.configHelper.createWithdrawalConfig(
+                    String.getRandomString(9), false
+                )
+            )
         }
-
     }
 
     lateinit var clientName: String
@@ -61,9 +71,10 @@ class WithdrawalRollbackIntegrationTest {
 
     @AfterAll
     fun dropDown() {
-        integrationHelper.close()
-        registrationService.cancel()
+        registrationTestEnvironment.close()
+        ethRegistrationService.cancel()
         withdrawalService.cancel()
+        integrationHelper.close()
     }
 
     /**
@@ -82,12 +93,21 @@ class WithdrawalRollbackIntegrationTest {
         // make sure master has enough assets
         integrationHelper.sendEth(amount, integrationHelper.masterContract.contractAddress)
 
-        // register client
-        val res = integrationHelper.sendRegistrationRequest(
+        // register client in Iroha
+        var res = integrationHelper.sendRegistrationRequest(
             clientName,
             listOf(toAddress).toString(),
             keypair.public.toHexString(),
             registrationConfig.port
+        )
+        Assertions.assertEquals(200, res.statusCode)
+
+        // register client in Ethereum
+        res = integrationHelper.sendRegistrationRequest(
+            clientName,
+            listOf(toAddress).toString(),
+            keypair.public.toHexString(),
+            ethRegistrationConfig.port
         )
         Assertions.assertEquals(200, res.statusCode)
 
@@ -110,7 +130,7 @@ class WithdrawalRollbackIntegrationTest {
             decimalAmount.toPlainString()
         )
 
-        Thread.sleep(20_000)
+        Thread.sleep(35_000)
 
         Assertions.assertEquals(
             initialBalance,
