@@ -3,21 +3,9 @@ package integration.iroha
 import com.d3.commons.config.RMQConfig
 import com.d3.commons.config.getConfigFolder
 import com.d3.commons.config.loadRawConfigs
-import integration.helper.IrohaConfigHelper
-import integration.helper.IrohaIntegrationHelperUtil
-import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
-import jp.co.soramitsu.iroha.java.Utils
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
 import com.d3.commons.notary.IrohaCommand
 import com.d3.commons.notary.IrohaOrderedBatch
 import com.d3.commons.notary.IrohaTransaction
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
@@ -29,6 +17,18 @@ import com.d3.commons.util.getRandomId
 import com.d3.commons.util.getRandomString
 import com.d3.commons.util.hex
 import com.d3.commons.util.toHexString
+import integration.helper.IrohaConfigHelper
+import integration.helper.IrohaIntegrationHelperUtil
+import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
+import jp.co.soramitsu.iroha.java.Utils
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import java.math.BigInteger
 import java.time.Duration
 import kotlin.test.assertEquals
@@ -40,8 +40,6 @@ private const val BATCH_TIME_WAIT = 5000L
 class IrohaBatchTest {
 
     private val integrationHelper = IrohaIntegrationHelperUtil()
-
-    val testConfig = integrationHelper.testConfig
 
     private val testCredential = integrationHelper.testCredential
 
@@ -146,9 +144,8 @@ class IrohaBatchTest {
                 }
             }
 
+            listener.purge()
             val successHash = irohaConsumer.send(lst).get()
-
-            Thread.sleep(BATCH_TIME_WAIT)
 
             val accountJson = getAccountData(integrationHelper.queryAPI, userId).get().toJsonString()
             val tester_amount = getAccountAsset(integrationHelper.queryAPI, tester, "$asset_name#$assetDomain").get()
@@ -266,6 +263,7 @@ class IrohaBatchTest {
                 }
             }
 
+            listener.purge()
             val successHash = irohaConsumer.send(lst).get()
 
             Thread.sleep(BATCH_TIME_WAIT)
