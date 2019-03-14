@@ -10,6 +10,7 @@ import com.d3.commons.config.loadRawConfigs
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.createPrettySingleThreadPool
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import io.grpc.ManagedChannelBuilder
@@ -18,9 +19,9 @@ import jp.co.soramitsu.iroha.java.QueryAPI
 import mu.KLogging
 import java.io.File
 import java.io.IOException
-import java.util.concurrent.Executors
 
 private val logger = KLogging().logger
+const val CHAIN_ADAPTER_SERVICE_NAME = "chain-adapter"
 
 //TODO Springify
 fun main(args: Array<String>) {
@@ -37,7 +38,12 @@ fun main(args: Array<String>) {
         irohaAPI.setChannelForStreamingQueryStub(
             ManagedChannelBuilder.forAddress(
                 rmqConfig.iroha.hostname, rmqConfig.iroha.port
-            ).executor(Executors.newSingleThreadExecutor()).usePlaintext().build()
+            ).executor(
+                createPrettySingleThreadPool(
+                    CHAIN_ADAPTER_SERVICE_NAME,
+                    "iroha-chain-listener"
+                )
+            ).usePlaintext().build()
         )
         val queryAPI =
             QueryAPI(

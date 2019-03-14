@@ -42,6 +42,7 @@ class EthTokensProviderTest {
     @Test
     fun testGetTokens() {
         assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             val tokensToAdd = 3
             val expectedTokens = mutableMapOf<String, EthTokenInfo>()
             (1..tokensToAdd).forEach { precision ->
@@ -76,6 +77,7 @@ class EthTokensProviderTest {
     @Test
     fun getNonexistentToken() {
         assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             ethTokensProvider.getTokenPrecision("nonexist")
                 .fold(
                     { fail("Result returned success while failure is expected.") },
@@ -99,6 +101,7 @@ class EthTokensProviderTest {
     @Test
     fun getEthereum() {
         assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             ethTokensProvider.getTokenPrecision("$ETH_NAME#$ETH_DOMAIN")
                 .success { assertEquals(ETH_PRECISION, it) }
 

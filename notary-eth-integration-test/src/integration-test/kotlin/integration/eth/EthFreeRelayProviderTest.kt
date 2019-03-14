@@ -43,6 +43,7 @@ class EthFreeRelayProviderTest {
     @Test
     fun getFreeWallet() {
         assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             val ethFreeWallet = "eth_free_wallet_stub"
 
             setAccountDetail(
@@ -88,6 +89,7 @@ class EthFreeRelayProviderTest {
     @Test
     fun testStorageFromFile() {
         assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             val relayHolder = File.createTempFile("relay", "free")
             relayHolder.deleteOnExit()
             val existingRelays = setOf(

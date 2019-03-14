@@ -5,6 +5,7 @@ import com.d3.commons.config.getConfigFolder
 import com.d3.commons.config.loadRawConfigs
 import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.util.createPrettyFixThreadPool
 import com.d3.commons.util.getRandomId
 import com.github.kittinunf.result.map
 import integration.helper.IrohaConfigHelper
@@ -73,7 +74,11 @@ class IrohaBlockStreamingTest {
                             .flatMap {
                                 it.payload.reducedPayload.commandsList
                             }
-                    }.subscribeOn(Schedulers.io()).subscribe()
+                    }.subscribeOn(
+                        Schedulers.from(
+                            createPrettyFixThreadPool("iroha-block-streaming", "test")
+                        )
+                    ).subscribe()
                 }
 
             val utx = Transaction.builder(creator)

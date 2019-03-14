@@ -60,6 +60,7 @@ class DepositIntegrationTest {
     @Test
     fun depositOfETH() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId)
             val amount = BigInteger.valueOf(1_234_000_000_000)
             // send ETH
@@ -87,6 +88,7 @@ class DepositIntegrationTest {
     @Test
     fun depositZeroETH() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            Thread.currentThread().name = this::class.simpleName
             val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId)
             val zeroAmount = BigInteger.ZERO
             val amount = BigInteger.valueOf(1_234_000_000_000)
@@ -123,6 +125,7 @@ class DepositIntegrationTest {
     @Test
     fun depositOfERC20() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            Thread.currentThread().name = this::class.simpleName
             val (tokenInfo, tokenAddress) = integrationHelper.deployRandomERC20Token(2)
             val assetId = "${tokenInfo.name}#ethereum"
             val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId)
@@ -151,6 +154,7 @@ class DepositIntegrationTest {
     @Test
     fun depositZeroOfERC20() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            Thread.currentThread().name = this::class.simpleName
             val (tokenInfo, tokenAddress) = integrationHelper.deployRandomERC20Token(2)
             val assetId = "${tokenInfo.name}#ethereum"
             val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId)

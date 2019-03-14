@@ -1,16 +1,18 @@
 package com.d3.btc.deposit.config
 
+import com.d3.btc.deposit.BTC_DEPOSIT_SERVICE_NAME
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.commons.config.BitcoinConfig
 import com.d3.commons.config.loadConfigs
+import com.d3.commons.model.IrohaCredential
+import com.d3.commons.sidechain.iroha.IrohaChainListener
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.createPrettySingleThreadPool
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
-import com.d3.commons.model.IrohaCredential
 import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import com.d3.commons.sidechain.iroha.IrohaChainListener
-import com.d3.commons.sidechain.iroha.util.ModelUtil
 import java.io.File
 
 val depositConfig = loadConfigs("btc-deposit", BtcDepositConfig::class.java, "/btc/deposit.properties").get()
@@ -50,6 +52,10 @@ class BtcNotaryAppConfiguration {
                 )
             }, { ex -> throw ex })
     }
+
+    @Bean
+    fun registeredClientsListenerExecutor() =
+        createPrettySingleThreadPool(BTC_DEPOSIT_SERVICE_NAME, "reg-clients-listener")
 
     @Bean
     fun transferWallet() = Wallet.loadFromFile(File(depositConfig.btcTransferWalletPath))

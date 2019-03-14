@@ -41,6 +41,7 @@ class FailedTransactionTest {
     @Test
     fun failedEtherTransferTest() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             val failerAddress = integrationHelper.deployFailer()
             integrationHelper.registerRelayByAddress(failerAddress)
             val clientAccount = String.getRandomString(9)
@@ -65,6 +66,7 @@ class FailedTransactionTest {
     @Test
     fun failedTokenTransferTest() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             val failerAddress = integrationHelper.deployFailer()
             val anotherFailerAddress = integrationHelper.deployFailer()
             integrationHelper.registerRelayByAddress(failerAddress)

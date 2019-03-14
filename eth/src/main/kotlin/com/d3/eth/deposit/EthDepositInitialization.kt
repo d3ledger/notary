@@ -7,6 +7,7 @@ import com.d3.commons.notary.NotaryImpl
 import com.d3.commons.notary.endpoint.ServerInitializationBundle
 import com.d3.commons.provider.NotaryPeerListProviderImpl
 import com.d3.commons.sidechain.SideChainEvent
+import com.d3.commons.util.createPrettyScheduledThreadPool
 import com.d3.eth.deposit.endpoint.EthRefundStrategyImpl
 import com.d3.eth.deposit.endpoint.RefundServerEndpoint
 import com.d3.eth.provider.EthRelayProvider
@@ -25,6 +26,7 @@ import jp.co.soramitsu.iroha.java.Transaction
 import mu.KLogging
 import okhttp3.OkHttpClient
 import org.web3j.protocol.Web3j
+import org.web3j.protocol.core.JsonRpc2_0Web3j
 import org.web3j.protocol.http.HttpService
 import java.math.BigInteger
 
@@ -65,7 +67,11 @@ class EthDepositInitialization(
 
         val builder = OkHttpClient().newBuilder()
         builder.authenticator(BasicAuthenticator(passwordsConfig))
-        val web3 = Web3j.build(HttpService(ethDepositConfig.ethereum.url, builder.build(), false))
+        val web3 = Web3j.build(
+            HttpService(ethDepositConfig.ethereum.url, builder.build(), false),
+            JsonRpc2_0Web3j.DEFAULT_BLOCK_TIME.toLong(),
+            createPrettyScheduledThreadPool(ETH_DEPOSIT_SERVICE_NAME, "web3j")
+        )
 
         /** List of all observable wallets */
         val ethHandler = EthChainHandler(web3, ethRelayProvider, ethTokensProvider)

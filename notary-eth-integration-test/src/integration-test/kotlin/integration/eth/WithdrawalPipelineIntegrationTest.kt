@@ -93,6 +93,7 @@ class WithdrawalPipelineIntegrationTest {
     @Test
     fun testFullWithdrawalPipeline() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             val amount = BigInteger.valueOf(1251400000000)
 
             // deploy free relay
@@ -154,6 +155,7 @@ class WithdrawalPipelineIntegrationTest {
     @Test
     fun testFullWithdrawalPipelineErc20() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             val precision = 2
 
             // deploy free relay
@@ -223,6 +225,7 @@ class WithdrawalPipelineIntegrationTest {
     @Test
     fun testWithdrawInWhitelist() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             integrationHelper.registerClient(clientName, CLIENT_DOMAIN, listOf(toAddress, "0x123"), keypair)
 
             val amount = BigDecimal(125)
@@ -261,6 +264,7 @@ class WithdrawalPipelineIntegrationTest {
     @Test
     fun testWithdrawEmptyWhitelist() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
             integrationHelper.registerClient(clientName, CLIENT_DOMAIN, listOf(), keypair)
 
@@ -301,6 +305,7 @@ class WithdrawalPipelineIntegrationTest {
     @Test
     fun testWithdrawNotInWhitelist() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             integrationHelper.registerClient(clientName, CLIENT_DOMAIN, listOf("0x123"), keypair)
             integrationHelper.setWhitelist(clientId, listOf("0x123"))
 

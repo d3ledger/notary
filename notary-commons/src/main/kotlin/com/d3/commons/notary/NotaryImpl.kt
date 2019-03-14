@@ -1,17 +1,17 @@
 package com.d3.commons.notary
 
-import com.github.kittinunf.result.Result
-import io.reactivex.Observable
-import io.reactivex.schedulers.Schedulers
-import jp.co.soramitsu.iroha.java.IrohaAPI
 import com.d3.commons.model.IrohaCredential
-import mu.KLogging
 import com.d3.commons.provider.NotaryPeerListProvider
 import com.d3.commons.sidechain.SideChainEvent
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.consumer.IrohaConverter
+import com.d3.commons.util.createPrettySingleThreadPool
+import com.github.kittinunf.result.Result
+import io.reactivex.Observable
+import io.reactivex.schedulers.Schedulers
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import mu.KLogging
 import java.math.BigInteger
-import java.util.concurrent.Executors
 
 /**
  * Implementation of [Notary] business logic
@@ -118,7 +118,7 @@ class NotaryImpl(
             // Init Iroha Consumer pipeline
             irohaOutput()
                 // convert from Notary model to Iroha model
-                .subscribeOn(Schedulers.from(Executors.newSingleThreadExecutor()))
+                .subscribeOn(Schedulers.from(createPrettySingleThreadPool("notary", "iroha-consumer")))
                 .subscribe(
                     // send to Iroha network layer
                     { batch ->

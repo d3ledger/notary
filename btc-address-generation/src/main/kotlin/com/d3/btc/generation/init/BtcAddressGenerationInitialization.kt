@@ -1,5 +1,6 @@
 package com.d3.btc.generation.init
 
+import com.d3.btc.generation.BTC_ADDRESS_GENERATION_SERVICE_NAME
 import com.d3.btc.generation.config.BtcAddressGenerationConfig
 import com.d3.btc.generation.trigger.AddressGenerationTrigger
 import com.d3.btc.healthcheck.HealthyService
@@ -28,6 +29,7 @@ import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.util.getAccountDetails
 import com.d3.commons.sidechain.iroha.util.getSetDetailCommands
+import com.d3.commons.util.createPrettySingleThreadPool
 
 /*
    This class listens to special account to be triggered and starts generation process
@@ -62,7 +64,14 @@ class BtcAddressGenerationInitialization(
     }
 
     private fun initIrohaObservable(irohaObservable: Observable<BlockOuterClass.Block>) {
-        irohaObservable.subscribeOn(Schedulers.single()).subscribe({ block ->
+        irohaObservable.subscribeOn(
+            Schedulers.from(
+                createPrettySingleThreadPool(
+                    BTC_ADDRESS_GENERATION_SERVICE_NAME,
+                    "iroha-block-handler"
+                )
+            )
+        ).subscribe({ block ->
             getSetDetailCommands(block).forEach { command ->
                 if (isNewClientRegistered(command)) {
                     // generate new multisignature address if new client has been registered recently

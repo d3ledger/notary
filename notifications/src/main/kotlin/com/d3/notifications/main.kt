@@ -10,6 +10,8 @@ import mu.KLogging
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.ComponentScan
 
+const val NOTIFICATIONS_SERVICE_NAME="notifications"
+
 @ComponentScan(basePackages = ["com.d3.notifications"])
 class NotificationApplication
 

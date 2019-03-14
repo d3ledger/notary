@@ -1,13 +1,13 @@
 package integration.eth
 
+import com.d3.eth.provider.EthRelayProviderIrohaImpl
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
-import com.d3.eth.provider.EthRelayProviderIrohaImpl
-import org.junit.jupiter.api.Assertions.*
 import java.time.Duration
 
 /**
@@ -39,6 +39,7 @@ class EthRelayProviderIrohaTest {
     @Test
     fun testStorage() {
         assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             val domain = "notary"
 
             val entries = mapOf(
@@ -74,6 +75,7 @@ class EthRelayProviderIrohaTest {
     @Test
     fun testEmptyStorage() {
         assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             EthRelayProviderIrohaImpl(
                 integrationHelper.queryAPI,
                 integrationHelper.testCredential.accountId,
