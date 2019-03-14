@@ -2,6 +2,7 @@ package integration.helper
 
 import com.d3.commons.config.EthereumPasswords
 import com.d3.commons.config.loadConfigs
+import com.d3.eth.sidechain.util.*
 import contract.SoraToken
 import integration.TestConfig
 import org.web3j.crypto.ECKeyPair
@@ -9,10 +10,6 @@ import org.web3j.crypto.Hash
 import org.web3j.crypto.Keys
 import org.web3j.protocol.core.methods.response.TransactionReceipt
 import org.web3j.utils.Numeric
-import com.d3.eth.sidechain.util.DeployHelper
-import com.d3.eth.sidechain.util.extractVRS
-import com.d3.eth.sidechain.util.hashToWithdraw
-import com.d3.eth.sidechain.util.signUserData
 import java.math.BigInteger
 import kotlin.test.assertEquals
 
@@ -41,7 +38,7 @@ class ContractTestHelper {
 
     val etherAddress = "0x0000000000000000000000000000000000000000"
     val defaultIrohaHash = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))
-    val defaultByteHash = Numeric.hexStringToByteArray(defaultIrohaHash.slice(2 until defaultIrohaHash.length))
+    val defaultByteHash = itohaHashToByteHash(defaultIrohaHash)
 
     // ganache-cli ether custodian
     val accMain = deployHelper.credentials.address
@@ -49,6 +46,8 @@ class ContractTestHelper {
     val accGreen = testConfig.ethTestAccount
 
     data class sigsData(val vv: ArrayList<BigInteger>, val rr: ArrayList<ByteArray>, val ss: ArrayList<ByteArray>)
+
+    fun itohaHashToByteHash(irohaHash: String) = Numeric.hexStringToByteArray(irohaHash.slice(2 until irohaHash.length))
 
     fun prepareSignatures(amount: Int, keypairs: List<ECKeyPair>, toSign: String): sigsData {
         val vv = ArrayList<BigInteger>()
@@ -209,6 +208,46 @@ class ContractTestHelper {
                 relay.contractAddress
             ).send()
         }
+    }
+
+    fun addPeerByPeer(newPeer: String): TransactionReceipt {
+        val finalHash = hashToAddAndRemovePeer(newPeer, defaultIrohaHash)
+        val sigs = prepareSignatures(1, listOf(keypair), finalHash)
+
+        return master.addPeerByPeer(
+            newPeer,
+            defaultByteHash,
+            sigs.vv,
+            sigs.rr,
+            sigs.ss
+        ).send()
+    }
+
+    fun removePeerByPeer(peer: String): TransactionReceipt {
+        val finalHash = hashToAddAndRemovePeer(peer, defaultIrohaHash)
+        val sigs = prepareSignatures(1, listOf(keypair), finalHash)
+
+        return master.removePeerByPeer(
+            peer,
+            defaultByteHash,
+            sigs.vv,
+            sigs.rr,
+            sigs.ss
+        ).send()
+    }
+
+    fun mintByPeer(beneficiary: String, amount: Long): TransactionReceipt {
+        val finalHash = hashToMint(beneficiary, amount.toString(), defaultIrohaHash)
+        val sigs = prepareSignatures(1, listOf(keypair), finalHash)
+
+        return master.mintTokensByPeers(
+            beneficiary,
+            BigInteger.valueOf(amount),
+            defaultByteHash,
+            sigs.vv,
+            sigs.rr,
+            sigs.ss
+        ).send()
     }
 
     /**

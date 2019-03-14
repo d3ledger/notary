@@ -1,7 +1,7 @@
 package com.d3.btc.provider.account
 
 import com.d3.btc.model.AddressInfo
-import com.d3.commons.registration.IrohaAccountCreator
+import com.d3.commons.registration.IrohaAccountRegistrator
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.github.kittinunf.result.Result
 
@@ -11,13 +11,12 @@ const val BTC_CURRENCY_NAME_KEY = "bitcoin"
 /*
     Class that is used to create Bitcoin accounts in Iroha
  */
-class IrohaBtcAccountCreator(
+class IrohaBtcAccountRegistrator(
     irohaConsumer: IrohaConsumer,
-    notaryIrohaAccount: String,
-    clientStorageAccount: String
+    notaryIrohaAccount: String
 ) {
-    private val irohaAccountCreator =
-        IrohaAccountCreator(irohaConsumer, notaryIrohaAccount, BTC_CURRENCY_NAME_KEY, clientStorageAccount)
+    private val irohaAccountRegistrator =
+        IrohaAccountRegistrator(irohaConsumer, notaryIrohaAccount, BTC_CURRENCY_NAME_KEY)
 
     /**
      * Creates new Bitcoin account to Iroha with given address
@@ -39,7 +38,7 @@ class IrohaBtcAccountCreator(
         notaryKeys: List<String>,
         nodeId: String
     ): Result<String, Exception> {
-        return irohaAccountCreator.create(
+        return irohaAccountRegistrator.register(
             btcAddress,
             BTC_WHITE_LIST_KEY,
             whitelist,

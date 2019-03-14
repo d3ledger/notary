@@ -113,7 +113,7 @@ open class EthConfigHelper(
     }
 
     /** Test configuration of Withdrawal service with runtime dependencies */
-    fun createWithdrawalConfig(useValidEthereum: Boolean = true): WithdrawalServiceConfig {
+    fun createWithdrawalConfig(testName: String, useValidEthereum: Boolean = true): WithdrawalServiceConfig {
         val withdrawalConfig =
             loadConfigs("withdrawal", WithdrawalServiceConfig::class.java, "/eth/withdrawal.properties").get()
 
@@ -131,7 +131,7 @@ open class EthConfigHelper(
             override val port = portCounter.incrementAndGet()
             override val iroha = createIrohaConfig()
             override val ethereum = ethereumConfig
-            override val ethIrohaWithdrawalQueue = withdrawalConfig.ethIrohaWithdrawalQueue
+            override val ethIrohaWithdrawalQueue = testName
         }
     }
 

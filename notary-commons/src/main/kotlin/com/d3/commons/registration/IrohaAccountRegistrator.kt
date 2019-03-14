@@ -10,11 +10,10 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import mu.KLogging
 
-open class IrohaAccountCreator(
+open class IrohaAccountRegistrator(
     private val irohaConsumer: IrohaConsumer,
     private val notaryIrohaAccount: String,
-    private val currencyName: String,
-    private val clientStorageAccount: String
+    private val currencyName: String
 ) {
 
     private val creator = irohaConsumer.creator
@@ -29,7 +28,7 @@ open class IrohaAccountCreator(
      * @param notaryStorageStrategy - function that defines the way newly created account data will be stored in notary
      * @return address associated with userName
      */
-    fun create(
+    fun register(
         currencyAddress: String,
         whitelistKey: String,
         whitelist: List<String>,
@@ -63,10 +62,11 @@ open class IrohaAccountCreator(
 
     /**
      * Creates account creation batch with the following commands
-     * - CreateAccount with client name
      * - SetAccountDetail on client account with assigned [currencyAddress]
      * - SetAccountDetail on notary node account to mark [currencyAddress] as assigned to the particular user
+     * - SetWhitelist on client account
      * @param currencyAddress - address of crypto currency wallet
+     * @param whitelistKey - key to whitelist records
      * @param whitelist - list of addresses allowed to withdraw to
      * @param userName - client userName in Iroha
      * @param domain - client domain
@@ -86,23 +86,6 @@ open class IrohaAccountCreator(
         val accountId = "$userName@$domain"
         return IrohaOrderedBatch(
             listOf(
-                IrohaTransaction(
-                    creator,
-                    getCurrentTime(),
-                    1,
-                    arrayListOf(
-                        // Create account
-                        IrohaCommand.CommandCreateAccount(
-                            userName, domain, pubkey
-                        ),
-                        // Save client account
-                        IrohaCommand.CommandSetAccountDetail(
-                            clientStorageAccount,
-                            "$userName$domain",
-                            domain
-                        )
-                    )
-                ),
                 IrohaTransaction(
                     creator,
                     getCurrentTime(),

@@ -1,5 +1,7 @@
 package com.d3.eth.notary.endpoint
 
+import com.d3.commons.notary.endpoint.ServerInitializationBundle
+import com.d3.eth.deposit.endpoint.*
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
@@ -8,8 +10,6 @@ import io.ktor.http.HttpStatusCode
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import com.d3.commons.notary.endpoint.ServerInitializationBundle
-import com.d3.eth.deposit.endpoint.*
 import java.math.BigInteger
 
 /**
@@ -23,7 +23,8 @@ class RefundServerEndpointTest {
 
     /** JSON adapter */
     val moshi =
-        Moshi.Builder().add(EthNotaryResponseMoshiAdapter()).add(BigInteger::class.java,
+        Moshi.Builder().add(EthNotaryResponseMoshiAdapter()).add(
+            BigInteger::class.java,
             BigIntegerMoshiAdapter()
         )
             .build()

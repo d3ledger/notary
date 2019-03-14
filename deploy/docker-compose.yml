@@ -65,7 +65,7 @@ services:
     - --rpcpassword=test
     - --regtest=1
     - --server=1
-    - --rpcallowip=172.0.0.0/8
+    - --rpcallowip=::/0
     - --rpcport=8332
     networks:
       - d3-network

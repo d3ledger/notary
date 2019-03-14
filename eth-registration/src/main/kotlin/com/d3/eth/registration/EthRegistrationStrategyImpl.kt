@@ -1,11 +1,12 @@
 package com.d3.eth.registration
 
 import com.d3.commons.config.EthereumPasswords
-import com.d3.commons.registration.IrohaEthAccountCreator
+import com.d3.commons.registration.IrohaEthAccountRegistrator
 import com.d3.commons.registration.RegistrationStrategy
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.util.createPrettyScheduledThreadPool
 import com.d3.eth.provider.EthFreeRelayProvider
+import com.d3.eth.provider.EthRelayProvider
 import com.d3.eth.sidechain.util.BasicAuthenticator
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
@@ -17,6 +18,7 @@ import org.web3j.crypto.WalletUtils
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.JsonRpc2_0Web3j
 import org.web3j.protocol.http.HttpService
+import org.web3j.tx.gas.StaticGasProvider
 import java.math.BigInteger
 
 /**
@@ -24,6 +26,7 @@ import java.math.BigInteger
  */
 class EthRegistrationStrategyImpl(
     private val ethFreeRelayProvider: EthFreeRelayProvider,
+    private val ethRelayProvider: EthRelayProvider,
     ethRegistrationConfig: EthRegistrationConfig,
     passwordConfig: EthereumPasswords,
     private val irohaConsumer: IrohaConsumer,
@@ -33,6 +36,9 @@ class EthRegistrationStrategyImpl(
     init {
         logger.info { "Init EthRegistrationStrategyImpl with irohaCreator=${irohaConsumer.creator}, notaryIrohaAccount=$notaryIrohaAccount" }
     }
+
+    private val ethereumAccountRegistrator =
+        IrohaEthAccountRegistrator(irohaConsumer, notaryIrohaAccount)
 
     private val credentials = WalletUtils.loadCredentials(
         passwordConfig.credentialsPassword,
@@ -53,33 +59,47 @@ class EthRegistrationStrategyImpl(
         ethRegistrationConfig.ethRelayRegistryAddress,
         web3,
         credentials,
-        BigInteger.valueOf(ethRegistrationConfig.ethereum.gasPrice),
-        BigInteger.valueOf(ethRegistrationConfig.ethereum.gasLimit)
+        StaticGasProvider(
+            BigInteger.valueOf(ethRegistrationConfig.ethereum.gasPrice),
+            BigInteger.valueOf(ethRegistrationConfig.ethereum.gasLimit)
+        )
     )
-
-    private val irohaEthAccountCreator =
-        IrohaEthAccountCreator(irohaConsumer, notaryIrohaAccount, ethRegistrationConfig.clientStorageAccount)
 
     /**
      * Register new notary client
-     * @param name - client name
-     * @param pubkey - client public key
+     * @param accountName - client name
+     * @param domainId - client domain
+     * @param publicKey - client public key
      * @param whitelist - list of addresses from client
      * @return ethereum wallet has been registered
      */
     override fun register(
-        name: String,
-        domain: String,
+        accountName: String,
+        domainId: String,
         whitelist: List<String>,
-        pubkey: String
+        publicKey: String
     ): Result<String, Exception> {
         return ethFreeRelayProvider.getRelay()
             .flatMap { freeEthWallet ->
-                logger.info { "Add new relay to relay registry relayRegistry=$relayRegistry, freeWallet=$freeEthWallet, whitelist=$whitelist, creator=${credentials.address}." }
-                relayRegistry.addNewRelayAddress(freeEthWallet, whitelist).send()
-                irohaEthAccountCreator.create(
-                    freeEthWallet, whitelist, name, domain, pubkey
-                )
+                ethRelayProvider.getRelayByAccountId("$accountName@$domainId")
+                    .flatMap { assignedRelays ->
+                        // check that client hasn't been registered yet
+                        if (assignedRelays.isPresent())
+                            throw IllegalArgumentException("Client $accountName@$domainId has already been registered with relay: ${assignedRelays.get()}")
+
+                        // register to Ethereum RelayRegistry
+                        logger.info { "Add new relay to relay registry relayRegistry=$relayRegistry, freeWallet=$freeEthWallet, whitelist=$whitelist, creator=${credentials.address}." }
+                        relayRegistry.addNewRelayAddress(freeEthWallet, whitelist).send()
+
+                        // register relay to Iroha
+                        ethereumAccountRegistrator.register(
+                            freeEthWallet,
+                            whitelist,
+                            accountName,
+                            domainId,
+                            publicKey
+                        )
+                    }
             }
     }
 

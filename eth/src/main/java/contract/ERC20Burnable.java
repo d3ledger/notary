@@ -126,7 +126,7 @@ public class ERC20Burnable extends Contract {
 
     public RemoteCall<TransactionReceipt> burn(BigInteger value) {
         final Function function = new Function(
-                FUNC_BURN,
+                FUNC_BURN, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(value)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);

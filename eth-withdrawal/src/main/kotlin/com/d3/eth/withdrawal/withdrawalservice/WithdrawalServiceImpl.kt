@@ -1,5 +1,19 @@
 package com.d3.eth.withdrawal.withdrawalservice
 
+import com.d3.commons.model.IrohaCredential
+import com.d3.commons.provider.NotaryPeerListProviderImpl
+import com.d3.commons.sidechain.SideChainEvent
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.sidechain.iroha.util.getAccountDetails
+import com.d3.commons.sidechain.iroha.util.getSingleTransaction
+import com.d3.eth.deposit.endpoint.BigIntegerMoshiAdapter
+import com.d3.eth.deposit.endpoint.EthNotaryResponse
+import com.d3.eth.deposit.endpoint.EthNotaryResponseMoshiAdapter
+import com.d3.eth.provider.EthTokensProvider
+import com.d3.eth.provider.EthTokensProviderImpl
+import com.d3.eth.sidechain.util.extractVRS
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.map
@@ -7,21 +21,7 @@ import com.squareup.moshi.Moshi
 import io.reactivex.Observable
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
-import com.d3.commons.model.IrohaCredential
 import mu.KLogging
-import com.d3.eth.deposit.endpoint.BigIntegerMoshiAdapter
-import com.d3.eth.deposit.endpoint.EthNotaryResponse
-import com.d3.eth.deposit.endpoint.EthNotaryResponseMoshiAdapter
-import com.d3.commons.provider.NotaryPeerListProviderImpl
-import com.d3.eth.provider.EthTokensProvider
-import com.d3.eth.provider.EthTokensProviderImpl
-import com.d3.commons.sidechain.SideChainEvent
-import com.d3.eth.sidechain.util.extractVRS
-import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
-import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
-import com.d3.commons.sidechain.iroha.util.ModelUtil
-import com.d3.commons.sidechain.iroha.util.getAccountDetails
-import com.d3.commons.sidechain.iroha.util.getSingleTransaction
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -58,10 +58,6 @@ class WithdrawalServiceImpl(
     private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
 ) : WithdrawalService {
 
-    init {
-        logger.info { "Init withdrawal service, irohaCredentials = ${credential.accountId}, notaryAccount = $masterAccount'" }
-    }
-
     private val queryAPI by lazy { QueryAPI(irohaAPI, credential.accountId, credential.keyPair) }
     private val notaryPeerListProvider = NotaryPeerListProviderImpl(
         queryAPI,
@@ -77,6 +73,10 @@ class WithdrawalServiceImpl(
     private val masterAccount = withdrawalServiceConfig.notaryIrohaAccount
 
     private val irohaConsumer: IrohaConsumer by lazy { IrohaConsumerImpl(credential, irohaAPI) }
+
+    init {
+        logger.info { "Init withdrawal service, irohaCredentials = ${credential.accountId}, notaryAccount = $masterAccount'" }
+    }
 
     private fun findInAccDetail(acc: String, name: String): Result<String, Exception> {
         return getAccountDetails(
@@ -170,7 +170,7 @@ class WithdrawalServiceImpl(
     override fun onIrohaEvent(irohaEvent: SideChainEvent.IrohaEvent): Result<List<WithdrawalServiceOutputEvent>, Exception> {
         when (irohaEvent) {
             is SideChainEvent.IrohaEvent.SideChainTransfer -> {
-                logger.info { "Iroha transfer event to ${irohaEvent.dstAccount}" }
+                logger.info { "Iroha transfer event to ${irohaEvent.dstAccount}, expected $masterAccount" }
 
                 if (irohaEvent.dstAccount == masterAccount) {
                     logger.info { "Withdrawal event" }

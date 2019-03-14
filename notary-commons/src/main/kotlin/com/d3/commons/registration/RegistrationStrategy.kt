@@ -10,7 +10,12 @@ interface RegistrationStrategy {
     /**
      * Register new client with whitelist
      */
-    fun register(name: String, domain: String, whitelist: List<String>, pubkey: String): Result<String, Exception>
+    fun register(
+        accountName: String,
+        domainId: String,
+        whitelist: List<String>,
+        publicKey: String
+    ): Result<String, Exception>
 
     /**
      * Get a number of free addresses for registration

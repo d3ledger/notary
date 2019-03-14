@@ -2,7 +2,7 @@ package com.d3.btc.registration.config
 
 import com.d3.btc.provider.BtcFreeAddressesProvider
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
-import com.d3.btc.provider.account.IrohaBtcAccountCreator
+import com.d3.btc.provider.account.IrohaBtcAccountRegistrator
 import com.d3.btc.provider.address.BtcAddressesProvider
 import com.d3.commons.config.loadConfigs
 import jp.co.soramitsu.iroha.java.IrohaAPI
@@ -63,8 +63,8 @@ class BtcRegistrationAppConfiguration {
     fun btcRegistrationConsumer() = IrohaConsumerImpl(btcRegistrationCredential, irohaAPI())
 
     @Bean
-    fun irohaBtcAccountCreator(): IrohaBtcAccountCreator {
-        return IrohaBtcAccountCreator(
+    fun irohaBtcAccountCreator(): IrohaBtcAccountRegistrator {
+        return IrohaBtcAccountRegistrator(
             btcRegistrationConsumer(),
             btcRegistrationConfig.notaryAccount,
             btcRegistrationConfig.clientStorageAccount

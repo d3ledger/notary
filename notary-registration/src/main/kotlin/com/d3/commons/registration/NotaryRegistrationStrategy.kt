@@ -32,25 +32,25 @@ class NotaryRegistrationStrategy(
 
     /**
      * Register a new D3 client in Iroha
-     * @param name - unique user name
-     * @param domain - client domain
-     * @param pubkey - client public key
+     * @param accountName - unique user name
+     * @param domainId - client domain
+     * @param publicKey - client public key
      * @return hash of tx in Iroha
      */
     override fun register(
-        name: String,
-        domain: String,
+        accountName: String,
+        domainId: String,
         whitelist: List<String>,
-        pubkey: String
+        publicKey: String
     ): Result<String, Exception> {
-        logger.info { "notary registration of client $name with pubkey $pubkey" }
-        return createRegistrationBatch(name, domain, pubkey)
+        logger.info { "notary registration of client $accountName with pubkey $publicKey" }
+        return createRegistrationBatch(accountName, domainId, publicKey)
             .flatMap { batch ->
                 irohaConsumer.send(batch).map { passedHashes ->
                     if (passedHashes.size != batch.size) {
                         throw IllegalStateException("Notary registration failed since tx batch was not fully successful")
                     }
-                    "$name@$domain"
+                    "$accountName@$domainId"
                 }
             }
     }

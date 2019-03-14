@@ -16,9 +16,9 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class IrohaAccountCreatorTest {
+public class IrohaAccountRegistratorTest {
 
-    private IrohaAccountCreator irohaAccountCreator;
+    private IrohaAccountRegistrator irohaAccountRegistrator;
     private IrohaConsumer irohaConsumer;
     private IrohaConverter irohaConverter;
 
@@ -26,7 +26,7 @@ public class IrohaAccountCreatorTest {
     public void setUp() {
         irohaConsumer = mock(IrohaConsumer.class);
         when(irohaConsumer.getCreator()).thenReturn("creator");
-        irohaAccountCreator = Mockito.spy(new IrohaAccountCreator(irohaConsumer, "notary_account", "currency_name", "client_storage_account"));
+        irohaAccountRegistrator = Mockito.spy(new IrohaAccountRegistrator(irohaConsumer, "notary_account", "currency_name"));
         irohaConverter = IrohaConverter.INSTANCE;
     }
 
@@ -40,7 +40,7 @@ public class IrohaAccountCreatorTest {
         Map<String, Boolean> transactionsResultsMap = new HashMap<>();
         transactionsResultsMap.put("first", false);
         transactionsResultsMap.put("second", false);
-        assertFalse(irohaAccountCreator.isAccountCreationBatchSuccessful(transactionsResultsMap));
+        assertFalse(irohaAccountRegistrator.isAccountCreationBatchSuccessful(transactionsResultsMap));
     }
 
     /**
@@ -64,7 +64,7 @@ public class IrohaAccountCreatorTest {
         passedTransactions.put(Arrays.toString(firstHash), true);
         passedTransactions.put(Arrays.toString(secondHash), true);
 
-        assertTrue(irohaAccountCreator.isAccountCreationBatchSuccessful(passedTransactions));
+        assertTrue(irohaAccountRegistrator.isAccountCreationBatchSuccessful(passedTransactions));
     }
 
     /**
@@ -88,7 +88,7 @@ public class IrohaAccountCreatorTest {
         passedTransactions.put(Arrays.toString(firstHash), false);
         passedTransactions.put(Arrays.toString(secondHash), true);
 
-        assertTrue(irohaAccountCreator.isAccountCreationBatchSuccessful(passedTransactions));
+        assertTrue(irohaAccountRegistrator.isAccountCreationBatchSuccessful(passedTransactions));
 
     }
 
@@ -113,7 +113,7 @@ public class IrohaAccountCreatorTest {
         passedTransactions.put(Arrays.toString(firstHash), true);
         passedTransactions.put(Arrays.toString(secondHash), false);
 
-        assertFalse(irohaAccountCreator.isAccountCreationBatchSuccessful(passedTransactions));
+        assertFalse(irohaAccountRegistrator.isAccountCreationBatchSuccessful(passedTransactions));
 
     }
 
@@ -123,7 +123,7 @@ public class IrohaAccountCreatorTest {
      * @then new Iroha account crypto currency address is returned
      */
     @Test
-    public void testCreate() {
+    public void testRegister() {
         Function0<String> notaryStorageStrategy = () -> "";
         String currencyAddress = "123";
         String whitelistKey = "white_list_key";
@@ -135,14 +135,14 @@ public class IrohaAccountCreatorTest {
         Map<String, Boolean> passedTransactions = new HashMap<>();
         IrohaOrderedBatch batch = new IrohaOrderedBatch(new ArrayList<>());
 
-        doReturn(batch).when(irohaAccountCreator)
+        doReturn(batch).when(irohaAccountRegistrator)
                 .createAccountCreationBatch(currencyAddress, whitelistKey, whitelist, userName, domain, pubKey, notaryStorageStrategy);
         doReturn(unsignedTransactions).when(irohaConverter)
                 .convert(batch);
         when(irohaConsumer.send(unsignedTransactions)).thenReturn(Result.Companion.of(() -> passedTransactions));
-        doReturn(false).when(irohaAccountCreator)
+        doReturn(false).when(irohaAccountRegistrator)
                 .isAccountCreationBatchSuccessful(passedTransactions);
-        irohaAccountCreator.create(currencyAddress, whitelistKey, whitelist, userName, domain, pubKey, notaryStorageStrategy)
+        irohaAccountRegistrator.register(currencyAddress, whitelistKey, whitelist, userName, domain, pubKey, notaryStorageStrategy)
                 .fold(address -> {
                     assertEquals(currencyAddress, address);
                     return null;
@@ -155,7 +155,7 @@ public class IrohaAccountCreatorTest {
      * @then exception is thrown
      */
     @Test
-    public void testCreateFailed() {
+    public void testRegisterFailed() {
         Function0<String> notaryStorageStrategy = () -> "";
         String currencyAddress = "123";
         String whitelistKey = "white_list_key";
@@ -167,14 +167,14 @@ public class IrohaAccountCreatorTest {
         Map<String, Boolean> passedTransactions = new HashMap<>();
         IrohaOrderedBatch batch = new IrohaOrderedBatch(new ArrayList<>());
 
-        doReturn(batch).when(irohaAccountCreator)
+        doReturn(batch).when(irohaAccountRegistrator)
                 .createAccountCreationBatch(currencyAddress, whitelistKey, whitelist, userName, domain, pubKey, notaryStorageStrategy);
         doReturn(unsignedTransactions).when(irohaConverter)
                 .convert(batch);
         when(irohaConsumer.send(unsignedTransactions)).thenReturn(Result.Companion.of(() -> passedTransactions));
-        doReturn(true).when(irohaAccountCreator)
+        doReturn(true).when(irohaAccountRegistrator)
                 .isAccountCreationBatchSuccessful(passedTransactions);
-        irohaAccountCreator.create(currencyAddress, whitelistKey, whitelist, userName, domain, pubKey, notaryStorageStrategy)
+        irohaAccountRegistrator.register(currencyAddress, whitelistKey, whitelist, userName, domain, pubKey, notaryStorageStrategy)
                 .fold(address -> {
                     fail();
                     return "";

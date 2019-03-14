@@ -92,7 +92,7 @@ public class TokenReg extends Contract {
                         return new Tuple5<String, String, BigInteger, String, String>(
                                 (String) results.get(0).getValue(),
                                 (String) results.get(1).getValue(),
-                                (BigInteger) results.get(2).getValue(),
+                                (BigInteger) results.get(2).getValue(), 
                                 (String) results.get(3).getValue(), 
                                 (String) results.get(4).getValue());
                     }
@@ -112,7 +112,7 @@ public class TokenReg extends Contract {
 
     public RemoteCall<TransactionReceipt> setFee(BigInteger _fee) {
         final Function function = new Function(
-                FUNC_SETFEE,
+                FUNC_SETFEE, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_fee)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
@@ -156,7 +156,7 @@ public class TokenReg extends Contract {
                         return new Tuple5<BigInteger, String, BigInteger, String, String>(
                                 (BigInteger) results.get(0).getValue(),
                                 (String) results.get(1).getValue(),
-                                (BigInteger) results.get(2).getValue(),
+                                (BigInteger) results.get(2).getValue(), 
                                 (String) results.get(3).getValue(), 
                                 (String) results.get(4).getValue());
                     }
@@ -165,7 +165,7 @@ public class TokenReg extends Contract {
 
     public RemoteCall<TransactionReceipt> drain() {
         final Function function = new Function(
-                FUNC_DRAIN,
+                FUNC_DRAIN, 
                 Arrays.<Type>asList(), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
@@ -181,7 +181,7 @@ public class TokenReg extends Contract {
 
     public RemoteCall<TransactionReceipt> unregister(BigInteger _id) {
         final Function function = new Function(
-                FUNC_UNREGISTER,
+                FUNC_UNREGISTER, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_id)), 
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
@@ -204,7 +204,7 @@ public class TokenReg extends Contract {
                         return new Tuple5<BigInteger, String, BigInteger, String, String>(
                                 (BigInteger) results.get(0).getValue(),
                                 (String) results.get(1).getValue(),
-                                (BigInteger) results.get(2).getValue(),
+                                (BigInteger) results.get(2).getValue(), 
                                 (String) results.get(3).getValue(), 
                                 (String) results.get(4).getValue());
                     }
