@@ -19,8 +19,6 @@ import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import sun.misc.Regexp
-import java.util.regex.Pattern
 import java.util.stream.Collectors.toList
 import javax.xml.bind.DatatypeConverter
 import kotlin.test.assertEquals
@@ -79,7 +77,7 @@ class IrohaTest {
         d3Genesis.getAccountsForConfiguration(5).forEach { if (!it.passive) activeAccounts.add(it) }
         assertEquals(activeAccounts.size, respBody.accounts.size)
         val dependentAccounts = respBody.accounts.stream().filter { it.peersDependentQuorum == true }.collect(toList())
-        dependentAccounts.forEach { assertEquals(3,it.quorum) }
+        dependentAccounts.forEach { assertEquals(3, it.quorum) }
     }
 
     @Test
@@ -100,7 +98,7 @@ class IrohaTest {
             .andReturn()
         val respBody = mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
         val dependentAccounts = respBody.accounts.stream().filter { it.peersDependentQuorum == true }.collect(toList())
-        dependentAccounts.forEach { assertEquals(1,it.quorum) }
+        dependentAccounts.forEach { assertEquals(1, it.quorum) }
     }
 
     @Test
@@ -111,14 +109,14 @@ class IrohaTest {
             .andReturn()
         val respBody = mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
         val dependentAccounts = respBody.accounts.stream().filter { it.peersDependentQuorum == true }.collect(toList())
-        dependentAccounts.forEach { assertEquals(1,it.quorum) }
+        dependentAccounts.forEach { assertEquals(1, it.quorum) }
     }
 
     @Test
     fun testEmptyPeerKey() {
         val peerKey1 = generatePublicKeyHex()
 
-        val result: MvcResult = mvc
+       mvc
             .perform(
                 post("/iroha/create/genesisBlock").contentType(MediaType.APPLICATION_JSON).content(
                     mapper.writeValueAsString(
@@ -171,12 +169,10 @@ class IrohaTest {
         assertTrue(respBody.contains("gen_btc_pk_trigge"))
         assertTrue(respBody.contains("btc_change_addresses"))
 
-        log.info("peerKey1:$peerKey1")
-        log.info("peerKey2:$peerKey2")
         assertTrue(respBody.contains(peerKey1))
         assertTrue(respBody.contains(peerKey2))
-
-        val quorumCheck = "quorum\\\":${peers.size - peers.size / 3}"
+        val quorumCheck =
+            "{\\\"accountId\\\":\\\"mst_btc_registration_service@notary\\\",\\\"quorum\\\":${peers.size - peers.size / 3}}"
         assertTrue(respBody.contains(quorumCheck))
         accounts.forEach {
             val pubKey = it.pubKeys[0]
@@ -196,7 +192,7 @@ class IrohaTest {
         assertNotNull(genesisBlock)
     }
 
-    private fun getAccounts(peersCount:Int): List<AccountPublicInfo> {
+    private fun getAccounts(peersCount: Int): List<AccountPublicInfo> {
         return listOf(
             createAccountDto("notary", "notary", peersCount - peersCount / 3),
             createAccountDto("registration_service", "notary"),
@@ -217,7 +213,7 @@ class IrohaTest {
         )
     }
 
-    private fun createAccountDto(title: String, domain: String, quorum:Int = 1): AccountPublicInfo {
+    private fun createAccountDto(title: String, domain: String, quorum: Int = 1): AccountPublicInfo {
         return AccountPublicInfo(
             listOf(
                 generatePublicKeyHex()
