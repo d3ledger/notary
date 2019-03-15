@@ -1,11 +1,17 @@
 package integration.eth
 
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
 import com.d3.eth.provider.ETH_DOMAIN
 import com.d3.eth.token.EthTokenInfo
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
+import integration.registration.RegistrationServiceTestEnvironment
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -22,12 +28,20 @@ class FailedTransactionTest {
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
 
+    private val registrationTestEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
+    private val ethRegistrationService: Job
+
     init {
         integrationHelper.runEthDeposit()
+        registrationTestEnvironment.registrationInitialization.init()
+        ethRegistrationService = GlobalScope.launch {
+            integrationHelper.runEthRegistrationService(integrationHelper.ethRegistrationConfig)
+        }
     }
 
     @AfterAll
     fun dropDown() {
+        ethRegistrationService.cancel()
         integrationHelper.close()
     }
 
@@ -45,7 +59,15 @@ class FailedTransactionTest {
             val failerAddress = integrationHelper.deployFailer()
             integrationHelper.registerRelayByAddress(failerAddress)
             val clientAccount = String.getRandomString(9)
-            integrationHelper.registerClientWithoutRelay(clientAccount, CLIENT_DOMAIN, listOf())
+            // register client in Iroha
+            val res = integrationHelper.sendRegistrationRequest(
+                clientAccount,
+                listOf<String>().toString(),
+                ModelUtil.generateKeypair().public.toHexString(),
+                registrationTestEnvironment.registrationConfig.port
+            )
+            Assertions.assertEquals(200, res.statusCode)
+            integrationHelper.registerClientWithoutRelay(clientAccount, listOf())
             integrationHelper.sendEth(BigInteger.valueOf(1), failerAddress)
             integrationHelper.waitOneEtherBlock()
             assertEquals(BigInteger.ZERO, integrationHelper.getEthBalance(failerAddress))
@@ -71,7 +93,15 @@ class FailedTransactionTest {
             val anotherFailerAddress = integrationHelper.deployFailer()
             integrationHelper.registerRelayByAddress(failerAddress)
             val clientAccount = String.getRandomString(9)
-            integrationHelper.registerClientWithoutRelay(clientAccount, CLIENT_DOMAIN, listOf())
+            // register client in Iroha
+            val res = integrationHelper.sendRegistrationRequest(
+                clientAccount,
+                listOf<String>().toString(),
+                ModelUtil.generateKeypair().public.toHexString(),
+                registrationTestEnvironment.registrationConfig.port
+            )
+            Assertions.assertEquals(200, res.statusCode)
+            integrationHelper.registerClientWithoutRelay(clientAccount, listOf())
             val coinName = String.getRandomString(9)
             integrationHelper.addERC20Token(
                 anotherFailerAddress,

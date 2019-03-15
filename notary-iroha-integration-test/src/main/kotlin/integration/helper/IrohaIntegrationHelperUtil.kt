@@ -215,7 +215,10 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
     ): String {
         val tx = Transaction.builder(creator)
             .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
-            .setCreatedTime(createdTime).sign(kp)
+            .setCreatedTime(createdTime)
+            // first is for user, second is for brvs instance
+            .setQuorum(2)
+            .sign(kp)
             .build()
         return irohaConsumer.send(tx).get()
     }

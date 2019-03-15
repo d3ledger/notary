@@ -226,7 +226,16 @@ class WithdrawalPipelineIntegrationTest {
     fun testWithdrawInWhitelist() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             integrationHelper.nameCurrentThread(this::class.simpleName!!)
-            integrationHelper.registerClient(clientName, CLIENT_DOMAIN, listOf(toAddress, "0x123"), keypair)
+            // register client in Iroha
+            var res = integrationHelper.sendRegistrationRequest(
+                clientName,
+                listOf(toAddress).toString(),
+                keypair.public.toHexString(),
+                registrationConfig.port
+            )
+            Assertions.assertEquals(200, res.statusCode)
+
+            integrationHelper.registerClientInEth(clientName, listOf(toAddress, "0x123"), keypair)
 
             val amount = BigDecimal(125)
             val assetId = "ether#ethereum"
@@ -249,7 +258,7 @@ class WithdrawalPipelineIntegrationTest {
             Thread.sleep(5000)
 
             // try get proof from peer
-            val res = khttp.get("$refundAddress/eth/$hash")
+            res = khttp.get("$refundAddress/eth/$hash")
 
             assertEquals(200, res.statusCode)
         }
@@ -265,8 +274,17 @@ class WithdrawalPipelineIntegrationTest {
     fun testWithdrawEmptyWhitelist() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             integrationHelper.nameCurrentThread(this::class.simpleName!!)
+            // register client in Iroha
+            var res = integrationHelper.sendRegistrationRequest(
+                clientName,
+                listOf(toAddress).toString(),
+                keypair.public.toHexString(),
+                registrationConfig.port
+            )
+            Assertions.assertEquals(200, res.statusCode)
+
             // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
-            integrationHelper.registerClient(clientName, CLIENT_DOMAIN, listOf(), keypair)
+            integrationHelper.registerClientInEth(clientName, listOf(), keypair)
 
             val withdrawalEthAddress = "0x123"
 
@@ -290,7 +308,7 @@ class WithdrawalPipelineIntegrationTest {
             // TODO: Added because of statuses bug in Iroha
             Thread.sleep(5000)
 
-            val res = khttp.get("$refundAddress/eth/$hash")
+            res = khttp.get("$refundAddress/eth/$hash")
 
             assertEquals(200, res.statusCode)
         }
@@ -306,7 +324,16 @@ class WithdrawalPipelineIntegrationTest {
     fun testWithdrawNotInWhitelist() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             integrationHelper.nameCurrentThread(this::class.simpleName!!)
-            integrationHelper.registerClient(clientName, CLIENT_DOMAIN, listOf("0x123"), keypair)
+            // register client in Iroha
+            var res = integrationHelper.sendRegistrationRequest(
+                clientName,
+                listOf(toAddress).toString(),
+                keypair.public.toHexString(),
+                registrationConfig.port
+            )
+            Assertions.assertEquals(200, res.statusCode)
+
+            integrationHelper.registerClientInEth(clientName, listOf("0x123"), keypair)
             integrationHelper.setWhitelist(clientId, listOf("0x123"))
 
             val withdrawalEthAddress = "0x321"
@@ -331,7 +358,7 @@ class WithdrawalPipelineIntegrationTest {
             // TODO: Added because of statuses bug in Iroha
             Thread.sleep(5000)
 
-            val res = khttp.get("$refundAddress/eth/$hash")
+            res = khttp.get("$refundAddress/eth/$hash")
 
             assertEquals(400, res.statusCode)
             assertEquals(

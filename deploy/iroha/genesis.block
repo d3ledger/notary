@@ -258,7 +258,8 @@
                     "can_get_all_txs",
                     "can_get_blocks",
                     "can_get_all_acc_detail",
-                    "can_set_quorum"
+                    "can_set_quorum",
+                    "can_set_detail"
                   ]
                 }
               },
