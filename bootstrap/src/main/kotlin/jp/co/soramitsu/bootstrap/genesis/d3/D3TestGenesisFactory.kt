@@ -43,8 +43,7 @@ class D3TestGenesisFactory : GenesisInterface {
 
         val blockBuilder = GenesisBlockBuilder().addTransaction(transactionBuilder.build().build())
         val block = blockBuilder.build()
-        val payload = JsonFormat.printer().omittingInsignificantWhitespace().print(block)
-        return "{\"blockV1\": $payload}"
+        return JsonFormat.printer().omittingInsignificantWhitespace().print(block)
     }
 
     private fun createAccounts(
