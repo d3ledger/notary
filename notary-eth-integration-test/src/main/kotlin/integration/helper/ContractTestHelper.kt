@@ -16,7 +16,7 @@ import kotlin.test.assertEquals
 class ContractTestHelper {
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
     private val passwordConfig =
-        loadConfigs("test", EthereumPasswords::class.java, "/eth/ethereum_password.properties").get()
+        loadConfigs("predeploy.ethereum", EthereumPasswords::class.java, "/eth/predeploy.propertiess").get()
 
     val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
     val keypair = deployHelper.credentials.ecKeyPair

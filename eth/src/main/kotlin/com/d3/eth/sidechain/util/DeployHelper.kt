@@ -319,6 +319,17 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
         return web3.ethGetBalance(whoAddress, DefaultBlockParameterName.LATEST).send().balance
     }
 
+    fun addRelayToRelayRegistry(ethRelayRegistryAddress: String, freeEthWallet: String, whitelist: List<String>) {
+        logger.info { "Add new relay to relay registry relayRegistry=${ethRelayRegistryAddress}, freeWallet=$freeEthWallet, whitelist=$whitelist, creator=${credentials.address}." }
+        val relayRegistry = RelayRegistry.load(
+            ethRelayRegistryAddress,
+            web3,
+            transactionManager,
+            StaticGasProvider(gasPrice, gasLimit)
+        )
+        relayRegistry.addNewRelayAddress(freeEthWallet, whitelist).send()
+    }
+
     /**
      * Logger
      */
