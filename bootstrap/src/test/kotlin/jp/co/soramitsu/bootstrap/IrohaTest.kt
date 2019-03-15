@@ -1,9 +1,12 @@
 package jp.co.soramitsu.bootstrap
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import jp.co.soramitsu.bootstrap.dto.AccountPrototype
 import jp.co.soramitsu.bootstrap.dto.AccountPublicInfo
+import jp.co.soramitsu.bootstrap.dto.NeededAccountsResponse
 import jp.co.soramitsu.bootstrap.dto.Peer
 import jp.co.soramitsu.bootstrap.dto.block.GenesisBlock
+import jp.co.soramitsu.bootstrap.exceptions.ErrorCodes
 import jp.co.soramitsu.bootstrap.genesis.d3.D3TestGenesisFactory
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import mu.KLogging
@@ -19,6 +22,7 @@ import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import java.util.stream.Collectors.toList
 import javax.xml.bind.DatatypeConverter
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -68,14 +72,47 @@ class IrohaTest {
     @Test
     fun testAccountsNeeded() {
         val result: MvcResult = mvc
-            .perform(get("/iroha/config/accounts/D3/test"))
+            .perform(get("/iroha/config/accounts/D3/test/5"))
             .andExpect(status().isOk)
             .andReturn()
+        val respBody = mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
+        val activeAccounts = ArrayList<AccountPrototype>()
+        d3Genesis.getAccountsForConfiguration(5).forEach { if (!it.passive) activeAccounts.add(it) }
+        assertEquals(activeAccounts.size, respBody.accounts.size)
+        val dependentAccounts = respBody.accounts.stream().filter { it.peersDependentQuorum == true }.collect(toList())
+        dependentAccounts.forEach { assertEquals(3,it.quorum) }
+    }
 
-        val respBody = result.response.contentAsString
-        val activeAccounts = ArrayList<jp.co.soramitsu.bootstrap.dto.AccountPrototype>()
-        d3Genesis.getAccountsNeeded().forEach { if (!it.passive) activeAccounts.add(it) }
-        assertEquals(mapper.writeValueAsString(activeAccounts), respBody)
+    @Test
+    fun testZeroPeersAccountsNeeded() {
+        val result: MvcResult = mvc
+            .perform(get("/iroha/config/accounts/D3/test/0"))
+            .andExpect(status().isOk)
+            .andReturn()
+        val respBody = mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
+        assertEquals(respBody.errorCode, ErrorCodes.INCORRECT_PEERS_COUNT.name)
+    }
+
+    @Test
+    fun testOnePeerAccountsNeeded() {
+        val result: MvcResult = mvc
+            .perform(get("/iroha/config/accounts/D3/test/1"))
+            .andExpect(status().isOk)
+            .andReturn()
+        val respBody = mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
+        val dependentAccounts = respBody.accounts.stream().filter { it.peersDependentQuorum == true }.collect(toList())
+        dependentAccounts.forEach { assertEquals(1,it.quorum) }
+    }
+
+    @Test
+    fun testTwoPeersAccountsNeeded() {
+        val result: MvcResult = mvc
+            .perform(get("/iroha/config/accounts/D3/test/2"))
+            .andExpect(status().isOk)
+            .andReturn()
+        val respBody = mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
+        val dependentAccounts = respBody.accounts.stream().filter { it.peersDependentQuorum == true }.collect(toList())
+        dependentAccounts.forEach { assertEquals(1,it.quorum) }
     }
 
     @Test
@@ -83,20 +120,20 @@ class IrohaTest {
         val peerKey1 = generatePublicKeyHex()
 
         val result: MvcResult = mvc
-                .perform(
-                        post("/iroha/create/genesisBlock").contentType(MediaType.APPLICATION_JSON).content(
-                                mapper.writeValueAsString(
-                                        jp.co.soramitsu.bootstrap.dto.GenesisRequest(
-                                                peers = listOf(
-                                                        Peer(peerKey1, "firstTHost:12435"),
-                                                        Peer("", "secondTHost:987654")
-                                                )
-                                        )
-                                )
+            .perform(
+                post("/iroha/create/genesisBlock").contentType(MediaType.APPLICATION_JSON).content(
+                    mapper.writeValueAsString(
+                        jp.co.soramitsu.bootstrap.dto.GenesisRequest(
+                            peers = listOf(
+                                Peer(peerKey1, "firstTHost:12435"),
+                                Peer("", "secondTHost:987654")
+                            )
                         )
+                    )
                 )
-                .andExpect(status().is4xxClientError)
-                .andReturn()
+            )
+            .andExpect(status().is4xxClientError)
+            .andReturn()
     }
 
     @Test

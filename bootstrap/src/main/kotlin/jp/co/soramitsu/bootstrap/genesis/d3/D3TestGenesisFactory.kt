@@ -14,7 +14,15 @@ import java.util.*
 class D3TestGenesisFactory : GenesisInterface {
 
     private val zeroPubKey = "0000000000000000000000000000000000000000000000000000000000000000"
-    override fun getAccountsNeeded(): List<AccountPrototype> = D3TestContext.d3neededAccounts
+    override fun getAccountsForConfiguration(peersCount:Int): List<AccountPrototype> {
+        val activeAccounts = D3TestContext.d3neededAccounts.filter { !it.passive }
+        activeAccounts.stream().forEach {
+            if(it.peersDependentQuorum) {
+                it.quorum = peersCount - peersCount / 3
+            }
+        }
+        return activeAccounts
+    }
 
     override fun getProject(): String = "D3"
 
@@ -31,7 +39,7 @@ class D3TestGenesisFactory : GenesisInterface {
         createRoles(transactionBuilder)
         createDomains(transactionBuilder)
         createAssets(transactionBuilder)
-        createAccounts(transactionBuilder, accounts, peers.size)
+        createAccounts(transactionBuilder, accounts, peers)
 
         val blockBuilder = GenesisBlockBuilder().addTransaction(transactionBuilder.build().build())
         val block = blockBuilder.build()
@@ -42,7 +50,7 @@ class D3TestGenesisFactory : GenesisInterface {
     private fun createAccounts(
         transactionBuilder: TransactionBuilder,
         accountsList: List<AccountPublicInfo>,
-        peersCount: Int
+        peers: List<Peer>
     ) {
         val accountsMap: HashMap<String, AccountPublicInfo> = HashMap()
         accountsList.forEach { accountsMap.putIfAbsent("${it.accountName}@${it.domainId}", it) }
@@ -56,7 +64,7 @@ class D3TestGenesisFactory : GenesisInterface {
             if (accountPubInfo != null) {
                 if (accountPubInfo.pubKeys.isNotEmpty()) {
                     transactionBuilder.createAccount(
-                        account.title,
+                        account.name,
                         account.domainId,
                         getIrohaPublicKeyFromHex(accountPubInfo.pubKeys[0])
                     )
@@ -72,7 +80,7 @@ class D3TestGenesisFactory : GenesisInterface {
                 }
             } else if (account.passive) {
                 transactionBuilder.createAccount(
-                    account.title,
+                    account.name,
                     account.domainId,
                     getIrohaPublicKeyFromHex(zeroPubKey)
                 )

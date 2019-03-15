@@ -1,13 +1,17 @@
 package jp.co.soramitsu.bootstrap.controller
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import jp.co.soramitsu.bootstrap.dto.*
+import jp.co.soramitsu.bootstrap.exceptions.ErrorCodes
 import jp.co.soramitsu.bootstrap.genesis.GenesisInterface
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.testcontainers.shaded.javax.ws.rs.QueryParam
 import java.util.stream.Collectors.toList
+import javax.validation.constraints.NotNull
 import javax.xml.bind.DatatypeConverter
 
 @RestController
@@ -15,25 +19,34 @@ import javax.xml.bind.DatatypeConverter
 class IrohaController(val genesisFactories: List<GenesisInterface>) {
 
     private val log = KLogging().logger
+    private val mapper = ObjectMapper()
 
-    @GetMapping("/config/accounts/{project}/{env}")
-    fun getNeededAccounts(@PathVariable("project") project: String, @PathVariable("env") env: String): ResponseEntity<List<AccountPrototype>> {
+    @GetMapping("/config/accounts/{project}/{env}/{peersCount}")
+    fun getNeededAccounts(
+        @PathVariable("project") project: String,
+        @PathVariable("env") env: String,
+        @PathVariable("peersCount") peersCount: Int
+    ): ResponseEntity<NeededAccountsResponse> {
+        if (peersCount == null || peersCount == 0) {
+            return ResponseEntity.ok<NeededAccountsResponse>(NeededAccountsResponse(
+                ErrorCodes.INCORRECT_PEERS_COUNT.name,
+                "peersCount path variable should exist with value >0"))
+        }
 
-        val accounts = ArrayList<jp.co.soramitsu.bootstrap.dto.AccountPrototype>()
+        val accounts = ArrayList<AccountPrototype>()
 
         genesisFactories.stream()
-                .filter {
-                    it.getProject().contentEquals(project) && it.getEnvironment().contentEquals(
-                            env
-                    )
-                }
-                .findAny()
-                .ifPresent {
-                    it.getAccountsNeeded()
-                            .filter { !it.passive }
-                            .forEach { accounts.add(it) }
-                }
-        return ResponseEntity.ok<List<AccountPrototype>>(accounts)
+            .filter {
+                it.getProject().contentEquals(project) && it.getEnvironment().contentEquals(
+                    env
+                )
+            }
+            .findAny()
+            .ifPresent {
+                accounts.addAll(it.getAccountsForConfiguration(peersCount))
+            }
+
+        return ResponseEntity.ok<NeededAccountsResponse>(NeededAccountsResponse(accounts))
     }
 
     @GetMapping("/projects/genesis")
@@ -43,8 +56,8 @@ class IrohaController(val genesisFactories: List<GenesisInterface>) {
             genesisFactories.forEach {
                 if (!projMap.containsKey(it.getProject())) {
                     projMap.put(
-                            it.getProject(),
-                            ProjectInfo(it.getProject(), mutableListOf(it.getEnvironment()))
+                        it.getProject(),
+                        ProjectInfo(it.getProject(), mutableListOf(it.getEnvironment()))
                     )
                 } else {
                     projMap.get(it.getProject())?.environments?.add(it.getEnvironment())
@@ -65,8 +78,8 @@ class IrohaController(val genesisFactories: List<GenesisInterface>) {
         try {
             val keyPair = Ed25519Sha3().generateKeypair()
             val response = BlockchainCreds(
-                    DatatypeConverter.printHexBinary(keyPair.private.encoded),
-                    DatatypeConverter.printHexBinary(keyPair.public.encoded)
+                DatatypeConverter.printHexBinary(keyPair.private.encoded),
+                DatatypeConverter.printHexBinary(keyPair.public.encoded)
             )
             return ResponseEntity.ok<BlockchainCreds>(response)
         } catch (e: Exception) {
@@ -81,32 +94,39 @@ class IrohaController(val genesisFactories: List<GenesisInterface>) {
     fun generateGenericBlock(@RequestBody request: GenesisRequest): ResponseEntity<GenesisResponse> {
         val conflict = isValidRequest(request)
         if (conflict != null) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(GenesisResponse(conflict.errorCode, conflict.message))
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(GenesisResponse(conflict.errorCode, conflict.message))
         }
         log.info("Request of genesis block")
-        val genesisFactory = genesisFactories.filter {
+        val genesisFactory = genesisFactories.stream().filter {
             it.getProject().contentEquals(request.meta.project)
                     && it.getEnvironment().contentEquals(request.meta.environment)
-        }.firstOrNull()
+        }.findAny().get()
         var genesis: GenesisResponse
         if (genesisFactory != null) {
             try {
                 genesis =
-                        GenesisResponse(
-                                genesisFactory.createGenesisBlock(
-                                        request.accounts,
-                                        request.peers
-                                )
+                    GenesisResponse(
+                        genesisFactory.createGenesisBlock(
+                            request.accounts,
+                            request.peers
                         )
+                    )
             } catch (e: Exception) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(GenesisResponse(
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                    GenesisResponse(
                         e.javaClass.simpleName,
-                        "Error happened for project:${request.meta.project} environment:${request.meta.environment}: ${e.message}"))
+                        "Error happened for project:${request.meta.project} environment:${request.meta.environment}: ${e.message}"
+                    )
+                )
             }
         } else {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(GenesisResponse(
-                    "NO_GENESIS_FACTORY",
-                    "Genesis factory not found for project:${request.meta.project} environment:${request.meta.environment}"))
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                GenesisResponse(
+                    ErrorCodes.NO_GENESIS_FACTORY.name,
+                    "Genesis factory not found for project:${request.meta.project} environment:${request.meta.environment}"
+                )
+            )
         }
         return ResponseEntity.ok<GenesisResponse>(genesis)
     }
@@ -118,7 +138,7 @@ class IrohaController(val genesisFactories: List<GenesisInterface>) {
             result.forEach {
                 message += " " + it.hostPort
             }
-            return Conflictable("EMPTY_PEER_PUBLIC_KEY", "")
+            return Conflictable(ErrorCodes.EMPTY_PEER_PUBLIC_KEY.name, "")
         }
         return null
     }
