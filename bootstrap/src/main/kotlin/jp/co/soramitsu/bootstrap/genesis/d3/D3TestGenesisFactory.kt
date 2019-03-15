@@ -31,7 +31,7 @@ class D3TestGenesisFactory : GenesisInterface {
         createRoles(transactionBuilder)
         createDomains(transactionBuilder)
         createAssets(transactionBuilder)
-        createAccounts(transactionBuilder, accounts)
+        createAccounts(transactionBuilder, accounts, peers.size)
 
         val blockBuilder = GenesisBlockBuilder().addTransaction(transactionBuilder.build().build())
         val block = blockBuilder.build()
@@ -41,7 +41,8 @@ class D3TestGenesisFactory : GenesisInterface {
 
     private fun createAccounts(
         transactionBuilder: TransactionBuilder,
-        accountsList: List<AccountPublicInfo>
+        accountsList: List<AccountPublicInfo>,
+        peersCount: Int
     ) {
         val accountsMap: HashMap<String, AccountPublicInfo> = HashMap()
         accountsList.forEach { accountsMap.putIfAbsent("${it.accountName}@${it.domainId}", it) }

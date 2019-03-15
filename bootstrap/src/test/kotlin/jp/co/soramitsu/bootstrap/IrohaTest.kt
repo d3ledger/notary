@@ -79,6 +79,27 @@ class IrohaTest {
     }
 
     @Test
+    fun testEmptyPeerKey() {
+        val peerKey1 = generatePublicKeyHex()
+
+        val result: MvcResult = mvc
+                .perform(
+                        post("/iroha/create/genesisBlock").contentType(MediaType.APPLICATION_JSON).content(
+                                mapper.writeValueAsString(
+                                        jp.co.soramitsu.bootstrap.dto.GenesisRequest(
+                                                peers = listOf(
+                                                        Peer(peerKey1, "firstTHost:12435"),
+                                                        Peer("", "secondTHost:987654")
+                                                )
+                                        )
+                                )
+                        )
+                )
+                .andExpect(status().is4xxClientError)
+                .andReturn()
+    }
+
+    @Test
     fun testGenesisBlock() {
         val peerKey1 = generatePublicKeyHex()
         val peerKey2 = generatePublicKeyHex()

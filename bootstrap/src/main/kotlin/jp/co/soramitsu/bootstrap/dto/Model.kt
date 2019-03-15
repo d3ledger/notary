@@ -6,7 +6,6 @@ import org.bitcoinj.core.NetworkParameters
 import org.bitcoinj.params.MainNetParams
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.params.TestNet3Params
-import org.testcontainers.shaded.org.apache.commons.lang.mutable.Mutable
 import org.web3j.crypto.WalletFile
 import java.security.KeyPair
 import javax.validation.constraints.NotNull
@@ -63,7 +62,12 @@ data class GenesisRequest(
 )
 
 data class GenesisResponse(val blockData: String? = null) :
-    Conflictable()
+    Conflictable() {
+    constructor(errorCode: String? = null, message: String? = null) : this() {
+        this.errorCode = errorCode
+        this.message = message
+    }
+}
 
 data class EthWallet(val file: WalletFile? = null) : Conflictable()
 data class BtcWallet(val file: String? = null, val network:BtcNetwork? = null) : Conflictable()
