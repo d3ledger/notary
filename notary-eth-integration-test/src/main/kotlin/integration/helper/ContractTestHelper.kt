@@ -1,5 +1,6 @@
 package integration.helper
 
+import com.d3.commons.config.EthereumConfig
 import com.d3.commons.config.EthereumPasswords
 import com.d3.commons.config.loadConfigs
 import com.d3.eth.sidechain.util.*
@@ -16,9 +17,14 @@ import kotlin.test.assertEquals
 class ContractTestHelper {
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
     private val passwordConfig =
-        loadConfigs("predeploy.ethereum", EthereumPasswords::class.java, "/eth/predeploy.properties").get()
+        loadConfigs("predeploy", EthereumPasswords::class.java, "/eth/ethereum_password.properties").get()
 
-    val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
+    val testEthHelper = DeployHelper(testConfig.ethereum, passwordConfig)
+    val deployHelper = DeployHelper(
+        loadConfigs("predeploy.ethereum", EthereumConfig::class.java, "/eth/predeploy.properties").get(),
+        passwordConfig
+    )
+
     val keypair = deployHelper.credentials.ecKeyPair
     val relayRegistry by lazy { deployHelper.deployUpgradableRelayRegistrySmartContract() }
     val token by lazy { deployHelper.deployERC20TokenSmartContract() }
@@ -264,19 +270,19 @@ class ContractTestHelper {
     }
 
     fun sendEthereum(amount: BigInteger, to: String) {
-        deployHelper.sendEthereum(amount, to)
+        testEthHelper.sendEthereum(amount, to)
     }
 
     fun sendERC20Token(contractAddress: String, amount: BigInteger, toAddress: String) {
-        deployHelper.sendERC20(contractAddress, toAddress, amount)
+        testEthHelper.sendERC20(contractAddress, toAddress, amount)
     }
 
     fun getETHBalance(whoAddress: String): BigInteger {
-        return deployHelper.getETHBalance(whoAddress)
+        return testEthHelper.getETHBalance(whoAddress)
     }
 
     fun getERC20TokenBalance(contractAddress: String, whoAddress: String): BigInteger {
-        return deployHelper.getERC20Balance(contractAddress, whoAddress)
+        return testEthHelper.getERC20Balance(contractAddress, whoAddress)
     }
 
     /**
@@ -297,10 +303,10 @@ class ContractTestHelper {
     }
 
     fun getToken(tokenAddress: String): SoraToken {
-        return deployHelper.loadTokenSmartContract(tokenAddress)
+        return testEthHelper.loadTokenSmartContract(tokenAddress)
     }
 
     fun deployFailer(): String {
-        return deployHelper.deployFailerContract().contractAddress
+        return testEthHelper.deployFailerContract().contractAddress
     }
 }
