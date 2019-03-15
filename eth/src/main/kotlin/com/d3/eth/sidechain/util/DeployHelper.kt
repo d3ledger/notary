@@ -3,8 +3,8 @@ package com.d3.eth.sidechain.util
 import com.d3.commons.config.EthereumConfig
 import com.d3.commons.config.EthereumPasswords
 import com.d3.commons.util.createPrettyScheduledThreadPool
-import contract.*
 import com.d3.eth.helper.encodeFunction
+import contract.*
 import mu.KLogging
 import okhttp3.*
 import org.web3j.abi.datatypes.Address
@@ -15,7 +15,7 @@ import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.core.JsonRpc2_0Web3j.DEFAULT_BLOCK_TIME
 import org.web3j.protocol.http.HttpService
-import org.web3j.tx.RawTransactionManager
+import org.web3j.tx.FastRawTransactionManager
 import org.web3j.tx.Transfer
 import org.web3j.tx.gas.StaticGasProvider
 import org.web3j.utils.Convert
@@ -28,7 +28,7 @@ import java.math.BigInteger
  */
 class BasicAuthenticator(private val ethereumPasswords: EthereumPasswords) : Authenticator {
     override fun authenticate(route: Route, response: Response): Request {
-        val credential = Credentials.basic(ethereumPasswords.nodeLogin, ethereumPasswords.nodePassword)
+        val credential = Credentials.basic(ethereumPasswords.nodeLogin!!, ethereumPasswords.nodePassword!!)
         return response.request().newBuilder().header("Authorization", credential).build()
     }
 }
@@ -56,7 +56,7 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
     }
 
     /** transaction manager */
-    val rawTransactionManager = RawTransactionManager(web3, credentials)
+    val transactionManager = FastRawTransactionManager(web3, credentials)
 
     /** Gas price */
     val gasPrice = BigInteger.valueOf(ethereumConfig.gasPrice)
@@ -70,7 +70,7 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      * @param to target account
      */
     fun sendEthereum(amount: BigInteger, to: String) {
-        val transfer = Transfer(web3, rawTransactionManager)
+        val transfer = Transfer(web3, transactionManager)
         val transactionHash =
             transfer.sendFunds(to, BigDecimal(amount), Convert.Unit.WEI, gasPrice, gasLimit).send().transactionHash
         logger.info("ETH $amount were sent to $to; tx hash $transactionHash")
@@ -83,7 +83,7 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
     fun deployERC20TokenSmartContract(): BasicCoin {
         val tokenContract = contract.BasicCoin.deploy(
             web3,
-            credentials,
+            transactionManager,
             StaticGasProvider(gasPrice, gasLimit),
             BigInteger.valueOf(Long.MAX_VALUE),
             credentials.address
@@ -99,7 +99,7 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
     fun deployRelayRegistrySmartContract(): RelayRegistry {
         val relayRegistry = RelayRegistry.deploy(
             web3,
-            credentials,
+            transactionManager,
             StaticGasProvider(gasPrice, gasLimit)
         ).send()
         logger.info { "Relay Registry smart contract ${relayRegistry.contractAddress} was deployed" }
@@ -124,7 +124,7 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
         val proxiedRelayRegistry = RelayRegistry.load(
             proxy.contractAddress,
             web3,
-            credentials,
+            transactionManager,
             StaticGasProvider(gasPrice, gasLimit)
         )
         logger.info { "Upgradable proxy to RelayRegistry contract ${proxiedRelayRegistry.contractAddress} was deployed" }
@@ -139,7 +139,7 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
     fun deployMasterSmartContract(relayRegistry: String, peers: List<String>): Master {
         val master = contract.Master.deploy(
             web3,
-            credentials,
+            transactionManager,
             StaticGasProvider(gasPrice, gasLimit),
             relayRegistry,
             peers
@@ -172,7 +172,7 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
         val proxiedMaster = Master.load(
             proxy.contractAddress,
             web3,
-            credentials,
+            transactionManager,
             StaticGasProvider(gasPrice, gasLimit)
         )
         logger.info { "Upgradable proxy to Master contract ${proxiedMaster.contractAddress} was deployed" }
@@ -188,7 +188,7 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
     fun deployRelaySmartContract(master: String): Relay {
         val relay = contract.Relay.deploy(
             web3,
-            credentials,
+            transactionManager,
             StaticGasProvider(gasPrice, gasLimit),
             master
         ).send()
@@ -216,7 +216,7 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
         val proxiedRelay = Relay.load(
             proxy.contractAddress,
             web3,
-            credentials,
+            transactionManager,
             StaticGasProvider(gasPrice, gasLimit)
         )
         logger.info { "Upgradable proxy to Relay contract ${proxiedRelay.contractAddress} was deployed" }
@@ -229,13 +229,14 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      * @return Sora token instance
      */
     fun loadTokenSmartContract(tokenAddress: String): SoraToken {
-        val soraToken = contract.SoraToken.load(tokenAddress, web3, credentials, gasPrice, gasLimit)
+        val soraToken =
+            contract.SoraToken.load(tokenAddress, web3, transactionManager, StaticGasProvider(gasPrice, gasLimit))
         logger.info { "Sora token contract ${soraToken.contractAddress} was loaded" }
         return soraToken
     }
 
     fun deployFailerContract(): Failer {
-        val failer = Failer.deploy(web3, credentials, StaticGasProvider(gasPrice, gasLimit)).send()
+        val failer = Failer.deploy(web3, transactionManager, StaticGasProvider(gasPrice, gasLimit)).send()
         logger.info { "Failer smart contract ${failer.contractAddress} was deployed" }
         return failer
     }
@@ -248,7 +249,7 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
     fun deployTestGreeter_v0(greeting: String): TestGreeter_v0 {
         val testGreeter_v0 = TestGreeter_v0.deploy(
             web3,
-            credentials,
+            transactionManager,
             StaticGasProvider(gasPrice, gasLimit),
             greeting
         ).send()
@@ -263,7 +264,7 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
     fun deployTestGreeter_v1(): TestGreeter_v1 {
         val testGreeter_v1 = TestGreeter_v1.deploy(
             web3,
-            credentials,
+            transactionManager,
             StaticGasProvider(gasPrice, gasLimit)
         ).send()
         logger.info { "TestGreeter_v1 was deployed at ${testGreeter_v1.contractAddress}" }
@@ -276,7 +277,7 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
     fun deployOwnedUpgradeabilityProxy(): OwnedUpgradeabilityProxy {
         val OwnedUpgradeabilityProxy = OwnedUpgradeabilityProxy.deploy(
             web3,
-            credentials,
+            transactionManager,
             StaticGasProvider(gasPrice, gasLimit)
         ).send()
         logger.info { "OwnedUpgradeabilityProxy was deployed at ${OwnedUpgradeabilityProxy.contractAddress}" }
@@ -291,7 +292,8 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      * @param amount - amount of tokens
      */
     fun sendERC20(tokenAddress: String, toAddress: String, amount: BigInteger) {
-        val token = contract.BasicCoin.load(tokenAddress, web3, credentials, StaticGasProvider(gasPrice, gasLimit))
+        val token =
+            contract.BasicCoin.load(tokenAddress, web3, transactionManager, StaticGasProvider(gasPrice, gasLimit))
         token.transfer(toAddress, amount).send()
         logger.info { "ERC20 $amount with address $tokenAddress were sent to $toAddress" }
     }
@@ -303,7 +305,8 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      * @return user balance
      */
     fun getERC20Balance(tokenAddress: String, whoAddress: String): BigInteger {
-        val token = contract.BasicCoin.load(tokenAddress, web3, credentials, StaticGasProvider(gasPrice, gasLimit))
+        val token =
+            contract.BasicCoin.load(tokenAddress, web3, transactionManager, StaticGasProvider(gasPrice, gasLimit))
         return token.balanceOf(whoAddress).send()
     }
 
