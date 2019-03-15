@@ -116,18 +116,15 @@ open class IrohaAccountRegistrator(
     }
 
     /**
-     * Checks if account creation batch successful
+     * Checks if account creation batch is successful
      * @param transactionsResult - map of processed transactions and the indicator if it was successful
-     * @return 'true' if all [transactionsResult] (except for first transaction, we can ignore it) are successful
+     * @return 'true' if all transactions in [transactionsResult] are successful
      */
     protected open fun isAccountCreationBatchSuccessful(
         transactionsResult: Map<String, Boolean>
     ): Boolean {
-        val count = transactionsResult.count { it.value }
-        return if (!transactionsResult.values.first()) {
-            count == transactionsResult.size - 1
-        } else
-            count == transactionsResult.size
+        val successfulCommands = transactionsResult.count { it.value }
+        return successfulCommands == transactionsResult.size
     }
 
     /**
