@@ -1,7 +1,7 @@
 package jp.co.soramitsu.bootstrap.dto
 
-import jp.co.soramitsu.iroha.java.TransactionBuilder
 import jp.co.soramitsu.bootstrap.genesis.getIrohaPublicKeyFromHex
+import jp.co.soramitsu.iroha.java.TransactionBuilder
 import org.bitcoinj.core.NetworkParameters
 import org.bitcoinj.params.MainNetParams
 import org.bitcoinj.params.RegTestParams
@@ -15,7 +15,7 @@ private interface DtoFactory<out T> {
     fun getDTO(): T
 }
 
-enum class BtcNetwork(val params:NetworkParameters) {
+enum class BtcNetwork(val params: NetworkParameters) {
     RegTest(RegTestParams.get()),
     TestNet3(TestNet3Params.get()),
     MainNet(MainNetParams.get())
@@ -48,11 +48,24 @@ data class IrohaAccount(val title: String, val domain: String, val keys: HashSet
     }
 }
 
-data class Peer(@NotNull val peerKey: String = "", @NotNull val hostPort: String = "localhost:10001", val notaryHostPort: String? = null)
-data class AccountPublicInfo(@NotNull val pubKeys: List<String> = emptyList(), @NotNull val domainId: String? = null, @NotNull val accountName: String? = null)
+data class Peer(
+    @NotNull val peerKey: String = "",
+    @NotNull val hostPort: String = "localhost:10001",
+    val notaryHostPort: String? = null
+)
+
+data class AccountPublicInfo(
+    @NotNull val pubKeys: List<String> = emptyList(),
+    @NotNull val domainId: String? = null,
+    @NotNull val accountName: String? = null,
+    val quorum: Int = 1
+) {
+    val id = "$accountName@$domainId"
+}
+
 data class ProjectEnv(val project: String = "D3", val environment: String = "test")
 data class ProjectInfo(val project: String = "D3", val environments: MutableList<String> = mutableListOf("test"))
-data class Projects(val projects:Collection<ProjectInfo> = listOf()):Conflictable()
+data class Projects(val projects: Collection<ProjectInfo> = listOf()) : Conflictable()
 
 data class GenesisRequest(
     val accounts: List<AccountPublicInfo> = emptyList(),
@@ -68,7 +81,8 @@ data class GenesisResponse(val blockData: String? = null) :
         this.message = message
     }
 }
-data class NeededAccountsResponse(val accounts:List<AccountPrototype> = emptyList()) : Conflictable() {
+
+data class NeededAccountsResponse(val accounts: List<AccountPrototype> = emptyList()) : Conflictable() {
     constructor(errorCode: String? = null, message: String? = null) : this() {
         this.errorCode = errorCode
         this.message = message
@@ -76,7 +90,7 @@ data class NeededAccountsResponse(val accounts:List<AccountPrototype> = emptyLis
 }
 
 data class EthWallet(val file: WalletFile? = null) : Conflictable()
-data class BtcWallet(val file: String? = null, val network:BtcNetwork? = null) : Conflictable()
+data class BtcWallet(val file: String? = null, val network: BtcNetwork? = null) : Conflictable()
 
 /**
  * Accounts which should have quorum 2/3 of peers

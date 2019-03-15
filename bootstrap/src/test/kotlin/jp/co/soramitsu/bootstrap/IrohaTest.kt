@@ -1,10 +1,7 @@
 package jp.co.soramitsu.bootstrap
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import jp.co.soramitsu.bootstrap.dto.AccountPrototype
-import jp.co.soramitsu.bootstrap.dto.AccountPublicInfo
-import jp.co.soramitsu.bootstrap.dto.NeededAccountsResponse
-import jp.co.soramitsu.bootstrap.dto.Peer
+import jp.co.soramitsu.bootstrap.dto.*
 import jp.co.soramitsu.bootstrap.dto.block.GenesisBlock
 import jp.co.soramitsu.bootstrap.exceptions.ErrorCodes
 import jp.co.soramitsu.bootstrap.genesis.d3.D3TestGenesisFactory
@@ -22,6 +19,8 @@ import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import sun.misc.Regexp
+import java.util.regex.Pattern
 import java.util.stream.Collectors.toList
 import javax.xml.bind.DatatypeConverter
 import kotlin.test.assertEquals
@@ -140,17 +139,18 @@ class IrohaTest {
     fun testGenesisBlock() {
         val peerKey1 = generatePublicKeyHex()
         val peerKey2 = generatePublicKeyHex()
-        val accounts = getAccounts()
+        val peers = listOf(
+            Peer(peerKey1, "firstTHost:12435"),
+            Peer(peerKey2, "secondTHost:987654")
+        )
+        val accounts = getAccounts(peers.size)
 
         val result: MvcResult = mvc
             .perform(
                 post("/iroha/create/genesisBlock").contentType(MediaType.APPLICATION_JSON).content(
                     mapper.writeValueAsString(
                         jp.co.soramitsu.bootstrap.dto.GenesisRequest(
-                            peers = listOf(
-                                Peer(peerKey1, "firstTHost:12435"),
-                                Peer(peerKey2, "secondTHost:987654")
-                            ),
+                            peers = peers,
                             accounts = accounts
                         )
                     )
@@ -175,6 +175,9 @@ class IrohaTest {
         log.info("peerKey2:$peerKey2")
         assertTrue(respBody.contains(peerKey1))
         assertTrue(respBody.contains(peerKey2))
+
+        val quorumCheck = "quorum\\\":${peers.size - peers.size / 3}"
+        assertTrue(respBody.contains(quorumCheck))
         accounts.forEach {
             val pubKey = it.pubKeys[0]
             assertTrue(
@@ -184,7 +187,7 @@ class IrohaTest {
         }
 
         val genesisResponse =
-            mapper.readValue(respBody, jp.co.soramitsu.bootstrap.dto.GenesisResponse::class.java)
+            mapper.readValue(respBody, GenesisResponse::class.java)
         assertNotNull(genesisResponse)
         val genesisBlock = mapper.readValue(
             genesisResponse.blockData,
@@ -193,17 +196,17 @@ class IrohaTest {
         assertNotNull(genesisBlock)
     }
 
-    private fun getAccounts(): List<AccountPublicInfo> {
+    private fun getAccounts(peersCount:Int): List<AccountPublicInfo> {
         return listOf(
-            createAccountDto("notary", "notary"),
+            createAccountDto("notary", "notary", peersCount - peersCount / 3),
             createAccountDto("registration_service", "notary"),
             createAccountDto("eth_registration_service", "notary"),
             createAccountDto("btc_registration_service", "notary"),
-            createAccountDto("mst_btc_registration_service", "notary"),
+            createAccountDto("mst_btc_registration_service", "notary", peersCount - peersCount / 3),
             createAccountDto("eth_token_storage_service", "notary"),
             createAccountDto("withdrawal", "notary"),
             createAccountDto("btc_fee_rate", "notary"),
-            createAccountDto("btc_withdrawal_service", "notary"),
+            createAccountDto("btc_withdrawal_service", "notary", peersCount - peersCount / 3),
             createAccountDto("btc_sign_collector", "notary"),
             createAccountDto("btc_change_addresses", "notary"),
             createAccountDto("test", "notary"),
@@ -214,11 +217,11 @@ class IrohaTest {
         )
     }
 
-    private fun createAccountDto(title: String, domain: String): AccountPublicInfo {
+    private fun createAccountDto(title: String, domain: String, quorum:Int = 1): AccountPublicInfo {
         return AccountPublicInfo(
             listOf(
                 generatePublicKeyHex()
-            ), domain, title
+            ), domain, title, quorum
         )
     }
 

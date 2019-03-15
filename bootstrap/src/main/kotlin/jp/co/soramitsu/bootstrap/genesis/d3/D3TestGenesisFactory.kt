@@ -14,10 +14,10 @@ import java.util.*
 class D3TestGenesisFactory : GenesisInterface {
 
     private val zeroPubKey = "0000000000000000000000000000000000000000000000000000000000000000"
-    override fun getAccountsForConfiguration(peersCount:Int): List<AccountPrototype> {
+    override fun getAccountsForConfiguration(peersCount: Int): List<AccountPrototype> {
         val activeAccounts = D3TestContext.d3neededAccounts.filter { !it.passive }
         activeAccounts.stream().forEach {
-            if(it.peersDependentQuorum) {
+            if (it.peersDependentQuorum) {
                 it.quorum = peersCount - peersCount / 3
             }
         }
@@ -53,7 +53,7 @@ class D3TestGenesisFactory : GenesisInterface {
         peers: List<Peer>
     ) {
         val accountsMap: HashMap<String, AccountPublicInfo> = HashMap()
-        accountsList.forEach { accountsMap.putIfAbsent("${it.accountName}@${it.domainId}", it) }
+        accountsList.forEach { accountsMap.putIfAbsent(it.id, it) }
 
         val accountErrors = checkAccountsGiven(accountsMap)
         if (accountErrors.isNotEmpty()) {
@@ -75,6 +75,11 @@ class D3TestGenesisFactory : GenesisInterface {
                                 getIrohaPublicKeyFromHex(key)
                             )
                         }
+                    if (account.peersDependentQuorum) {
+                        transactionBuilder.setAccountQuorum(accountPubInfo.id, accountPubInfo.quorum)
+                    } else if (account.quorum <= accountPubInfo.quorum) {
+                        transactionBuilder.setAccountQuorum(accountPubInfo.id, accountPubInfo.quorum)
+                    }
                 } else {
                     throw AccountException("Needed account keys are not received: ${account.id}")
                 }
@@ -97,8 +102,8 @@ class D3TestGenesisFactory : GenesisInterface {
                 loosed.add("Needed account keys are not received: ${it.id}")
             } else if (!it.passive) {
                 val pubKeysCount = accountsMap[it.id]?.pubKeys?.size ?: 0
-                if (it.quorum > pubKeysCount) {
-                    loosed.add("Quorum exceeds number of keys(${it.quorum}>$pubKeysCount) for account ${it.id}")
+                if (it.quorum > pubKeysCount || (accountsMap[it.id]?.quorum ?: 1 > pubKeysCount)) {
+                    loosed.add("Default or received quorum exceeds number of keys for account ${it.id}. Received(${accountsMap[it.id]?.quorum}) quorum should not be less than default(${it.quorum}) for this account")
                 }
             }
         }
