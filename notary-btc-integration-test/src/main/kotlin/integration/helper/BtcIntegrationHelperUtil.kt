@@ -20,7 +20,6 @@ import com.d3.commons.util.toHexString
 import com.github.jleskovar.btcrpc.BitcoinRpcClientFactory
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
-import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import mu.KLogging
 import org.bitcoinj.core.Address
@@ -228,15 +227,12 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
         keypair: KeyPair = ModelUtil.generateKeypair(),
         whitelist: List<String> = emptyList()
     ): String {
-        ModelUtil.createAccount(registrationConsumer, irohaAccountName, domain, keypair.public)
-            .flatMap {
-                btcRegistrationStrategy.register(
-                    irohaAccountName,
-                    domain,
-                    whitelist,
-                    keypair.public.toHexString()
-                )
-            }
+        btcRegistrationStrategy.register(
+            irohaAccountName,
+            domain,
+            whitelist,
+            keypair.public.toHexString()
+        )
             .fold({ btcAddress ->
                 logger.info { "BTC address $btcAddress was registered for $irohaAccountName@$domain" }
                 return btcAddress

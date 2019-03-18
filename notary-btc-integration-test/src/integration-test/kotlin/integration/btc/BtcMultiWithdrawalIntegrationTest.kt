@@ -5,10 +5,12 @@ import com.d3.btc.withdrawal.handler.CurrentFeeRate
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
 import com.github.kittinunf.result.failure
 import integration.btc.environment.BtcWithdrawalTestEnvironment
 import integration.helper.BTC_ASSET
 import integration.helper.BtcIntegrationHelperUtil
+import integration.registration.RegistrationServiceTestEnvironment
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.bitcoinj.core.Address
@@ -25,10 +27,13 @@ class BtcMultiWithdrawalIntegrationTest {
     private val peers = 3
     private val integrationHelper = BtcIntegrationHelperUtil(peers)
     private val environments = ArrayList<BtcWithdrawalTestEnvironment>()
+    private val registrationServiceEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
+
     private lateinit var changeAddress: Address
 
     @AfterAll
     fun dropDown() {
+        registrationServiceEnvironment.close()
         environments.forEach { environment ->
             environment.close()
         }
@@ -36,6 +41,7 @@ class BtcMultiWithdrawalIntegrationTest {
 
     @BeforeAll
     fun setUp() {
+        registrationServiceEnvironment.registrationInitialization.init()
         CurrentFeeRate.set(DEFAULT_FEE_RATE)
         var peerCount = 0
         integrationHelper.accountHelper.btcWithdrawalAccounts
@@ -84,6 +90,11 @@ class BtcMultiWithdrawalIntegrationTest {
         val randomNameSrc = String.getRandomString(9)
         val testClientSrcKeypair = ModelUtil.generateKeypair()
         val testClientSrc = "$randomNameSrc@$CLIENT_DOMAIN"
+        val res = khttp.post(
+            "http://127.0.0.1:${registrationServiceEnvironment.registrationConfig.port}/users",
+            data = mapOf("name" to randomNameSrc, "pubkey" to testClientSrcKeypair.public.toHexString())
+        )
+        assertEquals(200, res.statusCode)
         integrationHelper.registerBtcAddressNoPreGen(randomNameSrc, CLIENT_DOMAIN, testClientSrcKeypair)
         val randomNameDest = String.getRandomString(9)
         val btcAddressDest = integrationHelper.registerBtcAddressNoPreGen(randomNameDest, CLIENT_DOMAIN)
