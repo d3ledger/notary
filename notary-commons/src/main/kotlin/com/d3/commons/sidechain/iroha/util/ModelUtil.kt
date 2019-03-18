@@ -89,6 +89,33 @@ object ModelUtil {
     }
 
     /**
+     * Send SetAccountDetail to Iroha
+     * A one should use this method if the creator of tx is client account
+     * @param irohaConsumer - iroha network layer
+     * @param accountId - account to set details
+     * @param key - key of detail
+     * @param value - value of detail
+     * @return hex representation of transaction hash
+     */
+    fun setAccountDetailWithRespectToBrvs(
+        irohaConsumer: IrohaConsumer,
+        accountId: String,
+        key: String,
+        value: String,
+        createdTime: Long = System.currentTimeMillis()
+    ): Result<String, Exception> {
+        return setAccountDetail(
+            irohaConsumer,
+            accountId,
+            key,
+            value,
+            createdTime,
+            // first is for user, second is for brvs instance
+            2
+        )
+    }
+
+    /**
      * Send CreateAccount to Iroha
      * @param irohaConsumer - iroha network layer
      * @param name - account to be created

@@ -55,17 +55,17 @@ class NotificationsIntegrationTest {
         // Creating 2 clients
         var res = khttp.post(
             "http://127.0.0.1:${registrationEnvironment.registrationConfig.port}/users",
-            data = mapOf("name" to environment.srcClientName, "pubkey" to ModelUtil.generateKeypair().public.toHexString())
+            data = mapOf("name" to environment.srcClientName, "pubkey" to environment.srcClientKeyPair.public.toHexString())
         )
         kotlin.test.assertEquals(200, res.statusCode)
         res = khttp.post(
             "http://127.0.0.1:${registrationEnvironment.registrationConfig.port}/users",
-            data = mapOf("name" to environment.destClientName, "pubkey" to ModelUtil.generateKeypair().public.toHexString())
+            data = mapOf("name" to environment.destClientName, "pubkey" to environment.destClientKeyPair.public.toHexString())
         )
         kotlin.test.assertEquals(200, res.statusCode)
 
         // Setting src client email
-        ModelUtil.setAccountDetail(
+        ModelUtil.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
             environment.srcClientId,
             D3_CLIENT_EMAIL_KEY,
@@ -73,7 +73,7 @@ class NotificationsIntegrationTest {
         ).failure { ex -> throw ex }
 
         // Setting src client subscription data
-        ModelUtil.setAccountDetail(
+        ModelUtil.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
             environment.srcClientId,
             D3_CLIENT_PUSH_SUBSCRIPTION,
@@ -81,7 +81,7 @@ class NotificationsIntegrationTest {
         ).failure { ex -> throw ex }
 
         // Setting dest client email
-        ModelUtil.setAccountDetail(
+        ModelUtil.setAccountDetailWithRespectToBrvs(
             environment.destClientConsumer,
             environment.destClientId,
             D3_CLIENT_EMAIL_KEY,
@@ -135,7 +135,7 @@ class NotificationsIntegrationTest {
     fun testNotificationDeposit() {
         val depositValue = BigDecimal(1)
 
-        ModelUtil.setAccountDetail(
+        ModelUtil.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
             environment.srcClientId,
             D3_CLIENT_ENABLE_NOTIFICATIONS,
@@ -149,7 +149,8 @@ class NotificationsIntegrationTest {
                 environment.srcClientId,
                 BTC_ASSET,
                 "no description",
-                depositValue.toPlainString()
+                depositValue.toPlainString(),
+                quorum = 1
             )
         }.map {
             Thread.sleep(TRANSFER_WAIT_TIME)
@@ -174,7 +175,7 @@ class NotificationsIntegrationTest {
     fun testNotificationWithdrawal() {
         val withdrawalValue = BigDecimal(1)
 
-        ModelUtil.setAccountDetail(
+        ModelUtil.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
             environment.srcClientId,
             D3_CLIENT_ENABLE_NOTIFICATIONS,
@@ -213,13 +214,13 @@ class NotificationsIntegrationTest {
     fun testNotificationSimpleTransfer() {
         val transferValue = BigDecimal(1)
 
-        ModelUtil.setAccountDetail(
+        ModelUtil.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
             environment.srcClientId,
             D3_CLIENT_ENABLE_NOTIFICATIONS,
             "true"
         ).map {
-            ModelUtil.setAccountDetail(
+            ModelUtil.setAccountDetailWithRespectToBrvs(
                 environment.destClientConsumer,
                 environment.destClientId,
                 D3_CLIENT_ENABLE_NOTIFICATIONS,
@@ -253,7 +254,7 @@ class NotificationsIntegrationTest {
     fun testNotificationDepositNotEnabledEmail() {
         val depositValue = BigDecimal(1)
 
-        ModelUtil.setAccountDetail(
+        ModelUtil.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
             environment.srcClientId,
             D3_CLIENT_ENABLE_NOTIFICATIONS,
@@ -267,7 +268,8 @@ class NotificationsIntegrationTest {
                 environment.srcClientId,
                 BTC_ASSET,
                 "no description",
-                depositValue.toPlainString()
+                depositValue.toPlainString(),
+                quorum = 1
             )
         }.map {
             Thread.sleep(TRANSFER_WAIT_TIME)
