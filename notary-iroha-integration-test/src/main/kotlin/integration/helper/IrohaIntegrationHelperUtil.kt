@@ -255,13 +255,6 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
     }
 
     /**
-     * Create iroha account [name]@[domain] with [pubkey]
-     */
-    fun createAccount(name: String, domain: String, pubkey: PublicKey) {
-        ModelUtil.createAccount(irohaConsumer, name, domain, pubkey)
-    }
-
-    /**
      * Query Iroha account balance from [accountId].
      * @return Map(assetId to balance)
      */

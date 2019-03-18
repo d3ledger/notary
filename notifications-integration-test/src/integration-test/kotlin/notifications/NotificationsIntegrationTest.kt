@@ -19,6 +19,9 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.irohaEscape
+import com.d3.commons.util.toHexString
+import integration.registration.RegistrationServiceTestEnvironment
+import org.springframework.ui.Model
 import java.math.BigDecimal
 
 const val BTC_ASSET = "btc#bitcoin"
@@ -40,13 +43,26 @@ class NotificationsIntegrationTest {
 
     private val environment = NotificationsIntegrationTestEnvironment(integrationHelper)
 
+    private val registrationEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
+
+
     init {
+        registrationEnvironment.registrationInitialization.init()
+
         // This amount is big enough for testing
         val amount = BigDecimal(100)
 
         // Creating 2 clients
-        integrationHelper.createAccount(environment.srcClientName, CLIENT_DOMAIN, environment.srcClientKeyPair.public)
-        integrationHelper.createAccount(environment.destClientName, CLIENT_DOMAIN, environment.destClientKeyPair.public)
+        var res = khttp.post(
+            "http://127.0.0.1:${registrationEnvironment.registrationConfig.port}/users",
+            data = mapOf("name" to environment.srcClientName, "pubkey" to ModelUtil.generateKeypair().public.toHexString())
+        )
+        kotlin.test.assertEquals(200, res.statusCode)
+        res = khttp.post(
+            "http://127.0.0.1:${registrationEnvironment.registrationConfig.port}/users",
+            data = mapOf("name" to environment.destClientName, "pubkey" to ModelUtil.generateKeypair().public.toHexString())
+        )
+        kotlin.test.assertEquals(200, res.statusCode)
 
         // Setting src client email
         ModelUtil.setAccountDetail(
@@ -105,6 +121,7 @@ class NotificationsIntegrationTest {
 
     @AfterAll
     fun closeEnvironments() {
+        registrationEnvironment.close()
         environment.close()
     }
 

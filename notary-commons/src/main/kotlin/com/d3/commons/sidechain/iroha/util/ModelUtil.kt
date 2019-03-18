@@ -256,23 +256,4 @@ object ModelUtil {
             iroha.blocksQuery(query)
         }
     }
-
-    /**
-     * Create account in Iroha.
-     * @param name - account name
-     * @param domain - account domain
-     * @return hex
-     */
-    fun createAccount(
-        irohaConsumer: IrohaConsumer,
-        name: String,
-        domain: String,
-        pubkey: PublicKey
-    ): Result<String, Exception> {
-        val transaction = Transaction
-            .builder(irohaConsumer.creator)
-            .createAccount(name, domain, pubkey)
-            .build()
-        return irohaConsumer.send(transaction)
-    }
 }

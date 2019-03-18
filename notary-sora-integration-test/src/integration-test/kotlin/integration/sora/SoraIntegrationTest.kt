@@ -24,17 +24,17 @@ class SoraIntegrationTest {
 
     val integrationHelper = IrohaIntegrationHelperUtil()
 
-    val registrationEnvironmetn = RegistrationServiceTestEnvironment(integrationHelper)
+    val registrationEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
 
     val domain = "sora"
     val xorAsset = "xor#$domain"
     val soraClientId = "sora@sora"
 
-    val registrationConfig = registrationEnvironmetn.registrationConfig
+    val registrationConfig = registrationEnvironment.registrationConfig
 
     init {
         GlobalScope.launch {
-            registrationEnvironmetn.registrationInitialization.init()
+            registrationEnvironment.registrationInitialization.init()
         }
 
         runBlocking { delay(20_000) }
@@ -60,7 +60,15 @@ class SoraIntegrationTest {
 
         val keypairAlice = Ed25519Sha3().generateKeypair()
 
-        integrationHelper.createAccount(clientName, domain, keypairAlice.public)
+        val res = post(
+            mapOf(
+                "name" to clientName,
+                "pubkey" to keypairAlice.public.toHexString(),
+                "domain" to domain
+            )
+        )
+
+        assertEquals(200, res.statusCode)
 
         assertEquals(
             "0",
@@ -85,12 +93,27 @@ class SoraIntegrationTest {
         val aliceClientName = String.getRandomString(9)
         val aliceClientId = "$aliceClientName@$domain"
         val keypairAlice = Ed25519Sha3().generateKeypair()
-        integrationHelper.createAccount(aliceClientName, domain, keypairAlice.public)
+        var res = post(
+            mapOf(
+                "name" to aliceClientName,
+                "pubkey" to keypairAlice.public.toHexString(),
+                "domain" to domain
+            )
+        )
 
+        assertEquals(200, res.statusCode)
         val bobClientName = String.getRandomString(9)
         val bobClientId = "$bobClientName@$domain"
         val keypairBob = Ed25519Sha3().generateKeypair()
-        integrationHelper.createAccount(bobClientName, domain, keypairBob.public)
+        res = post(
+            mapOf(
+                "name" to bobClientName,
+                "pubkey" to keypairBob.public.toHexString(),
+                "domain" to domain
+            )
+        )
+
+        assertEquals(200, res.statusCode)
 
         integrationHelper.addIrohaAssetTo(aliceClientId, xorAsset, "1334")
 
@@ -126,12 +149,28 @@ class SoraIntegrationTest {
         val aliceClientName = String.getRandomString(9)
         val aliceClientId = "$aliceClientName@$domain"
         val keypairAlice = Ed25519Sha3().generateKeypair()
-        integrationHelper.createAccount(aliceClientName, domain, keypairAlice.public)
+        var res = post(
+            mapOf(
+                "name" to aliceClientName,
+                "pubkey" to keypairAlice.public.toHexString(),
+                "domain" to domain
+            )
+        )
+
+        assertEquals(200, res.statusCode)
 
         val bobClientName = String.getRandomString(9)
         val bobClientId = "$bobClientName@$domain"
         val keypairBob = Ed25519Sha3().generateKeypair()
-        integrationHelper.createAccount(bobClientName, domain, keypairBob.public)
+        res = post(
+            mapOf(
+                "name" to bobClientName,
+                "pubkey" to keypairBob.public.toHexString(),
+                "domain" to domain
+            )
+        )
+
+        assertEquals(200, res.statusCode)
 
         val soraKeyPair =
             ModelUtil.loadKeypair("deploy/iroha/keys/sora@sora.pub", "deploy/iroha/keys/sora@sora.priv").get()
