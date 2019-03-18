@@ -16,6 +16,7 @@ import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.core.JsonRpc2_0Web3j.DEFAULT_BLOCK_TIME
 import org.web3j.protocol.http.HttpService
 import org.web3j.tx.ClientTransactionManager
+import org.web3j.tx.RawTransactionManager
 import org.web3j.tx.Transfer
 import org.web3j.tx.gas.StaticGasProvider
 import org.web3j.utils.Convert
@@ -56,7 +57,7 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
     }
 
     /** transaction manager */
-    val transactionManager = ClientTransactionManager(web3, credentials.address)
+    val transactionManager = RawTransactionManager(web3, credentials)
 
     /** Gas price */
     val gasPrice = BigInteger.valueOf(ethereumConfig.gasPrice)
