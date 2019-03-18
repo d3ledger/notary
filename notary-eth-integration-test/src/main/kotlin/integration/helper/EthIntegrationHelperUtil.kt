@@ -181,7 +181,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      */
     fun deployERC20Token(name: String, precision: Int): String {
         logger.info { "create $name ERC20 token" }
-        val tokenAddress = contractTestHelper.deployHelper.deployERC20TokenSmartContract().contractAddress
+        val tokenAddress = contractTestHelper.testEthHelper.deployERC20TokenSmartContract().contractAddress
         addERC20Token(tokenAddress, EthTokenInfo(name, ETH_DOMAIN, precision))
         masterContract.addToken(tokenAddress).send()
         return tokenAddress
