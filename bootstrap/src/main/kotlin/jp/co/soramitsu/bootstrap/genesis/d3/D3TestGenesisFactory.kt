@@ -16,11 +16,9 @@ class D3TestGenesisFactory : GenesisInterface {
     private val zeroPubKey = "0000000000000000000000000000000000000000000000000000000000000000"
     override fun getAccountsForConfiguration(peersCount: Int): List<AccountPrototype> {
         val activeAccounts = D3TestContext.d3neededAccounts.filter { !it.passive }
-        activeAccounts.stream().forEach {
-            if (it.peersDependentQuorum) {
-                it.quorum = peersCount - peersCount / 3
-            }
-        }
+        activeAccounts
+            .filter { it.peersDependentQuorum }
+            .forEach { it.quorum = peersCount - peersCount / 3 }
         return activeAccounts
     }
 

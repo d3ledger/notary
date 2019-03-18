@@ -9,9 +9,7 @@ import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import org.testcontainers.shaded.javax.ws.rs.QueryParam
 import java.util.stream.Collectors.toList
-import javax.validation.constraints.NotNull
 import javax.xml.bind.DatatypeConverter
 
 @RestController
@@ -27,7 +25,7 @@ class IrohaController(val genesisFactories: List<GenesisInterface>) {
         @PathVariable("env") env: String,
         @PathVariable("peersCount") peersCount: Int
     ): ResponseEntity<NeededAccountsResponse> {
-        if (peersCount == null || peersCount == 0) {
+        if (peersCount == 0) {
             return ResponseEntity.ok<NeededAccountsResponse>(NeededAccountsResponse(
                 ErrorCodes.INCORRECT_PEERS_COUNT.name,
                 "peersCount path variable should exist with value >0"))
