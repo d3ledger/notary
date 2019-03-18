@@ -51,7 +51,7 @@
     <constructor-arg index="2" ref="accountManager"/>
     <constructor-arg index="3" ref="accountManager"/>
     <constructor-arg index="4" ref="irohaReliableChainListener"/>
-    <constructor-arg index="5" value="${brvs.userDomain}"/>
+    <constructor-arg index="5" value="${brvs.userDomains}"/>
   </bean>
 
   <!-- CHAIN LISTENER CONFIG -->
