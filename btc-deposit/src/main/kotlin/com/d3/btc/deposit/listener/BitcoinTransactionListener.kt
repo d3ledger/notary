@@ -1,47 +1,38 @@
 package com.d3.btc.deposit.listener
 
+import com.d3.btc.deposit.handler.BtcDepositTxHandler
 import com.d3.btc.helper.address.outPutToBase58Address
-import com.d3.btc.helper.currency.satToBtc
 import com.d3.btc.model.BtcAddress
-import io.reactivex.ObservableEmitter
 import mu.KLogging
 import org.bitcoinj.core.Transaction
-import org.bitcoinj.core.TransactionConfidence
-import com.d3.commons.sidechain.SideChainEvent
-import java.math.BigInteger
 import java.util.*
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.atomic.AtomicBoolean
-
-private const val BTC_ASSET_NAME = "btc"
-private const val BTC_ASSET_DOMAIN = "bitcoin"
-private const val TWO_HOURS_MILLIS = 2 * 60 * 60 * 1000L;
 
 /**
  * Listener that listens to interested Bitcoin transactions
  * @param registeredAddresses - list of registered BTC addresses
  * @param confidenceLevel - level of confidence aka depth of transaction. Recommend value is 6
- * @param emitter - source of Bitcoin deposit events
  * @param confidenceListenerExecutor - executor that will be used to execute confidence listener logic
- * @param onUnspent - function that will be called right after deposit('unspent' occurrence)
+ * @param btcDepositTxHandler - handles btc deposit transactions
+ * @param onTxSave - function that will be called right after deposit('unspent' occurrence)
  */
 class BitcoinTransactionListener(
     private val registeredAddresses: List<BtcAddress>,
     private val confidenceLevel: Int,
-    private val emitter: ObservableEmitter<SideChainEvent.PrimaryBlockChainEvent>,
     private val confidenceListenerExecutor: ExecutorService,
-    private val onUnspent: () -> Unit
+    private val btcDepositTxHandler: BtcDepositTxHandler,
+    private val onTxSave: () -> Unit
 ) {
     fun onTransaction(tx: Transaction, blockTime: Date) {
         //TODO save change address
         if (!hasRegisteredAddresses(tx)) {
             return
         }
-        onUnspent()
+        onTxSave()
         if (tx.confidence.depthInBlocks >= confidenceLevel) {
             //If tx has desired depth, we call function that handles it
             logger.info { "BTC was received. Tx: ${tx.hashAsString}" }
-            handleTx(tx, blockTime)
+            btcDepositTxHandler.handleTx(tx, blockTime)
         } else {
             /*
             Otherwise we will register listener, that listens to tx depth updates.
@@ -50,14 +41,13 @@ class BitcoinTransactionListener(
             logger.info { "BTC was received, but it's not confirmed yet. Tx: ${tx.hashAsString}" }
             tx.confidence.addEventListener(
                 confidenceListenerExecutor,
-                ConfirmedTxListener(
+                BtcConfirmedTxListener(
                     confidenceLevel,
                     tx,
                     blockTime,
-                    ::handleTx
+                    btcDepositTxHandler::handleTx
                 )
             )
-
         }
     }
 
@@ -67,66 +57,6 @@ class BitcoinTransactionListener(
             tx.outputs.map { out ->
                 outPutToBase58Address(out)
             }.contains(registeredBtcAddress.address)
-        }
-    }
-
-    private fun handleTx(tx: Transaction, blockTime: Date) {
-        tx.outputs.forEach { output ->
-            val txBtcAddress = outPutToBase58Address(output)
-            logger.info { "Tx ${tx.hashAsString} has output address $txBtcAddress" }
-            val btcAddress = registeredAddresses.firstOrNull { btcAddress -> btcAddress.address == txBtcAddress }
-            if (btcAddress != null) {
-                val btcValue = satToBtc(output.value.value)
-                val event = SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit(
-                    tx.hashAsString,
-                    /*
-                    Due to Iroha time restrictions, tx time must be in range [current time - 1 day; current time + 5 min],
-                    while Bitcoin block time must be in range [median time of last 11 blocks; network time + 2 hours].
-                    Given these restrictions, block time may be more than 5 minutes ahead of current time.
-                    Subtracting 2 hours is just a simple workaround of this problem.
-                    */
-                    BigInteger.valueOf(blockTime.time - TWO_HOURS_MILLIS),
-                    btcAddress.info.irohaClient!!,
-                    "$BTC_ASSET_NAME#$BTC_ASSET_DOMAIN",
-                    btcValue.toPlainString(),
-                    ""
-                )
-                logger.info {
-                    "BTC deposit event(tx ${tx.hashAsString}, amount ${btcValue.toPlainString()}) was created. " +
-                            "Related client is ${btcAddress.info.irohaClient}. "
-                }
-                emitter.onNext(event)
-            }
-        }
-
-    }
-
-    private class ConfirmedTxListener(
-        private val confidenceLevel: Int,
-        private val tx: Transaction,
-        private val blockTime: Date,
-        private val txHandler: (Transaction, Date) -> Unit
-    ) : TransactionConfidence.Listener {
-        private val processed = AtomicBoolean()
-        override fun onConfidenceChanged(
-            confidence: TransactionConfidence,
-            reason: TransactionConfidence.Listener.ChangeReason
-        ) {
-            /*
-            Due to bitoinj library threading issues, we can miss an event of 'depthInBlocks'
-            being exactly 'confidenceLevel'. So we check it to be at least 'confidenceLevel'.
-            This leads D3 to handle the same transaction many times. This is why we use a special
-            flag to check if it has been handled already.
-            */
-            val currentDepth = confidence.depthInBlocks
-            if (currentDepth >= confidenceLevel
-                && processed.compareAndSet(false, true)
-            ) {
-                logger.info { "BTC tx ${tx.hashAsString} was confirmed" }
-                confidence.removeEventListener(this)
-                txHandler(tx, blockTime)
-            }
-            logger.info { "BTC tx ${tx.hashAsString} has $currentDepth confirmations" }
         }
     }
 

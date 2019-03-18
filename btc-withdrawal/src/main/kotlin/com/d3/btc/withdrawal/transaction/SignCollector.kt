@@ -2,24 +2,9 @@ package com.d3.btc.withdrawal.transaction
 
 import com.d3.btc.helper.address.getSignThreshold
 import com.d3.btc.helper.address.outPutToBase58Address
-import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.flatMap
-import com.github.kittinunf.result.map
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.Types
-import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.QueryAPI
 import com.d3.commons.model.IrohaCredential
-import mu.KLogging
 import com.d3.commons.notary.IrohaCommand
 import com.d3.commons.notary.IrohaTransaction
-import org.bitcoinj.core.ECKey
-import org.bitcoinj.core.Transaction
-import org.bitcoinj.crypto.TransactionSignature
-import org.bitcoinj.script.ScriptBuilder
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.stereotype.Component
 import com.d3.commons.sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.sidechain.iroha.consumer.IrohaConverter
@@ -29,6 +14,21 @@ import com.d3.commons.util.getRandomId
 import com.d3.commons.util.hex
 import com.d3.commons.util.irohaEscape
 import com.d3.commons.util.unHex
+import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.flatMap
+import com.github.kittinunf.result.map
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
+import mu.KLogging
+import org.bitcoinj.core.ECKey
+import org.bitcoinj.core.Transaction
+import org.bitcoinj.crypto.TransactionSignature
+import org.bitcoinj.script.ScriptBuilder
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.stereotype.Component
 
 /*
     Class that is used to collect signatures in Iroha
@@ -64,7 +64,11 @@ class SignCollector(
     fun collectSignatures(tx: Transaction, walletPath: String) {
         transactionSigner.sign(tx, walletPath).flatMap { signedInputs ->
             if (signedInputs.isEmpty()) {
-                throw IllegalStateException("No inputs were signed")
+                logger.warn(
+                    "Cannot sign transaction ${tx.hashAsString}. " +
+                            "Current node probably doesn't posses private keys for a given transaction to sign."
+                )
+                return@flatMap Result.of {}
             }
             logger.info { "Tx ${tx.hashAsString} signatures to add in Iroha $signedInputs" }
             val shortTxHash = shortTxHash(tx)
@@ -80,7 +84,7 @@ class SignCollector(
             signatureCollectorConsumer.send(setSignaturesTx)
         }.fold(
             {
-                logger.info { "Signatures for ${tx.hashAsString} were successfully saved in Iroha" }
+                logger.info { "Signatures for ${tx.hashAsString} were successfully processed" }
             }, { ex -> throw ex })
     }
 

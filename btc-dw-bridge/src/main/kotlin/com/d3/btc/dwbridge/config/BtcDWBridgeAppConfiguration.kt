@@ -1,5 +1,6 @@
 package com.d3.btc.dwbridge.config
 
+import com.d3.btc.deposit.BTC_DEPOSIT_SERVICE_NAME
 import com.d3.btc.deposit.config.BtcDepositConfig
 import com.d3.btc.dwbridge.BTC_DW_BRIDGE_SERVICE_NAME
 import com.d3.btc.fee.BtcFeeRateService
@@ -10,12 +11,16 @@ import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
 import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
 import com.d3.commons.config.*
 import com.d3.commons.model.IrohaCredential
+import com.d3.commons.notary.NotaryImpl
 import com.d3.commons.provider.NotaryPeerListProviderImpl
+import com.d3.commons.sidechain.SideChainEvent
 import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.createPrettySingleThreadPool
 import io.grpc.ManagedChannelBuilder
+import io.reactivex.Observable
+import io.reactivex.subjects.PublishSubject
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import org.bitcoinj.wallet.Wallet
@@ -57,6 +62,33 @@ class BtcDWBridgeAppConfiguration {
 
     private val notaryCredential =
         IrohaCredential(depositConfig.notaryCredential.accountId, notaryKeypair)
+
+    @Bean
+    fun confidenceListenerExecutorService() =
+        createPrettySingleThreadPool(BTC_DEPOSIT_SERVICE_NAME, "tx-confidence-listener")
+
+    @Bean
+    fun queryAPI() = QueryAPI(irohaAPI(), notaryCredential.accountId, notaryKeypair)
+
+    @Bean
+    fun peerListProvider() = NotaryPeerListProviderImpl(
+        queryAPI(),
+        depositConfig.notaryListStorageAccount,
+        depositConfig.notaryListSetterAccount
+    )
+
+    @Bean
+    fun btcEventsSource(): PublishSubject<SideChainEvent.PrimaryBlockChainEvent> {
+        return PublishSubject.create<SideChainEvent.PrimaryBlockChainEvent>()
+    }
+
+    @Bean
+    fun btcEventsObservable(): Observable<SideChainEvent.PrimaryBlockChainEvent> {
+        return btcEventsSource()
+    }
+
+    @Bean
+    fun notary() = NotaryImpl(notaryCredential, irohaAPI(), btcEventsObservable(), peerListProvider())
 
     @Bean
     fun rmqConfig() = rmqConfig

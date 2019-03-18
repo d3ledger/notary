@@ -24,7 +24,6 @@ import com.github.kittinunf.result.map
 import mu.KLogging
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.ECKey
-import org.bitcoinj.core.PeerGroup
 import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.script.ScriptBuilder
@@ -144,7 +143,7 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
         btcNetworkConfigProvider: BtcNetworkConfigProvider,
         blockStoragePath: String,
         hosts: List<String>
-    ): PeerGroup {
+    ): SharedPeerGroup {
         return SharedPeerGroup(btcNetworkConfigProvider, wallet, blockStoragePath, hosts)
     }
 
