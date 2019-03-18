@@ -1,13 +1,14 @@
 package com.d3.btc.deposit.listener
 
+import com.d3.btc.deposit.handler.BtcDepositTxHandler
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
-import io.reactivex.ObservableEmitter
+import com.d3.commons.sidechain.SideChainEvent
+import io.reactivex.subjects.PublishSubject
 import mu.KLogging
 import org.bitcoinj.core.Block
 import org.bitcoinj.core.FilteredBlock
 import org.bitcoinj.core.Peer
 import org.bitcoinj.core.listeners.BlocksDownloadedEventListener
-import com.d3.commons.sidechain.SideChainEvent
 import java.util.concurrent.ExecutorService
 
 private const val DAY_MILLIS = 24 * 60 * 60 * 1000L
@@ -15,16 +16,16 @@ private const val DAY_MILLIS = 24 * 60 * 60 * 1000L
 /**
  * Listener of Bitcoin blockchain events.
  * @param btcRegisteredAddressesProvider - Bitcoin registered addresses provider
- * @param emitter - emitter that is used to publish Bitcoin deposit events
+ * @param btcEventsSource - observable that is used to publish Bitcoin deposit events
  * @param confidenceListenerExecutorService - executor service that is used to execute 'confidence change' events
- * @param onUnspent - function that will be called right after deposit('unspent' occurrence)
+ * @param onTxSave - function that is called to save transaction
  */
 class BitcoinBlockChainDepositListener(
     private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
-    private val emitter: ObservableEmitter<SideChainEvent.PrimaryBlockChainEvent>,
+    private val btcEventsSource: PublishSubject<SideChainEvent.PrimaryBlockChainEvent>,
     private val confidenceListenerExecutorService: ExecutorService,
     private val confidenceLevel: Int,
-    private val onUnspent: () -> Unit
+    private val onTxSave: () -> Unit
 ) : BlocksDownloadedEventListener {
 
     private val processedBlocks = HashSet<String>()
@@ -49,9 +50,9 @@ class BitcoinBlockChainDepositListener(
                     BitcoinTransactionListener(
                         registeredAddresses,
                         confidenceLevel,
-                        emitter,
                         confidenceListenerExecutorService,
-                        onUnspent
+                        BtcDepositTxHandler(registeredAddresses, btcEventsSource, onTxSave),
+                        onTxSave
                     )
                 block.transactions?.forEach { tx ->
                     receivedCoinsListener.onTransaction(
