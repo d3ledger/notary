@@ -1,5 +1,7 @@
 package com.d3.commons.sidechain.iroha.util
 
+import com.d3.commons.model.IrohaCredential
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.github.kittinunf.result.Result
 import io.reactivex.Observable
 import iroha.protocol.Primitive
@@ -9,9 +11,7 @@ import jp.co.soramitsu.iroha.java.BlocksQueryBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.Transaction
 import jp.co.soramitsu.iroha.java.Utils
-import com.d3.commons.model.IrohaCredential
 import mu.KLogging
-import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import java.io.IOException
 import java.math.BigInteger
 import java.nio.file.Files
@@ -86,33 +86,6 @@ object ModelUtil {
             .setCreatedTime(createdTime)
             .setQuorum(quorum)
         return irohaConsumer.send(transactionBuilder.build())
-    }
-
-    /**
-     * Send SetAccountDetail to Iroha
-     * A one should use this method if the creator of tx is client account
-     * @param irohaConsumer - iroha network layer
-     * @param accountId - account to set details
-     * @param key - key of detail
-     * @param value - value of detail
-     * @return hex representation of transaction hash
-     */
-    fun setAccountDetailWithRespectToBrvs(
-        irohaConsumer: IrohaConsumer,
-        accountId: String,
-        key: String,
-        value: String,
-        createdTime: Long = System.currentTimeMillis()
-    ): Result<String, Exception> {
-        return setAccountDetail(
-            irohaConsumer,
-            accountId,
-            key,
-            value,
-            createdTime,
-            // first is for user, second is for brvs instance
-            2
-        )
     }
 
     /**

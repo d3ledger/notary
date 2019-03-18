@@ -1,27 +1,24 @@
 package notifications
 
+import com.d3.commons.util.irohaEscape
+import com.d3.commons.util.toHexString
+import com.d3.notifications.client.D3_CLIENT_EMAIL_KEY
+import com.d3.notifications.client.D3_CLIENT_ENABLE_NOTIFICATIONS
+import com.d3.notifications.client.D3_CLIENT_PUSH_SUBSCRIPTION
+import com.d3.notifications.service.D3_DEPOSIT_EMAIL_SUBJECT
+import com.d3.notifications.service.D3_WITHDRAWAL_EMAIL_SUBJECT
+import com.d3.notifications.service.NOTIFICATION_EMAIL
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import com.nhaarman.mockito_kotlin.*
 import integration.helper.IrohaIntegrationHelperUtil
-import com.d3.notifications.client.D3_CLIENT_EMAIL_KEY
-import com.d3.notifications.client.D3_CLIENT_ENABLE_NOTIFICATIONS
-import com.d3.notifications.client.D3_CLIENT_PUSH_SUBSCRIPTION
+import integration.registration.RegistrationServiceTestEnvironment
 import notifications.environment.NotificationsIntegrationTestEnvironment
-import com.d3.notifications.service.D3_DEPOSIT_EMAIL_SUBJECT
-import com.d3.notifications.service.D3_WITHDRAWAL_EMAIL_SUBJECT
-import com.d3.notifications.service.NOTIFICATION_EMAIL
 import org.apache.http.HttpResponse
 import org.apache.http.StatusLine
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
-import com.d3.commons.sidechain.iroha.util.ModelUtil
-import com.d3.commons.util.irohaEscape
-import com.d3.commons.util.toHexString
-import integration.registration.RegistrationServiceTestEnvironment
-import org.springframework.ui.Model
 import java.math.BigDecimal
 
 const val BTC_ASSET = "btc#bitcoin"
@@ -55,17 +52,23 @@ class NotificationsIntegrationTest {
         // Creating 2 clients
         var res = khttp.post(
             "http://127.0.0.1:${registrationEnvironment.registrationConfig.port}/users",
-            data = mapOf("name" to environment.srcClientName, "pubkey" to environment.srcClientKeyPair.public.toHexString())
+            data = mapOf(
+                "name" to environment.srcClientName,
+                "pubkey" to environment.srcClientKeyPair.public.toHexString()
+            )
         )
         kotlin.test.assertEquals(200, res.statusCode)
         res = khttp.post(
             "http://127.0.0.1:${registrationEnvironment.registrationConfig.port}/users",
-            data = mapOf("name" to environment.destClientName, "pubkey" to environment.destClientKeyPair.public.toHexString())
+            data = mapOf(
+                "name" to environment.destClientName,
+                "pubkey" to environment.destClientKeyPair.public.toHexString()
+            )
         )
         kotlin.test.assertEquals(200, res.statusCode)
 
         // Setting src client email
-        ModelUtil.setAccountDetailWithRespectToBrvs(
+        integrationHelper.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
             environment.srcClientId,
             D3_CLIENT_EMAIL_KEY,
@@ -73,7 +76,7 @@ class NotificationsIntegrationTest {
         ).failure { ex -> throw ex }
 
         // Setting src client subscription data
-        ModelUtil.setAccountDetailWithRespectToBrvs(
+        integrationHelper.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
             environment.srcClientId,
             D3_CLIENT_PUSH_SUBSCRIPTION,
@@ -81,7 +84,7 @@ class NotificationsIntegrationTest {
         ).failure { ex -> throw ex }
 
         // Setting dest client email
-        ModelUtil.setAccountDetailWithRespectToBrvs(
+        integrationHelper.setAccountDetailWithRespectToBrvs(
             environment.destClientConsumer,
             environment.destClientId,
             D3_CLIENT_EMAIL_KEY,
@@ -135,7 +138,7 @@ class NotificationsIntegrationTest {
     fun testNotificationDeposit() {
         val depositValue = BigDecimal(1)
 
-        ModelUtil.setAccountDetailWithRespectToBrvs(
+        integrationHelper.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
             environment.srcClientId,
             D3_CLIENT_ENABLE_NOTIFICATIONS,
@@ -175,7 +178,7 @@ class NotificationsIntegrationTest {
     fun testNotificationWithdrawal() {
         val withdrawalValue = BigDecimal(1)
 
-        ModelUtil.setAccountDetailWithRespectToBrvs(
+        integrationHelper.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
             environment.srcClientId,
             D3_CLIENT_ENABLE_NOTIFICATIONS,
@@ -214,13 +217,13 @@ class NotificationsIntegrationTest {
     fun testNotificationSimpleTransfer() {
         val transferValue = BigDecimal(1)
 
-        ModelUtil.setAccountDetailWithRespectToBrvs(
+        integrationHelper.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
             environment.srcClientId,
             D3_CLIENT_ENABLE_NOTIFICATIONS,
             "true"
         ).map {
-            ModelUtil.setAccountDetailWithRespectToBrvs(
+            integrationHelper.setAccountDetailWithRespectToBrvs(
                 environment.destClientConsumer,
                 environment.destClientId,
                 D3_CLIENT_ENABLE_NOTIFICATIONS,
@@ -254,7 +257,7 @@ class NotificationsIntegrationTest {
     fun testNotificationDepositNotEnabledEmail() {
         val depositValue = BigDecimal(1)
 
-        ModelUtil.setAccountDetailWithRespectToBrvs(
+        integrationHelper.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
             environment.srcClientId,
             D3_CLIENT_ENABLE_NOTIFICATIONS,

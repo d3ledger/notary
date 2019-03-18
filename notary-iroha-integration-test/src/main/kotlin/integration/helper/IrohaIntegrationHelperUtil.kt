@@ -6,10 +6,12 @@ import com.d3.commons.config.loadConfigs
 import com.d3.commons.config.loadRawConfigs
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.sidechain.iroha.util.getAccountAsset
 import com.d3.commons.util.getRandomString
+import com.github.kittinunf.result.Result
 import integration.TestConfig
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
@@ -19,7 +21,6 @@ import mu.KLogging
 import java.io.Closeable
 import java.math.BigDecimal
 import java.security.KeyPair
-import java.security.PublicKey
 
 /**
  * Utility class that makes testing more comfortable
@@ -265,6 +266,34 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
         return queryAPI.getAccountAssets(accountId).accountAssetsList.associate { asset ->
             asset.assetId to asset.balance
         }
+    }
+
+
+    /**
+     * Send SetAccountDetail to Iroha
+     * A one should use this method if the creator of tx is client account
+     * @param irohaConsumer - iroha network layer
+     * @param accountId - account to set details
+     * @param key - key of detail
+     * @param value - value of detail
+     * @return hex representation of transaction hash
+     */
+    fun setAccountDetailWithRespectToBrvs(
+        irohaConsumer: IrohaConsumer,
+        accountId: String,
+        key: String,
+        value: String,
+        createdTime: Long = System.currentTimeMillis()
+    ): Result<String, Exception> {
+        return ModelUtil.setAccountDetail(
+            irohaConsumer,
+            accountId,
+            key,
+            value,
+            createdTime,
+            // first is for user, second is for brvs instance
+            2
+        )
     }
 
     /**
