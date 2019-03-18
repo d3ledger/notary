@@ -1,11 +1,14 @@
 package integration.btc
 
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
 import com.github.kittinunf.result.failure
 import integration.btc.environment.BtcNotaryTestEnvironment
 import integration.helper.BTC_ASSET
 import integration.helper.BtcIntegrationHelperUtil
+import integration.registration.RegistrationServiceTestEnvironment
 import mu.KLogging
 import org.bitcoinj.core.Address
 import org.bitcoinj.params.RegTestParams
@@ -15,18 +18,23 @@ import java.io.File
 import java.math.BigDecimal
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import kotlin.test.assertEquals
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcDepositFailResistanceIntegrationTest {
     private val integrationHelper = BtcIntegrationHelperUtil()
     private val environment = BtcNotaryTestEnvironment(integrationHelper)
+    private val registrationServiceEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
+
 
     @AfterAll
     fun dropDown() {
+        registrationServiceEnvironment.close()
         environment.close()
     }
 
     init {
+        registrationServiceEnvironment.registrationInitialization.init()
         val blockStorageFolder = File(environment.notaryConfig.bitcoin.blockStoragePath)
         //Clear bitcoin blockchain folder
         blockStorageFolder.deleteRecursively()
@@ -50,6 +58,11 @@ class BtcDepositFailResistanceIntegrationTest {
         val initUTXOCount = transfersWallet.unspents.size
         val randomName = String.getRandomString(9)
         val testClient = "$randomName@$CLIENT_DOMAIN"
+        val res = khttp.post(
+            "http://127.0.0.1:${registrationServiceEnvironment.registrationConfig.port}/users",
+            data = mapOf("name" to randomName, "pubkey" to ModelUtil.generateKeypair().public.toHexString())
+        )
+        assertEquals(200, res.statusCode)
         val btcAddress =
             integrationHelper.registerBtcAddress(
                 environment.btcAddressGenerationConfig.btcKeysWalletPath,
