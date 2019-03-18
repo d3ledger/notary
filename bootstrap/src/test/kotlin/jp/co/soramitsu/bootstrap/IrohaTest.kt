@@ -116,7 +116,7 @@ class IrohaTest {
     fun testEmptyPeerKey() {
         val peerKey1 = generatePublicKeyHex()
 
-       mvc
+        mvc
             .perform(
                 post("/iroha/create/genesisBlock").contentType(MediaType.APPLICATION_JSON).content(
                     mapper.writeValueAsString(
@@ -137,9 +137,11 @@ class IrohaTest {
     fun testGenesisBlock() {
         val peerKey1 = generatePublicKeyHex()
         val peerKey2 = generatePublicKeyHex()
+        val notaryAddress1 = "notaryHost1:43652"
+        val notaryAddress2 = "notaryHost2:3652"
         val peers = listOf(
-            Peer(peerKey1, "firstTHost:12435"),
-            Peer(peerKey2, "secondTHost:987654")
+            Peer(peerKey1, "firstTHost:12435", notaryAddress1),
+            Peer(peerKey2, "secondTHost:987654", notaryAddress2)
         )
         val accounts = getAccounts(peers.size)
 
@@ -171,6 +173,9 @@ class IrohaTest {
 
         assertTrue(respBody.contains(peerKey1))
         assertTrue(respBody.contains(peerKey2))
+        assertTrue(respBody.contains(notaryAddress1))
+        assertTrue(respBody.contains(notaryAddress2))
+
         val quorumCheck =
             "{\\\"accountId\\\":\\\"mst_btc_registration_service@notary\\\",\\\"quorum\\\":${peers.size - peers.size / 3}}"
         assertTrue(respBody.contains(quorumCheck))

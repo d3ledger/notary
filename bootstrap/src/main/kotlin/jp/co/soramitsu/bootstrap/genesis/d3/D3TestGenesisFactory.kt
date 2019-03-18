@@ -37,25 +37,30 @@ class D3TestGenesisFactory : GenesisInterface {
         createRoles(transactionBuilder)
         createDomains(transactionBuilder)
         createAssets(transactionBuilder)
-        createAccounts(transactionBuilder, accounts, peers)
+        createAccounts(transactionBuilder, accounts)
+        createAccountDetails(transactionBuilder, peers)
 
         val blockBuilder = GenesisBlockBuilder().addTransaction(transactionBuilder.build().build())
         val block = blockBuilder.build()
         return JsonFormat.printer().omittingInsignificantWhitespace().print(block)
     }
 
+    private fun createAccountDetails(transactionBuilder: TransactionBuilder,
+                                     peers: List<Peer>) {
+        peers.forEach {
+            transactionBuilder.setAccountDetail("notaries@notary", it.peerKey,it.notaryHostPort)
+        }
+
+    }
+
     private fun createAccounts(
         transactionBuilder: TransactionBuilder,
-        accountsList: List<AccountPublicInfo>,
-        peers: List<Peer>
+        accountsList: List<AccountPublicInfo>
     ) {
         val accountsMap: HashMap<String, AccountPublicInfo> = HashMap()
         accountsList.forEach { accountsMap.putIfAbsent(it.id, it) }
+        checkAccountsGiven(accountsMap)
 
-        val accountErrors = checkAccountsGiven(accountsMap)
-        if (accountErrors.isNotEmpty()) {
-            throw AccountException(accountErrors.toString())
-        }
         D3TestContext.d3neededAccounts.forEach { account ->
             val accountPubInfo = accountsMap[account.id]
             if (accountPubInfo != null) {
@@ -93,18 +98,21 @@ class D3TestGenesisFactory : GenesisInterface {
     }
 
     private fun checkAccountsGiven(accountsMap: HashMap<String, AccountPublicInfo>): List<String> {
-        val loosed = ArrayList<String>()
+        val errors = ArrayList<String>()
         D3TestContext.d3neededAccounts.forEach {
             if (!accountsMap.containsKey(it.id) && !it.passive) {
-                loosed.add("Needed account keys are not received: ${it.id}")
+                errors.add("Needed account keys are not received: ${it.id}")
             } else if (!it.passive) {
                 val pubKeysCount = accountsMap[it.id]?.pubKeys?.size ?: 0
                 if (it.quorum > pubKeysCount || (accountsMap[it.id]?.quorum ?: 1 > pubKeysCount)) {
-                    loosed.add("Default or received quorum exceeds number of keys for account ${it.id}. Received(${accountsMap[it.id]?.quorum}) quorum should not be less than default(${it.quorum}) for this account")
+                    errors.add("Default or received quorum exceeds number of keys for account ${it.id}. Received(${accountsMap[it.id]?.quorum}) quorum should not be less than default(${it.quorum}) for this account")
                 }
             }
         }
-        return loosed
+        if (errors.isNotEmpty()) {
+            throw AccountException(errors.toString())
+        }
+        return errors
     }
 
 
