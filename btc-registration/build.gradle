@@ -9,6 +9,8 @@ apply plugin: 'application'
 apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
 apply plugin: 'com.github.johnrengelman.shadow'
 mainClassName = "com.d3.btc.registration.BtcRegistrationMain"
+shadowDistZip.classifier = 'shadow'
+shadowDistTar.classifier = 'shadow'
 
 dependencies {
     compile project(":btc")
