@@ -211,13 +211,14 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
         assetId: String,
         description: String,
         amount: String,
-        createdTime: Long = System.currentTimeMillis()
+        createdTime: Long = System.currentTimeMillis(),
+        // first is for user, second is for brvs instance
+        quorum: Int = 2
     ): String {
         val tx = Transaction.builder(creator)
             .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
             .setCreatedTime(createdTime)
-            // first is for user, second is for brvs instance
-            .setQuorum(2)
+            .setQuorum(quorum)
             .sign(kp)
             .build()
         return irohaConsumer.send(tx).get()

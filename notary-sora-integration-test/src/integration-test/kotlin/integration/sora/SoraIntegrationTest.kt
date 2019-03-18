@@ -183,7 +183,8 @@ class SoraIntegrationTest {
             aliceClientId,
             xorAsset,
             "descr",
-            "17"
+            "17",
+            quorum = 1
         )
 
         integrationHelper.transferAssetIrohaFromClient(
@@ -193,7 +194,8 @@ class SoraIntegrationTest {
             bobClientId,
             xorAsset,
             "descr",
-            "18"
+            "18",
+            quorum = 1
         )
 
         assertEquals(
