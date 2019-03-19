@@ -268,7 +268,6 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
         }
     }
 
-
     /**
      * Send SetAccountDetail to Iroha
      * A one should use this method if the creator of tx is client account

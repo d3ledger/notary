@@ -23,7 +23,6 @@ class BtcDepositFailResistanceIntegrationTest {
     private val environment = BtcNotaryTestEnvironment(integrationHelper)
     private val registrationServiceEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
 
-
     @AfterAll
     fun dropDown() {
         registrationServiceEnvironment.close()

@@ -23,7 +23,6 @@ class BtcMultiNotaryIntegrationTest {
     private val environments = ArrayList<BtcNotaryTestEnvironment>()
     private val registrationServiceEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
 
-
     init {
         registrationServiceEnvironment.registrationInitialization.init()
         var peerCount = 0

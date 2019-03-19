@@ -32,7 +32,6 @@ class BtcWithdrawalFailResistanceIntegrationTest {
 
     private val registrationServiceEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
 
-
     private lateinit var changeAddress: Address
 
     @AfterAll

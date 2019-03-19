@@ -42,7 +42,6 @@ class NotificationsIntegrationTest {
 
     private val registrationEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
 
-
     init {
         registrationEnvironment.registrationInitialization.init()
 
