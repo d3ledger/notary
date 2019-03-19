@@ -138,7 +138,7 @@ class WithdrawalPipelineIntegrationTest {
                 toAddress,
                 decimalAmount.toPlainString()
             )
-            Thread.sleep(25_000)
+            Thread.sleep(15_000)
 
 
             assertEquals(
@@ -217,9 +217,9 @@ class WithdrawalPipelineIntegrationTest {
                 toAddress,
                 amount.toPlainString()
             )
-            Thread.sleep(25_000)
+            Thread.sleep(20_000)
 
-            Assertions.assertEquals(
+            assertEquals(
                 initialBalance.add(bigIntegerValue),
                 integrationHelper.getERC20TokenBalance(tokenAddress, toAddress)
             )

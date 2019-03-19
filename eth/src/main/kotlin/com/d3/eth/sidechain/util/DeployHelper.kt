@@ -34,17 +34,25 @@ class BasicAuthenticator(private val ethereumPasswords: EthereumPasswords) : Aut
     }
 }
 
+/**
+ * Build DeployHelper in more granular level
+ * @param ethereumConfig config with Ethereum network parameters
+ * @param ethereumPasswords config with Ethereum passwords
+ */
 class DeployHelperBuilder(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPasswords) {
 
-    private val target = DeployHelper(ethereumConfig, ethereumPasswords)
+    private val deployHelper = DeployHelper(ethereumConfig, ethereumPasswords)
 
+    /**
+     * Specify fast transaction manager to send multiple transactions one by one.
+     */
     fun setFastTransactionManager(): DeployHelperBuilder {
-        target.transactionManager = FastRawTransactionManager(target.web3, target.credentials)
+        deployHelper.transactionManager = FastRawTransactionManager(deployHelper.web3, deployHelper.credentials)
         return this
     }
 
     fun build(): DeployHelper {
-        return target
+        return deployHelper
     }
 }
 
@@ -334,6 +342,12 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
         return web3.ethGetBalance(whoAddress, DefaultBlockParameterName.LATEST).send().balance
     }
 
+    /**
+     * Register relay to RelayRegistry
+     * @ethRelayRegistryAddress - relay registry address
+     * @freeEthWallet - wallet that set whitelist to
+     * @whitlist - list of addresses to be whitelisted
+     */
     fun addRelayToRelayRegistry(ethRelayRegistryAddress: String, freeEthWallet: String, whitelist: List<String>) {
         logger.info { "Add new relay to relay registry relayRegistry=${ethRelayRegistryAddress}, freeWallet=$freeEthWallet, whitelist=$whitelist, creator=${credentials.address}." }
         val relayRegistry = RelayRegistry.load(
