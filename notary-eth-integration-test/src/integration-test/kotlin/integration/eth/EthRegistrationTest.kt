@@ -41,13 +41,6 @@ class EthRegistrationTest {
     }
 
     /**
-     * Send POST request to local server
-     */
-    fun post(params: Map<String, String>): khttp.responses.Response {
-        return khttp.post("http://127.0.0.1:${ethRegistrationConfig.port}/users", data = params)
-    }
-
-    /**
      * Test healthcheck
      * @given Registration service is up and running
      * @when GET query sent to healthcheck port
@@ -77,21 +70,14 @@ class EthRegistrationTest {
         val clientId = "$name@d3"
 
         // register in Iroha
-        var res = khttp.post(
-            "http://127.0.0.1:${registrationServiceEnvironment.registrationConfig.port}/users", data = mapOf(
-                "name" to name,
-                "pubkey" to pubkey,
-                "whitelist" to whitelist
-            )
-        )
+        var res = registrationServiceEnvironment.register(name, pubkey)
         assertEquals(200, res.statusCode)
         // register in Eth
-        res = khttp.post(
-            "http://127.0.0.1:${ethRegistrationConfig.port}/users", data = mapOf(
-                "name" to name,
-                "pubkey" to pubkey,
-                "whitelist" to whitelist
-            )
+        res = integrationHelper.sendRegistrationRequest(
+            name,
+            whitelist,
+            pubkey,
+            ethRegistrationConfig.port
         )
         assertEquals(200, res.statusCode)
 
@@ -118,21 +104,14 @@ class EthRegistrationTest {
         val clientId = "$name@d3"
 
         // register client in Iroha
-        var res = khttp.post(
-            "http://127.0.0.1:${registrationServiceEnvironment.registrationConfig.port}/users", data = mapOf(
-                "name" to name,
-                "pubkey" to pubkey,
-                "whitelist" to whitelist
-            )
-        )
+        var res = registrationServiceEnvironment.register(name, pubkey)
         assertEquals(200, res.statusCode)
         // register in eth
-        res = khttp.post(
-            "http://127.0.0.1:${ethRegistrationConfig.port}/users", data = mapOf(
-                "name" to name,
-                "pubkey" to pubkey,
-                "whitelist" to whitelist
-            )
+        res = integrationHelper.sendRegistrationRequest(
+            name,
+            whitelist,
+            pubkey,
+            ethRegistrationConfig.port
         )
         assertEquals(200, res.statusCode)
 
@@ -146,12 +125,11 @@ class EthRegistrationTest {
         integrationHelper.deployRelays(1)
         val anotherWhitelist = "0x0000000000000000000000000000000000000123"
         // try to register with the same name
-        res = post(
-            mapOf(
-                "name" to name,
-                "pubkey" to pubkey,
-                "whitelist" to anotherWhitelist
-            )
+        res = integrationHelper.sendRegistrationRequest(
+            name,
+            whitelist,
+            pubkey,
+            ethRegistrationConfig.port
         )
         assertEquals(500, res.statusCode)
 

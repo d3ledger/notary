@@ -80,20 +80,13 @@ class BtcWithdrawalFailResistanceIntegrationTest {
         val randomNameSrc = String.getRandomString(9)
         val testClientSrcKeypair = ModelUtil.generateKeypair()
         val testClientSrc = "$randomNameSrc@$CLIENT_DOMAIN"
-        var res = khttp.post(
-            "http://127.0.0.1:${registrationServiceEnvironment.registrationConfig.port}/users",
-            data = mapOf("name" to randomNameSrc, "pubkey" to testClientSrcKeypair.public.toHexString())
-        )
+        var res = registrationServiceEnvironment.register(randomNameSrc, testClientSrcKeypair.public.toHexString())
         assertEquals(200, res.statusCode)
         val btcAddressSrc =
             integrationHelper.registerBtcAddressNoPreGen(randomNameSrc, CLIENT_DOMAIN, testClientSrcKeypair)
         integrationHelper.sendBtc(btcAddressSrc, 1, environment.btcWithdrawalConfig.bitcoin.confidenceLevel)
         val randomNameDest = String.getRandomString(9)
-        val testClientDestKeypair = ModelUtil.generateKeypair()
-        res = khttp.post(
-            "http://127.0.0.1:${registrationServiceEnvironment.registrationConfig.port}/users",
-            data = mapOf("name" to randomNameDest, "pubkey" to testClientDestKeypair.public.toHexString())
-        )
+        res = registrationServiceEnvironment.register(randomNameDest)
         assertEquals(200, res.statusCode)
         val btcAddressDest = integrationHelper.registerBtcAddressNoPreGen(randomNameDest, CLIENT_DOMAIN)
         integrationHelper.addIrohaAssetTo(testClientSrc, BTC_ASSET, amount)

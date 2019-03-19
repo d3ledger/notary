@@ -50,20 +50,15 @@ class NotificationsIntegrationTest {
         val amount = BigDecimal(100)
 
         // Creating 2 clients
-        var res = khttp.post(
-            "http://127.0.0.1:${registrationEnvironment.registrationConfig.port}/users",
-            data = mapOf(
-                "name" to environment.srcClientName,
-                "pubkey" to environment.srcClientKeyPair.public.toHexString()
-            )
+        var res = registrationEnvironment.register(
+            environment.srcClientName,
+            environment.srcClientKeyPair.public.toHexString()
         )
+
         kotlin.test.assertEquals(200, res.statusCode)
-        res = khttp.post(
-            "http://127.0.0.1:${registrationEnvironment.registrationConfig.port}/users",
-            data = mapOf(
-                "name" to environment.destClientName,
-                "pubkey" to environment.destClientKeyPair.public.toHexString()
-            )
+        res = registrationEnvironment.register(
+            environment.destClientName,
+            environment.destClientKeyPair.public.toHexString()
         )
         kotlin.test.assertEquals(200, res.statusCode)
 

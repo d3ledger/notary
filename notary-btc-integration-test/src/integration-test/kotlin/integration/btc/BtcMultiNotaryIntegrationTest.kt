@@ -1,9 +1,7 @@
 package integration.btc
 
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
-import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomString
-import com.d3.commons.util.toHexString
 import com.github.kittinunf.result.failure
 import integration.btc.environment.BtcNotaryTestEnvironment
 import integration.helper.BTC_ASSET
@@ -77,11 +75,8 @@ class BtcMultiNotaryIntegrationTest {
     fun testDeposit() {
         val randomName = String.getRandomString(9)
         val testClient = "$randomName@$CLIENT_DOMAIN"
-        val res = khttp.post(
-            "http://127.0.0.1:${registrationServiceEnvironment.registrationConfig.port}/users",
-            data = mapOf("name" to randomName, "pubkey" to ModelUtil.generateKeypair().public.toHexString())
-        )
-        kotlin.test.assertEquals(200, res.statusCode)
+        val res = registrationServiceEnvironment.register(randomName)
+        assertEquals(200, res.statusCode)
         val btcAddress =
             integrationHelper.registerBtcAddress(
                 environments.first().notaryConfig.btcTransferWalletPath,
