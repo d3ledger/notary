@@ -1,5 +1,6 @@
 package integration.helper
 
+import com.d3.btc.helper.address.createMsAddress
 import com.d3.btc.helper.currency.satToBtc
 import com.d3.btc.model.AddressInfo
 import com.d3.btc.peer.SharedPeerGroup
@@ -24,10 +25,8 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import mu.KLogging
 import org.bitcoinj.core.Address
-import org.bitcoinj.core.ECKey
 import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.params.RegTestParams
-import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
 import java.io.File
 import java.math.BigDecimal
@@ -148,11 +147,6 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
         return SharedPeerGroup(btcNetworkConfigProvider, wallet, blockStoragePath, hosts)
     }
 
-    private fun createMsAddress(keys: List<ECKey>): Address {
-        val script = ScriptBuilder.createP2SHOutputScript(1, keys)
-        return script.getToAddress(RegTestParams.get())
-    }
-
     /**
      * Generates one BTC address that can be registered later
      * @param walletFilePath - path to wallet file
@@ -189,7 +183,7 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
         val walletFile = File(walletFilePath)
         val wallet = Wallet.loadFromFile(walletFile)
         val key = wallet.freshReceiveKey()
-        val address = createMsAddress(listOf(key))
+        val address = createMsAddress(listOf(key.publicKeyAsHex), RegTestParams.get())
         wallet.addWatchedAddress(address)
         wallet.saveToFile(walletFile)
         logger.info { "generated address $address" }

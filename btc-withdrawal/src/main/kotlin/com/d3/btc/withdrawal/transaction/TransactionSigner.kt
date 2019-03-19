@@ -1,7 +1,9 @@
 package com.d3.btc.withdrawal.transaction
 
+import com.d3.btc.helper.address.createMsRedeemScript
 import com.d3.btc.helper.address.getSignThreshold
 import com.d3.btc.helper.address.outPutToBase58Address
+import com.d3.btc.helper.address.toEcPubKey
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.wallet.safeLoad
 import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
@@ -39,17 +41,6 @@ class TransactionSigner(
     }
 
     /**
-     * Creates redeem script using given public keys
-     *
-     * @param pubKeys - public keys that will be used to created redeem script
-     * @return - redeem script
-     */
-    fun createdRedeemScript(pubKeys: List<String>): Script {
-        val ecPubKeys = pubKeys.map { pubKey -> ECKey.fromPublicOnly(Utils.parseAsHexOrBase58(pubKey)) }
-        return ScriptBuilder.createMultiSigOutputScript(getSignThreshold(pubKeys), ecPubKeys)
-    }
-
-    /**
      * Returns public keys that were used to create given multi signature Bitcoin adddress
      *
      * @param btcAddress - Bitcoin address
@@ -74,15 +65,16 @@ class TransactionSigner(
             getUsedPubKeys(outPutToBase58Address(input.connectedOutput!!)).fold({ pubKeys ->
                 val keyPair = getPrivPubKeyPair(pubKeys, wallet)
                 if (keyPair != null) {
-                    //For redeem script
-                    val ecPubKeys = pubKeys.map { pubKey -> ECKey.fromPublicOnly(Utils.parseAsHexOrBase58(pubKey)) }
-                    val redeem = ScriptBuilder.createMultiSigOutputScript(getSignThreshold(pubKeys), ecPubKeys)
+                    val redeem = createMsRedeemScript(pubKeys)
                     val hashOut = tx.hashForSignature(inputIndex, redeem, Transaction.SigHash.ALL, false)
                     val signature = keyPair.sign(hashOut)
                     signatures.add(
                         InputSignature(
                             inputIndex,
-                            String.hex(signature.encodeToDER())
+                            SignaturePubKey(
+                                String.hex(signature.encodeToDER()),
+                                keyPair.publicKeyAsHex
+                            )
                         )
                     )
                     logger.info { "Tx ${tx.hashAsString} input $inputIndex was signed" }
@@ -100,7 +92,7 @@ class TransactionSigner(
     //Returns key pair related to one of given public keys. Returns null if no key pair was found
     private fun getPrivPubKeyPair(pubKeys: List<String>, wallet: Wallet): ECKey? {
         pubKeys.forEach { pubKey ->
-            val ecKey = ECKey.fromPublicOnly(Utils.parseAsHexOrBase58(pubKey))
+            val ecKey = toEcPubKey(pubKey)
             val keyPair = wallet.findKeyFromPubHash(ecKey.pubKeyHash)
             if (keyPair != null) {
                 return keyPair
@@ -115,5 +107,8 @@ class TransactionSigner(
     companion object : KLogging()
 }
 
-//Class that stores input with its signature in hex format
-data class InputSignature(val index: Int, val signatureHex: String)
+//Class that stores input with its signature and public key in hex format
+data class InputSignature(val index: Int, val sigPubKey: SignaturePubKey)
+
+//Class that stores signature and public key in hex format
+data class SignaturePubKey(val signatureHex: String, val pubKey: String)
