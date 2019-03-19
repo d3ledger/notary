@@ -1,12 +1,15 @@
 package jp.co.soramitsu.bootstrap.controller
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import jp.co.soramitsu.bootstrap.dto.*
+import jp.co.soramitsu.bootstrap.exceptions.ErrorCodes
 import jp.co.soramitsu.bootstrap.genesis.GenesisInterface
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.util.stream.Collectors.toList
 import javax.xml.bind.DatatypeConverter
 
 @RestController
@@ -14,11 +17,21 @@ import javax.xml.bind.DatatypeConverter
 class IrohaController(val genesisFactories: List<GenesisInterface>) {
 
     private val log = KLogging().logger
+    private val mapper = ObjectMapper()
 
-    @GetMapping("/config/accounts/{project}/{env}")
-    fun getNeededAccounts(@PathVariable("project") project: String, @PathVariable("env") env: String): ResponseEntity<List<AccountPrototype>> {
+    @GetMapping("/config/accounts/{project}/{env}/{peersCount}")
+    fun getNeededAccounts(
+        @PathVariable("project") project: String,
+        @PathVariable("env") env: String,
+        @PathVariable("peersCount") peersCount: Int
+    ): ResponseEntity<NeededAccountsResponse> {
+        if (peersCount == 0) {
+            return ResponseEntity.ok<NeededAccountsResponse>(NeededAccountsResponse(
+                ErrorCodes.INCORRECT_PEERS_COUNT.name,
+                "peersCount path variable should exist with value >0"))
+        }
 
-        val accounts = ArrayList<jp.co.soramitsu.bootstrap.dto.AccountPrototype>()
+        val accounts = ArrayList<AccountPrototype>()
 
         genesisFactories.stream()
             .filter {
@@ -28,11 +41,10 @@ class IrohaController(val genesisFactories: List<GenesisInterface>) {
             }
             .findAny()
             .ifPresent {
-                it.getAccountsNeeded()
-                    .filter { !it.passive }
-                    .forEach { accounts.add(it) }
+                accounts.addAll(it.getAccountsForConfiguration(peersCount))
             }
-        return ResponseEntity.ok<List<AccountPrototype>>(accounts)
+
+        return ResponseEntity.ok<NeededAccountsResponse>(NeededAccountsResponse(accounts))
     }
 
     @GetMapping("/projects/genesis")
@@ -50,7 +62,7 @@ class IrohaController(val genesisFactories: List<GenesisInterface>) {
                 }
             }
             return ResponseEntity.ok<Projects>(Projects(projMap.values))
-        } catch(e:Exception) {
+        } catch (e: Exception) {
             val response = Projects()
             response.errorCode = e.javaClass.simpleName
             response.message = e.message
@@ -76,39 +88,57 @@ class IrohaController(val genesisFactories: List<GenesisInterface>) {
         }
     }
 
-        @PostMapping("/create/genesisBlock")
-        fun generateGenericBlock(@RequestBody request: GenesisRequest): ResponseEntity<GenesisResponse> {
-
-            log.info("Request of genesis block")
-            val genesisFactory = genesisFactories.filter {
-                it.getProject().contentEquals(request.meta.project)
-                        && it.getEnvironment().contentEquals(request.meta.environment)
-            }.firstOrNull()
-            var genesis: GenesisResponse
-            if (genesisFactory != null) {
-                try {
-                    genesis =
-                        GenesisResponse(
-                            genesisFactory.createGenesisBlock(
-                                request.accounts,
-                                request.peers
-                            )
-                        )
-                } catch (e: Exception) {
-                    genesis = GenesisResponse()
-                    genesis.errorCode = e.javaClass.simpleName
-                    genesis.message =
-                        "Error happened for project:${request.meta.project} environment:${request.meta.environment}: ${e.message}"
-                    return ResponseEntity.status(HttpStatus.CONFLICT).body(genesis)
-                }
-            } else {
-                genesis = GenesisResponse()
-                genesis.errorCode = "NO_GENESIS_FACTORY"
-                genesis.message =
-                    "Genesis factory not found for project:${request.meta.project} environment:${request.meta.environment}"
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(genesis)
-            }
-            return ResponseEntity.ok<GenesisResponse>(genesis)
+    @PostMapping("/create/genesisBlock")
+    fun generateGenericBlock(@RequestBody request: GenesisRequest): ResponseEntity<GenesisResponse> {
+        val conflict = isValidRequest(request)
+        if (conflict != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(GenesisResponse(conflict.errorCode, conflict.message))
         }
+        log.info("Request of genesis block")
+        val genesisFactory = genesisFactories.stream().filter {
+            it.getProject().contentEquals(request.meta.project)
+                    && it.getEnvironment().contentEquals(request.meta.environment)
+        }.findAny().get()
+        var genesis: GenesisResponse
+        if (genesisFactory != null) {
+            try {
+                genesis =
+                    GenesisResponse(
+                        genesisFactory.createGenesisBlock(
+                            request.accounts,
+                            request.peers
+                        )
+                    )
+            } catch (e: Exception) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                    GenesisResponse(
+                        e.javaClass.simpleName,
+                        "Error happened for project:${request.meta.project} environment:${request.meta.environment}: ${e.message}"
+                    )
+                )
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                GenesisResponse(
+                    ErrorCodes.NO_GENESIS_FACTORY.name,
+                    "Genesis factory not found for project:${request.meta.project} environment:${request.meta.environment}"
+                )
+            )
+        }
+        return ResponseEntity.ok<GenesisResponse>(genesis)
     }
+
+    private fun isValidRequest(request: GenesisRequest): Conflictable? {
+        val result = request.peers.stream().filter { it.peerKey == null || it.peerKey.isEmpty() }.collect(toList())
+        if (result.isNotEmpty()) {
+            var message = "Peers with empty publicKeys:"
+            result.forEach {
+                message += " " + it.hostPort
+            }
+            return Conflictable(ErrorCodes.EMPTY_PEER_PUBLIC_KEY.name, "")
+        }
+        return null
+    }
+}
 

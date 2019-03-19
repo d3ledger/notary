@@ -1,9 +1,9 @@
 package jp.co.soramitsu.bootstrap
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import jp.co.soramitsu.bootstrap.dto.AccountPublicInfo
-import jp.co.soramitsu.bootstrap.dto.Peer
+import jp.co.soramitsu.bootstrap.dto.*
 import jp.co.soramitsu.bootstrap.dto.block.GenesisBlock
+import jp.co.soramitsu.bootstrap.exceptions.ErrorCodes
 import jp.co.soramitsu.bootstrap.genesis.d3.D3TestGenesisFactory
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import mu.KLogging
@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import java.util.stream.Collectors.toList
 import javax.xml.bind.DatatypeConverter
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -68,31 +69,88 @@ class IrohaTest {
     @Test
     fun testAccountsNeeded() {
         val result: MvcResult = mvc
-            .perform(get("/iroha/config/accounts/D3/test"))
+            .perform(get("/iroha/config/accounts/D3/test/5"))
             .andExpect(status().isOk)
             .andReturn()
-
-        val respBody = result.response.contentAsString
-        val activeAccounts = ArrayList<jp.co.soramitsu.bootstrap.dto.AccountPrototype>()
-        d3Genesis.getAccountsNeeded().forEach { if (!it.passive) activeAccounts.add(it) }
-        assertEquals(mapper.writeValueAsString(activeAccounts), respBody)
+        val respBody = mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
+        val activeAccounts = ArrayList<AccountPrototype>()
+        d3Genesis.getAccountsForConfiguration(5).forEach { if (!it.passive) activeAccounts.add(it) }
+        assertEquals(activeAccounts.size, respBody.accounts.size)
+        val dependentAccounts = respBody.accounts.stream().filter { it.peersDependentQuorum == true }.collect(toList())
+        dependentAccounts.forEach { assertEquals(3, it.quorum) }
     }
 
     @Test
-    fun testGenesisBlock() {
-        val peerKey1 = generatePublicKeyHex()
-        val peerKey2 = generatePublicKeyHex()
-        val accounts = getAccounts()
-
+    fun testZeroPeersAccountsNeeded() {
         val result: MvcResult = mvc
+            .perform(get("/iroha/config/accounts/D3/test/0"))
+            .andExpect(status().isOk)
+            .andReturn()
+        val respBody = mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
+        assertEquals(respBody.errorCode, ErrorCodes.INCORRECT_PEERS_COUNT.name)
+    }
+
+    @Test
+    fun testOnePeerAccountsNeeded() {
+        val result: MvcResult = mvc
+            .perform(get("/iroha/config/accounts/D3/test/1"))
+            .andExpect(status().isOk)
+            .andReturn()
+        val respBody = mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
+        val dependentAccounts = respBody.accounts.stream().filter { it.peersDependentQuorum == true }.collect(toList())
+        dependentAccounts.forEach { assertEquals(1, it.quorum) }
+    }
+
+    @Test
+    fun testTwoPeersAccountsNeeded() {
+        val result: MvcResult = mvc
+            .perform(get("/iroha/config/accounts/D3/test/2"))
+            .andExpect(status().isOk)
+            .andReturn()
+        val respBody = mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
+        val dependentAccounts = respBody.accounts.stream().filter { it.peersDependentQuorum == true }.collect(toList())
+        dependentAccounts.forEach { assertEquals(1, it.quorum) }
+    }
+
+    @Test
+    fun testEmptyPeerKey() {
+        val peerKey1 = generatePublicKeyHex()
+
+        mvc
             .perform(
                 post("/iroha/create/genesisBlock").contentType(MediaType.APPLICATION_JSON).content(
                     mapper.writeValueAsString(
                         jp.co.soramitsu.bootstrap.dto.GenesisRequest(
                             peers = listOf(
                                 Peer(peerKey1, "firstTHost:12435"),
-                                Peer(peerKey2, "secondTHost:987654")
-                            ),
+                                Peer("", "secondTHost:987654")
+                            )
+                        )
+                    )
+                )
+            )
+            .andExpect(status().is4xxClientError)
+            .andReturn()
+    }
+
+    @Test
+    fun testGenesisBlock() {
+        val peerKey1 = generatePublicKeyHex()
+        val peerKey2 = generatePublicKeyHex()
+        val notaryAddress1 = "notaryHost1:43652"
+        val notaryAddress2 = "notaryHost2:3652"
+        val peers = listOf(
+            Peer(peerKey1, "firstTHost:12435", notaryAddress1),
+            Peer(peerKey2, "secondTHost:987654", notaryAddress2)
+        )
+        val accounts = getAccounts(peers.size)
+
+        val result: MvcResult = mvc
+            .perform(
+                post("/iroha/create/genesisBlock").contentType(MediaType.APPLICATION_JSON).content(
+                    mapper.writeValueAsString(
+                        jp.co.soramitsu.bootstrap.dto.GenesisRequest(
+                            peers = peers,
                             accounts = accounts
                         )
                     )
@@ -113,10 +171,14 @@ class IrohaTest {
         assertTrue(respBody.contains("gen_btc_pk_trigge"))
         assertTrue(respBody.contains("btc_change_addresses"))
 
-        log.info("peerKey1:$peerKey1")
-        log.info("peerKey2:$peerKey2")
         assertTrue(respBody.contains(peerKey1))
         assertTrue(respBody.contains(peerKey2))
+        assertTrue(respBody.contains(notaryAddress1))
+        assertTrue(respBody.contains(notaryAddress2))
+
+        val quorumCheck =
+            "{\\\"accountId\\\":\\\"mst_btc_registration_service@notary\\\",\\\"quorum\\\":${peers.size - peers.size / 3}}"
+        assertTrue(respBody.contains(quorumCheck))
         accounts.forEach {
             val pubKey = it.pubKeys[0]
             assertTrue(
@@ -126,7 +188,7 @@ class IrohaTest {
         }
 
         val genesisResponse =
-            mapper.readValue(respBody, jp.co.soramitsu.bootstrap.dto.GenesisResponse::class.java)
+            mapper.readValue(respBody, GenesisResponse::class.java)
         assertNotNull(genesisResponse)
         val genesisBlock = mapper.readValue(
             genesisResponse.blockData,
@@ -135,17 +197,17 @@ class IrohaTest {
         assertNotNull(genesisBlock)
     }
 
-    private fun getAccounts(): List<AccountPublicInfo> {
+    private fun getAccounts(peersCount: Int): List<AccountPublicInfo> {
         return listOf(
-            createAccountDto("notary", "notary"),
+            createAccountDto("notary", "notary", peersCount - peersCount / 3),
             createAccountDto("registration_service", "notary"),
             createAccountDto("eth_registration_service", "notary"),
             createAccountDto("btc_registration_service", "notary"),
-            createAccountDto("mst_btc_registration_service", "notary"),
+            createAccountDto("mst_btc_registration_service", "notary", peersCount - peersCount / 3),
             createAccountDto("eth_token_storage_service", "notary"),
             createAccountDto("withdrawal", "notary"),
             createAccountDto("btc_fee_rate", "notary"),
-            createAccountDto("btc_withdrawal_service", "notary"),
+            createAccountDto("btc_withdrawal_service", "notary", peersCount - peersCount / 3),
             createAccountDto("btc_sign_collector", "notary"),
             createAccountDto("btc_change_addresses", "notary"),
             createAccountDto("test", "notary"),
@@ -156,11 +218,11 @@ class IrohaTest {
         )
     }
 
-    private fun createAccountDto(title: String, domain: String): AccountPublicInfo {
+    private fun createAccountDto(title: String, domain: String, quorum: Int = 1): AccountPublicInfo {
         return AccountPublicInfo(
             listOf(
                 generatePublicKeyHex()
-            ), domain, title
+            ), domain, title, quorum
         )
     }
 
