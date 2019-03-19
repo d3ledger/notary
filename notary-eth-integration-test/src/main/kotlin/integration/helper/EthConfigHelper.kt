@@ -149,7 +149,8 @@ open class EthConfigHelper(
     fun createEthRegistrationConfig(ethereumConfig: EthereumConfig): EthRegistrationConfig {
         return object : EthRegistrationConfig {
             override val ethRelayRegistryAddress = relayRegistryContractAddress
-            override val ethereum = createEthereumConfig("deploy/ethereum/keys/local/registration.key")
+            override val ethereum = ethereumConfig
+            //createEthereumConfig("deploy/ethereum/keys/local/registration.key")
             override val port = portCounter.incrementAndGet()
             override val relayRegistrationIrohaAccount = accountHelper.registrationAccount.accountId
             override val notaryIrohaAccount = accountHelper.notaryAccount.accountId

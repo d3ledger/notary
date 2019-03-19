@@ -101,6 +101,7 @@ class WithdrawalPipelineIntegrationTest {
 
             // make sure master has enough assets
             integrationHelper.sendEth(amount, integrationHelper.masterContract.contractAddress)
+            val masterBalanceInitial = integrationHelper.getEthBalance(integrationHelper.masterContract.contractAddress)
 
             // register client in Iroha
             var res = integrationHelper.sendRegistrationRequest(
@@ -137,11 +138,18 @@ class WithdrawalPipelineIntegrationTest {
                 toAddress,
                 decimalAmount.toPlainString()
             )
-            Thread.sleep(15_000)
+            Thread.sleep(25_000)
 
-            Assertions.assertEquals(
+
+            assertEquals(
                 initialBalance.add(amount),
                 integrationHelper.getEthBalance(toAddress)
+            )
+
+            val masterBalanceActual = integrationHelper.getEthBalance(integrationHelper.masterContract.contractAddress)
+            assertEquals(
+                masterBalanceInitial.subtract(amount),
+                masterBalanceActual
             )
         }
     }
@@ -170,6 +178,8 @@ class WithdrawalPipelineIntegrationTest {
                 bigIntegerValue,
                 integrationHelper.masterContract.contractAddress
             )
+            val masterBalanceInitial =
+                integrationHelper.getERC20TokenBalance(tokenAddress, integrationHelper.masterContract.contractAddress)
 
             val amount = BigDecimal(1.25)
             val assetId = "${assetInfo.name}#${assetInfo.domain}"
@@ -207,11 +217,18 @@ class WithdrawalPipelineIntegrationTest {
                 toAddress,
                 amount.toPlainString()
             )
-            Thread.sleep(20_000)
+            Thread.sleep(25_000)
 
             Assertions.assertEquals(
                 initialBalance.add(bigIntegerValue),
                 integrationHelper.getERC20TokenBalance(tokenAddress, toAddress)
+            )
+
+            val masterBalanceActual =
+                integrationHelper.getERC20TokenBalance(tokenAddress, integrationHelper.masterContract.contractAddress)
+            assertEquals(
+                masterBalanceInitial.subtract(bigIntegerValue),
+                masterBalanceActual
             )
         }
     }

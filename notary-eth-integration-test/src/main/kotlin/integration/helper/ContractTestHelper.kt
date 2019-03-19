@@ -17,13 +17,14 @@ import kotlin.test.assertEquals
 class ContractTestHelper {
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
     private val passwordConfig =
-        loadConfigs("predeploy", EthereumPasswords::class.java, "/eth/ethereum_password.properties").get()
+        loadConfigs("test", EthereumPasswords::class.java, "/eth/ethereum_password.properties").get()
 
     val testEthHelper = DeployHelper(testConfig.ethereum, passwordConfig)
-    val deployHelper = DeployHelper(
-        loadConfigs("predeploy.ethereum", EthereumConfig::class.java, "/eth/predeploy.properties").get(),
-        passwordConfig
-    )
+    val deployHelper = testEthHelper
+//    val deployHelper = DeployHelper(
+//        loadConfigs("predeploy.ethereum", EthereumConfig::class.java, "/eth/predeploy.properties").get(),
+//        passwordConfig
+//    )
 
     val keypair = deployHelper.credentials.ecKeyPair
     val relayRegistry by lazy { deployHelper.deployUpgradableRelayRegistrySmartContract() }
