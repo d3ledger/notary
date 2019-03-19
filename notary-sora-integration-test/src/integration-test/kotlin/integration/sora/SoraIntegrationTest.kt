@@ -180,7 +180,7 @@ class SoraIntegrationTest {
         val name = String.getRandomString(9)
         val pubkey = Ed25519Sha3().generateKeypair().public.toHexString()
 
-        val res = registrationEnvironment.register(name, pubkey)
+        val res = registrationEnvironment.register(name, pubkey, domain)
 
         assertEquals(200, res.statusCode)
         assertEquals("$name@$domain", res.text)
