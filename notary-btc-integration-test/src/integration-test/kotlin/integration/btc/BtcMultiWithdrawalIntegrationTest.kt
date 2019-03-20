@@ -9,11 +9,13 @@ import com.d3.btc.withdrawal.handler.CurrentFeeRate
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
 import com.github.kittinunf.result.failure
 import integration.btc.environment.BtcAddressGenerationTestEnvironment
 import integration.btc.environment.BtcWithdrawalTestEnvironment
 import integration.helper.BTC_ASSET
 import integration.helper.BtcIntegrationHelperUtil
+import integration.registration.RegistrationServiceTestEnvironment
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.bitcoinj.params.RegTestParams
@@ -31,9 +33,13 @@ class BtcMultiWithdrawalIntegrationTest {
     private val integrationHelper = BtcIntegrationHelperUtil(peers)
     private val withdrawalEnvironments = ArrayList<BtcWithdrawalTestEnvironment>()
     private val addressGenerationEnvironments = ArrayList<BtcAddressGenerationTestEnvironment>()
+    private val registrationServiceEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
+
 
     @AfterAll
     fun dropDown() {
+        registrationServiceEnvironment.close()
+
         withdrawalEnvironments.forEach { environment ->
             environment.close()
         }
@@ -44,6 +50,7 @@ class BtcMultiWithdrawalIntegrationTest {
 
     @BeforeAll
     fun setUp() {
+        registrationServiceEnvironment.registrationInitialization.init()
         integrationHelper.generateBtcInitialBlocks()
         CurrentFeeRate.set(DEFAULT_FEE_RATE)
         val testNames = ArrayList<String>()
@@ -109,6 +116,7 @@ class BtcMultiWithdrawalIntegrationTest {
         val randomNameSrc = String.getRandomString(9)
         val testClientSrcKeypair = ModelUtil.generateKeypair()
         val testClientSrc = "$randomNameSrc@$CLIENT_DOMAIN"
+        registrationServiceEnvironment.register(randomNameSrc, testClientSrcKeypair.public.toHexString())
         generateAddress(BtcAddressType.FREE)
         generateAddress(BtcAddressType.FREE)
         integrationHelper.registerBtcAddressNoPreGen(randomNameSrc, CLIENT_DOMAIN, testClientSrcKeypair)
@@ -146,6 +154,7 @@ class BtcMultiWithdrawalIntegrationTest {
         val randomNameSrc = String.getRandomString(9)
         val testClientSrcKeypair = ModelUtil.generateKeypair()
         val testClientSrc = "$randomNameSrc@$CLIENT_DOMAIN"
+        registrationServiceEnvironment.register(randomNameSrc, testClientSrcKeypair.public.toHexString())
         generateAddress(BtcAddressType.FREE)
         generateAddress(BtcAddressType.FREE)
         val btcAddressSrc =

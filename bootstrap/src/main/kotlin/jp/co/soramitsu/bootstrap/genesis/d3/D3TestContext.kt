@@ -72,7 +72,9 @@ object D3TestContext {
         ),
         PassiveAccountPrototype("gen_btc_pk_trigger", "notary"),
         AccountPrototype("admin", "notary", listOf("admin")),
-        AccountPrototype("sora", "sora", listOf("sora"))
+        AccountPrototype("sora", "sora", listOf("sora")),
+        AccountPrototype("brvs", "brvs"),
+        PassiveAccountPrototype("client_account", "notary")
     )
 
 
@@ -130,7 +132,9 @@ object D3TestContext {
                 Primitive.RolePermission.can_get_domain_accounts,
                 Primitive.RolePermission.can_get_all_txs,
                 Primitive.RolePermission.can_get_blocks,
-                Primitive.RolePermission.can_set_quorum
+                Primitive.RolePermission.can_set_quorum,
+                Primitive.RolePermission.can_grant_can_set_my_quorum,
+                Primitive.RolePermission.can_grant_can_add_my_signatory
             )
         )
     }
@@ -149,7 +153,10 @@ object D3TestContext {
                 Primitive.RolePermission.can_set_quorum,
                 Primitive.RolePermission.can_add_signatory,
                 Primitive.RolePermission.can_get_my_signatories,
-                Primitive.RolePermission.can_remove_signatory
+                Primitive.RolePermission.can_remove_signatory,
+                Primitive.RolePermission.can_grant_can_set_my_quorum,
+                Primitive.RolePermission.can_grant_can_add_my_signatory,
+                Primitive.RolePermission.can_grant_can_remove_my_signatory
             )
         )
     }
@@ -248,7 +255,10 @@ object D3TestContext {
         builder.createRole(
             "rollback",
             listOf(
-                Primitive.RolePermission.can_transfer
+                Primitive.RolePermission.can_transfer,
+                Primitive.RolePermission.can_set_quorum,
+                Primitive.RolePermission.can_grant_can_set_my_quorum,
+                Primitive.RolePermission.can_grant_can_add_my_signatory
             )
         )
     }
@@ -268,7 +278,8 @@ object D3TestContext {
             listOf(
                 Primitive.RolePermission.can_get_my_acc_ast,
                 Primitive.RolePermission.can_transfer,
-                Primitive.RolePermission.can_receive
+                Primitive.RolePermission.can_receive,
+                Primitive.RolePermission.can_add_domain_asset_qty
             )
         )
     }
@@ -287,7 +298,10 @@ object D3TestContext {
                 Primitive.RolePermission.can_set_quorum,
                 Primitive.RolePermission.can_add_signatory,
                 Primitive.RolePermission.can_get_my_signatories,
-                Primitive.RolePermission.can_remove_signatory
+                Primitive.RolePermission.can_remove_signatory,
+                Primitive.RolePermission.can_grant_can_set_my_quorum,
+                Primitive.RolePermission.can_grant_can_add_my_signatory,
+                Primitive.RolePermission.can_grant_can_remove_my_signatory
             )
         )
     }
@@ -298,6 +312,23 @@ object D3TestContext {
             listOf(
                 Primitive.RolePermission.can_set_detail,
                 Primitive.RolePermission.can_get_all_accounts
+            )
+        )
+    }
+
+    fun createBrvsRole(builder: TransactionBuilder) {
+        builder.createRole(
+            "brvs",
+            listOf(
+                Primitive.RolePermission.can_add_signatory,
+                Primitive.RolePermission.can_remove_signatory,
+                Primitive.RolePermission.can_get_all_signatories,
+                Primitive.RolePermission.can_get_all_accounts,
+                Primitive.RolePermission.can_get_all_txs,
+                Primitive.RolePermission.can_get_blocks,
+                Primitive.RolePermission.can_get_all_acc_detail,
+                Primitive.RolePermission.can_set_quorum,
+                Primitive.RolePermission.can_set_detail
             )
         )
     }

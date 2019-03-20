@@ -1,12 +1,12 @@
 package com.d3.commons.registration
 
 import com.d3.commons.config.loadConfigs
-import jp.co.soramitsu.iroha.java.IrohaAPI
 import com.d3.commons.model.IrohaCredential
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 
 val registrationConfig =
     loadConfigs("registration", NotaryRegistrationConfig::class.java, "/registration.properties").get()
@@ -41,4 +41,13 @@ class NotaryRegistrationAppConfiguration {
     @Bean
     fun registrationConfig() = registrationConfig
 
+    @Bean
+    fun clientStorageAccount() = registrationConfig().clientStorageAccount
+
+    @Bean
+    fun brvsAccount() = registrationConfig().brvsAccount
+
+    @Bean
+    fun primaryKeyPair() =
+        ModelUtil.loadKeypair(registrationConfig.primaryPubkeyPath, registrationConfig.primaryPrivkeyPath).get()
 }

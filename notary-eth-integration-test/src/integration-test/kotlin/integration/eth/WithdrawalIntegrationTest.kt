@@ -1,7 +1,9 @@
 package integration.eth
 
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
 import com.d3.eth.deposit.ENDPOINT_ETHEREUM
 import com.d3.eth.deposit.endpoint.BigIntegerMoshiAdapter
 import com.d3.eth.deposit.endpoint.EthNotaryResponse
@@ -14,7 +16,12 @@ import com.d3.eth.sidechain.util.signUserData
 import com.squareup.moshi.Moshi
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
+import integration.registration.RegistrationServiceTestEnvironment
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
 import org.junit.jupiter.api.Test
@@ -37,8 +44,15 @@ class WithdrawalIntegrationTest {
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
 
+    private val registrationTestEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
+    private val ethRegistrationService: Job
+
     init {
         integrationHelper.runEthDeposit(ethDepositConfig = depositConfig)
+        registrationTestEnvironment.registrationInitialization.init()
+        ethRegistrationService = GlobalScope.launch {
+            integrationHelper.runEthRegistrationService(integrationHelper.ethRegistrationConfig)
+        }
     }
 
     /** Ethereum private key **/
@@ -49,6 +63,7 @@ class WithdrawalIntegrationTest {
 
     @AfterAll
     fun dropDown() {
+        ethRegistrationService.cancel()
         integrationHelper.close()
     }
 
@@ -71,10 +86,17 @@ class WithdrawalIntegrationTest {
 
             // create
             val client = String.getRandomString(9)
-            val clientId = "$client@$CLIENT_DOMAIN"
-            integrationHelper.registerClient(
+            // register client in Iroha
+            var res = integrationHelper.sendRegistrationRequest(
                 client,
-                CLIENT_DOMAIN,
+                listOf<String>().toString(),
+                ModelUtil.generateKeypair().public.toHexString(),
+                registrationTestEnvironment.registrationConfig.port
+            )
+            Assertions.assertEquals(200, res.statusCode)
+            val clientId = "$client@$CLIENT_DOMAIN"
+            integrationHelper.registerClientInEth(
+                client,
                 listOf(ethWallet),
                 integrationHelper.testCredential.keyPair
             )
@@ -99,8 +121,7 @@ class WithdrawalIntegrationTest {
             )
 
             // query
-            val res =
-                khttp.get("http://127.0.0.1:${depositConfig.refund.port}/$ENDPOINT_ETHEREUM/$hash")
+            res = khttp.get("http://127.0.0.1:${depositConfig.refund.port}/$ENDPOINT_ETHEREUM/$hash")
 
             val moshi = Moshi
                 .Builder()

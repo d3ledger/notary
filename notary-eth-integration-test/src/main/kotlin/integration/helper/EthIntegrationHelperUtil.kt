@@ -25,7 +25,6 @@ import com.d3.eth.sidechain.EthChainListener
 import com.d3.eth.token.EthTokenInfo
 import com.d3.eth.vacuum.RelayVacuumConfig
 import com.d3.eth.withdrawal.withdrawalservice.WithdrawalServiceConfig
-import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.success
 import jp.co.soramitsu.iroha.java.QueryAPI
 import kotlinx.coroutines.runBlocking
@@ -285,14 +284,13 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /**
      * Deploys relay and registers first free relay contract in Iroha to the client with given [name] and public key
      */
-    fun registerClient(
+    fun registerClientInEth(
         name: String,
-        domain: String,
         whitelist: List<String>,
         keypair: KeyPair = ModelUtil.generateKeypair()
     ): String {
         deployRelays(1)
-        return registerClientWithoutRelay(name, domain, whitelist, keypair)
+        return registerClientWithoutRelay(name, whitelist, keypair)
     }
 
     /**
@@ -300,31 +298,15 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      */
     fun registerClientWithoutRelay(
         name: String,
-        domain: String,
         whitelist: List<String>,
         keypair: KeyPair = ModelUtil.generateKeypair()
     ): String {
-        ModelUtil.createAccount(
-            irohaConsumer,
-            name,
-            domain,
-            keypair.public
-        ).flatMap {
-            ethRegistrationStrategy.register(name, CLIENT_DOMAIN, whitelist, keypair.public.toHexString())
-        }.fold({ registeredEthWallet ->
-            logger.info("registered client $name with relay $registeredEthWallet")
-            return registeredEthWallet
-        },
-            { ex -> throw RuntimeException("$name was not registered", ex) })
-    }
-
-    /**
-     * Registers first free relay contract in Iroha with random name and public key
-     */
-    fun registerRandomRelay(): String {
-        // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
-        val ethWallet = registerClient(String.getRandomString(9), CLIENT_DOMAIN, listOf())
-        return ethWallet
+        ethRegistrationStrategy.register(name, CLIENT_DOMAIN, whitelist, keypair.public.toHexString())
+            .fold({ registeredEthWallet ->
+                logger.info("registered client $name with relay $registeredEthWallet")
+                return registeredEthWallet
+            },
+                { ex -> throw RuntimeException("$name was not registered", ex) })
     }
 
     /**

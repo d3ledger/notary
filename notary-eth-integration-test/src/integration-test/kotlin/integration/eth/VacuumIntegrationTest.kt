@@ -1,10 +1,20 @@
 package integration.eth
 
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
 import com.d3.eth.vacuum.executeVacuum
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
+import integration.registration.RegistrationServiceTestEnvironment
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import mu.KLogging
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import java.math.BigInteger
 import java.time.Duration
 
@@ -15,11 +25,21 @@ import java.time.Duration
 class VacuumIntegrationTest {
 
     private val integrationHelper = EthIntegrationHelperUtil()
+    private val registrationTestEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
+    private val ethRegistrationService: Job
+
+    init {
+        registrationTestEnvironment.registrationInitialization.init()
+        ethRegistrationService = GlobalScope.launch {
+            integrationHelper.runEthRegistrationService(integrationHelper.ethRegistrationConfig)
+        }
+    }
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
 
     @AfterAll
     fun dropDown() {
+        ethRegistrationService.cancel()
         integrationHelper.close()
     }
 
@@ -36,7 +56,16 @@ class VacuumIntegrationTest {
             integrationHelper.nameCurrentThread(this::class.simpleName!!)
             deployFewTokens()
             integrationHelper.deployRelays(2)
-            integrationHelper.registerRandomRelay()
+            val name = String.getRandomString(9)
+            // register client in Iroha
+            val res = integrationHelper.sendRegistrationRequest(
+                name,
+                listOf<String>().toString(),
+                ModelUtil.generateKeypair().public.toHexString(),
+                registrationTestEnvironment.registrationConfig.port
+            )
+            Assertions.assertEquals(200, res.statusCode)
+            integrationHelper.registerClientInEth(name, listOf())
             logger.info("test is ready to proceed")
             val amount = BigInteger.valueOf(2_345_678_000_000)
             var totalRelayBalance = BigInteger.ZERO

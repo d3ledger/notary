@@ -5,11 +5,12 @@ import com.d3.commons.config.loadEthPasswords
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
 import com.d3.eth.provider.ETH_PRECISION
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
+import integration.registration.RegistrationServiceTestEnvironment
+import kotlinx.coroutines.*
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -26,33 +27,25 @@ class DepositMultiIntegrationTest {
     /** Utility functions for integration tests */
     private val integrationHelper = EthIntegrationHelperUtil()
 
-    /** Ethereum assetId in Iroha */
-    private val etherAssetId = "ether#ethereum"
-
-    /** Iroha client account */
-    private val clientIrohaAccount = String.getRandomString(9)
-    private val clientIrohaAccountId = "$clientIrohaAccount@$CLIENT_DOMAIN"
-
-    /** Ethereum address to transfer to */
-    private val relayWallet = registerRelay()
-
-    private fun registerRelay(): String {
-        integrationHelper.deployRelays(1)
-        // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
-        return integrationHelper.registerClient(clientIrohaAccount, CLIENT_DOMAIN, listOf())
-    }
-
     /** Path to public key of 2nd instance of notary */
     private val pubkeyPath2 = "deploy/iroha/keys/notary1@notary.pub"
 
     /** Path to private key of 2nd instance of notary */
     private val privkeyPath2 = "deploy/iroha/keys/notary1@notary.priv"
 
-    private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
+    /** Ethereum assetId in Iroha */
+    private val etherAssetId = "ether#ethereum"
+
+    private val registrationTestEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
+    private val ethRegistrationService: Job
 
     init {
         // run notary
         integrationHelper.runEthDeposit()
+        registrationTestEnvironment.registrationInitialization.init()
+        ethRegistrationService = GlobalScope.launch {
+            integrationHelper.runEthRegistrationService(integrationHelper.ethRegistrationConfig)
+        }
 
         // create 2nd notary config
         val irohaCredential = object : IrohaCredentialConfig {
@@ -79,8 +72,32 @@ class DepositMultiIntegrationTest {
 
     }
 
+    /** Iroha client account */
+    private val clientIrohaAccount = String.getRandomString(9)
+    private val clientIrohaAccountId = "$clientIrohaAccount@$CLIENT_DOMAIN"
+
+    /** Ethereum address to transfer to */
+    private val relayWallet = registerRelay()
+
+    private fun registerRelay(): String {
+        integrationHelper.deployRelays(1)
+        // register client in Iroha
+        val res = integrationHelper.sendRegistrationRequest(
+            clientIrohaAccount,
+            listOf<String>().toString(),
+            ModelUtil.generateKeypair().public.toHexString(),
+            registrationTestEnvironment.registrationConfig.port
+        )
+        Assertions.assertEquals(200, res.statusCode)
+        // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
+        return integrationHelper.registerClientInEth(clientIrohaAccount, listOf())
+    }
+
+    private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
+
     @AfterAll
     fun dropDown() {
+        ethRegistrationService.cancel()
         integrationHelper.close()
     }
 

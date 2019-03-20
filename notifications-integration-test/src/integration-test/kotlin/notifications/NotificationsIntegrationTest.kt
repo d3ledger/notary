@@ -1,24 +1,24 @@
 package notifications
 
+import com.d3.commons.util.irohaEscape
+import com.d3.commons.util.toHexString
+import com.d3.notifications.client.D3_CLIENT_EMAIL_KEY
+import com.d3.notifications.client.D3_CLIENT_ENABLE_NOTIFICATIONS
+import com.d3.notifications.client.D3_CLIENT_PUSH_SUBSCRIPTION
+import com.d3.notifications.service.D3_DEPOSIT_EMAIL_SUBJECT
+import com.d3.notifications.service.D3_WITHDRAWAL_EMAIL_SUBJECT
+import com.d3.notifications.service.NOTIFICATION_EMAIL
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import com.nhaarman.mockito_kotlin.*
 import integration.helper.IrohaIntegrationHelperUtil
-import com.d3.notifications.client.D3_CLIENT_EMAIL_KEY
-import com.d3.notifications.client.D3_CLIENT_ENABLE_NOTIFICATIONS
-import com.d3.notifications.client.D3_CLIENT_PUSH_SUBSCRIPTION
+import integration.registration.RegistrationServiceTestEnvironment
 import notifications.environment.NotificationsIntegrationTestEnvironment
-import com.d3.notifications.service.D3_DEPOSIT_EMAIL_SUBJECT
-import com.d3.notifications.service.D3_WITHDRAWAL_EMAIL_SUBJECT
-import com.d3.notifications.service.NOTIFICATION_EMAIL
 import org.apache.http.HttpResponse
 import org.apache.http.StatusLine
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
-import com.d3.commons.sidechain.iroha.util.ModelUtil
-import com.d3.commons.util.irohaEscape
 import java.math.BigDecimal
 
 const val BTC_ASSET = "btc#bitcoin"
@@ -40,16 +40,29 @@ class NotificationsIntegrationTest {
 
     private val environment = NotificationsIntegrationTestEnvironment(integrationHelper)
 
+    private val registrationEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
+
     init {
+        registrationEnvironment.registrationInitialization.init()
+
         // This amount is big enough for testing
         val amount = BigDecimal(100)
 
         // Creating 2 clients
-        integrationHelper.createAccount(environment.srcClientName, CLIENT_DOMAIN, environment.srcClientKeyPair.public)
-        integrationHelper.createAccount(environment.destClientName, CLIENT_DOMAIN, environment.destClientKeyPair.public)
+        var res = registrationEnvironment.register(
+            environment.srcClientName,
+            environment.srcClientKeyPair.public.toHexString()
+        )
+
+        kotlin.test.assertEquals(200, res.statusCode)
+        res = registrationEnvironment.register(
+            environment.destClientName,
+            environment.destClientKeyPair.public.toHexString()
+        )
+        kotlin.test.assertEquals(200, res.statusCode)
 
         // Setting src client email
-        ModelUtil.setAccountDetail(
+        integrationHelper.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
             environment.srcClientId,
             D3_CLIENT_EMAIL_KEY,
@@ -57,7 +70,7 @@ class NotificationsIntegrationTest {
         ).failure { ex -> throw ex }
 
         // Setting src client subscription data
-        ModelUtil.setAccountDetail(
+        integrationHelper.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
             environment.srcClientId,
             D3_CLIENT_PUSH_SUBSCRIPTION,
@@ -65,7 +78,7 @@ class NotificationsIntegrationTest {
         ).failure { ex -> throw ex }
 
         // Setting dest client email
-        ModelUtil.setAccountDetail(
+        integrationHelper.setAccountDetailWithRespectToBrvs(
             environment.destClientConsumer,
             environment.destClientId,
             D3_CLIENT_EMAIL_KEY,
@@ -105,6 +118,7 @@ class NotificationsIntegrationTest {
 
     @AfterAll
     fun closeEnvironments() {
+        registrationEnvironment.close()
         environment.close()
     }
 
@@ -118,7 +132,7 @@ class NotificationsIntegrationTest {
     fun testNotificationDeposit() {
         val depositValue = BigDecimal(1)
 
-        ModelUtil.setAccountDetail(
+        integrationHelper.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
             environment.srcClientId,
             D3_CLIENT_ENABLE_NOTIFICATIONS,
@@ -132,7 +146,8 @@ class NotificationsIntegrationTest {
                 environment.srcClientId,
                 BTC_ASSET,
                 "no description",
-                depositValue.toPlainString()
+                depositValue.toPlainString(),
+                quorum = 1
             )
         }.map {
             Thread.sleep(TRANSFER_WAIT_TIME)
@@ -157,7 +172,7 @@ class NotificationsIntegrationTest {
     fun testNotificationWithdrawal() {
         val withdrawalValue = BigDecimal(1)
 
-        ModelUtil.setAccountDetail(
+        integrationHelper.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
             environment.srcClientId,
             D3_CLIENT_ENABLE_NOTIFICATIONS,
@@ -196,13 +211,13 @@ class NotificationsIntegrationTest {
     fun testNotificationSimpleTransfer() {
         val transferValue = BigDecimal(1)
 
-        ModelUtil.setAccountDetail(
+        integrationHelper.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
             environment.srcClientId,
             D3_CLIENT_ENABLE_NOTIFICATIONS,
             "true"
         ).map {
-            ModelUtil.setAccountDetail(
+            integrationHelper.setAccountDetailWithRespectToBrvs(
                 environment.destClientConsumer,
                 environment.destClientId,
                 D3_CLIENT_ENABLE_NOTIFICATIONS,
@@ -236,7 +251,7 @@ class NotificationsIntegrationTest {
     fun testNotificationDepositNotEnabledEmail() {
         val depositValue = BigDecimal(1)
 
-        ModelUtil.setAccountDetail(
+        integrationHelper.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
             environment.srcClientId,
             D3_CLIENT_ENABLE_NOTIFICATIONS,
@@ -250,7 +265,8 @@ class NotificationsIntegrationTest {
                 environment.srcClientId,
                 BTC_ASSET,
                 "no description",
-                depositValue.toPlainString()
+                depositValue.toPlainString(),
+                quorum = 1
             )
         }.map {
             Thread.sleep(TRANSFER_WAIT_TIME)
