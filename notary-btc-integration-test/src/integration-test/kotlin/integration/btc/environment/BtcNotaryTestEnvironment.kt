@@ -105,7 +105,8 @@ class BtcNotaryTestEnvironment(
             confidenceExecutorService,
             peerGroup,
             btcEventsSource,
-            btcRegisteredAddressesProvider
+            btcRegisteredAddressesProvider,
+            btcNetworkConfigProvider
         )
     }
 

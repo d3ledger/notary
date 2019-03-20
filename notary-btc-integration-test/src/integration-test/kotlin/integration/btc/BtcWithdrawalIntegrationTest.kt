@@ -13,6 +13,7 @@ import integration.helper.BtcIntegrationHelperUtil
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import mu.KLogging
 import org.bitcoinj.core.Address
+import org.bitcoinj.params.RegTestParams
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertNotNull
 import java.io.File
@@ -121,11 +122,13 @@ class BtcWithdrawalIntegrationTest {
         assertNotNull(environment.getLastCreatedTx().outputs.firstOrNull { transactionOutput ->
             outPutToBase58Address(
                 transactionOutput
+                , RegTestParams.get()
             ) == btcAddressDest
         })
         assertNotNull(environment.getLastCreatedTx().outputs.firstOrNull { transactionOutput ->
             outPutToBase58Address(
                 transactionOutput
+                , RegTestParams.get()
             ) == changeAddress.toBase58()
         })
     }
@@ -289,11 +292,13 @@ class BtcWithdrawalIntegrationTest {
         assertNotNull(environment.getLastCreatedTx().outputs.firstOrNull { transactionOutput ->
             outPutToBase58Address(
                 transactionOutput
+                , RegTestParams.get()
             ) == btcAddressDest
         })
         assertNotNull(environment.getLastCreatedTx().outputs.firstOrNull { transactionOutput ->
             outPutToBase58Address(
                 transactionOutput
+                , RegTestParams.get()
             ) == changeAddress.toBase58()
         })
     }
@@ -413,11 +418,13 @@ class BtcWithdrawalIntegrationTest {
         assertNotNull(environment.getLastCreatedTx().outputs.firstOrNull { transactionOutput ->
             outPutToBase58Address(
                 transactionOutput
+                , RegTestParams.get()
             ) == btcAddressDest
         })
         assertNotNull(environment.getLastCreatedTx().outputs.firstOrNull { transactionOutput ->
             outPutToBase58Address(
                 transactionOutput
+                , RegTestParams.get()
             ) == changeAddress.toBase58()
         })
         environment.transactionHelper.addToBlackList(btcAddressSrc)
@@ -504,11 +511,13 @@ class BtcWithdrawalIntegrationTest {
         assertNotNull(environment.getLastCreatedTx().outputs.firstOrNull { transactionOutput ->
             outPutToBase58Address(
                 transactionOutput
+                , RegTestParams.get()
             ) == btcAddressDest
         })
         assertNotNull(environment.getLastCreatedTx().outputs.firstOrNull { transactionOutput ->
             outPutToBase58Address(
                 transactionOutput
+                , RegTestParams.get()
             ) == changeAddress.toBase58()
         })
         assertEquals(
@@ -565,11 +574,13 @@ class BtcWithdrawalIntegrationTest {
         assertNotNull(environment.getLastCreatedTx().outputs.firstOrNull { transactionOutput ->
             outPutToBase58Address(
                 transactionOutput
+                , RegTestParams.get()
             ) == btcAddressDest
         })
         assertNotNull(environment.getLastCreatedTx().outputs.firstOrNull { transactionOutput ->
             outPutToBase58Address(
                 transactionOutput
+                , RegTestParams.get()
             ) == changeAddress.toBase58()
         })
         assertFalse(environment.unsignedTransactions.isUnsigned(createdWithdrawalTx))

@@ -3,6 +3,7 @@ package com.d3.btc.deposit.listener
 import com.d3.btc.deposit.handler.BtcDepositTxHandler
 import com.d3.btc.helper.address.outPutToBase58Address
 import com.d3.btc.model.BtcAddress
+import com.d3.btc.provider.network.BtcNetworkConfigProvider
 import mu.KLogging
 import org.bitcoinj.core.Transaction
 import java.util.*
@@ -21,6 +22,7 @@ class BitcoinTransactionListener(
     private val confidenceLevel: Int,
     private val confidenceListenerExecutor: ExecutorService,
     private val btcDepositTxHandler: BtcDepositTxHandler,
+    private val btcNetworkConfigProvider: BtcNetworkConfigProvider,
     private val onTxSave: () -> Unit
 ) {
     fun onTransaction(tx: Transaction, blockTime: Date) {
@@ -55,7 +57,7 @@ class BitcoinTransactionListener(
     private fun hasRegisteredAddresses(tx: Transaction): Boolean {
         return registeredAddresses.any { registeredBtcAddress ->
             tx.outputs.map { out ->
-                outPutToBase58Address(out)
+                outPutToBase58Address(out, btcNetworkConfigProvider.getConfig())
             }.contains(registeredBtcAddress.address)
         }
     }

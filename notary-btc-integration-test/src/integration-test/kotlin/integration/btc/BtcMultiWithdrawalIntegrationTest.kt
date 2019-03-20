@@ -183,6 +183,7 @@ class BtcMultiWithdrawalIntegrationTest {
         Assertions.assertNotNull(environment.getLastCreatedTx().outputs.firstOrNull { transactionOutput ->
             outPutToBase58Address(
                 transactionOutput
+                , RegTestParams.get()
             ) == btcAddressDest
         })
     }

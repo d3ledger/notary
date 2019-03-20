@@ -3,6 +3,7 @@ package com.d3.btc.deposit.handler
 import com.d3.btc.helper.address.outPutToBase58Address
 import com.d3.btc.helper.currency.satToBtc
 import com.d3.btc.model.BtcAddress
+import com.d3.btc.provider.network.BtcNetworkConfigProvider
 import com.d3.commons.sidechain.SideChainEvent
 import io.reactivex.subjects.PublishSubject
 import mu.KLogging
@@ -23,6 +24,7 @@ private const val TWO_HOURS_MILLIS = 2 * 60 * 60 * 1000L
 class BtcDepositTxHandler(
     private val registeredAddresses: List<BtcAddress>,
     private val btcEventsSource: PublishSubject<SideChainEvent.PrimaryBlockChainEvent>,
+    private val btcNetworkConfigProvider: BtcNetworkConfigProvider,
     private val onTxSave: () -> Unit
 ) {
 
@@ -33,7 +35,7 @@ class BtcDepositTxHandler(
      */
     fun handleTx(tx: Transaction, blockTime: Date) {
         tx.outputs.forEach { output ->
-            val txBtcAddress = outPutToBase58Address(output)
+            val txBtcAddress = outPutToBase58Address(output, btcNetworkConfigProvider.getConfig())
             logger.info { "Tx ${tx.hashAsString} has output address $txBtcAddress" }
             val btcAddress = registeredAddresses.firstOrNull { btcAddress -> btcAddress.address == txBtcAddress }
             if (btcAddress != null) {

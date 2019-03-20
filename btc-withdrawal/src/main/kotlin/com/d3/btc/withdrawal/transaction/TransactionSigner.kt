@@ -5,6 +5,7 @@ import com.d3.btc.helper.address.getSignThreshold
 import com.d3.btc.helper.address.outPutToBase58Address
 import com.d3.btc.helper.address.toEcPubKey
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
+import com.d3.btc.provider.network.BtcNetworkConfigProvider
 import com.d3.btc.wallet.safeLoad
 import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 import com.github.kittinunf.result.Result
@@ -27,7 +28,8 @@ import com.d3.commons.util.hex
 @Component
 class TransactionSigner(
     @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
-    @Autowired private val btcChangeAddressesProvider: BtcChangeAddressProvider
+    @Autowired private val btcChangeAddressesProvider: BtcChangeAddressProvider,
+    @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider
 ) {
     /**
      * Signs transaction using available private keys from wallet
@@ -62,7 +64,7 @@ class TransactionSigner(
         var inputIndex = 0
         val signatures = ArrayList<InputSignature>()
         tx.inputs.forEach { input ->
-            getUsedPubKeys(outPutToBase58Address(input.connectedOutput!!)).fold({ pubKeys ->
+            getUsedPubKeys(outPutToBase58Address(input.connectedOutput!!,btcNetworkConfigProvider.getConfig())).fold({ pubKeys ->
                 val keyPair = getPrivPubKeyPair(pubKeys, wallet)
                 if (keyPair != null) {
                     val redeem = createMsRedeemScript(pubKeys)

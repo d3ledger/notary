@@ -170,7 +170,7 @@ class TransactionHelper(
 
         logger.info("Got unspents\n${unspents.map { unspent ->
             Pair(
-                outPutToBase58Address(unspent),
+                outPutToBase58Address(unspent, btcNetworkConfigProvider.getConfig()),
                 unspent.value
             )
         }}")
@@ -233,7 +233,7 @@ class TransactionHelper(
 
     // Checks if fee output was addressed to available address
     protected fun isAvailableOutput(availableAddresses: Set<String>, output: TransactionOutput): Boolean {
-        val btcAddress = outPutToBase58Address(output)
+        val btcAddress = outPutToBase58Address(output, btcNetworkConfigProvider.getConfig())
         return availableAddresses.contains(btcAddress)
     }
 

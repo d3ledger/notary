@@ -119,6 +119,7 @@ class BtcNotaryInitialization(
                 btcRegisteredAddressesProvider,
                 btcEventsSource,
                 confidenceListenerExecutorService,
+                btcNetworkConfigProvider,
                 confidenceLevel,
                 ::onTxSave
             )

@@ -2,6 +2,7 @@ package com.d3.btc.deposit.listener
 
 import com.d3.btc.deposit.handler.BtcDepositTxHandler
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
+import com.d3.btc.provider.network.BtcNetworkConfigProvider
 import com.d3.commons.sidechain.SideChainEvent
 import io.reactivex.subjects.PublishSubject
 import mu.KLogging
@@ -18,12 +19,14 @@ private const val DAY_MILLIS = 24 * 60 * 60 * 1000L
  * @param btcRegisteredAddressesProvider - Bitcoin registered addresses provider
  * @param btcEventsSource - observable that is used to publish Bitcoin deposit events
  * @param confidenceListenerExecutorService - executor service that is used to execute 'confidence change' events
+ * @param btcNetworkConfigProvider - Bitcoin Network configuration provider
  * @param onTxSave - function that is called to save transaction
  */
 class BitcoinBlockChainDepositListener(
     private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
     private val btcEventsSource: PublishSubject<SideChainEvent.PrimaryBlockChainEvent>,
     private val confidenceListenerExecutorService: ExecutorService,
+    private val btcNetworkConfigProvider: BtcNetworkConfigProvider,
     private val confidenceLevel: Int,
     private val onTxSave: () -> Unit
 ) : BlocksDownloadedEventListener {
@@ -51,7 +54,8 @@ class BitcoinBlockChainDepositListener(
                         registeredAddresses,
                         confidenceLevel,
                         confidenceListenerExecutorService,
-                        BtcDepositTxHandler(registeredAddresses, btcEventsSource, onTxSave),
+                        BtcDepositTxHandler(registeredAddresses, btcEventsSource, btcNetworkConfigProvider, onTxSave),
+                        btcNetworkConfigProvider,
                         onTxSave
                     )
                 block.transactions?.forEach { tx ->

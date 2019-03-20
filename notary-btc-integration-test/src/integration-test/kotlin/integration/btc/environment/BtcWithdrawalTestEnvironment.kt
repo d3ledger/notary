@@ -31,6 +31,7 @@ import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.TransactionOutput
+import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.wallet.Wallet
 import java.io.Closeable
 import java.io.File
@@ -143,13 +144,17 @@ class BtcWithdrawalTestEnvironment(
         )
     private val transactionCreator =
         TransactionCreator(btcChangeAddressProvider, btcNetworkConfigProvider, transactionHelper)
-    private val transactionSigner = TransactionSigner(btcRegisteredAddressesProvider, btcChangeAddressProvider)
+    private val transactionSigner = TransactionSigner(
+        btcRegisteredAddressesProvider, btcChangeAddressProvider,
+        btcNetworkConfigProvider
+    )
     val signCollector =
         SignCollector(
             signaturesCollectorCredential,
             signaturesCollectorIrohaConsumer,
             irohaApi,
-            transactionSigner
+            transactionSigner,
+            btcNetworkConfigProvider
         )
 
     private val withdrawalStatistics = WithdrawalStatistics.create()
@@ -232,7 +237,7 @@ class BtcWithdrawalTestEnvironment(
 
         // Checks if transaction output was addressed to available address
         override fun isAvailableOutput(availableAddresses: Set<String>, output: TransactionOutput): Boolean {
-            val btcAddress = outPutToBase58Address(output)
+            val btcAddress = outPutToBase58Address(output, RegTestParams.get())
             return availableAddresses.contains(btcAddress) && !btcAddressBlackList.contains(btcAddress)
         }
     }

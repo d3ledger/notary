@@ -11,6 +11,7 @@ import integration.btc.environment.BtcWithdrawalTestEnvironment
 import integration.helper.BTC_ASSET
 import integration.helper.BtcIntegrationHelperUtil
 import org.bitcoinj.core.Address
+import org.bitcoinj.params.RegTestParams
 import org.junit.Assert.assertNotNull
 import org.junit.jupiter.api.*
 import java.io.File
@@ -112,11 +113,13 @@ class BtcWithdrawalFailResistanceIntegrationTest {
         assertNotNull(environment.getLastCreatedTx().outputs.firstOrNull { transactionOutput ->
             outPutToBase58Address(
                 transactionOutput
+                , RegTestParams.get()
             ) == btcAddressDest
         })
         assertNotNull(environment.getLastCreatedTx().outputs.firstOrNull { transactionOutput ->
             outPutToBase58Address(
                 transactionOutput
+                , RegTestParams.get()
             ) == changeAddress.toBase58()
         })
     }

@@ -11,11 +11,12 @@ private const val UNDEFINED_ADDRESS = "[undefined]"
  * Safely takes base58 encoded address from tx output
  *
  * @param output - tx output to take address from
+ * @param networkParameters - network parameters(RegTest, TestNet or MainNet)
  * @return - base58 encoded address or "[undefined]" if exception occurred
  */
-fun outPutToBase58Address(output: TransactionOutput): String {
+fun outPutToBase58Address(output: TransactionOutput, networkParameters: NetworkParameters): String {
     try {
-        val address = output.scriptPubKey?.getToAddress(output.params)?.toBase58()
+        val address = output.scriptPubKey?.getToAddress(networkParameters)?.toBase58()
         return if (address != null) {
             address
         } else {

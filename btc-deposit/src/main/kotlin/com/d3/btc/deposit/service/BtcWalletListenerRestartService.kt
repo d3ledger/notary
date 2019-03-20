@@ -7,6 +7,7 @@ import com.d3.btc.deposit.listener.BtcConfirmedTxListener
 import com.d3.btc.model.BtcAddress
 import com.d3.btc.peer.SharedPeerGroup
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
+import com.d3.btc.provider.network.BtcNetworkConfigProvider
 import com.d3.commons.sidechain.SideChainEvent
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
@@ -28,7 +29,8 @@ class BtcWalletListenerRestartService(
     @Autowired private val confidenceListenerExecutorService: ExecutorService,
     @Autowired private val peerGroup: SharedPeerGroup,
     @Autowired private val btcEventsSource: PublishSubject<SideChainEvent.PrimaryBlockChainEvent>,
-    @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider
+    @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
+    @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider
 ) {
 
     /**
@@ -102,6 +104,7 @@ class BtcWalletListenerRestartService(
             BtcDepositTxHandler(
                 registeredAddresses,
                 btcEventsSource,
+                btcNetworkConfigProvider,
                 onTxSave
             )::handleTx
         )

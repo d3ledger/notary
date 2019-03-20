@@ -4,6 +4,7 @@ import com.d3.btc.helper.address.createMsRedeemScript
 import com.d3.btc.helper.address.getSignThreshold
 import com.d3.btc.helper.address.outPutToBase58Address
 import com.d3.btc.helper.address.toEcPubKey
+import com.d3.btc.provider.network.BtcNetworkConfigProvider
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.notary.IrohaCommand
 import com.d3.commons.notary.IrohaTransaction
@@ -42,7 +43,8 @@ class SignCollector(
     @Qualifier("signatureCollectorConsumer")
     @Autowired private val signatureCollectorConsumer: IrohaConsumer,
     @Autowired private val irohaAPI: IrohaAPI,
-    @Autowired private val transactionSigner: TransactionSigner
+    @Autowired private val transactionSigner: TransactionSigner,
+    @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider
 ) {
     private val queryAPI by lazy {
         QueryAPI(
@@ -128,7 +130,7 @@ class SignCollector(
                 logger.info { "Tx ${tx.hashAsString} input at index $inputIndex is not signed yet" }
                 return false
             }
-            val inputAddress = outPutToBase58Address(input.connectedOutput!!)
+            val inputAddress = outPutToBase58Address(input.connectedOutput!!, btcNetworkConfigProvider.getConfig())
             transactionSigner.getUsedPubKeys(inputAddress).fold(
                 { usedPubKeys ->
                     val threshold = getSignThreshold(usedPubKeys)
@@ -155,7 +157,7 @@ class SignCollector(
         return Result.of {
             var inputIndex = 0
             tx.inputs.forEach { input ->
-                val inputAddress = outPutToBase58Address(input.connectedOutput!!)
+                val inputAddress = outPutToBase58Address(input.connectedOutput!!, btcNetworkConfigProvider.getConfig())
                 transactionSigner.getUsedPubKeys(inputAddress).fold({ usedKeys ->
                     /**
                      * Signatures must be ordered the same way public keys are ordered in redeem script
