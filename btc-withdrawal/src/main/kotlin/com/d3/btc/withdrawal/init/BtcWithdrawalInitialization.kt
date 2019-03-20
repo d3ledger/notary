@@ -20,7 +20,6 @@ import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.util.getSetDetailCommands
 import com.d3.commons.sidechain.iroha.util.getTransferCommands
 import com.d3.commons.util.createPrettySingleThreadPool
-import com.d3.commons.util.namedThreadFactory
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
@@ -36,7 +35,6 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import java.io.Closeable
 import java.io.File
-import java.util.concurrent.Executors
 
 /*
     Class that initiates listeners that will be used to handle Bitcoin withdrawal logic
@@ -86,9 +84,15 @@ class BtcWithdrawalInitialization(
                     btcAddress.address
                 )
             }.forEach { address ->
-                transferWallet.addWatchedAddress(address)
+                if (transferWallet.addWatchedAddress(address)) {
+                    logger.info("Address $address was added to wallet")
+                } else {
+                    logger.warn("Address $address was not added to wallet")
+                }
             }
-            logger.info { "Previously registered addresses were added to the transferWallet" }
+            logger.info(
+                "Previously registered addresses were added to the transferWallet"
+            )
         }.map {
             // Add fee rate listener
             peerGroup.addBlocksDownloadedEventListener(btcFeeRateListener)
