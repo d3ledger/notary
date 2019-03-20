@@ -11,6 +11,7 @@ import com.d3.btc.listener.NewBtcClientRegistrationListener
 import com.d3.btc.peer.SharedPeerGroup
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
+import com.d3.btc.wallet.checkWalletNetwork
 import com.d3.commons.notary.NotaryImpl
 import com.d3.commons.sidechain.SideChainEvent
 import com.d3.commons.sidechain.iroha.IrohaChainListener
@@ -67,10 +68,13 @@ class BtcNotaryInitialization(
         //Enables short log format for Bitcoin events
         BriefLogFormatter.init()
         addPeerConnectionStatusListener(peerGroup, ::notHealthy, ::cured)
-        // Restart wallet listeners
-        return btcWalletListenerRestartService.restartTransactionListeners(
-            transferWallet, ::onTxSave
-        ).flatMap {
+        // Check wallet network
+        return transferWallet.checkWalletNetwork(btcNetworkConfigProvider.getConfig()).map {
+            // Restart wallet listeners
+            btcWalletListenerRestartService.restartTransactionListeners(
+                transferWallet, ::onTxSave
+            )
+        }.flatMap {
             irohaChainListener.getBlockObservable()
         }.map { irohaObservable ->
             newBtcClientRegistrationListener.listenToRegisteredClients(
