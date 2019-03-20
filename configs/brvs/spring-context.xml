@@ -14,9 +14,10 @@
   </bean>
 
   <!-- KEY PAIR DEFINITION -->
-  <bean id="keyPair" class="jp.co.soramitsu.iroha.java.Utils" factory-method="parseHexKeypair">
-    <constructor-arg index="0" value="${credential.pubkey}"/>
-    <constructor-arg index="1" value="${credential.privkey}"/>
+  <bean id="keyPair" class="iroha.validation.utils.ValidationUtils"
+        factory-method="readKeyPairFromFiles">
+    <constructor-arg index="0" value="${credential.pubkeyFilePath}"/>
+    <constructor-arg index="1" value="${credential.privkeyFilePath}"/>
   </bean>
 
   <!-- IROHA API IPJ CONFIG -->
@@ -76,8 +77,11 @@
   <bean id="cacheProvider" class="iroha.validation.transactions.provider.impl.util.CacheProvider"/>
 
   <!-- BRVS DATA CONFIG -->
+  <bean id="pubkey" class="iroha.validation.utils.ValidationUtils" factory-method="readKey">
+    <constructor-arg index="0" value="${credential.pubkeyFilePath}"/>
+  </bean>
   <bean id="brvsData" class="iroha.validation.transactions.provider.impl.util.BrvsData">
-    <constructor-arg index="0" value="${credential.pubkey}"/>
+    <constructor-arg index="0" ref="pubkey"/>
     <constructor-arg index="1" value="${brvs.localhostname}"/>
   </bean>
 
