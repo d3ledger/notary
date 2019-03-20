@@ -146,7 +146,7 @@ class BtcAddressGenerationInitialization(
             val notaryKeys = details.values
             if (!notaryKeys.isEmpty()) {
                 btcPublicKeyProvider.checkAndCreateMultiSigAddress(
-                    notaryKeys,
+                    notaryKeys.toList(),
                     addressType,
                     time,
                     nodeId
