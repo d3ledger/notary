@@ -5,6 +5,8 @@ import com.d3.btc.fee.getTxFee
 import com.d3.btc.helper.address.outPutToBase58Address
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
+import com.d3.btc.withdrawal.handler.CurrentFeeRate
+import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.map
@@ -16,8 +18,6 @@ import org.bitcoinj.core.TransactionOutput
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import com.d3.btc.withdrawal.handler.CurrentFeeRate
-import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 
 //Only two outputs are used: destination and change
 private const val OUTPUTS = 2
@@ -108,6 +108,7 @@ class TransactionHelper(
     fun getAvailableAddresses(wallet: Wallet): Result<Set<String>, Exception> {
         return btcRegisteredAddressesProvider.getRegisteredAddresses()
             .map { registeredAddresses ->
+                logger.info("Registered addresses ${registeredAddresses.map { address -> address.address }}")
                 registeredAddresses.filter { btcAddress ->
                     wallet.isAddressWatched(
                         Address.fromBase58(
@@ -166,6 +167,14 @@ class TransactionHelper(
         if (unspents.isEmpty()) {
             throw IllegalStateException("Out of unspents")
         }
+
+        logger.info("Got unspents\n${unspents.map { unspent ->
+            Pair(
+                outPutToBase58Address(unspent),
+                unspent.value
+            )
+        }}")
+
         /*
         Wallet stores unspents in a HashSet. Order of a HashSet depends on several factors: current array size and etc.
         This may lead different notary nodes to pick different transactions.

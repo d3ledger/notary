@@ -1,17 +1,18 @@
 package com.d3.btc.withdrawal.transaction
 
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
+import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
+import mu.KLogging
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.Transaction
 import org.bitcoinj.core.TransactionOutput
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 
 /*
     Class that is used to create BTC transactions
@@ -39,6 +40,7 @@ class TransactionCreator(
     ): Result<Pair<Transaction, List<TransactionOutput>>, Exception> {
         val transaction = Transaction(btcNetworkConfigProvider.getConfig())
         return transactionHelper.getAvailableAddresses(wallet).flatMap { availableAddresses ->
+            logger.info("Available addresses $availableAddresses")
             transactionHelper.collectUnspents(availableAddresses, wallet, amount, confidenceLevel)
         }.fanout {
             btcChangeAddressProvider.getChangeAddress()
@@ -54,4 +56,9 @@ class TransactionCreator(
             unspents
         }.map { unspents -> Pair(transaction, unspents) }
     }
+
+    /**
+     * Logger
+     */
+    companion object : KLogging()
 }

@@ -5,6 +5,8 @@ import org.bitcoinj.script.Script
 import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.script.ScriptBuilder.createP2SHOutputScript
 
+
+private const val UNDEFINED_ADDRESS = "[undefined]"
 /**
  * Safely takes base58 encoded address from tx output
  *
@@ -13,9 +15,14 @@ import org.bitcoinj.script.ScriptBuilder.createP2SHOutputScript
  */
 fun outPutToBase58Address(output: TransactionOutput): String {
     try {
-        return output.scriptPubKey.getToAddress(output.params).toBase58()
+        val address = output.scriptPubKey?.getToAddress(output.params)?.toBase58()
+        return if (address != null) {
+            address
+        } else {
+            UNDEFINED_ADDRESS
+        }
     } catch (expected: ScriptException) {
-        return "[undefined]"
+        return UNDEFINED_ADDRESS
     }
 }
 
