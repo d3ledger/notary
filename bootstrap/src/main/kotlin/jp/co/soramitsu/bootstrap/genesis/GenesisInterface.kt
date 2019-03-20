@@ -10,5 +10,5 @@ interface GenesisInterface {
     fun getProject(): String
     fun getEnvironment(): String
     fun createGenesisBlock(accounts:List<AccountPublicInfo>, peers:List<Peer>, blockVersion:String = "1"): String
-    fun getAccountsNeeded(): List<AccountPrototype>
+    fun getAccountsForConfiguration(peersCount:Int): List<AccountPrototype>
 }

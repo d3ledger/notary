@@ -35,7 +35,6 @@ import org.bitcoinj.wallet.Wallet
 import java.io.Closeable
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.Executors
 
 /**
  * Bitcoin withdrawal service testing environment

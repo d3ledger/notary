@@ -216,6 +216,7 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
         // first is for user, second is for brvs instance
         quorum: Int = 2
     ): String {
+        logger.info { "Iroha transfer of $amount $assetId from $srcAccountId to $destAccountId" }
         val tx = Transaction.builder(creator)
             .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
             .setCreatedTime(createdTime)

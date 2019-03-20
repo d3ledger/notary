@@ -1,12 +1,11 @@
 package jp.co.soramitsu.bootstrap.dto
 
-import jp.co.soramitsu.iroha.java.TransactionBuilder
 import jp.co.soramitsu.bootstrap.genesis.getIrohaPublicKeyFromHex
+import jp.co.soramitsu.iroha.java.TransactionBuilder
 import org.bitcoinj.core.NetworkParameters
 import org.bitcoinj.params.MainNetParams
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.params.TestNet3Params
-import org.testcontainers.shaded.org.apache.commons.lang.mutable.Mutable
 import org.web3j.crypto.WalletFile
 import java.security.KeyPair
 import javax.validation.constraints.NotNull
@@ -16,7 +15,7 @@ private interface DtoFactory<out T> {
     fun getDTO(): T
 }
 
-enum class BtcNetwork(val params:NetworkParameters) {
+enum class BtcNetwork(val params: NetworkParameters) {
     RegTest(RegTestParams.get()),
     TestNet3(TestNet3Params.get()),
     MainNet(MainNetParams.get())
@@ -49,11 +48,24 @@ data class IrohaAccount(val title: String, val domain: String, val keys: HashSet
     }
 }
 
-data class Peer(@NotNull val peerKey: String = "", @NotNull val hostPort: String = "localhost:10001")
-data class AccountPublicInfo(@NotNull val pubKeys: List<String> = emptyList(), @NotNull val domainId: String? = null, @NotNull val accountName: String? = null)
+data class Peer(
+    @NotNull val peerKey: String = "",
+    @NotNull val hostPort: String = "localhost:10001",
+    val notaryHostPort: String? = null
+)
+
+data class AccountPublicInfo(
+    @NotNull val pubKeys: List<String> = emptyList(),
+    @NotNull val domainId: String? = null,
+    @NotNull val accountName: String? = null,
+    val quorum: Int = 1
+) {
+    val id = "$accountName@$domainId"
+}
+
 data class ProjectEnv(val project: String = "D3", val environment: String = "test")
 data class ProjectInfo(val project: String = "D3", val environments: MutableList<String> = mutableListOf("test"))
-data class Projects(val projects:Collection<ProjectInfo> = listOf()):Conflictable()
+data class Projects(val projects: Collection<ProjectInfo> = listOf()) : Conflictable()
 
 data class GenesisRequest(
     val accounts: List<AccountPublicInfo> = emptyList(),
@@ -63,17 +75,47 @@ data class GenesisRequest(
 )
 
 data class GenesisResponse(val blockData: String? = null) :
-    Conflictable()
+    Conflictable() {
+    constructor(errorCode: String? = null, message: String? = null) : this() {
+        this.errorCode = errorCode
+        this.message = message
+    }
+}
+
+data class NeededAccountsResponse(val accounts: List<AccountPrototype> = emptyList()) : Conflictable() {
+    constructor(errorCode: String? = null, message: String? = null) : this() {
+        this.errorCode = errorCode
+        this.message = message
+    }
+}
 
 data class EthWallet(val file: WalletFile? = null) : Conflictable()
-data class BtcWallet(val file: String? = null, val network:BtcNetwork? = null) : Conflictable()
+data class BtcWallet(val file: String? = null, val network: BtcNetwork? = null) : Conflictable()
+
+/**
+ * Accounts which should have quorum 2/3 of peers
+ */
+class PeersCountDependentAccountPrototype(
+    name: String? = null,
+    domainId: String? = null,
+    roles: List<String> = emptyList(),
+    details: HashMap<String, String> = HashMap()
+) : AccountPrototype(
+    name,
+    domainId,
+    roles,
+    details,
+    passive = true,
+    quorum = 1,
+    peersDependentQuorum = true
+)
 
 /**
  * Accounts which can't create transactions and no need to generate credentials for this accounts
  */
 class PassiveAccountPrototype(
-    name: String,
-    domainId: String,
+    name: String? = null,
+    domainId: String? = null,
     roles: List<String> = emptyList(),
     details: HashMap<String, String> = HashMap(),
     quorum: Int = 1
@@ -100,20 +142,21 @@ class PassiveAccountPrototype(
 
 
 open class AccountPrototype(
-    val title: String,
-    val domainId: String,
-    private val roles: List<String> = listOf(),
-    private val details: Map<String, String> = mapOf(),
+    val name: String? = null,
+    val domainId: String? = null,
+    private var roles: List<String> = listOf(),
+    private var details: Map<String, String> = mapOf(),
     val passive: Boolean = false,
-    val quorum: Int = 1
+    var quorum: Int = 1,
+    val peersDependentQuorum: Boolean = false
 ) {
-    val id = "$title@$domainId"
+    val id = "$name@$domainId"
 
     open fun createAccount(
         builder: TransactionBuilder,
         publicKey: String = "0000000000000000000000000000000000000000000000000000000000000000"
     ) {
-        builder.createAccount(title, domainId, getIrohaPublicKeyFromHex(publicKey))
+        builder.createAccount(name, domainId, getIrohaPublicKeyFromHex(publicKey))
         roles.forEach { builder.appendRole(id, it) }
         details.forEach { k, v -> builder.setAccountDetail(id, k, v) }
     }

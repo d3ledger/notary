@@ -71,6 +71,7 @@ class IrohaBatchTest {
     @Test
     fun allValidBatchTest() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            listener.purge()
 
             val user = randomString()
             val asset_name = randomString()
@@ -174,6 +175,7 @@ class IrohaBatchTest {
     @Test
     fun notAllValidBatchTest() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            listener.purge()
 
             val user = randomString()
             val asset_name = randomString()

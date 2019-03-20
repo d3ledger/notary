@@ -4,10 +4,11 @@ import iroha.protocol.Primitive
 import jp.co.soramitsu.iroha.java.TransactionBuilder
 import jp.co.soramitsu.bootstrap.dto.AccountPrototype
 import jp.co.soramitsu.bootstrap.dto.PassiveAccountPrototype
+import jp.co.soramitsu.bootstrap.dto.PeersCountDependentAccountPrototype
 
 object D3TestContext {
     val d3neededAccounts = listOf<AccountPrototype>(
-        AccountPrototype("notary", "notary", listOf("notary")),
+        PeersCountDependentAccountPrototype("notary", "notary", listOf("notary")),
         AccountPrototype(
             "registration_service",
             "notary",
@@ -23,7 +24,7 @@ object D3TestContext {
             "notary",
             listOf("registration_service", "client")
         ),
-        AccountPrototype(
+        PeersCountDependentAccountPrototype(
             "mst_btc_registration_service",
             "notary",
             listOf("registration_service", "client")
@@ -43,7 +44,7 @@ object D3TestContext {
             "notary",
             listOf("btc_fee_rate_setter")
         ),
-        AccountPrototype(
+        PeersCountDependentAccountPrototype(
             "btc_withdrawal_service",
             "notary",
             listOf("withdrawal", "rollback")
