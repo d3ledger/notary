@@ -7,6 +7,7 @@ import com.d3.btc.helper.network.addPeerConnectionStatusListener
 import com.d3.btc.helper.network.startChainDownload
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
+import com.d3.btc.wallet.checkWalletNetwork
 import com.d3.btc.withdrawal.BTC_WITHDRAWAL_SERVICE_NAME
 import com.d3.btc.withdrawal.config.withdrawalConfig
 import com.d3.btc.withdrawal.handler.NewFeeRateWasSetHandler
@@ -70,7 +71,10 @@ class BtcWithdrawalInitialization(
     private val btcFeeRateListener = BitcoinBlockChainFeeRateListener(btcFeeRateService)
 
     fun init(): Result<Unit, Exception> {
-        return btcChangeAddressProvider.getChangeAddress().map { changeAddress ->
+        // Check wallet network
+        return transferWallet.checkWalletNetwork(btcNetworkConfigProvider.getConfig()).flatMap {
+            btcChangeAddressProvider.getChangeAddress()
+        }.map { changeAddress ->
             transferWallet.addWatchedAddress(
                 Address.fromBase58(btcNetworkConfigProvider.getConfig(), changeAddress.address)
             )
