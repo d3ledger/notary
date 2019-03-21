@@ -19,7 +19,7 @@ import javax.xml.bind.DatatypeConverter
 class BtcController {
 
     private val log = KLogging().logger
-    @Value("\${btc.network}")
+    @Value("\${BTC_NETWORK}")
     private lateinit var network: BtcNetwork
 
     @GetMapping("/create/wallet")
