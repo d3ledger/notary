@@ -175,7 +175,8 @@
                     "can_get_domain_accounts",
                     "can_get_all_txs",
                     "can_get_domain_acc_detail",
-                    "can_read_assets"
+                    "can_read_assets",
+                    "can_add_peer"
                   ]
                 }
               },

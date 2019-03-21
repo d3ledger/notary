@@ -1,17 +1,17 @@
 package integration.helper
 
-import com.github.kittinunf.result.failure
-import com.github.kittinunf.result.flatMap
 import com.d3.commons.config.IrohaCredentialConfig
 import com.d3.commons.config.loadConfigs
-import integration.TestConfig
-import iroha.protocol.Primitive
-import jp.co.soramitsu.iroha.java.IrohaAPI
 import com.d3.commons.model.IrohaCredential
-import mu.KLogging
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomString
+import com.github.kittinunf.result.failure
+import com.github.kittinunf.result.flatMap
+import integration.TestConfig
+import iroha.protocol.Primitive
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import mu.KLogging
 import java.security.KeyPair
 
 /**
