@@ -56,7 +56,7 @@ class EthTest {
     fun testListEthereumServicesWithWallets() {
         val peersCount = 6
         val result: MvcResult = mvc
-            .perform(MockMvcRequestBuilders.get("/eth/list/servicesWithWallet/$peersCount"))
+            .perform(MockMvcRequestBuilders.get("/eth/list/servicesWithWallet/d3/$peersCount"))
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andReturn()
 

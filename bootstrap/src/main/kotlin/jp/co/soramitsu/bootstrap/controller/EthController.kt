@@ -31,7 +31,7 @@ class EthController {
         }
     }
 
-    @GetMapping("/list/servicesWithWallet/{peersCount}")
+    @GetMapping("/list/servicesWithWallet/d3/{peersCount}")
     fun listServicesWithEthWallet(@PathVariable("peersCount")peersCount: Int): ResponseEntity<List<String>> {
         val list = ArrayList<String>()
         var depositCounter = peersCount
