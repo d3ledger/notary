@@ -17,7 +17,7 @@ Functionality:
 * Creation of Iroha Genesis Block 
 
 ## Startup Configuration
-You should provide environment parameter `BTC_NETWORK` with one of three values: `TestNet3, MainNet, RegTest`
+You should provide environment parameter `btc.network` with one of three values: `TestNet3, MainNet, RegTest`
 Else `btc.network` parameter will be taken from application.properties file
 
 ## How to develop
