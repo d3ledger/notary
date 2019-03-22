@@ -42,7 +42,7 @@ That's why D3 services provide registration of new client via HTTP POST request.
     **Content:** 
     
         {
-            "clientId": "myname22@d3"
+            "clientId": "myname@d3"
         }
               
 * **Example error response:**
