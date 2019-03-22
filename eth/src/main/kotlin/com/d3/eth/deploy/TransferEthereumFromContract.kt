@@ -1,22 +1,21 @@
-@file:JvmName("EthSendEther")
+@file:JvmName("TransferEthereumFromContract")
 
 package com.d3.eth.deploy
 
-import com.github.kittinunf.result.failure
-import com.github.kittinunf.result.fanout
-import com.github.kittinunf.result.map
 import com.d3.commons.config.EthereumConfig
 import com.d3.commons.config.loadConfigs
 import com.d3.commons.config.loadEthPasswords
-import mu.KLogging
 import com.d3.eth.sidechain.util.DeployHelper
+import com.github.kittinunf.result.failure
+import com.github.kittinunf.result.fanout
+import com.github.kittinunf.result.map
+import mu.KLogging
 import java.math.BigInteger
 
 private val logger = KLogging().logger
 
 /**
- * Send ethereum.
- * [args] should contain the address and amount of ether to send from genesis account
+ * Task that transfer Ethereum from contract as internal transaction for testing purpose.
  */
 fun main(args: Array<String>) {
     if (args.isEmpty()) {
@@ -27,7 +26,6 @@ fun main(args: Array<String>) {
     val amount = args[1].toDouble()
     logger.info { "Send ether $amount from genesis to $addr" }
 
-
     loadConfigs("predeploy.ethereum", EthereumConfig::class.java, "/eth/predeploy.properties")
         .fanout { loadEthPasswords("predeploy", "/eth/ethereum_password.properties") }
         .map { (ethereumConfig, passwordConfig) ->
@@ -37,7 +35,8 @@ fun main(args: Array<String>) {
             )
         }
         .map { deployHelper ->
-            deployHelper.sendEthereum(BigInteger.valueOf((1000000000000000000 * amount).toLong()), addr)
+            val transferEthereum = deployHelper.deployTransferEthereum()
+            transferEthereum.transfer(BigInteger.valueOf((1000000000000000000 * amount).toLong()), addr)
             logger.info { "Ether was sent" }
 
         }

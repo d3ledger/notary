@@ -23,6 +23,11 @@ task runSendEther(type: JavaExec) {
     setWorkingDir("$rootDir/")
 }
 
+task runSendEtherFromContract(type: JavaExec) {
+    main = 'com.d3.eth.deploy.TransferEthereumFromContract'
+    classpath = sourceSets.main.runtimeClasspath
+    setWorkingDir("$rootDir/")
+}
 
 // Deploy ethereum smart contracts - RelayRegistry, Master, add notaries wallets to Master and lock Master.
 task runPreDeployEthereum(type: JavaExec) {
