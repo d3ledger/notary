@@ -126,10 +126,8 @@ contract Master {
                 r[i],
                 s[i]
             );
-            // recovered address should be in peers_
-            require(peers[recoveredAddresses[i]] == true);
         }
-        require(checkForUniqueness(recoveredAddresses));
+        require(checkSignatures(recoveredAddresses));
         addPeer(newPeerAddress);
         used[txHash] = true;
         return true;
@@ -160,10 +158,8 @@ contract Master {
                 r[i],
                 s[i]
             );
-            // recovered address should be in peers_
-            require(peers[recoveredAddresses[i]] == true);
         }
-        require(checkForUniqueness(recoveredAddresses));
+        require(checkSignatures(recoveredAddresses));
         removePeer(peerAddress);
         used[txHash] = true;
         return true;
@@ -247,11 +243,9 @@ contract Master {
                 r[i],
                 s[i]
             );
-            // recovered address should be in peers_
-            require(peers[recoveredAddresses[i]] == true);
         }
 
-        require(checkForUniqueness(recoveredAddresses));
+        require(checkSignatures(recoveredAddresses));
 
         if (tokenAddress == address (0)) {
             if (address(this).balance < amount) {
@@ -274,27 +268,28 @@ contract Master {
     }
 
     /**
-     * Checks given addresses for duplicates
+     * Checks given addresses for duplicates and if they are peers signatures
      * @param addresses addresses array to check
-     * @return true if all given addresses are unique or false otherwise
+     * @return true if all given addresses are correct or false otherwise
      */
-    function checkForUniqueness(address[] memory addresses) private returns (bool) {
-        uint i;
-        bool isUnique = true;
-        for (i = 0; i < addresses.length; ++i) {
-            if (uniqueAddresses[addresses[i]] == true) {
-                isUnique = false;
-                break;
+    function checkSignatures(address[] memory addresses) private returns (bool) {
+        uint count = 0;
+        for (uint i = 0; i < addresses.length; ++i) {
+            // not a peer address or not unique
+            if (peers[addresses[i]] != true || uniqueAddresses[addresses[i]] == true) {
+                continue;
             }
+            count = count + 1;
             uniqueAddresses[addresses[i]] = true;
         }
 
         // restore state for future usages
-        for (i = 0; i < addresses.length; ++i) {
+        for (uint i = 0; i < addresses.length; ++i) {
             uniqueAddresses[addresses[i]] = false;
         }
 
-        return isUnique;
+        uint needSigs = peersCount - (peersCount - 1) / 3;
+        return count >= needSigs;
     }
 
     /**
@@ -347,11 +342,9 @@ contract Master {
                 r[i],
                 s[i]
             );
-            // recovered address should be in peers_
-            require(peers[recoveredAddresses[i]] == true);
         }
 
-        require(checkForUniqueness(recoveredAddresses));
+        require(checkSignatures(recoveredAddresses));
 
         xorTokenInstance.mintTokens(beneficiary, amount);
         used[txHash] = true;
