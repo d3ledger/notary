@@ -7,6 +7,7 @@ import com.d3.btc.helper.network.addPeerConnectionStatusListener
 import com.d3.btc.helper.network.startChainDownload
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
+import com.d3.btc.wallet.checkWalletNetwork
 import com.d3.btc.withdrawal.BTC_WITHDRAWAL_SERVICE_NAME
 import com.d3.btc.withdrawal.config.withdrawalConfig
 import com.d3.btc.withdrawal.handler.NewFeeRateWasSetHandler
@@ -20,7 +21,6 @@ import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.util.getSetDetailCommands
 import com.d3.commons.sidechain.iroha.util.getTransferCommands
 import com.d3.commons.util.createPrettySingleThreadPool
-import com.d3.commons.util.namedThreadFactory
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
@@ -36,7 +36,6 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import java.io.Closeable
 import java.io.File
-import java.util.concurrent.Executors
 
 /*
     Class that initiates listeners that will be used to handle Bitcoin withdrawal logic
@@ -72,7 +71,10 @@ class BtcWithdrawalInitialization(
     private val btcFeeRateListener = BitcoinBlockChainFeeRateListener(btcFeeRateService)
 
     fun init(): Result<Unit, Exception> {
-        return btcChangeAddressProvider.getChangeAddress().map { changeAddress ->
+        // Check wallet network
+        return transferWallet.checkWalletNetwork(btcNetworkConfigProvider.getConfig()).flatMap {
+            btcChangeAddressProvider.getChangeAddress()
+        }.map { changeAddress ->
             transferWallet.addWatchedAddress(
                 Address.fromBase58(btcNetworkConfigProvider.getConfig(), changeAddress.address)
             )
@@ -86,9 +88,15 @@ class BtcWithdrawalInitialization(
                     btcAddress.address
                 )
             }.forEach { address ->
-                transferWallet.addWatchedAddress(address)
+                if (transferWallet.addWatchedAddress(address)) {
+                    logger.info("Address $address was added to wallet")
+                } else {
+                    logger.warn("Address $address was not added to wallet")
+                }
             }
-            logger.info { "Previously registered addresses were added to the transferWallet" }
+            logger.info(
+                "Previously registered addresses were added to the transferWallet"
+            )
         }.map {
             // Add fee rate listener
             peerGroup.addBlocksDownloadedEventListener(btcFeeRateListener)

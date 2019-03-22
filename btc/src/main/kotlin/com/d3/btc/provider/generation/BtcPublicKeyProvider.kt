@@ -1,5 +1,6 @@
 package com.d3.btc.provider.generation
 
+import com.d3.btc.helper.address.createMsAddress
 import com.d3.btc.helper.address.getSignThreshold
 import com.d3.btc.model.AddressInfo
 import com.d3.btc.model.BtcAddressType
@@ -81,7 +82,7 @@ class BtcPublicKeyProvider(
      * @return Result of operation
      */
     fun checkAndCreateMultiSigAddress(
-        notaryKeys: Collection<String>,
+        notaryKeys: List<String>,
         addressType: BtcAddressType,
         generationTime: Long,
         nodeId: String,
@@ -101,8 +102,7 @@ class BtcPublicKeyProvider(
                 logger.info { "Cannot be involved in address generation. No access to $notaryKeys." }
                 return@of
             }
-            val threshold = getSignThreshold(peers)
-            val msAddress = createMsAddress(notaryKeys, threshold)
+            val msAddress = createMsAddress(notaryKeys, btcNetworkConfigProvider.getConfig())
             if (keysWallet.isAddressWatched(msAddress)) {
                 logger.info("Address $msAddress has been already created")
                 return@of
@@ -133,22 +133,6 @@ class BtcPublicKeyProvider(
     private fun hasMyKey(notaryKeys: Collection<String>) = notaryKeys.find { key ->
         keysWallet.issuedReceiveKeys.find { ecKey -> ecKey.publicKeyAsHex == key } != null
     } != null
-
-    /**
-     * Creates multi signature bitcoin address
-     * @param notaryKeys - public keys of notaries
-     * @return created address
-     */
-    private fun createMsAddress(notaryKeys: Collection<String>, threshold: Int): Address {
-        val keys = ArrayList<ECKey>()
-        notaryKeys.forEach { key ->
-            val ecKey = ECKey.fromPublicOnly(Utils.parseAsHexOrBase58(key))
-            keys.add(ecKey)
-        }
-        val script = ScriptBuilder.createP2SHOutputScript(threshold, keys)
-        logger.info { "New BTC multisignature script $script" }
-        return script.getToAddress(btcNetworkConfigProvider.getConfig())
-    }
 
 
     /**

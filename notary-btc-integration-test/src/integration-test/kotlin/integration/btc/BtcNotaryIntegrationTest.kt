@@ -6,6 +6,7 @@ import com.github.kittinunf.result.failure
 import integration.btc.environment.BtcNotaryTestEnvironment
 import integration.helper.BTC_ASSET
 import integration.helper.BtcIntegrationHelperUtil
+import integration.registration.RegistrationServiceTestEnvironment
 import org.bitcoinj.wallet.Wallet
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -20,13 +21,16 @@ class BtcNotaryIntegrationTest {
 
     private val integrationHelper = BtcIntegrationHelperUtil()
     private val environment = BtcNotaryTestEnvironment(integrationHelper)
+    private val registrationServiceEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
 
     @AfterAll
     fun dropDown() {
+        registrationServiceEnvironment.close()
         environment.close()
     }
 
     init {
+        registrationServiceEnvironment.registrationInitialization.init()
         val blockStorageFolder = File(environment.notaryConfig.bitcoin.blockStoragePath)
         //Clear bitcoin blockchain folder
         blockStorageFolder.deleteRecursively()
@@ -48,6 +52,8 @@ class BtcNotaryIntegrationTest {
         val initUTXOCount = Wallet.loadFromFile(File(environment.notaryConfig.btcTransferWalletPath)).unspents.size
         val randomName = String.getRandomString(9)
         val testClient = "$randomName@$CLIENT_DOMAIN"
+        val res = registrationServiceEnvironment.register(randomName)
+        assertEquals(200, res.statusCode)
         val btcAddress =
             integrationHelper.registerBtcAddress(
                 environment.btcAddressGenerationConfig.btcKeysWalletPath,
@@ -85,6 +91,8 @@ class BtcNotaryIntegrationTest {
         val totalDeposits = 3
         val randomName = String.getRandomString(9)
         val testClient = "$randomName@$CLIENT_DOMAIN"
+        val res = registrationServiceEnvironment.register(randomName)
+        assertEquals(200, res.statusCode)
         val btcAddress =
             integrationHelper.registerBtcAddress(
                 environment.btcAddressGenerationConfig.btcKeysWalletPath,
@@ -126,6 +134,8 @@ class BtcNotaryIntegrationTest {
         val totalDeposits = 5
         val randomName = String.getRandomString(9)
         val testClient = "$randomName@$CLIENT_DOMAIN"
+        val res = registrationServiceEnvironment.register(randomName)
+        assertEquals(200, res.statusCode)
         val btcAddress =
             integrationHelper.registerBtcAddress(
                 environment.btcAddressGenerationConfig.btcKeysWalletPath,
@@ -173,6 +183,8 @@ class BtcNotaryIntegrationTest {
         val initUTXOCount = Wallet.loadFromFile(File(environment.notaryConfig.btcTransferWalletPath)).unspents.size
         val randomName = String.getRandomString(9)
         val testClient = "$randomName@$CLIENT_DOMAIN"
+        val res = registrationServiceEnvironment.register(randomName)
+        assertEquals(200, res.statusCode)
         val btcAddress =
             integrationHelper.registerBtcAddress(
                 environment.btcAddressGenerationConfig.btcKeysWalletPath,
@@ -211,6 +223,8 @@ class BtcNotaryIntegrationTest {
         val initUTXOCount = Wallet.loadFromFile(File(environment.notaryConfig.btcTransferWalletPath)).unspents.size
         val randomName = String.getRandomString(9)
         val testClient = "$randomName@$CLIENT_DOMAIN"
+        val res = registrationServiceEnvironment.register(randomName)
+        assertEquals(200, res.statusCode)
         val btcAddress =
             integrationHelper.registerBtcAddress(
                 environment.btcAddressGenerationConfig.btcKeysWalletPath,

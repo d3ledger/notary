@@ -74,6 +74,9 @@ hs_err_pid*
 /chain-adapter-integration-test/build/
 /chain-adapter-integration-test/gradle/
 /chain-adapter-integration-test/gradlew
+/bootstrap/build/
+/notary-registration/build/
+/notary-sora-integration-test/build/
 *gradlew.bat
 
 # Ignore Gradle GUI config

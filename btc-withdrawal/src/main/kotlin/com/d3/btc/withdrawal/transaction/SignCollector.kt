@@ -1,25 +1,12 @@
 package com.d3.btc.withdrawal.transaction
 
+import com.d3.btc.helper.address.createMsRedeemScript
 import com.d3.btc.helper.address.getSignThreshold
 import com.d3.btc.helper.address.outPutToBase58Address
-import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.flatMap
-import com.github.kittinunf.result.map
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.Types
-import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.QueryAPI
+import com.d3.btc.helper.address.toEcPubKey
 import com.d3.commons.model.IrohaCredential
-import mu.KLogging
 import com.d3.commons.notary.IrohaCommand
 import com.d3.commons.notary.IrohaTransaction
-import org.bitcoinj.core.ECKey
-import org.bitcoinj.core.Transaction
-import org.bitcoinj.crypto.TransactionSignature
-import org.bitcoinj.script.ScriptBuilder
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.stereotype.Component
 import com.d3.commons.sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.sidechain.iroha.consumer.IrohaConverter
@@ -29,6 +16,21 @@ import com.d3.commons.util.getRandomId
 import com.d3.commons.util.hex
 import com.d3.commons.util.irohaEscape
 import com.d3.commons.util.unHex
+import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.flatMap
+import com.github.kittinunf.result.map
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
+import mu.KLogging
+import org.bitcoinj.core.ECKey
+import org.bitcoinj.core.Transaction
+import org.bitcoinj.crypto.TransactionSignature
+import org.bitcoinj.script.ScriptBuilder
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.stereotype.Component
 
 /*
     Class that is used to collect signatures in Iroha
@@ -64,7 +66,11 @@ class SignCollector(
     fun collectSignatures(tx: Transaction, walletPath: String) {
         transactionSigner.sign(tx, walletPath).flatMap { signedInputs ->
             if (signedInputs.isEmpty()) {
-                throw IllegalStateException("No inputs were signed")
+                logger.warn(
+                    "Cannot sign transaction ${tx.hashAsString}. " +
+                            "Current node probably doesn't posses private keys for a given transaction to sign."
+                )
+                return@flatMap Result.of {}
             }
             logger.info { "Tx ${tx.hashAsString} signatures to add in Iroha $signedInputs" }
             val shortTxHash = shortTxHash(tx)
@@ -80,7 +86,7 @@ class SignCollector(
             signatureCollectorConsumer.send(setSignaturesTx)
         }.fold(
             {
-                logger.info { "Signatures for ${tx.hashAsString} were successfully saved in Iroha" }
+                logger.info { "Signatures for ${tx.hashAsString} were successfully processed" }
             }, { ex -> throw ex })
     }
 
@@ -89,7 +95,7 @@ class SignCollector(
      * @param txHash - transaction hash
      * @return result with map full of signatures. Format is <input index: list of signatures in hex format>
      */
-    fun getSignatures(txHash: String): Result<Map<Int, List<String>>, Exception> {
+    fun getSignatures(txHash: String): Result<Map<Int, List<SignaturePubKey>>, Exception> {
         /*
         Special account that is used to store given tx signatures.
         We use first 32 tx hash symbols as account name because of Iroha account name restrictions ([a-z_0-9]{1,32})
@@ -100,7 +106,7 @@ class SignCollector(
             signCollectionAccountId,
             signatureCollectorCredential.accountId
         ).map { signatureDetails ->
-            val totalInputSignatures = HashMap<Int, ArrayList<String>>()
+            val totalInputSignatures = HashMap<Int, ArrayList<SignaturePubKey>>()
             signatureDetails.entries.forEach { signatureData ->
                 val notaryInputSignatures = inputSignatureJsonAdapter.fromJson(signatureData.value)!!
                 combineSignatures(totalInputSignatures, notaryInputSignatures)
@@ -115,7 +121,7 @@ class SignCollector(
      * @param signatures - map full of input signatures from other notary nodes
      * @return true if all inputs are properly signed
      */
-    fun isEnoughSignaturesCollected(tx: Transaction, signatures: Map<Int, List<String>>): Boolean {
+    fun isEnoughSignaturesCollected(tx: Transaction, signatures: Map<Int, List<SignaturePubKey>>): Boolean {
         var inputIndex = 0
         tx.inputs.forEach { input ->
             if (!signatures.containsKey(inputIndex)) {
@@ -144,18 +150,26 @@ class SignCollector(
      */
     fun fillTxWithSignatures(
         tx: Transaction,
-        signatures: Map<Int, List<String>>
+        signatures: Map<Int, List<SignaturePubKey>>
     ): Result<Unit, Exception> {
         return Result.of {
             var inputIndex = 0
             tx.inputs.forEach { input ->
                 val inputAddress = outPutToBase58Address(input.connectedOutput!!)
                 transactionSigner.getUsedPubKeys(inputAddress).fold({ usedKeys ->
+                    /**
+                     * Signatures must be ordered the same way public keys are ordered in redeem script
+                     */
+                    val orderedSignatures = signatures[inputIndex]!!.sortedWith(Comparator { sig1, sig2 ->
+                        ECKey.PUBKEY_COMPARATOR.compare(
+                            toEcPubKey(sig1.pubKey), toEcPubKey(sig2.pubKey)
+                        )
+                    })
                     val inputScript = ScriptBuilder.createP2SHMultiSigInputScript(
-                        signatures[inputIndex]!!.map { signature ->
-                            decodeSignatureFromHex(signature)
+                        orderedSignatures.map { signature ->
+                            decodeSignatureFromHex(signature.signatureHex)
                         },
-                        transactionSigner.createdRedeemScript(usedKeys)
+                        createMsRedeemScript(usedKeys)
                     )
                     input.scriptSig = inputScript
                     input.verify()
@@ -182,14 +196,14 @@ class SignCollector(
      * @param notaryInputSignatures - signatures of particular node from Iroha. It will be added to [totalInputSignatures]
      */
     private fun combineSignatures(
-        totalInputSignatures: HashMap<Int, ArrayList<String>>,
+        totalInputSignatures: HashMap<Int, ArrayList<SignaturePubKey>>,
         notaryInputSignatures: List<InputSignature>
     ) {
         notaryInputSignatures.forEach { inputSignature ->
             if (totalInputSignatures.containsKey(inputSignature.index)) {
-                totalInputSignatures[inputSignature.index]!!.add(inputSignature.signatureHex)
+                totalInputSignatures[inputSignature.index]!!.add(inputSignature.sigPubKey)
             } else {
-                totalInputSignatures[inputSignature.index] = ArrayList(listOf(inputSignature.signatureHex))
+                totalInputSignatures[inputSignature.index] = ArrayList(listOf(inputSignature.sigPubKey))
             }
         }
     }

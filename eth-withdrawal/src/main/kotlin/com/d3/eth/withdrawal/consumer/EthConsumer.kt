@@ -2,14 +2,15 @@ package com.d3.eth.withdrawal.consumer
 
 import com.d3.commons.config.EthereumConfig
 import com.d3.commons.config.EthereumPasswords
-import contract.Relay
-import mu.KLogging
-import org.web3j.protocol.core.methods.response.TransactionReceipt
-import org.web3j.utils.Numeric
 import com.d3.eth.sidechain.util.DeployHelper
 import com.d3.eth.vacuum.RelayVacuumConfig
 import com.d3.eth.vacuum.executeVacuum
 import com.d3.eth.withdrawal.withdrawalservice.WithdrawalServiceOutputEvent
+import contract.Relay
+import mu.KLogging
+import org.web3j.protocol.core.methods.response.TransactionReceipt
+import org.web3j.tx.gas.StaticGasProvider
+import org.web3j.utils.Numeric
 import java.math.BigInteger
 
 class EthConsumer(
@@ -65,8 +66,7 @@ class EthConsumer(
                 event.proof.relay,
                 deployHelper.web3,
                 deployHelper.credentials,
-                deployHelper.gasPrice,
-                deployHelper.gasLimit
+                StaticGasProvider(deployHelper.gasPrice, deployHelper.gasLimit)
             )
 
             return relay.withdraw(

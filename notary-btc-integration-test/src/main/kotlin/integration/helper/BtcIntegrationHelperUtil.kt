@@ -1,5 +1,6 @@
 package integration.helper
 
+import com.d3.btc.helper.address.createMsAddress
 import com.d3.btc.helper.currency.satToBtc
 import com.d3.btc.model.AddressInfo
 import com.d3.btc.peer.SharedPeerGroup
@@ -20,15 +21,11 @@ import com.d3.commons.util.toHexString
 import com.github.jleskovar.btcrpc.BitcoinRpcClientFactory
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
-import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import mu.KLogging
 import org.bitcoinj.core.Address
-import org.bitcoinj.core.ECKey
-import org.bitcoinj.core.PeerGroup
 import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.params.RegTestParams
-import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
 import java.io.File
 import java.math.BigDecimal
@@ -145,13 +142,8 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
         btcNetworkConfigProvider: BtcNetworkConfigProvider,
         blockStoragePath: String,
         hosts: List<String>
-    ): PeerGroup {
+    ): SharedPeerGroup {
         return SharedPeerGroup(btcNetworkConfigProvider, wallet, blockStoragePath, hosts)
-    }
-
-    private fun createMsAddress(keys: List<ECKey>): Address {
-        val script = ScriptBuilder.createP2SHOutputScript(1, keys)
-        return script.getToAddress(RegTestParams.get())
     }
 
     /**
@@ -190,7 +182,7 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
         val walletFile = File(walletFilePath)
         val wallet = Wallet.loadFromFile(walletFile)
         val key = wallet.freshReceiveKey()
-        val address = createMsAddress(listOf(key))
+        val address = createMsAddress(listOf(key.publicKeyAsHex), RegTestParams.get())
         wallet.addWatchedAddress(address)
         wallet.saveToFile(walletFile)
         logger.info { "generated address $address" }
@@ -228,15 +220,12 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
         keypair: KeyPair = ModelUtil.generateKeypair(),
         whitelist: List<String> = emptyList()
     ): String {
-        ModelUtil.createAccount(registrationConsumer, irohaAccountName, domain, keypair.public)
-            .flatMap {
-                btcRegistrationStrategy.register(
-                    irohaAccountName,
-                    domain,
-                    whitelist,
-                    keypair.public.toHexString()
-                )
-            }
+        btcRegistrationStrategy.register(
+            irohaAccountName,
+            domain,
+            whitelist,
+            keypair.public.toHexString()
+        )
             .fold({ btcAddress ->
                 logger.info { "BTC address $btcAddress was registered for $irohaAccountName@$domain" }
                 return btcAddress

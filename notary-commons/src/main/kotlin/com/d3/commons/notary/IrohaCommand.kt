@@ -86,4 +86,24 @@ sealed class IrohaCommand {
         val address: String,
         val peerKey: String
     ) : IrohaCommand()
+
+    /**
+     * Class represents grantPermission Iroha command
+     * @param accountId target account id
+     * @param permission grantable permission decimal representation
+     */
+    data class CommandGrantPermission(
+        val accountId: String,
+        val permission: Int
+    ) : IrohaCommand()
+
+    /**
+     * Class represents setAccountQuorum Iroha command
+     * @param accountId target account id
+     * @param quorum quorum
+     */
+    data class CommandSetAccountQuorum(
+        val accountId: String,
+        val quorum: Int
+    ) : IrohaCommand()
 }

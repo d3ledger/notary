@@ -2,14 +2,14 @@
 
 package com.d3.eth.deploy
 
-import com.github.kittinunf.result.failure
-import com.github.kittinunf.result.fanout
-import com.github.kittinunf.result.map
 import com.d3.commons.config.EthereumConfig
 import com.d3.commons.config.loadConfigs
 import com.d3.commons.config.loadEthPasswords
+import com.d3.eth.sidechain.util.DeployHelperBuilder
+import com.github.kittinunf.result.failure
+import com.github.kittinunf.result.fanout
+import com.github.kittinunf.result.map
 import mu.KLogging
-import com.d3.eth.sidechain.util.DeployHelper
 import java.io.File
 
 private val logger = KLogging().logger
@@ -29,10 +29,12 @@ fun main(args: Array<String>) {
     loadConfigs("predeploy.ethereum", EthereumConfig::class.java, "/eth/predeploy.properties")
         .fanout { loadEthPasswords("predeploy", "/eth/ethereum_password.properties") }
         .map { (ethereumConfig, passwordConfig) ->
-            DeployHelper(
+            DeployHelperBuilder(
                 ethereumConfig,
                 passwordConfig
             )
+                .setFastTransactionManager()
+                .build()
         }
         .map { deployHelper ->
 

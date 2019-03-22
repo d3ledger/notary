@@ -4,8 +4,6 @@ import jp.co.soramitsu.bootstrap.dto.BtcNetwork
 import jp.co.soramitsu.bootstrap.dto.BtcWallet
 import mu.KLogging
 import org.bitcoinj.core.NetworkParameters
-import org.bitcoinj.crypto.MnemonicCode
-import org.bitcoinj.wallet.DeterministicSeed
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
@@ -15,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.io.ByteArrayOutputStream
 import javax.xml.bind.DatatypeConverter
-import kotlin.random.Random
 
 @RestController
 @RequestMapping("/btc")

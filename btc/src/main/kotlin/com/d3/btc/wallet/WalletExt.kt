@@ -1,5 +1,7 @@
 package com.d3.btc.wallet
 
+import com.github.kittinunf.result.Result
+import org.bitcoinj.core.NetworkParameters
 import org.bitcoinj.wallet.Wallet
 import java.io.File
 import java.io.RandomAccessFile
@@ -27,6 +29,25 @@ fun safeLoad(walletPath: String): Wallet {
     var wallet: Wallet? = null
     lockFileApply(walletPath) { wallet = Wallet.loadFromFile(File(walletPath)) }
     return wallet!!
+}
+
+
+/**
+ * Checks wallet network
+ * If wallet network differs from service network [IllegalStateException] will be thrown
+ * @param serviceNetwork - network of service
+ */
+fun Wallet.checkWalletNetwork(
+    serviceNetwork: NetworkParameters
+): Result<Unit, Exception> {
+    return Result.of {
+        if (this.params.id != serviceNetwork.id) {
+            throw IllegalStateException(
+                "Bad wallet network parameters. " +
+                        "Required ${serviceNetwork.id} but found ${this.params.id}"
+            )
+        }
+    }
 }
 
 /**

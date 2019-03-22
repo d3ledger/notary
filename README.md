@@ -71,4 +71,6 @@ Command line args > Environment variables > Properties file
 127.0.0.1 d3-eth-node0
 127.0.0.1 d3-btc-node0
 127.0.0.1 d3-rmq
+127.0.0.1 d3-brvs
+127.0.0.1 d3-brvs-mongodb
 ```

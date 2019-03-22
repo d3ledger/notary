@@ -1,13 +1,14 @@
 package com.d3.commons.sidechain.iroha.consumer
 
+import com.d3.commons.notary.IrohaCommand
+import com.d3.commons.notary.IrohaOrderedBatch
+import com.d3.commons.notary.IrohaTransaction
+import com.d3.commons.util.unHex
+import iroha.protocol.Primitive
 import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.java.Transaction
 import jp.co.soramitsu.iroha.java.TransactionBuilder
 import jp.co.soramitsu.iroha.java.Utils
-import com.d3.commons.notary.IrohaOrderedBatch
-import com.d3.commons.notary.IrohaCommand
-import com.d3.commons.notary.IrohaTransaction
-import com.d3.commons.util.unHex
 import java.security.KeyPair
 
 /**
@@ -58,12 +59,23 @@ object IrohaConverter {
                     cmd.address,
                     String.unHex(cmd.peerKey)
                 )
+            is IrohaCommand.CommandGrantPermission ->
+                txBuilder.grantPermission(
+                    cmd.accountId,
+                    Primitive.GrantablePermission.forNumber(cmd.permission)
+                )
+            is IrohaCommand.CommandSetAccountQuorum ->
+                txBuilder.setAccountQuorum(
+                    cmd.accountId,
+                    cmd.quorum
+                )
         }
     }
 
     private fun buildModelTransactionBuilder(transaction: IrohaTransaction): TransactionBuilder {
-        return Transaction.builder(transaction.creator, transaction.createdTime.toLong())
-            .setQuorum(transaction.quorum)
+        val builder = Transaction.builder(transaction.creator, transaction.createdTime.toLong())
+        return if (transaction.quorum == null) builder
+        else builder.setQuorum(transaction.quorum)
     }
 
     private fun appendCommands(
@@ -105,5 +117,14 @@ object IrohaConverter {
         keyPair: KeyPair
     ): Iterable<TransactionOuterClass.Transaction> {
         return Utils.createTxOrderedBatch(convert(batch).map { it.build() }, keyPair)
+    }
+
+    /**
+     * Converts batch into Iroha protobuf transactions batch list
+     * @param batch - batch full of transactions
+     * @return IPJ unsigned transactions batch list
+     */
+    fun convertToUnsignedBatch(batch: IrohaOrderedBatch): List<Transaction> {
+        return Utils.createTxUnsignedAtomicBatch(convert(batch)).toList()
     }
 }

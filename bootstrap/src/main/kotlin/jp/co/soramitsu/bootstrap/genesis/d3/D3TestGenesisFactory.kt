@@ -14,7 +14,13 @@ import java.util.*
 class D3TestGenesisFactory : GenesisInterface {
 
     private val zeroPubKey = "0000000000000000000000000000000000000000000000000000000000000000"
-    override fun getAccountsNeeded(): List<AccountPrototype> = D3TestContext.d3neededAccounts
+    override fun getAccountsForConfiguration(peersCount: Int): List<AccountPrototype> {
+        val activeAccounts = D3TestContext.d3neededAccounts.filter { !it.passive }
+        activeAccounts
+            .filter { it.peersDependentQuorum }
+            .forEach { it.quorum = peersCount - peersCount / 3 }
+        return activeAccounts
+    }
 
     override fun getProject(): String = "D3"
 
@@ -32,11 +38,19 @@ class D3TestGenesisFactory : GenesisInterface {
         createDomains(transactionBuilder)
         createAssets(transactionBuilder)
         createAccounts(transactionBuilder, accounts)
+        createAccountDetails(transactionBuilder, peers)
 
         val blockBuilder = GenesisBlockBuilder().addTransaction(transactionBuilder.build().build())
         val block = blockBuilder.build()
-        val payload = JsonFormat.printer().omittingInsignificantWhitespace().print(block)
-        return "{\"blockV1\": $payload}"
+        return JsonFormat.printer().omittingInsignificantWhitespace().print(block)
+    }
+
+    private fun createAccountDetails(transactionBuilder: TransactionBuilder,
+                                     peers: List<Peer>) {
+        peers.forEach {
+            transactionBuilder.setAccountDetail("notaries@notary", it.peerKey,it.notaryHostPort)
+        }
+
     }
 
     private fun createAccounts(
@@ -44,18 +58,15 @@ class D3TestGenesisFactory : GenesisInterface {
         accountsList: List<AccountPublicInfo>
     ) {
         val accountsMap: HashMap<String, AccountPublicInfo> = HashMap()
-        accountsList.forEach { accountsMap.putIfAbsent("${it.accountName}@${it.domainId}", it) }
+        accountsList.forEach { accountsMap.putIfAbsent(it.id, it) }
+        checkAccountsGiven(accountsMap)
 
-        val accountErrors = checkAccountsGiven(accountsMap)
-        if (accountErrors.isNotEmpty()) {
-            throw AccountException(accountErrors.toString())
-        }
         D3TestContext.d3neededAccounts.forEach { account ->
             val accountPubInfo = accountsMap[account.id]
             if (accountPubInfo != null) {
                 if (accountPubInfo.pubKeys.isNotEmpty()) {
                     transactionBuilder.createAccount(
-                        account.title,
+                        account.name,
                         account.domainId,
                         getIrohaPublicKeyFromHex(accountPubInfo.pubKeys[0])
                     )
@@ -66,12 +77,17 @@ class D3TestGenesisFactory : GenesisInterface {
                                 getIrohaPublicKeyFromHex(key)
                             )
                         }
+                    if (account.peersDependentQuorum) {
+                        transactionBuilder.setAccountQuorum(accountPubInfo.id, accountPubInfo.quorum)
+                    } else if (account.quorum <= accountPubInfo.quorum) {
+                        transactionBuilder.setAccountQuorum(accountPubInfo.id, accountPubInfo.quorum)
+                    }
                 } else {
                     throw AccountException("Needed account keys are not received: ${account.id}")
                 }
             } else if (account.passive) {
                 transactionBuilder.createAccount(
-                    account.title,
+                    account.name,
                     account.domainId,
                     getIrohaPublicKeyFromHex(zeroPubKey)
                 )
@@ -82,18 +98,21 @@ class D3TestGenesisFactory : GenesisInterface {
     }
 
     private fun checkAccountsGiven(accountsMap: HashMap<String, AccountPublicInfo>): List<String> {
-        val loosed = ArrayList<String>()
+        val errors = ArrayList<String>()
         D3TestContext.d3neededAccounts.forEach {
             if (!accountsMap.containsKey(it.id) && !it.passive) {
-                loosed.add("Needed account keys are not received: ${it.id}")
+                errors.add("Needed account keys are not received: ${it.id}")
             } else if (!it.passive) {
                 val pubKeysCount = accountsMap[it.id]?.pubKeys?.size ?: 0
-                if (it.quorum > pubKeysCount) {
-                    loosed.add("Quorum exceeds number of keys(${it.quorum}>$pubKeysCount) for account ${it.id}")
+                if (it.quorum > pubKeysCount || (accountsMap[it.id]?.quorum ?: 1 > pubKeysCount)) {
+                    errors.add("Default or received quorum exceeds number of keys for account ${it.id}. Received(${accountsMap[it.id]?.quorum}) quorum should not be less than default(${it.quorum}) for this account")
                 }
             }
         }
-        return loosed
+        if (errors.isNotEmpty()) {
+            throw AccountException(errors.toString())
+        }
+        return errors
     }
 
 
@@ -111,6 +130,7 @@ class D3TestGenesisFactory : GenesisInterface {
         createDomain(builder, "sora", "sora_client")
         createDomain(builder, "bitcoin", "client")
         createDomain(builder, "btcSignCollect", "none")
+        createDomain(builder, "brvs", "brvs")
     }
 
 
@@ -130,6 +150,8 @@ class D3TestGenesisFactory : GenesisInterface {
         D3TestContext.createNotaryListHolderRole(builder)
         D3TestContext.createSoraClientRole(builder)
         D3TestContext.createBtcFeeRateSetterRole(builder)
+        D3TestContext.createSoraRole(builder)
+        D3TestContext.createBrvsRole(builder)
     }
 
 }
