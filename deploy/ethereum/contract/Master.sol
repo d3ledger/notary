@@ -111,23 +111,12 @@ contract Master {
     public returns (bool)
     {
         require(used[txHash] == false);
-        require(peersCount >= 1);
-        require(v.length == r.length);
-        require(r.length == s.length);
-        uint f = (peersCount - 1) / 3;
-        uint needSigs = peersCount - f;
-        require(s.length >= needSigs);
+        require(checkSignatures(keccak256(abi.encodePacked(newPeerAddress, txHash)),
+            v,
+            r,
+            s)
+        );
 
-        address[] memory recoveredAddresses = new address[](s.length);
-        for (uint i = 0; i < s.length; ++i) {
-            recoveredAddresses[i] = recoverAddress(
-                keccak256(abi.encodePacked(newPeerAddress, txHash)),
-                v[i],
-                r[i],
-                s[i]
-            );
-        }
-        require(checkSignatures(recoveredAddresses));
         addPeer(newPeerAddress);
         used[txHash] = true;
         return true;
@@ -143,23 +132,13 @@ contract Master {
     public returns (bool)
     {
         require(used[txHash] == false);
-        require(peersCount >= 1);
-        require(v.length == r.length);
-        require(r.length == s.length);
-        uint f = (peersCount - 1) / 3;
-        uint needSigs = peersCount - f;
-        require(s.length >= needSigs);
+        require(checkSignatures(
+            keccak256(abi.encodePacked(peerAddress, txHash)),
+            v,
+            r,
+            s)
+        );
 
-        address[] memory recoveredAddresses = new address[](s.length);
-        for (uint i = 0; i < s.length; ++i) {
-            recoveredAddresses[i] = recoverAddress(
-                keccak256(abi.encodePacked(peerAddress, txHash)),
-                v[i],
-                r[i],
-                s[i]
-            );
-        }
-        require(checkSignatures(recoveredAddresses));
         removePeer(peerAddress);
         used[txHash] = true;
         return true;
@@ -222,30 +201,13 @@ contract Master {
     {
         require(checkTokenAddress(tokenAddress));
         require(relayRegistryInstance.isWhiteListed(from, to));
-        // TODO luckychess 26.06.2018 D3-101 improve require checks (copy-paste) (use modifiers)
         require(used[txHash] == false);
-        require(peersCount >= 1);
-        require(v.length == r.length);
-        require(r.length == s.length);
-
-        // sigs - at least 2f+1 from 3f+1
-        // e. g. len(peers)==12 -> 3f+1=12; f=3; 12-3=9 -> at least 9 sigs we need
-        // if we've got more sigs than we need all will be validated
-        uint f = (peersCount - 1) / 3;
-        uint needSigs = peersCount - f;
-        require(s.length >= needSigs);
-
-        address[] memory recoveredAddresses = new address[](s.length);
-        for (uint i = 0; i < s.length; ++i) {
-            recoveredAddresses[i] = recoverAddress(
-                keccak256(abi.encodePacked(tokenAddress, amount, to, txHash, from)),
-                v[i],
-                r[i],
-                s[i]
-            );
-        }
-
-        require(checkSignatures(recoveredAddresses));
+        require(checkSignatures(
+            keccak256(abi.encodePacked(tokenAddress, amount, to, txHash, from)),
+            v,
+            r,
+            s)
+        );
 
         if (tokenAddress == address (0)) {
             if (address(this).balance < amount) {
@@ -269,26 +231,47 @@ contract Master {
 
     /**
      * Checks given addresses for duplicates and if they are peers signatures
-     * @param addresses addresses array to check
+     * @param hash unsigned data
+     * @param v v-component of signature from hash
+     * @param r r-component of signature from hash
+     * @param s s-component of signature from hash
      * @return true if all given addresses are correct or false otherwise
      */
-    function checkSignatures(address[] memory addresses) private returns (bool) {
+    function checkSignatures(bytes32 hash,
+        uint8[] memory v,
+        bytes32[] memory r,
+        bytes32[] memory s
+    ) private returns (bool) {
+        require(peersCount >= 1);
+        require(v.length == r.length);
+        require(r.length == s.length);
+        uint needSigs = peersCount - (peersCount - 1) / 3;
+        require(s.length >= needSigs);
+
         uint count = 0;
-        for (uint i = 0; i < addresses.length; ++i) {
+        address[] memory recoveredAddresses = new address[](s.length);
+        for (uint i = 0; i < s.length; ++i) {
+            address recoveredAddress = recoverAddress(
+                hash,
+                v[i],
+                r[i],
+                s[i]
+            );
+
             // not a peer address or not unique
-            if (peers[addresses[i]] != true || uniqueAddresses[addresses[i]] == true) {
+            if (peers[recoveredAddress] != true || uniqueAddresses[recoveredAddress] == true) {
                 continue;
             }
+            recoveredAddresses[count] = recoveredAddress;
             count = count + 1;
-            uniqueAddresses[addresses[i]] = true;
+            uniqueAddresses[recoveredAddress] = true;
         }
 
         // restore state for future usages
-        for (uint i = 0; i < addresses.length; ++i) {
-            uniqueAddresses[addresses[i]] = false;
+        for (uint i = 0; i < count; ++i) {
+            uniqueAddresses[recoveredAddresses[i]] = false;
         }
 
-        uint needSigs = peersCount - (peersCount - 1) / 3;
         return count >= needSigs;
     }
 
@@ -327,24 +310,12 @@ contract Master {
     {
         require(address(xorTokenInstance) != address(0));
         require(used[txHash] == false);
-        require(peersCount >= 1);
-        require(v.length == r.length);
-        require(r.length == s.length);
-        uint f = (peersCount - 1) / 3;
-        uint needSigs = peersCount - f;
-        require(s.length >= needSigs);
-
-        address[] memory recoveredAddresses = new address[](s.length);
-        for (uint i = 0; i < s.length; ++i) {
-            recoveredAddresses[i] = recoverAddress(
-                keccak256(abi.encodePacked(beneficiary, amount, txHash)),
-                v[i],
-                r[i],
-                s[i]
-            );
-        }
-
-        require(checkSignatures(recoveredAddresses));
+        require(checkSignatures(
+            keccak256(abi.encodePacked(beneficiary, amount, txHash)),
+            v,
+            r,
+            s)
+        );
 
         xorTokenInstance.mintTokens(beneficiary, amount);
         used[txHash] = true;

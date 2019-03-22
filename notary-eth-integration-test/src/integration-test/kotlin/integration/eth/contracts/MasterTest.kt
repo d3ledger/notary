@@ -271,7 +271,6 @@ class MasterTest {
      * @when one peer added to master, 5 tokens transferred to master,
      * request to withdraw 1 token is sent to master with valid signature repeated twice
      * @then call to withdraw fails
-     * //TODO: withdraw should pass successfully until amount of duplicated and other invalid signatures <= f
      */
     @Test
     fun sameSignatures() {
@@ -310,7 +309,6 @@ class MasterTest {
      * request to withdraw 1 token is sent to master with two valid signatures:
      * one from added peer and another one from some unknown peer
      * @then call to withdraw fails
-     * //TODO: withdraw should pass successfully until amount of duplicated and other invalid signatures <= f
      */
     @Test
     fun wrongPeerSignature() {
