@@ -5,8 +5,16 @@ pragma solidity 0.5.4;
  */
 contract TransferEthereum {
 
-    function transfer(uint256 amount, address payable to) public {
-        to.transfer(amount);
+
+    /**
+     * A special function-like stub to allow ether accepting
+     */
+    function() external payable {
+        require(msg.data.length == 0);
+    }
+
+    function transfer(address payable to, uint256 amount) public {
+        to.call.value(amount)("");
     }
 
 }

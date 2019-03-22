@@ -3,7 +3,6 @@ package contract;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
-
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
@@ -19,13 +18,13 @@ import org.web3j.tx.gas.ContractGasProvider;
  * <p>Auto generated code.
  * <p><strong>Do not modify!</strong>
  * <p>Please use the <a href="https://docs.web3j.io/command_line.html">web3j command line tools</a>,
- * or the org.web3j.codegen.SolidityFunctionWrapperGenerator in the
+ * or the org.web3j.codegen.SolidityFunctionWrapperGenerator in the 
  * <a href="https://github.com/web3j/web3j/tree/master/codegen">codegen module</a> to update.
  *
  * <p>Generated with web3j version 4.1.1.
  */
 public class TransferEthereum extends Contract {
-    private static final String BINARY = "608060405234801561001057600080fd5b5060f48061001f6000396000f3fe6080604052348015600f57600080fd5b50600436106044577c01000000000000000000000000000000000000000000000000000000006000350463b7760c8f81146049575b600080fd5b607f60048036036040811015605d57600080fd5b508035906020013573ffffffffffffffffffffffffffffffffffffffff166081565b005b60405173ffffffffffffffffffffffffffffffffffffffff82169083156108fc029084906000818181858888f1935050505015801560c3573d6000803e3d6000fd5b50505056fea165627a7a72305820d12b156640cfbbbbf8da033d38b8fd630673114edb16019927bdc1328968032a0029";
+    private static final String BINARY = "608060405234801561001057600080fd5b5060f98061001f6000396000f3fe6080604052600436106038577c01000000000000000000000000000000000000000000000000000000006000350463a9059cbb81146044575b3615604257600080fd5b005b348015604f57600080fd5b50604260048036036040811015606457600080fd5b50604051813573ffffffffffffffffffffffffffffffffffffffff1691602001359082908290600081818185875af1925050503d806000811460c1576040519150601f19603f3d011682016040523d82523d6000602084013e60c6565b606091505b505050505056fea165627a7a7230582086dca0bf20c099d245f499ae2be3a2afc1be7f4abd312efbb5c09d51be5d56560029";
 
     public static final String FUNC_TRANSFER = "transfer";
 
@@ -47,11 +46,11 @@ public class TransferEthereum extends Contract {
         super(BINARY, contractAddress, web3j, transactionManager, contractGasProvider);
     }
 
-    public RemoteCall<TransactionReceipt> transfer(BigInteger amount, String to) {
+    public RemoteCall<TransactionReceipt> transfer(String to, BigInteger amount) {
         final Function function = new Function(
                 FUNC_TRANSFER,
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(amount),
-                        new org.web3j.abi.datatypes.Address(to)),
+                Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(to),
+                        new org.web3j.abi.datatypes.generated.Uint256(amount)),
                 Collections.<TypeReference<?>>emptyList());
         return executeRemoteCallTransaction(function);
     }

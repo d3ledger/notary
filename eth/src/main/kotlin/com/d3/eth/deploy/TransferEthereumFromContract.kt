@@ -23,7 +23,8 @@ fun main(args: Array<String>) {
         System.exit(1)
     }
     val addr = args[0]
-    val amount = args[1].toDouble()
+    val amount = BigInteger.valueOf((1000000000000000000 * args[1].toDouble()).toLong())
+
     logger.info { "Send ether $amount from genesis to $addr" }
 
     loadConfigs("predeploy.ethereum", EthereumConfig::class.java, "/eth/predeploy.properties")
@@ -36,9 +37,10 @@ fun main(args: Array<String>) {
         }
         .map { deployHelper ->
             val transferEthereum = deployHelper.deployTransferEthereum()
-            transferEthereum.transfer(BigInteger.valueOf((1000000000000000000 * amount).toLong()), addr)
-            logger.info { "Ether was sent" }
+            deployHelper.sendEthereum(amount, transferEthereum.contractAddress)
 
+            val hash = transferEthereum.transfer(addr, amount).send().transactionHash
+            logger.info { "Ether was sent, tx_hash=$hash" }
         }
         .failure { ex ->
             logger.error("Cannot send eth", ex)
