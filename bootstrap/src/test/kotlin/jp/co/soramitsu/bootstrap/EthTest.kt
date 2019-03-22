@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.web3j.crypto.WalletFile
+import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -49,5 +50,17 @@ class EthTest {
         assertNotNull(wallet.crypto.cipher)
         assertNotNull(wallet.crypto.cipherparams.iv)
         assertNotNull(wallet.crypto.kdf)
+    }
+
+    @Test
+    fun testListEthereumServicesWithWallets() {
+        val peersCount = 6
+        val result: MvcResult = mvc
+            .perform(MockMvcRequestBuilders.get("/eth/list/servicesWithWallet/d3/$peersCount"))
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andReturn()
+
+        val respBody = mapper.readValue(result.response.contentAsString, List::class.java)
+        assertEquals(peersCount + 3, respBody.size)
     }
 }
