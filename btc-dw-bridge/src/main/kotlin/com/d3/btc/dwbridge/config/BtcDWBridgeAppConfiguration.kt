@@ -60,8 +60,22 @@ class BtcDWBridgeAppConfiguration {
         IrohaCredential(withdrawalConfig.btcFeeRateCredential.accountId, keypair)
     }, { ex -> throw ex })
 
+
+    private val btcConsensusCredential = ModelUtil.loadKeypair(
+        withdrawalConfig.btcConsensusCredential.pubkeyPath,
+        withdrawalConfig.btcConsensusCredential.privkeyPath
+    ).fold({ keypair ->
+        IrohaCredential(withdrawalConfig.btcConsensusCredential.accountId, keypair)
+    }, { ex -> throw ex })
+
     private val notaryCredential =
         IrohaCredential(depositConfig.notaryCredential.accountId, notaryKeypair)
+
+    @Bean
+    fun consensusIrohaCredential() = btcConsensusCredential
+
+    @Bean
+    fun consensusIrohaConsumer() = IrohaConsumerImpl(consensusIrohaCredential(), irohaAPI())
 
     @Bean
     fun confidenceListenerExecutorService() =

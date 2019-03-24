@@ -21,6 +21,15 @@ class BtcRollbackService(
     @Autowired private val peerListProvider: NotaryPeerListProvider
 ) {
 
+
+    /**
+     * Rollbacks given amount of money to a particular Iroha account
+     * @param withdrawalDetails - details of withdrawal to rollback
+     */
+    fun rollback(withdrawalDetails: WithdrawalDetails) {
+        rollback(withdrawalDetails.sourceAccountId, withdrawalDetails.amountSat, withdrawalDetails.withdrawalTime)
+    }
+
     /**
      * Rollbacks given amount of money to a particular Iroha account
      * @param accountId - Iroha account id, which money will be restored
