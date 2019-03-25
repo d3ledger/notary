@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import com.d3.notifications.provider.D3ClientProvider
 
-const val NOTIFICATION_EMAIL = "noreply@d3ledger.com"
+const val NOTIFICATION_EMAIL = "no-reply@d3ledger.com"
 const val D3_WITHDRAWAL_EMAIL_SUBJECT = "D3 withdrawal"
 const val D3_DEPOSIT_EMAIL_SUBJECT = "D3 deposit"
 
