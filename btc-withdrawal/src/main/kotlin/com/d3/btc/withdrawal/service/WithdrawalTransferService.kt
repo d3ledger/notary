@@ -67,16 +67,16 @@ class WithdrawalTransferService(
         }
         if (!CurrentFeeRate.isPresent()) {
             logger.warn { "Cannot execute transfer. Fee rate was not set." }
-            btcRollbackService.rollback(sourceAccountId, satAmount, withdrawalTime)
+            btcRollbackService.rollback(sourceAccountId, satAmount, withdrawalTime, "Not able to transfer yet")
             return
         }
         if (!isValidBtcAddress(destinationAddress)) {
             logger.warn { "Cannot execute transfer. Destination $destinationAddress is not a valid base58 address." }
-            btcRollbackService.rollback(sourceAccountId, satAmount, withdrawalTime)
+            btcRollbackService.rollback(sourceAccountId, satAmount, withdrawalTime, "Invalid address")
             return
         }
         if (transactionHelper.isDust(satAmount)) {
-            btcRollbackService.rollback(sourceAccountId, satAmount, withdrawalTime)
+            btcRollbackService.rollback(sourceAccountId, satAmount, withdrawalTime, "Too small amount")
             logger.warn { "Can't spend SAT $satAmount, because it's considered a dust" }
             return
         }
@@ -86,13 +86,13 @@ class WithdrawalTransferService(
                 if (ableToWithdraw) {
                     startWithdrawalProcess(withdrawalDetails, withdrawalConsensus)
                 } else {
-                    btcRollbackService.rollback(sourceAccountId, satAmount, withdrawalTime)
+                    btcRollbackService.rollback(sourceAccountId, satAmount, withdrawalTime, "Not in white list")
                     logger.warn {
                         "Cannot withdraw to $destinationAddress, because it's not in ${withdrawalDetails.sourceAccountId} whitelist"
                     }
                 }
             }, { ex ->
-                btcRollbackService.rollback(withdrawalDetails)
+                btcRollbackService.rollback(withdrawalDetails, "Cannot get white list")
                 withdrawalStatistics.incFailedTransfers()
                 logger.error("Cannot check ability to withdraw", ex)
             })
@@ -128,7 +128,7 @@ class WithdrawalTransferService(
             transactionHelper.registerUnspents(transaction, unspents)
             logger.info { "Tx ${transaction.hashAsString} was added to collection of unsigned transactions" }
         }.failure { ex ->
-            btcRollbackService.rollback(withdrawalDetails)
+            btcRollbackService.rollback(withdrawalDetails, "Cannot create Bitcoin transaction")
             withdrawalStatistics.incFailedTransfers()
             logger.error("Cannot create withdrawal transaction", ex)
         }

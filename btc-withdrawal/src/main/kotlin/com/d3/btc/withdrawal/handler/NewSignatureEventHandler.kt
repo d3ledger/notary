@@ -1,7 +1,7 @@
 package com.d3.btc.withdrawal.handler
 
+import com.d3.btc.withdrawal.service.BtcRollbackService
 import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
-import com.d3.btc.withdrawal.transaction.BtcRollbackService
 import com.d3.btc.withdrawal.transaction.SignCollector
 import com.d3.btc.withdrawal.transaction.TransactionHelper
 import com.d3.btc.withdrawal.transaction.UnsignedTransactions
@@ -88,15 +88,18 @@ class NewSignatureEventHandler(
                     btcRollbackService.rollback(
                         withdrawalCommand.sourceAccountId,
                         withdrawalCommand.amountSat,
-                        withdrawalCommand.withdrawalTime
+                        withdrawalCommand.withdrawalTime,
+                        "Cannot complete Bitcoin transaction"
                     )
                 })
 
         }, { ex ->
+
             btcRollbackService.rollback(
                 withdrawalCommand.sourceAccountId,
                 withdrawalCommand.amountSat,
-                withdrawalCommand.withdrawalTime
+                withdrawalCommand.withdrawalTime,
+                "Cannot get signatures for Bitcoin transaction"
             )
             withdrawalStatistics.incFailedTransfers()
             logger.error("Cannot get signatures for tx $originalHash", ex)
