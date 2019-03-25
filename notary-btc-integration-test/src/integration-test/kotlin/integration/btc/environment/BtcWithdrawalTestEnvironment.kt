@@ -17,6 +17,7 @@ import com.d3.btc.withdrawal.init.BtcWithdrawalInitialization
 import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
 import com.d3.btc.withdrawal.provider.WithdrawalConsensusProvider
+import com.d3.btc.withdrawal.service.BtcRollbackService
 import com.d3.btc.withdrawal.service.WithdrawalTransferService
 import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
 import com.d3.btc.withdrawal.transaction.*
@@ -187,7 +188,8 @@ class BtcWithdrawalTestEnvironment(
         btcWithdrawalConfig.notaryListStorageAccount,
         btcWithdrawalConfig.notaryListSetterAccount
     )
-    private val btcRollbackService = BtcRollbackService(withdrawalIrohaConsumer, notaryPeerListProvider)
+    private val btcRollbackService =
+        BtcRollbackService(withdrawalIrohaConsumer, notaryPeerListProvider)
     val unsignedTransactions = UnsignedTransactions(signCollector)
     private val withdrawalConsensusProvider = WithdrawalConsensusProvider(
         btcConsensusCredential,

@@ -3,7 +3,7 @@ package com.d3.btc.withdrawal.handler
 import com.d3.btc.helper.currency.btcToSat
 import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
 import com.d3.btc.withdrawal.provider.WithdrawalConsensusProvider
-import com.d3.btc.withdrawal.transaction.BtcRollbackService
+import com.d3.btc.withdrawal.service.BtcRollbackService
 import com.d3.btc.withdrawal.transaction.WithdrawalDetails
 import iroha.protocol.Commands
 import mu.KLogging
@@ -39,7 +39,7 @@ class NewTransferHandler(
             logger.info("Consensus data for $withdrawalDetails has beenl created")
         }, { ex ->
             logger.error("Cannot create consensus for withdrawal $withdrawalDetails", ex)
-            btcRollbackService.rollback(withdrawalDetails)
+            btcRollbackService.rollback(withdrawalDetails, "Cannot create consensus")
         })
     }
 
