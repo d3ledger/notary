@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package integration.chainadapter.environment
 
 import com.d3.chainadapter.CHAIN_ADAPTER_SERVICE_NAME

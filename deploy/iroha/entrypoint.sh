@@ -1,4 +1,9 @@
 #!/bin/sh
+##
+## Copyright D3 Ledger, Inc. All Rights Reserved.
+## SPDX-License-Identifier: Apache-2.0
+##
+
 #while ! curl http://d3-iroha-postgres:5432/ 2>&1 | grep '52'
 #do
 #done

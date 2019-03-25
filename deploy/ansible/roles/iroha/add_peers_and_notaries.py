@@ -1,4 +1,9 @@
 #!/usr/env/python3
+##
+## Copyright D3 Ledger, Inc. All Rights Reserved.
+## SPDX-License-Identifier: Apache-2.0
+##
+
 import base64
 import csv
 import json

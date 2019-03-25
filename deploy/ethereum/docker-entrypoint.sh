@@ -1,4 +1,9 @@
 #!/bin/sh
+##
+## Copyright D3 Ledger, Inc. All Rights Reserved.
+## SPDX-License-Identifier: Apache-2.0
+##
+
 node \
 ./build/cli.node.js \
 '--account=0x25631295894870dfd04a8bc9bf803d62f2a14b7c80f28d437889f623843df935,100000000000000000000' \
