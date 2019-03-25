@@ -36,13 +36,15 @@ class BtcRegistrationTestEnvironment(private val integrationHelper: BtcIntegrati
 
     private val btcClientCreatorConsumer = IrohaConsumerImpl(btcRegistrationCredential, integrationHelper.irohaAPI)
 
+    val btcFreeAddressesProvider = BtcFreeAddressesProvider(
+        btcRegistrationConfig.nodeId, btcAddressesProvider(),
+        btcRegisteredAddressesProvider()
+    )
+
     val btcRegistrationServiceInitialization = BtcRegistrationServiceInitialization(
         btcRegistrationConfig,
         BtcRegistrationStrategyImpl(
-            BtcFreeAddressesProvider(
-                btcRegistrationConfig.nodeId, btcAddressesProvider(),
-                btcRegisteredAddressesProvider()
-            ),
+            btcFreeAddressesProvider,
             irohaBtcAccountCreator()
         )
     )
@@ -70,7 +72,7 @@ class BtcRegistrationTestEnvironment(private val integrationHelper: BtcIntegrati
         )
     }
 
-    val btcTakenAddressesProvider = BtcRegisteredAddressesProvider(
+    val btcRegisteredAddressesProvider = BtcRegisteredAddressesProvider(
         integrationHelper.queryAPI,
         btcRegistrationConfig.registrationCredential.accountId,
         integrationHelper.accountHelper.notaryAccount.accountId

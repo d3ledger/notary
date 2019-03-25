@@ -124,7 +124,11 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
                     IrohaCommand.CommandSetAccountDetail(
                         accountHelper.notaryAccount.accountId,
                         address.toBase58(),
-                        AddressInfo.createFreeAddressInfo(listOf(key.publicKeyAsHex), NODE_ID).toJson()
+                        AddressInfo.createFreeAddressInfo(
+                            listOf(key.publicKeyAsHex),
+                            NODE_ID,
+                            System.currentTimeMillis()
+                        ).toJson()
                     )
                 )
             )
@@ -158,7 +162,7 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
             mstRegistrationIrohaConsumer,
             accountHelper.notaryAccount.accountId,
             address.toBase58(),
-            AddressInfo.createFreeAddressInfo(listOf(key.publicKeyAsHex), nodeId).toJson()
+            AddressInfo.createFreeAddressInfo(listOf(key.publicKeyAsHex), nodeId, System.currentTimeMillis()).toJson()
         ).map { address }
     }
 
@@ -173,7 +177,11 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
             mstRegistrationIrohaConsumer,
             accountHelper.changeAddressesStorageAccount.accountId,
             address.toBase58(),
-            AddressInfo.createChangeAddressInfo(listOf(key.publicKeyAsHex), NODE_ID).toJson()
+            AddressInfo.createChangeAddressInfo(
+                listOf(key.publicKeyAsHex),
+                NODE_ID,
+                System.currentTimeMillis()
+            ).toJson()
         ).map { address }
     }
 
