@@ -39,6 +39,11 @@ class SharedPeerGroup(
     private var started = false
     private var stopped = false
 
+    /**
+     * Returns block by hash
+     * @param blockHash - hash of block
+     * @return block with given hash if exists and null otherwise
+     */
     fun getBlock(blockHash: Sha256Hash) = chain?.blockStore?.get(blockHash)
 
     @Synchronized

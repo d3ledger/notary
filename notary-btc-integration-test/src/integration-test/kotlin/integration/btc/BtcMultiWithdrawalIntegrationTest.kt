@@ -65,7 +65,7 @@ class BtcMultiWithdrawalIntegrationTest {
                 val withdrawalConfig = integrationHelper.configHelper.createBtcWithdrawalConfig(testName)
                 val environment =
                     BtcWithdrawalTestEnvironment(integrationHelper, testName, withdrawalConfig, withdrawalAccount)
-                environment.withdrawalTransferEventHandler.addNewBtcTransactionListener { tx ->
+                environment.withdrawalTransferService.addNewBtcTransactionListener { tx ->
                     environment.createdTransactions[tx.hashAsString] = Pair(System.currentTimeMillis(), tx)
                 }
                 withdrawalEnvironments.add(environment)

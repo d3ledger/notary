@@ -59,7 +59,7 @@ class BtcWithdrawalIntegrationTest {
             .fold({ address -> changeAddress = address }, { ex -> throw  ex })
         integrationHelper.preGenFreeBtcAddresses(environment.btcWithdrawalConfig.btcKeysWalletPath, TOTAL_TESTS * 2)
         // This listener emulates a failure
-        environment.withdrawalTransferEventHandler.addNewBtcTransactionListener { tx ->
+        environment.withdrawalTransferService.addNewBtcTransactionListener { tx ->
             if (tx.outputs.any { output -> output.value.value == FAILED_WITHDRAW_AMOUNT }) {
                 throw Exception("Failed withdraw test")
             }
@@ -69,7 +69,7 @@ class BtcWithdrawalIntegrationTest {
                 throw Exception("Failed broadcast test")
             }
         }
-        environment.withdrawalTransferEventHandler.addNewBtcTransactionListener { tx ->
+        environment.withdrawalTransferService.addNewBtcTransactionListener { tx ->
             environment.createdTransactions[tx.hashAsString] = Pair(System.currentTimeMillis(), tx)
         }
         environment.btcWithdrawalInitialization.init().failure { ex -> throw ex }

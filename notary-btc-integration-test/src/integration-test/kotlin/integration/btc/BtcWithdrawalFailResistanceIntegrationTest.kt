@@ -59,7 +59,7 @@ class BtcWithdrawalFailResistanceIntegrationTest {
         integrationHelper.genChangeBtcAddress(environment.btcWithdrawalConfig.btcKeysWalletPath)
             .fold({ address -> changeAddress = address }, { ex -> throw  ex })
         integrationHelper.preGenFreeBtcAddresses(environment.btcWithdrawalConfig.btcKeysWalletPath, TOTAL_TESTS * 2)
-        environment.withdrawalTransferEventHandler.addNewBtcTransactionListener { tx ->
+        environment.withdrawalTransferService.addNewBtcTransactionListener { tx ->
             environment.createdTransactions[tx.hashAsString] = Pair(System.currentTimeMillis(), tx)
         }
         environment.transactionHelper.addToBlackList(changeAddress.toBase58())
