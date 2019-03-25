@@ -155,6 +155,7 @@ class BtcPublicKeyProvider(
                 logger.info { "Creating free address" }
                 Pair(
                     AddressInfo.createFreeAddressInfo(ArrayList<String>(notaryKeys), nodeId, generationTime),
+                    //TODO use another account to store addresses
                     notaryAccount
                 )
             }
