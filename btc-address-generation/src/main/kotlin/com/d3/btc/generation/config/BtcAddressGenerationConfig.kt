@@ -18,6 +18,7 @@ interface BtcAddressGenerationConfig {
     //Path to BTC wallet file
     val btcKeysWalletPath: String
 
+    //TODO the only purpose of this account is creating PeerListProvider. This account must be removed from config.
     //Account that is used to register BTC addresses
     val registrationAccount: IrohaCredentialConfig
 
