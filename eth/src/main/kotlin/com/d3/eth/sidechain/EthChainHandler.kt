@@ -1,13 +1,14 @@
 package com.d3.eth.sidechain
 
-import com.github.kittinunf.result.fanout
-import mu.KLogging
-import org.web3j.protocol.Web3j
-import org.web3j.protocol.core.methods.response.EthBlock
-import org.web3j.protocol.core.methods.response.Transaction
 import com.d3.commons.sidechain.ChainHandler
 import com.d3.commons.sidechain.SideChainEvent
 import com.d3.eth.provider.*
+import com.github.kittinunf.result.fanout
+import mu.KLogging
+import org.web3j.protocol.core.methods.response.EthBlock
+import org.web3j.protocol.core.methods.response.Transaction
+import org.web3j.protocol.parity.Parity
+import org.web3j.protocol.parity.methods.response.Trace
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -19,7 +20,7 @@ import java.math.BigInteger
  * @param ethTokensProvider - provider of observable tokens
  */
 class EthChainHandler(
-    val web3: Web3j,
+    val web3: Parity,
     val ethRelayProvider: EthRelayProvider,
     val ethTokensProvider: EthTokensProvider
 ) :
@@ -140,11 +141,17 @@ class EthChainHandler(
                 val time = block.block.timestamp.multiply(BigInteger.valueOf(1000))
                 block.block.transactions
                     .map { it.get() as Transaction }
-                    .flatMap {
-                        if (wallets.containsKey(it.to))
-                            handleEther(it, time, wallets)
-                        else if (tokens.containsKey(it.to))
-                            handleErc20(it, time, wallets, tokens)
+                    .flatMap { tx ->
+                        val receipt = web3.traceTransaction(tx.hash).send()
+                        receipt?.result?.forEach {
+                            val ac = it.action
+                            if (ac is Trace.CallAction && wallets.containsKey(ac.to)) {
+                                return handleEther(tx, time, wallets)
+                            }
+                        }
+
+                        if (tokens.containsKey(tx.to))
+                            handleErc20(tx, time, wallets, tokens)
                         else
                             listOf()
                     }
