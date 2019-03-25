@@ -24,7 +24,7 @@ Bitcoin Deposit service(or simply `btc-deposit`) is here to listen to Bitcoin bl
 
 ### How to deploy
 
-Typically, this service runs as a part of btc-dw-bridge. But this guide may be helpful anyway.
+Typically, this service runs as a part of `btc-dw-bridge`. But this guide may be helpful anyway.
 1) Create `transfers.d3.wallet` and set a path to the wallet in the configuration file. Nodes must have the same transfer wallet.
 2) Create Bitcoin blockchain folder and set a path to the storage in the configuration file.
 3) Set a list of Bitcoin full node hosts in the configuration file. Hosts may be taken from https://bitnodes.earn.com if no D3 controlled node was deployed yet.
