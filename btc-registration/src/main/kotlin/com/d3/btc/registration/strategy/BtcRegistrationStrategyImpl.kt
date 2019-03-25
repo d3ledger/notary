@@ -35,9 +35,10 @@ class BtcRegistrationStrategyImpl(
             if (freeAddresses.isEmpty()) {
                 throw IllegalStateException("no free btc address to register")
             }
-            val freeAddress = freeAddresses.first()
+            // Get the newest address among free addresses
+            val freeAddress = freeAddresses.maxBy { address -> address.info.generationTime ?: 0 }
             irohaBtcAccountCreator.create(
-                freeAddress.address,
+                freeAddress!!.address,
                 whitelist,
                 accountName,
                 domainId,

@@ -1,25 +1,20 @@
 package com.d3.btc.provider.generation
 
 import com.d3.btc.helper.address.createMsAddress
-import com.d3.btc.helper.address.getSignThreshold
 import com.d3.btc.model.AddressInfo
 import com.d3.btc.model.BtcAddressType
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
-import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.map
-import mu.KLogging
-import org.bitcoinj.core.Address
-import org.bitcoinj.core.ECKey
-import org.bitcoinj.core.Utils
-import org.bitcoinj.script.ScriptBuilder
-import org.bitcoinj.wallet.Wallet
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.stereotype.Component
 import com.d3.commons.provider.NotaryPeerListProvider
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomId
+import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.map
+import mu.KLogging
+import org.bitcoinj.wallet.Wallet
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.stereotype.Component
 
 /**
  *  Bitcoin keys provider
@@ -111,7 +106,7 @@ class BtcPublicKeyProvider(
             }
             onMsAddressCreated()
             logger.info { "Address $msAddress was added to wallet." }
-            val addressStorage = createAddressStorage(addressType, notaryKeys, nodeId)
+            val addressStorage = createAddressStorage(addressType, notaryKeys, nodeId, generationTime)
             ModelUtil.setAccountDetail(
                 multiSigConsumer,
                 addressStorage.storageAccount,
@@ -140,23 +135,28 @@ class BtcPublicKeyProvider(
      * @param addressType - type of address to generate
      * @param notaryKeys - keys that were used to generate this address
      * @param nodeId - node id
+     * @param generationTime - time of address generation
      */
     private fun createAddressStorage(
         addressType: BtcAddressType,
         notaryKeys: Collection<String>,
-        nodeId: String
+        nodeId: String,
+        generationTime: Long
     ): AddressStorage {
         val (addressInfo, storageAccount) = when (addressType) {
             BtcAddressType.CHANGE -> {
                 logger.info { "Creating change address" }
                 Pair(
-                    AddressInfo.createChangeAddressInfo(ArrayList<String>(notaryKeys), nodeId),
+                    AddressInfo.createChangeAddressInfo(ArrayList<String>(notaryKeys), nodeId, generationTime),
                     changeAddressStorageAccount
                 )
             }
             BtcAddressType.FREE -> {
                 logger.info { "Creating free address" }
-                Pair(AddressInfo.createFreeAddressInfo(ArrayList<String>(notaryKeys), nodeId), notaryAccount)
+                Pair(
+                    AddressInfo.createFreeAddressInfo(ArrayList<String>(notaryKeys), nodeId, generationTime),
+                    notaryAccount
+                )
             }
         }
         return AddressStorage(addressInfo, storageAccount)
