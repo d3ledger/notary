@@ -214,7 +214,9 @@ class IrohaTest {
             createAccountDto("vacuumer", "notary"),
             createAccountDto("gen_btc_pk_trigger", "notary"),
             createAccountDto("admin", "notary"),
-            createAccountDto("sora", "sora")
+            createAccountDto("sora", "sora"),
+            createAccountDto("brvs", "brvs"),
+            createAccountDto("client_account", "notary")
         )
     }
 

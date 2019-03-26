@@ -15,6 +15,8 @@ buildscript {
 apply plugin: 'application'
 apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
 apply plugin: 'com.github.johnrengelman.shadow'
+shadowDistZip.classifier = 'shadow'
+shadowDistTar.classifier = 'shadow'
 
 dependencies {
 
@@ -31,7 +33,7 @@ dependencies {
     testCompile "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
 
     //Iroha-java related
-    implementation('com.github.hyperledger.iroha-java:testcontainers:3.1.0') {
+    implementation('com.github.hyperledger.iroha-java:testcontainers:3.2.1') {
         exclude group: 'org.slf4j'
     }
 

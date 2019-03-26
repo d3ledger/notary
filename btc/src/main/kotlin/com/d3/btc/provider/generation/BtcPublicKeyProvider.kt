@@ -1,24 +1,20 @@
 package com.d3.btc.provider.generation
 
-import com.d3.btc.helper.address.getSignThreshold
+import com.d3.btc.helper.address.createMsAddress
 import com.d3.btc.model.AddressInfo
 import com.d3.btc.model.BtcAddressType
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
-import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.map
-import mu.KLogging
-import org.bitcoinj.core.Address
-import org.bitcoinj.core.ECKey
-import org.bitcoinj.core.Utils
-import org.bitcoinj.script.ScriptBuilder
-import org.bitcoinj.wallet.Wallet
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.stereotype.Component
 import com.d3.commons.provider.NotaryPeerListProvider
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomId
+import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.map
+import mu.KLogging
+import org.bitcoinj.wallet.Wallet
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.stereotype.Component
 
 /**
  *  Bitcoin keys provider
@@ -81,7 +77,7 @@ class BtcPublicKeyProvider(
      * @return Result of operation
      */
     fun checkAndCreateMultiSigAddress(
-        notaryKeys: Collection<String>,
+        notaryKeys: List<String>,
         addressType: BtcAddressType,
         generationTime: Long,
         nodeId: String,
@@ -101,8 +97,7 @@ class BtcPublicKeyProvider(
                 logger.info { "Cannot be involved in address generation. No access to $notaryKeys." }
                 return@of
             }
-            val threshold = getSignThreshold(peers)
-            val msAddress = createMsAddress(notaryKeys, threshold)
+            val msAddress = createMsAddress(notaryKeys, btcNetworkConfigProvider.getConfig())
             if (keysWallet.isAddressWatched(msAddress)) {
                 logger.info("Address $msAddress has been already created")
                 return@of
@@ -111,7 +106,7 @@ class BtcPublicKeyProvider(
             }
             onMsAddressCreated()
             logger.info { "Address $msAddress was added to wallet." }
-            val addressStorage = createAddressStorage(addressType, notaryKeys, nodeId)
+            val addressStorage = createAddressStorage(addressType, notaryKeys, nodeId, generationTime)
             ModelUtil.setAccountDetail(
                 multiSigConsumer,
                 addressStorage.storageAccount,
@@ -134,45 +129,35 @@ class BtcPublicKeyProvider(
         keysWallet.issuedReceiveKeys.find { ecKey -> ecKey.publicKeyAsHex == key } != null
     } != null
 
-    /**
-     * Creates multi signature bitcoin address
-     * @param notaryKeys - public keys of notaries
-     * @return created address
-     */
-    private fun createMsAddress(notaryKeys: Collection<String>, threshold: Int): Address {
-        val keys = ArrayList<ECKey>()
-        notaryKeys.forEach { key ->
-            val ecKey = ECKey.fromPublicOnly(Utils.parseAsHexOrBase58(key))
-            keys.add(ecKey)
-        }
-        val script = ScriptBuilder.createP2SHOutputScript(threshold, keys)
-        logger.info { "New BTC multisignature script $script" }
-        return script.getToAddress(btcNetworkConfigProvider.getConfig())
-    }
-
 
     /**
      * Creates address storage object that depends on generated address type
      * @param addressType - type of address to generate
      * @param notaryKeys - keys that were used to generate this address
      * @param nodeId - node id
+     * @param generationTime - time of address generation
      */
     private fun createAddressStorage(
         addressType: BtcAddressType,
         notaryKeys: Collection<String>,
-        nodeId: String
+        nodeId: String,
+        generationTime: Long
     ): AddressStorage {
         val (addressInfo, storageAccount) = when (addressType) {
             BtcAddressType.CHANGE -> {
                 logger.info { "Creating change address" }
                 Pair(
-                    AddressInfo.createChangeAddressInfo(ArrayList<String>(notaryKeys), nodeId),
+                    AddressInfo.createChangeAddressInfo(ArrayList<String>(notaryKeys), nodeId, generationTime),
                     changeAddressStorageAccount
                 )
             }
             BtcAddressType.FREE -> {
                 logger.info { "Creating free address" }
-                Pair(AddressInfo.createFreeAddressInfo(ArrayList<String>(notaryKeys), nodeId), notaryAccount)
+                Pair(
+                    AddressInfo.createFreeAddressInfo(ArrayList<String>(notaryKeys), nodeId, generationTime),
+                    //TODO use another account to store addresses
+                    notaryAccount
+                )
             }
         }
         return AddressStorage(addressInfo, storageAccount)

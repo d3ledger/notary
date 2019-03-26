@@ -10,7 +10,14 @@ import com.d3.btc.provider.account.BTC_CURRENCY_NAME_KEY
 import com.d3.btc.provider.generation.ADDRESS_GENERATION_NODE_ID_KEY
 import com.d3.btc.provider.generation.ADDRESS_GENERATION_TIME_KEY
 import com.d3.btc.provider.generation.BtcPublicKeyProvider
+import com.d3.btc.provider.network.BtcNetworkConfigProvider
+import com.d3.btc.wallet.checkWalletNetwork
 import com.d3.btc.wallet.safeSave
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.sidechain.iroha.IrohaChainListener
+import com.d3.commons.sidechain.iroha.util.getAccountDetails
+import com.d3.commons.sidechain.iroha.util.getSetDetailCommands
+import com.d3.commons.util.createPrettySingleThreadPool
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
@@ -25,11 +32,6 @@ import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
-import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
-import com.d3.commons.sidechain.iroha.IrohaChainListener
-import com.d3.commons.sidechain.iroha.util.getAccountDetails
-import com.d3.commons.sidechain.iroha.util.getSetDetailCommands
-import com.d3.commons.util.createPrettySingleThreadPool
 
 /*
    This class listens to special account to be triggered and starts generation process
@@ -42,7 +44,8 @@ class BtcAddressGenerationInitialization(
     @Autowired private val btcAddressGenerationConfig: BtcAddressGenerationConfig,
     @Autowired private val btcPublicKeyProvider: BtcPublicKeyProvider,
     @Autowired private val irohaChainListener: IrohaChainListener,
-    @Autowired private val addressGenerationTrigger: AddressGenerationTrigger
+    @Autowired private val addressGenerationTrigger: AddressGenerationTrigger,
+    @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider
 ) : HealthyService() {
 
     /*
@@ -50,17 +53,19 @@ class BtcAddressGenerationInitialization(
     If trigger account is triggered, new session account full notary public keys will be created
      */
     fun init(): Result<Unit, Exception> {
-        return irohaChainListener.getBlockObservable()
-            .map { irohaObservable ->
-                initIrohaObservable(irohaObservable)
-            }.flatMap {
-                // Start address generation at initial phase
-                addressGenerationTrigger
-                    .startFreeAddressGenerationIfNeeded(
-                        btcAddressGenerationConfig.threshold,
-                        btcAddressGenerationConfig.nodeId
-                    )
-            }
+        //Check wallet network
+        return keysWallet.checkWalletNetwork(btcNetworkConfigProvider.getConfig()).flatMap {
+            irohaChainListener.getBlockObservable()
+        }.map { irohaObservable ->
+            initIrohaObservable(irohaObservable)
+        }.flatMap {
+            // Start address generation at initial phase
+            addressGenerationTrigger
+                .startFreeAddressGenerationIfNeeded(
+                    btcAddressGenerationConfig.threshold,
+                    btcAddressGenerationConfig.nodeId
+                )
+        }
     }
 
     private fun initIrohaObservable(irohaObservable: Observable<BlockOuterClass.Block>) {
@@ -146,7 +151,7 @@ class BtcAddressGenerationInitialization(
             val notaryKeys = details.values
             if (!notaryKeys.isEmpty()) {
                 btcPublicKeyProvider.checkAndCreateMultiSigAddress(
-                    notaryKeys,
+                    notaryKeys.toList(),
                     addressType,
                     time,
                     nodeId

@@ -30,6 +30,10 @@ open class IrohaConfigHelper {
             override val iroha = createIrohaConfig()
             override val registrationCredential =
                 accountHelper.createCredentialConfig(accountHelper.registrationAccount)
+            override val clientStorageAccount = testConfig.clientStorageAccount
+            override val brvsAccount = testConfig.brvsAccount
+            override val primaryPubkeyPath = testConfig.testCredentialConfig.pubkeyPath
+            override val primaryPrivkeyPath = testConfig.testCredentialConfig.privkeyPath
         }
     }
 

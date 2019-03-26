@@ -96,6 +96,8 @@ class BtcAddressGenerationTestEnvironment(
         irohaApi
     )
 
+    private val btcNetworkConfigProvider = BtcRegTestConfigProvider()
+
     private val registrationQueryAPI = QueryAPI(
         irohaApi,
         registrationCredential.accountId,
@@ -115,7 +117,7 @@ class BtcAddressGenerationTestEnvironment(
             btcGenerationConfig.changeAddressesStorageAccount,
             multiSigConsumer,
             sessionConsumer,
-            BtcRegTestConfigProvider()
+            btcNetworkConfigProvider
         )
     }
 
@@ -152,7 +154,8 @@ class BtcAddressGenerationTestEnvironment(
         btcGenerationConfig,
         btcPublicKeyProvider(),
         irohaListener,
-        addressGenerationTrigger
+        addressGenerationTrigger,
+        btcNetworkConfigProvider
     )
 
     /**

@@ -49,7 +49,8 @@ class IrohaBtcAccountRegistrator(
             AddressInfo(
                 "$userName@$domain",
                 notaryKeys,
-                nodeId
+                nodeId,
+                null
             ).toJson()
         }
     }

@@ -1,9 +1,9 @@
 package com.d3.notifications.smtp
 
+import com.d3.notifications.config.SMTPConfig
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import mu.KLogging
-import com.d3.notifications.config.SMTPConfig
 import java.util.*
 import javax.mail.*
 import javax.mail.internet.InternetAddress

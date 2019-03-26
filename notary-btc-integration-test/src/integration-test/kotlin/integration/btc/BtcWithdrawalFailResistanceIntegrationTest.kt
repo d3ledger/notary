@@ -6,10 +6,12 @@ import com.d3.btc.withdrawal.handler.CurrentFeeRate
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
 import com.github.kittinunf.result.failure
 import integration.btc.environment.BtcWithdrawalTestEnvironment
 import integration.helper.BTC_ASSET
 import integration.helper.BtcIntegrationHelperUtil
+import integration.registration.RegistrationServiceTestEnvironment
 import org.bitcoinj.core.Address
 import org.junit.Assert.assertNotNull
 import org.junit.jupiter.api.*
@@ -28,15 +30,19 @@ class BtcWithdrawalFailResistanceIntegrationTest {
     private val environment =
         BtcWithdrawalTestEnvironment(integrationHelper, "fail_resistance_${String.getRandomString(5)}")
 
+    private val registrationServiceEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
+
     private lateinit var changeAddress: Address
 
     @AfterAll
     fun dropDown() {
+        registrationServiceEnvironment.close()
         environment.close()
     }
 
     @BeforeAll
     fun setUp() {
+        registrationServiceEnvironment.registrationInitialization.init()
         // This call simulates that the service stopped
         environment.bindQueueWithExchange(
             environment.btcWithdrawalConfig.irohaBlockQueue,
@@ -53,7 +59,7 @@ class BtcWithdrawalFailResistanceIntegrationTest {
         integrationHelper.genChangeBtcAddress(environment.btcWithdrawalConfig.btcKeysWalletPath)
             .fold({ address -> changeAddress = address }, { ex -> throw  ex })
         integrationHelper.preGenFreeBtcAddresses(environment.btcWithdrawalConfig.btcKeysWalletPath, TOTAL_TESTS * 2)
-        environment.withdrawalTransferEventHandler.addNewBtcTransactionListener { tx ->
+        environment.withdrawalTransferService.addNewBtcTransactionListener { tx ->
             environment.createdTransactions[tx.hashAsString] = Pair(System.currentTimeMillis(), tx)
         }
         environment.transactionHelper.addToBlackList(changeAddress.toBase58())
@@ -73,10 +79,14 @@ class BtcWithdrawalFailResistanceIntegrationTest {
         val randomNameSrc = String.getRandomString(9)
         val testClientSrcKeypair = ModelUtil.generateKeypair()
         val testClientSrc = "$randomNameSrc@$CLIENT_DOMAIN"
+        var res = registrationServiceEnvironment.register(randomNameSrc, testClientSrcKeypair.public.toHexString())
+        assertEquals(200, res.statusCode)
         val btcAddressSrc =
             integrationHelper.registerBtcAddressNoPreGen(randomNameSrc, CLIENT_DOMAIN, testClientSrcKeypair)
         integrationHelper.sendBtc(btcAddressSrc, 1, environment.btcWithdrawalConfig.bitcoin.confidenceLevel)
         val randomNameDest = String.getRandomString(9)
+        res = registrationServiceEnvironment.register(randomNameDest)
+        assertEquals(200, res.statusCode)
         val btcAddressDest = integrationHelper.registerBtcAddressNoPreGen(randomNameDest, CLIENT_DOMAIN)
         integrationHelper.addIrohaAssetTo(testClientSrc, BTC_ASSET, amount)
         integrationHelper.transferAssetIrohaFromClient(

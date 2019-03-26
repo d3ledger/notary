@@ -6,10 +6,13 @@ import com.d3.btc.provider.account.IrohaBtcAccountRegistrator
 import com.d3.btc.provider.address.BtcAddressesProvider
 import com.d3.btc.registration.init.BtcRegistrationServiceInitialization
 import com.d3.btc.registration.strategy.BtcRegistrationStrategyImpl
-import integration.helper.BtcIntegrationHelperUtil
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.toHexString
+import integration.helper.BtcIntegrationHelperUtil
+import khttp.post
+import khttp.responses.Response
 import java.io.Closeable
 
 /**
@@ -33,13 +36,15 @@ class BtcRegistrationTestEnvironment(private val integrationHelper: BtcIntegrati
 
     private val btcClientCreatorConsumer = IrohaConsumerImpl(btcRegistrationCredential, integrationHelper.irohaAPI)
 
+    val btcFreeAddressesProvider = BtcFreeAddressesProvider(
+        btcRegistrationConfig.nodeId, btcAddressesProvider(),
+        btcRegisteredAddressesProvider()
+    )
+
     val btcRegistrationServiceInitialization = BtcRegistrationServiceInitialization(
         btcRegistrationConfig,
         BtcRegistrationStrategyImpl(
-            BtcFreeAddressesProvider(
-                btcRegistrationConfig.nodeId, btcAddressesProvider(),
-                btcRegisteredAddressesProvider()
-            ),
+            btcFreeAddressesProvider,
             irohaBtcAccountCreator()
         )
     )
@@ -67,11 +72,22 @@ class BtcRegistrationTestEnvironment(private val integrationHelper: BtcIntegrati
         )
     }
 
-    val btcTakenAddressesProvider = BtcRegisteredAddressesProvider(
+    val btcRegisteredAddressesProvider = BtcRegisteredAddressesProvider(
         integrationHelper.queryAPI,
         btcRegistrationConfig.registrationCredential.accountId,
         integrationHelper.accountHelper.notaryAccount.accountId
     )
+
+    fun register(
+        name: String,
+        pubkey: String = ModelUtil.generateKeypair().public.toHexString(),
+        whitelist: String = ""
+    ): Response {
+        return post(
+            "http://127.0.0.1:${btcRegistrationConfig.port}/users",
+            data = mapOf("name" to name, "pubkey" to pubkey, "whitelist" to whitelist)
+        )
+    }
 
     override fun close() {
         integrationHelper.close()

@@ -3,26 +3,24 @@ package com.d3.btc.deposit.init
 import com.d3.btc.deposit.BTC_DEPOSIT_SERVICE_NAME
 import com.d3.btc.deposit.config.BtcDepositConfig
 import com.d3.btc.deposit.listener.BitcoinBlockChainDepositListener
+import com.d3.btc.deposit.service.BtcWalletListenerRestartService
 import com.d3.btc.healthcheck.HealthyService
 import com.d3.btc.helper.network.addPeerConnectionStatusListener
 import com.d3.btc.helper.network.startChainDownload
 import com.d3.btc.listener.NewBtcClientRegistrationListener
+import com.d3.btc.peer.SharedPeerGroup
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
-import com.d3.commons.model.IrohaCredential
+import com.d3.btc.wallet.checkWalletNetwork
 import com.d3.commons.notary.NotaryImpl
-import com.d3.commons.provider.NotaryPeerListProviderImpl
 import com.d3.commons.sidechain.SideChainEvent
 import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.util.createPrettySingleThreadPool
-import com.d3.commons.util.namedThreadFactory
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import io.reactivex.Observable
-import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.QueryAPI
+import io.reactivex.subjects.PublishSubject
 import mu.KLogging
 import org.bitcoinj.core.Address
 import org.bitcoinj.core.PeerGroup
@@ -33,32 +31,34 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import java.io.Closeable
 import java.io.File
-import java.util.concurrent.Executors
+import java.util.concurrent.ExecutorService
 
 @Component
 class BtcNotaryInitialization(
-    @Autowired private val peerGroup: PeerGroup,
+    @Autowired private val peerGroup: SharedPeerGroup,
     @Autowired private val transferWallet: Wallet,
     @Autowired private val btcDepositConfig: BtcDepositConfig,
-    @Qualifier("notaryCredential")
-    @Autowired private val irohaCredential: IrohaCredential,
-    @Autowired private val irohaAPI: IrohaAPI,
+    @Autowired private val notary: NotaryImpl,
     @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
+    @Autowired private val btcEventsSource: PublishSubject<SideChainEvent.PrimaryBlockChainEvent>,
     @Qualifier("depositIrohaChainListener")
     @Autowired private val irohaChainListener: IrohaChainListener,
     @Autowired private val newBtcClientRegistrationListener: NewBtcClientRegistrationListener,
+    @Autowired private val btcWalletListenerRestartService: BtcWalletListenerRestartService,
+    @Qualifier("confidenceListenerExecutorService")
+    @Autowired private val confidenceListenerExecutorService: ExecutorService,
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider
 ) : HealthyService(), Closeable {
-
 
     // Executor that will be used to execute Bitcoin deposit listener logic
     private val blockChainDepositListenerExecutor =
         createPrettySingleThreadPool(BTC_DEPOSIT_SERVICE_NAME, "blockchain-deposit-listener")
 
-
-    // Executor that will be used to execute transaction confidence listener logic
-    private val confidenceListenerExecutorService =
-        createPrettySingleThreadPool(BTC_DEPOSIT_SERVICE_NAME, "tx-confidence-listener")
+    // Function that is called to save all the transactions in wallet
+    private fun onTxSave() {
+        transferWallet.saveToFile(File(btcDepositConfig.btcTransferWalletPath))
+        logger.info { "Wallet was saved in ${btcDepositConfig.btcTransferWalletPath}" }
+    }
 
     /**
      * Init notary
@@ -68,7 +68,15 @@ class BtcNotaryInitialization(
         //Enables short log format for Bitcoin events
         BriefLogFormatter.init()
         addPeerConnectionStatusListener(peerGroup, ::notHealthy, ::cured)
-        return irohaChainListener.getBlockObservable().map { irohaObservable ->
+        // Check wallet network
+        return transferWallet.checkWalletNetwork(btcNetworkConfigProvider.getConfig()).map {
+            // Restart wallet listeners
+            btcWalletListenerRestartService.restartTransactionListeners(
+                transferWallet, ::onTxSave
+            )
+        }.flatMap {
+            irohaChainListener.getBlockObservable()
+        }.map { irohaObservable ->
             newBtcClientRegistrationListener.listenToRegisteredClients(
                 transferWallet, irohaObservable
             ) {
@@ -90,16 +98,8 @@ class BtcNotaryInitialization(
             }
             logger.info { "Previously registered addresses were added to the transferWallet" }
         }.map {
-            getBtcEvents(peerGroup, btcDepositConfig.bitcoin.confidenceLevel)
-        }.map { btcEvents ->
-            val queryAPI = QueryAPI(irohaAPI, irohaCredential.accountId, irohaCredential.keyPair)
-
-            val peerListProvider = NotaryPeerListProviderImpl(
-                queryAPI,
-                btcDepositConfig.notaryListStorageAccount,
-                btcDepositConfig.notaryListSetterAccount
-            )
-            val notary = NotaryImpl(irohaCredential, irohaAPI, btcEvents, peerListProvider)
+            initBtcEvents(peerGroup, btcDepositConfig.bitcoin.confidenceLevel)
+        }.map {
             notary.initIrohaConsumer().failure { ex -> throw ex }
         }.map {
             startChainDownload(peerGroup)
@@ -111,28 +111,26 @@ class BtcNotaryInitialization(
         transferWallet.isAddressWatched(Address.fromBase58(btcNetworkConfigProvider.getConfig(), btcAddress))
 
     /**
-     * Returns observable object full of deposit events
+     * Initiates Btc deposit events
      */
-    private fun getBtcEvents(
+    private fun initBtcEvents(
         peerGroup: PeerGroup,
         confidenceLevel: Int
-    ): Observable<SideChainEvent.PrimaryBlockChainEvent> {
-        return Observable.create<SideChainEvent.PrimaryBlockChainEvent> { emitter ->
-            peerGroup.addBlocksDownloadedEventListener(
-                blockChainDepositListenerExecutor,
-                BitcoinBlockChainDepositListener(
-                    btcRegisteredAddressesProvider,
-                    emitter,
-                    confidenceListenerExecutorService,
-                    confidenceLevel
-                ) { transferWallet.saveToFile(File(btcDepositConfig.btcTransferWalletPath)) }
+    ) {
+        peerGroup.addBlocksDownloadedEventListener(
+            blockChainDepositListenerExecutor,
+            BitcoinBlockChainDepositListener(
+                btcRegisteredAddressesProvider,
+                btcEventsSource,
+                confidenceListenerExecutorService,
+                confidenceLevel,
+                ::onTxSave
             )
-        }
+        )
     }
 
     override fun close() {
         logger.info { "Closing Bitcoin notary service" }
-        confidenceListenerExecutorService.shutdownNow()
         blockChainDepositListenerExecutor.shutdownNow()
         peerGroup.stop()
     }

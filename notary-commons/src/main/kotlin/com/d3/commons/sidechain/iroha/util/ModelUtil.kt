@@ -1,5 +1,7 @@
 package com.d3.commons.sidechain.iroha.util
 
+import com.d3.commons.model.IrohaCredential
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.github.kittinunf.result.Result
 import io.reactivex.Observable
 import iroha.protocol.Primitive
@@ -9,9 +11,7 @@ import jp.co.soramitsu.iroha.java.BlocksQueryBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.Transaction
 import jp.co.soramitsu.iroha.java.Utils
-import com.d3.commons.model.IrohaCredential
 import mu.KLogging
-import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import java.io.IOException
 import java.math.BigInteger
 import java.nio.file.Files
@@ -255,24 +255,5 @@ object ModelUtil {
 
             iroha.blocksQuery(query)
         }
-    }
-
-    /**
-     * Create account in Iroha.
-     * @param name - account name
-     * @param domain - account domain
-     * @return hex
-     */
-    fun createAccount(
-        irohaConsumer: IrohaConsumer,
-        name: String,
-        domain: String,
-        pubkey: PublicKey
-    ): Result<String, Exception> {
-        val transaction = Transaction
-            .builder(irohaConsumer.creator)
-            .createAccount(name, domain, pubkey)
-            .build()
-        return irohaConsumer.send(transaction)
     }
 }

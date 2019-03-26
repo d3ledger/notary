@@ -5,6 +5,7 @@ import com.d3.btc.generation.config.BtcAddressGenerationConfig
 import com.d3.btc.registration.config.BtcRegistrationConfig
 import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
 import com.d3.commons.config.BitcoinConfig
+import com.d3.commons.config.IrohaCredentialConfig
 import com.d3.commons.config.loadConfigs
 import com.d3.commons.model.IrohaCredential
 import org.bitcoinj.params.RegTestParams
@@ -62,6 +63,8 @@ class BtcConfigHelper(
         val btcWithdrawalConfig =
             loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties").get()
         return object : BtcWithdrawalConfig {
+            override val btcConsensusCredential =
+                accountHelper.createCredentialConfig(accountHelper.btcConsensusAccount)
             override val irohaBlockQueue = testName
             override val btcKeysWalletPath = createWalletFile("keys.$testName")
             override val btcTransfersWalletPath = createWalletFile("transfers.$testName")
@@ -146,8 +149,6 @@ class BtcConfigHelper(
     }
 
     fun createBtcRegistrationConfig(): BtcRegistrationConfig {
-        val btcRegistrationConfig =
-            loadConfigs("btc-registration", BtcRegistrationConfig::class.java, "/btc/registration.properties").get()
         return object : BtcRegistrationConfig {
             override val nodeId = NODE_ID
             override val notaryAccount = accountHelper.notaryAccount.accountId

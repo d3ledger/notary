@@ -5,6 +5,7 @@ import com.d3.btc.provider.network.BtcNetworkConfigProvider
 import com.google.common.util.concurrent.ListenableFuture
 import mu.KLogging
 import org.bitcoinj.core.PeerGroup
+import org.bitcoinj.core.Sha256Hash
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -38,6 +39,13 @@ class SharedPeerGroup(
     private var started = false
     private var stopped = false
 
+    /**
+     * Returns block by hash
+     * @param blockHash - hash of block
+     * @return block with given hash if exists and null otherwise
+     */
+    fun getBlock(blockHash: Sha256Hash) = chain?.blockStore?.get(blockHash)
+
     @Synchronized
     override fun startAsync(): ListenableFuture<*>? {
         if (!started) {
@@ -49,10 +57,11 @@ class SharedPeerGroup(
         return null
     }
 
-
     @Synchronized
     override fun stopAsync(): ListenableFuture<*>? {
         if (!stopped) {
+            // Close block store if possible
+            chain?.blockStore?.close()
             val asyncStop = super.stopAsync()
             stopped = true
             return asyncStop

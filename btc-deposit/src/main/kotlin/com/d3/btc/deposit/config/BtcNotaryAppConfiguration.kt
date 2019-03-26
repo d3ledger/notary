@@ -5,9 +5,14 @@ import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.commons.config.BitcoinConfig
 import com.d3.commons.config.loadConfigs
 import com.d3.commons.model.IrohaCredential
+import com.d3.commons.notary.NotaryImpl
+import com.d3.commons.provider.NotaryPeerListProviderImpl
+import com.d3.commons.sidechain.SideChainEvent
 import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.createPrettySingleThreadPool
+import io.reactivex.Observable
+import io.reactivex.subjects.PublishSubject
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import org.bitcoinj.wallet.Wallet
@@ -26,6 +31,33 @@ class BtcNotaryAppConfiguration {
     ).fold({ keypair -> keypair }, { ex -> throw ex })
 
     private val notaryCredential = IrohaCredential(depositConfig.notaryCredential.accountId, notaryKeypair)
+
+    @Bean
+    fun confidenceListenerExecutorService() =
+        createPrettySingleThreadPool(BTC_DEPOSIT_SERVICE_NAME, "tx-confidence-listener")
+
+    @Bean
+    fun queryAPI() = QueryAPI(irohaAPI(), notaryCredential.accountId, notaryKeypair)
+
+    @Bean
+    fun peerListProvider() = NotaryPeerListProviderImpl(
+        queryAPI(),
+        depositConfig.notaryListStorageAccount,
+        depositConfig.notaryListSetterAccount
+    )
+
+    @Bean
+    fun btcEventsSource(): PublishSubject<SideChainEvent.PrimaryBlockChainEvent> {
+        return PublishSubject.create<SideChainEvent.PrimaryBlockChainEvent>()
+    }
+
+    @Bean
+    fun btcEventsObservable(): Observable<SideChainEvent.PrimaryBlockChainEvent> {
+        return btcEventsSource()
+    }
+
+    @Bean
+    fun notary() = NotaryImpl(notaryCredential, irohaAPI(), btcEventsObservable(), peerListProvider())
 
     @Bean
     fun notaryConfig() = depositConfig

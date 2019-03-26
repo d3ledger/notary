@@ -6,6 +6,7 @@ import com.github.kittinunf.result.failure
 import integration.btc.environment.BtcNotaryTestEnvironment
 import integration.helper.BTC_ASSET
 import integration.helper.BtcIntegrationHelperUtil
+import integration.registration.RegistrationServiceTestEnvironment
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.junit.jupiter.api.*
@@ -20,8 +21,10 @@ class BtcMultiNotaryIntegrationTest {
     private val peers = 3
     private val integrationHelper = BtcIntegrationHelperUtil(peers)
     private val environments = ArrayList<BtcNotaryTestEnvironment>()
+    private val registrationServiceEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
 
     init {
+        registrationServiceEnvironment.registrationInitialization.init()
         var peerCount = 0
         //Create configs for multiple notary services
         integrationHelper.accountHelper.notaryAccounts
@@ -55,6 +58,7 @@ class BtcMultiNotaryIntegrationTest {
 
     @AfterAll
     fun dropDown() {
+        registrationServiceEnvironment.close()
         environments.forEach { environment ->
             environment.close()
         }
@@ -70,6 +74,8 @@ class BtcMultiNotaryIntegrationTest {
     fun testDeposit() {
         val randomName = String.getRandomString(9)
         val testClient = "$randomName@$CLIENT_DOMAIN"
+        val res = registrationServiceEnvironment.register(randomName)
+        assertEquals(200, res.statusCode)
         val btcAddress =
             integrationHelper.registerBtcAddress(
                 environments.first().notaryConfig.btcTransferWalletPath,

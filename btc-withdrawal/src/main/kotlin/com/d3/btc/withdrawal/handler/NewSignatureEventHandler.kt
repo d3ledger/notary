@@ -1,10 +1,11 @@
 package com.d3.btc.withdrawal.handler
 
+import com.d3.btc.withdrawal.service.BtcRollbackService
 import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
-import com.d3.btc.withdrawal.transaction.BtcRollbackService
 import com.d3.btc.withdrawal.transaction.SignCollector
 import com.d3.btc.withdrawal.transaction.TransactionHelper
 import com.d3.btc.withdrawal.transaction.UnsignedTransactions
+import com.d3.commons.sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
 import com.github.kittinunf.result.map
 import iroha.protocol.Commands
 import mu.KLogging
@@ -12,7 +13,6 @@ import org.bitcoinj.core.PeerGroup
 import org.bitcoinj.core.Transaction
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import com.d3.commons.sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
 import java.util.concurrent.CopyOnWriteArrayList
 
 /*
@@ -88,11 +88,19 @@ class NewSignatureEventHandler(
                     btcRollbackService.rollback(
                         withdrawalCommand.sourceAccountId,
                         withdrawalCommand.amountSat,
-                        withdrawalCommand.withdrawalTime
+                        withdrawalCommand.withdrawalTime,
+                        "Cannot complete Bitcoin transaction"
                     )
                 })
 
         }, { ex ->
+
+            btcRollbackService.rollback(
+                withdrawalCommand.sourceAccountId,
+                withdrawalCommand.amountSat,
+                withdrawalCommand.withdrawalTime,
+                "Cannot get signatures for Bitcoin transaction"
+            )
             withdrawalStatistics.incFailedTransfers()
             logger.error("Cannot get signatures for tx $originalHash", ex)
         })

@@ -32,16 +32,6 @@ class NotaryRegistrationTest {
     }
 
     /**
-     * Send POST request to local server
-     */
-    fun post(params: Map<String, String>): khttp.responses.Response {
-        return khttp.post(
-            "http://127.0.0.1:${registrationServiceEnvironment.registrationConfig.port}/users",
-            data = params
-        )
-    }
-
-    /**
      * Test healthcheck
      * @given Registration service is up and running
      * @when GET query sent to healthcheck port
@@ -66,12 +56,7 @@ class NotaryRegistrationTest {
         val name = String.getRandomString(7)
         val pubkey = Ed25519Sha3().generateKeypair().public.toHexString()
 
-        val res = post(
-            mapOf(
-                "name" to name,
-                "pubkey" to pubkey
-            )
-        )
+        val res = registrationServiceEnvironment.register(name, pubkey)
 
         assertEquals(200, res.statusCode)
     }
@@ -88,21 +73,11 @@ class NotaryRegistrationTest {
         val pubkey = Ed25519Sha3().generateKeypair().public.toHexString()
 
         // register client
-        var res = post(
-            mapOf(
-                "name" to name,
-                "pubkey" to pubkey
-            )
-        )
+        var res = registrationServiceEnvironment.register(name, pubkey)
         assertEquals(200, res.statusCode)
 
         // try to register with the same name
-        res = post(
-            mapOf(
-                "name" to name,
-                "pubkey" to pubkey
-            )
-        )
+        res = registrationServiceEnvironment.register(name, pubkey)
         assertEquals(500, res.statusCode)
     }
 }

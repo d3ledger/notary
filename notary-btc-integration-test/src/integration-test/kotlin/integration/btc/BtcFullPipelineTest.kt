@@ -5,7 +5,6 @@ import com.d3.btc.model.BtcAddressType
 import com.d3.btc.withdrawal.handler.CurrentFeeRate
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.util.getRandomString
-import com.d3.commons.util.hex
 import com.d3.commons.util.toHexString
 import com.github.kittinunf.result.failure
 import integration.btc.environment.BtcAddressGenerationTestEnvironment
@@ -227,15 +226,10 @@ class BtcFullPipelineTest {
      * @return registered Bitcoin address
      */
     private fun registerClient(userName: String, keypair: KeyPair): String {
-        var res = khttp.post(
-            "http://127.0.0.1:${registrationEnvironment.registrationConfig.port}/users",
-            data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
-        )
+        val pubkey = keypair.public.toHexString()
+        var res = registrationEnvironment.register(userName, pubkey)
         assertEquals(200, res.statusCode)
-        res = khttp.post(
-            "http://127.0.0.1:${btcRegistrationEnvironment.btcRegistrationConfig.port}/users",
-            data = mapOf("name" to userName, "pubkey" to String.hex(keypair.public.encoded), "whitelist" to "")
-        )
+        res = btcRegistrationEnvironment.register(userName, pubkey)
         assertEquals(200, res.statusCode)
 
         return String(res.content)

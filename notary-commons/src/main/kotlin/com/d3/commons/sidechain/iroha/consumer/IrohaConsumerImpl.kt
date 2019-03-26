@@ -1,17 +1,19 @@
 package com.d3.commons.sidechain.iroha.consumer
 
+import com.d3.commons.model.IrohaCredential
+import com.d3.commons.util.hex
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.flatMap
 import iroha.protocol.Endpoint
 import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.Transaction
 import jp.co.soramitsu.iroha.java.TransactionStatusObserver
 import jp.co.soramitsu.iroha.java.Utils
+import jp.co.soramitsu.iroha.java.detail.BuildableAndSignable
 import jp.co.soramitsu.iroha.java.detail.InlineTransactionStatusObserver
 import jp.co.soramitsu.iroha.java.subscription.WaitForTerminalStatus
-import com.d3.commons.model.IrohaCredential
 import mu.KLogging
-import com.d3.commons.util.hex
 import java.io.IOException
 import java.util.*
 import java.util.concurrent.TimeoutException
@@ -42,6 +44,7 @@ class IrohaConsumerImpl(
     irohaCredential: IrohaCredential,
     private val irohaAPI: IrohaAPI
 ) : IrohaConsumer {
+
     override val creator = irohaCredential.accountId
 
     val keypair = irohaCredential.keyPair
@@ -52,8 +55,9 @@ class IrohaConsumerImpl(
      * @return hex representation of hash or failure
      */
     override fun send(utx: Transaction): Result<String, Exception> {
-        val transaction = utx.sign(keypair).build()
-        return send(transaction)
+        return sign(utx).flatMap { transaction ->
+            send(transaction.build())
+        }
     }
 
     /**
@@ -144,6 +148,14 @@ class IrohaConsumerImpl(
             }
             .onTransactionCommitted { successTx -> txStatus.txHash = successTx.txHash.toUpperCase() }
             .build()
+    }
+
+    /**
+     * Sign given IPJ transaction
+     * @param utx - unsigned transaction
+     */
+    override fun sign(utx: Transaction): Result<BuildableAndSignable<TransactionOuterClass.Transaction>, Exception> {
+        return Result.of { utx.sign(keypair) }
     }
 
     /**

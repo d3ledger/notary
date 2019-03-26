@@ -1,6 +1,5 @@
 package integration.btc
 
-import com.d3.btc.helper.address.getSignThreshold
 import com.d3.btc.model.AddressInfo
 import com.d3.btc.model.BtcAddressType
 import com.d3.btc.provider.generation.ADDRESS_GENERATION_NODE_ID_KEY
@@ -11,11 +10,7 @@ import integration.helper.BtcIntegrationHelperUtil
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import mu.KLogging
-import org.bitcoinj.core.ECKey
-import org.bitcoinj.core.Utils
 import org.bitcoinj.params.RegTestParams
-import org.bitcoinj.script.Script
-import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
 import org.junit.Assert.*
 import org.junit.jupiter.api.AfterAll
@@ -88,7 +83,7 @@ class BtcMultiAddressGenerationIntegrationTest {
                 entry.key != ADDRESS_GENERATION_TIME_KEY
                         && entry.key != ADDRESS_GENERATION_NODE_ID_KEY
             }.map { entry -> entry.value }
-        val expectedMsAddress = createMsAddress(notaryKeys)
+        val expectedMsAddress = com.d3.btc.helper.address.createMsAddress(notaryKeys, RegTestParams.get())
         val wallets = ArrayList<Wallet>()
         environments.forEach { env ->
             wallets.add(Wallet.loadFromFile(File(env.btcGenerationConfig.btcKeysWalletPath)))
@@ -96,7 +91,7 @@ class BtcMultiAddressGenerationIntegrationTest {
 
         //Check that every wallet has generated address
         wallets.forEach { wallet ->
-            assertTrue(wallet.isWatchedScript(expectedMsAddress))
+            assertTrue(wallet.isAddressWatched(expectedMsAddress))
         }
 
         //Check that every wallet has only one public key that was used in address generation
@@ -114,7 +109,7 @@ class BtcMultiAddressGenerationIntegrationTest {
                 environment.btcGenerationConfig.notaryAccount,
                 environment.btcGenerationConfig.mstRegistrationAccount.accountId
             )
-        val msAddress = msAddressToBase58(expectedMsAddress)
+        val msAddress = expectedMsAddress.toBase58()
         logger.info("Expected address $msAddress")
         val generatedAddress = AddressInfo.fromJson(notaryAccountDetails[msAddress]!!)!!
         assertNull(generatedAddress.irohaClient)
@@ -127,19 +122,6 @@ class BtcMultiAddressGenerationIntegrationTest {
                 environment.btcGenerationConfig.mstRegistrationAccount.accountId
             ).size
         )
-    }
-
-    private fun createMsAddress(notaryKeys: Collection<String>): Script {
-        val keys = ArrayList<ECKey>()
-        notaryKeys.forEach { key ->
-            val ecKey = ECKey.fromPublicOnly(Utils.parseAsHexOrBase58(key))
-            keys.add(ecKey)
-        }
-        return ScriptBuilder.createP2SHOutputScript(getSignThreshold(peers), keys)
-    }
-
-    private fun msAddressToBase58(address: Script): String {
-        return address.getToAddress(RegTestParams.get()).toBase58()
     }
 
     /**

@@ -7,20 +7,22 @@ import com.d3.btc.helper.network.addPeerConnectionStatusListener
 import com.d3.btc.helper.network.startChainDownload
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
+import com.d3.btc.wallet.checkWalletNetwork
 import com.d3.btc.withdrawal.BTC_WITHDRAWAL_SERVICE_NAME
 import com.d3.btc.withdrawal.config.withdrawalConfig
+import com.d3.btc.withdrawal.handler.NewConsensusDataHandler
 import com.d3.btc.withdrawal.handler.NewFeeRateWasSetHandler
 import com.d3.btc.withdrawal.handler.NewSignatureEventHandler
-import com.d3.btc.withdrawal.handler.WithdrawalTransferEventHandler
+import com.d3.btc.withdrawal.handler.NewTransferHandler
 import com.d3.btc.withdrawal.listener.BitcoinBlockChainFeeRateListener
 import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 import com.d3.commons.config.RMQConfig
+import com.d3.commons.sidechain.iroha.BTC_CONSENSUS_DOMAIN
 import com.d3.commons.sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
 import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.util.getSetDetailCommands
 import com.d3.commons.sidechain.iroha.util.getTransferCommands
 import com.d3.commons.util.createPrettySingleThreadPool
-import com.d3.commons.util.namedThreadFactory
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
@@ -36,7 +38,6 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import java.io.Closeable
 import java.io.File
-import java.util.concurrent.Executors
 
 /*
     Class that initiates listeners that will be used to handle Bitcoin withdrawal logic
@@ -47,10 +48,11 @@ class BtcWithdrawalInitialization(
     @Autowired private val transferWallet: Wallet,
     @Autowired private val btcChangeAddressProvider: BtcChangeAddressProvider,
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider,
-    @Autowired private val withdrawalTransferEventHandler: WithdrawalTransferEventHandler,
     @Autowired private val newSignatureEventHandler: NewSignatureEventHandler,
     @Autowired private val newBtcClientRegistrationHandler: NewBtcClientRegistrationHandler,
     @Autowired private val newFeeRateWasSetHandler: NewFeeRateWasSetHandler,
+    @Autowired private val newTransferHandler: NewTransferHandler,
+    @Autowired private val newConsensusDataHandler: NewConsensusDataHandler,
     @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
     @Autowired private val btcFeeRateService: BtcFeeRateService,
     @Autowired private val rmqConfig: RMQConfig,
@@ -72,7 +74,10 @@ class BtcWithdrawalInitialization(
     private val btcFeeRateListener = BitcoinBlockChainFeeRateListener(btcFeeRateService)
 
     fun init(): Result<Unit, Exception> {
-        return btcChangeAddressProvider.getChangeAddress().map { changeAddress ->
+        // Check wallet network
+        return transferWallet.checkWalletNetwork(btcNetworkConfigProvider.getConfig()).flatMap {
+            btcChangeAddressProvider.getChangeAddress()
+        }.map { changeAddress ->
             transferWallet.addWatchedAddress(
                 Address.fromBase58(btcNetworkConfigProvider.getConfig(), changeAddress.address)
             )
@@ -86,9 +91,15 @@ class BtcWithdrawalInitialization(
                     btcAddress.address
                 )
             }.forEach { address ->
-                transferWallet.addWatchedAddress(address)
+                if (transferWallet.addWatchedAddress(address)) {
+                    logger.info("Address $address was added to wallet")
+                } else {
+                    logger.warn("Address $address was not added to wallet")
+                }
             }
-            logger.info { "Previously registered addresses were added to the transferWallet" }
+            logger.info(
+                "Previously registered addresses were added to the transferWallet"
+            )
         }.map {
             // Add fee rate listener
             peerGroup.addBlocksDownloadedEventListener(btcFeeRateListener)
@@ -123,8 +134,7 @@ class BtcWithdrawalInitialization(
     private fun handleIrohaBlock(block: BlockOuterClass.Block) {
         // Handle transfer commands
         getTransferCommands(block).forEach { command ->
-            withdrawalTransferEventHandler.handleTransferCommand(
-                transferWallet,
+            newTransferHandler.handleTransferCommand(
                 command.transferAsset,
                 block.blockV1.payload.createdTime
             )
@@ -140,6 +150,11 @@ class BtcWithdrawalInitialization(
         // Handle 'set new fee rate' events
         getSetDetailCommands(block).forEach { command ->
             newFeeRateWasSetHandler.handleNewFeeRate(command)
+        }
+
+        // Handle 'set new consensus' events
+        getSetDetailCommands(block).filter { command -> isNewConsensus(command) }.forEach { command ->
+            newConsensusDataHandler.handleNewConsensusCommand(command.setAccountDetail)
         }
         // Handle newly registered Bitcoin addresses. We need it to update transferWallet object.
         getSetDetailCommands(block).forEach { command ->
@@ -170,7 +185,10 @@ class BtcWithdrawalInitialization(
     }
 
     private fun isNewWithdrawalSignature(command: Commands.Command) =
-        command.setAccountDetail.accountId.endsWith("@$BTC_SIGN_COLLECT_DOMAIN")
+        command.hasSetAccountDetail() && command.setAccountDetail.accountId.endsWith("@$BTC_SIGN_COLLECT_DOMAIN")
+
+    private fun isNewConsensus(command: Commands.Command) =
+        command.hasSetAccountDetail() && command.setAccountDetail.accountId.endsWith("@$BTC_CONSENSUS_DOMAIN")
 
     override fun close() {
         logger.info { "Closing Bitcoin withdrawal service" }

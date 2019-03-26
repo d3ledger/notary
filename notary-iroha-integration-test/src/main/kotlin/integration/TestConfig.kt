@@ -10,4 +10,6 @@ interface TestConfig {
     val iroha: IrohaConfig
     val testCredentialConfig: IrohaCredentialConfig
     val testQueue : String
+    val clientStorageAccount : String
+    val brvsAccount : String
 }

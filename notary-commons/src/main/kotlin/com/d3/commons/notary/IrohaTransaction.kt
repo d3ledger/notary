@@ -12,7 +12,13 @@ import java.math.BigInteger
 data class IrohaTransaction(
     val creator: String,
     val createdTime: BigInteger,
-    val quorum: Int,
+    val quorum: Int?,
     val commands: List<IrohaCommand>
-)
+) {
+    constructor(
+        creator: String,
+        createdTime: BigInteger,
+        commands: List<IrohaCommand>
+    ) : this(creator, createdTime, null, commands)
+}
 

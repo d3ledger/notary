@@ -12,17 +12,23 @@ data class BtcAddress(val address: String, val info: AddressInfo)
  * @param irohaClient - address owner Iroha client id
  * @param notaryKeys - keys that were used to create this address
  * @param nodeId - id of node that created this address
+ * @param generationTime - time of address generation
  */
-data class AddressInfo(val irohaClient: String?, val notaryKeys: List<String>, val nodeId: String) {
+data class AddressInfo(
+    val irohaClient: String?,
+    val notaryKeys: List<String>,
+    val nodeId: String,
+    val generationTime: Long?
+) {
 
     fun toJson() = addressInfoJsonAdapter.toJson(this).irohaEscape()
 
     companion object {
         fun fromJson(json: String) = addressInfoJsonAdapter.fromJson(json)
-        fun createFreeAddressInfo(notaryKeys: List<String>, nodeId: String) =
-            AddressInfo(null, notaryKeys, nodeId)
+        fun createFreeAddressInfo(notaryKeys: List<String>, nodeId: String, generationTime: Long) =
+            AddressInfo(null, notaryKeys, nodeId, generationTime)
 
-        fun createChangeAddressInfo(notaryKeys: List<String>, nodeId: String) =
-            AddressInfo(null, notaryKeys, nodeId)
+        fun createChangeAddressInfo(notaryKeys: List<String>, nodeId: String, generationTime: Long) =
+            AddressInfo(null, notaryKeys, nodeId, generationTime)
     }
 }

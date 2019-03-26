@@ -3,8 +3,11 @@ package com.d3.btc.withdrawal.transaction
 import com.d3.btc.fee.BYTES_PER_INPUT
 import com.d3.btc.fee.getTxFee
 import com.d3.btc.helper.address.outPutToBase58Address
+import com.d3.btc.peer.SharedPeerGroup
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
+import com.d3.btc.withdrawal.handler.CurrentFeeRate
+import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.map
@@ -16,18 +19,17 @@ import org.bitcoinj.core.TransactionOutput
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import com.d3.btc.withdrawal.handler.CurrentFeeRate
-import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 
 //Only two outputs are used: destination and change
 private const val OUTPUTS = 2
-
 
 /*
     Helper class that is used to collect inputs, outputs and etc
  */
 @Component
 class TransactionHelper(
+    @Autowired private val transfersWallet: Wallet,
+    @Autowired private val peerGroup: SharedPeerGroup,
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider,
     @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
     @Autowired private val btcChangeAddressProvider: BtcChangeAddressProvider
@@ -67,19 +69,19 @@ class TransactionHelper(
     /**
      * Collects previously sent transactions, that may be used as an input for newly created transaction
      * @param availableAddresses - set of addresses which transactions will be available to spend
-     * @param wallet - current wallet. Used to fetch unspents
      * @param amount - amount of SAT to spend
+     * @param availableHeight - maximum available height for UTXO
      * @param confidenceLevel - minimum depth of transactions
      * @return result with list full of unspent transactions
      */
     fun collectUnspents(
         availableAddresses: Set<String>,
-        wallet: Wallet,
         amount: Long,
+        availableHeight: Int,
         confidenceLevel: Int
     ): Result<List<TransactionOutput>, Exception> {
         return Result.of {
-            collectUnspentsRec(availableAddresses, wallet, amount, 0, confidenceLevel, ArrayList())
+            collectUnspentsRec(availableAddresses, amount, 0, availableHeight, confidenceLevel, ArrayList())
         }
     }
 
@@ -88,6 +90,7 @@ class TransactionHelper(
      * @param tx - transaction to register
      * @param unspents - transaction outputs to register as "untouchable"
      */
+    @Synchronized
     fun registerUnspents(tx: Transaction, unspents: List<TransactionOutput>) {
         usedOutputs[tx.hashAsString] = unspents
     }
@@ -96,20 +99,21 @@ class TransactionHelper(
      * Frees outputs, making them usable for other transactions
      * @param txHash - hash of transaction which outputs/unspents must be freed
      */
+    @Synchronized
     fun unregisterUnspents(txHash: String) {
         usedOutputs.remove(txHash)
     }
 
     /**
      * Returns available addresses (intersection between watched and registered addresses)
-     * @param wallet - current wallet. Used to get "watched" addresses
      * @return result with set full of available addresses
      */
-    fun getAvailableAddresses(wallet: Wallet): Result<Set<String>, Exception> {
+    fun getAvailableAddresses(): Result<Set<String>, Exception> {
         return btcRegisteredAddressesProvider.getRegisteredAddresses()
             .map { registeredAddresses ->
+                logger.info("Registered addresses ${registeredAddresses.map { address -> address.address }}")
                 registeredAddresses.filter { btcAddress ->
-                    wallet.isAddressWatched(
+                    transfersWallet.isAddressWatched(
                         Address.fromBase58(
                             btcNetworkConfigProvider.getConfig(),
                             btcAddress.address
@@ -133,39 +137,58 @@ class TransactionHelper(
     fun isDust(satValue: Long) = satValue < (CurrentFeeRate.get() * BYTES_PER_INPUT)
 
     /**
+     * Returns currently available UTXO height
+     * @param confidenceLevel - minimum depth of transactions
+     */
+    fun getAvailableUTXOHeight(
+        confidenceLevel: Int
+    ): Result<Int, Exception> {
+        return getAvailableAddresses().map { availableAddresses ->
+            getAvailableUnspents(
+                transfersWallet.unspents,
+                Integer.MAX_VALUE,
+                confidenceLevel,
+                availableAddresses
+            ).map { unspent -> getUnspentHeight(unspent) }.max() ?: 0
+        }
+    }
+
+    /**
      * Collects previously sent transactions, that may be used as an input for newly created transaction.
      * It may go into recursion if not enough money for fee was collected.
      * @param availableAddresses - set of addresses which transactions will be available to spend
-     * @param wallet - current wallet. Used to fetch unspents
      * @param amount - amount of SAT to spend
      * @param fee - tx fee that depends on inputs and outputs. Initial value is zero.
+     * @param availableHeight - maximum available height for UTXO
      * @param confidenceLevel - minimum depth of transactions
      * @param recursivelyCollectedUnspents - list of unspents collected from all recursion levels. It will be returned at the end on execution
      * @return list full of unspent transactions
      */
     private tailrec fun collectUnspentsRec(
         availableAddresses: Set<String>,
-        wallet: Wallet,
         amount: Long,
         fee: Int,
+        availableHeight: Int,
         confidenceLevel: Int,
         recursivelyCollectedUnspents: MutableList<TransactionOutput>
     ): List<TransactionOutput> {
-        //Only confirmed transactions must be used
-        val unspents =
-            ArrayList<TransactionOutput>(wallet.unspents.filter { unspent ->
-                // It's senseless to use 'dusty' transaction, because its fee will be higher than its value
-                !isDust(unspent.value.value) &&
-                        //Only confirmed unspents may be used
-                        unspent.parentTransactionDepthInBlocks >= confidenceLevel
-                        //Cannot use already used unspents
-                        && !usedOutputs.values.flatten().contains(unspent)
-                        //Cannot use unspents from another level of recursion
-                        && !recursivelyCollectedUnspents.contains(unspent)
-            })
+        val unspents = ArrayList(getAvailableUnspents(
+            transfersWallet.unspents,
+            availableHeight,
+            confidenceLevel,
+            availableAddresses
+        ).filter { unspent -> !recursivelyCollectedUnspents.contains(unspent) })
+
         if (unspents.isEmpty()) {
             throw IllegalStateException("Out of unspents")
         }
+        logger.info("Got unspents\n${unspents.map { unspent ->
+            Pair(
+                outPutToBase58Address(unspent),
+                unspent.value
+            )
+        }}")
+
         /*
         Wallet stores unspents in a HashSet. Order of a HashSet depends on several factors: current array size and etc.
         This may lead different notary nodes to pick different transactions.
@@ -186,8 +209,7 @@ class TransactionHelper(
         })
         val amountAndFee = amount + fee
         var collectedAmount = getTotalUnspentValue(recursivelyCollectedUnspents)
-        //We use registered clients outputs only
-        unspents.filter { unspent -> isAvailableOutput(availableAddresses, unspent) }.forEach { unspent ->
+        unspents.forEach { unspent ->
             if (collectedAmount >= amountAndFee) {
                 return@forEach
             }
@@ -204,14 +226,51 @@ class TransactionHelper(
             // Try to collect more unspents if no money is left for fee
             return collectUnspentsRec(
                 availableAddresses,
-                wallet,
                 amount,
                 newFee,
+                availableHeight,
                 confidenceLevel,
                 recursivelyCollectedUnspents
             )
         }
         return recursivelyCollectedUnspents
+    }
+
+    /**
+     * Returns currently available unspents
+     * @param unspents - all the unspents that we posses
+     * @param availableHeight - maximum available height for UTXO
+     * @param confidenceLevel - minimum depth of transactions
+     * @param availableAddresses - available addresses
+     */
+    @Synchronized
+    private fun getAvailableUnspents(
+        unspents: List<TransactionOutput>,
+        availableHeight: Int,
+        confidenceLevel: Int,
+        availableAddresses: Set<String>
+    ): List<TransactionOutput> {
+        return unspents.filter { unspent ->
+            // It's senseless to use 'dusty' transaction, because its fee will be higher than its value
+            !isDust(unspent.value.value) &&
+                    //Only confirmed unspents may be used
+                    unspent.parentTransactionDepthInBlocks >= confidenceLevel
+                    //Cannot use already used unspents
+                    && !usedOutputs.values.flatten().contains(unspent)
+                    //We are able to use those UTXOs which height is not bigger then availableHeight
+                    && getUnspentHeight(unspent) <= availableHeight
+                    //We use registered clients outputs only
+                    && isAvailableOutput(availableAddresses, unspent)
+        }
+    }
+
+    /**
+     * Returns block height of a given unspent
+     * @param unspent - UTXO
+     * @return time of unspent transaction block
+     */
+    private fun getUnspentHeight(unspent: TransactionOutput): Int {
+        return peerGroup.getBlock(unspent.parentTransaction!!.appearsInHashes!!.keys.first())!!.height
     }
 
     // Computes total unspent value
@@ -220,7 +279,6 @@ class TransactionHelper(
         unspents.forEach { unspent -> totalValue += unspent.value.value }
         return totalValue
     }
-
 
     // Checks if fee output was addressed to available address
     protected fun isAvailableOutput(availableAddresses: Set<String>, output: TransactionOutput): Boolean {
