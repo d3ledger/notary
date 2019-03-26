@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import jp.co.soramitsu.bootstrap.dto.*
 import jp.co.soramitsu.bootstrap.dto.block.GenesisBlock
 import jp.co.soramitsu.bootstrap.exceptions.ErrorCodes
+import jp.co.soramitsu.bootstrap.genesis.d3.D3TestContext
 import jp.co.soramitsu.bootstrap.genesis.d3.D3TestGenesisFactory
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import mu.KLogging
@@ -185,7 +186,22 @@ class IrohaTest {
                 respBody.contains(pubKey),
                 "pubKey not exists in block when should for account ${it.accountName}@${it.domainId} pubKey:${it.pubKeys[0]}"
             )
+            D3TestContext.d3neededAccounts.forEach {account ->
+                account.roles.forEach {role ->
+                    val testValue = "{\\\"appendRole\\\":{\\\"accountId\\\":\\\"" + account.id + "\\\",\\\"roleName\\\":\\\"" + role + "\\\"}}"
+
+                    log.info("TestValue: $testValue")
+                    assertTrue(respBody.contains(testValue)
+                    )
+                }
+            }
         }
+        val jsonRolesContainsChecks = listOf("{\\\"createRole\\\":{\\\"roleName\\\":\\\"btc_fee_rate_setter\\\"",
+            "{\\\"createRole\\\":{\\\"roleName\\\":\\\"sora_client\\\"",
+            "{\\\"createRole\\\":{\\\"roleName\\\":\\\"sora_client\\\"",
+            "{\\\"createRole\\\":{\\\"roleName\\\":\\\"notary_list_holder\\\"")
+
+        jsonRolesContainsChecks.forEach { assertTrue(respBody.contains(it)) }
 
         val genesisResponse =
             mapper.readValue(respBody, GenesisResponse::class.java)

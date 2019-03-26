@@ -274,7 +274,7 @@ object D3TestContext {
 
     fun createSoraRole(builder: TransactionBuilder) {
         builder.createRole(
-            "notary_list_holder",
+            "sora",
             listOf(
                 Primitive.RolePermission.can_get_my_acc_ast,
                 Primitive.RolePermission.can_transfer,
@@ -286,7 +286,7 @@ object D3TestContext {
 
     fun createSoraClientRole(builder: TransactionBuilder) {
         builder.createRole(
-            "notary_list_holder",
+            "sora_client",
             listOf(
                 Primitive.RolePermission.can_get_my_account,
                 Primitive.RolePermission.can_get_my_acc_ast,
@@ -308,7 +308,7 @@ object D3TestContext {
 
     fun createBtcFeeRateSetterRole(builder: TransactionBuilder) {
         builder.createRole(
-            "notary_list_holder",
+            "btc_fee_rate_setter",
             listOf(
                 Primitive.RolePermission.can_set_detail,
                 Primitive.RolePermission.can_get_all_accounts
