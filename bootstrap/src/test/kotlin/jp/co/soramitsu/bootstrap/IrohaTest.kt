@@ -196,12 +196,13 @@ class IrohaTest {
                 }
             }
         }
-        val jsonRolesContainsChecks = listOf("{\\\"createRole\\\":{\\\"roleName\\\":\\\"btc_fee_rate_setter\\\"",
-            "{\\\"createRole\\\":{\\\"roleName\\\":\\\"sora_client\\\"",
-            "{\\\"createRole\\\":{\\\"roleName\\\":\\\"sora_client\\\"",
-            "{\\\"createRole\\\":{\\\"roleName\\\":\\\"notary_list_holder\\\"")
+        val jsonRolesContainsChecks = listOf("btc_fee_rate_setter",
+            "sora_client",
+            "notary_list_holder")
 
-        jsonRolesContainsChecks.forEach { assertTrue(respBody.contains(it)) }
+        jsonRolesContainsChecks.forEach { assertTrue(respBody.contains(
+            "{\\\"createRole\\\":{\\\"roleName\\\":\\\"" + it
+        )) }
 
         val genesisResponse =
             mapper.readValue(respBody, GenesisResponse::class.java)
