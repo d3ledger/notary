@@ -28,6 +28,8 @@ import okhttp3.OkHttpClient
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.JsonRpc2_0Web3j
 import org.web3j.protocol.http.HttpService
+import org.web3j.protocol.parity.JsonRpc2_0Parity
+import org.web3j.protocol.parity.Parity
 import java.math.BigInteger
 
 const val ENDPOINT_ETHEREUM = "eth"
@@ -67,10 +69,12 @@ class EthDepositInitialization(
 
         val builder = OkHttpClient().newBuilder()
         builder.authenticator(BasicAuthenticator(passwordsConfig))
-        val web3 = Web3j.build(
-            HttpService(ethDepositConfig.ethereum.url, builder.build(), false),
-            JsonRpc2_0Web3j.DEFAULT_BLOCK_TIME.toLong(),
-            createPrettyScheduledThreadPool(ETH_DEPOSIT_SERVICE_NAME, "web3j")
+        val web3 = Parity.build(
+            HttpService(ethDepositConfig.ethereum.url, builder.build(), false)
+            // TODO Nowadays it is impossible to build Parity with these parameters,
+            // uncomment when it is possible (see https://github.com/web3j/web3j/pull/901)
+//            JsonRpc2_0Web3j.DEFAULT_BLOCK_TIME.toLong(),
+//            createPrettyScheduledThreadPool(ETH_DEPOSIT_SERVICE_NAME, "web3j")
         )
 
         /** List of all observable wallets */
