@@ -3,10 +3,10 @@ Bitcoin Withdrawal service(or simply `btc-withdrawal`) is a service dedicated to
 
 ### Simplified flow
 1) The service listens to transfer commands in Iroha blockchain using `chain-adapter` in order to achieve high stability while handling blocks.
-2) If transfer command is valid(destination address is whitelisted and has base58 format), then the service tries to establish 'withdrawal consensus' among all the Notaries. They must decide what UTXO may be spent according to Bitcoin blockchain state.
-3) Once 'withdrawal consensus' is established, the service starts creating Bitcoin withdrawal transaction.
-4) The next step is - signing. All the Notaries must sign a newly created transaction.
-5) If all the Notaries signed Bitcoin withdrawal transaction properly, it will be sent to the Bitcoin network.
+2) If a transfer command is valid (destination address is whitelisted and has base58 format), then the service tries to establish 'withdrawal consensus' among all the Notaries. They must decide what UTXO may be spent according to the Bitcoin blockchain state.
+3) Once the 'withdrawal consensus' is reached, the service starts creating a Bitcoin withdrawal transaction.
+4) The next step is signing. All the Notaries must sign a newly created transaction.
+5) If all the Notaries signed a Bitcoin withdrawal transaction properly, it will be sent to the Bitcoin network.
 
 Assets will be rolled back to the initiator of transfer in case of error or failure.    
 ### Configuration overview (withdrawal.properties)
@@ -27,7 +27,7 @@ Assets will be rolled back to the initiator of transfer in case of error or fail
 ### How to deploy
 
 Typically, the service runs as a part of the `btc-dw-bridge`. But this guide may be helpful anyway.
-1) Create `transfers.d3.wallet` and set a path to the wallet in the configuration file. Nodes must have the same transfer wallet. The path to the wallet must be the same as in `btc-deposit` configuration file.
-2) Create Bitcoin blockchain folder and set a path to the storage in the configuration file.
+1) Create `transfers.d3.wallet` and set a path to the wallet in the configuration file. Nodes must have the same transfer wallet. The path to the wallet must be the same as in the `btc-deposit` configuration file.
+2) Create a Bitcoin blockchain folder and set a path to the storage in the configuration file.
 3) Set a list of Bitcoin full node hosts in the configuration file. Hosts may be taken from https://bitnodes.earn.com if no D3 controlled node was deployed yet.
-4) Run service with `gradlew runBtcWithdrawal` command. Wait until the service stops downloading  Bitcoin blockchain headers. If you work with MainNet it may take a long time(1-2 days). Once blockchain data is downloaded, it can be used by other nodes in order to skip this time-consuming step. Just copy the contents of `btc-withdrawal.bitcoin.blockStoragePath`.
+4)  Run the service with the `gradlew runBtcWithdrawal` command. Wait until the service stops downloading  Bitcoin blockchain headers. If you work with MainNet it may take a long time (1-2 days). Once blockchain data is downloaded, it can be used by other nodes in order to skip this time-consuming step. Just copy the contents of `btc-withdrawal.bitcoin.blockStoragePath`.
