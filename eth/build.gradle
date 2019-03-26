@@ -23,6 +23,11 @@ task runSendEther(type: JavaExec) {
     setWorkingDir("$rootDir/")
 }
 
+/*
+ * Send Ether from contract with internal transaction
+ * Example:
+ * ./gradlew runSendEtherFromContract --args="0x4a59b6031e42f77df0554d253bd63cbf9113ea30 0.00000001"
+ */
 task runSendEtherFromContract(type: JavaExec) {
     main = 'com.d3.eth.deploy.TransferEthereumFromContract'
     classpath = sourceSets.main.runtimeClasspath

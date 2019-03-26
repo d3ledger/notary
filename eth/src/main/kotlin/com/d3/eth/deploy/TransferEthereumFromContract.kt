@@ -16,6 +16,9 @@ private val logger = KLogging().logger
 
 /**
  * Task that transfer Ethereum from contract as internal transaction for testing purpose.
+ * Arguments:
+ *  - ethereum address to send (0x4a59b6031e42f77df0554d253bd63cbf9113ea30)
+ *  - amount
  */
 fun main(args: Array<String>) {
     if (args.isEmpty()) {
