@@ -144,8 +144,8 @@ class PassiveAccountPrototype(
 open class AccountPrototype(
     val name: String? = null,
     val domainId: String? = null,
-    private var roles: List<String> = listOf(),
-    private var details: Map<String, String> = mapOf(),
+    val roles: List<String> = listOf(),
+    val details: Map<String, String> = mapOf(),
     val passive: Boolean = false,
     var quorum: Int = 1,
     val peersDependentQuorum: Boolean = false

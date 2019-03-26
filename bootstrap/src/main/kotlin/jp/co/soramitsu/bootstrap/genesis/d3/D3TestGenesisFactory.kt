@@ -45,10 +45,12 @@ class D3TestGenesisFactory : GenesisInterface {
         return JsonFormat.printer().omittingInsignificantWhitespace().print(block)
     }
 
-    private fun createAccountDetails(transactionBuilder: TransactionBuilder,
-                                     peers: List<Peer>) {
+    private fun createAccountDetails(
+        transactionBuilder: TransactionBuilder,
+        peers: List<Peer>
+    ) {
         peers.forEach {
-            transactionBuilder.setAccountDetail("notaries@notary", it.peerKey,it.notaryHostPort)
+            transactionBuilder.setAccountDetail("notaries@notary", it.peerKey, it.notaryHostPort)
         }
 
     }
@@ -93,6 +95,9 @@ class D3TestGenesisFactory : GenesisInterface {
                 )
             } else {
                 throw AccountException("Needed account keys are not received: ${account.id}")
+            }
+            account.roles.forEach {
+                transactionBuilder.appendRole(account.id, it)
             }
         }
     }
