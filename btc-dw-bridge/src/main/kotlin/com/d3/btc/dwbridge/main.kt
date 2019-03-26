@@ -26,6 +26,7 @@ const val BTC_DW_BRIDGE_SERVICE_NAME = "btc-dw-bridge"
         "com.d3.btc.provider.address",
         "com.d3.btc.provider.network",
         "com.d3.btc.withdrawal.handler",
+        "com.d3.btc.withdrawal.service",
         "com.d3.btc.withdrawal.init",
         "com.d3.btc.withdrawal.provider",
         "com.d3.btc.withdrawal.transaction",

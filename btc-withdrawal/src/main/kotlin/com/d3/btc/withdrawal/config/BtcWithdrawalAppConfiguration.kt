@@ -19,11 +19,11 @@ import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.io.File
-import java.util.concurrent.Executors
 
 val withdrawalConfig =
     loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties").get()
 
+//TODO refactor config
 @Configuration
 class BtcWithdrawalAppConfiguration {
 
@@ -53,8 +53,21 @@ class BtcWithdrawalAppConfiguration {
         IrohaCredential(withdrawalConfig.btcFeeRateCredential.accountId, keypair)
     }, { ex -> throw ex })
 
+    private val btcConsensusCredential = ModelUtil.loadKeypair(
+        withdrawalConfig.btcConsensusCredential.pubkeyPath,
+        withdrawalConfig.btcConsensusCredential.privkeyPath
+    ).fold({ keypair ->
+        IrohaCredential(withdrawalConfig.btcConsensusCredential.accountId, keypair)
+    }, { ex -> throw ex })
+
     @Bean
     fun rmqConfig() = rmqConfig
+
+    @Bean
+    fun consensusIrohaCredential() = btcConsensusCredential
+
+    @Bean
+    fun consensusIrohaConsumer() = IrohaConsumerImpl(consensusIrohaCredential(), irohaAPI())
 
     @Bean
     fun irohaBlocksQueue() = withdrawalConfig.irohaBlockQueue

@@ -117,6 +117,11 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
         createTesterAccount("signature_collector", "signature_collector")
     }
 
+    /** Account that collects withdrawal transaction consensus data */
+    val btcConsensusAccount by lazy {
+        createTesterAccount("consensus","consensus_collector")
+    }
+
     /** Account that stores current fee rate */
     val btcFeeRateAccount by lazy {
         createTesterAccount("fee_rate", "btc_fee_rate_setter")

@@ -3,10 +3,10 @@ package com.d3.btc.withdrawal.provider
 import com.d3.btc.model.AddressInfo
 import com.d3.btc.model.BtcAddress
 import com.d3.btc.monitoring.Monitoring
+import com.d3.commons.sidechain.iroha.util.getAccountDetails
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import jp.co.soramitsu.iroha.java.QueryAPI
-import com.d3.commons.sidechain.iroha.util.getAccountDetails
 
 /*
     Class that is used to get change address
@@ -27,12 +27,17 @@ open class BtcChangeAddressProvider(
             queryAPI,
             changeAddressesStorageAccount,
             mstRegistrationAccount
-        ).map { addresses ->
-            if (addresses.isEmpty()) {
+        ).map { details ->
+            if (details.isEmpty()) {
                 throw IllegalStateException("No change address was set")
             }
-            val changeAddressEntry = addresses.entries.first()
-            BtcAddress(changeAddressEntry.key, AddressInfo.fromJson(changeAddressEntry.value)!!)
+            // Map details into BtcAddress collection
+            details.entries.map { entry ->
+                BtcAddress(entry.key, AddressInfo.fromJson(entry.value)!!)
+            }
+        }.map { changeAddresses ->
+            // Get the newest change address
+            changeAddresses.maxBy { address -> address.info.generationTime ?: 0 }!!
         }
     }
 }

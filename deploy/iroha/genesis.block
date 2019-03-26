@@ -132,6 +132,16 @@
               },
               {
                 "createRole": {
+                  "roleName": "consensus_collector",
+                  "permissions": [
+                    "can_create_account",
+                    "can_set_detail",
+                    "can_get_all_accounts"
+                  ]
+                }
+              },
+              {
+                "createRole": {
                   "roleName": "vacuumer",
                   "permissions": [
                     "can_get_domain_accounts",
@@ -329,6 +339,12 @@
                 }
               },
               {
+                "createDomain": {
+                  "domainId": "btcConsensus",
+                  "defaultRole": "none"
+                }
+              },
+              {
                 "createAsset": {
                   "assetName": "btc",
                   "domainId": "bitcoin",
@@ -351,6 +367,13 @@
               },
               {
                 "createAccount": {
+                  "accountName": "btc_consensus_collector",
+                  "domainId": "notary",
+                  "publicKey": "8338ab91ce2cc2a739c40c29ae782439f2b43ddc96c756ac5d4e50ee4307e269"
+                }
+              },
+              {
+                "createAccount": {
                   "accountName": "rmq",
                   "domainId": "notary",
                   "publicKey": "7a4af859a775dd7c7b4024c97c8118f0280455b8135f6f41422101f0397e0fa5"
@@ -360,6 +383,12 @@
                 "appendRole": {
                   "accountId": "rmq@notary",
                   "roleName": "rmq"
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "btc_consensus_collector@notary",
+                  "roleName": "consensus_collector"
                 }
               },
               {
