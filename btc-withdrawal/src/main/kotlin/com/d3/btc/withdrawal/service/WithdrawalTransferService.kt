@@ -65,6 +65,7 @@ class WithdrawalTransferService(
                     "amount:${btcAmount.toPlainString()}" +
                     "hash:${withdrawalDetails.irohaFriendlyHashCode()})"
         }
+        //TODO move checks in NewTransferHandler
         if (!CurrentFeeRate.isPresent()) {
             logger.warn { "Cannot execute transfer. Fee rate was not set." }
             btcRollbackService.rollback(sourceAccountId, satAmount, withdrawalTime, "Not able to transfer yet")
