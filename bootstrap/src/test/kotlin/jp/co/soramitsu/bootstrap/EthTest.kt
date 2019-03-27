@@ -33,9 +33,9 @@ class EthTest {
     private val mapper = ObjectMapper()
 
     @Test
-    fun testCredentialsRequest() {
+    fun testCreateWallet() {
         val result: MvcResult = mvc
-            .perform(MockMvcRequestBuilders.get("/eth/create/wallet"))
+            .perform(MockMvcRequestBuilders.get("/eth/create/wallet?password=abc"))
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andReturn()
         val respBody = mapper.readValue(result.response.contentAsString, EthWallet::class.java)

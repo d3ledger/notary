@@ -4,13 +4,11 @@ import jp.co.soramitsu.bootstrap.dto.EthWallet
 import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import org.web3j.crypto.Keys
 import org.web3j.crypto.Wallet
 import org.web3j.crypto.WalletFile
+import javax.validation.constraints.NotNull
 
 @RestController
 @RequestMapping("/eth")
@@ -18,9 +16,9 @@ class EthController {
     private val log = KLogging().logger
 
     @GetMapping("/create/wallet")
-    fun createWallet(): ResponseEntity<EthWallet> {
+    fun createWallet(@NotNull @RequestParam password:String): ResponseEntity<EthWallet> {
         try {
-            val wallet: WalletFile = Wallet.createStandard("AB", Keys.createEcKeyPair())
+            val wallet: WalletFile = Wallet.createStandard(password, Keys.createEcKeyPair())
             return ResponseEntity.ok<EthWallet>(EthWallet(wallet))
         } catch(e:Exception) {
             log.error("Error creating Ethereum wallet",e)
@@ -32,7 +30,7 @@ class EthController {
     }
 
     @GetMapping("/list/servicesWithWallet/d3/{peersCount}")
-    fun listServicesWithEthWallet(@PathVariable("peersCount")peersCount: Int): ResponseEntity<List<String>> {
+    fun listServiceEthWallets(@PathVariable("peersCount")peersCount: Int): ResponseEntity<List<String>> {
         val list = ArrayList<String>()
         var depositCounter = peersCount
         while(depositCounter > 0) {
