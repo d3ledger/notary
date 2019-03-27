@@ -2,9 +2,9 @@ package com.d3.btc.withdrawal.service
 
 import com.d3.btc.helper.currency.satToBtc
 import com.d3.btc.withdrawal.transaction.WithdrawalDetails
-import com.d3.commons.provider.NotaryPeerListProvider
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.github.kittinunf.result.flatMap
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -18,10 +18,8 @@ private const val BTC_ASSET_ID = "btc#bitcoin"
 @Component
 class BtcRollbackService(
     @Qualifier("withdrawalConsumer")
-    @Autowired private val withdrawalConsumer: IrohaConsumer,
-    @Autowired private val peerListProvider: NotaryPeerListProvider
+    @Autowired private val withdrawalConsumer: IrohaConsumer
 ) {
-
 
     /**
      * Rollbacks given amount of money to a particular Iroha account
@@ -45,17 +43,23 @@ class BtcRollbackService(
      * @param reason - reason of rollback
      */
     fun rollback(accountId: String, amountSat: Long, withdrawalTime: Long, reason: String) {
-        ModelUtil.transferAssetIroha(
-            withdrawalConsumer,
-            withdrawalConsumer.creator,
-            accountId,
-            BTC_ASSET_ID,
-            "Rollback. $reason",
-            satToBtc(amountSat).toPlainString(),
-            withdrawalTime,
-            peerListProvider.getPeerList().size
-        ).fold(
-            { logger.info { "Rollback(accountId:$accountId, amount:${satToBtc(amountSat).toPlainString()}) was committed" } },
+        withdrawalConsumer.getConsumerQuorum().flatMap { quorum ->
+            ModelUtil.transferAssetIroha(
+                withdrawalConsumer,
+                withdrawalConsumer.creator,
+                accountId,
+                BTC_ASSET_ID,
+                "Rollback. $reason",
+                satToBtc(amountSat).toPlainString(),
+                withdrawalTime,
+                quorum
+            )
+        }.fold(
+            {
+                logger.info {
+                    "Rollback(accountId:$accountId, amount:${satToBtc(amountSat).toPlainString()}) was committed"
+                }
+            },
             { ex -> logger.error("Cannot perform rollback", ex) })
     }
 

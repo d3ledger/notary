@@ -7,7 +7,7 @@ Bitcoin Deposit service(or simply `btc-deposit`) is here to listen to Bitcoin bl
 2) Start Bitcoin blockchain downloading process (only headers are stored on disk)
 3) Increase client balance in Iroha blockchain if needed. This 'increase' works in a multisignature fashion. So every node must create the same Iroha transaction. Bitcoin block time is used as a source of time of Iroha 'increase balance' transaction. Doing that we can guarantee that every node will use the same time.
 
-### Configuration overview (btc-deposit.properties)
+### Configuration overview (deposit.properties)
 * `btc-deposit.registrationAccount` - this account stores registered Bitcoin addresses associated with D3 clients. This information is used to check if a Bitcoin transaction is related to our clients.
 
 * `btc-deposit.healthCheckPort` - port of health check endpoint. A health check is available on `http://host:healthCheckPort/health`. This service checks if `btc-deposit` is connected to one Bitcoin peer at least.

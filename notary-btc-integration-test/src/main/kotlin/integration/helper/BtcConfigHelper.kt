@@ -115,8 +115,6 @@ class BtcConfigHelper(
             override val registrationAccount = accountHelper.registrationAccount.accountId
             override val iroha = createIrohaConfig()
             override val bitcoin = createBitcoinConfig(btcDepositConfig.bitcoin, testName)
-            override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
-            override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
             override val notaryCredential = accountHelper.createCredentialConfig(notaryIrohaCredential)
         }
     }

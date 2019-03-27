@@ -95,7 +95,7 @@ class NewTransferHandler(
      */
     private fun startConsensusProcess(withdrawalDetails: WithdrawalDetails) {
         withdrawalConsensusProvider.createConsensusData(withdrawalDetails).fold({
-            logger.info("Consensus data for $withdrawalDetails has beenl created")
+            logger.info("Consensus data for $withdrawalDetails has been created")
         }, { ex ->
             logger.error("Cannot create consensus for withdrawal $withdrawalDetails", ex)
             btcRollbackService.rollback(withdrawalDetails, "Cannot create consensus")

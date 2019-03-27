@@ -1,7 +1,6 @@
 package com.d3.commons.notary
 
 import com.d3.commons.model.IrohaCredential
-import com.d3.commons.provider.NotaryPeerListProvider
 import com.d3.commons.sidechain.SideChainEvent
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.consumer.IrohaConverter
@@ -18,13 +17,13 @@ import java.math.BigInteger
  */
 class NotaryImpl(
     private val notaryCredential: IrohaCredential,
-    private val irohaAPI: IrohaAPI,
-    private val primaryChainEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>,
-    private val peerListProvider: NotaryPeerListProvider
+    val irohaAPI: IrohaAPI,
+    private val primaryChainEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>
 ) : Notary {
 
     /** Notary account in Iroha */
     private val creator = notaryCredential.accountId
+    private val notaryIrohaConsumer = IrohaConsumerImpl(notaryCredential, irohaAPI)
 
     /**
      * Handles primary chain deposit event. Notaries create the ordered bunch of
@@ -42,7 +41,7 @@ class NotaryImpl(
 
         logger.info { "Transfer $asset event: hash($hash) time($time) user($account) asset($asset) value ($amount)" }
 
-        val quorum = peerListProvider.getPeerList().size
+        val quorum = notaryIrohaConsumer.getConsumerQuorum().get()
 
         return IrohaOrderedBatch(
             arrayListOf(
@@ -113,7 +112,6 @@ class NotaryImpl(
     override fun initIrohaConsumer(): Result<Unit, Exception> {
         logger.info { "Init Iroha consumer" }
         return Result.of {
-            val irohaConsumer = IrohaConsumerImpl(notaryCredential, irohaAPI)
 
             // Init Iroha Consumer pipeline
             irohaOutput()
@@ -123,7 +121,7 @@ class NotaryImpl(
                     // send to Iroha network layer
                     { batch ->
                         val lst = IrohaConverter.convert(batch, notaryCredential.keyPair)
-                        irohaConsumer.send(lst)
+                        notaryIrohaConsumer.send(lst)
                             .fold(
                                 { logger.info { "Send to Iroha success" } },
                                 { ex -> logger.error("Send failure", ex) }
