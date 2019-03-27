@@ -34,7 +34,7 @@ class EthController {
         val list = ArrayList<String>()
         var depositCounter = peersCount
         while(depositCounter > 0) {
-            list.add("eth-deposit-service-peer$peersCount")
+            list.add("eth-deposit-service-peer$depositCounter")
             depositCounter--
         }
         list.add("eth-registration-service")
