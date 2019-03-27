@@ -107,7 +107,6 @@ class BtcMultiWithdrawalIntegrationTest {
      * @then no transaction is created, because SAT 1 is considered dust.
      * Money sent to 2nd client is rolled back to 1st client
      */
-    @Disabled
     @Test
     fun testWithdrawalMultisigRollback() {
         val environment = withdrawalEnvironments.first()
