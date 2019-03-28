@@ -189,7 +189,7 @@ class BtcWithdrawalTestEnvironment(
         btcWithdrawalConfig.notaryListSetterAccount
     )
     private val btcRollbackService =
-        BtcRollbackService(withdrawalIrohaConsumer, notaryPeerListProvider)
+        BtcRollbackService(withdrawalIrohaConsumer)
     val unsignedTransactions = UnsignedTransactions(signCollector)
     private val withdrawalConsensusProvider = WithdrawalConsensusProvider(
         btcConsensusCredential,
