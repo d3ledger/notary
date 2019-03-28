@@ -233,7 +233,8 @@ class IrohaTest {
             createAccountDto("admin", "notary"),
             createAccountDto("sora", "sora"),
             createAccountDto("brvs", "brvs"),
-            createAccountDto("client_account", "notary")
+            createAccountDto("client_account", "notary"),
+            createAccountDto("superuser", "bootstrap")
         )
     }
 

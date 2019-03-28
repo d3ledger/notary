@@ -7,8 +7,13 @@ import jp.co.soramitsu.bootstrap.dto.PassiveAccountPrototype
 import jp.co.soramitsu.bootstrap.dto.PeersCountDependentAccountPrototype
 
 object D3TestContext {
-    val d3neededAccounts = listOf<AccountPrototype>(
+    val d3neededAccounts = listOf(
         PeersCountDependentAccountPrototype("notary", "notary", listOf("notary")),
+        PeersCountDependentAccountPrototype(
+            "superuser",
+            "bootstrap",
+            listOf("superuser")
+        ),
         AccountPrototype(
             "registration_service",
             "notary",
@@ -329,6 +334,58 @@ object D3TestContext {
                 Primitive.RolePermission.can_get_all_acc_detail,
                 Primitive.RolePermission.can_set_quorum,
                 Primitive.RolePermission.can_set_detail
+            )
+        )
+    }
+
+    fun createSuperuserRole(builder: TransactionBuilder) {
+        builder.createRole(
+            "superuser",
+            listOf(
+                Primitive.RolePermission.can_create_account,
+                Primitive.RolePermission.can_set_detail,
+                Primitive.RolePermission.can_create_asset,
+                Primitive.RolePermission.can_receive,
+                Primitive.RolePermission.can_transfer,
+                Primitive.RolePermission.can_add_asset_qty,
+                Primitive.RolePermission.can_subtract_asset_qty,
+                Primitive.RolePermission.can_add_domain_asset_qty,
+                Primitive.RolePermission.can_subtract_domain_asset_qty,
+                Primitive.RolePermission.can_create_domain,
+                Primitive.RolePermission.can_grant_can_add_my_signatory,
+                Primitive.RolePermission.can_grant_can_remove_my_signatory,
+                Primitive.RolePermission.can_grant_can_set_my_account_detail,
+                Primitive.RolePermission.can_grant_can_set_my_quorum,
+                Primitive.RolePermission.can_grant_can_transfer_my_assets,
+                Primitive.RolePermission.can_add_peer,
+                Primitive.RolePermission.can_append_role,
+                Primitive.RolePermission.can_create_role,
+                Primitive.RolePermission.can_detach_role,
+                Primitive.RolePermission.can_add_signatory,
+                Primitive.RolePermission.can_remove_signatory,
+                Primitive.RolePermission.can_set_quorum,
+                Primitive.RolePermission.can_get_all_acc_detail,
+                Primitive.RolePermission.can_get_all_accounts,
+                Primitive.RolePermission.can_get_domain_acc_detail,
+                Primitive.RolePermission.can_get_domain_accounts,
+                Primitive.RolePermission.can_get_my_acc_detail,
+                Primitive.RolePermission.can_get_my_account,
+                Primitive.RolePermission.can_get_all_acc_ast,
+                Primitive.RolePermission.can_get_domain_acc_ast,
+                Primitive.RolePermission.can_get_my_acc_ast,
+                Primitive.RolePermission.can_get_all_acc_ast_txs,
+                Primitive.RolePermission.can_get_domain_acc_ast_txs,
+                Primitive.RolePermission.can_get_my_acc_ast_txs,
+                Primitive.RolePermission.can_get_all_acc_txs,
+                Primitive.RolePermission.can_get_domain_acc_txs,
+                Primitive.RolePermission.can_get_my_acc_txs,
+                Primitive.RolePermission.can_read_assets,
+                Primitive.RolePermission.can_get_blocks,
+                Primitive.RolePermission.can_get_roles,
+                Primitive.RolePermission.can_get_all_signatories,
+                Primitive.RolePermission.can_get_domain_signatories,
+                Primitive.RolePermission.can_get_my_signatories,
+                Primitive.RolePermission.can_get_all_txs
             )
         )
     }
