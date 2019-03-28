@@ -1,24 +1,23 @@
 package jp.co.soramitsu.bootstrap
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import jp.co.soramitsu.bootstrap.dto.EthWallet
-import jp.co.soramitsu.bootstrap.genesis.d3.D3TestGenesisFactory
+import jp.co.soramitsu.bootstrap.dto.*
 import mu.KLogging
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.http.MediaType
 import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.web3j.crypto.WalletFile
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 @RunWith(SpringRunner::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -31,6 +30,29 @@ class EthTest {
     lateinit var mvc: MockMvc
 
     private val mapper = ObjectMapper()
+    
+    @Test
+    @Ignore
+    fun testDeploySmartContract() {
+        val result: MvcResult = mvc
+            .perform(
+                MockMvcRequestBuilders.post("/eth/deploy/D3/smartContracts").contentType(MediaType.APPLICATION_JSON).content(
+                    mapper.writeValueAsString(
+                        MasterContractsRequest(
+                            network = EthereumNetworkProperties(
+                                ethPasswords = EthereumPasswordsImpl(credentialsPassword = "password is specific for network creds"),
+                                ethereumConfig = EthereumConfigImpl()),
+                                notaryEthereumAccounts = listOf()
+                        )
+                    )
+                )
+            )
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andReturn()
+        val respBody = mapper.readValue(result.response.contentAsString, MasterContractResponse::class.java)
+
+        assertNull(respBody.errorCode)
+    }
 
     @Test
     fun testCreateWallet() {

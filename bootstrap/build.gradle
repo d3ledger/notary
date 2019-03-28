@@ -25,6 +25,7 @@ dependencies {
     final def kotlinVersion = '1.3.10'
 
     implementation project(":notary-commons")
+    implementation project(":eth")
 
     // kotlin related
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"

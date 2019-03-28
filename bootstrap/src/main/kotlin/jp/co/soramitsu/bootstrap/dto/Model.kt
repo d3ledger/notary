@@ -1,5 +1,7 @@
 package jp.co.soramitsu.bootstrap.dto
 
+import com.d3.commons.config.EthereumConfig
+import com.d3.commons.config.EthereumPasswords
 import jp.co.soramitsu.bootstrap.genesis.getIrohaPublicKeyFromHex
 import jp.co.soramitsu.iroha.java.TransactionBuilder
 import org.bitcoinj.core.NetworkParameters
@@ -23,10 +25,48 @@ enum class BtcNetwork(val params: NetworkParameters) {
 
 open class Conflictable(var errorCode: String? = null, var message: String? = null)
 
+
+data class MasterContractsRequest(
+    @NotNull val network: EthereumNetworkProperties? = null,
+    @NotNull val notaryEthereumAccounts: List<String> = emptyList()
+)
+
+data class MasterContractResponse(
+    val masterEthAddress: String? = null,
+    val relayRegistryEthAddress: String? = null,
+    val relayImplementationAddress: String? = null,
+    val soraTokenEthAddress: String? = null
+) : Conflictable() {
+    constructor(errorCode: String? = null, message: String? = null) :
+            this(null, null, null, null) {
+        this.errorCode = errorCode
+        this.message = message
+    }
+}
+
+data class EthereumNetworkProperties(val ethPasswords: EthereumPasswordsImpl = EthereumPasswordsImpl(), val ethereumConfig: EthereumConfigImpl = EthereumConfigImpl())
+data class EthereumPasswordsImpl(
+    override val credentialsPassword: String = "user",
+    override val nodeLogin: String? = null,
+    override val nodePassword: String? = null
+) : EthereumPasswords
+
+/**
+ * Default parameters are Ropsten testnet parameters
+ */
+data class EthereumConfigImpl(
+    override val url: String = "http://parity-d3.test.iroha.tech:8545",
+    override val credentialsPath: String = "some\\path\\to\\genesis.key",
+    override val gasPrice: Long = 100000000000,
+    override val gasLimit: Long = 4500000,
+    override val confirmationPeriod: Long = 0
+) : EthereumConfig
+
 data class BlockchainCreds(
     val private: String? = null,
     val public: String? = null,
-    val address: String? = null
+    val address: String? = null,
+    val confirmationPeriod:Int? = null
 ) : Conflictable()
 
 data class IrohaAccountDto(
