@@ -5,7 +5,7 @@ Bitcoin Deposit service(or simply `btc-deposit`) is here to listen to Bitcoin bl
 ### Simplified flow
 1) The service creates Bitcoin blockchain listeners that listen to transactions where coins were sent to our clients. The listener will wait until transaction of interest hits at least 6 blocks. Once it happens, Iroha transaction is created. 
 2) Then it starts Bitcoin blockchain downloading process (only headers are stored on the disk)
-3) After that, the service increases client's balance in Iroha blockchain if needed. This 'increase' works in a multisignature fashion. So every node must create the same Iroha transaction. Bitcoin block time is used as a source of time for Iroha 'increase balance' transaction. Doing that we can guarantee that every node will use the same time.
+3) After that, the service increases client's balance in Iroha blockchain if needed. This 'increase' works in a multisignature fashion. So every node must create the same Iroha transaction. Bitcoin block time is used as a source of time for the Iroha 'increase balance' transaction. Doing that we can guarantee that every node will use the same time.
 
 ### Configuration overview (deposit.properties)
 * `btc-deposit.registrationAccount` - this account stores registered Bitcoin addresses associated with D3 clients. This information is used to check if a Bitcoin transaction is related to our clients.
