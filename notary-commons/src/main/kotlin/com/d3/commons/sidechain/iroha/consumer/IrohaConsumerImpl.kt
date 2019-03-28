@@ -53,9 +53,7 @@ class IrohaConsumerImpl(
 
     /**
      * Send transaction to Iroha and check if it is committed
-     * @param utx queryResponse ->
-    val stringBuilder = StringBuilder(queryResponse.account.jsonData)
-    Parser().parse(stringBuilder) as JsonObject - unsigned transaction to send
+     * @param utx - unsigned transaction to send
      * @return hex representation of hash or failure
      */
     override fun send(utx: Transaction): Result<String, Exception> {
