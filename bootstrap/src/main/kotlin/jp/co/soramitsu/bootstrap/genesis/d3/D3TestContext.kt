@@ -316,6 +316,15 @@ object D3TestContext {
         )
     }
 
+    fun createAdminRole(builder: TransactionBuilder) {
+        builder.createRole(
+            "admin",
+            listOf(
+                Primitive.RolePermission.can_get_all_accounts
+            )
+        )
+    }
+
     fun createBrvsRole(builder: TransactionBuilder) {
         builder.createRole(
             "brvs",
