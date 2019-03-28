@@ -9,7 +9,7 @@ import jp.co.soramitsu.bootstrap.dto.PeersCountDependentAccountPrototype
 object D3TestContext {
     val d3neededAccounts = listOf(
         PeersCountDependentAccountPrototype("notary", "notary", listOf("notary")),
-        AccountPrototype(
+        PeersCountDependentAccountPrototype(
             "superuser",
             "bootstrap",
             listOf("superuser")
