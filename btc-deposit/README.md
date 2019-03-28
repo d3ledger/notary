@@ -20,7 +20,7 @@ Bitcoin Deposit service(or simply `btc-deposit`) is here to listen to Bitcoin bl
 
 * `btc-deposit.bitcoin.hosts` - a list of Bitcoin full node hosts. Hosts are separated by a comma(`,`) symbol. These hosts are used as a source of Bitcoin blockchain. 
 
-* `btc-deposit.notaryCredential` - credentials of the Notary account. This account is used to create 'increase balance'  transactions in Iroha. Must be multisignature.
+* `btc-deposit.notaryCredential` - credentials of the Notary account. This account is used to create 'increase balance'  transactions in Iroha. Must be a  multisignature one.
 
 ### How to deploy
 
