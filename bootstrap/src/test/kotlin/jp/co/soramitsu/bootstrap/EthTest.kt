@@ -30,7 +30,7 @@ class EthTest {
     lateinit var mvc: MockMvc
 
     private val mapper = ObjectMapper()
-    
+
     @Test
     @Ignore
     fun testDeploySmartContract() {

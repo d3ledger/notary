@@ -189,7 +189,7 @@ object D3TestContext {
 
     fun createVacuumerRole(builder: TransactionBuilder) {
         builder.createRole(
-            "Vacuumer",
+            "vacuumer",
             listOf(
                 Primitive.RolePermission.can_get_domain_accounts,
                 Primitive.RolePermission.can_read_assets
