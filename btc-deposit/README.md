@@ -12,7 +12,7 @@ Bitcoin Deposit service(or simply `btc-deposit`) is here to listen to Bitcoin bl
 
 * `btc-deposit.healthCheckPort` - port of health check endpoint. A health check is available on `http://host:healthCheckPort/health`. This service checks if `btc-deposit` is connected to one Bitcoin peer at least.
 
-* `btc-deposit.btcTransferWalletPath` - a path of wallet file where deposit transactions are stored. We need this wallet to use deposit transactions as UTXO(Unspent Transaction Output) in the withdrawal service.
+* `btc-deposit.btcTransferWalletPath` - a path of wallet file where deposit transactions are stored. We need this wallet to use deposit transactions as UTXO (Unspent Transaction Output) in the withdrawal service.
 
 * `btc-deposit.bitcoin.blockStoragePath` - a path to Bitcoin blockchain storage.  Only headers are stored. Typically this folder consumes very little amount of disk space (approximately 50-60mb on MainNet).
 
