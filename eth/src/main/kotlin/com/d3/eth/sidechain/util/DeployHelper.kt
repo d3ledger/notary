@@ -22,6 +22,7 @@ import org.web3j.tx.gas.StaticGasProvider
 import org.web3j.utils.Convert
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.util.concurrent.TimeUnit
 
 /**
  * Authenticator class for basic access authentication
@@ -67,6 +68,8 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
     init {
         val builder = OkHttpClient().newBuilder()
         builder.authenticator(BasicAuthenticator(ethereumPasswords))
+        builder.readTimeout(1200, TimeUnit.SECONDS)
+        builder.writeTimeout(1200, TimeUnit.SECONDS)
         web3 = Web3j.build(
             HttpService(ethereumConfig.url, builder.build(), false), DEFAULT_BLOCK_TIME.toLong(),
             createPrettyScheduledThreadPool(DeployHelper::class.simpleName!!, "web3j")
