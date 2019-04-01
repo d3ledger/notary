@@ -3,6 +3,7 @@ package jp.co.soramitsu.bootstrap
 import com.fasterxml.jackson.databind.ObjectMapper
 import jp.co.soramitsu.bootstrap.dto.*
 import mu.KLogging
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,6 +30,29 @@ class EthTest {
     lateinit var mvc: MockMvc
 
     private val mapper = ObjectMapper()
+    
+    @Test
+    @Ignore
+    fun testDeploySmartContract() {
+        val result: MvcResult = mvc
+            .perform(
+                MockMvcRequestBuilders.post("/eth/deploy/D3/smartContracts").contentType(MediaType.APPLICATION_JSON).content(
+                    mapper.writeValueAsString(
+                        MasterContractsRequest(
+                            network = EthereumNetworkProperties(
+                                ethPasswords = EthereumPasswordsImpl(credentialsPassword = "password is specific for network creds"),
+                                ethereumConfig = EthereumConfigImpl()),
+                                notaryEthereumAccounts = listOf()
+                        )
+                    )
+                )
+            )
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andReturn()
+        val respBody = mapper.readValue(result.response.contentAsString, MasterContractResponse::class.java)
+
+        assertNull(respBody.errorCode)
+    }
 
     @Test
     //@Ignore

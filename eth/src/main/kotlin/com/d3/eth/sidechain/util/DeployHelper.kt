@@ -265,6 +265,16 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
     }
 
     /**
+     * Deploy TransferEthereum contract that sends Ethereum as internal transaction. Can be used for testing.
+     */
+    fun deployTransferEthereum(): TransferEthereum {
+        val transferEthereum =
+            TransferEthereum.deploy(web3, transactionManager, StaticGasProvider(gasPrice, gasLimit)).send()
+        logger.info { "Transfer ethereum contract ${transferEthereum.contractAddress} was deployed" }
+        return transferEthereum
+    }
+
+    /**
      * Deploy TestGreeter_v0 contract. The contract is used for upgradability testing, it is initial version.
      * @param greeting - greeting string
      * @return relay smart contract object
@@ -306,7 +316,6 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
         logger.info { "OwnedUpgradeabilityProxy was deployed at ${OwnedUpgradeabilityProxy.contractAddress}" }
         return OwnedUpgradeabilityProxy
     }
-
 
     /**
      * Send ERC20 tokens

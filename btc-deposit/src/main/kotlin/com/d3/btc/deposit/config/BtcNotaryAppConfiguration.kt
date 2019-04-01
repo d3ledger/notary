@@ -40,13 +40,6 @@ class BtcNotaryAppConfiguration {
     fun queryAPI() = QueryAPI(irohaAPI(), notaryCredential.accountId, notaryKeypair)
 
     @Bean
-    fun peerListProvider() = NotaryPeerListProviderImpl(
-        queryAPI(),
-        depositConfig.notaryListStorageAccount,
-        depositConfig.notaryListSetterAccount
-    )
-
-    @Bean
     fun btcEventsSource(): PublishSubject<SideChainEvent.PrimaryBlockChainEvent> {
         return PublishSubject.create<SideChainEvent.PrimaryBlockChainEvent>()
     }
@@ -57,7 +50,7 @@ class BtcNotaryAppConfiguration {
     }
 
     @Bean
-    fun notary() = NotaryImpl(notaryCredential, irohaAPI(), btcEventsObservable(), peerListProvider())
+    fun notary() = NotaryImpl(notaryCredential, irohaAPI(), btcEventsObservable())
 
     @Bean
     fun notaryConfig() = depositConfig

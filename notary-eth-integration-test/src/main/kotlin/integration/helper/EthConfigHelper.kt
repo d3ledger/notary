@@ -101,8 +101,6 @@ open class EthConfigHelper(
             override val registrationServiceIrohaAccount = accountHelper.registrationAccount.accountId
             override val tokenStorageAccount = accountHelper.tokenStorageAccount.accountId
             override val tokenSetterAccount = accountHelper.tokenSetterAccount.accountId
-            override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
-            override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
             override val whitelistSetter = accountHelper.registrationAccount.accountId
             override val notaryCredential = notaryCredential_
             override val refund = createRefundConfig()

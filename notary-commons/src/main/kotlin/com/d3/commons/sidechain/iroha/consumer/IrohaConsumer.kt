@@ -14,6 +14,11 @@ interface IrohaConsumer {
     val creator: String
 
     /**
+     * Returns consumer quorum value
+     */
+    fun getConsumerQuorum(): Result<Int, Exception>
+
+    /**
      * Send transaction to Iroha and check if it is committed
      * @param utx - unsigned transaction to sign and send
      */

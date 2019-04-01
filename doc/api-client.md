@@ -39,13 +39,22 @@ That's why D3 services provide registration of new client via HTTP POST request.
     
     **Code:** `200` <br />
     
-    **Content:** `myname@d3`
+    **Content:** 
+    
+        {
+            "clientId": "myname@d3"
+        }
               
 * **Example error response:**
     
     **Code:** `500` <br />
     
-    **Content:** `Response has been failed. java.lang.Exception: Tx 9fd23b3372dd772ca17b400d3abecf2160d1f6d8e0afc7d7b2f5c4de956051fc failed. CreateAccount`
+    **Content:** 
+    
+        {
+            "message": "Tx 12851857e1a929f490275e2850383484a3bed342d37a5db851748f888fe7ee01 failed. CreateAccount",
+            "details": "java.lang.Exception: Tx 12851857e1a929f490275e2850383484a3bed342d37a5db851748f888fe7ee01 failed. CreateAccount"
+         }
       
 
 ### Get free addresses number
