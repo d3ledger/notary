@@ -3,7 +3,6 @@ package jp.co.soramitsu.bootstrap.utils
 import com.d3.eth.sidechain.util.extractVRS
 import com.d3.eth.sidechain.util.signUserData
 import jp.co.soramitsu.bootstrap.dto.SigsData
-import jp.co.soramitsu.bootstrap.dto.StringKeyPair
 import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Hash
 import org.web3j.utils.Numeric
@@ -11,7 +10,6 @@ import java.math.BigInteger
 
 val defaultIrohaHash = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))
 val defaultByteHash = itohaHashToByteHash(defaultIrohaHash)
-
 
 fun itohaHashToByteHash(irohaHash: String) = Numeric.hexStringToByteArray(irohaHash.slice(2 until irohaHash.length))
 
