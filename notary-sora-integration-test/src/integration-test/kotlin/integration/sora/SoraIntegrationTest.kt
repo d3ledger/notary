@@ -1,7 +1,11 @@
 package integration.sora
 
-import config.loadConfigs
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
+import com.squareup.moshi.Moshi
 import integration.helper.IrohaIntegrationHelperUtil
+import integration.registration.RegistrationServiceTestEnvironment
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -10,10 +14,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
-import registration.NotaryRegistrationConfig
-import sidechain.iroha.util.ModelUtil
-import util.getRandomString
-import util.toHexString
 import kotlin.test.assertEquals
 
 /**
@@ -23,27 +23,25 @@ import kotlin.test.assertEquals
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SoraIntegrationTest {
 
-    val integrationHelper = IrohaIntegrationHelperUtil()
+    private val integrationHelper = IrohaIntegrationHelperUtil()
 
-    val domain = "sora"
-    val xorAsset = "xor#$domain"
+    private val registrationEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
 
-    val registrationConfig =
-        loadConfigs("registration", NotaryRegistrationConfig::class.java, "/registration.properties").get()
+    private val domain = "sora"
+    private val xorAsset = "xor#$domain"
+    private val soraClientId = "sora@sora"
+
+    // Moshi adapter for response JSON deserealization
+    val moshiAdapter = Moshi
+        .Builder()
+        .build()!!.adapter(Map::class.java)!!
 
     init {
         GlobalScope.launch {
-            RegistrationServiceTestEnvironment(integrationHelper).registrationInitialization.init()
+            registrationEnvironment.registrationInitialization.init()
         }
 
         runBlocking { delay(20_000) }
-    }
-
-    /**
-     * Send POST request to local server
-     */
-    fun post(params: Map<String, String>): khttp.responses.Response {
-        return khttp.post("http://127.0.0.1:${registrationConfig.port}/users", data = params)
     }
 
     /**
@@ -59,7 +57,9 @@ class SoraIntegrationTest {
 
         val keypairAlice = Ed25519Sha3().generateKeypair()
 
-        integrationHelper.createAccount(clientName, domain, keypairAlice.public)
+        val res = registrationEnvironment.register(clientName, keypairAlice.public.toHexString(), domain)
+
+        assertEquals(200, res.statusCode)
 
         assertEquals(
             "0",
@@ -84,12 +84,15 @@ class SoraIntegrationTest {
         val aliceClientName = String.getRandomString(9)
         val aliceClientId = "$aliceClientName@$domain"
         val keypairAlice = Ed25519Sha3().generateKeypair()
-        integrationHelper.createAccount(aliceClientName, domain, keypairAlice.public)
+        var res = registrationEnvironment.register(aliceClientName, keypairAlice.public.toHexString(), domain)
 
+        assertEquals(200, res.statusCode)
         val bobClientName = String.getRandomString(9)
         val bobClientId = "$bobClientName@$domain"
         val keypairBob = Ed25519Sha3().generateKeypair()
-        integrationHelper.createAccount(bobClientName, domain, keypairBob.public)
+        res = registrationEnvironment.register(bobClientName, keypairBob.public.toHexString(), domain)
+
+        assertEquals(200, res.statusCode)
 
         integrationHelper.addIrohaAssetTo(aliceClientId, xorAsset, "1334")
 
@@ -125,14 +128,17 @@ class SoraIntegrationTest {
         val aliceClientName = String.getRandomString(9)
         val aliceClientId = "$aliceClientName@$domain"
         val keypairAlice = Ed25519Sha3().generateKeypair()
-        integrationHelper.createAccount(aliceClientName, domain, keypairAlice.public)
+        var res = registrationEnvironment.register(aliceClientName, keypairAlice.public.toHexString(), domain)
+
+        assertEquals(200, res.statusCode)
 
         val bobClientName = String.getRandomString(9)
         val bobClientId = "$bobClientName@$domain"
         val keypairBob = Ed25519Sha3().generateKeypair()
-        integrationHelper.createAccount(bobClientName, domain, keypairBob.public)
+        res = registrationEnvironment.register(bobClientName, keypairBob.public.toHexString(), domain)
 
-        val soraClientId = "sora@sora"
+        assertEquals(200, res.statusCode)
+
         val soraKeyPair =
             ModelUtil.loadKeypair("deploy/iroha/keys/sora@sora.pub", "deploy/iroha/keys/sora@sora.priv").get()
         integrationHelper.addIrohaAssetTo(soraClientId, xorAsset, "35")
@@ -144,7 +150,8 @@ class SoraIntegrationTest {
             aliceClientId,
             xorAsset,
             "descr",
-            "17"
+            "17",
+            quorum = 1
         )
 
         integrationHelper.transferAssetIrohaFromClient(
@@ -154,7 +161,8 @@ class SoraIntegrationTest {
             bobClientId,
             xorAsset,
             "descr",
-            "18"
+            "18",
+            quorum = 1
         )
 
         assertEquals(
@@ -178,15 +186,13 @@ class SoraIntegrationTest {
         val name = String.getRandomString(9)
         val pubkey = Ed25519Sha3().generateKeypair().public.toHexString()
 
-        val res = post(
-            mapOf(
-                "name" to name,
-                "pubkey" to pubkey,
-                "domain" to domain
-            )
-        )
+        val res = registrationEnvironment.register(name, pubkey, domain)
 
         assertEquals(200, res.statusCode)
+
+        val response = moshiAdapter.fromJson(res.jsonObject.toString())!!
+        val actualClientId = response["clientId"]
+        assertEquals("$name@$domain", actualClientId)
 
         // ensure account is created
         try {
@@ -194,6 +200,14 @@ class SoraIntegrationTest {
         } catch (exc: Exception) {
             fail { "Expected no exceptions, but got $exc" }
         }
+    }
+
+    @Test
+    fun initialSupplyXOR() {
+        assertEquals(
+            "1618033988749894848204586834",
+            integrationHelper.getIrohaAccountBalance(soraClientId, xorAsset)
+        )
     }
 
 }

@@ -1,14 +1,20 @@
 package integration.eth
 
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
+import com.d3.eth.provider.ETH_PRECISION
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
+import integration.registration.RegistrationServiceTestEnvironment
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import provider.eth.ETH_PRECISION
-import sidechain.iroha.CLIENT_DOMAIN
-import util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Duration
@@ -24,29 +30,43 @@ class DepositIntegrationTest {
     /** Ethereum assetId in Iroha */
     private val etherAssetId = "ether#ethereum"
 
+    private val registrationTestEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
+    private val ethRegistrationService: Job
+
     init {
         // run notary
-        integrationHelper.runEthNotary()
-        integrationHelper.lockEthMasterSmartcontract()
+        integrationHelper.runEthDeposit()
+        registrationTestEnvironment.registrationInitialization.init()
+        ethRegistrationService = GlobalScope.launch {
+            integrationHelper.runEthRegistrationService(integrationHelper.ethRegistrationConfig)
+        }
     }
 
     /** Iroha client account */
     private val clientIrohaAccount = String.getRandomString(9)
     private val clientIrohaAccountId = "$clientIrohaAccount@$CLIENT_DOMAIN"
-
     /** Ethereum address to transfer to */
     private val relayWallet = registerRelay()
 
     private fun registerRelay(): String {
         integrationHelper.deployRelays(1)
+        // register client in Iroha
+        val res = integrationHelper.sendRegistrationRequest(
+            clientIrohaAccount,
+            listOf<String>().toString(),
+            ModelUtil.generateKeypair().public.toHexString(),
+            registrationTestEnvironment.registrationConfig.port
+        )
+        Assertions.assertEquals(200, res.statusCode)
         // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
-        return integrationHelper.registerClient(clientIrohaAccount, listOf())
+        return integrationHelper.registerClientInEth(clientIrohaAccount, listOf())
     }
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
 
     @AfterAll
     fun dropDown() {
+        ethRegistrationService.cancel()
         integrationHelper.close()
     }
 
@@ -61,11 +81,14 @@ class DepositIntegrationTest {
     @Test
     fun depositOfETH() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId)
             val amount = BigInteger.valueOf(1_234_000_000_000)
             // send ETH
-            integrationHelper.sendEth(amount, relayWallet)
-            integrationHelper.waitOneIrohaBlock()
+
+            integrationHelper.purgeAndwaitOneIrohaBlock {
+                integrationHelper.sendEth(amount, relayWallet)
+            }
 
             Assertions.assertEquals(
                 BigDecimal(amount, ETH_PRECISION).add(BigDecimal(initialAmount)),
@@ -86,6 +109,7 @@ class DepositIntegrationTest {
     @Test
     fun depositZeroETH() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            Thread.currentThread().name = this::class.simpleName
             val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, etherAssetId)
             val zeroAmount = BigInteger.ZERO
             val amount = BigInteger.valueOf(1_234_000_000_000)
@@ -99,8 +123,10 @@ class DepositIntegrationTest {
             )
 
             // Send again 1234000000000 Ethereum network
-            integrationHelper.sendEth(amount, relayWallet)
-            integrationHelper.waitOneIrohaBlock()
+            integrationHelper.purgeAndwaitOneIrohaBlock {
+                integrationHelper.sendEth(amount, relayWallet)
+            }
+
 
             Assertions.assertEquals(
                 BigDecimal(amount, ETH_PRECISION).add(BigDecimal(initialAmount)),
@@ -120,14 +146,16 @@ class DepositIntegrationTest {
     @Test
     fun depositOfERC20() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            Thread.currentThread().name = this::class.simpleName
             val (tokenInfo, tokenAddress) = integrationHelper.deployRandomERC20Token(2)
             val assetId = "${tokenInfo.name}#ethereum"
             val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId)
             val amount = BigInteger.valueOf(51)
 
             // send ETH
-            integrationHelper.sendERC20Token(tokenAddress, amount, relayWallet)
-            integrationHelper.waitOneIrohaBlock()
+            integrationHelper.purgeAndwaitOneIrohaBlock {
+                integrationHelper.sendERC20Token(tokenAddress, amount, relayWallet)
+            }
 
             Assertions.assertEquals(
                 BigDecimal(amount, tokenInfo.precision).add(BigDecimal(initialAmount)),
@@ -147,6 +175,7 @@ class DepositIntegrationTest {
     @Test
     fun depositZeroOfERC20() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            Thread.currentThread().name = this::class.simpleName
             val (tokenInfo, tokenAddress) = integrationHelper.deployRandomERC20Token(2)
             val assetId = "${tokenInfo.name}#ethereum"
             val initialAmount = integrationHelper.getIrohaAccountBalance(clientIrohaAccountId, assetId)
@@ -162,8 +191,9 @@ class DepositIntegrationTest {
             )
 
             // Send again
-            integrationHelper.sendERC20Token(tokenAddress, amount, relayWallet)
-            integrationHelper.waitOneIrohaBlock()
+            integrationHelper.purgeAndwaitOneIrohaBlock {
+                integrationHelper.sendERC20Token(tokenAddress, amount, relayWallet)
+            }
 
             Assertions.assertEquals(
                 BigDecimal(amount, tokenInfo.precision).add(BigDecimal(initialAmount)),

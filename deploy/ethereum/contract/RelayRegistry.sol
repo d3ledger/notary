@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.4;
 
 import "./IRelayRegistry.sol";
 
@@ -6,12 +6,22 @@ import "./IRelayRegistry.sol";
  * @title Relay registry store data about white list and provide interface for master
  */
 contract RelayRegistry is IRelayRegistry {
+    bool internal initialized_;
     address private owner_;
 
     mapping(address => address[]) private _relayWhiteList;
 
     constructor () public {
-        owner_ = msg.sender;
+        initialize(msg.sender);
+    }
+
+    /**
+     * Initialization of smart contract.
+     */
+    function initialize(address owner) public {
+        require(!initialized_);
+        owner_ = owner;
+        initialized_ = true;
     }
 
     /**

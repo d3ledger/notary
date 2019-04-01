@@ -44,8 +44,6 @@ class RelayTest {
     fun singleCorrectSignatureEtherTestRelay() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             val initialBalance = cth.getETHBalance(accGreen)
-            cth.sendAddPeer(accMain)
-            master.disableAddingNewPeers().send()
             cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
             cth.withdraw(
                 BigInteger.valueOf(1000),
@@ -55,33 +53,6 @@ class RelayTest {
             )
             Assertions.assertEquals(BigInteger.valueOf(4000), cth.getETHBalance(master.contractAddress))
             Assertions.assertEquals(initialBalance + BigInteger.valueOf(1000), cth.getETHBalance(accGreen))
-        }
-    }
-
-    /**
-     * @given deployed master and relay contracts
-     * @when one peer added to master, 5000 Wei transferred to master,
-     * request to withdraw 1000 Wei is sent to relay, destination address is also set to relay
-     * @then call to withdraw succeeded
-     */
-    @Test
-    fun singleCorrectSignatureEtherTestRelayToRelay() {
-        Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            val initialBalance = cth.getETHBalance(relay.contractAddress)
-            cth.sendAddPeer(accMain)
-            master.disableAddingNewPeers().send()
-            cth.sendEthereum(BigInteger.valueOf(5000), master.contractAddress)
-            cth.withdraw(
-                BigInteger.valueOf(1000),
-                etherAddress,
-                relay.contractAddress,
-                false
-            )
-            Assertions.assertEquals(BigInteger.valueOf(4000), cth.getETHBalance(master.contractAddress))
-            Assertions.assertEquals(
-                initialBalance + BigInteger.valueOf(1000),
-                cth.getETHBalance(relay.contractAddress)
-            )
         }
     }
 

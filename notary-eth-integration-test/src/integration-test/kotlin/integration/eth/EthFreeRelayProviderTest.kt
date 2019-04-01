@@ -10,9 +10,9 @@ import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
-import provider.eth.EthFreeRelayProvider
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.util.ModelUtil.setAccountDetail
+import com.d3.eth.provider.EthFreeRelayProvider
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.sidechain.iroha.util.ModelUtil.setAccountDetail
 import java.io.File
 import java.time.Duration
 
@@ -43,6 +43,7 @@ class EthFreeRelayProviderTest {
     @Test
     fun getFreeWallet() {
         assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             val ethFreeWallet = "eth_free_wallet_stub"
 
             setAccountDetail(
@@ -88,6 +89,7 @@ class EthFreeRelayProviderTest {
     @Test
     fun testStorageFromFile() {
         assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             val relayHolder = File.createTempFile("relay", "free")
             relayHolder.deleteOnExit()
             val existingRelays = setOf(

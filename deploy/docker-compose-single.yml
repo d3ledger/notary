@@ -17,7 +17,8 @@ services:
       - PROFILE
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
-      - CLASS=registration.RegistrationMain
+      - JAR_NAME=notary-registration.jar
+      - CLASS=com.d3.commons.registration.RegistrationMain
     networks:
       - d3-network
 
@@ -34,7 +35,7 @@ services:
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
       - JAR_NAME=eth-registration.jar
-      - CLASS=registration.eth.relay.DeployRelayMain
+      - CLASS=com.d3.eth.registration.relay.DeployRelayMain
     networks:
       - d3-network
 
@@ -52,7 +53,7 @@ services:
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
       - JAR_NAME=eth-registration.jar
-      - CLASS=registration.eth.EthRegistrationMain
+      - CLASS=com.d3.eth.registration.EthRegistrationMain
     networks:
       - d3-network
 
@@ -70,7 +71,7 @@ services:
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
       - JAR_NAME=eth-withdrawal.jar
-      - CLASS=withdrawalservice.WithdrawalServiceMain
+      - CLASS=com.d3.eth.withdrawal.withdrawalservice.WithdrawalServiceMain
     networks:
       - d3-network
 
@@ -85,7 +86,7 @@ services:
     - IROHA_HOST=d3-iroha
     - IROHA_PORT=50051
     - JAR_NAME=btc-registration.jar
-    - CLASS=registration.btc.BtcRegistrationMain
+    - CLASS=com.d3.btc.registration.BtcRegistrationMain
     networks:
     - d3-network
 

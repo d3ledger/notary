@@ -3,24 +3,21 @@ buildscript {
         mavenCentral()
         jcenter()
     }
-    dependencies {
-        //Spring-boot
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:$spring_boot_version"
-    }
 }
 
 apply plugin: 'application'
 apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
-apply plugin: 'org.springframework.boot'
 apply plugin: 'com.github.johnrengelman.shadow'
-mainClassName = "registration.btc.BtcRegistrationMain"
+mainClassName = "com.d3.btc.registration.BtcRegistrationMain"
+shadowDistZip.classifier = 'shadow'
+shadowDistTar.classifier = 'shadow'
 
 dependencies {
     compile project(":btc")
 }
 
 task runBtcRegistration(type: JavaExec) {
-    main = 'registration.btc.BtcRegistrationMain'
+    main = 'com.d3.btc.registration.BtcRegistrationMain'
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
 }

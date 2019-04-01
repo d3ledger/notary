@@ -1,7 +1,12 @@
 package integration.btc
 
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
+import com.squareup.moshi.Moshi
 import integration.btc.environment.BtcRegistrationTestEnvironment
 import integration.helper.BtcIntegrationHelperUtil
+import integration.registration.RegistrationServiceTestEnvironment
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -11,9 +16,6 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
-import sidechain.iroha.CLIENT_DOMAIN
-import util.getRandomString
-import util.toHexString
 import java.math.BigInteger
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -21,20 +23,27 @@ class BtcRegistrationIntegrationTest {
 
     private val integrationHelper = BtcIntegrationHelperUtil()
 
-    private val environment = BtcRegistrationTestEnvironment(integrationHelper)
+    private val btcRegistrationEnvironment = BtcRegistrationTestEnvironment(integrationHelper)
+    private val registrationServiceEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
+
+    // Moshi adapter for response JSON deserealization
+    val moshiAdapter = Moshi
+        .Builder()
+        .build()!!.adapter(Map::class.java)!!
 
     init {
-        environment.btcRegistrationServiceInitialization.init()
+        registrationServiceEnvironment.registrationInitialization.init()
+        btcRegistrationEnvironment.btcRegistrationServiceInitialization.init()
         runBlocking { delay(5_000) }
     }
 
     @AfterAll
     fun dropDown() {
-        environment.close()
+        registrationServiceEnvironment.close()
+        btcRegistrationEnvironment.close()
     }
 
     /**
-     * Test US-001 Client registration
      * Note: Iroha must be deployed to pass the test.
      * @given new client
      * @when client name is passed to registration service
@@ -42,16 +51,18 @@ class BtcRegistrationIntegrationTest {
      */
     @Test
     fun testRegistration() {
-        integrationHelper.genFreeBtcAddress(environment.btcNotaryConfig.bitcoin.walletPath)
+        integrationHelper.genFreeBtcAddress(btcRegistrationEnvironment.btcAddressGenerationConfig.btcKeysWalletPath)
         val keypair = Ed25519Sha3().generateKeypair()
         val userName = String.getRandomString(9)
-        val res = khttp.post(
-            "http://127.0.0.1:${environment.btcRegistrationConfig.port}/users",
-            data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
-        )
+        var res = registrationServiceEnvironment.register(userName, keypair.public.toHexString())
         assertEquals(200, res.statusCode)
-        val registeredBtcAddress = String(res.content)
-        environment.btcTakenAddressesProvider.getRegisteredAddresses().fold({ addresses ->
+        res = btcRegistrationEnvironment.register(userName, keypair.public.toHexString())
+        assertEquals(200, res.statusCode)
+
+        val response = moshiAdapter.fromJson(res.jsonObject.toString())!!
+        val registeredBtcAddress = response["clientId"]
+
+        btcRegistrationEnvironment.btcRegisteredAddressesProvider.getRegisteredAddresses().fold({ addresses ->
             assertEquals(
                 "$userName@$CLIENT_DOMAIN",
                 addresses.first { btcAddress -> btcAddress.address == registeredBtcAddress }.info.irohaClient
@@ -64,7 +75,33 @@ class BtcRegistrationIntegrationTest {
     }
 
     /**
-     * Test US-002 Client registration
+     * Note: Iroha must be deployed to pass the test.
+     * @given new client, but no free addresses for my node
+     * @when client name is passed to registration service
+     * @then client stays unregistered
+     */
+    @Test
+    fun testRegistrationNoAddressForMyNode() {
+        val clientsBeforeRegistration =
+            btcRegistrationEnvironment.btcRegisteredAddressesProvider.getRegisteredAddresses().get().size
+        integrationHelper.genFreeBtcAddress(
+            btcRegistrationEnvironment.btcAddressGenerationConfig.btcKeysWalletPath,
+            "different node id"
+        )
+        val keypair = Ed25519Sha3().generateKeypair()
+        val userName = String.getRandomString(9)
+        var res = registrationServiceEnvironment.register(userName, keypair.public.toHexString())
+        assertEquals(200, res.statusCode)
+        res = btcRegistrationEnvironment.register(userName, keypair.public.toHexString())
+
+        assertEquals(500, res.statusCode)
+        assertEquals(
+            clientsBeforeRegistration,
+            btcRegistrationEnvironment.btcRegisteredAddressesProvider.getRegisteredAddresses().get().size
+        )
+    }
+
+    /**
      * Note: Iroha must be deployed to pass the test.
      * @given multiple clients
      * @when client names are passed to registration service
@@ -74,19 +111,29 @@ class BtcRegistrationIntegrationTest {
     fun testRegistrationMultiple() {
         val takenAddresses = HashSet<String>()
         val addressesToRegister = 3
-        integrationHelper.preGenFreeBtcAddresses(environment.btcNotaryConfig.bitcoin.walletPath, addressesToRegister)
+        integrationHelper.preGenFreeBtcAddresses(
+            btcRegistrationEnvironment.btcAddressGenerationConfig.btcKeysWalletPath,
+            addressesToRegister
+        )
         for (i in 1..addressesToRegister) {
+            val num =
+                khttp.get("http://127.0.0.1:${btcRegistrationEnvironment.btcRegistrationConfig.port}/free-addresses/number")
+            assertEquals((addressesToRegister - i + 1).toString(), num.text)
+
             val keypair = Ed25519Sha3().generateKeypair()
             val userName = String.getRandomString(9)
-            val res = khttp.post(
-                "http://127.0.0.1:${environment.btcRegistrationConfig.port}/users",
-                data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
-            )
+            val newestAddress = btcRegistrationEnvironment.btcFreeAddressesProvider.getFreeAddresses().get()
+                .maxBy { address -> address.info.generationTime ?: 0 }!!
+            var res = registrationServiceEnvironment.register(userName, keypair.public.toHexString())
             assertEquals(200, res.statusCode)
-            val registeredBtcAddress = String(res.content)
+            res = btcRegistrationEnvironment.register(userName, keypair.public.toHexString())
+            assertEquals(200, res.statusCode)
+            val response = moshiAdapter.fromJson(res.jsonObject.toString())!!
+            val registeredBtcAddress = response["clientId"].toString()
+            assertEquals(newestAddress.address, registeredBtcAddress)
             assertFalse(takenAddresses.contains(registeredBtcAddress))
             takenAddresses.add(registeredBtcAddress)
-            environment.btcTakenAddressesProvider.getRegisteredAddresses().fold({ addresses ->
+            btcRegistrationEnvironment.btcRegisteredAddressesProvider.getRegisteredAddresses().fold({ addresses ->
                 assertEquals(
                     "$userName@$CLIENT_DOMAIN",
                     addresses.first { btcAddress -> btcAddress.address == registeredBtcAddress }.info.irohaClient
@@ -97,10 +144,14 @@ class BtcRegistrationIntegrationTest {
                 integrationHelper.getIrohaAccountBalance("$userName@$CLIENT_DOMAIN", "btc#bitcoin")
             )
         }
+
+        val num =
+            khttp.get("http://127.0.0.1:${btcRegistrationEnvironment.btcRegistrationConfig.port}/free-addresses/number")
+        assertEquals("0", num.text)
+
     }
 
     /**
-     * Test US-002 Client registration
      * Note: Iroha must be deployed to pass the test.
      * @given no registered btc addreses
      * @when client name is passed to registration service
@@ -108,17 +159,22 @@ class BtcRegistrationIntegrationTest {
      */
     @Test
     fun testRegistrationNoFree() {
-        val clientsBeforeRegistration = environment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
+        val clientsBeforeRegistration =
+            btcRegistrationEnvironment.btcRegisteredAddressesProvider.getRegisteredAddresses().get().size
         val keypair = Ed25519Sha3().generateKeypair()
         val userName = String.getRandomString(9)
-        val res = khttp.post(
-            "http://127.0.0.1:${environment.btcRegistrationConfig.port}/users",
-            data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
-        )
+
+        val num =
+            khttp.get("http://127.0.0.1:${btcRegistrationEnvironment.btcRegistrationConfig.port}/free-addresses/number")
+        assertEquals("0", num.text)
+
+        var res = registrationServiceEnvironment.register(userName, keypair.public.toHexString())
+        assertEquals(200, res.statusCode)
+        res = btcRegistrationEnvironment.register(userName, keypair.public.toHexString())
         assertEquals(500, res.statusCode)
         assertEquals(
             clientsBeforeRegistration,
-            environment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
+            btcRegistrationEnvironment.btcRegisteredAddressesProvider.getRegisteredAddresses().get().size
         )
     }
 
@@ -130,19 +186,23 @@ class BtcRegistrationIntegrationTest {
      */
     @Test
     fun testRegistrationOnlyChangeAddresses() {
-        val clientsBeforeRegistration = environment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
-        integrationHelper.genChangeBtcAddress(environment.btcNotaryConfig.bitcoin.walletPath)
+        val clientsBeforeRegistration =
+            btcRegistrationEnvironment.btcRegisteredAddressesProvider.getRegisteredAddresses().get().size
+        integrationHelper.genChangeBtcAddress(btcRegistrationEnvironment.btcAddressGenerationConfig.btcKeysWalletPath)
+
+        val num =
+            khttp.get("http://127.0.0.1:${btcRegistrationEnvironment.btcRegistrationConfig.port}/free-addresses/number")
+        assertEquals("0", num.text)
+
         val keypair = Ed25519Sha3().generateKeypair()
         val userName = String.getRandomString(9)
-        val res = khttp.post(
-            "http://127.0.0.1:${environment.btcRegistrationConfig.port}/users",
-            data = mapOf("name" to userName, "pubkey" to keypair.public.toHexString())
-        )
+        var res = registrationServiceEnvironment.register(userName, keypair.public.toHexString())
+        assertEquals(200, res.statusCode)
+        res = btcRegistrationEnvironment.register(userName, keypair.public.toHexString())
         assertEquals(500, res.statusCode)
         assertEquals(
             clientsBeforeRegistration,
-            environment.btcTakenAddressesProvider.getRegisteredAddresses().get().size
+            btcRegistrationEnvironment.btcRegisteredAddressesProvider.getRegisteredAddresses().get().size
         )
     }
-
 }

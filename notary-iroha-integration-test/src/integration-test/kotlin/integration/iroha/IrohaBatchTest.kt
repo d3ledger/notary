@@ -1,5 +1,22 @@
 package integration.iroha
 
+import com.d3.commons.config.RMQConfig
+import com.d3.commons.config.getConfigFolder
+import com.d3.commons.config.loadRawConfigs
+import com.d3.commons.notary.IrohaCommand
+import com.d3.commons.notary.IrohaOrderedBatch
+import com.d3.commons.notary.IrohaTransaction
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.sidechain.iroha.consumer.IrohaConverter
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.sidechain.iroha.util.getAccountAsset
+import com.d3.commons.sidechain.iroha.util.getAccountData
+import com.d3.commons.util.getRandomId
+import com.d3.commons.util.getRandomString
+import com.d3.commons.util.hex
+import com.d3.commons.util.toHexString
 import integration.helper.IrohaConfigHelper
 import integration.helper.IrohaIntegrationHelperUtil
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
@@ -8,23 +25,10 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
-import notary.IrohaCommand
-import notary.IrohaOrderedBatch
-import notary.IrohaTransaction
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import sidechain.iroha.CLIENT_DOMAIN
-import sidechain.iroha.IrohaChainListener
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.consumer.IrohaConverter
-import sidechain.iroha.util.ModelUtil
-import sidechain.iroha.util.getAccountAsset
-import sidechain.iroha.util.getAccountData
-import util.getRandomString
-import util.hex
-import util.toHexString
 import java.math.BigInteger
 import java.time.Duration
 import kotlin.test.assertEquals
@@ -37,18 +41,16 @@ class IrohaBatchTest {
 
     private val integrationHelper = IrohaIntegrationHelperUtil()
 
-    val testConfig = integrationHelper.testConfig
-
     private val testCredential = integrationHelper.testCredential
 
     private val tester = testCredential.accountId
+    private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
 
     val assetDomain = "notary"
 
-    val listener = IrohaChainListener(
-        testConfig.iroha.hostname,
-        testConfig.iroha.port,
-        testCredential
+    val listener = ReliableIrohaChainListener(
+        rmqConfig,
+        String.getRandomId()
     )
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
@@ -69,6 +71,7 @@ class IrohaBatchTest {
     @Test
     fun allValidBatchTest() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            listener.purge()
 
             val user = randomString()
             val asset_name = randomString()
@@ -135,14 +138,15 @@ class IrohaBatchTest {
             val hashes = lst.map { String.hex(Utils.hash(it)) }
 
             val blockHashes = GlobalScope.async {
-                listener.getBlock().blockV1.payload.transactionsList.map {
+                val (block, ack) = listener.getBlock()
+                ack()
+                block.blockV1.payload.transactionsList.map {
                     String.hex(Utils.hash(it))
                 }
             }
 
+            listener.purge()
             val successHash = irohaConsumer.send(lst).get()
-
-            Thread.sleep(BATCH_TIME_WAIT)
 
             val accountJson = getAccountData(integrationHelper.queryAPI, userId).get().toJsonString()
             val tester_amount = getAccountAsset(integrationHelper.queryAPI, tester, "$asset_name#$assetDomain").get()
@@ -171,6 +175,7 @@ class IrohaBatchTest {
     @Test
     fun notAllValidBatchTest() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            listener.purge()
 
             val user = randomString()
             val asset_name = randomString()
@@ -253,11 +258,14 @@ class IrohaBatchTest {
             val expectedHashes = hashes.subList(0, hashes.size - 1)
 
             val blockHashes = GlobalScope.async {
-                listener.getBlock().blockV1.payload.transactionsList.map {
+                val (block, ack) = listener.getBlock()
+                ack()
+                block.blockV1.payload.transactionsList.map {
                     String.hex(Utils.hash(it))
                 }
             }
 
+            listener.purge()
             val successHash = irohaConsumer.send(lst).get()
 
             Thread.sleep(BATCH_TIME_WAIT)

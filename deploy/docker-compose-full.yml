@@ -17,8 +17,8 @@ services:
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
       - ETH_CREDENTIALS_PASSWORD
-      - JAR_NAME=eth-notary.jar
-      - CLASS=notary.eth.EthNotaryMain
+      - JAR_NAME=eth-deposit.jar
+      - CLASS=com.d3.eth.deposit.EthDepositMain
     networks:
       - d3-network
 
@@ -33,7 +33,7 @@ services:
       - IROHA_HOST=d3-iroha
       - IROHA_PORT=50051
       - JAR_NAME=btc-address-generation.jar
-      - CLASS=generation.btc.BtcAddressGenerationMain
+      - CLASS=com.d3.btc.generation.BtcAddressGenerationMain
     networks:
       - d3-network
 
@@ -48,7 +48,7 @@ services:
     - IROHA_HOST=d3-iroha
     - IROHA_PORT=50051
     - JAR_NAME=btc-dw-bridge.jar
-    - CLASS=dwbridge.btc.BtcDepositWithdrawalMain
+    - CLASS=com.d3.btc.dwbridge.BtcDepositWithdrawalMain
     networks:
     - d3-network
 

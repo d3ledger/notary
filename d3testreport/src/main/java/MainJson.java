@@ -1,5 +1,6 @@
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import d3.report.enums.TestFolder;
 import d3.report.service.TestReportService;
 
 import java.io.IOException;
@@ -10,10 +11,8 @@ import java.io.IOException;
 public class MainJson {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final TestReportService REPORT_SERVICE = new TestReportService();
-    private static final String TESTS_PATH = "notary-integration-test";
 
     public static void main(String[] args) throws IOException {
-        System.out.println(GSON.toJson(REPORT_SERVICE.create(TESTS_PATH)));
+        System.out.println(GSON.toJson(REPORT_SERVICE.create(TestFolder.getAllFolders())));
     }
-
 }

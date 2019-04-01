@@ -34,11 +34,24 @@ pipeline {
       steps {
         script {
           def scmVars = checkout scm
+          tmp = docker.image("openjdk:8-jdk")
+          env.WORKSPACE = pwd()
+
+          tmp.inside("-e JVM_OPTS='-Xmx3200m' -e TERM='dumb' -v ${env.WORKSPACE}/chain-adapter/build/libs:/home/out") {
+            sh "./gradlew chain-adapter:shadowJar"
+
+          }
+
           DOCKER_NETWORK = "${scmVars.CHANGE_ID}-${scmVars.GIT_COMMIT}-${BUILD_NUMBER}"
           writeFile file: ".env", text: "SUBNET=${DOCKER_NETWORK}"
-          sh "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml pull"
-          sh(returnStdout: true, script: "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml up --build -d")
-          sh "docker cp d3-btc-node0-${DOCKER_NETWORK}:/usr/bin/bitcoin-cli deploy/bitcoin/"
+          withCredentials([usernamePassword(credentialsId: 'nexus-d3-docker', usernameVariable: 'login', passwordVariable: 'password')]) {
+            sh "docker login nexus.iroha.tech:19002 -u ${login} -p '${password}'"
+
+            sh "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml pull"
+            sh(returnStdout: true, script: "docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml up --build -d")
+            sh "docker cp d3-btc-node0-${DOCKER_NETWORK}:/usr/bin/bitcoin-cli deploy/bitcoin/"
+          }
+
           iC = docker.image("openjdk:8-jdk")
           iC.inside("--network='d3-${DOCKER_NETWORK}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
             sh "ln -s deploy/bitcoin/bitcoin-cli /usr/bin/bitcoin-cli"
@@ -116,6 +129,7 @@ pipeline {
                 sh "./gradlew eth-withdrawal:shadowJar"
                 sh "./gradlew eth-registration:shadowJar"
                 sh "./gradlew eth-vacuum:shadowJar"
+                sh "./gradlew chain-adapter:shadowJar"
 
                 sh "./gradlew btc-address-generation:shadowJar"
                 sh "./gradlew btc-registration:shadowJar"
@@ -127,12 +141,14 @@ pipeline {
 
               ethRelay = docker.build("nexus.iroha.tech:19002/${login}/eth-relay:${TAG}", "-f docker/eth-relay.dockerfile .")
               ethRegistration = docker.build("nexus.iroha.tech:19002/${login}/eth-registration:${TAG}", "-f docker/eth-registration.dockerfile .")
-              notary = docker.build("nexus.iroha.tech:19002/${login}/notary:${TAG}", "-f docker/notary.dockerfile .")
+              notary = docker.build("nexus.iroha.tech:19002/${login}/notary:${TAG}", "-f docker/eth-deposit.dockerfile .")
               ethWithdrawal = docker.build("nexus.iroha.tech:19002/${login}/eth-withdrawal:${TAG}", "-f docker/eth-withdrawal.dockerfile .")
 
               btcAddressGeneration = docker.build("nexus.iroha.tech:19002/${login}/btc-address-generation:${TAG}", "-f docker/btc-address-generation.dockerfile .")
               btcRegistration = docker.build("nexus.iroha.tech:19002/${login}/btc-registration:${TAG}", "-f docker/btc-registration.dockerfile .")
               btcDwBridge = docker.build("nexus.iroha.tech:19002/${login}/btc-dw-bridge:${TAG}", "-f docker/btc-dw-bridge.dockerfile .")
+
+              chainAdapter = docker.build("nexus.iroha.tech:19002/d3-deploy/chain-adapter:${TAG}", "-f docker/chain-adapter.dockerfile .")
 
               notaryRegistration.push("${TAG}")
 
@@ -144,6 +160,8 @@ pipeline {
               btcAddressGeneration.push("${TAG}")
               btcRegistration.push("${TAG}")
               btcDwBridge.push("${TAG}")
+
+              chainAdapter.push("${TAG}")
 
             }
           }

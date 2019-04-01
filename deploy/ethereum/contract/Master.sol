@@ -1,25 +1,26 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.4;
 
 import "./IRelayRegistry.sol";
 import "./IERC20.sol";
+import "./SoraToken.sol";
 
 /**
  * Provides functionality of master contract
  */
 contract Master {
-    address private owner;
-    mapping(address => bool) private peers;
+    bool internal initialized_;
+    address public owner_;
+    mapping(address => bool) public peers;
     uint public peersCount;
-    mapping(bytes32 => bool) private used;
-    mapping(address => bool) private uniqueAddresses;
+    mapping(bytes32 => bool) public used;
+    mapping(address => bool) public uniqueAddresses;
 
-    address private relayRegistryAddress;
-    IRelayRegistry private relayRegistryInstance;
+    address public relayRegistryAddress;
+    IRelayRegistry public relayRegistryInstance;
 
-    address[] private tokens;
+    SoraToken public xorTokenInstance;
 
-    // TODO: For development purpose only, https://soramitsu.atlassian.net/browse/D3-418
-    bool public isLockAddPeer = false;
+    address[] public tokens;
 
     /**
      * Emit event when master contract does not have enough assets to proceed withdraw
@@ -29,10 +30,28 @@ contract Master {
     /**
      * Constructor. Sets contract owner to contract creator.
      */
-    constructor(address relayRegistry) public {
-        owner = msg.sender;
+    constructor(address relayRegistry, address[] memory initialPeers) public {
+        initialize(msg.sender, relayRegistry, initialPeers);
+    }
+
+    /**
+     * Initialization of smart contract.
+     */
+    function initialize(address owner, address relayRegistry, address[] memory initialPeers) public {
+        require(!initialized_);
+
+        owner_ = owner;
         relayRegistryAddress = relayRegistry;
         relayRegistryInstance = IRelayRegistry(relayRegistryAddress);
+        for (uint8 i = 0; i < initialPeers.length; i++) {
+            addPeer(initialPeers[i]);
+        }
+
+        // Create new instance of Sora token
+        xorTokenInstance = new SoraToken();
+        tokens.push(address(xorTokenInstance));
+
+        initialized_ = true;
     }
 
     /**
@@ -47,7 +66,7 @@ contract Master {
      * @return true if `msg.sender` is the owner of the contract.
      */
     function isOwner() public view returns(bool) {
-        return msg.sender == owner;
+        return msg.sender == owner_;
     }
 
     /**
@@ -65,36 +84,64 @@ contract Master {
         return tokens;
     }
 
-
-    /**
-     * Adds new peers to list of signature verifiers. Can be called only by contract owner.
-     * @param newAddresses addresses of new peers
-     */
-    function addPeers(address[] memory newAddresses) public onlyOwner returns (uint){
-        for (uint i = 0; i < newAddresses.length; i++) {
-            addPeer(newAddresses[i]);
-        }
-        return peersCount;
-    }
-
     /**
      * Adds new peer to list of signature verifiers. Can be called only by contract owner.
      * @param newAddress address of new peer
      */
-    function addPeer(address newAddress) public onlyOwner returns(uint){
-        // TODO: For development purpose only, https://soramitsu.atlassian.net/browse/D3-418
-        require(!isLockAddPeer);
+    function addPeer(address newAddress) private returns (uint) {
         require(peers[newAddress] == false);
         peers[newAddress] = true;
         ++peersCount;
         return peersCount;
     }
 
-    /**
-     * Disable adding the new peers
-     */
-    function disableAddingNewPeers() public onlyOwner {
-        isLockAddPeer = true;
+    function removePeer(address peerAddress) private {
+        require(peers[peerAddress] == true);
+        peers[peerAddress] = false;
+        --peersCount;
+    }
+
+    function addPeerByPeer(
+        address newPeerAddress,
+        bytes32 txHash,
+        uint8[] memory v,
+        bytes32[] memory r,
+        bytes32[] memory s
+    )
+    public returns (bool)
+    {
+        require(used[txHash] == false);
+        require(checkSignatures(keccak256(abi.encodePacked(newPeerAddress, txHash)),
+            v,
+            r,
+            s)
+        );
+
+        addPeer(newPeerAddress);
+        used[txHash] = true;
+        return true;
+    }
+
+    function removePeerByPeer(
+        address peerAddress,
+        bytes32 txHash,
+        uint8[] memory v,
+        bytes32[] memory r,
+        bytes32[] memory s
+    )
+    public returns (bool)
+    {
+        require(used[txHash] == false);
+        require(checkSignatures(
+            keccak256(abi.encodePacked(peerAddress, txHash)),
+            v,
+            r,
+            s)
+        );
+
+        removePeer(peerAddress);
+        used[txHash] = true;
+        return true;
     }
 
     /**
@@ -152,34 +199,15 @@ contract Master {
     )
     public
     {
-        require(isLockAddPeer);
         require(checkTokenAddress(tokenAddress));
         require(relayRegistryInstance.isWhiteListed(from, to));
-        // TODO luckychess 26.06.2018 D3-101 improve require checks (copy-paste) (use modifiers)
         require(used[txHash] == false);
-        require(peersCount >= 1);
-        require(v.length == r.length);
-        require(r.length == s.length);
-
-        // sigs - at least 2f+1 from 3f+1
-        // e. g. len(peers)==12 -> 3f+1=12; f=3; 12-3=9 -> at least 9 sigs we need
-        // if we've got more sigs than we need all will be validated
-        uint f = (peersCount - 1) / 3;
-        uint needSigs = peersCount - f;
-        require(s.length >= needSigs);
-
-        address[] memory recoveredAddresses = new address[](s.length);
-        for (uint i = 0; i < s.length; ++i) {
-            recoveredAddresses[i] = recoverAddress(
-                keccak256(abi.encodePacked(tokenAddress, amount, to, txHash, from)),
-                v[i],
-                r[i],
-                s[i]
-            );
-            // recovered address should be in peers_
-            require(peers[recoveredAddresses[i]] == true);
-        }
-        require(checkForUniqueness(recoveredAddresses));
+        require(checkSignatures(
+            keccak256(abi.encodePacked(tokenAddress, amount, to, txHash, from)),
+            v,
+            r,
+            s)
+        );
 
         if (tokenAddress == address (0)) {
             if (address(this).balance < amount) {
@@ -202,27 +230,49 @@ contract Master {
     }
 
     /**
-     * Checks given addresses for duplicates
-     * @param addresses addresses array to check
-     * @return true if all given addresses are unique or false otherwise
+     * Checks given addresses for duplicates and if they are peers signatures
+     * @param hash unsigned data
+     * @param v v-component of signature from hash
+     * @param r r-component of signature from hash
+     * @param s s-component of signature from hash
+     * @return true if all given addresses are correct or false otherwise
      */
-    function checkForUniqueness(address[] memory addresses) private returns (bool) {
-        uint i;
-        bool isUnique = true;
-        for (i = 0; i < addresses.length; ++i) {
-            if (uniqueAddresses[addresses[i]] == true) {
-                isUnique = false;
-                break;
+    function checkSignatures(bytes32 hash,
+        uint8[] memory v,
+        bytes32[] memory r,
+        bytes32[] memory s
+    ) private returns (bool) {
+        require(peersCount >= 1);
+        require(v.length == r.length);
+        require(r.length == s.length);
+        uint needSigs = peersCount - (peersCount - 1) / 3;
+        require(s.length >= needSigs);
+
+        uint count = 0;
+        address[] memory recoveredAddresses = new address[](s.length);
+        for (uint i = 0; i < s.length; ++i) {
+            address recoveredAddress = recoverAddress(
+                hash,
+                v[i],
+                r[i],
+                s[i]
+            );
+
+            // not a peer address or not unique
+            if (peers[recoveredAddress] != true || uniqueAddresses[recoveredAddress] == true) {
+                continue;
             }
-            uniqueAddresses[addresses[i]] = true;
+            recoveredAddresses[count] = recoveredAddress;
+            count = count + 1;
+            uniqueAddresses[recoveredAddress] = true;
         }
 
         // restore state for future usages
-        for (i = 0; i < addresses.length; ++i) {
-            uniqueAddresses[addresses[i]] = false;
+        for (uint i = 0; i < count; ++i) {
+            uniqueAddresses[recoveredAddresses[i]] = false;
         }
 
-        return isUnique;
+        return count >= needSigs;
     }
 
     /**
@@ -237,5 +287,37 @@ contract Master {
         bytes32 simple_hash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
         address res = ecrecover(simple_hash, v, r, s);
         return res;
+    }
+
+    /**
+     * Mint new XORToken
+     * @param beneficiary destination address
+     * @param amount how much to mint
+     * @param txHash hash of transaction from Iroha
+     * @param v array of signatures of tx_hash (v-component)
+     * @param r array of signatures of tx_hash (r-component)
+     * @param s array of signatures of tx_hash (s-component)
+     */
+    function mintTokensByPeers(
+        address beneficiary,
+        uint256 amount,
+        bytes32 txHash,
+        uint8[] memory v,
+        bytes32[] memory r,
+        bytes32[] memory s
+    )
+    public
+    {
+        require(address(xorTokenInstance) != address(0));
+        require(used[txHash] == false);
+        require(checkSignatures(
+            keccak256(abi.encodePacked(beneficiary, amount, txHash)),
+            v,
+            r,
+            s)
+        );
+
+        xorTokenInstance.mintTokens(beneficiary, amount);
+        used[txHash] = true;
     }
 }

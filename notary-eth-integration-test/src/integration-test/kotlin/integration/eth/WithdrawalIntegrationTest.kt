@@ -1,25 +1,31 @@
 package integration.eth
 
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
+import com.d3.eth.deposit.ENDPOINT_ETHEREUM
+import com.d3.eth.deposit.endpoint.BigIntegerMoshiAdapter
+import com.d3.eth.deposit.endpoint.EthNotaryResponse
+import com.d3.eth.deposit.endpoint.EthNotaryResponseMoshiAdapter
+import com.d3.eth.provider.ETH_PRECISION
+import com.d3.eth.provider.EthRelayProviderIrohaImpl
+import com.d3.eth.sidechain.util.DeployHelper
+import com.d3.eth.sidechain.util.hashToWithdraw
+import com.d3.eth.sidechain.util.signUserData
 import com.squareup.moshi.Moshi
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
-import jp.co.soramitsu.iroha.java.IrohaAPI
-import notary.endpoint.eth.BigIntegerMoshiAdapter
-import notary.endpoint.eth.EthNotaryResponse
-import notary.endpoint.eth.EthNotaryResponseMoshiAdapter
-import notary.eth.ENDPOINT_ETHEREUM
+import integration.registration.RegistrationServiceTestEnvironment
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import provider.eth.ETH_PRECISION
-import provider.eth.EthRelayProviderIrohaImpl
-import sidechain.eth.util.DeployHelper
-import sidechain.eth.util.hashToWithdraw
-import sidechain.eth.util.signUserData
-import sidechain.iroha.CLIENT_DOMAIN
-import util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Duration
@@ -33,24 +39,31 @@ class WithdrawalIntegrationTest {
     /** Integration tests util */
     private val integrationHelper = EthIntegrationHelperUtil()
 
-    /** Test Notary configuration */
-    private val notaryConfig = integrationHelper.configHelper.createEthNotaryConfig()
+    /** Test Deposit configuration */
+    private val depositConfig = integrationHelper.configHelper.createEthDepositConfig()
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
 
+    private val registrationTestEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
+    private val ethRegistrationService: Job
+
     init {
-        integrationHelper.runEthNotary(ethNotaryConfig = notaryConfig)
-        integrationHelper.lockEthMasterSmartcontract()
+        integrationHelper.runEthDeposit(ethDepositConfig = depositConfig)
+        registrationTestEnvironment.registrationInitialization.init()
+        ethRegistrationService = GlobalScope.launch {
+            integrationHelper.runEthRegistrationService(integrationHelper.ethRegistrationConfig)
+        }
     }
 
     /** Ethereum private key **/
     private val keypair = DeployHelper(
-        notaryConfig.ethereum,
+        depositConfig.ethereum,
         integrationHelper.configHelper.ethPasswordConfig
     ).credentials.ecKeyPair
 
     @AfterAll
     fun dropDown() {
+        ethRegistrationService.cancel()
         integrationHelper.close()
     }
 
@@ -64,7 +77,8 @@ class WithdrawalIntegrationTest {
     @Test
     fun testRefund() {
         assertTimeoutPreemptively(timeoutDuration) {
-            val masterAccount = notaryConfig.notaryCredential.accountId
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
+            val masterAccount = depositConfig.notaryCredential.accountId
             val amount = "64203"
             val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(ETH_PRECISION)
             val assetId = "ether#ethereum"
@@ -72,8 +86,20 @@ class WithdrawalIntegrationTest {
 
             // create
             val client = String.getRandomString(9)
+            // register client in Iroha
+            var res = integrationHelper.sendRegistrationRequest(
+                client,
+                listOf<String>().toString(),
+                ModelUtil.generateKeypair().public.toHexString(),
+                registrationTestEnvironment.registrationConfig.port
+            )
+            Assertions.assertEquals(200, res.statusCode)
             val clientId = "$client@$CLIENT_DOMAIN"
-            integrationHelper.registerClient(client, listOf(ethWallet), integrationHelper.testCredential.keyPair)
+            integrationHelper.registerClientInEth(
+                client,
+                listOf(ethWallet),
+                integrationHelper.testCredential.keyPair
+            )
             integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
             val relay = EthRelayProviderIrohaImpl(
                 integrationHelper.queryAPI,
@@ -95,8 +121,7 @@ class WithdrawalIntegrationTest {
             )
 
             // query
-            val res =
-                khttp.get("http://127.0.0.1:${notaryConfig.refund.port}/$ENDPOINT_ETHEREUM/$hash")
+            res = khttp.get("http://127.0.0.1:${depositConfig.refund.port}/$ENDPOINT_ETHEREUM/$hash")
 
             val moshi = Moshi
                 .Builder()

@@ -1,4 +1,4 @@
-import config.loadConfigs
+import com.d3.commons.config.loadConfigs
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -7,10 +7,10 @@ import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import registration.NotaryRegistrationConfig
-import registration.main
-import util.getRandomString
-import util.toHexString
+import com.d3.commons.registration.NotaryRegistrationConfig
+import com.d3.commons.registration.main
+import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
 import kotlin.test.assertEquals
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -42,7 +42,7 @@ class NotaryRegistrationTest {
      */
     @Test
     fun healthcheck() {
-        val res = khttp.get("http://127.0.0.1:${registrationConfig.healthCheckPort}/health")
+        val res = khttp.get("http://127.0.0.1:${registrationConfig.port}/actuator/health")
         assertEquals(200, res.statusCode)
         assertEquals("{\"status\":\"UP\"}", res.text)
     }

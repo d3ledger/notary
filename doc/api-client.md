@@ -11,28 +11,68 @@ different languages to communicate with Iroha (see
 A registration of the client is responsibility of D3 service.
 That's why D3 services provide registration of new client via HTTP POST request. 
 
+### Register
+
     POST /users
 
 * **Parameters:**
 
     * ***name*** - client name
-    * ***whitelist*** - comma separated list of addresses where withdrawal is possible
+    * ***domain*** - client domain
     * ***pubkey*** - Iroha public key of client. Client should generate keypair herself
 
 * **Successfull Response:**
 
   * **Code:** `200` <br />
-    **Content:** `:client_relay_address`
+    **Content:** `:clientId`
     
-    client_relay_address - is Ethereum address associated to the user. All assets sent to
-    the relay address will be added to the client account
+    clientId - client id in Iroha
     
 * **Example:**
   
-      curl -F "name=myname" \
+      curl -v -F "name=myname" \
       -F "pubkey=e48e003991142b90a3569d6804738c69296f339216166a3e6d20d6380afb25b1" \
-      -F "whitelist=0x6826d84158e516f631bBf14586a9BE7e255b2D23" \
-      http://localhost:8083/users
+      -F "domain=d3" \
+      http://localhost:8085/users
+      
+* **Example response:**
+    
+    **Code:** `200` <br />
+    
+    **Content:** 
+    
+        {
+            "clientId": "myname@d3"
+        }
+              
+* **Example error response:**
+    
+    **Code:** `500` <br />
+    
+    **Content:** 
+    
+        {
+            "message": "Tx 12851857e1a929f490275e2850383484a3bed342d37a5db851748f888fe7ee01 failed. CreateAccount",
+            "details": "java.lang.Exception: Tx 12851857e1a929f490275e2850383484a3bed342d37a5db851748f888fe7ee01 failed. CreateAccount"
+         }
+      
+
+### Get free addresses number
+
+Get number of free addresses or how many clients can be registered right now.
+
+    GET /free-addresses/number
+
+* **Successfull Response:**
+
+  * **Code:** `200` <br />
+    **Content:** `:number`
+    
+    number - the number of free addresses
+    
+* **Example:**
+  
+      curl http://localhost:8083/free-addresses/number
 
 ## Iroha API
 

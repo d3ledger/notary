@@ -1,10 +1,16 @@
 package integration.iroha
 
+import com.d3.commons.config.RMQConfig
+import com.d3.commons.config.getConfigFolder
+import com.d3.commons.config.loadRawConfigs
+import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.util.createPrettyFixThreadPool
+import com.d3.commons.util.getRandomId
 import com.github.kittinunf.result.map
 import integration.helper.IrohaConfigHelper
 import integration.helper.IrohaIntegrationHelperUtil
 import io.reactivex.schedulers.Schedulers
-import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.Transaction
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -12,8 +18,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import sidechain.iroha.IrohaChainListener
-import sidechain.iroha.consumer.IrohaConsumerImpl
 import java.time.Duration
 
 /**
@@ -31,18 +35,27 @@ class IrohaBlockStreamingTest {
 
     private val creator = testCredential.accountId
 
-    private val listener = IrohaChainListener(
-        testConfig.iroha.hostname,
-        testConfig.iroha.port,
-        testCredential
-    )
+    private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
+    lateinit private var listener: ReliableIrohaChainListener
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
 
-    @AfterAll
+    @BeforeEach
+    fun setUp() {
+        listener = ReliableIrohaChainListener(
+            rmqConfig,
+            String.getRandomId()
+        )
+    }
+
+    @AfterEach
     fun dropDown() {
-        integrationHelper.close()
         listener.close()
+    }
+
+    @AfterAll
+    fun tearDown() {
+        integrationHelper.close()
     }
 
     /**
@@ -54,15 +67,18 @@ class IrohaBlockStreamingTest {
     fun irohaStreamingTest() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             var cmds = listOf<iroha.protocol.Commands.Command>()
-
             listener.getBlockObservable()
                 .map { obs ->
-                    obs.map { block ->
+                    obs.map { (block, _) ->
                         cmds = block.blockV1.payload.transactionsList
                             .flatMap {
                                 it.payload.reducedPayload.commandsList
                             }
-                    }.subscribeOn(Schedulers.io()).subscribe()
+                    }.subscribeOn(
+                        Schedulers.from(
+                            createPrettyFixThreadPool("iroha-block-streaming", "test")
+                        )
+                    ).subscribe()
                 }
 
             val utx = Transaction.builder(creator)
@@ -99,7 +115,7 @@ class IrohaBlockStreamingTest {
             IrohaConsumerImpl(testCredential, integrationHelper.irohaAPI).send(utx)
 
 
-            val bl = runBlocking {
+            val (bl, _) = runBlocking {
                 block.await()
             }
 

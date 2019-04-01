@@ -1,16 +1,15 @@
 package integration.helper
 
-import config.EthereumPasswords
-import config.loadConfigs
+import com.d3.commons.config.EthereumPasswords
+import com.d3.commons.config.loadConfigs
+import com.d3.eth.sidechain.util.*
+import contract.SoraToken
 import integration.TestConfig
 import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Hash
+import org.web3j.crypto.Keys
 import org.web3j.protocol.core.methods.response.TransactionReceipt
 import org.web3j.utils.Numeric
-import sidechain.eth.util.DeployHelper
-import sidechain.eth.util.extractVRS
-import sidechain.eth.util.hashToWithdraw
-import sidechain.eth.util.signUserData
 import java.math.BigInteger
 import kotlin.test.assertEquals
 
@@ -20,18 +19,26 @@ class ContractTestHelper {
         loadConfigs("test", EthereumPasswords::class.java, "/eth/ethereum_password.properties").get()
 
     val deployHelper = DeployHelper(testConfig.ethereum, passwordConfig)
-
     val keypair = deployHelper.credentials.ecKeyPair
-    val relayRegistry by lazy { deployHelper.deployRelayRegistrySmartContract() }
+    val relayRegistry by lazy { deployHelper.deployUpgradableRelayRegistrySmartContract() }
     val token by lazy { deployHelper.deployERC20TokenSmartContract() }
-    val master by lazy { deployHelper.deployMasterSmartContract(relayRegistry.contractAddress) }
-    val relay by lazy { deployHelper.deployRelaySmartContract(master.contractAddress) }
-
-    private var addPeerCalls = BigInteger.ZERO
+    val master by lazy {
+        deployHelper.deployUpgradableMasterSmartContract(
+            relayRegistry.contractAddress,
+            listOf(accMain)
+        )
+    }
+    val relayImplementation by lazy { deployHelper.deployRelaySmartContract(master.contractAddress) }
+    val relay by lazy {
+        deployHelper.deployUpgradableRelaySmartContract(
+            relayImplementation.contractAddress,
+            master.contractAddress
+        )
+    }
 
     val etherAddress = "0x0000000000000000000000000000000000000000"
     val defaultIrohaHash = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))
-    val defaultByteHash = Numeric.hexStringToByteArray(defaultIrohaHash.slice(2 until defaultIrohaHash.length))
+    val defaultByteHash = itohaHashToByteHash(defaultIrohaHash)
 
     // ganache-cli ether custodian
     val accMain = deployHelper.credentials.address
@@ -39,6 +46,8 @@ class ContractTestHelper {
     val accGreen = testConfig.ethTestAccount
 
     data class sigsData(val vv: ArrayList<BigInteger>, val rr: ArrayList<ByteArray>, val ss: ArrayList<ByteArray>)
+
+    fun itohaHashToByteHash(irohaHash: String) = Numeric.hexStringToByteArray(irohaHash.slice(2 until irohaHash.length))
 
     fun prepareSignatures(amount: Int, keypairs: List<ECKeyPair>, toSign: String): sigsData {
         val vv = ArrayList<BigInteger>()
@@ -55,13 +64,6 @@ class ContractTestHelper {
         return sigsData(vv, rr, ss)
     }
 
-    fun sendAddPeer(address: String) {
-        ++addPeerCalls
-        master.addPeer(address).send()
-        // addPeer return number of added peers
-        assertEquals(addPeerCalls, master.peersCount().send())
-    }
-
     fun transferTokensToMaster(amount: BigInteger) {
         token.transfer(master.contractAddress, amount).send()
         assertEquals(amount, token.balanceOf(master.contractAddress).send())
@@ -76,7 +78,13 @@ class ContractTestHelper {
         val tokenAddress = token.contractAddress
         val to = accGreen
 
-        val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, defaultIrohaHash, relay.contractAddress)
+        val finalHash = hashToWithdraw(
+            tokenAddress,
+            amount.toString(),
+            to,
+            defaultIrohaHash,
+            relay.contractAddress
+        )
         val sigs = prepareSignatures(1, listOf(keypair), finalHash)
 
         return master.withdraw(
@@ -100,7 +108,13 @@ class ContractTestHelper {
     fun withdraw(amount: BigInteger, to: String): TransactionReceipt {
         val tokenAddress = token.contractAddress
 
-        val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, defaultIrohaHash, relay.contractAddress)
+        val finalHash = hashToWithdraw(
+            tokenAddress,
+            amount.toString(),
+            to,
+            defaultIrohaHash,
+            relay.contractAddress
+        )
         val sigs = prepareSignatures(1, listOf(keypair), finalHash)
 
         return master.withdraw(
@@ -127,7 +141,13 @@ class ContractTestHelper {
         to: String,
         tokenAddress: String
     ): TransactionReceipt {
-        val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, defaultIrohaHash, relay.contractAddress)
+        val finalHash = hashToWithdraw(
+            tokenAddress,
+            amount.toString(),
+            to,
+            defaultIrohaHash,
+            relay.contractAddress
+        )
         val sigs = prepareSignatures(1, listOf(keypair), finalHash)
 
         return master.withdraw(
@@ -156,7 +176,13 @@ class ContractTestHelper {
         to: String,
         fromMaster: Boolean
     ): TransactionReceipt {
-        val finalHash = hashToWithdraw(tokenAddress, amount.toString(), to, defaultIrohaHash, relay.contractAddress)
+        val finalHash = hashToWithdraw(
+            tokenAddress,
+            amount.toString(),
+            to,
+            defaultIrohaHash,
+            relay.contractAddress
+        )
         val sigs = prepareSignatures(1, listOf(keypair), finalHash)
         if (fromMaster) {
             return master.withdraw(
@@ -182,6 +208,46 @@ class ContractTestHelper {
                 relay.contractAddress
             ).send()
         }
+    }
+
+    fun addPeerByPeer(newPeer: String): TransactionReceipt {
+        val finalHash = hashToAddAndRemovePeer(newPeer, defaultIrohaHash)
+        val sigs = prepareSignatures(1, listOf(keypair), finalHash)
+
+        return master.addPeerByPeer(
+            newPeer,
+            defaultByteHash,
+            sigs.vv,
+            sigs.rr,
+            sigs.ss
+        ).send()
+    }
+
+    fun removePeerByPeer(peer: String): TransactionReceipt {
+        val finalHash = hashToAddAndRemovePeer(peer, defaultIrohaHash)
+        val sigs = prepareSignatures(1, listOf(keypair), finalHash)
+
+        return master.removePeerByPeer(
+            peer,
+            defaultByteHash,
+            sigs.vv,
+            sigs.rr,
+            sigs.ss
+        ).send()
+    }
+
+    fun mintByPeer(beneficiary: String, amount: Long): TransactionReceipt {
+        val finalHash = hashToMint(beneficiary, amount.toString(), defaultIrohaHash)
+        val sigs = prepareSignatures(1, listOf(keypair), finalHash)
+
+        return master.mintTokensByPeers(
+            beneficiary,
+            BigInteger.valueOf(amount),
+            defaultByteHash,
+            sigs.vv,
+            sigs.rr,
+            sigs.ss
+        ).send()
     }
 
     /**
@@ -211,6 +277,27 @@ class ContractTestHelper {
 
     fun getERC20TokenBalance(contractAddress: String, whoAddress: String): BigInteger {
         return deployHelper.getERC20Balance(contractAddress, whoAddress)
+    }
+
+    /**
+     * Generating KeyPairs for signing the data and array of public keys (Ethereum address of initial peers)
+     * @param amount of keyPairs
+     * @return pair of keyPairs and public keys
+     */
+    fun getKeyPairsAndPeers(amount: Int): Pair<List<ECKeyPair>, List<String>> {
+        val keyPairs = ArrayList<ECKeyPair>()
+        val peers = ArrayList<String>()
+
+        for (i in 0 until amount) {
+            val keypair = Keys.createEcKeyPair()
+            keyPairs.add(keypair)
+            peers.add(Keys.getAddress(keypair))
+        }
+        return Pair(keyPairs, peers)
+    }
+
+    fun getToken(tokenAddress: String): SoraToken {
+        return deployHelper.loadTokenSmartContract(tokenAddress)
     }
 
     fun deployFailer(): String {

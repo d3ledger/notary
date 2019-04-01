@@ -1,45 +1,36 @@
 package integration.btc
 
+import com.d3.btc.model.AddressInfo
+import com.d3.btc.model.BtcAddressType
+import com.d3.btc.provider.generation.ADDRESS_GENERATION_NODE_ID_KEY
+import com.d3.btc.provider.generation.ADDRESS_GENERATION_TIME_KEY
 import com.github.kittinunf.result.failure
 import integration.btc.environment.BtcAddressGenerationTestEnvironment
 import integration.helper.BtcIntegrationHelperUtil
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import mu.KLogging
-import org.bitcoinj.core.ECKey
-import org.bitcoinj.core.Utils
 import org.bitcoinj.params.RegTestParams
-import org.bitcoinj.script.ScriptBuilder
 import org.bitcoinj.wallet.Wallet
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
-import provider.btc.address.AddressInfo
-import provider.btc.address.BtcAddressType
-import provider.btc.generation.ADDRESS_GENERATION_TIME_KEY
 import java.io.File
+import java.util.*
 
 const val WAIT_PREGEN_PROCESS_MILLIS = 20_000L
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcAddressGenerationIntegrationTest {
 
+    private val nodeId = UUID.randomUUID()
+
     private val integrationHelper = BtcIntegrationHelperUtil()
 
     private val environment =
         BtcAddressGenerationTestEnvironment(integrationHelper)
-
-    private fun createMsAddress(notaryKeys: Collection<String>): String {
-        val keys = ArrayList<ECKey>()
-        notaryKeys.forEach { key ->
-            val ecKey = ECKey.fromPublicOnly(Utils.parseAsHexOrBase58(key))
-            keys.add(ecKey)
-        }
-        val script = ScriptBuilder.createP2SHOutputScript(1, keys)
-        return script.getToAddress(RegTestParams.get()).toBase58()
-    }
 
     @AfterAll
     fun dropDown() {
@@ -57,7 +48,6 @@ class BtcAddressGenerationIntegrationTest {
     }
 
     /**
-     * Test US-001 btc addresses generation
      * Note: Iroha must be deployed to pass the test.
      * @given "free" session account is created
      * @when special generation account is triggered
@@ -66,9 +56,11 @@ class BtcAddressGenerationIntegrationTest {
     @Test
     fun testGenerateFreeAddress() {
         val sessionAccountName = BtcAddressType.FREE.createSessionAccountName()
-        environment.btcKeyGenSessionProvider.createPubKeyCreationSession(sessionAccountName)
-            .fold({ logger.info { "session $sessionAccountName was created" } },
-                { ex -> fail("cannot create session", ex) })
+        environment.btcKeyGenSessionProvider.createPubKeyCreationSession(
+            sessionAccountName,
+            nodeId.toString()
+        ).fold({ logger.info { "session $sessionAccountName was created" } },
+            { ex -> fail("cannot create session", ex) })
         environment.triggerProvider.trigger(sessionAccountName)
         Thread.sleep(WAIT_PREGEN_PROCESS_MILLIS)
         val sessionDetails =
@@ -76,21 +68,27 @@ class BtcAddressGenerationIntegrationTest {
                 "$sessionAccountName@btcSession",
                 environment.btcGenerationConfig.registrationAccount.accountId
             )
-        val notaryKeys = sessionDetails.entries.filter { entry -> entry.key != ADDRESS_GENERATION_TIME_KEY }
-            .map { entry -> entry.value }
+        val notaryKeys =
+            sessionDetails.entries.filter { entry ->
+                entry.key != ADDRESS_GENERATION_TIME_KEY
+                        && entry.key != ADDRESS_GENERATION_NODE_ID_KEY
+            }.map { entry -> entry.value }
         val pubKey = notaryKeys.first()
         assertNotNull(pubKey)
-        val wallet = Wallet.loadFromFile(File(environment.btcGenerationConfig.btcWalletFilePath))
+        val wallet = Wallet.loadFromFile(File(environment.btcGenerationConfig.btcKeysWalletPath))
         assertTrue(wallet.issuedReceiveKeys.any { ecKey -> ecKey.publicKeyAsHex == pubKey })
         val notaryAccountDetails =
             integrationHelper.getAccountDetails(
                 environment.btcGenerationConfig.notaryAccount,
                 environment.btcGenerationConfig.mstRegistrationAccount.accountId
             )
-        val expectedMsAddress = createMsAddress(notaryKeys)
-        val generatedAddress = AddressInfo.fromJson(notaryAccountDetails[expectedMsAddress]!!)!!
-        assertEquals(BtcAddressType.FREE.title, generatedAddress.irohaClient)
+        val expectedMsAddress = com.d3.btc.helper.address.createMsAddress(notaryKeys, RegTestParams.get())
+        assertTrue(wallet.isAddressWatched(expectedMsAddress))
+        val generatedAddress =
+            AddressInfo.fromJson(notaryAccountDetails[expectedMsAddress.toBase58()]!!)!!
+        assertNull(generatedAddress.irohaClient)
         assertEquals(notaryKeys, generatedAddress.notaryKeys.toList())
+        assertEquals(nodeId.toString(), generatedAddress.nodeId)
     }
 
     /**
@@ -102,9 +100,11 @@ class BtcAddressGenerationIntegrationTest {
     @Test
     fun testGenerateChangeAddress() {
         val sessionAccountName = BtcAddressType.CHANGE.createSessionAccountName()
-        environment.btcKeyGenSessionProvider.createPubKeyCreationSession(sessionAccountName)
-            .fold({ logger.info { "session $sessionAccountName was created" } },
-                { ex -> fail("cannot create session", ex) })
+        environment.btcKeyGenSessionProvider.createPubKeyCreationSession(
+            sessionAccountName,
+            nodeId.toString()
+        ).fold({ logger.info { "session $sessionAccountName was created" } },
+            { ex -> fail("cannot create session", ex) })
         environment.triggerProvider.trigger(sessionAccountName)
         Thread.sleep(WAIT_PREGEN_PROCESS_MILLIS)
         val sessionDetails =
@@ -112,21 +112,26 @@ class BtcAddressGenerationIntegrationTest {
                 "$sessionAccountName@btcSession",
                 environment.btcGenerationConfig.registrationAccount.accountId
             )
-        val notaryKeys = sessionDetails.entries.filter { entry -> entry.key != ADDRESS_GENERATION_TIME_KEY }
-            .map { entry -> entry.value }
+        val notaryKeys =
+            sessionDetails.entries.filter { entry ->
+                entry.key != ADDRESS_GENERATION_TIME_KEY
+                        && entry.key != ADDRESS_GENERATION_NODE_ID_KEY
+            }.map { entry -> entry.value }
         val pubKey = notaryKeys.first()
         assertNotNull(pubKey)
-        val wallet = Wallet.loadFromFile(File(environment.btcGenerationConfig.btcWalletFilePath))
+        val wallet = Wallet.loadFromFile(File(environment.btcGenerationConfig.btcKeysWalletPath))
         assertTrue(wallet.issuedReceiveKeys.any { ecKey -> ecKey.publicKeyAsHex == pubKey })
         val changeAddressStorageAccountDetails =
             integrationHelper.getAccountDetails(
                 environment.btcGenerationConfig.changeAddressesStorageAccount,
                 environment.btcGenerationConfig.mstRegistrationAccount.accountId
             )
-        val expectedMsAddress = createMsAddress(notaryKeys)
-        val generatedAddress = AddressInfo.fromJson(changeAddressStorageAccountDetails[expectedMsAddress]!!)!!
-        assertEquals(BtcAddressType.CHANGE.title, generatedAddress.irohaClient)
+        val expectedMsAddress = com.d3.btc.helper.address.createMsAddress(notaryKeys, RegTestParams.get())
+        val generatedAddress =
+            AddressInfo.fromJson(changeAddressStorageAccountDetails[expectedMsAddress.toBase58()]!!)!!
+        assertNull(generatedAddress.irohaClient)
         assertEquals(notaryKeys, generatedAddress.notaryKeys.toList())
+        assertEquals(nodeId.toString(), generatedAddress.nodeId)
     }
 
     /**

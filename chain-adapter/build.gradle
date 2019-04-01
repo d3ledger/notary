@@ -1,0 +1,14 @@
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    compile "com.rabbitmq:amqp-client:5.6.0"
+    compile project(":notary-commons")
+}
+
+apply plugin: 'com.github.johnrengelman.shadow'
+
+task runIrohaChainAdapter(type: JavaExec) {
+    main = 'com.d3.chainadapter.ChainAdapterMain'
+    classpath = sourceSets.main.runtimeClasspath
+
+    setWorkingDir("$rootDir/")
+}

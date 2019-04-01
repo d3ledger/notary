@@ -1,14 +1,22 @@
 package integration.eth
 
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
+import com.d3.eth.provider.ETH_DOMAIN
+import com.d3.eth.token.EthTokenInfo
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
+import integration.registration.RegistrationServiceTestEnvironment
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.web3j.protocol.exceptions.TransactionException
-import sidechain.iroha.CLIENT_DOMAIN
-import util.getRandomString
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Duration
@@ -20,14 +28,20 @@ class FailedTransactionTest {
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
 
-    init {
-        integrationHelper.runEthNotary()
+    private val registrationTestEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
+    private val ethRegistrationService: Job
 
-        integrationHelper.lockEthMasterSmartcontract()
+    init {
+        integrationHelper.runEthDeposit()
+        registrationTestEnvironment.registrationInitialization.init()
+        ethRegistrationService = GlobalScope.launch {
+            integrationHelper.runEthRegistrationService(integrationHelper.ethRegistrationConfig)
+        }
     }
 
     @AfterAll
     fun dropDown() {
+        ethRegistrationService.cancel()
         integrationHelper.close()
     }
 
@@ -41,9 +55,18 @@ class FailedTransactionTest {
     @Test
     fun failedEtherTransferTest() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             val failerAddress = integrationHelper.deployFailer()
             integrationHelper.registerRelayByAddress(failerAddress)
             val clientAccount = String.getRandomString(9)
+            // register client in Iroha
+            val res = integrationHelper.sendRegistrationRequest(
+                clientAccount,
+                listOf<String>().toString(),
+                ModelUtil.generateKeypair().public.toHexString(),
+                registrationTestEnvironment.registrationConfig.port
+            )
+            Assertions.assertEquals(200, res.statusCode)
             integrationHelper.registerClientWithoutRelay(clientAccount, listOf())
             integrationHelper.sendEth(BigInteger.valueOf(1), failerAddress)
             integrationHelper.waitOneEtherBlock()
@@ -65,13 +88,25 @@ class FailedTransactionTest {
     @Test
     fun failedTokenTransferTest() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            integrationHelper.nameCurrentThread(this::class.simpleName!!)
             val failerAddress = integrationHelper.deployFailer()
             val anotherFailerAddress = integrationHelper.deployFailer()
             integrationHelper.registerRelayByAddress(failerAddress)
             val clientAccount = String.getRandomString(9)
+            // register client in Iroha
+            val res = integrationHelper.sendRegistrationRequest(
+                clientAccount,
+                listOf<String>().toString(),
+                ModelUtil.generateKeypair().public.toHexString(),
+                registrationTestEnvironment.registrationConfig.port
+            )
+            Assertions.assertEquals(200, res.statusCode)
             integrationHelper.registerClientWithoutRelay(clientAccount, listOf())
             val coinName = String.getRandomString(9)
-            integrationHelper.addERC20Token(anotherFailerAddress, coinName, 0)
+            integrationHelper.addERC20Token(
+                anotherFailerAddress,
+                EthTokenInfo(coinName, ETH_DOMAIN, 0)
+            )
 
             // web3j throws exception in case of contract function call revert
             // so let's catch and ignore it

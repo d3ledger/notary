@@ -2,7 +2,7 @@ version: '3.5'
 
 services:
   d3-iroha:
-    image: hyperledger/iroha:1.0.0_rc2
+    image: hyperledger/iroha:1.0.0_rc4-hotfix1
     container_name: d3-iroha
     depends_on:
       - d3-iroha-postgres
@@ -52,6 +52,7 @@ services:
     - grpcwebproxy
     - --backend_addr=d3-iroha:50051
     - --run_tls_server=false
+    - --allow_all_origins=true
     networks:
       - d3-network
 
@@ -65,16 +66,72 @@ services:
     - --rpcpassword=test
     - --regtest=1
     - --server=1
-    - --rpcallowip=172.0.0.0/8
+    - --rpcallowip=::/0
     - --rpcport=8332
     networks:
       - d3-network
 
+  d3-rmq:
+    image: rabbitmq:3-management
+    container_name: d3-rmq
+    networks:
+      - d3-network
+
+  d3-chain-adapter:
+    image: nexus.iroha.tech:19002/d3-deploy/chain-adapter:${TAG-master}
+    container_name: d3-chain-adapter
+    depends_on:
+      - d3-iroha
+      - d3-rmq
+    volumes:
+      - ./:/opt/notary/deploy
+      - ../configs:/opt/notary/configs
+    environment:
+      - WAIT_HOSTS=d3-iroha:50051, d3-rmq:5672
+      - WAIT_HOSTS_TIMEOUT=300
+      - WAIT_SLEEP_INTERVAL=3
+      - PROFILE
+      - IROHA_HOST=d3-iroha
+      - IROHA_PORT=50051
+      - JAR_NAME=chain-adapter.jar
+      - CLASS=com.d3.chainadapter.ChainAdapterMain
+    networks:
+      - d3-network
+
+  d3-brvs-mongodb:
+    image: mongo:4.0.6
+    container_name: d3-brvs-mongodb
+    environment:
+      - MONGO_DATA_DIR=/data/brvs/db
+      - MONGO_LOG_DIR=/data/brvs/logs
+    volumes:
+      - ./data/brvs/db:/data/brvs/db
+      - ./data/brvs/logs:/data/brvs/logs
+    ports:
+      - 27017:27017
+    command: mongod --smallfiles
+    networks:
+      - d3-network
+
+  d3-brvs:
+    image: nexus.iroha.tech:19002/brvs-deploy/brvs:1.0.0_rc4-hotfix1
+    container_name: d3-brvs
+    ports:
+      - 8080:8080
+    depends_on:
+      - d3-brvs-mongodb
+      - d3-rmq
+    environment:
+      WAIT_HOSTS: d3-brvs-mongodb:27017, d3-rmq:5672, d3-iroha:50051
+      WAIT_BEFORE_HOSTS: 10
+      WAIT_HOSTS_TIMEOUT: 60
+    volumes:
+      - ../configs/brvs:/opt/brvs/config/context/
+    networks:
+      - d3-network
 
 volumes:
   iroha_block_store:
 
-
 networks:
   d3-network:
-

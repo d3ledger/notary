@@ -3,10 +3,6 @@ buildscript {
         mavenCentral()
         jcenter()
     }
-    dependencies {
-        //Spring-boot
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:$spring_boot_version"
-    }
 }
 
 sourceSets {
@@ -50,6 +46,7 @@ dependencies {
     compile project(":btc-address-generation")
     compile project(":btc-deposit")
     compile project(":btc-withdrawal")
+    compile project(":notary-registration")
     compile project(":notary-iroha-integration-test")
 }
 

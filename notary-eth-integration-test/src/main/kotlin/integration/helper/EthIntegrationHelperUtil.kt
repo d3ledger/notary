@@ -1,31 +1,37 @@
 package integration.helper
 
+import com.d3.commons.config.EthereumPasswords
+import com.d3.commons.config.RMQConfig
+import com.d3.commons.config.getConfigFolder
+import com.d3.commons.config.loadRawConfigs
+import com.d3.commons.registration.ETH_WHITE_LIST_KEY
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
+import com.d3.eth.deposit.EthDepositConfig
+import com.d3.eth.deposit.endpoint.EthWhiteListProvider
+import com.d3.eth.deposit.executeDeposit
+import com.d3.eth.provider.ETH_DOMAIN
+import com.d3.eth.provider.EthFreeRelayProvider
+import com.d3.eth.provider.EthRelayProviderIrohaImpl
+import com.d3.eth.provider.EthTokensProviderImpl
+import com.d3.eth.registration.EthRegistrationConfig
+import com.d3.eth.registration.EthRegistrationStrategyImpl
+import com.d3.eth.registration.executeRegistration
+import com.d3.eth.registration.relay.RelayRegistration
+import com.d3.eth.sidechain.EthChainListener
+import com.d3.eth.token.EthTokenInfo
+import com.d3.eth.vacuum.RelayVacuumConfig
+import com.d3.eth.withdrawal.withdrawalservice.WithdrawalServiceConfig
 import com.github.kittinunf.result.success
-import config.EthereumPasswords
 import jp.co.soramitsu.iroha.java.QueryAPI
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
-import notary.eth.EthNotaryConfig
-import notary.eth.executeNotary
-import org.web3j.crypto.WalletUtils
-import provider.eth.EthFreeRelayProvider
-import provider.eth.EthRelayProviderIrohaImpl
-import provider.eth.EthTokensProviderImpl
-import registration.ETH_WHITE_LIST_KEY
-import registration.eth.EthRegistrationConfig
-import registration.eth.EthRegistrationStrategyImpl
-import registration.eth.relay.RelayRegistration
-import sidechain.eth.EthChainListener
-import sidechain.iroha.CLIENT_DOMAIN
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.util.ModelUtil
-import token.EthTokenInfo
-import util.getRandomString
-import util.toHexString
-import vacuum.RelayVacuumConfig
-import withdrawalservice.WithdrawalServiceConfig
 import java.math.BigInteger
 import java.security.KeyPair
+import java.util.*
 
 /**
  * Utility class that makes testing more comfortable.
@@ -39,7 +45,8 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         EthConfigHelper(
             accountHelper,
             relayRegistryContract.contractAddress,
-            masterContract.contractAddress
+            masterContract.contractAddress,
+            contractTestHelper.relayImplementation.contractAddress
         )
     }
 
@@ -103,6 +110,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     private val ethRegistrationStrategy by lazy {
         EthRegistrationStrategyImpl(
             ethFreeRelayProvider,
+            ethRelayProvider,
             ethRegistrationConfig,
             configHelper.ethPasswordConfig,
             registrationConsumer,
@@ -120,6 +128,33 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         )
     }
 
+    private val whitelistProvider by lazy {
+        EthWhiteListProvider(
+            ethRegistrationConfig.registrationCredential.accountId, queryAPI
+        )
+    }
+
+    /**
+     * Get address of first free relay.
+     */
+    fun getFreeRelay(): String {
+        return ethFreeRelayProvider.getRelay().get()
+    }
+
+    /**
+     * Get relay address of an account.
+     */
+    fun getRelayByAccount(clientId: String): Optional<String> {
+        return ethRelayProvider.getRelayByAccountId(clientId).get()
+    }
+
+    /**
+     * Check if address is in whitelist of a user.
+     */
+    fun isWhitelisted(clientId: String, address: String): Boolean {
+        return whitelistProvider.checkWithdrawalAddress(clientId, address).get()
+    }
+
     /**
      * Returns ETH balance for a given address
      */
@@ -133,7 +168,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      */
     fun deployRandomERC20Token(precision: Int = 0): Pair<EthTokenInfo, String> {
         val name = String.getRandomString(5)
-        return Pair(EthTokenInfo(name, precision), deployERC20Token(name, precision))
+        return Pair(EthTokenInfo(name, ETH_DOMAIN, precision), deployERC20Token(name, precision))
     }
 
     /**
@@ -146,7 +181,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     fun deployERC20Token(name: String, precision: Int): String {
         logger.info { "create $name ERC20 token" }
         val tokenAddress = contractTestHelper.deployHelper.deployERC20TokenSmartContract().contractAddress
-        addERC20Token(tokenAddress, name, precision)
+        addERC20Token(tokenAddress, EthTokenInfo(name, ETH_DOMAIN, precision))
         masterContract.addToken(tokenAddress).send()
         return tokenAddress
     }
@@ -161,18 +196,18 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
 
     /**
      * Add token to Iroha token provider
-     * @param tokenName - user defined token name
      * @param tokenAddress - token ERC20 smart contract address
+     * @param tokenInfo - token info
      */
-    fun addERC20Token(tokenAddress: String, tokenName: String, precision: Int) {
-        ModelUtil.createAsset(irohaConsumer, tokenName, "ethereum", precision)
+    fun addERC20Token(tokenAddress: String, tokenInfo: EthTokenInfo) {
+        ModelUtil.createAsset(irohaConsumer, tokenInfo.name, tokenInfo.domain, tokenInfo.precision)
         ModelUtil.setAccountDetail(
             tokenProviderIrohaConsumer,
             accountHelper.tokenStorageAccount.accountId,
             tokenAddress,
-            tokenName
+            "${tokenInfo.name}#${tokenInfo.domain}"
         ).success {
-            logger.info { "token $tokenName was added to ${accountHelper.tokenStorageAccount} by ${tokenProviderIrohaConsumer.creator}" }
+            logger.info { "token ${tokenInfo.name}#${tokenInfo.domain} was added to ${accountHelper.tokenStorageAccount} by ${tokenProviderIrohaConsumer.creator}" }
         }
     }
 
@@ -204,19 +239,14 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     }
 
     /**
-     * Disable adding new notary peers to smart contract.
-     * Before smart contract can be used it should be locked in order to prevent adding malicious peers.
-     */
-    fun lockEthMasterSmartcontract() {
-        logger.info { "Disable adding new peers on master contract ${masterContract.contractAddress}" }
-        masterContract.disableAddingNewPeers().send()
-    }
-
-    /**
      * Deploys relay contracts in Ethereum network
      */
     fun deployRelays(relaysToDeploy: Int) {
-        relayRegistration.deploy(relaysToDeploy, masterContract.contractAddress)
+        relayRegistration.deploy(
+            relaysToDeploy,
+            contractTestHelper.relayImplementation.contractAddress,
+            masterContract.contractAddress
+        )
             .fold(
                 {
                     logger.info("Relays were deployed by ${accountHelper.registrationAccount}")
@@ -254,7 +284,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /**
      * Deploys relay and registers first free relay contract in Iroha to the client with given [name] and public key
      */
-    fun registerClient(
+    fun registerClientInEth(
         name: String,
         whitelist: List<String>,
         keypair: KeyPair = ModelUtil.generateKeypair()
@@ -277,15 +307,6 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
                 return registeredEthWallet
             },
                 { ex -> throw RuntimeException("$name was not registered", ex) })
-    }
-
-    /**
-     * Registers first free relay contract in Iroha with random name and public key
-     */
-    fun registerRandomRelay(): String {
-        // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
-        val ethWallet = registerClient(String.getRandomString(9), listOf())
-        return ethWallet
     }
 
     /**
@@ -366,19 +387,15 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /**
      * Run Ethereum notary process
      */
-    fun runEthNotary(
+    fun runEthDeposit(
         ethereumPasswords: EthereumPasswords = configHelper.ethPasswordConfig,
-        ethNotaryConfig: EthNotaryConfig = configHelper.createEthNotaryConfig()
+        ethDepositConfig: EthDepositConfig = configHelper.createEthDepositConfig()
     ) {
         val name = String.getRandomString(9)
-        val address = "http://localhost:${ethNotaryConfig.refund.port}"
+        val address = "http://localhost:${ethDepositConfig.refund.port}"
         addNotary(name, address)
 
-        val ethCredential =
-            WalletUtils.loadCredentials(ethereumPasswords.credentialsPassword, ethNotaryConfig.ethereum.credentialsPath)
-        masterContract.addPeer(ethCredential.address).send()
-
-        executeNotary(ethereumPasswords, ethNotaryConfig)
+        executeDeposit(ethereumPasswords, ethDepositConfig)
 
         logger.info { "Notary $name is started on $address" }
     }
@@ -386,18 +403,24 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /**
      * Run ethereum registration config
      */
-    fun runRegistrationService(registrationConfig: EthRegistrationConfig = ethRegistrationConfig) {
-        registration.eth.executeRegistration(registrationConfig, configHelper.ethPasswordConfig)
+    fun runEthRegistrationService(registrationConfig: EthRegistrationConfig = ethRegistrationConfig) {
+        executeRegistration(registrationConfig, configHelper.ethPasswordConfig)
     }
 
     /**
      * Run withdrawal service
      */
     fun runEthWithdrawalService(
-        withdrawalServiceConfig: WithdrawalServiceConfig = configHelper.createWithdrawalConfig(),
-        relayVacuumConfig: RelayVacuumConfig = configHelper.createRelayVacuumConfig()
+        withdrawalServiceConfig: WithdrawalServiceConfig = configHelper.createWithdrawalConfig(String.getRandomString(9)),
+        relayVacuumConfig: RelayVacuumConfig = configHelper.createRelayVacuumConfig(),
+        rmqConfig: RMQConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
     ) {
-        withdrawalservice.executeWithdrawal(withdrawalServiceConfig, configHelper.ethPasswordConfig, relayVacuumConfig)
+        com.d3.eth.withdrawal.withdrawalservice.executeWithdrawal(
+            withdrawalServiceConfig,
+            configHelper.ethPasswordConfig,
+            relayVacuumConfig,
+            rmqConfig
+        )
     }
 
     /**

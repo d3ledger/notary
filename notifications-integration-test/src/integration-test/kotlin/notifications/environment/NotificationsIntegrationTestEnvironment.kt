@@ -1,30 +1,42 @@
 package notifications.environment
 
+import com.d3.notifications.config.PushAPIConfig
+import com.d3.notifications.config.SMTPConfig
+import com.d3.notifications.init.NotificationInitialization
+import com.d3.notifications.provider.D3ClientProvider
+import com.d3.notifications.push.PushServiceFactory
+import com.d3.notifications.push.WebPushAPIServiceImpl
+import com.d3.notifications.service.EmailNotificationService
+import com.d3.notifications.service.PushNotificationService
+import com.d3.notifications.smtp.SMTPServiceImpl
 import com.dumbster.smtp.SimpleSmtpServer
-import config.getConfigFolder
-import config.loadRawConfigs
+import com.nhaarman.mockito_kotlin.spy
+import com.d3.commons.config.getConfigFolder
+import com.d3.commons.config.loadRawConfigs
 import integration.helper.IrohaIntegrationHelperUtil
 import integration.helper.NotificationsConfigHelper
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
-import model.IrohaCredential
-import notifications.config.SMTPConfig
-import notifications.init.NotificationInitialization
-import notifications.service.EmailNotificationService
-import notifications.smtp.SMTPServiceImpl
-import provider.D3ClientProvider
-import sidechain.iroha.CLIENT_DOMAIN
-import sidechain.iroha.IrohaChainListener
-import sidechain.iroha.consumer.IrohaConsumerImpl
-import sidechain.iroha.util.ModelUtil
-import util.getRandomString
+import com.d3.commons.model.IrohaCredential
+import nl.martijndwars.webpush.PushService
+import org.bouncycastle.jce.provider.BouncyCastleProvider
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.d3.commons.sidechain.iroha.IrohaChainListener
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.getRandomString
 import java.io.Closeable
 import java.io.File
+import java.security.Security
 
 /**
  * Notifications service testing environment
  */
 class NotificationsIntegrationTestEnvironment(private val integrationHelper: IrohaIntegrationHelperUtil) : Closeable {
+
+    init {
+        Security.addProvider(BouncyCastleProvider())
+    }
 
     private val notificationsConfigHelper = NotificationsConfigHelper(integrationHelper.accountHelper)
 
@@ -36,6 +48,11 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
         getConfigFolder() + File.separator + notificationsConfig.smtpConfigPath
     )
 
+    private val pushAPIConfig = loadRawConfigs(
+        "push",
+        PushAPIConfig::class.java,
+        getConfigFolder() + File.separator + notificationsConfig.pushApiConfigPath
+    )
     val dumbster = SimpleSmtpServer.start(smtpConfig.port)!!
 
     private val irohaAPI = IrohaAPI(notificationsConfig.iroha.hostname, notificationsConfig.iroha.port)
@@ -52,9 +69,29 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
 
     private val smtpService = SMTPServiceImpl(smtpConfig)
 
-    private val notificationService = EmailNotificationService(smtpService, d3ClientProvider)
+    private val emailNotificationService =
+        EmailNotificationService(smtpService, d3ClientProvider)
 
-    val notificationInitialization = NotificationInitialization(irohaChainListener, notificationService)
+    val pushService =
+        spy(PushService(pushAPIConfig.vapidPubKeyBase64, pushAPIConfig.vapidPrivKeyBase64, "D3 notifications"))
+
+    private val pushServiceFactory = object : PushServiceFactory {
+        override fun create() = pushService
+    }
+
+    private val pushNotificationService =
+        PushNotificationService(
+            WebPushAPIServiceImpl(
+                d3ClientProvider,
+                pushServiceFactory
+            )
+        )
+
+    val notificationInitialization =
+        NotificationInitialization(
+            irohaChainListener,
+            listOf(emailNotificationService, pushNotificationService)
+        )
 
     // Source account
     val srcClientName = String.getRandomString(9)
@@ -67,7 +104,6 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
     val destClientKeyPair = ModelUtil.generateKeypair()
     val destClientId = "$destClientName@$CLIENT_DOMAIN"
     val destClientConsumer = IrohaConsumerImpl(IrohaCredential(destClientId, destClientKeyPair), irohaAPI)
-
 
     override fun close() {
         integrationHelper.close()
