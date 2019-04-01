@@ -136,6 +136,7 @@ class D3TestGenesisFactory : GenesisInterface {
         createDomain(builder, "bitcoin", "client")
         createDomain(builder, "btcSignCollect", "none")
         createDomain(builder, "brvs", "brvs")
+        createDomain(builder, "bootstrap", "none")
     }
 
 
@@ -157,8 +158,7 @@ class D3TestGenesisFactory : GenesisInterface {
         D3TestContext.createBtcFeeRateSetterRole(builder)
         D3TestContext.createSoraRole(builder)
         D3TestContext.createBrvsRole(builder)
+        D3TestContext.createSuperuserRole(builder)
     }
 
 }
-
-

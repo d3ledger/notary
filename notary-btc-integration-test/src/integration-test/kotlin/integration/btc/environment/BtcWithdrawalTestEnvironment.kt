@@ -189,7 +189,7 @@ class BtcWithdrawalTestEnvironment(
         btcWithdrawalConfig.notaryListSetterAccount
     )
     private val btcRollbackService =
-        BtcRollbackService(withdrawalIrohaConsumer, notaryPeerListProvider)
+        BtcRollbackService(withdrawalIrohaConsumer)
     val unsignedTransactions = UnsignedTransactions(signCollector)
     private val withdrawalConsensusProvider = WithdrawalConsensusProvider(
         btcConsensusCredential,
@@ -199,13 +199,23 @@ class BtcWithdrawalTestEnvironment(
         btcWithdrawalConfig
     )
     private val newTransferHandler =
-        NewTransferHandler(btcWithdrawalConfig, withdrawalConsensusProvider, btcRollbackService)
+        NewTransferHandler(
+            withdrawalStatistics,
+            BtcWhiteListProvider(
+                btcWithdrawalConfig.registrationCredential.accountId, integrationHelper.queryAPI
+            ),
+            btcWithdrawalConfig,
+            withdrawalConsensusProvider,
+            btcRollbackService,
+            transactionHelper
+        )
     val withdrawalTransferService = WithdrawalTransferService(
         withdrawalStatistics,
-        BtcWhiteListProvider(
-            btcWithdrawalConfig.registrationCredential.accountId, integrationHelper.queryAPI
-        ), btcWithdrawalConfig, transactionCreator, signCollector, unsignedTransactions
-        , transactionHelper,
+        btcWithdrawalConfig,
+        transactionCreator,
+        signCollector,
+        unsignedTransactions,
+        transactionHelper,
         btcRollbackService
     )
     val newSignatureEventHandler =

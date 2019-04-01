@@ -30,6 +30,29 @@ class EthTest {
     lateinit var mvc: MockMvc
 
     private val mapper = ObjectMapper()
+    
+    @Test
+    @Ignore
+    fun testDeploySmartContract() {
+        val result: MvcResult = mvc
+            .perform(
+                MockMvcRequestBuilders.post("/eth/deploy/D3/smartContracts").contentType(MediaType.APPLICATION_JSON).content(
+                    mapper.writeValueAsString(
+                        MasterContractsRequest(
+                            network = EthereumNetworkProperties(
+                                ethPasswords = EthereumPasswordsImpl(credentialsPassword = "password is specific for network creds"),
+                                ethereumConfig = EthereumConfigImpl()),
+                                notaryEthereumAccounts = listOf()
+                        )
+                    )
+                )
+            )
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andReturn()
+        val respBody = mapper.readValue(result.response.contentAsString, MasterContractResponse::class.java)
+
+        assertNull(respBody.errorCode)
+    }
 
     @Test
     @Ignore
