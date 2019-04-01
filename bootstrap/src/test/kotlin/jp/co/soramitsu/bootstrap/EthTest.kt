@@ -3,7 +3,6 @@ package jp.co.soramitsu.bootstrap
 import com.fasterxml.jackson.databind.ObjectMapper
 import jp.co.soramitsu.bootstrap.dto.*
 import mu.KLogging
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,7 +31,7 @@ class EthTest {
     private val mapper = ObjectMapper()
 
     @Test
-    @Ignore
+    //@Ignore
     fun testDeploySmartContract() {
         val result: MvcResult = mvc
             .perform(
@@ -40,9 +39,20 @@ class EthTest {
                     mapper.writeValueAsString(
                         MasterContractsRequest(
                             network = EthereumNetworkProperties(
-                                ethPasswords = EthereumPasswordsImpl(credentialsPassword = "password is specific for network creds"),
-                                ethereumConfig = EthereumConfigImpl()),
-                                notaryEthereumAccounts = listOf()
+                                ethPasswords = EthereumPasswordsImpl(
+                                    credentialsPassword = "jomsDDYyh59AqEFDsY8ZLcS5D",
+                                    nodeLogin = "developer",
+                                    nodePassword = "emooyei7chiew3xohb4poo1ith6chahK"
+                                ),
+                                ethereumConfig = EthereumConfigImpl(
+                                    url = "https://parity1.s2.tst.d3.soramitsu.co.jp",
+                                    credentialsPath = "E:\\soramitsu\\D3\\notary\\bootstrap\\src\\main\\resources\\eth\\main-ent-genesis.key",
+                                    gasPrice = 10000000000,
+                                    gasLimit = 4500000,
+                                    confirmationPeriod = 20
+                                )
+                            ),
+                            notaryEthereumAccounts = listOf("0x7432fc601d81362f9924ded6d4a670bcd25970d0")
                         )
                     )
                 )
