@@ -1,0 +1,12 @@
+ansible_python_interpreter: /usr/bin/python3
+overlay_network: true
+
+custom_genesis_block: true
+custom_genesis_block_path: /tmp/custom_genesis.block
+
+bootstrap_service_env: test
+bootstrap_service_profile: mainnet
+bootstrap_eth_deposit_eth_node_login: developer
+bootstrap_eth_deposit_eth_node_password: emooyei7chiew3xohb4poo1ith6chahK
+bootstrap_eth_deposit_eth_credentials_password: YDlgAyCsiy86oFTHmryGSClgxLOxZyEX
+bootstrap_api_smart_contracts_credentialspassword: YDlgAyCsiy86oFTHmryGSClgxLOxZyEX

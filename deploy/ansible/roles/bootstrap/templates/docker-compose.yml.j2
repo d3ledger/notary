@@ -1,0 +1,206 @@
+version: '3'
+
+services:
+  d3-notary:
+    image: nexus.iroha.tech:19002/d3-deploy/notary:develop
+    env_file:
+      - .env-eth-deposit
+    volumes:
+      - {{ deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
+      - {{ deployment_basedir }}/conf:/opt/notary/configs
+    expose:
+      - 8080
+    networks:
+      - d3
+    labels:
+      - filebeat.module=docker
+      - filebeat.fields.env=${ENVIRONMENT:?ENVIRONMENT is not defined}
+      - filebeat.fields.app=notary
+      - filebeat.fields.project=d3
+      - filebeat.fields.logtype=d3-java-log
+    restart: always
+
+  d3-eth-registration:
+    image: nexus.iroha.tech:19002/d3-deploy/eth-registration:develop
+    env_file:
+      - .env-eth-registration
+    volumes:
+      - {{ deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
+      - {{ deployment_basedir }}/conf:/opt/notary/configs
+    networks:
+      - d3
+      - traefik-net
+    labels:
+      - filebeat.module=docker
+      - filebeat.fields.env=${ENVIRONMENT:?ENVIRONMENT is not defined}
+      - filebeat.fields.app=registration
+      - filebeat.fields.project=d3
+      - filebeat.fields.logtype=d3-java-log
+      - "traefik.docker.network=traefik-net"
+      - "traefik.enable=true"
+      - "traefik.frontend.rule=Host:${ETH_REGISTRATION_HOST:?ETH_REGISTRATION_HOST is not defined}"
+      - "traefik.port=${ETH_REGISTRATION_PORT:?ETH_REGISTRATION_PORT is not defined}"
+      - "traefik.protocol=http"
+    restart: always
+
+  d3-registration:
+    image: nexus.iroha.tech:19002/d3-deploy/notary-registration:develop
+    container_name: d3-registration
+    volumes:
+      - {{ deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
+      - {{ deployment_basedir }}/conf:/opt/notary/configs
+    env_file:
+      .env-registration
+    networks:
+      - d3
+      - traefik-net
+    labels:
+      - filebeat.module=docker
+      - filebeat.fields.env=${ENVIRONMENT:?ENVIRONMENT is not defined}
+      - filebeat.fields.app=registration
+      - filebeat.fields.project=d3
+      - filebeat.fields.logtype=registration
+      - "traefik.docker.network=traefik-net"
+      - "traefik.enable=true"
+      - "traefik.frontend.rule=Host:${ETH_REGISTRATION_HOST:?ETH_REGISTRATION_HOST is not defined}"
+      - "traefik.port=${ETH_REGISTRATION_PORT:?ETH_REGISTRATION_PORT is not defined}"
+      - "traefik.protocol=http"
+    restart: always
+
+  d3-withdrawal:
+    image: nexus.iroha.tech:19002/d3-deploy/eth-withdrawal:develop
+    container_name: d3-withdrawal
+    volumes:
+      - {{ deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
+      - {{ deployment_basedir }}/conf:/opt/notary/configs
+    env_file:
+      .env-withdrawal
+    expose:
+      - {{ bootstrap_withdrawal_port }}
+    networks:
+      - d3
+    labels:
+      - filebeat.module=docker
+      - filebeat.fields.env=${ENVIRONMENT:?ENVIRONMENT is not defined}
+      - filebeat.fields.app=withdrawal
+      - filebeat.fields.project=d3
+      - filebeat.fields.logtype=withdrawal
+    restart: always
+
+  d3-relay-registration:
+    image: nexus.iroha.tech:19002/d3-deploy/eth-relay:develop
+    container_name: d3-relay-registration
+    volumes:
+      - {{ deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
+      - {{ deployment_basedir }}/conf:/opt/notary/configs
+    env_file:
+      .env-relay-registration   
+    networks:
+      - d3
+    restart: always
+
+  grpcwebproxy:
+    image: nexus.iroha.tech:19002/d3-deploy/grpcwebproxy
+    container_name: d3-grpcwebproxy
+    entrypoint:
+      - grpcwebproxy
+      - --backend_addr={{ bootstrap_grpcwebproxy_iroha_hostname }}:{{ bootstrap_grpcwebproxy_iroha_port }}
+      - --run_tls_server=false
+    labels:
+      - "traefik.docker.network=traefik-net"
+      - "traefik.enable=true"
+      - "traefik.frontend.rule=Host:${GRPCWEBPROXY_HOST:?GRPCWEBPROXY_HOST is not defined}"
+      - "traefik.port=${GRPCWEBPROXY_PORT:?GRPCWEBPROXY_PORT is not defined}"
+      - "traefik.protocol=http"
+    networks:
+      - d3
+      - traefik-net
+    restart: always
+
+  d3-backend:
+    image: sebp/lighttpd
+    expose:
+      - 80
+    volumes:
+      - {{ bootstrap_backend_static_files_path }}:/var/www/localhost/htdocs
+    labels:
+      - "traefik.docker.network=traefik-net"
+      - "traefik.enable=true"
+      - "traefik.frontend.rule=Host:${BACKEND_HOST:?BACKEND_HOST is not defined}"
+      - "traefik.port=80"
+      - "traefik.protocol=http"
+    networks:
+      - d3
+      - traefik-net
+    restart: always
+
+  d3-btc-address-generation:
+    image: nexus.iroha.tech:19002/d3-deploy/btc-address-generation:develop
+    container_name: d3-btc-address-generation
+    volumes:
+      - {{ deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
+      - {{ deployment_basedir }}/conf:/opt/notary/configs
+    env_file:
+      .env-btc-address-generation
+    networks:
+      - d3
+    restart: always
+
+  d3-btc-dw-bridge-1:
+    image: nexus.iroha.tech:19002/d3-deploy/btc-dw-bridge:develop
+    volumes:
+      - {{ deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
+      - {{ deployment_basedir }}/conf:/opt/notary/configs
+      - dw-bridge-storage:/opt/notary/deploy/bitcoin/mainnet/blocks
+    env_file:
+      .env-btc-dw-bridge
+    networks:
+      - d3
+    restart: always
+
+  d3-btc-registration:
+    image: nexus.iroha.tech:19002/d3-deploy/btc-registration:develop
+    volumes:
+      - {{ deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
+      - {{ deployment_basedir }}/conf:/opt/notary/configs
+    env_file:
+      .env-btc-registration
+    labels:
+      - "traefik.docker.network=traefik-net"
+      - "traefik.enable=true"
+      - "traefik.frontend.rule=Host:registration-btc.s1.tst.d3.soramitsu.co.jp"
+      - "traefik.port={{ bootstrap_btc_registration_port }}"
+      - "traefik.protocol=http"
+      - "traefik.frontend.headers.customResponseHeaders=Access-Control-Allow-Origin:https://{{ bootstrap_backend_host }}"
+    container_name: d3-btc-registration
+    networks:
+      - d3
+      - traefik-net    
+    restart: always
+
+  d3-rmq:
+    image: rabbitmq:3-management
+    container_name: d3-rmq
+    networks:
+      - d3
+    restart: always
+
+  d3-chain-adapter:
+    image: nexus.iroha.tech:19002/d3-deploy/chain-adapter:develop
+    container_name: d3-chain-adapter
+    volumes:
+      - {{ deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
+      - {{ deployment_basedir }}/conf:/opt/notary/configs
+    env_file:
+      .env-chain-adapter
+    networks:
+      - d3
+
+volumes:
+  dw-bridge-storage:
+
+networks:
+  d3:
+  traefik-net:
+    external:
+      name: traefik-net

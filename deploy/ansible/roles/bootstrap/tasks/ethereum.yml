@@ -1,0 +1,103 @@
+- block:
+  - name: Fetch the list of wallets
+    uri:
+      url: "{{ bootstrap_address }}/eth/list/servicesWithWallet/d3/{{ ansible_play_hosts | length }}"
+      return_content: yes
+    register: eth_wallets
+    tags: ["ethereum_keys"]
+
+  - name: Generate ethereum keys
+    uri:
+      url: "{{ bootstrap_address }}/eth/create/wallet?password={{ bootstrap_api_smart_contracts_credentialspassword }}"
+      return_content: yes
+    loop: "{{ eth_wallets.json }}"
+    register: ethereum_keys
+    tags: ["ethereum_keys"]
+
+  - name: Check genesis wallet already exists
+    stat:
+      path: "{{ bootstrap_api_smart_contracts_credentialspath }}"
+    register: bootstrap_service_genesis_wallet
+  
+  - name: Dump genesis file contents into variable
+    set_fact:
+      bootstrap_service_genesis_wallet_contents: "{{ lookup('file', bootstrap_api_smart_contracts_credentialspath) }}"
+    when: bootstrap_service_genesis_wallet.stat.exists
+
+  # Save genesis wallet into a local file ONLY if does not exist yet
+  # You need to remove the file if you want use a new one
+  - name: Save previously non-existing genesis wallet
+    copy:
+      content: "{{ item.json.file }}"
+      dest: "{{ bootstrap_api_smart_contracts_credentialspath }}"
+    loop: "{{ ethereum_keys.results }}"
+    when: item.item | regex_search('genesis') and not bootstrap_service_genesis_wallet.stat.exists
+
+  - name: Collect addresses of notaries
+    set_fact:
+      bootstrap_api_smart_contracts_notaryethereumaccounts: "{{ bootstrap_api_smart_contracts_notaryethereumaccounts + [ item.json.file.address ]}}"
+    loop: "{{ ethereum_keys.results }}"
+    when: item.item | regex_search('deposit')
+
+  - set_fact:
+      smart_contracts_generation_request:
+        network:
+          ethPasswords:
+            credentialsPassword: "{{ bootstrap_api_smart_contracts_credentialspassword }}"
+            nodeLogin: "{{ bootstrap_api_smart_contracts_nodelogin }}"
+            nodePassword: "{{ bootstrap_api_smart_contracts_nodepassword }}"
+          ethereumConfig:
+            confirmationPeriod: "{{ bootstrap_api_smart_contracts_confirmationperiod }}"
+            credentialsPath: "{{ bootstrap_api_smart_contracts_credentialspath }}"
+            gasLimit: "{{ bootstrap_api_smart_contracts_gaslimit }}"
+            gasPrice: "{{ bootstrap_api_smart_contracts_gasprice }}"
+            url: "{{ bootstrap_api_smart_contracts_url }}"
+        notaryEthereumAccounts: "{{ bootstrap_api_smart_contracts_notaryethereumaccounts }}"
+  
+  - debug:
+      var: smart_contracts_generation_request
+
+  - name: Check smart contracts are already deployed
+    stat:
+      path: "{{ bootstrap_api_smart_contracts_addresspath }}"
+    register: bootstrap_service_smart_contracts_addresspath
+
+  - name: Deploy smart contracts
+    uri:
+      url: "{{ bootstrap_address }}/eth/deploy/D3/smartContracts"
+      return_content: yes
+      method: POST
+      body_format: json
+      body: "{{ smart_contracts_generation_request | to_json }}"
+      # contracts deployment is pretty time-consuming operation :)
+      timeout: 3600
+    register: bootstrap_api_smart_contracts_deployed_addresses
+    when: not bootstrap_service_smart_contracts_addresspath.stat.exists or bootstrap_force_smart_contract_deployment
+
+  - debug:
+      var: bootstrap_api_smart_contracts_deployed_addresses
+
+  - name: Save deployed smart contracts addresses into a file
+    copy:
+      content: "{{ bootstrap_api_smart_contracts_deployed_addresses.json }}"
+      dest: "{{ bootstrap_api_smart_contracts_addresspath }}"
+
+  delegate_to: localhost
+  run_once: yes
+  become: no
+
+- name: Copy ethereum keys
+  copy:
+    content: "{{ item.json.file }}"
+    dest: "{{ deployment_basedir}}/conf/{{ eth_keys_path }}/{{ item.item | regex_replace('-peer' + (idx + 1) | string, '')}}.key"
+  loop: "{{ ethereum_keys.results }}"
+  loop_control:
+    index_var: idx
+  when: item.item | regex_search('^.+-(peer' + (idx + 1) | string + '|service|wallet)$')
+  tags: ["ethereum_keys"]
+
+- name: Copy genesis wallet
+  copy:
+    content: "{{ bootstrap_service_genesis_wallet_contents }}"
+    dest: "{{ deployment_basedir}}/conf/{{ eth_keys_path }}/{{ bootstrap_api_smart_contracts_credentialspath | basename }}"
+  when: bootstrap_service_genesis_wallet.stat.exists

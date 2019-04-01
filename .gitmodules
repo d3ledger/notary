@@ -1,0 +1,4 @@
+[submodule "iroha-docker"]
+	path = deploy/ansible/roles/iroha-docker
+	url = https://github.com/hyperledger/iroha.git
+	branch = develop

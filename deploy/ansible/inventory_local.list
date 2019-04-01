@@ -1,9 +1,2 @@
-
-[docker]
-vm0 ansible_host=192.168.99.101  ansible_ssh_private_key_file=
-vm1 ansible_host=192.168.99.102  ansible_ssh_private_key_file=
-vm2 ansible_host=192.168.99.103  ansible_ssh_private_key_file=
-
-[docker:vars]
-ansible_ssh_user=docker
-ansible_python_interpreter=/usr/bin/env python
+[all]
+localhost
