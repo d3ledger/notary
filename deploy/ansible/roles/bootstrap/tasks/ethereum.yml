@@ -60,19 +60,28 @@
   - name: Check smart contracts are already deployed
     stat:
       path: "{{ bootstrap_api_smart_contracts_addresspath }}"
-    register: bootstrap_service_smart_contracts_addresspath
+    register: bootstrap_service_smart_contracts_addresspath_stat
 
-  - name: Deploy smart contracts
-    uri:
-      url: "{{ bootstrap_address }}/eth/deploy/D3/smartContracts"
-      return_content: yes
-      method: POST
-      body_format: json
-      body: "{{ smart_contracts_generation_request | to_json }}"
-      # contracts deployment is pretty time-consuming operation :)
-      timeout: 3600
-    register: bootstrap_api_smart_contracts_deployed_addresses
-    when: not bootstrap_service_smart_contracts_addresspath.stat.exists or bootstrap_force_smart_contract_deployment
+  # - name: Deploy smart contracts
+  #   uri:
+  #     url: "{{ bootstrap_address }}/eth/deploy/D3/smartContracts"
+  #     return_content: yes
+  #     method: POST
+  #     body_format: json
+  #     body: "{{ smart_contracts_generation_request | to_json }}"
+  #     # contracts deployment is pretty time-consuming operation :)
+  #     timeout: 3600
+  #   register: bootstrap_api_smart_contracts_deployed_addresses
+  #   when: not bootstrap_service_smart_contracts_addresspath_stat.stat.exists or bootstrap_force_smart_contract_deployment
+
+# TODO: replace with actual contracts deployment
+  - set_fact:
+      bootstrap_api_smart_contracts_deployed_addresses:
+        json:
+          masterEthAddress: "0x519d28fdef03913498ef1e6b6f090dc48f42d6f9"
+          relayImplementationAddress: "0x81e66a89696c65d4cb1c17cc477afd6be3348c9f"
+          relayRegistryEthAddress: "0xdc5924e3f2b457cb1aa5eb66a2c00ce2ab248e0c"
+          soraTokenEthAddress: "0xdc5924e3f2b457cb1aa5eb66a2c00ce2ab248e0c"
 
   - debug:
       var: bootstrap_api_smart_contracts_deployed_addresses
@@ -81,10 +90,23 @@
     copy:
       content: "{{ bootstrap_api_smart_contracts_deployed_addresses.json }}"
       dest: "{{ bootstrap_api_smart_contracts_addresspath }}"
+    when: not bootstrap_service_smart_contracts_addresspath_stat.stat.exists or bootstrap_force_smart_contract_deployment
+
+  - name: Dump smart contracts addresses into variable
+    set_fact:
+      bootstrap_service_smart_contracts_file_contents: "{{ lookup('file', bootstrap_api_smart_contracts_addresspath) | from_json }}"
+    when: bootstrap_service_smart_contracts_addresspath_stat.stat.exists
 
   delegate_to: localhost
   run_once: yes
   become: no
+
+- name: Assign smart contract addresses to variables
+  set_fact:
+    bootstrap_eth_registration_ethrelayregistryaddress: "{{ bootstrap_service_smart_contracts_file_contents.relayRegistryEthAddress }}"
+    bootstrap_relay_registration_ethmasterwallet: "{{ bootstrap_service_smart_contracts_file_contents.masterEthAddress }}"
+    bootstrap_relay_registration_ethrelayimplementationaddress: "{{ bootstrap_service_smart_contracts_file_contents.relayImplementationAddress }}"
+    bootstrap_token_registration_xorethereumaddress: "{{ bootstrap_service_smart_contracts_file_contents.soraTokenEthAddress }}"
 
 - name: Copy ethereum keys
   copy:

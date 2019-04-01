@@ -6,6 +6,7 @@
     path: "{{ item }}"
   loop:
     - "{{ deployment_basedir }}/conf/{{ eth_keys_path }}"
+    - "{{ deployment_basedir }}/conf/{{ eth_tokens_path }}"
     - "{{ deployment_basedir }}/conf/{{ btc_keys_path }}"
     - "{{ deployment_basedir }}/conf/{{ btc_blocks_path }}"
     - "{{ deployment_basedir }}/conf/btc"
@@ -14,11 +15,19 @@
 - include: ethereum.yml
 # - include: bitcoin.yml
 
-# - name: Fetch configs from GitHub
-#   get_url:
-#     url: "{{ bootstrap_gh_configs_base_url }}/{{ item.value.path | regex_replace('^(.*_).*(\\.properties)$', '\\1' + bootstrap_service_profile + '\\2')}}"
-#     dest: "{{ deployment_basedir }}/conf/{{ item.value.dest_dir }}/"
-#   loop: "{{ bootstrap_gh_configs_urls | dict2items }}"
+# TODO: all the configs must be a part of the artifact (Docker image or JAR)
+# Pulling it from GH repo will make a service unstable
+- name: Fetch configs from GitHub
+  get_url:
+    url: "{{ bootstrap_gh_configs_base_url }}/{{ item.value.path | regex_replace('^(.*_).*(\\.properties)$', '\\1' + bootstrap_service_profile + '\\2')}}"
+    dest: "{{ deployment_basedir }}/conf/{{ item.value.dest_dir }}/"
+  loop: "{{ bootstrap_gh_configs_urls | dict2items }}"
+
+# TODO: the file should be in container already by the time of deployment
+- name: Fetch mainnet_tokens.json
+  get_url:
+    url: "{{ bootstrap_gh_configs_base_url }}/deploy/ethereum/tokens/mainnet_tokens.json"
+    dest: "{{ deployment_basedir }}/conf/{{ eth_tokens_path }}/"
 
 # - name: Set vars
 #   set_fact:

@@ -5,6 +5,7 @@ deployment_basedir: /opt/d3
 
 bootstrap_notary_address: ''
 eth_keys_path: 'ethereum/keys'
+eth_tokens_path: 'ethereum/tokens'
 btc_keys_path: 'bitcoin/keys'
 btc_blocks_path: 'bitcoin/blocks'
 btc_wallets:
@@ -17,6 +18,12 @@ bootstrap_gh_configs_base_url: https://raw.githubusercontent.com/d3ledger/notary
 bootstrap_gh_configs_urls:
   eth_deposit:
     path: configs/eth/deposit_mainnet.properties
+    dest_dir: eth
+  token_registration:
+    path: configs/eth/token_registration_mainnet.properties
+    dest_dir: eth
+  token_registration_json:
+    path: deploy/ethereum/tokens/mainnet_tokens.json
     dest_dir: eth
 
 bootstrap_api_smart_contracts_credentialspassword: ''
@@ -49,7 +56,7 @@ bootstrap_eth_deposit_iroha_hostname: ''
 bootstrap_eth_deposit_iroha_port: ''
 bootstrap_eth_deposit_ethereum_url: https://parity1.s2.tst.d3.soramitsu.co.jp
 # TODO: 
-bootstrap_eth_deposit_ethereum_credentialspath: configs/ethereum/eth-deposit-service.key
+bootstrap_eth_deposit_ethereum_credentialspath: configs/keys/ethereum/eth-deposit-service.key
 bootstrap_eth_deposit_eth_node_login: ''
 bootstrap_eth_deposit_eth_node_password: ''
 
@@ -63,7 +70,7 @@ bootstrap_eth_registration_registrationcredential_privkeypath: configs/iroha/eth
 bootstrap_eth_registration_iroha_hostname: ''
 bootstrap_eth_registration_iroha_port: ''
 bootstrap_eth_registration_ethereum_url: https://parity1.s2.tst.d3.soramitsu.co.jp
-bootstrap_eth_registration_ethereum_credentialspath: configs/ethereum/eth-registration-service.key
+bootstrap_eth_registration_ethereum_credentialspath: configs/keys/ethereum/eth-registration-service.key
 # TODO: https://github.com/d3ledger/notary/issues/433
 bootstrap_eth_registration_ethrelayregistryaddress: ''
 
@@ -88,14 +95,12 @@ bootstrap_withdrawal_withdrawalcredential_privkeypath: configs/iroha/withdrawal@
 bootstrap_withdrawal_iroha_hostname: ''
 bootstrap_withdrawal_iroha_port: ''
 bootstrap_withdrawal_ethereum_url: https://parity1.s2.tst.d3.soramitsu.co.jp
-bootstrap_withdrawal_ethereum_credentialspath: configs/ethereum/eth-withdrawal-service.key
+bootstrap_withdrawal_ethereum_credentialspath: configs/keys/ethereum/eth-withdrawal-service.key
 
 # relay-registration
 bootstrap_relay_registration_class: com.d3.eth.withdrawal.withdrawalservice.WithdrawalServiceMain
 bootstrap_relay_registration_jar_name: eth-withdrawal.jar
-# TODO: https://github.com/d3ledger/notary/issues/433
 bootstrap_relay_registration_ethmasterwallet: '0x164fe081694ccf1963060f3d1ae34ced15629416'
-# TODO: ??? https://github.com/d3ledger/notary/issues/433
 bootstrap_relay_registration_ethrelayimplementationaddress: '0x0000000000000000000000000000000000000000'
 bootstrap_relay_registration_relayregistrationcredential_pubkeypath: ''
 bootstrap_relay_registration_relayregistrationcredential_privkeypath: ''
@@ -103,7 +108,15 @@ bootstrap_relay_registration_iroha_hostname: ''
 bootstrap_relay_registration_iroha_port: ''
 bootstrap_relay_registration_ethereum_url: https://parity1.s2.tst.d3.soramitsu.co.jp
 # TODO: BUG. Bootstrap does not return this wallet
-bootstrap_relay_registration_ethereum_credentialspath: configs/ethereum/eth-registration-service.key
+bootstrap_relay_registration_ethereum_credentialspath: configs/keys/ethereum/eth-registration-service.key
+
+# token-registration
+bootstrap_token_registration_tokensfilepath: configs/ethereum/tokens/mainnet_tokens.json
+bootstrap_token_registration_xorethereumaddress: "0x0000000000000000000000000000000000000000"
+bootstrap_token_registration_irohacredential_pubkeypath: configs/iroha/eth_token_storage_service@notary.pub
+bootstrap_token_registration_irohacredential_privkeypath: configs/iroha/eth_token_storage_service@notary.priv
+bootstrap_token_registration_iroha_hostname: ''
+bootstrap_token_registration_iroha_port: ''
 
 # grpcwebproxy
 bootstrap_grpcwebproxy_iroha_hostname: ''
