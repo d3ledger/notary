@@ -194,7 +194,7 @@ object D3TestContext {
 
     fun createVacuumerRole(builder: TransactionBuilder) {
         builder.createRole(
-            "Vacuumer",
+            "vacuumer",
             listOf(
                 Primitive.RolePermission.can_get_domain_accounts,
                 Primitive.RolePermission.can_read_assets
@@ -316,6 +316,15 @@ object D3TestContext {
             "btc_fee_rate_setter",
             listOf(
                 Primitive.RolePermission.can_set_detail,
+                Primitive.RolePermission.can_get_all_accounts
+            )
+        )
+    }
+
+    fun createAdminRole(builder: TransactionBuilder) {
+        builder.createRole(
+            "admin",
+            listOf(
                 Primitive.RolePermission.can_get_all_accounts
             )
         )
