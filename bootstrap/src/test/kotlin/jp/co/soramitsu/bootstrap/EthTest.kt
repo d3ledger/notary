@@ -3,6 +3,7 @@ package jp.co.soramitsu.bootstrap
 import com.fasterxml.jackson.databind.ObjectMapper
 import jp.co.soramitsu.bootstrap.dto.*
 import mu.KLogging
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,7 +32,7 @@ class EthTest {
     private val mapper = ObjectMapper()
 
     @Test
-    //@Ignore
+    @Ignore
     fun testDeploySmartContract() {
         val result: MvcResult = mvc
             .perform(

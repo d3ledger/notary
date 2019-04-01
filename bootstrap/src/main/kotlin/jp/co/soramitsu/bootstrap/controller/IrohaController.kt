@@ -130,7 +130,7 @@ class IrohaController(val genesisFactories: List<GenesisInterface>) {
     }
 
     private fun isValidRequest(request: GenesisRequest): Conflictable? {
-        val result = request.peers.filter { it.peerKey.isEmpty() }.collect(toList())
+        val result = request.peers.stream().filter { it.peerKey.isEmpty() }.collect(toList())
         if (result.isNotEmpty()) {
             var message = "Peers with empty publicKeys:"
             result.forEach {

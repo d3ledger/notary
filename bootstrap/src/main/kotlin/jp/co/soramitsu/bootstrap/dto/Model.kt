@@ -9,6 +9,7 @@ import org.bitcoinj.params.MainNetParams
 import org.bitcoinj.params.RegTestParams
 import org.bitcoinj.params.TestNet3Params
 import org.web3j.crypto.WalletFile
+import java.math.BigInteger
 import java.security.KeyPair
 import javax.validation.constraints.NotNull
 import javax.xml.bind.DatatypeConverter
@@ -25,10 +26,38 @@ enum class BtcNetwork(val params: NetworkParameters) {
 
 open class Conflictable(var errorCode: String? = null, var message: String? = null)
 
+data class SigsData(val vv: ArrayList<BigInteger>, val rr: ArrayList<ByteArray>, val ss: ArrayList<ByteArray>)
+
+data class UpdateMasterContractResponse(
+    val success:Boolean = false
+) : Conflictable() {
+    constructor(errorCode: String? = null, message: String? = null) :
+            this(false) {
+        this.errorCode = errorCode
+        this.message = message
+    }
+}
+
+data class UpdateMasterContractRequest(
+    @NotNull val network: EthereumNetworkProperties = EthereumNetworkProperties(),
+    @NotNull val masterContract: MasterContractProperties = MasterContractProperties(),
+    val newPeerAddress: String? = null,
+    val removePeerAddress: String? = null
+)
+
+data class MasterContractProperties(
+    @NotNull val address: String? = null,
+    @NotNull val notaries: List<StringKeyPair> = emptyList()
+    )
 
 data class MasterContractsRequest(
-    @NotNull val network: EthereumNetworkProperties? = null,
+    @NotNull val network: EthereumNetworkProperties = EthereumNetworkProperties(),
     @NotNull val notaryEthereumAccounts: List<String> = emptyList()
+)
+
+data class StringKeyPair(
+    @NotNull val private: String = "",
+    @NotNull val public: String = ""
 )
 
 data class MasterContractResponse(
@@ -44,7 +73,11 @@ data class MasterContractResponse(
     }
 }
 
-data class EthereumNetworkProperties(val ethPasswords: EthereumPasswordsImpl = EthereumPasswordsImpl(), val ethereumConfig: EthereumConfigImpl = EthereumConfigImpl())
+data class EthereumNetworkProperties(
+    val ethPasswords: EthereumPasswordsImpl = EthereumPasswordsImpl(),
+    val ethereumConfig: EthereumConfigImpl = EthereumConfigImpl()
+)
+
 data class EthereumPasswordsImpl(
     override val credentialsPassword: String = "user",
     override val nodeLogin: String? = null,
@@ -66,7 +99,7 @@ data class BlockchainCreds(
     val private: String? = null,
     val public: String? = null,
     val address: String? = null,
-    val confirmationPeriod:Int? = null
+    val confirmationPeriod: Int? = null
 ) : Conflictable()
 
 data class IrohaAccountDto(

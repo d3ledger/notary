@@ -192,14 +192,19 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
         proxy.upgradeToAndCall(master.contractAddress, encoded, BigInteger.ZERO).send()
 
         // load via proxy
+        val proxiedMaster = loadMasterContract(proxy.contractAddress)
+        logger.info { "Upgradable proxy to Master contract ${proxiedMaster.contractAddress} was deployed" }
+
+        return proxiedMaster
+    }
+
+    fun loadMasterContract(address: String): Master {
         val proxiedMaster = Master.load(
-            proxy.contractAddress,
+            address,
             web3,
             transactionManager,
             StaticGasProvider(gasPrice, gasLimit)
         )
-        logger.info { "Upgradable proxy to Master contract ${proxiedMaster.contractAddress} was deployed" }
-
         return proxiedMaster
     }
 
