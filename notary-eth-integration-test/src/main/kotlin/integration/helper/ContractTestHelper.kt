@@ -38,7 +38,7 @@ class ContractTestHelper {
 
     val etherAddress = "0x0000000000000000000000000000000000000000"
     val defaultIrohaHash = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))
-    val defaultByteHash = itohaHashToByteHash(defaultIrohaHash)
+    val defaultByteHash = irohaHashToByteHash(defaultIrohaHash)
 
     // ganache-cli ether custodian
     val accMain = deployHelper.credentials.address
@@ -47,7 +47,7 @@ class ContractTestHelper {
 
     data class sigsData(val vv: ArrayList<BigInteger>, val rr: ArrayList<ByteArray>, val ss: ArrayList<ByteArray>)
 
-    fun itohaHashToByteHash(irohaHash: String) = Numeric.hexStringToByteArray(irohaHash.slice(2 until irohaHash.length))
+    fun irohaHashToByteHash(irohaHash: String) = Numeric.hexStringToByteArray(irohaHash.slice(2 until irohaHash.length))
 
     fun prepareSignatures(amount: Int, keypairs: List<ECKeyPair>, toSign: String): sigsData {
         val vv = ArrayList<BigInteger>()

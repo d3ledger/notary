@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.stream.Collectors.toList
 import javax.xml.bind.DatatypeConverter
+import kotlin.streams.toList
 
 @RestController
 @RequestMapping("/iroha")
@@ -130,7 +131,9 @@ class IrohaController(val genesisFactories: List<GenesisInterface>) {
     }
 
     private fun isValidRequest(request: GenesisRequest): Conflictable? {
-        val result = request.peers.filter { it.peerKey.isEmpty() }.collect(toList())
+
+        val result = request.peers.filter { it.peerKey.isEmpty() }.toList()
+
         if (result.isNotEmpty()) {
             var message = "Peers with empty publicKeys:"
             result.forEach {

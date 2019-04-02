@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
+import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -30,33 +31,53 @@ class EthTest {
     lateinit var mvc: MockMvc
 
     private val mapper = ObjectMapper()
-    
+
+    val classLoader = javaClass.classLoader
+
+      @Test
+      @Ignore
+      fun testUpdateSmartContractAddPeer() {
+          val file = File(classLoader.getResource("eth/main-net-genesis.key")!!.file)
+
+          val result: MvcResult = mvc
+              .perform(
+                  MockMvcRequestBuilders.post("/eth/deploy/D3/masterContract/update").contentType(MediaType.APPLICATION_JSON).content(
+                      mapper.writeValueAsString(
+                          UpdateMasterContractRequest(
+                              network = EthereumNetworkProperties(
+                                  ethPasswords = EthereumPasswordsImpl(
+                                      credentialsPassword = "joms...",
+                                      nodeLogin = "devel..",
+                                      nodePassword = "emooy..."
+                                  ),
+                                  ethereumConfig = EthereumConfigImpl(
+                                      url = "https://parity1...",
+                                      credentialsPath = file.absolutePath,
+                                      gasPrice = 10000000000,
+                                      gasLimit = 4500000,
+                                      confirmationPeriod = 20
+                                  )
+                              ),
+                              masterContract = MasterContractProperties(
+                                  address = "0x7d1a4fd3d286e5eb239f7f081481ab5be3517c00"
+                              ),
+                              newPeerAddress = "0x7432fc601d81362f9492ded6d4a670bcd25970d0"
+                          )
+                      )
+                  )
+              )
+              .andExpect(MockMvcResultMatchers.status().isOk)
+              .andReturn()
+          val respBody = mapper.readValue(result.response.contentAsString, MasterContractResponse::class.java)
+
+          assertNull(respBody.errorCode)
+      }
+
     @Test
     @Ignore
-    fun testDeploySmartContract() {
-        val result: MvcResult = mvc
-            .perform(
-                MockMvcRequestBuilders.post("/eth/deploy/D3/smartContracts").contentType(MediaType.APPLICATION_JSON).content(
-                    mapper.writeValueAsString(
-                        MasterContractsRequest(
-                            network = EthereumNetworkProperties(
-                                ethPasswords = EthereumPasswordsImpl(credentialsPassword = "password is specific for network creds"),
-                                ethereumConfig = EthereumConfigImpl()),
-                                notaryEthereumAccounts = listOf()
-                        )
-                    )
-                )
-            )
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andReturn()
-        val respBody = mapper.readValue(result.response.contentAsString, MasterContractResponse::class.java)
+    fun testDeploySmartContractMainNet() {
+        val file = File(classLoader.getResource("eth/main-net-genesis.key")!!.file)
 
-        assertNull(respBody.errorCode)
-    }
-
-    @Test
-    //@Ignore
-    fun testDeploySmartContract() {
         val result: MvcResult = mvc
             .perform(
                 MockMvcRequestBuilders.post("/eth/deploy/D3/smartContracts").contentType(MediaType.APPLICATION_JSON).content(
@@ -64,13 +85,13 @@ class EthTest {
                         MasterContractsRequest(
                             network = EthereumNetworkProperties(
                                 ethPasswords = EthereumPasswordsImpl(
-                                    credentialsPassword = "jomsDDYyh59AqEFDsY8ZLcS5D",
-                                    nodeLogin = "developer",
-                                    nodePassword = "emooyei7chiew3xohb4poo1ith6chahK"
+                                    credentialsPassword = "joms...",
+                                    nodeLogin = "devel...",
+                                    nodePassword = "emooy..."
                                 ),
                                 ethereumConfig = EthereumConfigImpl(
-                                    url = "https://parity1.s2.tst.d3.soramitsu.co.jp",
-                                    credentialsPath = "E:\\soramitsu\\D3\\notary\\bootstrap\\src\\main\\resources\\eth\\main-ent-genesis.key",
+                                    url = "https://parity1....",
+                                    credentialsPath = file.absolutePath,
                                     gasPrice = 10000000000,
                                     gasLimit = 4500000,
                                     confirmationPeriod = 20
@@ -84,7 +105,7 @@ class EthTest {
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andReturn()
         val respBody = mapper.readValue(result.response.contentAsString, MasterContractResponse::class.java)
-
+        log.info("DeployResponse: ${result.response.contentAsString}")
         assertNull(respBody.errorCode)
     }
 
