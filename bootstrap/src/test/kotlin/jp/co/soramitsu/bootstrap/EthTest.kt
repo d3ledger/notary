@@ -33,11 +33,11 @@ class EthTest {
     private val mapper = ObjectMapper()
 
     val classLoader = javaClass.classLoader
-    val file = File(classLoader.getResource("eth/main-net-genesis.key")!!.file)
 
       @Test
       @Ignore
       fun testUpdateSmartContractAddPeer() {
+          val file = File(classLoader.getResource("eth/main-net-genesis.key")!!.file)
 
           val result: MvcResult = mvc
               .perform(
@@ -76,7 +76,6 @@ class EthTest {
     @Test
     @Ignore
     fun testDeploySmartContractMainNet() {
-        val classLoader = javaClass.classLoader
         val file = File(classLoader.getResource("eth/main-net-genesis.key")!!.file)
 
         val result: MvcResult = mvc
