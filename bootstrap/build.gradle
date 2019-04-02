@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 group 'd3'
 version '1.0'
 
@@ -68,6 +73,7 @@ dependencies {
 
     testCompile "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
 
+    compile project(":eth")
 }
 
 sourceCompatibility = 1.8

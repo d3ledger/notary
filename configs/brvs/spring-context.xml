@@ -1,7 +1,7 @@
 <?xml version = "1.0" encoding = "UTF-8"?>
 <!--
--- Copyright D3 Ledger, Inc. All Rights Reserved.
--- SPDX-License-Identifier: Apache-2.0
+  ~ Copyright D3 Ledger, Inc. All Rights Reserved.
+  ~ SPDX-License-Identifier: Apache-2.0
   -->
 
 <beans xmlns="http://www.springframework.org/schema/beans"
