@@ -12,6 +12,7 @@ services:
       - 8080
     networks:
       - d3
+      - iroha-net
     labels:
       - filebeat.module=docker
       - filebeat.fields.env=${ENVIRONMENT:?ENVIRONMENT is not defined}
@@ -29,6 +30,7 @@ services:
       - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
     networks:
       - d3
+      - iroha-net
       - traefik-net
     labels:
       - filebeat.module=docker
@@ -53,6 +55,7 @@ services:
       .env-registration
     networks:
       - d3
+      - iroha-net
       - traefik-net
     labels:
       - filebeat.module=docker
@@ -62,8 +65,8 @@ services:
       - filebeat.fields.logtype=registration
       - "traefik.docker.network=traefik-net"
       - "traefik.enable=true"
-      - "traefik.frontend.rule=Host:${ETH_REGISTRATION_HOST:?ETH_REGISTRATION_HOST is not defined}"
-      - "traefik.port=${ETH_REGISTRATION_PORT:?ETH_REGISTRATION_PORT is not defined}"
+      - "traefik.frontend.rule=Host:${REGISTRATION_HOST:?REGISTRATION_HOST is not defined}"
+      - "traefik.port=${REGISTRATION_PORT:?REGISTRATION_PORT is not defined}"
       - "traefik.protocol=http"
     restart: always
 
@@ -79,6 +82,7 @@ services:
       - {{ bootstrap_withdrawal_port }}
     networks:
       - d3
+      - iroha-net
     labels:
       - filebeat.module=docker
       - filebeat.fields.env=${ENVIRONMENT:?ENVIRONMENT is not defined}
@@ -97,6 +101,7 @@ services:
       .env-relay-registration   
     networks:
       - d3
+      - iroha-net
     restart: always
 
   grpcwebproxy:
@@ -114,6 +119,7 @@ services:
       - "traefik.protocol=http"
     networks:
       - d3
+      - iroha-net
       - traefik-net
     restart: always
 
@@ -144,9 +150,10 @@ services:
       .env-btc-address-generation
     networks:
       - d3
+      - iroha-net
     restart: always
 
-  d3-btc-dw-bridge-1:
+  d3-btc-dw-bridge:
     image: nexus.iroha.tech:19002/d3-deploy/btc-dw-bridge:develop
     volumes:
       - {{ deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
@@ -156,6 +163,7 @@ services:
       .env-btc-dw-bridge
     networks:
       - d3
+      - iroha-net
     restart: always
 
   d3-btc-registration:
@@ -168,14 +176,15 @@ services:
     labels:
       - "traefik.docker.network=traefik-net"
       - "traefik.enable=true"
-      - "traefik.frontend.rule=Host:registration-btc.s1.tst.d3.soramitsu.co.jp"
-      - "traefik.port={{ bootstrap_btc_registration_port }}"
+      - "traefik.frontend.rule=Host:${BTC_REGISTRATION_HOST:?BTC_REGISTRATION_HOST is not defined}"
+      - "traefik.port=${BTC_REGISTRATION_PORT:?BTC_REGISTRATION_PORT is not defined}"
       - "traefik.protocol=http"
-      - "traefik.frontend.headers.customResponseHeaders=Access-Control-Allow-Origin:https://{{ bootstrap_backend_host }}"
+      - "traefik.frontend.headers.customResponseHeaders=Access-Control-Allow-Origin:https://${BTC_REGISTRATION_HOST:?BTC_REGISTRATION_HOST is not defined}"
     container_name: d3-btc-registration
     networks:
       - d3
-      - traefik-net    
+      - iroha-net
+      - traefik-net
     restart: always
 
   d3-rmq:
@@ -195,6 +204,7 @@ services:
       .env-chain-adapter
     networks:
       - d3
+      - iroha-net
 
 volumes:
   dw-bridge-storage:
@@ -204,3 +214,6 @@ networks:
   traefik-net:
     external:
       name: traefik-net
+  iroha-net:
+    external:
+      name: iroha-net

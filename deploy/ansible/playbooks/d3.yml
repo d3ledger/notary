@@ -10,9 +10,9 @@
     - role: bootstrap
       tags: ["bootstrap"]
 
-    - role: iroha-docker-clean
-      vars:
-        init_vars: true
-        generate_init_configs: true
-        update_runtime_configs: true
-      tags: ["iroha-deploy"]
+    # - role: iroha-docker-clean
+    #   vars:
+    #     init_vars: true
+    #     generate_init_configs: true
+    #     update_runtime_configs: true
+    #   tags: ["iroha-deploy"]

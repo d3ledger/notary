@@ -111,7 +111,7 @@
 - name: Copy ethereum keys
   copy:
     content: "{{ item.json.file }}"
-    dest: "{{ deployment_basedir}}/conf/{{ bootstrap_eth_keys_path }}/{{ item.item | regex_replace('-peer' + (idx + 1) | string, '')}}.key"
+    dest: "{{ bootstrap_deployment_basedir}}/conf/{{ bootstrap_eth_keys_path }}/{{ item.item | regex_replace('-peer' + (idx + 1) | string, '')}}.key"
   loop: "{{ ethereum_keys.results }}"
   loop_control:
     index_var: idx
@@ -121,5 +121,5 @@
 - name: Copy genesis wallet
   copy:
     content: "{{ bootstrap_service_genesis_wallet_contents }}"
-    dest: "{{ deployment_basedir}}/conf/{{ bootstrap_eth_keys_path }}/{{ bootstrap_api_smart_contracts_credentialspath | basename }}"
+    dest: "{{ bootstrap_deployment_basedir}}/conf/{{ bootstrap_eth_keys_path }}/{{ bootstrap_api_smart_contracts_credentialspath | basename }}"
   when: bootstrap_service_genesis_wallet.stat.exists

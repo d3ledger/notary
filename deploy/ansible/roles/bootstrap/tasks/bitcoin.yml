@@ -3,7 +3,7 @@
     uri:
       url: "{{ bootstrap_api_address }}/btc/create/wallet"
       return_content: yes
-    loop: "{{ iroha_all_nodes | product(btc_wallets) | list }}"
+    loop: "{{ iroha_all_nodes | product(bootstrap_btc_wallets) | list }}"
     register: bitcoin_wallet
     tags: ["bitcoin_wallet"]
 
