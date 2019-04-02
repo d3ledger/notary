@@ -106,7 +106,7 @@ class EthTest {
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andReturn()
         val respBody = mapper.readValue(result.response.contentAsString, MasterContractResponse::class.java)
-        log.info("DeployResponse: " + result.response.contentAsString)
+        log.info("DeployResponse: ${result.response.contentAsString}")
         assertNull(respBody.errorCode)
     }
 
