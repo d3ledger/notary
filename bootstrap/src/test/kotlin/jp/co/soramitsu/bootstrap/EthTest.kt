@@ -111,6 +111,40 @@ class EthTest {
     }
 
     @Test
+    //@Ignore
+    fun testDeploySmartContract() {
+        val result: MvcResult = mvc
+            .perform(
+                MockMvcRequestBuilders.post("/eth/deploy/D3/smartContracts").contentType(MediaType.APPLICATION_JSON).content(
+                    mapper.writeValueAsString(
+                        MasterContractsRequest(
+                            network = EthereumNetworkProperties(
+                                ethPasswords = EthereumPasswordsImpl(
+                                    credentialsPassword = "jomsDDYyh59AqEFDsY8ZLcS5D",
+                                    nodeLogin = "developer",
+                                    nodePassword = "emooyei7chiew3xohb4poo1ith6chahK"
+                                ),
+                                ethereumConfig = EthereumConfigImpl(
+                                    url = "https://parity1.s2.tst.d3.soramitsu.co.jp",
+                                    credentialsPath = "E:\\soramitsu\\D3\\notary\\bootstrap\\src\\main\\resources\\eth\\main-ent-genesis.key",
+                                    gasPrice = 10000000000,
+                                    gasLimit = 4500000,
+                                    confirmationPeriod = 20
+                                )
+                            ),
+                            notaryEthereumAccounts = listOf("0x7432fc601d81362f9924ded6d4a670bcd25970d0")
+                        )
+                    )
+                )
+            )
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andReturn()
+        val respBody = mapper.readValue(result.response.contentAsString, MasterContractResponse::class.java)
+
+        assertNull(respBody.errorCode)
+    }
+
+    @Test
     fun testCreateWallet() {
         val result: MvcResult = mvc
             .perform(MockMvcRequestBuilders.get("/eth/create/wallet?password=abc"))
