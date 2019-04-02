@@ -6,7 +6,7 @@ import jp.co.soramitsu.bootstrap.dto.ChangelogRequestDetails
 import jp.co.soramitsu.bootstrap.dto.ChangelogScriptRequest
 import jp.co.soramitsu.bootstrap.dto.ClientKeyPair
 import jp.co.soramitsu.bootstrap.iroha.LazyIrohaAPIPool
-import jp.co.soramitsu.bootstrap.iroha.sendMSTBatch
+import jp.co.soramitsu.bootstrap.iroha.sendMST
 import jp.co.soramitsu.iroha.java.Transaction
 import jp.co.soramitsu.iroha.java.Utils
 import mu.KLogging
@@ -51,28 +51,26 @@ class ChangelogExecutor(
         // Parse changelog script
         val changelog = changelogParser.parse(script)
         // Create changelog transaction
-        val transactions = changelog.createChangelog(
+        val transaction = changelog.createChangelog(
             changelogRequestDetails.accounts,
             changelogRequestDetails.peers
         )
-        // Create batch
-        val atomicBatch = Utils.createTxUnsignedAtomicBatch(transactions)
-        // Sign changelog transactions
-        signBatch(atomicBatch, changelogRequestDetails.superuserKeys)
+        // Sign changelog transaction
+        signTx(transaction, changelogRequestDetails.superuserKeys)
         // Send transaction
-        irohaAPI.sendMSTBatch(atomicBatch.map { batchTx -> batchTx.build() })
+        irohaAPI.sendMST(transaction.build())
             .fold(
-                { log.info { "Changelog has been successfully executed" } },
+                { txHash -> log.info { "Changelog tx has been successfully sent. Tx hash $txHash" } },
                 { ex -> throw ex })
     }
 
     /**
-     * Signs changelog batch
-     * @param atomicBatch - changelog atomic batch
+     * Signs changelog transaction
+     * @param tx - changelog transaction
      * @param superuserKeys - keys that are used to sign given batch
      */
-    private fun signBatch(
-        atomicBatch: Iterable<Transaction>,
+    private fun signTx(
+        tx: Transaction,
         superuserKeys: List<ClientKeyPair>
     ) {
         superuserKeys.map { clientKeyPair ->
@@ -81,9 +79,7 @@ class ChangelogExecutor(
                 clientKeyPair.privateKey
             )
         }.forEach { keyPair ->
-            atomicBatch.forEach { tx ->
-                tx.sign(keyPair)
-            }
+            tx.sign(keyPair)
         }
     }
 }

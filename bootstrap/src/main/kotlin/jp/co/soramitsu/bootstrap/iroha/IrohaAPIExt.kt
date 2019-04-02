@@ -5,7 +5,6 @@ import iroha.protocol.Endpoint
 import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.TransactionStatusObserver
-import jp.co.soramitsu.iroha.java.Utils
 import jp.co.soramitsu.iroha.java.detail.InlineTransactionStatusObserver
 import jp.co.soramitsu.iroha.java.subscription.WaitForTerminalStatus
 import java.io.IOException
@@ -63,19 +62,19 @@ private fun createTxStatusObserverMST(txStatus: TxStatus): InlineTransactionStat
 }
 
 /**
- * Send list of transactions to Iroha as BATCH and check if it is committed
- * @param lst - list of built protobuf iroha transactions
+ * Send signed transaction to Iroha
+ * @param tx - transaction to send
+ * @return result with hash of created transaction
  */
-fun IrohaAPI.sendMSTBatch(lst: Iterable<TransactionOuterClass.Transaction>): Result<Unit, Exception> {
+fun IrohaAPI.sendMST(tx: TransactionOuterClass.Transaction): Result<String, Exception> {
     return Result.of {
-        this.transactionListSync(lst)
-        lst.map { tx -> Utils.hash(tx) }.forEach { txHash ->
-            val txStatus = TxStatus.createEmpty()
-            waitForTerminalStatusMST.subscribe(this, txHash)
-                .blockingSubscribe(createTxStatusObserverMST(txStatus))
-            if (txStatus.txException != null) {
-                throw txStatus.txException!!
-            }
+        val txStatus = TxStatus.createEmpty()
+        this.transaction(tx, waitForTerminalStatusMST)
+            .blockingSubscribe(createTxStatusObserverMST(txStatus))
+        when {
+            txStatus.txHash != null -> txStatus.txHash!!
+            txStatus.txException != null -> throw txStatus.txException!!
+            else -> throw IllegalStateException("Transaction has no errors or signs of completion")
         }
     }
 }

@@ -20,11 +20,14 @@ public interface ChangelogInterface {
     //Superuser account id
     String superuserAccountId = superuserAccount + "@" + superuserDomain;
 
+    String getSchemaVersion();
+
     // Main script logic goes here
-    List<Transaction> createChangelog(List<AccountPublicInfo> accounts, List<Peer> peers);
+    Transaction createChangelog(List<AccountPublicInfo> accounts, List<Peer> peers);
 
     /**
      * Returns public keys
+     *
      * @param accountName - name of account which public keys are requested
      * @param accounts    - list full of account information(name, domain, pubKeys, quorum)
      * @return list of public keys

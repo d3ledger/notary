@@ -1,10 +1,9 @@
 package jp.co.soramitsu.bootstrap.changelog.parser
 
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
-import org.junit.jupiter.api.TestInstance
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ChangelogParserTest {
 
     private val parser = ChangelogParser()
@@ -63,12 +62,19 @@ import org.jetbrains.annotations.NotNull
 class TestChangeLog implements ChangelogInterface {
 
     @Override
-    List<Transaction> createChangelog(@NotNull List<AccountPublicInfo> accounts,
+    String getSchemaVersion() {
+        return "1.0"
+    }
+
+    @Override
+    Transaction createChangelog(@NotNull List<AccountPublicInfo> accounts,
                                       @NotNull List<Peer> peers) {
-        return []
+        return null
     }
 }
         """.trimIndent()
-        assertTrue(parser.parse(script).createChangelog(emptyList(), emptyList()).isEmpty())
+        val changelog = parser.parse(script)
+        assertNull(changelog.createChangelog(emptyList(), emptyList()))
+        assertEquals("1.0", changelog.schemaVersion)
     }
 }

@@ -65,7 +65,6 @@ dependencies {
     //Web3j
     compile 'org.web3j:crypto:4.1.1'
     compile 'org.web3j:core:4.1.1'
-    compile project(":notary-iroha-integration-test")
     
     // Groovy
     compile group: 'org.codehaus.groovy', name: 'groovy', version: '3.0.0-alpha-4'
