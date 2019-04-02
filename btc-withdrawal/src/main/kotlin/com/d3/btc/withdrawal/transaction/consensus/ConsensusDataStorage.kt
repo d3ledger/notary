@@ -40,7 +40,16 @@ object ConsensusDataStorage {
      * @return consensus data
      */
     @Synchronized
-    fun get(withdrawalHash: String) = consensusData[withdrawalHash]
+    fun get(withdrawalHash: String): WithdrawalDetailsConsensus? {
+        consensusData[withdrawalHash]?.let { withdrawalDetailsConsensus ->
+            // Return new ArrayList to avoid ConcurrentModificationException in tests
+            return WithdrawalDetailsConsensus(
+                withdrawalDetailsConsensus.withdrawalDetails,
+                ArrayList(withdrawalDetailsConsensus.consensus)
+            )
+        }
+        return null
+    }
 
     /**
      * Creates consensus data storage for withdrawal

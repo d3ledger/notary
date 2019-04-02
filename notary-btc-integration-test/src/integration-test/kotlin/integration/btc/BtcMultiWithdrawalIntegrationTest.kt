@@ -107,7 +107,6 @@ class BtcMultiWithdrawalIntegrationTest {
      * @then no transaction is created, because SAT 1 is considered dust.
      * Money sent to 2nd client is rolled back to 1st client
      */
-    @Disabled
     @Test
     fun testWithdrawalMultisigRollback() {
         val environment = withdrawalEnvironments.first()
@@ -116,7 +115,8 @@ class BtcMultiWithdrawalIntegrationTest {
         val randomNameSrc = String.getRandomString(9)
         val testClientSrcKeypair = ModelUtil.generateKeypair()
         val testClientSrc = "$randomNameSrc@$CLIENT_DOMAIN"
-        registrationServiceEnvironment.register(randomNameSrc, testClientSrcKeypair.public.toHexString())
+        val res = registrationServiceEnvironment.register(randomNameSrc, testClientSrcKeypair.public.toHexString())
+        assertEquals(200, res.statusCode)
         generateAddress(BtcAddressType.FREE)
         generateAddress(BtcAddressType.FREE)
         integrationHelper.registerBtcAddressNoPreGen(randomNameSrc, CLIENT_DOMAIN, testClientSrcKeypair)
@@ -154,7 +154,8 @@ class BtcMultiWithdrawalIntegrationTest {
         val randomNameSrc = String.getRandomString(9)
         val testClientSrcKeypair = ModelUtil.generateKeypair()
         val testClientSrc = "$randomNameSrc@$CLIENT_DOMAIN"
-        registrationServiceEnvironment.register(randomNameSrc, testClientSrcKeypair.public.toHexString())
+        val res = registrationServiceEnvironment.register(randomNameSrc, testClientSrcKeypair.public.toHexString())
+        assertEquals(200, res.statusCode)
         generateAddress(BtcAddressType.FREE)
         generateAddress(BtcAddressType.FREE)
         val btcAddressSrc =
