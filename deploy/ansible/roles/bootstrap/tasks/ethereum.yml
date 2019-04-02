@@ -1,14 +1,14 @@
 - block:
   - name: Fetch the list of wallets
     uri:
-      url: "{{ bootstrap_address }}/eth/list/servicesWithWallet/d3/{{ ansible_play_hosts | length }}"
+      url: "{{ bootstrap_api_address }}/eth/list/servicesWithWallet/d3/{{ ansible_play_hosts | length }}"
       return_content: yes
     register: eth_wallets
     tags: ["ethereum_keys"]
 
   - name: Generate ethereum keys
     uri:
-      url: "{{ bootstrap_address }}/eth/create/wallet?password={{ bootstrap_api_smart_contracts_credentialspassword }}"
+      url: "{{ bootstrap_api_address }}/eth/create/wallet?password={{ bootstrap_api_smart_contracts_credentialspassword }}"
       return_content: yes
     loop: "{{ eth_wallets.json }}"
     register: ethereum_keys
@@ -64,7 +64,7 @@
 
   # - name: Deploy smart contracts
   #   uri:
-  #     url: "{{ bootstrap_address }}/eth/deploy/D3/smartContracts"
+  #     url: "{{ bootstrap_api_address }}/eth/deploy/D3/smartContracts"
   #     return_content: yes
   #     method: POST
   #     body_format: json
@@ -111,7 +111,7 @@
 - name: Copy ethereum keys
   copy:
     content: "{{ item.json.file }}"
-    dest: "{{ deployment_basedir}}/conf/{{ eth_keys_path }}/{{ item.item | regex_replace('-peer' + (idx + 1) | string, '')}}.key"
+    dest: "{{ deployment_basedir}}/conf/{{ bootstrap_eth_keys_path }}/{{ item.item | regex_replace('-peer' + (idx + 1) | string, '')}}.key"
   loop: "{{ ethereum_keys.results }}"
   loop_control:
     index_var: idx
@@ -121,5 +121,5 @@
 - name: Copy genesis wallet
   copy:
     content: "{{ bootstrap_service_genesis_wallet_contents }}"
-    dest: "{{ deployment_basedir}}/conf/{{ eth_keys_path }}/{{ bootstrap_api_smart_contracts_credentialspath | basename }}"
+    dest: "{{ deployment_basedir}}/conf/{{ bootstrap_eth_keys_path }}/{{ bootstrap_api_smart_contracts_credentialspath | basename }}"
   when: bootstrap_service_genesis_wallet.stat.exists

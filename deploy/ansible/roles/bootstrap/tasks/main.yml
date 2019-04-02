@@ -5,12 +5,12 @@
     state: directory
     path: "{{ item }}"
   loop:
-    - "{{ deployment_basedir }}/conf/{{ eth_keys_path }}"
-    - "{{ deployment_basedir }}/conf/{{ eth_tokens_path }}"
-    - "{{ deployment_basedir }}/conf/{{ btc_keys_path }}"
-    - "{{ deployment_basedir }}/conf/{{ btc_blocks_path }}"
-    - "{{ deployment_basedir }}/conf/btc"
-    - "{{ deployment_basedir }}/conf/eth"
+    - "{{ bootstrap_deployment_basedir }}/conf/{{ bootstrap_eth_keys_path }}"
+    - "{{ bootstrap_deployment_basedir }}/conf/{{ bootstrap_eth_tokens_path }}"
+    - "{{ bootstrap_deployment_basedir }}/conf/{{ bootstrap_btc_keys_path }}"
+    - "{{ bootstrap_deployment_basedir }}/conf/{{ bootstrap_btc_blocks_path }}"
+    - "{{ bootstrap_deployment_basedir }}/conf/btc"
+    - "{{ bootstrap_deployment_basedir }}/conf/eth"
 
 - include: ethereum.yml
 # - include: bitcoin.yml
@@ -20,29 +20,39 @@
 - name: Fetch configs from GitHub
   get_url:
     url: "{{ bootstrap_gh_configs_base_url }}/{{ item.value.path | regex_replace('^(.*_).*(\\.properties)$', '\\1' + bootstrap_service_profile + '\\2')}}"
-    dest: "{{ deployment_basedir }}/conf/{{ item.value.dest_dir }}/"
+    dest: "{{ bootstrap_deployment_basedir }}/conf/{{ item.value.dest_dir }}/"
   loop: "{{ bootstrap_gh_configs_urls | dict2items }}"
 
 # TODO: the file should be in container already by the time of deployment
 - name: Fetch mainnet_tokens.json
   get_url:
     url: "{{ bootstrap_gh_configs_base_url }}/deploy/ethereum/tokens/mainnet_tokens.json"
-    dest: "{{ deployment_basedir }}/conf/{{ eth_tokens_path }}/"
+    dest: "{{ bootstrap_deployment_basedir }}/conf/{{ bootstrap_eth_tokens_path }}/"
 
-# - name: Set vars
-#   set_fact:
-#     bootstrap_eth_deposit_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
-#     bootstrap_eth_deposit_iroha_port: "{{ iroha_torii_port }}"
+- name: Set vars
+  set_fact:
+    bootstrap_eth_deposit_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
+    bootstrap_eth_deposit_iroha_port: "{{ iroha_torii_port }}"
 
-# - name: Copy templates
-#   template:
-#     src: "{{ item.file }}.j2"
-#     dest: "{{ deployment_basedir }}/{{ item.file }}"
-#     mode: "{{ item.mode }}"
-#     owner: "{{ item.owner }}"
-#     group: "{{ item.group }}"
-#   loop:
-#     - { file: '.env-eth-deposit', mode: '0600', owner: 'root', 'group': root}
-#     - { file: '.env-eth-registration', mode: '0600', owner: 'root', 'group': root}
-#     - { file: '.env', mode: '0600', owner: 'root', 'group': root}
-#     - { file: 'docker-compose.yml', mode: '0644', owner: 'root', 'group': root}
+- name: Copy templates
+  template:
+    src: "{{ item.file }}.j2"
+    dest: "{{ bootstrap_deployment_basedir }}/{{ item.file }}"
+    mode: "{{ item.mode }}"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+  loop:
+    - { file: '.env-eth-deposit', mode: '0600', owner: 'root', 'group': root}
+    - { file: '.env-eth-registration', mode: '0600', owner: 'root', 'group': root}
+    - { file: '.env-eth-deposit', mode: '0600', owner: 'root', 'group': root}
+    - { file: '.env-backend', mode: '0600', owner: 'root', 'group': root}
+    - { file: '.env-btc-address-generation', mode: '0600', owner: 'root', 'group': root}
+    - { file: '.env-btc-dw-bridge', mode: '0600', owner: 'root', 'group': root}
+    - { file: '.env-btc-registration', mode: '0600', owner: 'root', 'group': root}
+    - { file: '.env-chain-adapter', mode: '0600', owner: 'root', 'group': root}
+    - { file: '.env-grpcwebproxy', mode: '0600', owner: 'root', 'group': root}
+    - { file: '.env-registration', mode: '0600', owner: 'root', 'group': root}
+    - { file: '.env-relay-registration', mode: '0600', owner: 'root', 'group': root}
+    - { file: '.env-withdrawal', mode: '0600', owner: 'root', 'group': root}
+    - { file: '.env', mode: '0600', owner: 'root', 'group': root}
+    - { file: 'docker-compose.yml', mode: '0644', owner: 'root', 'group': root}

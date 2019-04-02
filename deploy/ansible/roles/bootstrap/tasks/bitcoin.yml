@@ -1,7 +1,7 @@
 - block:
   - name: Generate bitcoin wallet
     uri:
-      url: "{{ bootstrap_address }}/btc/create/wallet"
+      url: "{{ bootstrap_api_address }}/btc/create/wallet"
       return_content: yes
     loop: "{{ iroha_all_nodes | product(btc_wallets) | list }}"
     register: bitcoin_wallet
@@ -14,7 +14,7 @@
 - name: Save bitcoin wallet to file
   copy:
     content: "{{ item.json.file | b64decode }}"
-    dest: "{{ deployment_basedir}}/conf/{{ btc_keys_path }}/{{ item.item.1 }}"
+    dest: "{{ bootstrap_deployment_basedir}}/conf/{{ bootstrap_btc_keys_path }}/{{ item.item.1 }}"
     mode: 0600
     group: root
     owner: root

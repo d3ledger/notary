@@ -1,22 +1,22 @@
 - block:
   - name: Fetch projects and environments
     uri:
-      url: "{{ bootstrap_address }}/iroha/projects/genesis"
+      url: "{{ bootstrap_api_address }}/iroha/projects/genesis"
       return_content: yes
     register: init
-    #failed_when: "{{ env }} not in init.json.projects.environments or  init.json.{{ project }} != {{ env }}"
+    #failed_when: "{{ bootstrap_env }} not in init.json.projects.environments or  init.json.{{ bootstrap_project }} != {{ env }}"
     tags: ["iroha_gb"]
 
   - name: Fetch accounts
     uri:
-      url: "{{ bootstrap_address }}/iroha/config/accounts/{{ project }}/{{ env }}/{{ iroha_all_nodes | length }}"
+      url: "{{ bootstrap_api_address }}/iroha/config/accounts/{{ bootstrap_project }}/{{ bootstrap_env }}/{{ iroha_all_nodes | length }}"
       return_content: yes
     register: accounts
     tags: ["iroha_gb"]
 
   - name: Generate keys for accounts
     uri: 
-      url: "{{ bootstrap_address }}/iroha/create/keyPair"
+      url: "{{ bootstrap_api_address }}/iroha/create/keyPair"
       return_content: yes
     loop: "{{ range(accounts.json.accounts | json_query('[*].quorum') | map('int')| sum) | list }}"
     register: account_keys
@@ -39,7 +39,7 @@
 
   - name: Generate Iroha peers
     uri:
-      url: "{{ bootstrap_address }}/iroha/create/keyPair"
+      url: "{{ bootstrap_api_address }}/iroha/create/keyPair"
       return_content: yes
     loop: "{{ iroha_all_nodes }}"
     register: iroha_keys_gb
@@ -55,7 +55,7 @@
 
   - name: Prepare request for GB generation
     set_fact:
-      gb_request: "{{ {'accounts': accounts_gb, 'peers': iroha_peer_keys_gb, 'blockVersion': 'v1', 'meta': { 'environment': env, 'project': project }} }}"
+      gb_request: "{{ {'accounts': accounts_gb, 'peers': iroha_peer_keys_gb, 'blockVersion': 'v1', 'meta': { 'environment': bootstrap_env, 'project': bootstrap_project }} }}"
 
   - debug:
       var: gb_request
@@ -63,7 +63,7 @@
 
   - name: Generate Iroha GB
     uri:
-      url: "{{ bootstrap_address }}/iroha/create/genesisBlock"
+      url: "{{ bootstrap_api_address }}/iroha/create/genesisBlock"
       method: POST
       body_format: json
       return_content: yes

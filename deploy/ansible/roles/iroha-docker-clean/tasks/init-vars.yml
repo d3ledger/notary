@@ -2,6 +2,7 @@
   - set_fact:
       iroha_nodes: []
       iroha_all_nodes: []
+      iroha_peers_map: []
 
   - name: generate hostnames (no overlay)
     set_fact:
@@ -24,7 +25,7 @@
       index_var: idx
 
   - set_fact:
-      iroha_peers_map: "{{ iroha_peers_map | default([]) }} + [ {{ {'hostname': item, 'human_hostname': 'c_' + item | regex_replace('\\.', '_') | regex_replace(':', '_'), 'peer_port': item.split(':')[1] } }} ]"
+      iroha_peers_map: "{{ iroha_peers_map }} + [ {{ {'hostname': item, 'human_hostname': 'c_' + item | regex_replace('\\.', '_') | regex_replace(':', '_'), 'peer_port': item.split(':')[1] } }} ]"
     loop: "{{ iroha_nodes }}"
 
   - debug:

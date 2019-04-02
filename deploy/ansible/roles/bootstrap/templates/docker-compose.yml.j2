@@ -7,7 +7,7 @@ services:
       - .env-eth-deposit
     volumes:
       - {{ deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
-      - {{ deployment_basedir }}/conf:/opt/notary/configs
+      - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
     expose:
       - 8080
     networks:
@@ -26,7 +26,7 @@ services:
       - .env-eth-registration
     volumes:
       - {{ deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
-      - {{ deployment_basedir }}/conf:/opt/notary/configs
+      - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
     networks:
       - d3
       - traefik-net
@@ -48,7 +48,7 @@ services:
     container_name: d3-registration
     volumes:
       - {{ deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
-      - {{ deployment_basedir }}/conf:/opt/notary/configs
+      - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
     env_file:
       .env-registration
     networks:
@@ -72,7 +72,7 @@ services:
     container_name: d3-withdrawal
     volumes:
       - {{ deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
-      - {{ deployment_basedir }}/conf:/opt/notary/configs
+      - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
     env_file:
       .env-withdrawal
     expose:
@@ -92,7 +92,7 @@ services:
     container_name: d3-relay-registration
     volumes:
       - {{ deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
-      - {{ deployment_basedir }}/conf:/opt/notary/configs
+      - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
     env_file:
       .env-relay-registration   
     networks:
@@ -139,7 +139,7 @@ services:
     container_name: d3-btc-address-generation
     volumes:
       - {{ deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
-      - {{ deployment_basedir }}/conf:/opt/notary/configs
+      - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
     env_file:
       .env-btc-address-generation
     networks:
@@ -150,7 +150,7 @@ services:
     image: nexus.iroha.tech:19002/d3-deploy/btc-dw-bridge:develop
     volumes:
       - {{ deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
-      - {{ deployment_basedir }}/conf:/opt/notary/configs
+      - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
       - dw-bridge-storage:/opt/notary/deploy/bitcoin/mainnet/blocks
     env_file:
       .env-btc-dw-bridge
@@ -162,7 +162,7 @@ services:
     image: nexus.iroha.tech:19002/d3-deploy/btc-registration:develop
     volumes:
       - {{ deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
-      - {{ deployment_basedir }}/conf:/opt/notary/configs
+      - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
     env_file:
       .env-btc-registration
     labels:
@@ -190,7 +190,7 @@ services:
     container_name: d3-chain-adapter
     volumes:
       - {{ deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
-      - {{ deployment_basedir }}/conf:/opt/notary/configs
+      - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
     env_file:
       .env-chain-adapter
     networks:

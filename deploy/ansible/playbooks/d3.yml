@@ -1,6 +1,6 @@
 - hosts: tag_Name_d3_bootstrap_test
   roles:
-    - role: iroha-docker
+    - role: iroha-docker-clean
       vars:
         init_vars: true
         generate_init_configs: false 
@@ -10,7 +10,7 @@
     - role: bootstrap
       tags: ["bootstrap"]
 
-    - role: iroha-docker
+    - role: iroha-docker-clean
       vars:
         init_vars: true
         generate_init_configs: true
