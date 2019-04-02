@@ -38,7 +38,7 @@ class PeersCountDependentAccountPrototype(
     domainId,
     roles,
     details,
-    passive = true,
+    passive = false,
     quorum = 1,
     peersDependentQuorum = true
 )
