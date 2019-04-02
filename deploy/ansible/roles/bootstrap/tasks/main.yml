@@ -1,4 +1,4 @@
-# - include: iroha.yml
+- include: iroha.yml
 
 - name: Create dirs
   file:

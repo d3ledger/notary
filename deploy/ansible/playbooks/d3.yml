@@ -1,18 +1,18 @@
 - hosts: tag_Name_d3_bootstrap_test
   roles:
-    # - role: iroha-docker
-    #   vars:
-    #     init_vars: true
-    #     generate_init_configs: false 
-    #     update_runtime_configs: false
-    #   tags: ["iroha-init"]
+    - role: iroha-docker
+      vars:
+        init_vars: true
+        generate_init_configs: false 
+        update_runtime_configs: false
+      tags: ["iroha-init"]
 
     - role: bootstrap
       tags: ["bootstrap"]
 
-    # - role: iroha-docker
-    #   vars:
-    #     init_vars: true
-    #     generate_init_configs: true
-    #     update_runtime_configs: true
-    #   tags: ["iroha-deploy"]
+    - role: iroha-docker
+      vars:
+        init_vars: true
+        generate_init_configs: true
+        update_runtime_configs: true
+      tags: ["iroha-deploy"]
