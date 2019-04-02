@@ -10,10 +10,12 @@ import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import org.web3j.crypto.*
+import org.web3j.crypto.ECKeyPair
+import org.web3j.crypto.Keys
+import org.web3j.crypto.Wallet
+import org.web3j.crypto.WalletFile
 import java.math.BigInteger
 import javax.validation.constraints.NotNull
-import javax.xml.ws.http.HTTPBinding
 
 @RestController
 @RequestMapping("/eth")
@@ -98,8 +100,7 @@ class EthController {
                 .body(MasterContractResponse(e.javaClass.simpleName, e.message))
         }
     }
-
-
+    
     @GetMapping("/create/wallet")
     fun createWallet(@NotNull @RequestParam password: String): ResponseEntity<EthWallet> {
         try {

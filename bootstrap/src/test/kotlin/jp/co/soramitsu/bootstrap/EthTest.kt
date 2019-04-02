@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
+import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -31,9 +32,13 @@ class EthTest {
 
     private val mapper = ObjectMapper()
 
+    val classLoader = javaClass.classLoader
+    val file = File(classLoader.getResource("eth/main-net-genesis.key")!!.file)
+
       @Test
       @Ignore
       fun testUpdateSmartContractAddPeer() {
+
           val result: MvcResult = mvc
               .perform(
                   MockMvcRequestBuilders.post("/eth/deploy/D3/masterContract/update").contentType(MediaType.APPLICATION_JSON).content(
@@ -47,7 +52,7 @@ class EthTest {
                                   ),
                                   ethereumConfig = EthereumConfigImpl(
                                       url = "https://parity1...",
-                                      credentialsPath = "E:\\soramitsu\\D3\\notary\\bootstrap\\src\\main\\resources\\eth\\main-ent-genesis.key",
+                                      credentialsPath = file.absolutePath,
                                       gasPrice = 10000000000,
                                       gasLimit = 4500000,
                                       confirmationPeriod = 20
@@ -71,6 +76,9 @@ class EthTest {
     @Test
     @Ignore
     fun testDeploySmartContractMainNet() {
+        val classLoader = javaClass.classLoader
+        val file = File(classLoader.getResource("eth/main-net-genesis.key")!!.file)
+
         val result: MvcResult = mvc
             .perform(
                 MockMvcRequestBuilders.post("/eth/deploy/D3/smartContracts").contentType(MediaType.APPLICATION_JSON).content(
@@ -84,7 +92,7 @@ class EthTest {
                                 ),
                                 ethereumConfig = EthereumConfigImpl(
                                     url = "https://parity1....",
-                                    credentialsPath = "D:\\soramitsu\\D3\\notary\\bootstrap\\src\\main\\resources\\eth\\main-ent-genesis.key",
+                                    credentialsPath = file.absolutePath,
                                     gasPrice = 10000000000,
                                     gasLimit = 4500000,
                                     confirmationPeriod = 20
