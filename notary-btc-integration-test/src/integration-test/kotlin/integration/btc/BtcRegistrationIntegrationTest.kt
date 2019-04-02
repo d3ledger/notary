@@ -8,6 +8,7 @@ package integration.btc
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.util.getRandomString
 import com.d3.commons.util.toHexString
+import com.squareup.moshi.Moshi
 import integration.btc.environment.BtcRegistrationTestEnvironment
 import integration.helper.BtcIntegrationHelperUtil
 import integration.registration.RegistrationServiceTestEnvironment
@@ -29,6 +30,11 @@ class BtcRegistrationIntegrationTest {
 
     private val btcRegistrationEnvironment = BtcRegistrationTestEnvironment(integrationHelper)
     private val registrationServiceEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
+
+    // Moshi adapter for response JSON deserealization
+    val moshiAdapter = Moshi
+        .Builder()
+        .build()!!.adapter(Map::class.java)!!
 
     init {
         registrationServiceEnvironment.registrationInitialization.init()
@@ -57,7 +63,10 @@ class BtcRegistrationIntegrationTest {
         assertEquals(200, res.statusCode)
         res = btcRegistrationEnvironment.register(userName, keypair.public.toHexString())
         assertEquals(200, res.statusCode)
-        val registeredBtcAddress = String(res.content)
+
+        val response = moshiAdapter.fromJson(res.jsonObject.toString())!!
+        val registeredBtcAddress = response["clientId"]
+
         btcRegistrationEnvironment.btcRegisteredAddressesProvider.getRegisteredAddresses().fold({ addresses ->
             assertEquals(
                 "$userName@$CLIENT_DOMAIN",
@@ -124,7 +133,8 @@ class BtcRegistrationIntegrationTest {
             assertEquals(200, res.statusCode)
             res = btcRegistrationEnvironment.register(userName, keypair.public.toHexString())
             assertEquals(200, res.statusCode)
-            val registeredBtcAddress = String(res.content)
+            val response = moshiAdapter.fromJson(res.jsonObject.toString())!!
+            val registeredBtcAddress = response["clientId"].toString()
             assertEquals(newestAddress.address, registeredBtcAddress)
             assertFalse(takenAddresses.contains(registeredBtcAddress))
             takenAddresses.add(registeredBtcAddress)

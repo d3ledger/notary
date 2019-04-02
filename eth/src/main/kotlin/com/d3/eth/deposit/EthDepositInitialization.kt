@@ -10,7 +10,6 @@ import com.d3.commons.model.IrohaCredential
 import com.d3.commons.notary.Notary
 import com.d3.commons.notary.NotaryImpl
 import com.d3.commons.notary.endpoint.ServerInitializationBundle
-import com.d3.commons.provider.NotaryPeerListProviderImpl
 import com.d3.commons.sidechain.SideChainEvent
 import com.d3.commons.util.createPrettyScheduledThreadPool
 import com.d3.eth.deposit.endpoint.EthRefundStrategyImpl
@@ -26,7 +25,6 @@ import com.github.kittinunf.result.map
 import io.reactivex.Observable
 import iroha.protocol.Primitive
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.QueryAPI
 import jp.co.soramitsu.iroha.java.Transaction
 import mu.KLogging
 import okhttp3.OkHttpClient
@@ -107,15 +105,7 @@ class EthDepositInitialization(
                 .build()
         )
 
-        val queryAPI = QueryAPI(irohaAPI, notaryCredential.accountId, notaryCredential.keyPair)
-
-        val peerListProvider = NotaryPeerListProviderImpl(
-            queryAPI,
-            ethDepositConfig.notaryListStorageAccount,
-            ethDepositConfig.notaryListSetterAccount
-        )
-
-        return NotaryImpl(notaryCredential, irohaAPI, ethEvents, peerListProvider)
+        return NotaryImpl(notaryCredential, irohaAPI, ethEvents)
     }
 
     /**

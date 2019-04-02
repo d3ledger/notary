@@ -5,12 +5,8 @@
 
 package com.d3.btc.withdrawal.service
 
-import com.d3.btc.helper.address.isValidBtcAddress
-import com.d3.btc.helper.currency.satToBtc
 import com.d3.btc.monitoring.Monitoring
 import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
-import com.d3.btc.withdrawal.handler.CurrentFeeRate
-import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
 import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
 import com.d3.btc.withdrawal.transaction.*
 import com.d3.btc.withdrawal.transaction.consensus.WithdrawalConsensus
@@ -28,7 +24,6 @@ import java.util.concurrent.CopyOnWriteArrayList
 @Component
 class WithdrawalTransferService(
     @Autowired private val withdrawalStatistics: WithdrawalStatistics,
-    @Autowired private val whiteListProvider: BtcWhiteListProvider,
     @Autowired private val btcWithdrawalConfig: BtcWithdrawalConfig,
     @Autowired private val transactionCreator: TransactionCreator,
     @Autowired private val signCollector: SignCollector,
@@ -50,60 +45,6 @@ class WithdrawalTransferService(
     }
 
     /**
-     * Handles withdrawal operations
-     * @param withdrawalDetails - details of withdrawal
-     * @param withdrawalConsensus - withdrawal consensus
-     */
-    fun withdraw(
-        withdrawalDetails: WithdrawalDetails,
-        withdrawalConsensus: WithdrawalConsensus
-    ) {
-        val withdrawalTime = withdrawalDetails.withdrawalTime
-        val destinationAddress = withdrawalDetails.toAddress
-        val sourceAccountId = withdrawalDetails.sourceAccountId
-        val btcAmount = satToBtc(withdrawalDetails.amountSat)
-        val satAmount = withdrawalDetails.amountSat
-        logger.info {
-            "Withdrawal event(" +
-                    "from:$sourceAccountId " +
-                    "to:$destinationAddress " +
-                    "amount:${btcAmount.toPlainString()}" +
-                    "hash:${withdrawalDetails.irohaFriendlyHashCode()})"
-        }
-        if (!CurrentFeeRate.isPresent()) {
-            logger.warn { "Cannot execute transfer. Fee rate was not set." }
-            btcRollbackService.rollback(sourceAccountId, satAmount, withdrawalTime)
-            return
-        }
-        if (!isValidBtcAddress(destinationAddress)) {
-            logger.warn { "Cannot execute transfer. Destination $destinationAddress is not a valid base58 address." }
-            btcRollbackService.rollback(sourceAccountId, satAmount, withdrawalTime)
-            return
-        }
-        if (transactionHelper.isDust(satAmount)) {
-            btcRollbackService.rollback(sourceAccountId, satAmount, withdrawalTime)
-            logger.warn { "Can't spend SAT $satAmount, because it's considered a dust" }
-            return
-        }
-        withdrawalStatistics.incTotalTransfers()
-        whiteListProvider.checkWithdrawalAddress(sourceAccountId, destinationAddress)
-            .fold({ ableToWithdraw ->
-                if (ableToWithdraw) {
-                    startWithdrawalProcess(withdrawalDetails, withdrawalConsensus)
-                } else {
-                    btcRollbackService.rollback(sourceAccountId, satAmount, withdrawalTime)
-                    logger.warn {
-                        "Cannot withdraw to $destinationAddress, because it's not in ${withdrawalDetails.sourceAccountId} whitelist"
-                    }
-                }
-            }, { ex ->
-                btcRollbackService.rollback(withdrawalDetails)
-                withdrawalStatistics.incFailedTransfers()
-                logger.error("Cannot check ability to withdraw", ex)
-            })
-    }
-
-    /**
      * Starts withdrawal process. Consists of the following steps:
      * 1) Create transaction
      * 2) Call all "on new transaction" listeners
@@ -111,7 +52,7 @@ class WithdrawalTransferService(
      * 4) Mark created transaction as unsigned
      * @param withdrawalDetails - details of withdrawal
      * */
-    private fun startWithdrawalProcess(
+    fun withdraw(
         withdrawalDetails: WithdrawalDetails,
         withdrawalConsensus: WithdrawalConsensus
     ) {
@@ -133,7 +74,7 @@ class WithdrawalTransferService(
             transactionHelper.registerUnspents(transaction, unspents)
             logger.info { "Tx ${transaction.hashAsString} was added to collection of unsigned transactions" }
         }.failure { ex ->
-            btcRollbackService.rollback(withdrawalDetails)
+            btcRollbackService.rollback(withdrawalDetails, "Cannot create Bitcoin transaction")
             withdrawalStatistics.incFailedTransfers()
             logger.error("Cannot create withdrawal transaction", ex)
         }

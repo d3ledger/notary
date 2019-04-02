@@ -907,7 +907,7 @@ class MasterTest {
                 newPeer,
                 removeIrohaHash
             )
-            val removeByteHash = cth.itohaHashToByteHash(removeIrohaHash)
+            val removeByteHash = cth.irohaHashToByteHash(removeIrohaHash)
             val removeSigs = cth.prepareSignatures(realSigCount, keyPairs.subList(0, realSigCount), removeHash)
 
             // remove peer

@@ -12,6 +12,7 @@ import com.d3.btc.provider.network.BtcNetworkConfigProvider
 import com.d3.commons.provider.NotaryPeerListProvider
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.sidechain.iroha.util.getAccountQuorum
 import com.d3.commons.util.getRandomId
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
@@ -88,7 +89,7 @@ class BtcPublicKeyProvider(
         nodeId: String,
         onMsAddressCreated: () -> Unit
     ): Result<Unit, Exception> {
-        return Result.of {
+        return multiSigConsumer.getConsumerQuorum().map { quorum ->
             val peers = notaryPeerListProvider.getPeerList().size
             if (peers == 0) {
                 throw IllegalStateException("No peers to create btc multisignature address")
@@ -97,15 +98,15 @@ class BtcPublicKeyProvider(
                     "Not enough keys are collected to generate a multisig address(${notaryKeys.size}" +
                             " out of $peers)"
                 }
-                return@of
+                return@map
             } else if (!hasMyKey(notaryKeys)) {
                 logger.info { "Cannot be involved in address generation. No access to $notaryKeys." }
-                return@of
+                return@map
             }
             val msAddress = createMsAddress(notaryKeys, btcNetworkConfigProvider.getConfig())
             if (keysWallet.isAddressWatched(msAddress)) {
                 logger.info("Address $msAddress has been already created")
-                return@of
+                return@map
             } else if (!keysWallet.addWatchedAddress(msAddress)) {
                 throw IllegalStateException("BTC address $msAddress was not added to wallet")
             }
@@ -118,10 +119,10 @@ class BtcPublicKeyProvider(
                 msAddress.toBase58(),
                 addressStorage.addressInfo.toJson(),
                 generationTime,
-                quorum = peers
+                quorum
             ).fold({
                 logger.info { "New BTC ${addressType.title} address $msAddress was created. Node id '$nodeId'" }
-            }, { ex -> throw ex })
+            }, { ex -> throw Exception("Cannot create Bitcoin multisig address", ex) })
         }
     }
 
@@ -160,6 +161,7 @@ class BtcPublicKeyProvider(
                 logger.info { "Creating free address" }
                 Pair(
                     AddressInfo.createFreeAddressInfo(ArrayList<String>(notaryKeys), nodeId, generationTime),
+                    //TODO use another account to store addresses
                     notaryAccount
                 )
             }

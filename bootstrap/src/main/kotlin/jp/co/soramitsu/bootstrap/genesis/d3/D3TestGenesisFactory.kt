@@ -50,10 +50,12 @@ class D3TestGenesisFactory : GenesisInterface {
         return JsonFormat.printer().omittingInsignificantWhitespace().print(block)
     }
 
-    private fun createAccountDetails(transactionBuilder: TransactionBuilder,
-                                     peers: List<Peer>) {
+    private fun createAccountDetails(
+        transactionBuilder: TransactionBuilder,
+        peers: List<Peer>
+    ) {
         peers.forEach {
-            transactionBuilder.setAccountDetail("notaries@notary", it.peerKey,it.notaryHostPort)
+            transactionBuilder.setAccountDetail("notaries@notary", it.peerKey, it.notaryHostPort)
         }
 
     }
@@ -99,6 +101,9 @@ class D3TestGenesisFactory : GenesisInterface {
             } else {
                 throw AccountException("Needed account keys are not received: ${account.id}")
             }
+            account.roles.forEach {
+                transactionBuilder.appendRole(account.id, it)
+            }
         }
     }
 
@@ -136,6 +141,7 @@ class D3TestGenesisFactory : GenesisInterface {
         createDomain(builder, "bitcoin", "client")
         createDomain(builder, "btcSignCollect", "none")
         createDomain(builder, "brvs", "brvs")
+        createDomain(builder, "bootstrap", "none")
     }
 
 
@@ -157,8 +163,7 @@ class D3TestGenesisFactory : GenesisInterface {
         D3TestContext.createBtcFeeRateSetterRole(builder)
         D3TestContext.createSoraRole(builder)
         D3TestContext.createBrvsRole(builder)
+        D3TestContext.createSuperuserRole(builder)
     }
 
 }
-
-

@@ -137,6 +137,22 @@ fun getErrorMessage(errorResponse: QryResponses.ErrorResponse) =
 
 
 /**
+ * Retrieves account quorum from Iroha
+ * @param queryAPI - iroha queries network layer
+ * @param acc - account to read quorum from
+ * @return account quorum
+ */
+fun getAccountQuorum(
+    queryAPI: QueryAPI,
+    acc: String
+): Result<Int, Exception> {
+    return Result.of { getAccount(queryAPI, acc) }
+        .map { queryResponse ->
+            queryResponse.account.quorum
+        }
+}
+
+/**
  * Retrieves account details by setter from Iroha
  * @param queryAPI - iroha queries network layer
  * @param acc - account to read details from

@@ -50,6 +50,4 @@ fun main(args: Array<String>) {
             logger.error("Cannot send eth", ex)
             System.exit(1)
         }
-
-
 }

@@ -52,6 +52,7 @@ services:
     - grpcwebproxy
     - --backend_addr=d3-iroha:50051
     - --run_tls_server=false
+    - --allow_all_origins=true
     networks:
       - d3-network
 
@@ -123,6 +124,7 @@ services:
     environment:
       WAIT_HOSTS: d3-brvs-mongodb:27017, d3-rmq:5672, d3-iroha:50051
       WAIT_BEFORE_HOSTS: 10
+      WAIT_HOSTS_TIMEOUT: 60
     volumes:
       - ../configs/brvs:/opt/brvs/config/context/
     networks:

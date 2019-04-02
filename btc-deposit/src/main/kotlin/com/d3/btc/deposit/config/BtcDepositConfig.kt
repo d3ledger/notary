@@ -20,12 +20,6 @@ interface BtcDepositConfig {
 
     val notaryCredential: IrohaCredentialConfig
 
-    /** Iroha account to store notary peer list  */
-    val notaryListStorageAccount: String
-
-    /** Iroha account to set notary peer list */
-    val notaryListSetterAccount: String
-
     val registrationAccount: String
 
     val btcTransferWalletPath: String

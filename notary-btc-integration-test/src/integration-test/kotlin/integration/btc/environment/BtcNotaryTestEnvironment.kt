@@ -18,7 +18,6 @@ import com.d3.btc.provider.network.BtcRegTestConfigProvider
 import com.d3.commons.config.BitcoinConfig
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.notary.NotaryImpl
-import com.d3.commons.provider.NotaryPeerListProviderImpl
 import com.d3.commons.sidechain.SideChainEvent
 import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.util.ModelUtil
@@ -92,17 +91,11 @@ class BtcNotaryTestEnvironment(
     private val confidenceExecutorService =
         createPrettySingleThreadPool(BTC_DEPOSIT_SERVICE_NAME, "tx-confidence-listener")
 
-    private val peerListProvider = NotaryPeerListProviderImpl(
-        queryAPI,
-        depositConfig.notaryListStorageAccount,
-        depositConfig.notaryListSetterAccount
-    )
-
     private val btcEventsSource = PublishSubject.create<SideChainEvent.PrimaryBlockChainEvent>()
 
     private val btcEventsObservable: Observable<SideChainEvent.PrimaryBlockChainEvent> = btcEventsSource
 
-    private val notary = NotaryImpl(notaryCredential, irohaAPI, btcEventsObservable, peerListProvider)
+    private val notary = NotaryImpl(notaryCredential, irohaAPI, btcEventsObservable)
 
     private val btcWalletListenerRestartService by lazy {
         BtcWalletListenerRestartService(
