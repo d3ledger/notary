@@ -72,8 +72,6 @@ dependencies {
     compile 'org.web3j:core:4.1.1'
 
     testCompile "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
-
-    compile project(":eth")
 }
 
 sourceCompatibility = 1.8
