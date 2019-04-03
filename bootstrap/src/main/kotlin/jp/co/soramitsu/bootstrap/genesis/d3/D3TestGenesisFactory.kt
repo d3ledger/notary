@@ -160,6 +160,7 @@ class D3TestGenesisFactory : GenesisInterface {
         D3TestContext.createSoraRole(builder)
         D3TestContext.createBrvsRole(builder)
         D3TestContext.createSuperuserRole(builder)
+        D3TestContext.createAdminRole(builder)
         D3TestContext.createRmqRole(builder)
         D3TestContext.createBtcConsensusRole(builder)
     }
