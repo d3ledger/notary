@@ -9,6 +9,7 @@ import jp.co.soramitsu.bootstrap.genesis.d3.D3TestContext
 import jp.co.soramitsu.bootstrap.genesis.d3.D3TestGenesisFactory
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import mu.KLogging
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -136,6 +137,7 @@ class IrohaTest {
     }
 
     @Test
+    @Ignore
     fun testGenesisBlock() {
         val peerKey1 = generatePublicKeyHex()
         val peerKey2 = generatePublicKeyHex()
