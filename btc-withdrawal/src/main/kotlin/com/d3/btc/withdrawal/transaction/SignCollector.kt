@@ -165,11 +165,14 @@ class SignCollector(
                             toEcPubKey(sig1.pubKey), toEcPubKey(sig2.pubKey)
                         )
                     })
+                    val redeemScript = createMsRedeemScript(usedKeys)
+                    logger.info("Redeem script for tx ${tx.hashAsString} input $inputIndex is $redeemScript")
+                    logger.info("Signatures for tx ${tx.hashAsString}\n $orderedSignatures\nUsed keys $usedKeys")
                     val inputScript = ScriptBuilder.createP2SHMultiSigInputScript(
                         orderedSignatures.map { signature ->
                             decodeSignatureFromHex(signature.signatureHex)
                         },
-                        createMsRedeemScript(usedKeys)
+                        redeemScript
                     )
                     input.scriptSig = inputScript
                     input.verify()

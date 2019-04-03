@@ -1,6 +1,7 @@
 package jp.co.soramitsu.bootstrap
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import jp.co.soramitsu.bootstrap.changelog.ChangelogInterface
 import jp.co.soramitsu.bootstrap.dto.*
 import jp.co.soramitsu.bootstrap.dto.block.GenesisBlock
 import jp.co.soramitsu.bootstrap.exceptions.ErrorCodes
@@ -234,7 +235,9 @@ class IrohaTest {
             createAccountDto("sora", "sora"),
             createAccountDto("brvs", "brvs"),
             createAccountDto("client_account", "notary"),
-            createAccountDto("superuser", "bootstrap")
+            createAccountDto("rmq", "notary"),
+            createAccountDto("btc_consensus_collector", "notary"),
+            createAccountDto(ChangelogInterface.superuserAccount, ChangelogInterface.superuserDomain)
         )
     }
 

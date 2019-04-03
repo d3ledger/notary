@@ -203,7 +203,8 @@
                     "can_get_all_signatories",
                     "can_get_domain_signatories",
                     "can_get_my_signatories",
-                    "can_get_all_txs"
+                    "can_get_all_txs",
+                    "can_get_my_txs"
                   ]
                 }
               },

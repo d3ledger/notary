@@ -49,9 +49,9 @@ class TransactionSigner(
     fun getUsedPubKeys(btcAddress: String): Result<List<String>, Exception> {
         return btcRegisteredAddressesProvider.getRegisteredAddresses()
             .fanout {
-                btcChangeAddressesProvider.getChangeAddress()
-            }.map { (registeredAddresses, changeAddress) ->
-                registeredAddresses + changeAddress
+                btcChangeAddressesProvider.getAllChangeAddresses()
+            }.map { (registeredAddresses, changeAddresses) ->
+                registeredAddresses + changeAddresses
             }.map { availableAddresses ->
                 availableAddresses.find { availableAddress -> availableAddress.address == btcAddress }!!.info.notaryKeys
             }
@@ -66,6 +66,7 @@ class TransactionSigner(
                 val keyPair = getPrivPubKeyPair(pubKeys, wallet)
                 if (keyPair != null) {
                     val redeem = createMsRedeemScript(pubKeys)
+                    logger.info("Redeem script for tx ${tx.hashAsString} input $inputIndex is $redeem")
                     val hashOut = tx.hashForSignature(inputIndex, redeem, Transaction.SigHash.ALL, false)
                     val signature = keyPair.sign(hashOut)
                     signatures.add(
