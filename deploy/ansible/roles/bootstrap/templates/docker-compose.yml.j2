@@ -5,6 +5,12 @@ services:
     image: nexus.iroha.tech:19002/d3-deploy/notary:develop
     env_file:
       - .env-eth-deposit
+    environment:
+      - PROFILE
+      - IROHA_HOST
+      - IROHA_PORT
+      - CLASS
+      - JAR_NAME
     volumes:
       - {{ deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
       - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
