@@ -29,6 +29,3 @@ data class AccountPublicInfo(
 ) {
     val id = "$accountName@$domainId"
 }
-
-
-

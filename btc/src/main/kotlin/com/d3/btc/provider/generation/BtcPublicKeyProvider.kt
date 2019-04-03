@@ -106,7 +106,7 @@ class BtcPublicKeyProvider(
                 throw IllegalStateException("BTC address $msAddress was not added to wallet")
             }
             onMsAddressCreated()
-            logger.info { "Address $msAddress was added to wallet." }
+            logger.info("Address $msAddress was added to wallet. Used keys are ${notaryKeys}")
             val addressStorage = createAddressStorage(addressType, notaryKeys, nodeId, generationTime)
             ModelUtil.setAccountDetail(
                 multiSigConsumer,

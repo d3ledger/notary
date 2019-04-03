@@ -19,10 +19,9 @@ open class BtcChangeAddressProvider(
     override fun monitor() = getChangeAddress()
 
     /**
-     * Returns change address
-     * @return - result with change address object
+     * Returns all change addresses
      */
-    fun getChangeAddress(): Result<BtcAddress, Exception> {
+    fun getAllChangeAddresses(): Result<List<BtcAddress>, Exception> {
         return getAccountDetails(
             queryAPI,
             changeAddressesStorageAccount,
@@ -35,7 +34,15 @@ open class BtcChangeAddressProvider(
             details.entries.map { entry ->
                 BtcAddress(entry.key, AddressInfo.fromJson(entry.value)!!)
             }
-        }.map { changeAddresses ->
+        }
+    }
+
+    /**
+     * Returns current change address
+     * @return - result with change address object
+     */
+    fun getChangeAddress(): Result<BtcAddress, Exception> {
+        return getAllChangeAddresses().map { changeAddresses ->
             // Get the newest change address
             changeAddresses.maxBy { address -> address.info.generationTime ?: 0 }!!
         }

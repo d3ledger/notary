@@ -65,10 +65,47 @@ dependencies {
     //Web3j
     compile 'org.web3j:crypto:4.1.1'
     compile 'org.web3j:core:4.1.1'
+    
+    // Groovy
+    compile group: 'org.codehaus.groovy', name: 'groovy', version: '3.0.0-alpha-4'
 
     testCompile "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
 
 }
+
+sourceSets {
+    integrationTest {
+        kotlin {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDirs += 'src/integration-test/kotlin'
+        }
+        resources {
+            srcDirs = ["src/integration-test/resources"]
+        }
+    }
+}
+
+configurations {
+    integrationTestImplementation.extendsFrom testImplementation
+    integrationTestCompile.extendsFrom testCompile
+    integrationTestRuntime.extendsFrom testRuntime
+}
+
+task integrationTest(type: Test) {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = 'Run bootstrap integration tests'
+
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    setWorkingDir("$rootDir/")
+    // Enable JUnit5 tests
+    useJUnitPlatform {
+    }
+
+    mustRunAfter test
+}
+check.dependsOn integrationTest
 
 sourceCompatibility = 1.8
 

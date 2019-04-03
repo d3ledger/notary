@@ -9,6 +9,7 @@ import com.jdiazcano.cfg4k.providers.ProxyConfigProvider
 import com.jdiazcano.cfg4k.sources.ConfigSource
 import mu.KLogging
 import java.io.File
+import java.io.IOException
 import java.io.InputStream
 
 //Environment variable that holds Ethereum credentials password
@@ -145,14 +146,20 @@ class Stream(private val stream: InputStream) : ConfigSource {
 }
 
 fun <T : Any> loadRawConfigs(prefix: String, type: Class<T>, filename: String): T {
-    val stream = Stream(File(filename).inputStream())
-    val configLoader = PropertyConfigLoader(stream)
     val envLoader = EnvironmentConfigLoader()
-    val provider = OverrideConfigProvider(
-        DefaultConfigProvider(envLoader),
-        ProxyConfigProvider(configLoader)
-    )
-    return provider.bind(prefix, type)
+    val envProvider = ProxyConfigProvider(envLoader)
+    return try {
+        val stream = Stream(File(filename).inputStream())
+        val configLoader = PropertyConfigLoader(stream)
+        val provider = OverrideConfigProvider(
+            envProvider,
+            ProxyConfigProvider(configLoader)
+        )
+        provider.bind(prefix, type)
+    } catch (e: IOException) {
+        logger.warn { "Couldn't open a file $filename. Trying to use only env variables." }
+        envProvider.bind(prefix, type)
+    }
 }
 
 /**
