@@ -10,7 +10,21 @@ import jp.co.soramitsu.bootstrap.dto.PeersCountDependentAccountPrototype
 object D3TestContext {
 
     val d3neededAccounts = listOf(
-        PeersCountDependentAccountPrototype("notary", "notary", listOf("notary")),
+        AccountPrototype(
+            "rmq",
+            "notary",
+            listOf("rmq")
+        ),
+        AccountPrototype(
+            "btc_consensus_collector",
+            "notary",
+            listOf("consensus_collector")
+        ),
+        PeersCountDependentAccountPrototype(
+            "notary",
+            "notary",
+            listOf("notary")
+        ),
         PeersCountDependentAccountPrototype(
             ChangelogInterface.superuserAccount,
             ChangelogInterface.superuserDomain,
@@ -124,6 +138,26 @@ object D3TestContext {
             listOf(
                 Primitive.RolePermission.can_set_detail,
                 Primitive.RolePermission.can_create_asset
+            )
+        )
+    }
+
+    fun createRmqRole(builder: TransactionBuilder) {
+        builder.createRole(
+            "rmq",
+            listOf(
+                Primitive.RolePermission.can_get_blocks
+            )
+        )
+    }
+
+    fun createBtcConsensusRole(builder: TransactionBuilder) {
+        builder.createRole(
+            "consensus_collector",
+            listOf(
+                Primitive.RolePermission.can_create_account,
+                Primitive.RolePermission.can_set_detail,
+                Primitive.RolePermission.can_get_all_accounts
             )
         )
     }
