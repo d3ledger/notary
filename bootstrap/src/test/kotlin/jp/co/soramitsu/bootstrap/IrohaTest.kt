@@ -137,7 +137,6 @@ class IrohaTest {
     }
 
     @Test
-    @Ignore
     fun testGenesisBlock() {
         val peerKey1 = generatePublicKeyHex()
         val peerKey2 = generatePublicKeyHex()
@@ -239,7 +238,7 @@ class IrohaTest {
             createAccountDto("client_account", "notary"),
             createAccountDto("rmq", "notary", peersCount - peersCount / 3),
             createAccountDto("btc_consensus_collector", "notary"),
-            createAccountDto(ChangelogInterface.superuserAccount, ChangelogInterface.superuserDomain)
+            createAccountDto(ChangelogInterface.superuserAccount, ChangelogInterface.superuserDomain, peersCount - peersCount / 3)
         )
     }
 
