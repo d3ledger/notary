@@ -1,12 +1,14 @@
 package jp.co.soramitsu.bootstrap.genesis.d3
 
 import iroha.protocol.Primitive
+import jp.co.soramitsu.bootstrap.changelog.ChangelogInterface
 import jp.co.soramitsu.iroha.java.TransactionBuilder
 import jp.co.soramitsu.bootstrap.dto.AccountPrototype
 import jp.co.soramitsu.bootstrap.dto.PassiveAccountPrototype
 import jp.co.soramitsu.bootstrap.dto.PeersCountDependentAccountPrototype
 
 object D3TestContext {
+
     val d3neededAccounts = listOf(
         AccountPrototype(
             "rmq",
@@ -24,9 +26,9 @@ object D3TestContext {
             listOf("notary")
         ),
         PeersCountDependentAccountPrototype(
-            "superuser",
-            "bootstrap",
-            listOf("superuser")
+            ChangelogInterface.superuserAccount,
+            ChangelogInterface.superuserDomain,
+            listOf(ChangelogInterface.superuserAccount)
         ),
         AccountPrototype(
             "registration_service",
@@ -383,7 +385,7 @@ object D3TestContext {
 
     fun createSuperuserRole(builder: TransactionBuilder) {
         builder.createRole(
-            "superuser",
+            ChangelogInterface.superuserAccount,
             listOf(
                 Primitive.RolePermission.can_create_account,
                 Primitive.RolePermission.can_set_detail,

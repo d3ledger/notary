@@ -21,3 +21,5 @@ data class IrohaAccount(val title: String, val domain: String, val keys: HashSet
         return IrohaAccountDto(this.title, domain, credsList)
     }
 }
+
+data class IrohaConfig(val host: String = "", val port: Int = 0)
