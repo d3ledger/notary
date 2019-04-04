@@ -1,4 +1,6 @@
+import jp.co.soramitsu.bootstrap.changelog.ChangelogAccountPublicInfo
 import jp.co.soramitsu.bootstrap.changelog.ChangelogInterface
+import jp.co.soramitsu.bootstrap.changelog.ChangelogPeer
 import jp.co.soramitsu.bootstrap.dto.AccountPublicInfo
 import jp.co.soramitsu.bootstrap.dto.Peer
 import jp.co.soramitsu.iroha.java.Transaction
@@ -13,8 +15,8 @@ class SampleChangeLog implements ChangelogInterface {
     }
 
     @Override
-    Transaction createChangelog(@NotNull List<AccountPublicInfo> accounts,
-                                @NotNull List<Peer> peers) {
+    Transaction createChangelog(@NotNull List<ChangelogAccountPublicInfo> accounts,
+                                @NotNull List<ChangelogPeer> peers) {
         def accountName = "script_test"
         def pubKey = getPubKeys(accountName, accounts).first()
         //Create account and set detail

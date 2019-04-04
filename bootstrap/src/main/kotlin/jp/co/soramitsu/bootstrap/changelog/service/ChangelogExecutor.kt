@@ -1,10 +1,9 @@
 package jp.co.soramitsu.bootstrap.changelog.service
 
+import jp.co.soramitsu.bootstrap.changelog.ChangelogAccountPublicInfo
+import jp.co.soramitsu.bootstrap.changelog.ChangelogPeer
 import jp.co.soramitsu.bootstrap.changelog.parser.ChangelogParser
-import jp.co.soramitsu.bootstrap.dto.ChangelogFileRequest
-import jp.co.soramitsu.bootstrap.dto.ChangelogRequestDetails
-import jp.co.soramitsu.bootstrap.dto.ChangelogScriptRequest
-import jp.co.soramitsu.bootstrap.dto.ClientKeyPair
+import jp.co.soramitsu.bootstrap.dto.*
 import jp.co.soramitsu.bootstrap.iroha.LazyIrohaAPIPool
 import jp.co.soramitsu.bootstrap.iroha.sendMST
 import jp.co.soramitsu.iroha.java.Transaction
@@ -52,8 +51,8 @@ class ChangelogExecutor(
         val changelog = changelogParser.parse(script)
         // Create changelog transaction
         val transaction = changelog.createChangelog(
-            changelogRequestDetails.accounts,
-            changelogRequestDetails.peers
+            changelogRequestDetails.accounts.map { toChangelogAccount(it) },
+            changelogRequestDetails.peers.map { toChangelogPeer(it) }
         )
         // Sign changelog transaction
         signTx(transaction, changelogRequestDetails.superuserKeys)
@@ -62,6 +61,32 @@ class ChangelogExecutor(
             .fold(
                 { txHash -> log.info { "Changelog tx has been successfully sent. Tx hash $txHash" } },
                 { ex -> throw ex })
+    }
+
+    /**
+     * Maps AccountPublicInfo to ChangelogAccountPublicInfo
+     * @param accountPublicInfo - account info to map
+     * @return ChangelogAccountPublicInfo
+     */
+    private fun toChangelogAccount(accountPublicInfo: AccountPublicInfo): ChangelogAccountPublicInfo {
+        val changelogAccount = ChangelogAccountPublicInfo()
+        changelogAccount.accountName = accountPublicInfo.accountName
+        changelogAccount.domainId = accountPublicInfo.domainId
+        changelogAccount.pubKeys = accountPublicInfo.pubKeys
+        changelogAccount.quorum = accountPublicInfo.quorum
+        return changelogAccount
+    }
+
+    /**
+     * Maps Peer to ChangelogPeer
+     * @param peer - peer to map
+     * @return ChangelogPeer
+     */
+    private fun toChangelogPeer(peer: Peer): ChangelogPeer {
+        val changelogPeer = ChangelogPeer()
+        changelogPeer.hostPort = peer.hostPort
+        changelogPeer.peerKey = peer.peerKey
+        return changelogPeer
     }
 
     /**
