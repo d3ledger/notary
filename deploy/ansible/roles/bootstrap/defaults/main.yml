@@ -2,6 +2,7 @@ bootstrap_api_address: http://localhost:8090
 bootstrap_project: D3
 bootstrap_env: test
 bootstrap_deployment_basedir: /opt/d3
+bootstrap_etherscan_api_token: ''
 
 bootstrap_notary_address: ''
 bootstrap_eth_keys_path: 'ethereum/keys'
@@ -102,6 +103,8 @@ bootstrap_eth_registration_jar_name: eth-registration.jar
 bootstrap_eth_registration_port: 8083
 bootstrap_eth_registration_registrationcredential_privkeypath: configs/iroha/eth_registration_service@notary.priv
 bootstrap_eth_registration_registrationcredential_pubkeypath: configs/iroha/eth_registration_service@notary.pub
+bootstrap_eth_registration_node_login: ''
+bootstrap_eth_registration_node_password: ''
 
 # registration
 bootstrap_registration_class: registration.RegistrationMain
@@ -125,6 +128,8 @@ bootstrap_withdrawal_jar_name: eth-withdrawal.jar
 bootstrap_withdrawal_port: 8084
 bootstrap_withdrawal_withdrawalcredential_privkeypath: configs/iroha/withdrawal@notary.priv
 bootstrap_withdrawal_withdrawalcredential_pubkeypath: configs/iroha/withdrawal@notary.pub
+bootstrap_withdrawal_node_login: ''
+bootstrap_withdrawal_node_password: ''
 
 # relay-registration
 bootstrap_relay_registration_class: com.d3.eth.withdrawal.withdrawalservice.WithdrawalServiceMain
@@ -137,6 +142,8 @@ bootstrap_relay_registration_iroha_port: ''
 bootstrap_relay_registration_jar_name: eth-withdrawal.jar
 bootstrap_relay_registration_relayregistrationcredential_privkeypath: configs/iroha/eth_registration_service@notary.priv
 bootstrap_relay_registration_relayregistrationcredential_pubkeypath: configs/iroha/eth_registration_service@notary.pub
+bootstrap_relay_registration_node_login: ''
+bootstrap_relay_registration_node_password: '' 
 
 # token-registration
 bootstrap_token_registration_iroha_hostname: ''

@@ -7,10 +7,6 @@ services:
       - .env-eth-deposit
     environment:
       - PROFILE
-      - IROHA_HOST
-      - IROHA_PORT
-      - CLASS
-      - JAR_NAME
     volumes:
       - {{ deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
       - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
@@ -31,6 +27,8 @@ services:
     image: nexus.iroha.tech:19002/d3-deploy/eth-registration:develop
     env_file:
       - .env-eth-registration
+    environment:
+      - PROFILE
     volumes:
       - {{ deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
       - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
@@ -59,6 +57,8 @@ services:
       - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
     env_file:
       .env-registration
+    environment:
+      - PROFILE
     networks:
       - d3
       - iroha-net
@@ -84,6 +84,8 @@ services:
       - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
     env_file:
       .env-withdrawal
+    environment:
+      - PROFILE
     expose:
       - {{ bootstrap_withdrawal_port }}
     networks:
@@ -104,7 +106,9 @@ services:
       - {{ deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
       - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
     env_file:
-      .env-relay-registration   
+      .env-relay-registration
+    environment:
+      - PROFILE
     networks:
       - d3
       - iroha-net
@@ -154,6 +158,8 @@ services:
       - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
     env_file:
       .env-btc-address-generation
+    environment:
+      - PROFILE
     networks:
       - d3
       - iroha-net
@@ -167,6 +173,8 @@ services:
       - dw-bridge-storage:/opt/notary/deploy/bitcoin/mainnet/blocks
     env_file:
       .env-btc-dw-bridge
+    environment:
+      - PROFILE
     networks:
       - d3
       - iroha-net
@@ -179,6 +187,8 @@ services:
       - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
     env_file:
       .env-btc-registration
+    environment:
+      - PROFILE
     labels:
       - "traefik.docker.network=traefik-net"
       - "traefik.enable=true"

@@ -7,4 +7,5 @@ bootstrap_grpcwebproxy_host: grpcwebproxy.s1.tst.d3.soramitsu.co.jp
 bootstrap_btc_registration_host: registration-btc.s1.tst.d3.soramitsu.co.jp
 bootstrap_backend_host: s1.tst.d3.soramitsu.co.jp
 bootstrap_btc_address_generation_nodeid: 1
+bootstrap_btc_registration_nodeid: 1
 btc_registration_nodeid: 1
