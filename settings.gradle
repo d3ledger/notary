@@ -39,6 +39,9 @@ project(':eth-vacuum').projectDir = 'eth-vacuum' as File
 include 'eth-withdrawal'
 project(':eth-withdrawal').projectDir = 'eth-withdrawal' as File
 
+include 'exchanger'
+project(':exchanger').projectDir = 'exchanger' as File
+
 include 'notary-commons'
 project(':notary-commons').projectDir = 'notary-commons' as File
 
