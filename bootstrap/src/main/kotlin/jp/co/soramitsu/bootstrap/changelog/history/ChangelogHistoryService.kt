@@ -6,7 +6,7 @@ import mu.KLogging
 import org.springframework.stereotype.Component
 
 //Account that stores history in details
-val changelogHistoryStorageAccountId = "changelog_history@bootstrap"
+const val changelogHistoryStorageAccountId = "changelog_history@bootstrap"
 
 /**
  * Service that is used to create changelog history transactions
