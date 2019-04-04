@@ -9,6 +9,7 @@ import jp.co.soramitsu.bootstrap.genesis.d3.D3TestContext
 import jp.co.soramitsu.bootstrap.genesis.d3.D3TestGenesisFactory
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import mu.KLogging
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -79,7 +80,7 @@ class IrohaTest {
         d3Genesis.getAccountsForConfiguration(5).forEach { if (!it.passive) activeAccounts.add(it) }
         assertEquals(activeAccounts.size, respBody.accounts.size)
         val dependentAccounts = respBody.accounts.stream().filter { it.peersDependentQuorum == true }.collect(toList())
-        dependentAccounts.forEach { assertEquals(3, it.quorum) }
+        dependentAccounts.forEach { assertEquals(4, it.quorum) }
     }
 
     @Test
@@ -111,7 +112,7 @@ class IrohaTest {
             .andReturn()
         val respBody = mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
         val dependentAccounts = respBody.accounts.stream().filter { it.peersDependentQuorum == true }.collect(toList())
-        dependentAccounts.forEach { assertEquals(1, it.quorum) }
+        dependentAccounts.forEach { assertEquals(2, it.quorum) }
     }
 
     @Test
@@ -235,17 +236,19 @@ class IrohaTest {
             createAccountDto("sora", "sora"),
             createAccountDto("brvs", "brvs"),
             createAccountDto("client_account", "notary"),
-            createAccountDto("rmq", "notary"),
+            createAccountDto("rmq", "notary", peersCount - peersCount / 3),
             createAccountDto("btc_consensus_collector", "notary"),
-            createAccountDto(ChangelogInterface.superuserAccount, ChangelogInterface.superuserDomain)
+            createAccountDto(ChangelogInterface.superuserAccount, ChangelogInterface.superuserDomain, peersCount - peersCount / 3)
         )
     }
 
     private fun createAccountDto(title: String, domain: String, quorum: Int = 1): AccountPublicInfo {
+        val keys = ArrayList<String>()
+        repeat(quorum) {
+            keys.add(generatePublicKeyHex())
+        }
         return AccountPublicInfo(
-            listOf(
-                generatePublicKeyHex()
-            ), domain, title, quorum
+            keys, domain, title, quorum
         )
     }
 
