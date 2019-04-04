@@ -697,6 +697,12 @@
                   "domainId": "notary",
                   "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
                 }
+              },{
+                "createAccount": {
+                  "accountName": "changelog_history",
+                  "domainId": "bootstrap",
+                  "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
+                }
               },
               {
                 "appendRole": {
