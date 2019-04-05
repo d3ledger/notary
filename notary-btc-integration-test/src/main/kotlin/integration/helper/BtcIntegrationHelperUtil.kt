@@ -216,6 +216,12 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
     }
 
     /**
+     * Creates random Bitcoin address
+     * @param wallet - wallet file that is used to generate addresses
+     */
+    fun createBtcAddress(wallet: Wallet) = wallet.freshReceiveAddress().toBase58()
+
+    /**
      * Registers BTC client with no generation
      * @param irohaAccountName - client account in Iroha
      * @param keypair - key pair of new client in Iroha
