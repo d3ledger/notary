@@ -13,6 +13,8 @@ import java.util.*
 
 class D3TestGenesisFactory : GenesisInterface {
 
+    private val transactionCreatorId = "notary@notary"
+
     private val zeroPubKey = "0000000000000000000000000000000000000000000000000000000000000000"
     override fun getAccountsForConfiguration(peersCount: Int): List<AccountPrototype> {
         val activeAccounts = D3TestContext.d3neededAccounts.filter { !it.passive }
@@ -32,7 +34,7 @@ class D3TestGenesisFactory : GenesisInterface {
         blockVersion: String
     ): String {
         val transactionBuilder = Transaction.builder(null)
-
+        transactionBuilder.setCreatorAccountId(transactionCreatorId)
         createPeers(peers, transactionBuilder)
         createRoles(transactionBuilder)
         createDomains(transactionBuilder)
