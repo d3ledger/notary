@@ -126,6 +126,7 @@ class EthController {
         list.add("eth-registration-service")
         list.add("eth-withdrawal-service")
         list.add("eth-genesis-wallet")
+        list.add("vacuum-service")
         return ResponseEntity.ok<List<String>>(list)
     }
 }
