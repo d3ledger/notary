@@ -25,6 +25,7 @@ data class NeededAccountsResponse(val accounts: List<AccountPrototype> = emptyLi
         this.message = message
     }
 }
+
 /**
  * Accounts which should have quorum 2/3 of peers
  */
@@ -38,7 +39,7 @@ class PeersCountDependentAccountPrototype(
     domainId,
     roles,
     details,
-    passive = false,
+    type = AccountType.ACTIVE,
     quorum = 1,
     peersDependentQuorum = true
 )
@@ -57,7 +58,7 @@ class PassiveAccountPrototype(
     domainId,
     roles,
     details,
-    passive = true,
+    type = AccountType.PASSIVE,
     quorum = quorum
 ) {
 
@@ -73,13 +74,35 @@ class PassiveAccountPrototype(
     }
 }
 
+/**
+ * Accounts that is not reflected in genesis block, only corresponding keypair should be
+ */
+class NoAccountPrototype(
+    name: String? = null,
+    domainId: String? = null
+) : AccountPrototype(
+    name,
+    domainId,
+    emptyList(),
+    emptyMap(),
+    type = AccountType.IGNORED,
+    quorum = 1
+) {
+    override fun createAccount(
+        builder: TransactionBuilder,
+        publicKey: String
+    ) {
+        /* do nothing */
+    }
+}
+
 
 open class AccountPrototype(
     val name: String? = null,
     val domainId: String? = null,
     val roles: List<String> = listOf(),
     val details: Map<String, String> = mapOf(),
-    val passive: Boolean = false,
+    val type: AccountType = AccountType.ACTIVE,
     var quorum: Int = 1,
     val peersDependentQuorum: Boolean = false
 ) {
@@ -93,4 +116,10 @@ open class AccountPrototype(
         roles.forEach { builder.appendRole(id, it) }
         details.forEach { k, v -> builder.setAccountDetail(id, k, v) }
     }
+}
+
+enum class AccountType {
+    ACTIVE,
+    PASSIVE,
+    IGNORED
 }
