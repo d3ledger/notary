@@ -44,6 +44,7 @@ class BtcRegistrationTestEnvironment(private val integrationHelper: BtcIntegrati
     val btcRegistrationServiceInitialization = BtcRegistrationServiceInitialization(
         btcRegistrationConfig,
         BtcRegistrationStrategyImpl(
+            btcRegisteredAddressesProvider(),
             btcFreeAddressesProvider,
             irohaBtcAccountCreator()
         )

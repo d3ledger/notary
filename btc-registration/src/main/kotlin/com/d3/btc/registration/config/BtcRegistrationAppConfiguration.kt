@@ -43,6 +43,13 @@ class BtcRegistrationAppConfiguration {
     fun btcRegistrationConfig() = btcRegistrationConfig
 
     @Bean
+    fun btcRegisteredAddressesProvider() = BtcRegisteredAddressesProvider(
+        queryAPI(),
+        btcRegistrationCredential.accountId,
+        btcRegistrationConfig.notaryAccount
+    )
+
+    @Bean
     fun btcFreeAddressesProvider(): BtcFreeAddressesProvider {
         return BtcFreeAddressesProvider(
             btcRegistrationConfig.nodeId,
@@ -51,11 +58,7 @@ class BtcRegistrationAppConfiguration {
                 btcRegistrationConfig.mstRegistrationAccount,
                 btcRegistrationConfig.notaryAccount
             ),
-            BtcRegisteredAddressesProvider(
-                queryAPI(),
-                btcRegistrationCredential.accountId,
-                btcRegistrationConfig.notaryAccount
-            )
+            btcRegisteredAddressesProvider()
         )
     }
 
