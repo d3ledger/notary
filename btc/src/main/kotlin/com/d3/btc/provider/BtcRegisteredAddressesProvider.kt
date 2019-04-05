@@ -18,7 +18,7 @@ open class BtcRegisteredAddressesProvider(
     override fun monitor() = getRegisteredAddresses()
 
     /**
-     * Checks account if able to register in Bitcoin
+     * Checks if given account may be registered in Bitcoin
      * @param accountId - id of account to check
      * @return true if able to register
      */
