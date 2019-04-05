@@ -112,7 +112,9 @@
   - name: Dump smart contracts addresses into variable
     set_fact:
       bootstrap_service_smart_contracts_file_contents: "{{ lookup('file', bootstrap_api_smart_contracts_addresspath) | from_json }}"
-    when: bootstrap_service_smart_contracts_addresspath_stat.stat.exists
+
+  - debug:
+      var: bootstrap_service_smart_contracts_file_contents
 
   delegate_to: localhost
   run_once: yes

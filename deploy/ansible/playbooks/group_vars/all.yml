@@ -1,5 +1,6 @@
 ansible_python_interpreter: /usr/bin/python3
 overlay_network: true
+iroha_docker_tag: 1.0.0_rc5
 
 custom_genesis_block: true
 custom_genesis_block_path: /tmp/custom_genesis.block
@@ -7,22 +8,28 @@ bootstrap_etherscan_api_token: VAFWI5D17PYJNHI74VDRXRP2NQVXAU7Z6U
 
 bootstrap_service_env: test
 bootstrap_service_profile: mainnet
-bootstrap_eth_deposit_eth_node_login: developer
-bootstrap_eth_deposit_eth_node_password: emooyei7chiew3xohb4poo1ith6chahK
-bootstrap_eth_registration_node_login: developer
-bootstrap_eth_registration_node_password: emooyei7chiew3xohb4poo1ith6chahK
 bootstrap_api_smart_contracts_nodelogin: developer
 bootstrap_api_smart_contracts_nodepassword: emooyei7chiew3xohb4poo1ith6chahK
-bootstrap_relay_registration_node_login: developer
-bootstrap_relay_registration_node_password: emooyei7chiew3xohb4poo1ith6chahK
-bootstrap_withdrawal_node_login: developer
-bootstrap_withdrawal_node_password: emooyei7chiew3xohb4poo1ith6chahK
-bootstrap_eth_deposit_eth_credentials_password: YDlgAyCsiy86oFTHmryGSClgxLOxZyEX
 bootstrap_api_smart_contracts_credentialspassword: YDlgAyCsiy86oFTHmryGSClgxLOxZyEX
+
+bootstrap_eth_deposit_eth_node_login: "{{ bootstrap_api_smart_contracts_nodelogin }}"
+bootstrap_eth_deposit_eth_node_password: "{{ bootstrap_api_smart_contracts_nodepassword }}"
+bootstrap_eth_registration_node_login: "{{ bootstrap_api_smart_contracts_nodelogin }}"
+bootstrap_eth_registration_node_password: "{{ bootstrap_api_smart_contracts_nodepassword }}"
+bootstrap_relay_registration_node_login: "{{ bootstrap_api_smart_contracts_nodelogin }}"
+bootstrap_relay_registration_node_password: "{{ bootstrap_api_smart_contracts_nodepassword }}"
+bootstrap_withdrawal_node_login: "{{ bootstrap_api_smart_contracts_nodelogin }}"
+bootstrap_withdrawal_node_password: "{{ bootstrap_api_smart_contracts_nodepassword }}"
+bootstrap_eth_deposit_eth_credentials_password: "{{ bootstrap_api_smart_contracts_credentialspassword }}"
+bootstrap_eth_registration_eth_credentials_password: "{{ bootstrap_api_smart_contracts_credentialspassword }}"
+bootstrap_relay_registration_credentials_password: "{{ bootstrap_api_smart_contracts_credentialspassword }}"
+bootstrap_withdrawal_eth_credentials_password: "{{ bootstrap_api_smart_contracts_credentialspassword }}"
+bootstrap_relay_vacuum_credentialspassword: "{{ bootstrap_api_smart_contracts_credentialspassword }}"
 bootstrap_api_smart_contracts_url: https://parity1.s2.tst.d3.soramitsu.co.jp
 bootstrap_eth_deposit_ethereum_url: https://parity1.s2.tst.d3.soramitsu.co.jp
 bootstrap_eth_registration_ethereum_url: https://parity1.s2.tst.d3.soramitsu.co.jp
 bootstrap_withdrawal_ethereum_url: https://parity1.s2.tst.d3.soramitsu.co.jp
 bootstrap_relay_registration_ethereum_url: https://parity1.s2.tst.d3.soramitsu.co.jp
+bootstrap_relay_vacuum_ethereum_url: https://parity1.s2.tst.d3.soramitsu.co.jp
 bootstrap_btc_deposit_bitcoin_hosts: bitcoin1.s2.tst.d3.soramitsu.co.jp
 bootstrap_btc_withdrawal_bitcoin_hosts: bitcoin1.s2.tst.d3.soramitsu.co.jp

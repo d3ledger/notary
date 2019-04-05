@@ -47,7 +47,7 @@
 
   - name: Assign keys for Iroha peers
     set_fact:
-      iroha_peer_keys_gb: "{{ iroha_peer_keys_gb + [{ 'hostPort': iroha_all_nodes[idx].hostname, 'peerKey': item.json.public, 'notaryHostPort': 'http://localhost:20000' }] }}"
+      iroha_peer_keys_gb: "{{ iroha_peer_keys_gb + [{ 'hostPort': iroha_all_nodes[idx].hostname, 'peerKey': item.json.public, 'notaryHostPort': 'http://' + bootstrap_eth_notary_container_name + ':20000' }] }}"
     loop: "{{ iroha_keys_gb.results }}"
     loop_control:
       index_var: idx

@@ -3,6 +3,7 @@ version: '3'
 services:
   d3-notary:
     image: nexus.iroha.tech:19002/d3-deploy/notary:develop
+    container_name: {{ bootstrap_eth_notary_container_name }}
     env_file:
       - .env-eth-deposit
     environment:
@@ -39,7 +40,7 @@ services:
     labels:
       - filebeat.module=docker
       - filebeat.fields.env=${ENVIRONMENT:?ENVIRONMENT is not defined}
-      - filebeat.fields.app=registration
+      - filebeat.fields.app=eth-registration
       - filebeat.fields.project=d3
       - filebeat.fields.logtype=d3-java-log
       - "traefik.docker.network=traefik-net"
@@ -68,7 +69,7 @@ services:
       - filebeat.fields.env=${ENVIRONMENT:?ENVIRONMENT is not defined}
       - filebeat.fields.app=registration
       - filebeat.fields.project=d3
-      - filebeat.fields.logtype=registration
+      - filebeat.fields.logtype=d3-java-log
       - "traefik.docker.network=traefik-net"
       - "traefik.enable=true"
       - "traefik.frontend.rule=Host:${REGISTRATION_HOST:?REGISTRATION_HOST is not defined}"
@@ -96,7 +97,7 @@ services:
       - filebeat.fields.env=${ENVIRONMENT:?ENVIRONMENT is not defined}
       - filebeat.fields.app=withdrawal
       - filebeat.fields.project=d3
-      - filebeat.fields.logtype=withdrawal
+      - filebeat.fields.logtype=d3-java-log
     restart: always
 
   d3-relay-registration:

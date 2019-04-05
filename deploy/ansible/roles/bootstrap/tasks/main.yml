@@ -12,10 +12,10 @@
     - "{{ bootstrap_deployment_basedir }}/conf/btc"
     - "{{ bootstrap_deployment_basedir }}/conf/eth"
 
-# - include: ethereum.yml
-# - include: bitcoin.yml
+- include: ethereum.yml
+- include: bitcoin.yml
 
-# TODO: all the configs must be a part of the artifact (Docker image or JAR)
+# TODO: all the configs must be part of the artifact (Docker image or JAR)
 # Pulling it from GH repo will make a service unstable
 - name: Fetch configs from GitHub
   get_url:
@@ -41,11 +41,13 @@
     bootstrap_withdrawal_iroha_port: "{{ iroha_torii_port }}"
     bootstrap_relay_registration_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
     bootstrap_relay_registration_iroha_port: "{{ iroha_torii_port }}"
+    bootstrap_relay_vacuum_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
+    bootstrap_relay_vacuum_iroha_port: "{{ iroha_torii_port }}"
     bootstrap_token_registration_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
-    bootstrap_token_registrabootstrap_service_smart_contracts_addresspath_stattion_iroha_port: "{{ iroha_torii_port }}"
+    bootstrap_token_registration_iroha_port: "{{ iroha_torii_port }}"
     bootstrap_grpcwebproxy_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
     bootstrap_grpcwebproxy_iroha_port: "{{ iroha_torii_port }}"
-    bootstrap_btc_address_generation_iroha_hobootstrap_service_smart_contracts_addresspath_statstname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
+    bootstrap_btc_address_generation_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
     bootstrap_btc_address_generation_iroha_port: "{{ iroha_torii_port }}"
     bootstrap_btc_dw_bridge_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
     bootstrap_btc_dw_bridge_iroha_port: "{{ iroha_torii_port }}"
@@ -68,7 +70,6 @@
   loop:
     - { file: '.env-eth-deposit', mode: '0600', owner: 'root', 'group': root}
     - { file: '.env-eth-registration', mode: '0600', owner: 'root', 'group': root}
-    - { file: '.env-eth-deposit', mode: '0600', owner: 'root', 'group': root}
     - { file: '.env-btc-address-generation', mode: '0600', owner: 'root', 'group': root}
     - { file: '.env-btc-dw-bridge', mode: '0600', owner: 'root', 'group': root}
     - { file: '.env-btc-registration', mode: '0600', owner: 'root', 'group': root}

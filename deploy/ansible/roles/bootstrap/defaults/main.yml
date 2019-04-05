@@ -13,6 +13,7 @@ bootstrap_btc_wallets:
   - keys.d3.wallet
   - transfers.d3.wallet
 
+bootstrap_eth_notary_container_name: ''
 bootstrap_force_smart_contract_deployment: false
 
 bootstrap_gh_configs_base_url: https://raw.githubusercontent.com/d3ledger/notary/develop
@@ -55,6 +56,10 @@ bootstrap_gh_configs_urls:
   btc_withdrawal:
     path: configs/btc/withdrawal_mainnet.properties
     dest_dir: btc
+# Registration
+  registration:
+    path: configs/registration_mainnet.properties
+    dest_dir: ./
 # RMQ
   chain_adapter:
     path: configs/rmq.properties
@@ -79,21 +84,21 @@ bootstrap_service_env: ''
 bootstrap_service_profile: ''
 
 # eth-deposit
-bootstrap_eth_deposit_class: notary.eth.EthNotaryMain
+bootstrap_eth_deposit_class: com.d3.eth.deposit.EthDepositMain
 bootstrap_eth_deposit_eth_credentials_password: ''
 bootstrap_eth_deposit_eth_node_login: ''
 bootstrap_eth_deposit_eth_node_password: ''
-bootstrap_eth_deposit_ethereum_credentialspath: configs/keys/ethereum/eth-deposit-service.key
+bootstrap_eth_deposit_ethereum_credentialspath: configs/ethereum/keys/eth-deposit-service.key
 bootstrap_eth_deposit_ethereum_url: ''
 bootstrap_eth_deposit_iroha_hostname: ''
 bootstrap_eth_deposit_iroha_port: ''
-bootstrap_eth_deposit_jar_name: eth-notary.jar
+bootstrap_eth_deposit_jar_name: eth-deposit.jar
 bootstrap_eth_deposit_notarycredential_privkeypath: configs/iroha/notary@notary.priv
 bootstrap_eth_deposit_notarycredential_pubkeypath: configs/iroha/notary@notary.pub
 
 # eth-registration
 bootstrap_eth_registration_class: com.d3.eth.registration.EthRegistrationMain
-bootstrap_eth_registration_ethereum_credentialspath: configs/keys/ethereum/eth-registration-service.key
+bootstrap_eth_registration_ethereum_credentialspath: configs/ethereum/keys/eth-registration-service.key
 bootstrap_eth_registration_ethereum_url: ''
 bootstrap_eth_registration_ethrelayregistryaddress: ''
 bootstrap_eth_registration_host: ''
@@ -105,9 +110,10 @@ bootstrap_eth_registration_registrationcredential_privkeypath: configs/iroha/eth
 bootstrap_eth_registration_registrationcredential_pubkeypath: configs/iroha/eth_registration_service@notary.pub
 bootstrap_eth_registration_node_login: ''
 bootstrap_eth_registration_node_password: ''
+bootstrap_eth_registration_eth_credentials_password: ''
 
 # registration
-bootstrap_registration_class: registration.RegistrationMain
+bootstrap_registration_class: com.d3.commons.registration.RegistrationMain
 bootstrap_registration_host: ''
 bootstrap_registration_iroha_hostname: ''
 bootstrap_registration_iroha_port: ''
@@ -120,7 +126,7 @@ bootstrap_registration_registrationcredential_pubkeypath: configs/iroha/registra
 
 # withdrawal
 bootstrap_withdrawal_class: com.d3.eth.withdrawal.withdrawalservice.WithdrawalServiceMain
-bootstrap_withdrawal_ethereum_credentialspath: configs/keys/ethereum/eth-withdrawal-service.key
+bootstrap_withdrawal_ethereum_credentialspath: configs/ethereum/keys/eth-withdrawal-service.key
 bootstrap_withdrawal_ethereum_url: ''
 bootstrap_withdrawal_iroha_hostname: ''
 bootstrap_withdrawal_iroha_port: ''
@@ -130,20 +136,34 @@ bootstrap_withdrawal_withdrawalcredential_privkeypath: configs/iroha/withdrawal@
 bootstrap_withdrawal_withdrawalcredential_pubkeypath: configs/iroha/withdrawal@notary.pub
 bootstrap_withdrawal_node_login: ''
 bootstrap_withdrawal_node_password: ''
+bootstrap_withdrawal_eth_credentials_password: ''
 
 # relay-registration
-bootstrap_relay_registration_class: com.d3.eth.withdrawal.withdrawalservice.WithdrawalServiceMain
-bootstrap_relay_registration_ethereum_credentialspath: configs/keys/ethereum/eth-registration-service.key
+bootstrap_relay_registration_class: com.d3.eth.registration.relay.DeployRelayMain
+bootstrap_relay_registration_ethereum_credentialspath: configs/ethereum/keys/eth-registration-service.key
 bootstrap_relay_registration_ethereum_url: ''
 bootstrap_relay_registration_ethmasterwallet: '0x0000000000000000000000000000000000000000'
 bootstrap_relay_registration_ethrelayimplementationaddress: '0x0000000000000000000000000000000000000000'
 bootstrap_relay_registration_iroha_hostname: ''
 bootstrap_relay_registration_iroha_port: ''
-bootstrap_relay_registration_jar_name: eth-withdrawal.jar
+bootstrap_relay_registration_jar_name: eth-registration.jar
 bootstrap_relay_registration_relayregistrationcredential_privkeypath: configs/iroha/eth_registration_service@notary.priv
 bootstrap_relay_registration_relayregistrationcredential_pubkeypath: configs/iroha/eth_registration_service@notary.pub
 bootstrap_relay_registration_node_login: ''
-bootstrap_relay_registration_node_password: '' 
+bootstrap_relay_registration_node_password: ''
+bootstrap_relay_registration_credentials_password: ''
+
+# relay-vacuum
+bootstrap_relay_vacuum_vacuumcredential_pubkeypath: configs/iroha/vacuumer@notary.pub
+bootstrap_relay_vacuum_vacuumcredential_privkeypath: configs/iroha/vacuumer@notary.priv
+bootstrap_relay_vacuum_iroha_hostname: ''
+bootstrap_relay_vacuum_iroha_port: ''
+bootstrap_relay_vacuum_ethereum_url: ''
+bootstrap_relay_vacuum_ethereum_confirmationperiod: 1
+bootstrap_relay_vacuum_ethereum_credentialspath: configs/ethereum/keys/vacuum-service.key
+bootstrap_relay_vacuum_ethereum_gasprice: 10000000000
+bootstrap_relay_vacuum_ethereum_gaslimit: 4500000
+bootstrap_relay_vacuum_credentialspassword: ''
 
 # token-registration
 bootstrap_token_registration_iroha_hostname: ''
@@ -164,7 +184,7 @@ bootstrap_backend_host: ''
 bootstrap_backend_static_files_path: /opt/d3-backend/files
 
 # btc-address-generation
-bootstrap_btc_address_generation_btckeyswalletpath: configs/bitcoin/keys.d3.wallet
+bootstrap_btc_address_generation_btckeyswalletpath: configs/bitcoin/keys/keys.d3.wallet
 bootstrap_btc_address_generation_class: com.d3.btc.generation.BtcAddressGenerationMain
 bootstrap_btc_address_generation_iroha_hostname: ''
 bootstrap_btc_address_generation_iroha_port: ''
@@ -179,16 +199,16 @@ bootstrap_btc_address_generation_threshold: 2
 # btc-dw-bridge
 bootstrap_btc_dw_bridge_bitcoin_confidenceLevel: 6
 bootstrap_btc_dw_bridge_bitcoin_hosts: bitcoin1.s2.tst.d3.soramitsu.co.jp
-bootstrap_btc_dw_bridge_class: com.d3.btc.generation.BtcAddressGenerationMain
+bootstrap_btc_dw_bridge_class: com.d3.btc.dwbridge.BtcDepositWithdrawalMain
 bootstrap_btc_dw_bridge_iroha_hostname: ''
 bootstrap_btc_dw_bridge_iroha_port: ''
-bootstrap_btc_dw_bridge_jar_name: btc-address-generation.jar
+bootstrap_btc_dw_bridge_jar_name: btc-dw-bridge.jar
 
 # btc-deposit
 bootstrap_btc_deposit_bitcoin_blockstoragepath: deploy/bitcoin/mainnet/blocks/deposit
 bootstrap_btc_deposit_bitcoin_confidencelevel: 6
 bootstrap_btc_deposit_bitcoin_hosts: ''
-bootstrap_btc_deposit_btctransferwalletpath: configs/bitcoin/transfers.d3.wallet
+bootstrap_btc_deposit_btctransferwalletpath: configs/bitcoin/keys/transfers.d3.wallet
 bootstrap_btc_deposit_iroha_hostname: ''
 bootstrap_btc_deposit_iroha_port: ''
 bootstrap_btc_deposit_notarycredential_privkeypath: configs/iroha/notary@notary.priv
@@ -202,16 +222,16 @@ bootstrap_btc_withdrawal_btcconsensuscredential_privkeypath: configs/iroha/btc_c
 bootstrap_btc_withdrawal_btcconsensuscredential_pubkeypath: configs/iroha/btc_consensus_collector@notary.pub
 bootstrap_btc_withdrawal_btcfeeratecredential_privkeypath: configs/iroha/btc_fee_rate@notary.priv
 bootstrap_btc_withdrawal_btcfeeratecredential_pubkeypath: configs/iroha/btc_fee_rate@notary.pub
-bootstrap_btc_withdrawal_btckeyswalletpath: configs/bitcoin/keys.d3.wallet
-bootstrap_btc_withdrawal_btctransferswalletpath: configs/bitcoin/transfers.d3.wallet
+bootstrap_btc_withdrawal_btckeyswalletpath: configs/bitcoin/keys/keys.d3.wallet
+bootstrap_btc_withdrawal_btctransferswalletpath: configs/bitcoin/keys/transfers.d3.wallet
 bootstrap_btc_withdrawal_iroha_hostname: ''
 bootstrap_btc_withdrawal_iroha_port: ''
 bootstrap_btc_withdrawal_notarycredential_privkeypath: configs/iroha/notary@notary.priv
 bootstrap_btc_withdrawal_notarycredential_pubkeypath: configs/iroha/notary@notary.pub
 bootstrap_btc_withdrawal_registrationcredential_privkeypath: configs/iroha/btc_registration_service@notary.priv
 bootstrap_btc_withdrawal_registrationcredential_pubkeypath: configs/iroha/btc_registration_service@notary.pub
-bootstrap_btc_withdrawal_signaturecollectorcredential_privkeypath: configs/iroha/btc_withdrawal_signature_collector@notary.priv
-bootstrap_btc_withdrawal_signaturecollectorcredential_pubkeypath: configs/iroha/btc_withdrawal_signature_collector@notary.pub
+bootstrap_btc_withdrawal_signaturecollectorcredential_privkeypath: configs/iroha/btc_sign_collector@notary.priv
+bootstrap_btc_withdrawal_signaturecollectorcredential_pubkeypath: configs/iroha/btc_sign_collector@notary.pub
 bootstrap_btc_withdrawal_withdrawalcredential_privkeypath: configs/iroha/btc_withdrawal_service@notary.priv
 bootstrap_btc_withdrawal_withdrawalcredential_pubkeypath: configs/iroha/btc_withdrawal_service@notary.pub
 
