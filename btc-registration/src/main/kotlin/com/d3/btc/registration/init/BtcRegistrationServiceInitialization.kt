@@ -1,12 +1,12 @@
 package com.d3.btc.registration.init
 
+import com.d3.btc.registration.config.BtcRegistrationConfig
+import com.d3.commons.registration.RegistrationServiceEndpoint
+import com.d3.commons.registration.RegistrationStrategy
 import com.github.kittinunf.result.Result
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import com.d3.commons.registration.RegistrationServiceEndpoint
-import com.d3.commons.registration.RegistrationStrategy
-import com.d3.btc.registration.config.BtcRegistrationConfig
 
 @Component
 class BtcRegistrationServiceInitialization(
