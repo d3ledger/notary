@@ -14,6 +14,7 @@ shadowDistTar.classifier = 'shadow'
 
 dependencies {
     compile project(":notary-commons")
+    testCompile project(":notary-iroha-integration-test")
 
     //Spring
     compile group: 'org.springframework', name: 'spring-context', version: '5.1.4.RELEASE'
@@ -33,3 +34,37 @@ sonarqube {
         property "sonar.projectKey", "notary:exchanger"
     }
 }
+
+sourceSets {
+    integrationTest {
+        kotlin {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDirs += 'src/integration-test/kotlin'
+        }
+        resources {
+            srcDirs = ["src/integration-test/resources"]
+        }
+    }
+}
+
+configurations {
+    integrationTestImplementation.extendsFrom testImplementation
+    integrationTestCompile.extendsFrom testCompile
+    integrationTestRuntime.extendsFrom testRuntime
+}
+
+task integrationTest(type: Test) {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = 'Run exchanger integration tests'
+
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    setWorkingDir("$rootDir/")
+    // Enable JUnit5 tests
+    useJUnitPlatform {
+    }
+
+    mustRunAfter test
+}
+check.dependsOn integrationTest

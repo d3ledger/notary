@@ -10,6 +10,7 @@ import jp.co.soramitsu.iroha.java.Transaction
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import java.io.Closeable
 import java.math.BigDecimal
 
 private val logger = KLogging().logger
@@ -18,7 +19,11 @@ private val logger = KLogging().logger
 class ExchangerService(
     @Autowired private val irohaConsumer: IrohaConsumer,
     @Autowired private val chainListener: ReliableIrohaChainListener
-) {
+): Closeable {
+    override fun close() {
+        chainListener.close()
+    }
+
     private val exchangerAccountId = irohaConsumer.creator
 
     fun start(): Result<Unit, Exception> {
