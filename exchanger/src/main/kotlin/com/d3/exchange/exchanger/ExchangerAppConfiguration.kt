@@ -8,6 +8,7 @@ import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.createPrettySingleThreadPool
 import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.QueryAPI
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -24,16 +25,13 @@ const val EXCHANGER_SERVICE_NAME = "exchanger-service"
 @Configuration
 class ExchangerAppConfiguration {
 
-    /** Exchanger service credentials */
-    private val exchangerCredential = ModelUtil.loadKeypair(
+    val keyPair = ModelUtil.loadKeypair(
         exchangerConfig.irohaCredential.pubkeyPath,
         exchangerConfig.irohaCredential.privkeyPath
-    ).fold(
-        { keypair ->
-            IrohaCredential(exchangerConfig.irohaCredential.accountId, keypair)
-        },
-        { ex -> throw ex }
-    )
+    ).get()
+
+    /** Exchanger service credentials */
+    private val exchangerCredential = IrohaCredential(exchangerConfig.irohaCredential.accountId, keyPair)
 
     /** Iroha network connection */
     @Bean
@@ -46,7 +44,7 @@ class ExchangerAppConfiguration {
 
     /** Configurations for Exchanger Service */
     @Bean
-    fun registrationConfig() = exchangerConfig
+    fun exchangerConfig() = exchangerConfig
 
     @Bean
     fun chainListener() = ReliableIrohaChainListener(
@@ -54,4 +52,10 @@ class ExchangerAppConfiguration {
         exchangerConfig.irohaBlockQueue,
         createPrettySingleThreadPool(EXCHANGER_SERVICE_NAME, "rmq-consumer")
     )
+
+    @Bean
+    fun queryAPI() = QueryAPI(irohaAPI(), exchangerConfig.irohaCredential.accountId, keyPair)
+
+    @Bean
+    fun liquidityProviders() = exchangerConfig.liquidityProviders.split(",").toList()
 }

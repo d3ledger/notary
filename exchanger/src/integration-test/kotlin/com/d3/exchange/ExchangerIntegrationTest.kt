@@ -51,15 +51,15 @@ class ExchangerIntegrationTest {
         assertEquals(200, res.statusCode)
         val userId = "$userName@$CLIENT_DOMAIN"
 
-        integrationHelper.addIrohaAssetTo(exchangerService.exchangerAccountId, "xor#sora", "10")
-        integrationHelper.addIrohaAssetTo(exchangerService.exchangerAccountId, "ether#ethereum", "10")
+        integrationHelper.addIrohaAssetTo(exchangerService.exchangerAccount.accountId, "xor#sora", "10")
+        integrationHelper.addIrohaAssetTo(exchangerService.exchangerAccount.accountId, "ether#ethereum", "10")
 
         integrationHelper.addIrohaAssetTo(userId, "xor#sora", "1")
         integrationHelper.transferAssetIrohaFromClient(
             userId,
             userKeypair,
             userId,
-            exchangerService.exchangerAccountId,
+            exchangerService.exchangerAccount.accountId,
             "xor#sora",
             "ether#ethereum",
             "1"

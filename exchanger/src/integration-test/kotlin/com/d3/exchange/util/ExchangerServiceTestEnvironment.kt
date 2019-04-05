@@ -6,10 +6,10 @@ import com.d3.commons.config.loadRawConfigs
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
-import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.exchange.exchanger.ExchangerConfig
 import com.d3.exchange.exchanger.ExchangerService
 import integration.helper.IrohaIntegrationHelperUtil
+import jp.co.soramitsu.iroha.java.QueryAPI
 import java.io.Closeable
 
 /**
@@ -22,29 +22,23 @@ class ExchangerServiceTestEnvironment(private val integrationHelper: IrohaIntegr
 
     private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
 
-    private val registrationCredentials = ModelUtil.loadKeypair(
-        exchangerConfig.irohaCredential.pubkeyPath,
-        exchangerConfig.irohaCredential.privkeyPath
-    ).fold(
-        { keypair ->
-            IrohaCredential(exchangerConfig.irohaCredential.accountId, keypair)
-        },
-        { ex -> throw ex }
-    )
+    val exchangerAccount = integrationHelper.accountHelper.exchangerAccount
 
-    private val irohaConsumer = IrohaConsumerImpl(registrationCredentials, integrationHelper.irohaAPI)
+    private val exchangerCredential = IrohaCredential(exchangerAccount.accountId, exchangerAccount.keyPair)
+
+    private val irohaConsumer = IrohaConsumerImpl(exchangerCredential, integrationHelper.irohaAPI)
 
     private lateinit var exchangerService: ExchangerService
 
     fun init() {
         exchangerService = ExchangerService(
             irohaConsumer,
-            ReliableIrohaChainListener(rmqConfig, exchangerConfig.irohaBlockQueue)
+            QueryAPI(integrationHelper.irohaAPI, exchangerCredential.accountId, exchangerAccount.keyPair),
+            ReliableIrohaChainListener(rmqConfig, exchangerConfig.irohaBlockQueue),
+            listOf(integrationHelper.testCredential.accountId)
         )
         exchangerService.start()
     }
-
-    val exchangerAccountId = exchangerConfig.irohaCredential.accountId
 
     override fun close() {
         exchangerService.close()
