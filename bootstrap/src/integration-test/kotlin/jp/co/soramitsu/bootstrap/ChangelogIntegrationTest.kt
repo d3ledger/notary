@@ -158,7 +158,7 @@ class ChangelogIntegrationTest {
                 ),
                 irohaConfig = IrohaConfig(IROHA_HOST, IROHA_PORT),
                 superuserKeys = listOf(
-                    ClientKeyPair(
+                    AccountKeyPair(
                         Utils.toHex(superuserKeyPair.public.encoded),
                         Utils.toHex(superuserKeyPair.private.encoded)
                     )
@@ -186,7 +186,7 @@ class ChangelogIntegrationTest {
                 ),
                 irohaConfig = IrohaConfig(IROHA_HOST, IROHA_PORT),
                 superuserKeys = listOf(
-                    ClientKeyPair(
+                    AccountKeyPair(
                         Utils.toHex(superuserKeyPair.public.encoded),
                         Utils.toHex(superuserKeyPair.private.encoded)
                     )
