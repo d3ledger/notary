@@ -1,6 +1,7 @@
 package com.d3.btc.registration.strategy
 
 import com.d3.btc.provider.BtcFreeAddressesProvider
+import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.account.IrohaBtcAccountRegistrator
 import com.d3.commons.registration.RegistrationStrategy
 import com.github.kittinunf.result.Result
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component
 //Strategy for registering BTC addresses
 @Component
 class BtcRegistrationStrategyImpl(
+    @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
     @Autowired private val btcFreeAddressesProvider: BtcFreeAddressesProvider,
     @Autowired private val irohaBtcAccountCreator: IrohaBtcAccountRegistrator
 ) : RegistrationStrategy {
@@ -31,22 +33,30 @@ class BtcRegistrationStrategyImpl(
         whitelist: List<String>,
         publicKey: String
     ): Result<String, Exception> {
-        return btcFreeAddressesProvider.getFreeAddresses().flatMap { freeAddresses ->
-            if (freeAddresses.isEmpty()) {
-                throw IllegalStateException("no free btc address to register")
+        return btcRegisteredAddressesProvider.ableToRegister("$accountName@$domainId")
+            .map { ableToRegister ->
+                if (!ableToRegister) {
+                    throw IllegalStateException("Not able to register $accountName@$domainId")
+                }
             }
-            // Get the newest address among free addresses
-            val freeAddress = freeAddresses.maxBy { address -> address.info.generationTime ?: 0 }
-            irohaBtcAccountCreator.create(
-                freeAddress!!.address,
-                whitelist,
-                accountName,
-                domainId,
-                publicKey,
-                freeAddress.info.notaryKeys,
-                btcFreeAddressesProvider.nodeId
-            )
-        }
+            .flatMap { btcFreeAddressesProvider.getFreeAddresses() }
+            .flatMap { freeAddresses ->
+                if (freeAddresses.isEmpty()) {
+                    throw IllegalStateException("No free btc address to register")
+                }
+                // Get the newest address among free addresses
+                val freeAddress = freeAddresses.maxBy { address -> address.info.generationTime ?: 0 }
+
+                irohaBtcAccountCreator.create(
+                    freeAddress!!.address,
+                    whitelist,
+                    accountName,
+                    domainId,
+                    publicKey,
+                    freeAddress.info.notaryKeys,
+                    btcFreeAddressesProvider.nodeId
+                )
+            }
     }
 
     /**
