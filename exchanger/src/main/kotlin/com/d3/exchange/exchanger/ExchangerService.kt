@@ -5,6 +5,8 @@ import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.sidechain.iroha.util.getAccountAsset
 import com.d3.commons.sidechain.iroha.util.getAssetPrecision
+import com.d3.exchange.exchanger.exception.AssetNotFoundException
+import com.d3.exchange.exchanger.exception.TooMuchAssetVolumeException
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import iroha.protocol.BlockOuterClass
@@ -28,8 +30,6 @@ class ExchangerService(
     @Autowired private val liquidityProviderAccounts: List<String>
 ) : Closeable {
 
-    // 1% so far
-    private val feePercentage = BigDecimal.valueOf(100)!!
     // Integrals
     private val integrator = RombergIntegrator()
     private val exchangerAccountId = irohaConsumer.creator
@@ -61,26 +61,51 @@ class ExchangerService(
     private fun performConversion(transfer: Commands.TransferAsset) {
         val sourceAsset = transfer.assetId
         val targetAsset = transfer.description
+        val amount = transfer.amount
+        Result.of {
+            val relevantAmount = calculateRelevantAmount(sourceAsset, targetAsset, BigDecimal(amount))
 
-        ModelUtil.transferAssetIroha(
-            irohaConsumer,
-            exchangerAccountId,
-            transfer.srcAccountId,
-            targetAsset,
-            "Conversion from $sourceAsset to $targetAsset",
-            calculateRelevantAmount(sourceAsset, targetAsset, BigDecimal(transfer.amount))
-        )
+            ModelUtil.transferAssetIroha(
+                irohaConsumer,
+                exchangerAccountId,
+                transfer.srcAccountId,
+                targetAsset,
+                "Conversion from $sourceAsset to $targetAsset",
+                relevantAmount
+            )
+        }.fold({ logger.info { "Successfully converted $amount of $sourceAsset to $targetAsset." } },
+            {
+                logger.error("Exchanger error occurred. Performing rollback.", it)
+
+                ModelUtil.transferAssetIroha(
+                    irohaConsumer,
+                    exchangerAccountId,
+                    transfer.srcAccountId,
+                    sourceAsset,
+                    "Conversion rollback transaction",
+                    amount
+                )
+            })
     }
 
     private fun calculateRelevantAmount(from: String, to: String, amount: BigDecimal): String {
-        val fromAsset = BigDecimal(getAccountAsset(queryAPI, irohaConsumer.creator, from).get()).toDouble()
+        val fromAsset = BigDecimal(
+            getAccountAsset(queryAPI, irohaConsumer.creator, from).get()
+        ).minus(amount).toDouble()
         val toAsset = BigDecimal(getAccountAsset(queryAPI, irohaConsumer.creator, to).get()).toDouble()
-        val amountMinusFee = amount.minus(amount.divide(feePercentage)).toDouble()
+        val amountMinusFee = amount.minus(amount.divide(FEE_PROPORTION)).toDouble()
 
         val function = UnivariateFunction { x -> toAsset / (fromAsset * x) }
-        val precision = getAssetPrecision(queryAPI, to).get()
+        val precision = getAssetPrecision(queryAPI, to).fold({ it },
+            { throw AssetNotFoundException("Seems asset $to does not exist.") })
 
-        return respectPrecision(integrator.integrate(100, function, 1.0, 1 + amountMinusFee).toString(), precision)
+        val integrate = integrator.integrate(EVALUATIONS, function, LOWER_BOUND, LOWER_BOUND + amountMinusFee)
+
+        if (integrate >= toAsset) {
+            throw TooMuchAssetVolumeException("Asset supplement exceeds the balance.")
+        }
+
+        return respectPrecision(integrate.toString(), precision)
     }
 
     private fun respectPrecision(rawValue: String, precision: Int): String {
@@ -88,10 +113,17 @@ class ExchangerService(
         if (diff >= 0) {
             return rawValue
         }
-        return rawValue.plus("0".repeat(diff))
+        return rawValue.plus("0".repeat(diff * (-1)))
     }
 
     override fun close() {
         chainListener.close()
+    }
+
+    companion object {
+        private const val EVALUATIONS = 1000
+        private const val LOWER_BOUND = 1.0
+        // 1% so far
+        private val FEE_PROPORTION = BigDecimal.valueOf(100)!!
     }
 }
