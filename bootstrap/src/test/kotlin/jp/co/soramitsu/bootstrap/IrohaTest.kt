@@ -198,9 +198,7 @@ class IrohaTest {
                         "{\\\"appendRole\\\":{\\\"accountId\\\":\\\"" + account.id + "\\\",\\\"roleName\\\":\\\"" + role + "\\\"}}"
 
                     log.info("TestValue: $testValue")
-                    assertTrue(
-                        respBody.contains(testValue)
-                    )
+                    assertTrue(respBody.contains(testValue))
                 }
             }
         }
@@ -211,11 +209,7 @@ class IrohaTest {
         )
 
         jsonRolesContainsChecks.forEach {
-            assertTrue(
-                respBody.contains(
-                    "{\\\"createRole\\\":{\\\"roleName\\\":\\\"$it"
-                )
-            )
+            assertTrue(respBody.contains("{\\\"createRole\\\":{\\\"roleName\\\":\\\"$it"))
         }
 
         val genesisResponse =
