@@ -138,6 +138,6 @@ class EthTest {
             .andReturn()
 
         val respBody = mapper.readValue(result.response.contentAsString, List::class.java)
-        assertEquals(peersCount + 3, respBody.size)
+        assertEquals(peersCount + 4, respBody.size)
     }
 }

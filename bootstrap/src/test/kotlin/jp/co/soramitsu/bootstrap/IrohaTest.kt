@@ -140,6 +140,7 @@ class IrohaTest {
 
     @Test
     fun testGenesisBlock() {
+        val transactionCreatorRecord = """\"creatorAccountId\":\"notary@notary\""""
         val peerKey1 = generatePublicKeyHex()
         val peerKey2 = generatePublicKeyHex()
         val notaryAddress1 = "notaryHost1:43652"
@@ -182,6 +183,7 @@ class IrohaTest {
         assertTrue(respBody.contains(peerKey2))
         assertTrue(respBody.contains(notaryAddress1))
         assertTrue(respBody.contains(notaryAddress2))
+        assertTrue(respBody.contains(transactionCreatorRecord))
 
         val quorumCheck =
             "{\\\"accountId\\\":\\\"mst_btc_registration_service@notary\\\",\\\"quorum\\\":${peers.size - peers.size / 3}}"
