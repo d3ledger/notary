@@ -12,7 +12,7 @@ import jp.co.soramitsu.iroha.java.Utils
 import java.security.KeyPair
 import java.util.concurrent.atomic.AtomicLong
 
-private val queryCounter = AtomicLong()
+private val queryCounter = AtomicLong(1)
 
 /**
  * Signs changelog batch
