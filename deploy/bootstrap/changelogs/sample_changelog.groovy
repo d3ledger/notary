@@ -11,7 +11,8 @@ class SampleChangeLog implements ChangelogInterface {
 
     @Override
     String getSchemaVersion() {
-        return "1.0"
+        // Must match regex [A-Za-z0-9_]{1,64}
+        return "schema_version"
     }
 
     @Override
