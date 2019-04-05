@@ -101,7 +101,9 @@ object D3TestContext {
         AccountPrototype("admin", "notary", listOf("admin")),
         AccountPrototype("sora", "sora", listOf("sora")),
         AccountPrototype("brvs", "brvs"),
-        NoAccountPrototype("registration_service_primary", "notary")
+        NoAccountPrototype("registration_service_primary", "notary"),
+        PassiveAccountPrototype("client_account", "notary"),
+        AccountPrototype("exchanger", "notary", listOf("exchange"))
     )
 
     fun createDataCollectorRole(builder: TransactionBuilder) {
@@ -380,6 +382,18 @@ object D3TestContext {
                 Primitive.RolePermission.can_get_all_acc_detail,
                 Primitive.RolePermission.can_set_quorum,
                 Primitive.RolePermission.can_set_detail
+            )
+        )
+    }
+
+    fun createExchangeRole(builder: TransactionBuilder) {
+        builder.createRole(
+            "exhange",
+            listOf(
+                Primitive.RolePermission.can_transfer,
+                Primitive.RolePermission.can_receive,
+                Primitive.RolePermission.can_read_assets,
+                Primitive.RolePermission.can_get_my_acc_ast
             )
         )
     }
