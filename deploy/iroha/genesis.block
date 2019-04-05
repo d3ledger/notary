@@ -713,6 +713,7 @@
                   "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
                 }
               },
+              {
                 "createAccount": {
                   "accountName": "exchanger",
                   "domainId": "notary",

@@ -2,11 +2,12 @@ package com.d3.exchange.exchanger
 
 import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
+import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
+import com.google.common.base.Strings
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
-import jp.co.soramitsu.iroha.java.Transaction
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -19,19 +20,15 @@ private val logger = KLogging().logger
 class ExchangerService(
     @Autowired private val irohaConsumer: IrohaConsumer,
     @Autowired private val chainListener: ReliableIrohaChainListener
-): Closeable {
-    override fun close() {
-        chainListener.close()
-    }
+) : Closeable {
 
     private val exchangerAccountId = irohaConsumer.creator
 
     fun start(): Result<Unit, Exception> {
         logger.info { "Exchanger service is starting." }
         return chainListener.getBlockObservable().map { observable ->
-            observable.blockingSubscribe { (block, _) ->
-                processBlock(block)
-            }
+            observable.subscribe { (block, _) -> processBlock(block) }
+            Unit
         }
     }
 
@@ -44,25 +41,31 @@ class ExchangerService(
             }
         }.map { exchangeCommands ->
             exchangeCommands.forEach { exchangeCommand ->
-                irohaConsumer.send(
-                    constructResponseTransaction(exchangeCommand)
-                )
+                performConversion(exchangeCommand)
             }
         }
     }
 
-    private fun constructResponseTransaction(transfer: Commands.TransferAsset): Transaction {
-        return Transaction.builder(exchangerAccountId).transferAsset(
-            exchangerAccountId,
-            transfer.srcAccountId,
-            transfer.description,
-            "Conversion from ${transfer.assetId} to ${transfer.description}",
-            calculateRelevantOutcome()
-        ).build()
+    private fun performConversion(transfer: Commands.TransferAsset) {
+        val targetAsset = transfer.description
+        if (!Strings.isNullOrEmpty(targetAsset)) {
+            ModelUtil.transferAssetIroha(
+                irohaConsumer,
+                exchangerAccountId,
+                transfer.srcAccountId,
+                targetAsset,
+                "Conversion from ${transfer.assetId} to $targetAsset",
+                calculateRelevantOutcome()
+            )
+        }
     }
 
-    private fun calculateRelevantOutcome(): BigDecimal {
+    private fun calculateRelevantOutcome(): String {
         // TODO CALCULATE
-        return BigDecimal.ONE
+        return BigDecimal.ONE.toPlainString()
+    }
+
+    override fun close() {
+        chainListener.close()
     }
 }

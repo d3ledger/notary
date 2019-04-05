@@ -27,7 +27,7 @@ class ExchangerIntegrationTest {
         exchangerService.init()
         registrationServiceEnvironment.registrationInitialization.init()
 
-        runBlocking { delay(35_000) }
+        runBlocking { delay(10_000) }
     }
 
     @AfterAll

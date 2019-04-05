@@ -1,7 +1,8 @@
 package com.d3.exchange.util
 
 import com.d3.commons.config.RMQConfig
-import com.d3.commons.config.loadConfigs
+import com.d3.commons.config.getConfigFolder
+import com.d3.commons.config.loadRawConfigs
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
@@ -17,9 +18,9 @@ import java.io.Closeable
 class ExchangerServiceTestEnvironment(private val integrationHelper: IrohaIntegrationHelperUtil) : Closeable {
 
     private val exchangerConfig =
-        loadConfigs("exchanger", ExchangerConfig::class.java, "/exchanger.properties").get()
+        loadRawConfigs("exchanger", ExchangerConfig::class.java, "${getConfigFolder()}/exchanger.properties")
 
-    private val rmqConfig = loadConfigs("rmq", RMQConfig::class.java, "/rmq.properties").get()
+    private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
 
     private val registrationCredentials = ModelUtil.loadKeypair(
         exchangerConfig.irohaCredential.pubkeyPath,
