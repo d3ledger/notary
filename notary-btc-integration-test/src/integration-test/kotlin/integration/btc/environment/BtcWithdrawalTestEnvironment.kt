@@ -1,6 +1,5 @@
 package integration.btc.environment
 
-import com.d3.btc.fee.BtcFeeRateService
 import com.d3.btc.handler.NewBtcClientRegistrationHandler
 import com.d3.btc.helper.address.outPutToBase58Address
 import com.d3.btc.peer.SharedPeerGroup
@@ -10,7 +9,6 @@ import com.d3.btc.provider.network.BtcRegTestConfigProvider
 import com.d3.btc.withdrawal.BTC_WITHDRAWAL_SERVICE_NAME
 import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
 import com.d3.btc.withdrawal.handler.NewConsensusDataHandler
-import com.d3.btc.withdrawal.handler.NewFeeRateWasSetHandler
 import com.d3.btc.withdrawal.handler.NewSignatureEventHandler
 import com.d3.btc.withdrawal.handler.NewTransferHandler
 import com.d3.btc.withdrawal.init.BtcWithdrawalInitialization
@@ -111,14 +109,6 @@ class BtcWithdrawalTestEnvironment(
         irohaAPI
     }
 
-    private val btcFeeRateKeypair = ModelUtil.loadKeypair(
-        btcWithdrawalConfig.btcFeeRateCredential.pubkeyPath,
-        btcWithdrawalConfig.btcFeeRateCredential.privkeyPath
-    ).fold({ keypair -> keypair }, { ex -> throw ex })
-
-    private val btcFeeRateCredential =
-        IrohaCredential(btcWithdrawalConfig.btcFeeRateCredential.accountId, btcFeeRateKeypair)
-
     private val signaturesCollectorKeypair = ModelUtil.loadKeypair(
         btcWithdrawalConfig.signatureCollectorCredential.pubkeyPath,
         btcWithdrawalConfig.signatureCollectorCredential.privkeyPath
@@ -144,8 +134,6 @@ class BtcWithdrawalTestEnvironment(
         signaturesCollectorCredential,
         irohaApi
     )
-
-    private val btcFeeRateConsumer = IrohaConsumerImpl(btcFeeRateCredential, irohaApi)
 
     private val btcConsensusIrohaConsumer = IrohaConsumerImpl(btcConsensusCredential, irohaApi)
 
@@ -227,9 +215,6 @@ class BtcWithdrawalTestEnvironment(
             btcRollbackService
         )
 
-    private val btcFeeRateService =
-        BtcFeeRateService(btcFeeRateConsumer, btcFeeRateCredential.accountId, integrationHelper.queryAPI)
-
     private val newConsensusDataHandler = NewConsensusDataHandler(withdrawalTransferService)
 
     val btcWithdrawalInitialization by lazy {
@@ -240,11 +225,9 @@ class BtcWithdrawalTestEnvironment(
             btcNetworkConfigProvider,
             newSignatureEventHandler,
             NewBtcClientRegistrationHandler(btcNetworkConfigProvider),
-            NewFeeRateWasSetHandler(btcWithdrawalConfig.btcFeeRateCredential.accountId),
             newTransferHandler,
             newConsensusDataHandler,
             btcRegisteredAddressesProvider,
-            btcFeeRateService,
             rmqConfig,
             btcWithdrawalConfig.irohaBlockQueue
         )

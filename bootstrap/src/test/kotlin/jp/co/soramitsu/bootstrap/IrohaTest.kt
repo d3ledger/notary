@@ -205,7 +205,6 @@ class IrohaTest {
             }
         }
         val jsonRolesContainsChecks = listOf(
-            "btc_fee_rate_setter",
             "sora_client",
             "notary_list_holder"
         )
@@ -233,7 +232,6 @@ class IrohaTest {
             createAccountDto("mst_btc_registration_service", "notary", peersCount - peersCount / 3),
             createAccountDto("eth_token_storage_service", "notary"),
             createAccountDto("withdrawal", "notary"),
-            createAccountDto("btc_fee_rate", "notary"),
             createAccountDto("btc_withdrawal_service", "notary", peersCount - peersCount / 3),
             createAccountDto("btc_sign_collector", "notary"),
             createAccountDto("btc_change_addresses", "notary"),

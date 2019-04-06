@@ -5,7 +5,6 @@ import com.d3.btc.helper.currency.satToBtc
 import com.d3.btc.model.BtcAddressType
 import com.d3.btc.provider.generation.ADDRESS_GENERATION_NODE_ID_KEY
 import com.d3.btc.provider.generation.ADDRESS_GENERATION_TIME_KEY
-import com.d3.btc.withdrawal.handler.CurrentFeeRate
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomString
@@ -52,7 +51,6 @@ class BtcMultiWithdrawalIntegrationTest {
     fun setUp() {
         registrationServiceEnvironment.registrationInitialization.init()
         integrationHelper.generateBtcInitialBlocks()
-        CurrentFeeRate.set(DEFAULT_FEE_RATE)
         val testNames = ArrayList<String>()
         repeat(peers) { peer ->
             testNames.add("multi_withdrawal_${String.getRandomString(5)}_$peer")
