@@ -75,6 +75,7 @@
                 "createRole": {
                   "roleName": "client",
                   "permissions": [
+                    "can_get_all_accounts",
                     "can_get_my_account",
                     "can_get_my_acc_ast",
                     "can_get_my_acc_ast_txs",
