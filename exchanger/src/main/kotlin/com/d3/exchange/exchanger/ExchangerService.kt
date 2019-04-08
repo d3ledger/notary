@@ -23,6 +23,10 @@ import java.math.BigDecimal
 private val logger = KLogging().logger
 
 @Component
+/**
+ * Class responsible for Iroha block processing and proper reacting to incoming transfers
+ * in order to support automatic asset conversions
+ */
 class ExchangerService(
     @Autowired private val irohaConsumer: IrohaConsumer,
     @Autowired private val queryAPI: QueryAPI,
@@ -32,8 +36,12 @@ class ExchangerService(
 
     // Integrals
     private val integrator = RombergIntegrator()
+    // Exchanger account
     private val exchangerAccountId = irohaConsumer.creator
 
+    /**
+     * Starts blocks listening and processing
+     */
     fun start(): Result<Unit, Exception> {
         logger.info { "Exchanger service is starting." }
         return chainListener.getBlockObservable().map { observable ->
@@ -42,6 +50,11 @@ class ExchangerService(
         }
     }
 
+    /**
+     * Filters incoming transfers commands and calls conversion for them
+     * Ignores transactions from 'liquidity providers'
+     * They are not supposed to receive conversion
+     */
     private fun processBlock(block: BlockOuterClass.Block) {
         block.blockV1.payload.transactionsList.map { transaction ->
             transaction.payload.reducedPayload.commandsList.filter { command ->
@@ -58,6 +71,11 @@ class ExchangerService(
         }
     }
 
+    /**
+     * Performs conversion based on the command specified
+     * Conversion is just an outgoing transfer transaction
+     * If something goes wrong rollback is performed
+     */
     private fun performConversion(transfer: Commands.TransferAsset) {
         val sourceAsset = transfer.assetId
         val targetAsset = transfer.description
@@ -88,6 +106,13 @@ class ExchangerService(
             })
     }
 
+    /**
+     * Uses integration to calculate how much assets should be sent back to the client
+     * Logic is not to fix a rate in a moment but to determine continuous rate for
+     * any amount of assets.
+     * @throws AssetNotFoundException in case of unknown target asset
+     * @throws TooMuchAssetVolumeException in case of impossible conversion
+     */
     private fun calculateRelevantAmount(from: String, to: String, amount: BigDecimal): String {
         val fromAsset = BigDecimal(
             getAccountAsset(queryAPI, irohaConsumer.creator, from).get()
@@ -108,6 +133,10 @@ class ExchangerService(
         return respectPrecision(integrate.toString(), precision)
     }
 
+    /**
+     * Normalizes a string to an asset precision
+     * @return String {0-9}*.{0-9}[0-precision]
+     */
     private fun respectPrecision(rawValue: String, precision: Int): String {
         val diff = rawValue.substringAfter('.').length - precision
         if (diff >= 0) {
@@ -121,7 +150,9 @@ class ExchangerService(
     }
 
     companion object {
+        // Number of evaluations during integration
         private const val EVALUATIONS = 1000
+        // Integrating from the relevant rate which is at x=1
         private const val LOWER_BOUND = 1.0
         // 1% so far
         private val FEE_RATIO = BigDecimal(0.01)
