@@ -388,7 +388,7 @@ object D3TestContext {
 
     fun createExchangeRole(builder: TransactionBuilder) {
         builder.createRole(
-            "exhange",
+            "exchange",
             listOf(
                 Primitive.RolePermission.can_transfer,
                 Primitive.RolePermission.can_receive,
