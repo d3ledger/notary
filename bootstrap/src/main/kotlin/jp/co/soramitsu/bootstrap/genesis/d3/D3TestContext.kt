@@ -2,14 +2,19 @@ package jp.co.soramitsu.bootstrap.genesis.d3
 
 import iroha.protocol.Primitive
 import jp.co.soramitsu.bootstrap.changelog.ChangelogInterface
-import jp.co.soramitsu.iroha.java.TransactionBuilder
 import jp.co.soramitsu.bootstrap.dto.AccountPrototype
+import jp.co.soramitsu.bootstrap.dto.NoAccountPrototype
 import jp.co.soramitsu.bootstrap.dto.PassiveAccountPrototype
 import jp.co.soramitsu.bootstrap.dto.PeersCountDependentAccountPrototype
+import jp.co.soramitsu.iroha.java.TransactionBuilder
 
 object D3TestContext {
 
     val d3neededAccounts = listOf(
+        PassiveAccountPrototype(
+            "changelog_history",
+            "bootstrap"
+        ),
         AccountPrototype(
             "rmq",
             "notary",
@@ -60,11 +65,6 @@ object D3TestContext {
             "notary",
             listOf("withdrawal")
         ),
-        AccountPrototype(
-            "btc_fee_rate",
-            "notary",
-            listOf("btc_fee_rate_setter")
-        ),
         PeersCountDependentAccountPrototype(
             "btc_withdrawal_service",
             "notary",
@@ -84,18 +84,19 @@ object D3TestContext {
         PassiveAccountPrototype(
             "notaries",
             "notary",
-            listOf("notary_list_holder")
+            listOf("notary_list_holder"),
+            details = hashMapOf(Pair("some_notary", "http://localhost:20000"))
         ),
         PassiveAccountPrototype(
             "btc_change_addresses",
-            "notary",
-            details = hashMapOf(Pair("some_notary", "http://localhost:20000"))
+            "notary"
         ),
         PassiveAccountPrototype("gen_btc_pk_trigger", "notary"),
         AccountPrototype("admin", "notary", listOf("admin")),
         AccountPrototype("sora", "sora", listOf("sora")),
         AccountPrototype("brvs", "brvs"),
-        PassiveAccountPrototype("client_account", "notary")
+        PassiveAccountPrototype("client_account", "notary"),
+        NoAccountPrototype("registration_service_primary", "notary")
     )
 
 
@@ -343,16 +344,6 @@ object D3TestContext {
                 Primitive.RolePermission.can_grant_can_set_my_quorum,
                 Primitive.RolePermission.can_grant_can_add_my_signatory,
                 Primitive.RolePermission.can_grant_can_remove_my_signatory
-            )
-        )
-    }
-
-    fun createBtcFeeRateSetterRole(builder: TransactionBuilder) {
-        builder.createRole(
-            "btc_fee_rate_setter",
-            listOf(
-                Primitive.RolePermission.can_set_detail,
-                Primitive.RolePermission.can_get_all_accounts
             )
         )
     }

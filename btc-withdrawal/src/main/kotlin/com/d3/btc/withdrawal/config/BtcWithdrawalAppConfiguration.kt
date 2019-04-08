@@ -1,6 +1,5 @@
 package com.d3.btc.withdrawal.config
 
-import com.d3.btc.fee.BtcFeeRateService
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.withdrawal.BTC_WITHDRAWAL_SERVICE_NAME
 import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
@@ -44,13 +43,6 @@ class BtcWithdrawalAppConfiguration {
         withdrawalConfig.registrationCredential.privkeyPath
     ).fold({ keypair ->
         IrohaCredential(withdrawalConfig.registrationCredential.accountId, keypair)
-    }, { ex -> throw ex })
-
-    private val btcFeeRateCredential = ModelUtil.loadKeypair(
-        withdrawalConfig.btcFeeRateCredential.pubkeyPath,
-        withdrawalConfig.btcFeeRateCredential.privkeyPath
-    ).fold({ keypair ->
-        IrohaCredential(withdrawalConfig.btcFeeRateCredential.accountId, keypair)
     }, { ex -> throw ex })
 
     private val btcConsensusCredential = ModelUtil.loadKeypair(
@@ -120,9 +112,6 @@ class BtcWithdrawalAppConfiguration {
     }
 
     @Bean
-    fun queryAPI() = QueryAPI(irohaAPI(), btcFeeRateCredential.accountId, btcFeeRateCredential.keyPair)
-
-    @Bean
     fun btcRegisteredAddressesProvider(): BtcRegisteredAddressesProvider {
         return BtcRegisteredAddressesProvider(
             QueryAPI(irohaAPI(), btcRegistrationCredential.accountId, btcRegistrationCredential.keyPair),
@@ -130,18 +119,6 @@ class BtcWithdrawalAppConfiguration {
             withdrawalConfig.notaryCredential.accountId
         )
     }
-
-    @Bean
-    fun btcFeeRateAccount() = withdrawalConfig.btcFeeRateCredential.accountId
-
-    @Bean
-    fun btcFeeRateService() =
-        BtcFeeRateService(
-            IrohaConsumerImpl(
-                btcFeeRateCredential, irohaAPI()
-            ),
-            btcFeeRateCredential.accountId, queryAPI()
-        )
 
     @Bean
     fun withdrawalQueryAPI() = QueryAPI(irohaAPI(), withdrawalCredential().accountId, withdrawalCredential().keyPair)
@@ -172,7 +149,7 @@ class BtcWithdrawalAppConfiguration {
     @Bean
     fun notaryPeerListProvider() =
         NotaryPeerListProviderImpl(
-            queryAPI(),
+            withdrawalQueryAPI(),
             withdrawalConfig.notaryListStorageAccount,
             withdrawalConfig.notaryListSetterAccount
         )

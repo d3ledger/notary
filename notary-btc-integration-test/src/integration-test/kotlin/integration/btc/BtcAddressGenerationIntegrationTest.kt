@@ -21,6 +21,7 @@ import java.io.File
 import java.util.*
 
 const val WAIT_PREGEN_PROCESS_MILLIS = 20_000L
+const val WAIT_PREGEN_INIT_PROCESS_MILLIS = 30_000L
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BtcAddressGenerationIntegrationTest {
@@ -43,7 +44,7 @@ class BtcAddressGenerationIntegrationTest {
             environment.btcAddressGenerationInitialization.init().failure { ex -> throw ex }
         }
         // Wait for initial address generation
-        Thread.sleep(WAIT_PREGEN_PROCESS_MILLIS * environment.btcGenerationConfig.threshold)
+        Thread.sleep(WAIT_PREGEN_INIT_PROCESS_MILLIS)
         environment.checkIfAddressesWereGeneratedAtInitialPhase()
     }
 

@@ -4,13 +4,16 @@ import com.d3.commons.util.getRandomString
 import com.d3.commons.util.toHexString
 import com.google.gson.Gson
 import jp.co.soramitsu.bootstrap.changelog.ChangelogInterface
+import jp.co.soramitsu.bootstrap.changelog.history.changelogHistoryStorageAccountId
 import jp.co.soramitsu.bootstrap.dto.*
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import jp.co.soramitsu.iroha.java.Utils
+import org.json.JSONObject
 import org.junit.AfterClass
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -71,20 +74,26 @@ class ChangelogIntegrationTest {
     fun testExecuteFile() {
         //Create file that creates randomly named account
         val randomAccountName = String.getRandomString(9)
-        createAccountScriptFile(randomAccountName)
+        val randomSchema = String.getRandomString(5)
+        createAccountScriptFile(randomAccountName, randomSchema)
         mvc.perform(
             MockMvcRequestBuilders
                 .post("/changelog/execute/changelogFile")
                 .contentType(MediaType.APPLICATION_JSON).content(
-                    gson.toJson(
-                        createChangelogFileRequest(
-                            randomAccountName
-                        )
-                    )
+                    gson.toJson(createChangelogFileRequest(randomAccountName))
                 )
         ).andExpect(MockMvcResultMatchers.status().isOk).andReturn()
-
         val queryAPI = QueryAPI(irohaAPI, ChangelogInterface.superuserAccountId, superuserKeyPair)
+
+        val changelogReducedTxHash = JSONObject(
+            queryAPI.getAccountDetails(
+                changelogHistoryStorageAccountId,
+                ChangelogInterface.superuserAccountId,
+                randomSchema
+            )
+        ).getJSONObject(ChangelogInterface.superuserAccountId).get(randomSchema).toString()
+        assertNotNull(changelogReducedTxHash)
+
         val account =
             queryAPI.getAccount(
                 "$randomAccountName@d3"
@@ -101,19 +110,31 @@ class ChangelogIntegrationTest {
     fun testExecuteScript() {
         //Create file that creates randomly named account
         val randomAccountName = String.getRandomString(9)
+        val randomSchema = String.getRandomString(5)
         mvc.perform(
             MockMvcRequestBuilders
                 .post("/changelog/execute/changelogScript")
                 .contentType(MediaType.APPLICATION_JSON).content(
                     gson.toJson(
                         createChangelogScriptRequest(
-                            randomAccountName
+                            randomAccountName,
+                            randomSchema
                         )
                     )
                 )
         ).andExpect(MockMvcResultMatchers.status().isOk).andReturn()
 
         val queryAPI = QueryAPI(irohaAPI, ChangelogInterface.superuserAccountId, superuserKeyPair)
+
+        val changelogReducedTxHash = JSONObject(
+            queryAPI.getAccountDetails(
+                changelogHistoryStorageAccountId,
+                ChangelogInterface.superuserAccountId,
+                randomSchema
+            )
+        ).getJSONObject(ChangelogInterface.superuserAccountId).get(randomSchema).toString()
+        assertNotNull(changelogReducedTxHash)
+
         val account =
             queryAPI.getAccount(
                 "$randomAccountName@d3"
@@ -137,7 +158,7 @@ class ChangelogIntegrationTest {
                 ),
                 irohaConfig = IrohaConfig(IROHA_HOST, IROHA_PORT),
                 superuserKeys = listOf(
-                    ClientKeyPair(
+                    AccountKeyPair(
                         Utils.toHex(superuserKeyPair.public.encoded),
                         Utils.toHex(superuserKeyPair.private.encoded)
                     )
@@ -149,9 +170,12 @@ class ChangelogIntegrationTest {
     /**
      * Creates test script based changelog request
      */
-    private fun createChangelogScriptRequest(accountName: String): ChangelogScriptRequest {
+    private fun createChangelogScriptRequest(
+        accountName: String,
+        schemaVersion: String
+    ): ChangelogScriptRequest {
         return ChangelogScriptRequest(
-            script = createAccountScript(accountName),
+            script = createAccountScript(accountName, schemaVersion),
             details = ChangelogRequestDetails(
                 accounts = listOf(
                     AccountPublicInfo(
@@ -162,7 +186,7 @@ class ChangelogIntegrationTest {
                 ),
                 irohaConfig = IrohaConfig(IROHA_HOST, IROHA_PORT),
                 superuserKeys = listOf(
-                    ClientKeyPair(
+                    AccountKeyPair(
                         Utils.toHex(superuserKeyPair.public.encoded),
                         Utils.toHex(superuserKeyPair.private.encoded)
                     )
@@ -174,18 +198,22 @@ class ChangelogIntegrationTest {
     /**
      * Returns script that creates account in Iroha
      * @param accountName - name of account to create in script
+     * @param schemaVersion - version of changelog schema
      * @return script
      */
-    private fun createAccountScript(accountName: String): String {
+    private fun createAccountScript(accountName: String, schemaVersion: String): String {
         val script = File(SAMPLE_CHANGELOG_PATH).readText()
-        return script.replace("script_test", accountName)
+        return script
+            .replace("script_test", accountName)
+            .replace("schema_version", schemaVersion)
     }
 
     /**
      * Creates script file that creates account in Iroha
      * @param accountName - name of account to create in script file
+     * @param schemaVersion - version of changelog schema
      */
-    private fun createAccountScriptFile(accountName: String) {
-        File(TEST_CHANGELOG_PATH).writeText(createAccountScript(accountName))
+    private fun createAccountScriptFile(accountName: String, schemaVersion: String) {
+        File(TEST_CHANGELOG_PATH).writeText(createAccountScript(accountName, schemaVersion))
     }
 }

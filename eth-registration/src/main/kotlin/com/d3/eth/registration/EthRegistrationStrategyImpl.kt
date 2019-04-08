@@ -51,8 +51,9 @@ class EthRegistrationStrategyImpl(
             .flatMap { freeEthWallet ->
                 ethRelayProvider.getRelayByAccountId("$accountName@$domainId")
                     .flatMap { assignedRelays ->
+                        //TODO maybe check it before calling ethFreeRelayProvider.getRelay()?
                         // check that client hasn't been registered yet
-                        if (assignedRelays.isPresent())
+                        if (assignedRelays.isPresent)
                             throw IllegalArgumentException("Client $accountName@$domainId has already been registered with relay: ${assignedRelays.get()}")
 
                         // register to Ethereum RelayRegistry

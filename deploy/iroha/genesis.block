@@ -307,15 +307,6 @@
               },
               {
                 "createRole": {
-                  "roleName": "btc_fee_rate_setter",
-                  "permissions": [
-                    "can_set_detail",
-                    "can_get_all_accounts"
-                  ]
-                }
-              },
-              {
-                "createRole": {
                   "roleName": "brvs",
                   "permissions": [
                     "can_add_signatory",
@@ -593,19 +584,6 @@
                 }
               },
               {
-                "createAccount": {
-                  "accountName": "btc_fee_rate",
-                  "domainId": "notary",
-                  "publicKey": "1776d3cf1e73b0f361dd9287f8aa7d95f78bb6abe44784ce1cd173096084abd0"
-                }
-              },
-              {
-                "appendRole": {
-                  "accountId": "btc_fee_rate@notary",
-                  "roleName": "btc_fee_rate_setter"
-                }
-              },
-              {
                 "appendRole": {
                   "accountId": "withdrawal@notary",
                   "roleName": "withdrawal"
@@ -697,6 +675,12 @@
                 "createAccount": {
                   "accountName": "btc_change_addresses",
                   "domainId": "notary",
+                  "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
+                }
+              },{
+                "createAccount": {
+                  "accountName": "changelog_history",
+                  "domainId": "bootstrap",
                   "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
                 }
               },

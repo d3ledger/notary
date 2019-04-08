@@ -13,9 +13,6 @@ interface BtcWithdrawalConfig {
     val signatureCollectorCredential: IrohaCredentialConfig
     // Account that is used to deal with registered accounts
     val registrationCredential: IrohaCredentialConfig
-    //TODO this must be removed
-    // Account that stores fee rate
-    val btcFeeRateCredential: IrohaCredentialConfig
     //Account that stores withdrawal consensus data
     val btcConsensusCredential:IrohaCredentialConfig
     // Account that stores created addresses

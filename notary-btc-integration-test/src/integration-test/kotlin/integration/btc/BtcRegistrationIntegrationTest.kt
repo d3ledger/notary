@@ -26,8 +26,8 @@ class BtcRegistrationIntegrationTest {
     private val btcRegistrationEnvironment = BtcRegistrationTestEnvironment(integrationHelper)
     private val registrationServiceEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
 
-    // Moshi adapter for response JSON deserealization
-    val moshiAdapter = Moshi
+    // Moshi adapter for response JSON deserialization
+    private val moshiAdapter = Moshi
         .Builder()
         .build()!!.adapter(Map::class.java)!!
 
@@ -60,6 +60,42 @@ class BtcRegistrationIntegrationTest {
         assertEquals(200, res.statusCode)
 
         val response = moshiAdapter.fromJson(res.jsonObject.toString())!!
+        val registeredBtcAddress = response["clientId"]
+
+        btcRegistrationEnvironment.btcRegisteredAddressesProvider.getRegisteredAddresses().fold({ addresses ->
+            assertEquals(
+                "$userName@$CLIENT_DOMAIN",
+                addresses.first { btcAddress -> btcAddress.address == registeredBtcAddress }.info.irohaClient
+            )
+        }, { ex -> fail("cannot get addresses", ex) })
+        assertEquals(
+            BigInteger.ZERO.toString(),
+            integrationHelper.getIrohaAccountBalance("$userName@$CLIENT_DOMAIN", "btc#bitcoin")
+        )
+    }
+
+
+    /**
+     * Note: Iroha must be deployed to pass the test.
+     * @given new client
+     * @when client name is passed to registration service twice
+     * @then client has btc address in related Iroha account details, second registration attempt fails
+     */
+    @Test
+    fun testDoubleRegistration() {
+        integrationHelper.genFreeBtcAddress(btcRegistrationEnvironment.btcAddressGenerationConfig.btcKeysWalletPath)
+        val keypair = Ed25519Sha3().generateKeypair()
+        val userName = String.getRandomString(9)
+        var res = registrationServiceEnvironment.register(userName, keypair.public.toHexString())
+        assertEquals(200, res.statusCode)
+        res = btcRegistrationEnvironment.register(userName, keypair.public.toHexString())
+        assertEquals(200, res.statusCode)
+        val response = moshiAdapter.fromJson(res.jsonObject.toString())!!
+
+        //Double registration
+        res = btcRegistrationEnvironment.register(userName, keypair.public.toHexString())
+        assertEquals(500, res.statusCode)
+
         val registeredBtcAddress = response["clientId"]
 
         btcRegistrationEnvironment.btcRegisteredAddressesProvider.getRegisteredAddresses().fold({ addresses ->
