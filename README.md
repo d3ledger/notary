@@ -63,6 +63,8 @@ smtp.password=ask maintainers
 `./gradlew integrationTest` for integation tests
 
 ## Testing Bitcoin
+`./gradlew btcRefreshWallets` — recreates Bitcoin wallets in RegTests mode
+
 `./gradlew btcSendToAddress -Paddress=<address> -PamountBtc=<amount>` — sends `<amount>` BTC to `<address>` in Bitcoin regtest network
 
 `./gradlew btcGenerateBlocks -Pblocks=<blocks>` — generates `<blocks>` in Bitcoin regtest network
