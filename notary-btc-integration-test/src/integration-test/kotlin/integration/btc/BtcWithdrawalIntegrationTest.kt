@@ -1,8 +1,8 @@
 package integration.btc
 
+import com.d3.btc.fee.CurrentFeeRate
 import com.d3.btc.helper.address.outPutToBase58Address
 import com.d3.btc.helper.currency.satToBtc
-import com.d3.btc.withdrawal.handler.CurrentFeeRate
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomString
@@ -22,7 +22,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
 const val WITHDRAWAL_WAIT_MILLIS = 15_000L
-const val DEFAULT_FEE_RATE = 10
 private const val TOTAL_TESTS = 14
 private const val FAILED_WITHDRAW_AMOUNT = 6666L
 private const val FAILED_BROADCAST_AMOUNT = 7777L
@@ -47,7 +46,6 @@ class BtcWithdrawalIntegrationTest {
     @BeforeAll
     fun setUp() {
         registrationServiceEnvironment.registrationInitialization.init()
-        CurrentFeeRate.set(DEFAULT_FEE_RATE)
         val blockStorageFolder = File(environment.btcWithdrawalConfig.bitcoin.blockStoragePath)
         //Clear bitcoin blockchain folder
         blockStorageFolder.deleteRecursively()
@@ -787,7 +785,7 @@ class BtcWithdrawalIntegrationTest {
         assertEquals(initialSrcBalance, integrationHelper.getIrohaAccountBalance(testClientSrc, BTC_ASSET))
         environment.transactionHelper.addToBlackList(btcAddressSrc)
         environment.transactionHelper.addToBlackList(btcAddressDest)
-        CurrentFeeRate.set(DEFAULT_FEE_RATE)
+        CurrentFeeRate.setMinimum()
     }
 
     /**

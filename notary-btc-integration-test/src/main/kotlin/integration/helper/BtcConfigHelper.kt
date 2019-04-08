@@ -70,7 +70,6 @@ class BtcConfigHelper(
             override val btcTransfersWalletPath = createWalletFile("transfers.$testName")
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
             override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
-            override val btcFeeRateCredential = accountHelper.createCredentialConfig(accountHelper.btcFeeRateAccount)
             override val signatureCollectorCredential =
                 accountHelper.createCredentialConfig(accountHelper.btcWithdrawalSignatureCollectorAccount)
             override val changeAddressesStorageAccount = accountHelper.changeAddressesStorageAccount.accountId

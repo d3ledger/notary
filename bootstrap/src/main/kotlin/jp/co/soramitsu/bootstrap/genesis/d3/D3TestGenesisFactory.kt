@@ -165,7 +165,6 @@ class D3TestGenesisFactory : GenesisInterface {
         D3TestContext.createRollBackRole(builder)
         D3TestContext.createNotaryListHolderRole(builder)
         D3TestContext.createSoraClientRole(builder)
-        D3TestContext.createBtcFeeRateSetterRole(builder)
         D3TestContext.createSoraRole(builder)
         D3TestContext.createBrvsRole(builder)
         D3TestContext.createSuperuserRole(builder)

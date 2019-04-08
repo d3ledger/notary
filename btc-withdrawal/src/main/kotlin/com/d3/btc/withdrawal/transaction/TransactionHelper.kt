@@ -1,12 +1,12 @@
 package com.d3.btc.withdrawal.transaction
 
 import com.d3.btc.fee.BYTES_PER_INPUT
+import com.d3.btc.fee.CurrentFeeRate
 import com.d3.btc.fee.getTxFee
 import com.d3.btc.helper.address.outPutToBase58Address
 import com.d3.btc.peer.SharedPeerGroup
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
-import com.d3.btc.withdrawal.handler.CurrentFeeRate
 import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout

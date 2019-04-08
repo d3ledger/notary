@@ -70,11 +70,6 @@ object D3TestContext {
             "notary",
             listOf("withdrawal")
         ),
-        AccountPrototype(
-            "btc_fee_rate",
-            "notary",
-            listOf("btc_fee_rate_setter")
-        ),
         PeersCountDependentAccountPrototype(
             "btc_withdrawal_service",
             "notary",
@@ -359,16 +354,6 @@ object D3TestContext {
                 Primitive.RolePermission.can_grant_can_set_my_quorum,
                 Primitive.RolePermission.can_grant_can_add_my_signatory,
                 Primitive.RolePermission.can_grant_can_remove_my_signatory
-            )
-        )
-    }
-
-    fun createBtcFeeRateSetterRole(builder: TransactionBuilder) {
-        builder.createRole(
-            "btc_fee_rate_setter",
-            listOf(
-                Primitive.RolePermission.can_set_detail,
-                Primitive.RolePermission.can_get_all_accounts
             )
         )
     }

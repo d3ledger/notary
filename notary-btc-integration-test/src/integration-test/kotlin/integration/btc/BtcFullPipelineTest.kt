@@ -2,7 +2,6 @@ package integration.btc
 
 import com.d3.btc.helper.currency.satToBtc
 import com.d3.btc.model.BtcAddressType
-import com.d3.btc.withdrawal.handler.CurrentFeeRate
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.util.getRandomString
 import com.d3.commons.util.toHexString
@@ -43,7 +42,6 @@ class BtcFullPipelineTest {
     private val withdrawalEnvironment = BtcWithdrawalTestEnvironment(integrationHelper, testName)
 
     init {
-        CurrentFeeRate.set(DEFAULT_FEE_RATE)
         integrationHelper.addNotary("test_notary", "test_notary_address")
         // Run address generation
         GlobalScope.launch {
