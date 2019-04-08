@@ -148,7 +148,7 @@ class ExchangerIntegrationTest {
         integrationHelper.addIrohaAssetTo(
             userId,
             "xor#sora",
-            "100"
+            "1000000"
         )
         integrationHelper.transferAssetIrohaFromClient(
             userId,
@@ -157,13 +157,13 @@ class ExchangerIntegrationTest {
             exchangerServiceEnvironment.exchangerAccount.accountId,
             "xor#sora",
             "ether#ethereum",
-            "100"
+            "1000000"
         )
 
         Thread.sleep(TRANSFER_WAIT_TIME)
 
         val xorBalance = integrationHelper.getIrohaAccountBalance(userId, "xor#sora")
-        assertEquals("100", xorBalance)
+        assertEquals("1000000", xorBalance)
         val etherBalance = integrationHelper.getIrohaAccountBalance(userId, "ether#ethereum")
         assertEquals("0", etherBalance)
     }
@@ -212,7 +212,7 @@ class ExchangerIntegrationTest {
         Thread.sleep(TRANSFER_WAIT_TIME)
 
         val xorBalance = integrationHelper.getIrohaAccountBalance(userId, "xor#sora")
-        assertEquals("1", xorBalance)
+        assertEquals("1.000000000000000000", xorBalance)
         val etherBalance = integrationHelper.getIrohaAccountBalance(userId, "btc#bitcoin")
         assertEquals("0", etherBalance)
     }
