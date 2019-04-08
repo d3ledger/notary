@@ -23,10 +23,10 @@ class ExchangerIntegrationTest {
 
     private val registrationServiceEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
 
-    private val exchangerService = ExchangerServiceTestEnvironment(integrationHelper)
+    private val exchangerServiceEnvironment = ExchangerServiceTestEnvironment(integrationHelper)
 
     init {
-        exchangerService.init()
+        exchangerServiceEnvironment.init()
         registrationServiceEnvironment.registrationInitialization.init()
 
         runBlocking { delay(10_000) }
@@ -34,7 +34,7 @@ class ExchangerIntegrationTest {
 
     @AfterAll
     fun closeEnvironments() {
-        exchangerService.close()
+        exchangerServiceEnvironment.close()
         registrationServiceEnvironment.close()
     }
 
@@ -53,15 +53,23 @@ class ExchangerIntegrationTest {
         assertEquals(200, res.statusCode)
         val userId = "$userName@$CLIENT_DOMAIN"
 
-        integrationHelper.addIrohaAssetTo(exchangerService.exchangerAccount.accountId, "xor#sora", "10")
-        integrationHelper.addIrohaAssetTo(exchangerService.exchangerAccount.accountId, "ether#ethereum", "10")
+        integrationHelper.addIrohaAssetTo(
+            exchangerServiceEnvironment.exchangerAccount.accountId,
+            "xor#sora",
+            "10"
+        )
+        integrationHelper.addIrohaAssetTo(
+            exchangerServiceEnvironment.exchangerAccount.accountId,
+            "ether#ethereum",
+            "10"
+        )
 
         integrationHelper.addIrohaAssetTo(userId, "xor#sora", "1")
         integrationHelper.transferAssetIrohaFromClient(
             userId,
             userKeypair,
             userId,
-            exchangerService.exchangerAccount.accountId,
+            exchangerServiceEnvironment.exchangerAccount.accountId,
             "xor#sora",
             "ether#ethereum",
             "1"
@@ -88,12 +96,16 @@ class ExchangerIntegrationTest {
         assertEquals(200, res.statusCode)
         val userId = "$userName@$CLIENT_DOMAIN"
 
-        integrationHelper.addIrohaAssetTo(userId, "xor#sora", "1")
+        integrationHelper.addIrohaAssetTo(
+            userId,
+            "xor#sora",
+            "1"
+        )
         integrationHelper.transferAssetIrohaFromClient(
             userId,
             userKeypair,
             userId,
-            exchangerService.exchangerAccount.accountId,
+            exchangerServiceEnvironment.exchangerAccount.accountId,
             "xor#sora",
             "soramichka#sora",
             "1"
@@ -120,15 +132,27 @@ class ExchangerIntegrationTest {
         assertEquals(200, res.statusCode)
         val userId = "$userName@$CLIENT_DOMAIN"
 
-        integrationHelper.addIrohaAssetTo(exchangerService.exchangerAccount.accountId, "xor#sora", "10")
-        integrationHelper.addIrohaAssetTo(exchangerService.exchangerAccount.accountId, "ether#ethereum", "10")
+        integrationHelper.addIrohaAssetTo(
+            exchangerServiceEnvironment.exchangerAccount.accountId,
+            "xor#sora",
+            "10"
+        )
+        integrationHelper.addIrohaAssetTo(
+            exchangerServiceEnvironment.exchangerAccount.accountId,
+            "ether#ethereum",
+            "10"
+        )
 
-        integrationHelper.addIrohaAssetTo(userId, "xor#sora", "100")
+        integrationHelper.addIrohaAssetTo(
+            userId,
+            "xor#sora",
+            "100"
+        )
         integrationHelper.transferAssetIrohaFromClient(
             userId,
             userKeypair,
             userId,
-            exchangerService.exchangerAccount.accountId,
+            exchangerServiceEnvironment.exchangerAccount.accountId,
             "xor#sora",
             "ether#ethereum",
             "100"

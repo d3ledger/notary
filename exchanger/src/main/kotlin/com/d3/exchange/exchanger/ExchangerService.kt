@@ -93,7 +93,7 @@ class ExchangerService(
             getAccountAsset(queryAPI, irohaConsumer.creator, from).get()
         ).minus(amount).toDouble()
         val toAsset = BigDecimal(getAccountAsset(queryAPI, irohaConsumer.creator, to).get()).toDouble()
-        val amountMinusFee = amount.minus(amount.divide(FEE_PROPORTION)).toDouble()
+        val amountMinusFee = amount.minus(amount.multiply(FEE_RATIO)).toDouble()
 
         val function = UnivariateFunction { x -> toAsset / (fromAsset * x) }
         val precision = getAssetPrecision(queryAPI, to).fold({ it },
@@ -124,6 +124,6 @@ class ExchangerService(
         private const val EVALUATIONS = 1000
         private const val LOWER_BOUND = 1.0
         // 1% so far
-        private val FEE_PROPORTION = BigDecimal.valueOf(100)!!
+        private val FEE_RATIO = BigDecimal(0.01)
     }
 }
