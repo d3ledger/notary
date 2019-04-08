@@ -122,11 +122,6 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
         createTesterAccount("consensus","consensus_collector")
     }
 
-    /** Account that stores current fee rate */
-    val btcFeeRateAccount by lazy {
-        createTesterAccount("fee_rate", "btc_fee_rate_setter")
-    }
-
     /** Account that used to store tokens */
     val tokenStorageAccount by lazy { notaryAccount }
 

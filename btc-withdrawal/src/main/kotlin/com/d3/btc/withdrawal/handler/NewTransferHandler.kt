@@ -1,5 +1,6 @@
 package com.d3.btc.withdrawal.handler
 
+import com.d3.btc.fee.CurrentFeeRate
 import com.d3.btc.helper.address.isValidBtcAddress
 import com.d3.btc.helper.currency.btcToSat
 import com.d3.btc.withdrawal.config.BtcWithdrawalConfig

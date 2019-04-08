@@ -2,7 +2,6 @@ package integration.btc
 
 import com.d3.btc.helper.address.outPutToBase58Address
 import com.d3.btc.helper.currency.satToBtc
-import com.d3.btc.withdrawal.handler.CurrentFeeRate
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomString
@@ -48,7 +47,6 @@ class BtcWithdrawalFailResistanceIntegrationTest {
             environment.btcWithdrawalConfig.irohaBlockQueue,
             environment.rmqConfig.irohaExchange
         )
-        CurrentFeeRate.set(DEFAULT_FEE_RATE)
         val blockStorageFolder = File(environment.btcWithdrawalConfig.bitcoin.blockStoragePath)
         //Clear bitcoin blockchain folder
         blockStorageFolder.deleteRecursively()

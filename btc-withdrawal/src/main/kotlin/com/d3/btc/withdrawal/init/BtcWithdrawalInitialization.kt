@@ -1,6 +1,6 @@
 package com.d3.btc.withdrawal.init
 
-import com.d3.btc.fee.BtcFeeRateService
+import com.d3.btc.fee.CurrentFeeRate
 import com.d3.btc.handler.NewBtcClientRegistrationHandler
 import com.d3.btc.healthcheck.HealthyService
 import com.d3.btc.helper.network.addPeerConnectionStatusListener
@@ -11,10 +11,8 @@ import com.d3.btc.wallet.checkWalletNetwork
 import com.d3.btc.withdrawal.BTC_WITHDRAWAL_SERVICE_NAME
 import com.d3.btc.withdrawal.config.withdrawalConfig
 import com.d3.btc.withdrawal.handler.NewConsensusDataHandler
-import com.d3.btc.withdrawal.handler.NewFeeRateWasSetHandler
 import com.d3.btc.withdrawal.handler.NewSignatureEventHandler
 import com.d3.btc.withdrawal.handler.NewTransferHandler
-import com.d3.btc.withdrawal.listener.BitcoinBlockChainFeeRateListener
 import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 import com.d3.commons.config.RMQConfig
 import com.d3.commons.sidechain.iroha.BTC_CONSENSUS_DOMAIN
@@ -50,11 +48,9 @@ class BtcWithdrawalInitialization(
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider,
     @Autowired private val newSignatureEventHandler: NewSignatureEventHandler,
     @Autowired private val newBtcClientRegistrationHandler: NewBtcClientRegistrationHandler,
-    @Autowired private val newFeeRateWasSetHandler: NewFeeRateWasSetHandler,
     @Autowired private val newTransferHandler: NewTransferHandler,
     @Autowired private val newConsensusDataHandler: NewConsensusDataHandler,
     @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
-    @Autowired private val btcFeeRateService: BtcFeeRateService,
     @Autowired private val rmqConfig: RMQConfig,
     @Qualifier("irohaBlocksQueue")
     @Autowired private val irohaBlocksQueue: String
@@ -71,9 +67,11 @@ class BtcWithdrawalInitialization(
             safeApplyAck({ handleIrohaBlock(block) }, { ack() })
         }
     )
-    private val btcFeeRateListener = BitcoinBlockChainFeeRateListener(btcFeeRateService)
 
     fun init(): Result<Unit, Exception> {
+        //TODO create a fee rate updating mechanism
+        //Set minimum fee rate
+        CurrentFeeRate.setMinimum()
         // Check wallet network
         return transferWallet.checkWalletNetwork(btcNetworkConfigProvider.getConfig()).flatMap {
             btcChangeAddressProvider.getChangeAddress()
@@ -100,9 +98,6 @@ class BtcWithdrawalInitialization(
             logger.info(
                 "Previously registered addresses were added to the transferWallet"
             )
-        }.map {
-            // Add fee rate listener
-            peerGroup.addBlocksDownloadedEventListener(btcFeeRateListener)
         }.flatMap {
             initBtcBlockChain()
         }.flatMap { peerGroup ->
@@ -147,11 +142,6 @@ class BtcWithdrawalInitialization(
                     peerGroup
                 ) { transferWallet.saveToFile(File(withdrawalConfig.btcTransfersWalletPath)) }
             }
-        // Handle 'set new fee rate' events
-        getSetDetailCommands(block).forEach { command ->
-            newFeeRateWasSetHandler.handleNewFeeRate(command)
-        }
-
         // Handle 'set new consensus' events
         getSetDetailCommands(block).filter { command -> isNewConsensus(command) }.forEach { command ->
             newConsensusDataHandler.handleNewConsensusCommand(command.setAccountDetail)
@@ -193,7 +183,6 @@ class BtcWithdrawalInitialization(
     override fun close() {
         logger.info { "Closing Bitcoin withdrawal service" }
         irohaChainListener.close()
-        btcFeeRateListener.close()
         peerGroup.stop()
     }
 

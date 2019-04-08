@@ -3,7 +3,6 @@ package com.d3.btc.dwbridge.config
 import com.d3.btc.deposit.BTC_DEPOSIT_SERVICE_NAME
 import com.d3.btc.deposit.config.BtcDepositConfig
 import com.d3.btc.dwbridge.BTC_DW_BRIDGE_SERVICE_NAME
-import com.d3.btc.fee.BtcFeeRateService
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
 import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
@@ -52,14 +51,6 @@ class BtcDWBridgeAppConfiguration {
         withdrawalConfig.signatureCollectorCredential.pubkeyPath,
         withdrawalConfig.signatureCollectorCredential.privkeyPath
     ).fold({ keypair -> keypair }, { ex -> throw ex })
-
-    private val btcFeeRateCredential = ModelUtil.loadKeypair(
-        withdrawalConfig.btcFeeRateCredential.pubkeyPath,
-        withdrawalConfig.btcFeeRateCredential.privkeyPath
-    ).fold({ keypair ->
-        IrohaCredential(withdrawalConfig.btcFeeRateCredential.accountId, keypair)
-    }, { ex -> throw ex })
-
 
     private val btcConsensusCredential = ModelUtil.loadKeypair(
         withdrawalConfig.btcConsensusCredential.pubkeyPath,
@@ -207,19 +198,6 @@ class BtcDWBridgeAppConfiguration {
 
     @Bean
     fun btcHosts() = BitcoinConfig.extractHosts(dwBridgeConfig.bitcoin)
-
-    @Bean
-    fun btcFeeRateAccount() = withdrawalConfig.btcFeeRateCredential.accountId
-
-    @Bean
-    fun btcFeeRateService() =
-        BtcFeeRateService(
-            IrohaConsumerImpl(
-                btcFeeRateCredential, irohaAPI()
-            ),
-            btcFeeRateCredential.accountId,
-            QueryAPI(irohaAPI(), btcFeeRateCredential.accountId, btcFeeRateCredential.keyPair)
-        )
 
     @Bean
     fun notaryPeerListProvider() =
