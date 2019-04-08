@@ -6,6 +6,7 @@ import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.sidechain.iroha.util.getAccountAsset
 import com.d3.commons.sidechain.iroha.util.getAssetPrecision
 import com.d3.exchange.exchanger.exception.AssetNotFoundException
+import com.d3.exchange.exchanger.exception.TooLittleAssetVolumeException
 import com.d3.exchange.exchanger.exception.TooMuchAssetVolumeException
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
@@ -111,38 +112,55 @@ class ExchangerService(
      * Logic is not to fix a rate in a moment but to determine continuous rate for
      * any amount of assets.
      * @throws AssetNotFoundException in case of unknown target asset
-     * @throws TooMuchAssetVolumeException in case of impossible conversion
+     * @throws TooMuchAssetVolumeException in case of impossible conversion when supplied too much
+     * @throws TooLittleAssetVolumeException in case of impossible conversion when supplied too little
      */
     private fun calculateRelevantAmount(from: String, to: String, amount: BigDecimal): String {
-        val fromAsset = BigDecimal(
+        val sourceAssetBalance = BigDecimal(
             getAccountAsset(queryAPI, irohaConsumer.creator, from).get()
         ).minus(amount).toDouble()
-        val toAsset = BigDecimal(getAccountAsset(queryAPI, irohaConsumer.creator, to).get()).toDouble()
+        val targetAssetBalance = BigDecimal(getAccountAsset(queryAPI, irohaConsumer.creator, to).get()).toDouble()
         val amountMinusFee = amount.minus(amount.multiply(FEE_RATIO)).toDouble()
 
-        val function = UnivariateFunction { x -> toAsset / (fromAsset * x) }
         val precision = getAssetPrecision(queryAPI, to).fold({ it },
             { throw AssetNotFoundException("Seems asset $to does not exist.") })
 
-        val integrate = integrator.integrate(EVALUATIONS, function, LOWER_BOUND, LOWER_BOUND + amountMinusFee)
+        val calculatedAmount = integrate(sourceAssetBalance, targetAssetBalance, amountMinusFee)
 
-        if (integrate >= toAsset) {
+        if (calculatedAmount >= targetAssetBalance) {
             throw TooMuchAssetVolumeException("Asset supplement exceeds the balance.")
         }
 
-        return respectPrecision(integrate.toString(), precision)
+        val respectPrecision = respectPrecision(calculatedAmount.toString(), precision)
+        // If the result is not bigger than zero
+        if (BigDecimal(respectPrecision) <= BigDecimal.ZERO) {
+            throw TooLittleAssetVolumeException("Asset supplement it too low for specified conversion")
+        }
+        return respectPrecision
+    }
+
+    /**
+     * Performs integration of target asset amount function
+     */
+    fun integrate(sourceAssetBalance: Double, targetAssetBalance: Double, amount: Double): Double {
+        val function = UnivariateFunction { x -> targetAssetBalance / (sourceAssetBalance + x + 1) }
+        return integrator.integrate(EVALUATIONS, function, LOWER_BOUND, LOWER_BOUND + amount)
     }
 
     /**
      * Normalizes a string to an asset precision
-     * @return String {0-9}*.{0-9}[0-precision]
+     * @return String {0-9}*.{0-9}[precision]
      */
     private fun respectPrecision(rawValue: String, precision: Int): String {
-        val diff = rawValue.substringAfter('.').length - precision
-        if (diff >= 0) {
-            return rawValue
+        val substringAfter = rawValue.substringAfter(DELIMITER)
+        val diff = substringAfter.length - precision
+        return when {
+            diff == 0 -> rawValue
+            diff < 0 -> rawValue.plus("0".repeat(diff * (-1)))
+            else -> rawValue.substringBefore(DELIMITER)
+                .plus(DELIMITER)
+                .plus(substringAfter.substring(0, precision))
         }
-        return rawValue.plus("0".repeat(diff * (-1)))
     }
 
     override fun close() {
@@ -152,9 +170,10 @@ class ExchangerService(
     companion object {
         // Number of evaluations during integration
         private const val EVALUATIONS = 1000
-        // Integrating from the relevant rate which is at x=1
-        private const val LOWER_BOUND = 1.0
+        // Integrating from the relevant rate which is at x=0
+        private const val LOWER_BOUND = 0.0
         // 1% so far
         private val FEE_RATIO = BigDecimal(0.01)
+        private const val DELIMITER = '.'
     }
 }

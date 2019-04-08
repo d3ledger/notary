@@ -13,3 +13,10 @@ class TooMuchAssetVolumeException : Exception {
     constructor(ex: Exception) : super(ex)
     constructor()
 }
+
+class TooLittleAssetVolumeException : Exception {
+    constructor(message: String, ex: Exception?) : super(message, ex)
+    constructor(message: String) : super(message)
+    constructor(ex: Exception) : super(ex)
+    constructor()
+}
