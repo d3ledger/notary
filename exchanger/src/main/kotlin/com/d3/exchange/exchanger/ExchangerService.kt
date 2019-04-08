@@ -35,8 +35,6 @@ class ExchangerService(
     @Autowired private val liquidityProviderAccounts: List<String>
 ) : Closeable {
 
-    // Integrals
-    private val integrator = RombergIntegrator()
     // Exchanger account
     private val exchangerAccountId = irohaConsumer.creator
 
@@ -131,20 +129,12 @@ class ExchangerService(
             throw TooMuchAssetVolumeException("Asset supplement exceeds the balance.")
         }
 
-        val respectPrecision = respectPrecision(calculatedAmount.toString(), precision)
+        val respectPrecision = respectPrecision(BigDecimal(calculatedAmount).toPlainString(), precision)
         // If the result is not bigger than zero
         if (BigDecimal(respectPrecision) <= BigDecimal.ZERO) {
             throw TooLittleAssetVolumeException("Asset supplement it too low for specified conversion")
         }
         return respectPrecision
-    }
-
-    /**
-     * Performs integration of target asset amount function
-     */
-    fun integrate(sourceAssetBalance: Double, targetAssetBalance: Double, amount: Double): Double {
-        val function = UnivariateFunction { x -> targetAssetBalance / (sourceAssetBalance + x + 1) }
-        return integrator.integrate(EVALUATIONS, function, LOWER_BOUND, LOWER_BOUND + amount)
     }
 
     /**
@@ -175,5 +165,16 @@ class ExchangerService(
         // 1% so far
         private val FEE_RATIO = BigDecimal(0.01)
         private const val DELIMITER = '.'
+
+        // Integrals
+        private val integrator = RombergIntegrator()
+
+        /**
+         * Performs integration of target asset amount function
+         */
+        fun integrate(sourceAssetBalance: Double, targetAssetBalance: Double, amount: Double): Double {
+            val function = UnivariateFunction { x -> targetAssetBalance / (sourceAssetBalance + x + 1) }
+            return integrator.integrate(EVALUATIONS, function, LOWER_BOUND, LOWER_BOUND + amount)
+        }
     }
 }
