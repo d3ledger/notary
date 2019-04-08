@@ -106,7 +106,6 @@ object D3TestContext {
         AccountPrototype("admin", "notary", listOf("admin")),
         AccountPrototype("sora", "sora", listOf("sora")),
         AccountPrototype("brvs", "brvs"),
-        PassiveAccountPrototype("client_account", "notary"),
         NoAccountPrototype("registration_service_primary", "notary")
     )
 

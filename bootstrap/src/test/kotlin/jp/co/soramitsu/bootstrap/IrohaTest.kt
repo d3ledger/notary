@@ -245,7 +245,6 @@ class IrohaTest {
             createAccountDto("sora", "sora"),
             createAccountDto("brvs", "brvs"),
             createAccountDto("data_collector", "notary"),
-            createAccountDto("client_account", "notary"),
             createAccountDto("rmq", "notary", peersCount - peersCount / 3),
             createAccountDto("btc_consensus_collector", "notary"),
             createAccountDto("registration_service_primary", "notary"),
