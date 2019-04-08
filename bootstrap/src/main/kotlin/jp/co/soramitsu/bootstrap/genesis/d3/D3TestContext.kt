@@ -21,6 +21,11 @@ object D3TestContext {
             listOf("rmq")
         ),
         AccountPrototype(
+            "data_collector",
+            "notary",
+            listOf("data_collector")
+        ),
+        AccountPrototype(
             "btc_consensus_collector",
             "notary",
             listOf("consensus_collector")
@@ -92,12 +97,17 @@ object D3TestContext {
             "notary"
         ),
         PassiveAccountPrototype("gen_btc_pk_trigger", "notary"),
+        PassiveAccountPrototype("client_accounts", "notary"),
         AccountPrototype("admin", "notary", listOf("admin")),
         AccountPrototype("sora", "sora", listOf("sora")),
         AccountPrototype("brvs", "brvs"),
-        PassiveAccountPrototype("client_account", "notary"),
         NoAccountPrototype("registration_service_primary", "notary")
     )
+
+    fun createDataCollectorRole(builder: TransactionBuilder) {
+        builder.createRole("data_collector",
+            listOf(Primitive.RolePermission.can_get_blocks))
+    }
 
 
     fun createNotaryRole(builder: TransactionBuilder) {
