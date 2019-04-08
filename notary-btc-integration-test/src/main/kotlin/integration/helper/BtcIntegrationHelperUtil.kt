@@ -58,6 +58,12 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
         )
     }
 
+    private val btcRegisteredAddressesProvider = BtcRegisteredAddressesProvider(
+        queryAPI,
+        accountHelper.registrationAccount.accountId,
+        accountHelper.notaryAccount.accountId
+    )
+
     private val btcRegistrationStrategy by lazy {
         val btcAddressesProvider =
             BtcAddressesProvider(
@@ -76,6 +82,7 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
             accountHelper.notaryAccount.accountId
         )
         BtcRegistrationStrategyImpl(
+            btcRegisteredAddressesProvider,
             BtcFreeAddressesProvider(
                 NODE_ID,
                 btcAddressesProvider,
@@ -214,6 +221,12 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
             return registerBtcAddressNoPreGen(irohaAccountName, domain, keypair)
         }, { ex -> throw ex })
     }
+
+    /**
+     * Creates random Bitcoin address
+     * @param wallet - wallet file that is used to generate addresses
+     */
+    fun createBtcAddress(wallet: Wallet) = wallet.freshReceiveAddress().toBase58()
 
     /**
      * Registers BTC client with no generation

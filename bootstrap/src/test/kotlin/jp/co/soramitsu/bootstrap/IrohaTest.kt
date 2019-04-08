@@ -9,7 +9,6 @@ import jp.co.soramitsu.bootstrap.genesis.d3.D3TestContext
 import jp.co.soramitsu.bootstrap.genesis.d3.D3TestGenesisFactory
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import mu.KLogging
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,6 +24,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.util.stream.Collectors.toList
 import javax.xml.bind.DatatypeConverter
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -42,6 +42,8 @@ class IrohaTest {
     val d3Genesis = D3TestGenesisFactory()
 
     private val mapper = ObjectMapper()
+
+    private val nonexistentAccounts = setOf("registration_service_primary@notary")
 
     @Test
     @Throws(Exception::class)
@@ -77,9 +79,9 @@ class IrohaTest {
             .andReturn()
         val respBody = mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
         val activeAccounts = ArrayList<AccountPrototype>()
-        d3Genesis.getAccountsForConfiguration(5).forEach { if (!it.passive) activeAccounts.add(it) }
+        d3Genesis.getAccountsForConfiguration(5).forEach { if (it.type != AccountType.PASSIVE) activeAccounts.add(it) }
         assertEquals(activeAccounts.size, respBody.accounts.size)
-        val dependentAccounts = respBody.accounts.stream().filter { it.peersDependentQuorum == true }.collect(toList())
+        val dependentAccounts = respBody.accounts.stream().filter { it.peersDependentQuorum }.collect(toList())
         dependentAccounts.forEach { assertEquals(4, it.quorum) }
     }
 
@@ -100,7 +102,7 @@ class IrohaTest {
             .andExpect(status().isOk)
             .andReturn()
         val respBody = mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
-        val dependentAccounts = respBody.accounts.stream().filter { it.peersDependentQuorum == true }.collect(toList())
+        val dependentAccounts = respBody.accounts.stream().filter { it.peersDependentQuorum }.collect(toList())
         dependentAccounts.forEach { assertEquals(1, it.quorum) }
     }
 
@@ -111,7 +113,7 @@ class IrohaTest {
             .andExpect(status().isOk)
             .andReturn()
         val respBody = mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
-        val dependentAccounts = respBody.accounts.stream().filter { it.peersDependentQuorum == true }.collect(toList())
+        val dependentAccounts = respBody.accounts.stream().filter { it.peersDependentQuorum }.collect(toList())
         dependentAccounts.forEach { assertEquals(2, it.quorum) }
     }
 
@@ -138,6 +140,7 @@ class IrohaTest {
 
     @Test
     fun testGenesisBlock() {
+        val transactionCreatorRecord = """\"creatorAccountId\":\"notary@notary\""""
         val peerKey1 = generatePublicKeyHex()
         val peerKey2 = generatePublicKeyHex()
         val notaryAddress1 = "notaryHost1:43652"
@@ -169,42 +172,47 @@ class IrohaTest {
         assertTrue(respBody.contains("firstTHost:12435"))
         assertTrue(respBody.contains("secondTHost:987654"))
 
-        //Check passive - keyless accounts added
+        //Check type - keyless accounts added
         assertTrue(respBody.contains("notaries"))
-        assertTrue(respBody.contains("gen_btc_pk_trigge"))
+        assertTrue(respBody.contains("gen_btc_pk_trigger"))
         assertTrue(respBody.contains("btc_change_addresses"))
+        //Check type - ignored accounts is not added
+        assertFalse(respBody.contains("registration_service_primary"))
 
         assertTrue(respBody.contains(peerKey1))
         assertTrue(respBody.contains(peerKey2))
         assertTrue(respBody.contains(notaryAddress1))
         assertTrue(respBody.contains(notaryAddress2))
+        assertTrue(respBody.contains(transactionCreatorRecord))
 
         val quorumCheck =
             "{\\\"accountId\\\":\\\"mst_btc_registration_service@notary\\\",\\\"quorum\\\":${peers.size - peers.size / 3}}"
         assertTrue(respBody.contains(quorumCheck))
-        accounts.forEach {
+        accounts.filter { !nonexistentAccounts.contains(it.id) }.forEach {
             val pubKey = it.pubKeys[0]
             assertTrue(
                 respBody.contains(pubKey),
                 "pubKey not exists in block when should for account ${it.accountName}@${it.domainId} pubKey:${it.pubKeys[0]}"
             )
-            D3TestContext.d3neededAccounts.forEach {account ->
-                account.roles.forEach {role ->
-                    val testValue = "{\\\"appendRole\\\":{\\\"accountId\\\":\\\"" + account.id + "\\\",\\\"roleName\\\":\\\"" + role + "\\\"}}"
+            D3TestContext.d3neededAccounts.forEach { account ->
+                account.roles.forEach { role ->
+                    val testValue =
+                        "{\\\"appendRole\\\":{\\\"accountId\\\":\\\"" + account.id + "\\\",\\\"roleName\\\":\\\"" + role + "\\\"}}"
 
                     log.info("TestValue: $testValue")
-                    assertTrue(respBody.contains(testValue)
-                    )
+                    assertTrue(respBody.contains(testValue))
                 }
             }
         }
-        val jsonRolesContainsChecks = listOf("btc_fee_rate_setter",
+        val jsonRolesContainsChecks = listOf(
+            "btc_fee_rate_setter",
             "sora_client",
-            "notary_list_holder")
+            "notary_list_holder"
+        )
 
-        jsonRolesContainsChecks.forEach { assertTrue(respBody.contains(
-            "{\\\"createRole\\\":{\\\"roleName\\\":\\\"" + it
-        )) }
+        jsonRolesContainsChecks.forEach {
+            assertTrue(respBody.contains("{\\\"createRole\\\":{\\\"roleName\\\":\\\"$it"))
+        }
 
         val genesisResponse =
             mapper.readValue(respBody, GenesisResponse::class.java)
@@ -238,7 +246,12 @@ class IrohaTest {
             createAccountDto("client_account", "notary"),
             createAccountDto("rmq", "notary", peersCount - peersCount / 3),
             createAccountDto("btc_consensus_collector", "notary"),
-            createAccountDto(ChangelogInterface.superuserAccount, ChangelogInterface.superuserDomain, peersCount - peersCount / 3)
+            createAccountDto("registration_service_primary", "notary"),
+            createAccountDto(
+                ChangelogInterface.superuserAccount,
+                ChangelogInterface.superuserDomain,
+                peersCount - peersCount / 3
+            )
         )
     }
 

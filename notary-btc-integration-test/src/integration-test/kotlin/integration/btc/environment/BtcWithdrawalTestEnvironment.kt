@@ -84,7 +84,7 @@ class BtcWithdrawalTestEnvironment(
         }
     }
 
-    private val transferWallet by lazy {
+    val transferWallet by lazy {
         Wallet.loadFromFile(File(btcWithdrawalConfig.btcTransfersWalletPath))
     }
 

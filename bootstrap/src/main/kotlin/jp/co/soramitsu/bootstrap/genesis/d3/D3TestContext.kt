@@ -2,14 +2,19 @@ package jp.co.soramitsu.bootstrap.genesis.d3
 
 import iroha.protocol.Primitive
 import jp.co.soramitsu.bootstrap.changelog.ChangelogInterface
-import jp.co.soramitsu.iroha.java.TransactionBuilder
 import jp.co.soramitsu.bootstrap.dto.AccountPrototype
+import jp.co.soramitsu.bootstrap.dto.NoAccountPrototype
 import jp.co.soramitsu.bootstrap.dto.PassiveAccountPrototype
 import jp.co.soramitsu.bootstrap.dto.PeersCountDependentAccountPrototype
+import jp.co.soramitsu.iroha.java.TransactionBuilder
 
 object D3TestContext {
 
     val d3neededAccounts = listOf(
+        PassiveAccountPrototype(
+            "changelog_history",
+            "bootstrap"
+        ),
         AccountPrototype(
             "rmq",
             "notary",
@@ -89,19 +94,20 @@ object D3TestContext {
         PassiveAccountPrototype(
             "notaries",
             "notary",
-            listOf("notary_list_holder")
+            listOf("notary_list_holder"),
+            details = hashMapOf(Pair("some_notary", "http://localhost:20000"))
         ),
         PassiveAccountPrototype(
             "btc_change_addresses",
-            "notary",
-            details = hashMapOf(Pair("some_notary", "http://localhost:20000"))
+            "notary"
         ),
         PassiveAccountPrototype("gen_btc_pk_trigger", "notary"),
         PassiveAccountPrototype("client_accounts", "notary"),
         AccountPrototype("admin", "notary", listOf("admin")),
         AccountPrototype("sora", "sora", listOf("sora")),
         AccountPrototype("brvs", "brvs"),
-        PassiveAccountPrototype("client_account", "notary")
+        PassiveAccountPrototype("client_account", "notary"),
+        NoAccountPrototype("registration_service_primary", "notary")
     )
 
     fun createDataCollectorRole(builder: TransactionBuilder) {

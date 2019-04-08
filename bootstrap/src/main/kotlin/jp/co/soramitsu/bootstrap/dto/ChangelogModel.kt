@@ -5,7 +5,7 @@ data class ChangelogRequestDetails(
     val peers: List<Peer> = emptyList(),
     val meta: ProjectEnv = ProjectEnv(),
     val irohaConfig: IrohaConfig = IrohaConfig(),
-    val superuserKeys: List<ClientKeyPair> = emptyList()
+    val superuserKeys: List<AccountKeyPair> = emptyList()
 )
 
 data class ChangelogFileRequest(
@@ -18,4 +18,4 @@ data class ChangelogScriptRequest(
     val details: ChangelogRequestDetails = ChangelogRequestDetails()
 )
 
-data class ClientKeyPair(val publicKey: String = "", val privateKey: String = "")
+data class AccountKeyPair(val publicKey: String = "", val privateKey: String = "")
