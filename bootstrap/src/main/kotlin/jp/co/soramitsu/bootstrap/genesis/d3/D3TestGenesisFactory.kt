@@ -163,6 +163,7 @@ class D3TestGenesisFactory : GenesisInterface {
         D3TestContext.createAdminRole(builder)
         D3TestContext.createRmqRole(builder)
         D3TestContext.createBtcConsensusRole(builder)
+        D3TestContext.createDataCollectorRole(builder)
     }
 
 }
