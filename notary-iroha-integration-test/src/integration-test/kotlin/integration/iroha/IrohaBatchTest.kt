@@ -70,6 +70,7 @@ class IrohaBatchTest {
      */
     @Test
     fun allValidBatchTest() {
+        Thread.sleep(5000)
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             listener.purge()
 
@@ -138,10 +139,12 @@ class IrohaBatchTest {
             val hashes = lst.map { String.hex(Utils.hash(it)) }
 
             val blockHashes = GlobalScope.async {
-                val (block, ack) = listener.getBlock()
-                ack()
-                block.blockV1.payload.transactionsList.map {
-                    String.hex(Utils.hash(it))
+                withTimeout(10_000) {
+                    val (block, ack) = listener.getBlock()
+                    ack()
+                    block.blockV1.payload.transactionsList.map {
+                        String.hex(Utils.hash(it))
+                    }
                 }
             }
 
@@ -155,14 +158,12 @@ class IrohaBatchTest {
 
             assertEquals(hashes.size, successHash.size)
             assertTrue(successHash.containsAll(hashes))
-            assertEquals("{\"$tester\":{\"key\":\"value\"}}", accountJson)
+            assertTrue(accountJson.contains("\"$tester\":{\"key\":\"value\"}"))
             assertEquals(73, tester_amount.toInt())
             assertEquals(27, u1_amount.toInt())
 
             runBlocking {
-                withTimeout(10_000) {
-                    assertEquals(hashes, blockHashes.await())
-                }
+                assertEquals(hashes, blockHashes.await())
             }
         }
     }
@@ -174,6 +175,7 @@ class IrohaBatchTest {
      */
     @Test
     fun notAllValidBatchTest() {
+        Thread.sleep(5000)
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             listener.purge()
 
@@ -258,10 +260,12 @@ class IrohaBatchTest {
             val expectedHashes = hashes.subList(0, hashes.size - 1)
 
             val blockHashes = GlobalScope.async {
-                val (block, ack) = listener.getBlock()
-                ack()
-                block.blockV1.payload.transactionsList.map {
-                    String.hex(Utils.hash(it))
+                withTimeout(10_000) {
+                    val (block, ack) = listener.getBlock()
+                    ack()
+                    block.blockV1.payload.transactionsList.map {
+                        String.hex(Utils.hash(it))
+                    }
                 }
             }
 
@@ -277,14 +281,12 @@ class IrohaBatchTest {
 
             assertEquals(expectedHashes.size, successHash.size)
             assertTrue(successHash.containsAll(expectedHashes))
-            assertEquals("{\"$tester\":{\"key\":\"value\"}}", accountJson)
+            assertTrue(accountJson.contains("\"$tester\":{\"key\":\"value\"}"))
             assertEquals(73, tester_amount.toInt())
             assertEquals(27, u1_amount.toInt())
 
             runBlocking {
-                withTimeout(10_000) {
-                    assertEquals(expectedHashes, blockHashes.await())
-                }
+                assertEquals(expectedHashes, blockHashes.await())
             }
         }
     }
