@@ -27,7 +27,7 @@ dependencies {
 }
 
 task runExchanger(type: JavaExec) {
-    main = 'com.d3.commons.registration.ExchangerMain'
+    main = 'com.d3.exchange.exchanger.ExchangerMain'
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
 }
