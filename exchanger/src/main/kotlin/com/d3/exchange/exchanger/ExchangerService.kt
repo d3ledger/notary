@@ -42,7 +42,7 @@ class ExchangerService(
      * Starts blocks listening and processing
      */
     fun start(): Result<Unit, Exception> {
-        logger.info { "Exchanger service is starting." }
+        logger.info { "Exchanger service is started. Waiting for incoming transactions." }
         return chainListener.getBlockObservable().map { observable ->
             observable.subscribe { (block, _) -> processBlock(block) }
             Unit
@@ -79,13 +79,15 @@ class ExchangerService(
         val sourceAsset = transfer.assetId
         val targetAsset = transfer.description
         val amount = transfer.amount
+        val destAccountId = transfer.srcAccountId
+        logger.info { "Got a conversion request from $destAccountId: $amount $sourceAsset to $targetAsset." }
         Result.of {
             val relevantAmount = calculateRelevantAmount(sourceAsset, targetAsset, BigDecimal(amount))
 
             ModelUtil.transferAssetIroha(
                 irohaConsumer,
                 exchangerAccountId,
-                transfer.srcAccountId,
+                destAccountId,
                 targetAsset,
                 "Conversion from $sourceAsset to $targetAsset",
                 relevantAmount
@@ -97,7 +99,7 @@ class ExchangerService(
                 ModelUtil.transferAssetIroha(
                     irohaConsumer,
                     exchangerAccountId,
-                    transfer.srcAccountId,
+                    destAccountId,
                     sourceAsset,
                     "Conversion rollback transaction",
                     amount
