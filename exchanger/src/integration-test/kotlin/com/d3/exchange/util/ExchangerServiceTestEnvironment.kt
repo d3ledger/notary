@@ -7,7 +7,6 @@ import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.util.getRandomString
-import com.d3.exchange.exchanger.ExchangerConfig
 import com.d3.exchange.exchanger.ExchangerService
 import integration.helper.IrohaIntegrationHelperUtil
 import jp.co.soramitsu.iroha.java.QueryAPI
