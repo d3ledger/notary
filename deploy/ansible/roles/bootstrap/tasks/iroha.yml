@@ -69,7 +69,7 @@
   - name: Copy genesis block
     copy:
       content: "{{ iroha_genesis_block.json.blockData | from_json | regex_replace('blockV1', 'block_v1') }}"
-      dest: "{{ custom_genesis_block_path }}"
+      dest: "{{ iroha_custom_genesis_block_path }}"
     tags: ["iroha"]
 
   - debug:
@@ -83,13 +83,13 @@
 - name: Copy private keys
   copy:
     content: "{{ item.0.1 }}"
-    dest: "{{ deploy_dir }}/conf/{{ item.1.human_hostname }}/{{ item.0.0.id }}.priv"
+    dest: "{{ iroha_deploy_dir }}/conf/{{ item.1.human_hostname }}/{{ item.0.0.id }}.priv"
   loop: "{{ accounts_gb_with_priv | subelements('privKeys') | product(iroha_nodes) | list }}"
   tags: ["iroha"]
 
 - name: Copy public keys
   copy:
     content: "{{ item.0.1 }}"
-    dest: "{{ deploy_dir }}/conf/{{ item.1.human_hostname }}/{{ item.0.0.id }}.pub"
+    dest: "{{ iroha_deploy_dir }}/conf/{{ item.1.human_hostname }}/{{ item.0.0.id }}.pub"
   loop: "{{ accounts_gb_with_priv | subelements('pubKeys') | product(iroha_nodes) | list }}"
   tags: ["iroha"]

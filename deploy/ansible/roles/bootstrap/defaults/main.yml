@@ -78,7 +78,7 @@ bootstrap_api_smart_contracts_notaryethereumaccounts: []
 
 # Service vars
 # common
-## dev, test, stage, prod
+## test, ...
 bootstrap_service_env: ''
 ## mainnet, testnet, local
 bootstrap_service_profile: ''

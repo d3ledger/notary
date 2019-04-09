@@ -1,25 +1,24 @@
 - block:
   - set_fact:
       iroha_nodes: []
-      iroha_all_nodes: []
       iroha_peers_map: []
 
   - name: generate hostnames (no overlay)
     set_fact:
       iroha_nodes: "{{ iroha_nodes }} + [ '{{ inventory_hostname }}:{{ iroha_peer_port | int + item | int }}' ]"
-    loop: "{{ range(0, replicas |int) | list }}"
-    when: not custom_hostnames and not overlay_network
+    loop: "{{ range(0, iroha_replicas |int) | list }}"
+    when: not iroha_custom_hostnames and not iroha_overlay_network
 
   - name: generate hostnames (overlay)
     set_fact:
-      iroha_nodes: "{{ iroha_nodes }} + [ '{{ container_basename }}-{{ item }}-{{ inventory_hostname | checksum | regex_replace('(^[a-fA-F0-9]{8}).+$', '\\1') }}:{{ iroha_peer_port }}' ]"
-    loop: "{{ range(0, replicas) | list }}"
-    when: not custom_hostnames and overlay_network
+      iroha_nodes: "{{ iroha_nodes }} + [ '{{ iroha_container_basename }}-{{ item }}-{{ inventory_hostname | checksum | regex_replace('(^[a-fA-F0-9]{8}).+$', '\\1') }}:{{ iroha_peer_port }}' ]"
+    loop: "{{ range(0, iroha_replicas) | list }}"
+    when: not iroha_custom_hostnames and iroha_overlay_network
 
-  - name: generate hostnames (custom_hostnames)
+  - name: generate hostnames (iroha_custom_hostnames)
     set_fact:
       iroha_nodes: "{{ iroha_nodes }} + [ '{% if item.split(':') | length < 2 %}{{ item }}:{{ iroha_peer_port | int + idx }}{% else %}{{ item }}{% endif %}' ]"
-    when: custom_hostnames and hostnames is defined
+    when: iroha_custom_hostnames and hostnames is defined
     loop: "{{ hostnames }}"
     loop_control:
       index_var: idx
@@ -35,11 +34,9 @@
       iroha_nodes: "{{ iroha_peers_map }}"
 
   - set_fact:
-      iroha_all_nodes: "{{ iroha_all_nodes }} + {{ hostvars[item]['iroha_nodes'] }}"
-    loop: "{{ ansible_play_hosts }}"
-    run_once: yes
+      iroha_all_nodes: "{{ iroha_all_nodes | default([]) }} + {{ iroha_nodes }}"
 
   become: no
   delegate_to: localhost
-  run_once: yes
-  when: init_vars
+  when: iroha_init_vars
+  tags: ["iroha-init-vars"]

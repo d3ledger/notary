@@ -11,6 +11,12 @@
     - "{{ bootstrap_deployment_basedir }}/conf/eth"
   tags: ["deployment-configs"]
 
+- name: Create Iroha config dirs
+  file:
+    path: "{{ iroha_deploy_dir }}/conf/{{ item.human_hostname }}"
+    state: directory
+  loop: "{{ iroha_nodes }}"
+
 - include: iroha.yml
 - include: ethereum.yml
 - include: bitcoin.yml

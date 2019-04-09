@@ -1,9 +1,9 @@
 ansible_python_interpreter: /usr/bin/python3
-overlay_network: true
+iroha_overlay_network: true
 iroha_docker_tag: 1.0.0_rc5
 
-custom_genesis_block: true
-custom_genesis_block_path: /tmp/custom_genesis.block
+iroha_custom_genesis_block: true
+iroha_custom_genesis_block_path: /tmp/custom_genesis.block
 bootstrap_etherscan_api_token: !vault |
   $ANSIBLE_VAULT;1.1;AES256
   66383136616462353866646365623465333839356535373562613462393631636166306137613262
