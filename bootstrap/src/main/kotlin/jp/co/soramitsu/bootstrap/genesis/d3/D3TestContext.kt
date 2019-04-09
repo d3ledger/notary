@@ -21,6 +21,11 @@ object D3TestContext {
             listOf("rmq")
         ),
         AccountPrototype(
+            "data_collector",
+            "notary",
+            listOf("data_collector")
+        ),
+        AccountPrototype(
             "btc_consensus_collector",
             "notary",
             listOf("consensus_collector")
@@ -92,12 +97,19 @@ object D3TestContext {
             "notary"
         ),
         PassiveAccountPrototype("gen_btc_pk_trigger", "notary"),
+        PassiveAccountPrototype("client_accounts", "notary"),
         AccountPrototype("admin", "notary", listOf("admin")),
         AccountPrototype("sora", "sora", listOf("sora")),
         AccountPrototype("brvs", "brvs"),
+        NoAccountPrototype("registration_service_primary", "notary"),
         PassiveAccountPrototype("client_account", "notary"),
-        NoAccountPrototype("registration_service_primary", "notary")
+        AccountPrototype("exchanger", "notary", listOf("exchange"))
     )
+
+    fun createDataCollectorRole(builder: TransactionBuilder) {
+        builder.createRole("data_collector",
+            listOf(Primitive.RolePermission.can_get_blocks))
+    }
 
 
     fun createNotaryRole(builder: TransactionBuilder) {
@@ -370,6 +382,18 @@ object D3TestContext {
                 Primitive.RolePermission.can_get_all_acc_detail,
                 Primitive.RolePermission.can_set_quorum,
                 Primitive.RolePermission.can_set_detail
+            )
+        )
+    }
+
+    fun createExchangeRole(builder: TransactionBuilder) {
+        builder.createRole(
+            "exchange",
+            listOf(
+                Primitive.RolePermission.can_transfer,
+                Primitive.RolePermission.can_receive,
+                Primitive.RolePermission.can_read_assets,
+                Primitive.RolePermission.can_get_my_acc_ast
             )
         )
     }
