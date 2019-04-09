@@ -1,5 +1,3 @@
-# - include: iroha.yml
-
 - name: Create dirs
   file:
     state: directory
@@ -11,7 +9,9 @@
     - "{{ bootstrap_deployment_basedir }}/conf/{{ bootstrap_btc_blocks_path }}"
     - "{{ bootstrap_deployment_basedir }}/conf/btc"
     - "{{ bootstrap_deployment_basedir }}/conf/eth"
+  tags: ["deployment-configs"]
 
+- include: iroha.yml
 - include: ethereum.yml
 - include: bitcoin.yml
 
@@ -22,12 +22,16 @@
     url: "{{ bootstrap_gh_configs_base_url }}/{{ item.value.path | regex_replace('^(.*_).*(\\.properties)$', '\\1' + bootstrap_service_profile + '\\2')}}"
     dest: "{{ bootstrap_deployment_basedir }}/conf/{{ item.value.dest_dir }}/"
   loop: "{{ bootstrap_gh_configs_urls | dict2items }}"
+  notify: restart D3 services
+  tags: ["deployment-configs"]
 
 # TODO: the file should be in container already by the time of deployment
 - name: Fetch mainnet_tokens.json
   get_url:
     url: "{{ bootstrap_gh_configs_base_url }}/deploy/ethereum/tokens/mainnet_tokens.json"
     dest: "{{ bootstrap_deployment_basedir }}/conf/{{ bootstrap_eth_tokens_path }}/"
+  notify: restart D3 services
+  tags: ["deployment-configs"]
 
 - name: Set vars
   set_fact:
@@ -59,23 +63,35 @@
     bootstrap_btc_registration_iroha_port: "{{ iroha_torii_port }}"
     bootstrap_chain_adapter_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
     bootstrap_chain_adapter_iroha_port: "{{ iroha_torii_port }}"
+    bootstrap_brvs_iroha_host: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
+    bootstrap_brvs_iroha_port: "{{ iroha_torii_port }}"
+  tags: ["deployment-configs"]
 
 - name: Copy templates
   template:
     src: "{{ item.file }}.j2"
     dest: "{{ bootstrap_deployment_basedir }}/{{ item.file }}"
-    mode: "{{ item.mode }}"
-    owner: "{{ item.owner }}"
-    group: "{{ item.group }}"
+    mode: "{{ item.mode | default('0600')}}"
+    owner: "{{ item.owner | default('root') }}"
+    group: "{{ item.group | default('root') }}"
   loop:
-    - { file: '.env-eth-deposit', mode: '0600', owner: 'root', 'group': root}
-    - { file: '.env-eth-registration', mode: '0600', owner: 'root', 'group': root}
-    - { file: '.env-btc-address-generation', mode: '0600', owner: 'root', 'group': root}
-    - { file: '.env-btc-dw-bridge', mode: '0600', owner: 'root', 'group': root}
-    - { file: '.env-btc-registration', mode: '0600', owner: 'root', 'group': root}
-    - { file: '.env-chain-adapter', mode: '0600', owner: 'root', 'group': root}
-    - { file: '.env-registration', mode: '0600', owner: 'root', 'group': root}
-    - { file: '.env-relay-registration', mode: '0600', owner: 'root', 'group': root}
-    - { file: '.env-withdrawal', mode: '0600', owner: 'root', 'group': root}
-    - { file: '.env', mode: '0600', owner: 'root', 'group': root}
-    - { file: 'docker-compose.yml', mode: '0644', owner: 'root', 'group': root}
+    - { file: '.env-eth-deposit'}
+    - { file: '.env-eth-registration'}
+    - { file: '.env-btc-address-generation'}
+    - { file: '.env-btc-dw-bridge'}
+    - { file: '.env-btc-registration'}
+    - { file: '.env-chain-adapter'}
+    - { file: '.env-registration'}
+    - { file: '.env-relay-registration'}
+    - { file: '.env-withdrawal'}
+    - { file: '.env-brvs'}
+    - { file: '.env'}
+    - { file: 'docker-compose.yml', mode: '0644'}
+  notify: restart D3 services
+  tags: ["deployment-configs"]
+
+- name: Run services
+  docker_service:
+    project_src: "{{ bootstrap_deployment_basedir }}"
+    state: present
+  tags: ["deployment-configs"]

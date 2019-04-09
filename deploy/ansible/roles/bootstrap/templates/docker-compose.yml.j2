@@ -222,9 +222,48 @@ services:
     networks:
       - d3
       - iroha-net
+    restart: always
+
+  d3-brvs-mongodb:
+    image: mongo:4.0.6
+    container_name: d3-brvs-mongodb
+    expose:
+      - 27017
+    environment:
+      - MONGO_DATA_DIR=/data/brvs/db
+      - MONGO_LOG_DIR=/data/brvs/logs
+    volumes:
+      - mongodb-storage-db:/data/brvs/db
+      - mongodb-storage-logs:/data/brvs/logs
+    command: mongod --smallfiles
+    networks:
+      - d3
+    restart: always
+
+  d3-brvs:
+    image: nexus.iroha.tech:19002/brvs-deploy/brvs:1.0.0_rc5
+    container_name: d3-brvs
+    env_file:
+      .env-brvs
+    expose:
+      - 8080
+    depends_on:
+      - d3-brvs-mongodb
+      - d3-rmq
+    environment:
+      WAIT_HOSTS: d3-brvs-mongodb:27017, d3-rmq:5672
+      WAIT_BEFORE_HOSTS: 10
+    volumes:
+      - {{ deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/brvs/config/iroha
+    networks:
+      - d3
+      - iroha-net
+    restart: always
 
 volumes:
   dw-bridge-storage:
+  mongodb-storage-db:
+  mongodb-storage-logs:
 
 networks:
   d3:

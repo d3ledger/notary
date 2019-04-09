@@ -27,6 +27,7 @@ services:
     networks:
       - {{ iroha_network_name }}
       - iroha-db-net
+    restart: always
 
   {{ node.human_hostname }}-postgres:
     image: postgres:{{ postgres_docker_tag }}

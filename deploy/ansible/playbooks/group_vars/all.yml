@@ -4,13 +4,37 @@ iroha_docker_tag: 1.0.0_rc5
 
 custom_genesis_block: true
 custom_genesis_block_path: /tmp/custom_genesis.block
-bootstrap_etherscan_api_token: VAFWI5D17PYJNHI74VDRXRP2NQVXAU7Z6U
+bootstrap_etherscan_api_token: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  66383136616462353866646365623465333839356535373562613462393631636166306137613262
+  3132343139323833303033333062383461646439643738340a613434633163633866306334616164
+  38613631623166633432366564613261653061613830646366306435613835303965636635326333
+  3930316266393366390a613433303637666431646237633530363735623766313262313263643663
+  63386534363463386164343635663138396565383735663536313964613664393966613362313938
+  6631633162366161636463643934393639623862663839316432
+
 
 bootstrap_service_env: test
 bootstrap_service_profile: mainnet
 bootstrap_api_smart_contracts_nodelogin: developer
-bootstrap_api_smart_contracts_nodepassword: emooyei7chiew3xohb4poo1ith6chahK
-bootstrap_api_smart_contracts_credentialspassword: YDlgAyCsiy86oFTHmryGSClgxLOxZyEX
+bootstrap_api_smart_contracts_nodepassword: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  36363836616230376337396536393433623366653163323563633835653165313535373637633263
+  6536633234313534326564346163653264316331316337660a383539623231356461663839653866
+  63356439326433313561306564343666373432653031353837393839356264643939646135343537
+  6631393037666637610a666539323761623737376165333236303931343335306533386533616530
+  35313433396361633339373938666134376466323037616237393734303331616236643338303865
+  6136333630303335363532656434303061653938336534356263
+bootstrap_api_smart_contracts_credentialspassword: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  31343034636637373833663634653338306537386462333533306331353663346530663863656533
+  6466613433336366343833303338633839343935613237320a643762333264353731653661666338
+  62323765633139376430303636393661636631346233383634326231316539613836316564393539
+  3130623064316433390a653561363163333334666533313435316462366638633831346264353834
+  64633166323936623630303334323637643765636539663736373362633066626639646538316565
+  3364303362613237643636653263636539323432383837383033
+bootstrap_api_parity_node_url: https://parity1.s2.tst.d3.soramitsu.co.jp
+bootstrap_api_bitcoin_node_url: bitcoin1.s2.tst.d3.soramitsu.co.jp
 
 bootstrap_eth_deposit_eth_node_login: "{{ bootstrap_api_smart_contracts_nodelogin }}"
 bootstrap_eth_deposit_eth_node_password: "{{ bootstrap_api_smart_contracts_nodepassword }}"
@@ -25,11 +49,11 @@ bootstrap_eth_registration_eth_credentials_password: "{{ bootstrap_api_smart_con
 bootstrap_relay_registration_credentials_password: "{{ bootstrap_api_smart_contracts_credentialspassword }}"
 bootstrap_withdrawal_eth_credentials_password: "{{ bootstrap_api_smart_contracts_credentialspassword }}"
 bootstrap_relay_vacuum_credentialspassword: "{{ bootstrap_api_smart_contracts_credentialspassword }}"
-bootstrap_api_smart_contracts_url: https://parity1.s2.tst.d3.soramitsu.co.jp
-bootstrap_eth_deposit_ethereum_url: https://parity1.s2.tst.d3.soramitsu.co.jp
-bootstrap_eth_registration_ethereum_url: https://parity1.s2.tst.d3.soramitsu.co.jp
-bootstrap_withdrawal_ethereum_url: https://parity1.s2.tst.d3.soramitsu.co.jp
-bootstrap_relay_registration_ethereum_url: https://parity1.s2.tst.d3.soramitsu.co.jp
-bootstrap_relay_vacuum_ethereum_url: https://parity1.s2.tst.d3.soramitsu.co.jp
-bootstrap_btc_deposit_bitcoin_hosts: bitcoin1.s2.tst.d3.soramitsu.co.jp
-bootstrap_btc_withdrawal_bitcoin_hosts: bitcoin1.s2.tst.d3.soramitsu.co.jp
+bootstrap_api_smart_contracts_url: "{{ bootstrap_api_parity_node_url }}"
+bootstrap_eth_deposit_ethereum_url: "{{ bootstrap_api_parity_node_url }}"
+bootstrap_eth_registration_ethereum_url: "{{ bootstrap_api_parity_node_url }}"
+bootstrap_withdrawal_ethereum_url: "{{ bootstrap_api_parity_node_url }}"
+bootstrap_relay_registration_ethereum_url: "{{ bootstrap_api_parity_node_url }}"
+bootstrap_relay_vacuum_ethereum_url: "{{ bootstrap_api_parity_node_url }}"
+bootstrap_btc_deposit_bitcoin_hosts: "{{ bootstrap_api_bitcoin_node_url }}"
+bootstrap_btc_withdrawal_bitcoin_hosts: "{{ bootstrap_api_bitcoin_node_url }}"

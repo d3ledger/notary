@@ -4,25 +4,27 @@
       url: "{{ bootstrap_api_address }}/eth/list/servicesWithWallet/d3/{{ ansible_play_hosts | length }}"
       return_content: yes
     register: eth_wallets
-    tags: ["ethereum_keys"]
+    tags: ["ethereum"]
 
   - name: Generate ethereum keys
     uri:
       url: "{{ bootstrap_api_address }}/eth/create/wallet?password={{ bootstrap_api_smart_contracts_credentialspassword }}"
       return_content: yes
     loop: "{{ eth_wallets.json }}"
-    register: ethereum_keys
-    tags: ["ethereum_keys"]
+    register: ethereum
+    tags: ["ethereum"]
 
   - name: Check genesis wallet already exists
     stat:
       path: "{{ bootstrap_api_smart_contracts_credentialspath }}"
     register: bootstrap_service_genesis_wallet
+    tags: ["ethereum"]
   
   - name: Dump genesis file contents into variable
     set_fact:
       bootstrap_service_genesis_wallet_contents: "{{ lookup('file', bootstrap_api_smart_contracts_credentialspath) }}"
     when: bootstrap_service_genesis_wallet.stat.exists
+    tags: ["ethereum"]
 
   # Save genesis wallet into a local file ONLY if does not exist yet
   # You need to remove the file if you want use a new one
@@ -30,14 +32,16 @@
     copy:
       content: "{{ item.json.file }}"
       dest: "{{ bootstrap_api_smart_contracts_credentialspath }}"
-    loop: "{{ ethereum_keys.results }}"
+    loop: "{{ ethereum.results }}"
     when: item.item | regex_search('genesis') and not bootstrap_service_genesis_wallet.stat.exists
+    tags: ["ethereum"]
 
   - name: Collect addresses of notaries
     set_fact:
       bootstrap_api_smart_contracts_notaryethereumaccounts: "{{ bootstrap_api_smart_contracts_notaryethereumaccounts + [ item.json.file.address ]}}"
-    loop: "{{ ethereum_keys.results }}"
+    loop: "{{ ethereum.results }}"
     when: item.item | regex_search('deposit')
+    tags: ["ethereum"]
 
   - set_fact:
       smart_contracts_generation_request:
@@ -53,31 +57,33 @@
             gasPrice: "{{ bootstrap_api_smart_contracts_gasprice }}"
             url: "{{ bootstrap_api_smart_contracts_url }}"
         notaryEthereumAccounts: "{{ bootstrap_api_smart_contracts_notaryethereumaccounts }}"
+    tags: ["ethereum"]
   
-  - debug:
-      var: smart_contracts_generation_request
-
   - name: Check smart contracts are already deployed
     stat:
       path: "{{ bootstrap_api_smart_contracts_addresspath }}"
     register: bootstrap_service_smart_contracts_addresspath_stat
+    tags: ["ethereum"]
 
-  # - name: Fetch current ETH to USD conversion rate
-  #   uri:
-  #     url: "https://api.etherscan.io/api?module=stats&action=ethprice&apikey={{ bootstrap_etherscan_api_token }}"
-  #     return_content: yes
-  #   register: eth_to_usd_conversion_rate
-  #   when: not bootstrap_service_smart_contracts_addresspath_stat.stat.exists or bootstrap_force_smart_contract_deployment
+  - name: Fetch current ETH to USD conversion rate
+    uri:
+      url: "https://api.etherscan.io/api?module=stats&action=ethprice&apikey={{ bootstrap_etherscan_api_token }}"
+      return_content: yes
+    register: eth_to_usd_conversion_rate
+    when: not bootstrap_service_smart_contracts_addresspath_stat.stat.exists or bootstrap_force_smart_contract_deployment
+    tags: ["ethereum"]
 
-  # # 7 USD is the approximate cost of deployment of all the master contracts
-  # - name: Wait until the genesis account is deposited
-  #   uri:
-  #     url: "https://api.etherscan.io/api?module=account&action=balance&address={{ bootstrap_service_genesis_wallet_contents.address }}&tag=latest&apikey={{ bootstrap_etherscan_api_token }}"
-  #     return_content: yes
-  #   register: genesis_wallet_current_balance
-  #   until: genesis_wallet_current_balance.json.result | int * 0.000000000000000001 * eth_to_usd_conversion_rate.json.result.ethusd | float >= 7.00
-  #   delay: 10
-  #   when: not bootstrap_service_smart_contracts_addresspath_stat.stat.exists or bootstrap_force_smart_contract_deployment
+  # 7 USD is the approximate cost of deployment of all the master contracts
+  - name: Wait until the genesis account is deposited
+    uri:
+      url: "https://api.etherscan.io/api?module=account&action=balance&address=0x{{ bootstrap_service_genesis_wallet_contents.address }}&tag=latest&apikey={{ bootstrap_etherscan_api_token }}"
+      return_content: yes
+    register: genesis_wallet_current_balance
+    until: genesis_wallet_current_balance.json.result | int * 0.000000000000000001 * eth_to_usd_conversion_rate.json.result.ethusd | float >= 7.00
+    delay: 10
+    retries: 1000
+    when: not bootstrap_service_smart_contracts_addresspath_stat.stat.exists or bootstrap_force_smart_contract_deployment
+    tags: ["ethereum"]
 
   # - name: Deploy smart contracts
   #   uri:
@@ -90,6 +96,7 @@
   #     timeout: 3600
   #   register: bootstrap_api_smart_contracts_deployed_addresses
   #   when: not bootstrap_service_smart_contracts_addresspath_stat.stat.exists or bootstrap_force_smart_contract_deployment
+  #   tags: ["ethereum"]
 
 # TODO: replace with actual contracts deployment
   - set_fact:
@@ -102,19 +109,19 @@
 
   - debug:
       var: bootstrap_api_smart_contracts_deployed_addresses
+    tags: ["ethereum"]
 
   - name: Save deployed smart contracts addresses into a file
     copy:
       content: "{{ bootstrap_api_smart_contracts_deployed_addresses.json }}"
       dest: "{{ bootstrap_api_smart_contracts_addresspath }}"
     when: not bootstrap_service_smart_contracts_addresspath_stat.stat.exists or bootstrap_force_smart_contract_deployment
+    tags: ["ethereum"]
 
   - name: Dump smart contracts addresses into variable
     set_fact:
       bootstrap_service_smart_contracts_file_contents: "{{ lookup('file', bootstrap_api_smart_contracts_addresspath) | from_json }}"
-
-  - debug:
-      var: bootstrap_service_smart_contracts_file_contents
+    tags: ["ethereum"]
 
   delegate_to: localhost
   run_once: yes
@@ -126,19 +133,21 @@
     bootstrap_relay_registration_ethmasterwallet: "{{ bootstrap_service_smart_contracts_file_contents.masterEthAddress }}"
     bootstrap_relay_registration_ethrelayimplementationaddress: "{{ bootstrap_service_smart_contracts_file_contents.relayImplementationAddress }}"
     bootstrap_token_registration_xorethereumaddress: "{{ bootstrap_service_smart_contracts_file_contents.soraTokenEthAddress }}"
+  tags: ["ethereum"]
 
 - name: Copy ethereum keys
   copy:
     content: "{{ item.json.file }}"
     dest: "{{ bootstrap_deployment_basedir}}/conf/{{ bootstrap_eth_keys_path }}/{{ item.item | regex_replace('-peer' + (idx + 1) | string, '')}}.key"
-  loop: "{{ ethereum_keys.results }}"
+  loop: "{{ ethereum.results }}"
   loop_control:
     index_var: idx
   when: item.item | regex_search('^.+-(peer' + (idx + 1) | string + '|service|wallet)$')
-  tags: ["ethereum_keys"]
+  tags: ["ethereum"]
 
 - name: Copy genesis wallet
   copy:
     content: "{{ bootstrap_service_genesis_wallet_contents }}"
     dest: "{{ bootstrap_deployment_basedir}}/conf/{{ bootstrap_eth_keys_path }}/{{ bootstrap_api_smart_contracts_credentialspath | basename }}"
   when: bootstrap_service_genesis_wallet.stat.exists
+  tags: ["ethereum"]

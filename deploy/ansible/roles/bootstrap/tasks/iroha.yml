@@ -4,15 +4,14 @@
       url: "{{ bootstrap_api_address }}/iroha/projects/genesis"
       return_content: yes
     register: init
-    #failed_when: "{{ bootstrap_env }} not in init.json.projects.environments or  init.json.{{ bootstrap_project }} != {{ env }}"
-    tags: ["iroha_gb"]
+    tags: ["iroha"]
 
   - name: Fetch accounts
     uri:
       url: "{{ bootstrap_api_address }}/iroha/config/accounts/{{ bootstrap_project }}/{{ bootstrap_env }}/{{ iroha_all_nodes | length }}"
       return_content: yes
     register: accounts
-    tags: ["iroha_gb"]
+    tags: ["iroha"]
 
   - name: Generate keys for accounts
     uri: 
@@ -20,14 +19,14 @@
       return_content: yes
     loop: "{{ range(accounts.json.accounts | json_query('[*].quorum') | map('int')| sum) | list }}"
     register: account_keys
-    tags: ["iroha_gb"]
+    tags: ["iroha"]
 
   - set_fact:
       accounts_gb: []
       accounts_gb_with_priv: []
       iroha_peer_keys_gb: []
       offset: 0
-    tags: ["iroha_gb"]
+    tags: ["iroha"]
 
   - name: Assign keys for accounts
     set_fact:
@@ -35,7 +34,7 @@
       accounts_gb_with_priv: "{{ accounts_gb_with_priv + [ {'pubKeys': account_keys.results | json_query(['([*].json.public)[',offset,':', item.quorum |int + offset|int,']'] | join), 'privKeys': account_keys.results | json_query(['([*].json.private)[',offset,':', item.quorum |int + offset|int,']'] | join), 'domainId': item.domainId, 'accountName': item.id, 'id': item.id, 'quorum': item.quorum } ]}}"
       offset: "{{ [offset | int, item.quorum | int] | sum}}"
     loop: "{{ accounts.json.accounts }}"
-    tags: ["iroha_gb"]
+    tags: ["iroha"]
 
   - name: Generate Iroha peers
     uri:
@@ -43,7 +42,7 @@
       return_content: yes
     loop: "{{ iroha_all_nodes }}"
     register: iroha_keys_gb
-    tags: ["iroha_gb"]
+    tags: ["iroha"]
 
   - name: Assign keys for Iroha peers
     set_fact:
@@ -51,15 +50,11 @@
     loop: "{{ iroha_keys_gb.results }}"
     loop_control:
       index_var: idx
-    tags: ["iroha_gb"]
+    tags: ["iroha"]
 
   - name: Prepare request for GB generation
     set_fact:
       gb_request: "{{ {'accounts': accounts_gb, 'peers': iroha_peer_keys_gb, 'blockVersion': 'v1', 'meta': { 'environment': bootstrap_env, 'project': bootstrap_project }} }}"
-
-  - debug:
-      var: gb_request
-    tags: ["iroha_gb"]
 
   - name: Generate Iroha GB
     uri:
@@ -69,16 +64,18 @@
       return_content: yes
       body: "{{ gb_request }}"
     register: iroha_genesis_block
-    tags: ["iroha_gb"]
+    tags: ["iroha"]
 
   - name: Copy genesis block
     copy:
       content: "{{ iroha_genesis_block.json.blockData | from_json | regex_replace('blockV1', 'block_v1') }}"
       dest: "{{ custom_genesis_block_path }}"
+    tags: ["iroha"]
 
-  # - debug:
-  #     msg: "{{ iroha_genesis_block.json.blockData | from_json }}"
-  #   tags: ["iroha_gb"]
+  - debug:
+      msg: "{{ iroha_genesis_block.json.blockData | from_json }}"
+    tags: ["iroha"]
+
   delegate_to: localhost
   run_once: yes
   become: no
@@ -88,9 +85,11 @@
     content: "{{ item.0.1 }}"
     dest: "{{ deploy_dir }}/conf/{{ item.1.human_hostname }}/{{ item.0.0.id }}.priv"
   loop: "{{ accounts_gb_with_priv | subelements('privKeys') | product(iroha_nodes) | list }}"
+  tags: ["iroha"]
 
 - name: Copy public keys
   copy:
     content: "{{ item.0.1 }}"
     dest: "{{ deploy_dir }}/conf/{{ item.1.human_hostname }}/{{ item.0.0.id }}.pub"
   loop: "{{ accounts_gb_with_priv | subelements('pubKeys') | product(iroha_nodes) | list }}"
+  tags: ["iroha"]

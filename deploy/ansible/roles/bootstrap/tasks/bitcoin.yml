@@ -5,7 +5,7 @@
       return_content: yes
     loop: "{{ iroha_all_nodes | product(bootstrap_btc_wallets) | list }}"
     register: bitcoin_wallet
-    tags: ["bitcoin_wallet"]
+    tags: ["bitcoin"]
 
   delegate_to: localhost
   run_once: yes
@@ -19,4 +19,4 @@
     group: root
     owner: root
   loop: "{{ bitcoin_wallet.results }}"
-  tags: ["bitcoin_wallet"]
+  tags: ["bitcoin"]

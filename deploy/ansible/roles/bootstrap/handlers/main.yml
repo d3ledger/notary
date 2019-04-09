@@ -1,0 +1,8 @@
+# handlers file for D3 services
+---
+- name: restart D3 services
+  docker_service:
+    project_src: "{{ bootstrap_deployment_basedir }}"
+    pull: yes
+    state: present
+    recreate: always
