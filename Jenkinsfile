@@ -135,6 +135,8 @@ pipeline {
                 sh "./gradlew btc-registration:shadowJar"
                 sh "./gradlew btc-dw-bridge:shadowJar"
 
+                sh "./gradlew exchanger:shadowJar"
+
               }
 
               notaryRegistration = docker.build("nexus.iroha.tech:19002/${login}/notary-registration:${TAG}", "-f docker/notary-registration.dockerfile .")
@@ -149,6 +151,8 @@ pipeline {
               btcDwBridge = docker.build("nexus.iroha.tech:19002/${login}/btc-dw-bridge:${TAG}", "-f docker/btc-dw-bridge.dockerfile .")
 
               chainAdapter = docker.build("nexus.iroha.tech:19002/d3-deploy/chain-adapter:${TAG}", "-f docker/chain-adapter.dockerfile .")
+
+              exchanger = docker.build("nexus.iroha.tech:19002/d3-deploy/exchanger:${TAG}", "-f docker/exchanger.dockerfile .")
 
               notaryRegistration.push("${TAG}")
 

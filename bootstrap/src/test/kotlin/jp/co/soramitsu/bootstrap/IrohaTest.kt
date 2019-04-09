@@ -245,6 +245,7 @@ class IrohaTest {
             createAccountDto("rmq", "notary", peersCount - peersCount / 3),
             createAccountDto("btc_consensus_collector", "notary"),
             createAccountDto("registration_service_primary", "notary"),
+            createAccountDto("exchanger", "notary"),
             createAccountDto(
                 ChangelogInterface.superuserAccount,
                 ChangelogInterface.superuserDomain,

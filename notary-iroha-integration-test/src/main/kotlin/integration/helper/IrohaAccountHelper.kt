@@ -135,6 +135,11 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
 
     val changeAddressesStorageAccount by lazy { createTesterAccount("change_addresses") }
 
+    /** Account that exchanges tokens */
+    val exchangerAccount by lazy {
+        createTesterAccount("exchanger", "exchange")
+    }
+
     fun createCredentialConfig(credential: IrohaCredential): IrohaCredentialConfig {
         return object : IrohaCredentialConfig {
             override val pubkeyPath: String

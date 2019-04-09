@@ -273,6 +273,17 @@
               },
               {
                 "createRole": {
+                  "roleName": "exchange",
+                  "permissions": [
+                    "can_transfer",
+                    "can_receive",
+                    "can_get_my_acc_ast",
+                    "can_read_assets"
+                  ]
+                }
+              },
+              {
+                "createRole": {
                   "roleName": "sora",
                   "permissions": [
                     "can_get_my_acc_ast",
@@ -700,6 +711,19 @@
                   "accountName": "gen_btc_pk_trigger",
                   "domainId": "notary",
                   "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "exchanger",
+                  "domainId": "notary",
+                  "publicKey": "6ddd0509439afc402200d5c745444d501179f7952c4f687666972aaa35fdd948"
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "exchanger@notary",
+                  "roleName": "exchange"
                 }
               },
               {

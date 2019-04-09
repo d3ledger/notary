@@ -79,16 +79,31 @@ services:
     image: nexus.iroha.tech:19002/d3-deploy/btc-registration:${TAG-master}
     container_name: d3-btc-registration
     volumes:
-    - ./:/opt/notary/deploy
-    - ../configs:/opt/notary/configs
+      - ./:/opt/notary/deploy
+      - ../configs:/opt/notary/configs
     environment:
-    - PROFILE
-    - IROHA_HOST=d3-iroha
-    - IROHA_PORT=50051
-    - JAR_NAME=btc-registration.jar
-    - CLASS=com.d3.btc.registration.BtcRegistrationMain
+      - PROFILE
+      - IROHA_HOST=d3-iroha
+      - IROHA_PORT=50051
+      - JAR_NAME=btc-registration.jar
+      - CLASS=com.d3.btc.registration.BtcRegistrationMain
     networks:
-    - d3-network
+      - d3-network
+
+    d3-exchanger:
+      image: nexus.iroha.tech:19002/d3-deploy/exchanger:${TAG-master}
+      container_name: d3-exchanger
+      volumes:
+        - ./:/opt/notary/deploy
+        - ../configs:/opt/notary/configs
+      environment:
+        - PROFILE
+        - IROHA_HOST=d3-iroha
+        - IROHA_PORT=50051
+        - JAR_NAME=exchanger.jar
+        - CLASS=com.d3.exchange.exchanger.ExchangerMain
+      networks:
+        - d3-network
 
 networks:
   d3-network:

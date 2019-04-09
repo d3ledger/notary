@@ -10,6 +10,7 @@ D3 consists of 3 parts. Common services should be run obligatory and rest can be
 1) Clone project `master` branch
 2) Launch Iroha and Postgres in docker with `docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml up`
 3) Run registration service `PROFILE=mainnet ./gradlew runRegistration`
+4) (Optional) Run exchanger service `PROFILE=mainnet ./gradlew runExchanger`
 
 Now you can register clients and launch subsystems.
 
