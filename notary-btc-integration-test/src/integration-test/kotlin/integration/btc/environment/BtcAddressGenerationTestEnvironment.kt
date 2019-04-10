@@ -183,7 +183,6 @@ class BtcAddressGenerationTestEnvironment(
             }, { ex -> throw IllegalStateException("Cannot get free addresses", ex) })
     }
 
-
     /**
      * Checks if change addresses were generated at initial phase
      * @throws IllegalStateException if not enough
