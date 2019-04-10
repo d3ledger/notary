@@ -53,9 +53,12 @@ fun String.Companion.unHex(s: String): ByteArray {
     return DatatypeConverter.parseHexBinary(s)
 }
 
-// Escapes string so it can be used in Iroha
+/**
+ * Escapes symbols reserved in JSON so it can be used in Iroha
+ */
 fun String.irohaEscape(): String {
     return this.replace("\"", IROHA_FRIENDLY_QUOTE)
+        .replace("\n", "\\n")
 }
 
 // Reverse changes of 'irohaEscape'

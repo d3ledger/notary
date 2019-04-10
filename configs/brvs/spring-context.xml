@@ -15,10 +15,19 @@
     </bean>
 
     <!-- KEY PAIR DEFINITION -->
-    <bean id="keyPair" class="iroha.validation.utils.ValidationUtils"
+    <bean id="brvsAccountKeyPair" class="iroha.validation.utils.ValidationUtils"
           factory-method="readKeyPairFromFiles">
         <constructor-arg name="pubKeyPath" value="${credential.pubkeyFilePath}"/>
         <constructor-arg name="privKeyPath" value="${credential.privkeyFilePath}"/>
+    </bean>
+    <bean id="keysList" class="iroha.validation.utils.ValidationUtils"
+          factory-method="generateOrImportKeypairs">
+        <constructor-arg name="amount" value="${brvs.userKeysCount}"/>
+        <constructor-arg name="path" value="${brvs.userKeysPath}"/>
+    </bean>
+    <bean id="firstUserKey" class="iroha.validation.utils.ValidationUtils"
+          factory-method="generateOrImportFirstKeypair">
+        <constructor-arg name="path" value="${brvs.userKeysPath}"/>
     </bean>
 
     <!-- IROHA API IPJ CONFIG -->
@@ -33,17 +42,23 @@
         <constructor-arg name="mongoHost" value="${mongo.host}"/>
         <constructor-arg name="mongoPort" value="${mongo.port}"/>
     </bean>
+    <bean id="mongoBlockStorage"
+          class="iroha.validation.transactions.storage.impl.mongo.MongoBlockStorage">
+        <constructor-arg name="mongoHost" value="${mongo.host}"/>
+        <constructor-arg name="mongoPort" value="${mongo.port}"/>
+    </bean>
 
     <!-- USER ACCOUNTS MANAGER CONFIG -->
     <bean id="accountManager"
           class="iroha.validation.transactions.provider.impl.AccountManager">
-        <constructor-arg name="accountId" value="${credential.accountId}"/>
-        <constructor-arg name="keyPair" ref="keyPair"/>
+        <constructor-arg name="brvsAccountId" value="${credential.accountId}"/>
+        <constructor-arg name="brvsAccountKeyPair" ref="brvsAccountKeyPair"/>
         <constructor-arg name="irohaAPI" ref="irohaAPI"/>
         <constructor-arg name="userQuorumAttribute" value="${quorum.key}"/>
         <constructor-arg name="userDomains" value="${brvs.userDomains}"/>
         <constructor-arg name="userAccountsHolderAccount" value="${accounts.holder}"/>
         <constructor-arg name="brvsInstancesHolderAccount" value="${credential.accountId}"/>
+        <constructor-arg name="keyPairs" ref="keysList"/>
     </bean>
 
     <!-- PROVIDER CONFIG -->
@@ -53,6 +68,7 @@
         <constructor-arg name="cacheProvider" ref="cacheProvider"/>
         <constructor-arg name="userQuorumProvider" ref="accountManager"/>
         <constructor-arg name="registrationProvider" ref="accountManager"/>
+        <constructor-arg name="blockStorage" ref="mongoBlockStorage"/>
         <constructor-arg name="irohaReliableChainListener" ref="irohaReliableChainListener"/>
         <constructor-arg name="userDomains" value="${brvs.userDomains}"/>
     </bean>
@@ -61,8 +77,9 @@
     <bean id="irohaReliableChainListener"
           class="iroha.validation.listener.IrohaReliableChainListener">
         <constructor-arg name="irohaAPI" ref="irohaAPI"/>
-        <constructor-arg name="accountId" value="${credential.accountId}"/>
-        <constructor-arg name="keyPair" ref="keyPair"/>
+        <constructor-arg name="brvsAccountId" value="${credential.accountId}"/>
+        <constructor-arg name="brvsKeyPair" ref="brvsAccountKeyPair"/>
+        <constructor-arg name="userKeyPair" ref="firstUserKey"/>
         <constructor-arg name="rmqHost" value="${rmq.host}"/>
         <constructor-arg name="rmqPort" value="${rmq.port}"/>
     </bean>
@@ -71,7 +88,9 @@
     <bean id="transactionSigner"
           class="iroha.validation.transactions.signatory.impl.TransactionSignerImpl">
         <constructor-arg name="irohaAPI" ref="irohaAPI"/>
-        <constructor-arg name="keyPair" ref="keyPair"/>
+        <constructor-arg name="brvsAccountId" value="${credential.accountId}"/>
+        <constructor-arg name="brvsAccountKeyPair" ref="brvsAccountKeyPair"/>
+        <constructor-arg name="keyPairs" ref="keysList"/>
         <constructor-arg name="transactionVerdictStorage" ref="mongoVerdictStorage"/>
     </bean>
 
@@ -104,12 +123,19 @@
     <bean id="sampleRule" class="iroha.validation.rules.impl.SampleRule"/>
     <bean id="newBrvsRule" class="iroha.validation.rules.impl.NewBrvsRule">
         <constructor-arg name="brvsAccountId" value="${credential.accountId}"/>
-        <constructor-arg name="keyPair" ref="keyPair"/>
+        <constructor-arg name="keyPair" ref="brvsAccountKeyPair"/>
         <constructor-arg name="irohaAPI" ref="irohaAPI"/>
+    </bean>
+    <bean id="updateWhitelistRule" class="iroha.validation.rules.impl.UpdateWhitelistRule">
+        <constructor-arg name="brvsAccountId" value="${credential.accountId}"/>
+        <constructor-arg name="brvsAccountKeyPair" ref="brvsAccountKeyPair"/>
+        <constructor-arg name="irohaAPI" ref="irohaAPI"/>
+        <constructor-arg name="validationPeriod" value="${whitelist.validation}"/>
     </bean>
     <util:list id="rules" value-type="iroha.validation.rules.Rule">
         <ref bean="sampleRule"/>
         <ref bean="newBrvsRule"/>
+        <ref bean="updateWhitelistRule"/>
         <!-- More can be added -->
     </util:list>
 
