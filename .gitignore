@@ -169,3 +169,6 @@ configs/smtp.properties
 
 # Push API configs
 configs/push.properties
+
+# VSCode
+.vscode

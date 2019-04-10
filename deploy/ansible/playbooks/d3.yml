@@ -3,16 +3,16 @@
     - role: iroha-docker-clean
       vars:
         iroha_init_vars: true
-        # iroha_generate_init_configs: false 
-        # iroha_update_runtime_configs: false
+        iroha_generate_init_configs: false 
+        iroha_update_runtime_configs: false
       tags: ["iroha-init"]
 
-    # - role: bootstrap
-    #   tags: ["bootstrap"]
+    - role: bootstrap
+      tags: ["bootstrap"]
 
-    # - role: iroha-docker-clean
-    #   vars:
-    #     iroha_init_vars: false
-    #     iroha_generate_init_configs: true
-    #     iroha_update_runtime_configs: true
-    #   tags: ["iroha-deploy"]
+    - role: iroha-docker-clean
+      vars:
+        iroha_init_vars: false
+        iroha_generate_init_configs: true
+        iroha_update_runtime_configs: true
+      tags: ["iroha-deploy"]

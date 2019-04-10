@@ -37,7 +37,7 @@ iroha_network_name: iroha-net
 
 # The role is incompatible with Iroha versions below RC2 since keys format has changed.
 # Apply the patch (files/old-keys-format.patch) if you need support for previous Iroha versions.
-iroha_docker_tag: 1.0.0_rc2
+iroha_docker_tag: 1.0.0_rc5
 iroha_postgres_docker_tag: '9.5'
 
 ## The block of variables that toggles certain tasks of the role
@@ -56,7 +56,7 @@ iroha_update_runtime_configs: true
 
 # Toggles usage of a custom Genesis Block. Useful if you have custom roles, users, permissions,
 # etc. The role will fill your custom Genesis Block with Iroha peers while preserving everything
-# else
+# else.
 # Default: false
 iroha_custom_genesis_block: false
 # Path to the custom Genesis Block. Used only when `iroha_custom_genesis_block` set to `true`
