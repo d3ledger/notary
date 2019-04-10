@@ -47,12 +47,17 @@ class ChangelogExecutor(
      * @param changelogRequestDetails - changelog request details(environment, project, keys and etc)
      * @param script - script to execute
      */
+    @Synchronized
     private fun execute(changelogRequestDetails: ChangelogRequestDetails, script: String) {
         // Create Iroha API
         val irohaAPI = irohaAPIPool.getApi(changelogRequestDetails.irohaConfig)
         // Parse changelog script
         val changelog = changelogParser.parse(script)
         validateChangelog(changelog)
+        if (alreadyExecutedSchema(changelog.schemaVersion, irohaAPI, changelogRequestDetails.superuserKeys)) {
+            log.warn("Schema version '${changelog.schemaVersion}' has been executed already")
+            return
+        }
         val superuserQuorum = getSuperuserQuorum(irohaAPI, changelogRequestDetails.superuserKeys)
         // Create changelog tx
         val changelogTx = addTxSuperuserQuorum(
