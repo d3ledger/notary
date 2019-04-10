@@ -1,6 +1,7 @@
 package jp.co.soramitsu.bootstrap.changelog.helper
 
 import jp.co.soramitsu.bootstrap.changelog.ChangelogInterface
+import jp.co.soramitsu.bootstrap.changelog.history.changelogHistoryStorageAccountId
 import jp.co.soramitsu.bootstrap.changelog.mapper.toChangelogAccount
 import jp.co.soramitsu.bootstrap.changelog.mapper.toChangelogPeer
 import jp.co.soramitsu.bootstrap.dto.AccountKeyPair
@@ -9,6 +10,7 @@ import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.Query
 import jp.co.soramitsu.iroha.java.Transaction
 import jp.co.soramitsu.iroha.java.Utils
+import org.json.JSONObject
 import java.security.KeyPair
 import java.util.concurrent.atomic.AtomicLong
 
@@ -48,7 +50,6 @@ fun createChangelogBatch(
         listOf(changelogTx, changelogHistoryTx)
     ).toList()
 }
-
 
 /**
  * Creates changelog tx
@@ -101,4 +102,47 @@ fun getSuperuserQuorum(irohaAPI: IrohaAPI, superuserKeys: List<AccountKeyPair>):
         )
     }
     return res.accountResponse.account.quorum
+}
+
+/**
+ * Checks if schema version has been executed already
+ * @param schemaVersion - version of changelog schema to check
+ * @param irohaAPI - Iroha API that is used to get superuser account quorum
+ * @param superuserKeys - superuser keys that are used to query Iroha
+ */
+fun alreadyExecutedSchema(
+    schemaVersion: String,
+    irohaAPI: IrohaAPI,
+    superuserKeys: List<AccountKeyPair>
+): Boolean {
+
+    // The first key pair must be enough to create Iroha query
+    val firstKeyPair = superuserKeys.first()
+    val superuserKeyPair =
+        KeyPair(
+            Utils.parseHexPublicKey(firstKeyPair.publicKey), Utils.parseHexPrivateKey(firstKeyPair.privateKey)
+        )
+    val query = Query.builder(ChangelogInterface.superuserAccountId, queryCounter.getAndIncrement())
+        .getAccountDetail(changelogHistoryStorageAccountId, ChangelogInterface.superuserAccountId, schemaVersion)
+        .buildSigned(superuserKeyPair)
+
+    val res = irohaAPI.query(query)
+    // Check errors
+    if (res.hasErrorResponse()) {
+        throw Exception(
+            "Cannot get $changelogHistoryStorageAccountId quorum. " +
+                    "Error code ${res.errorResponse.errorCode} reason ${res.errorResponse.reason}"
+        )
+    }
+    // Get account details
+    val accountDetail = JSONObject(res.accountDetailResponse.detail)
+    // Check if superuser has set anything
+    return if (!accountDetail.isNull(ChangelogInterface.superuserAccountId)) {
+        // Get schema version details
+        val schemaVersions = accountDetail.getJSONObject(ChangelogInterface.superuserAccountId)
+        // Check if schema exists
+        !schemaVersions.isNull(schemaVersion)
+    } else {
+        false
+    }
 }
