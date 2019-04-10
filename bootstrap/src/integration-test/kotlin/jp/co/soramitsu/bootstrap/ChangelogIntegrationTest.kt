@@ -102,6 +102,36 @@ class ChangelogIntegrationTest {
     }
 
     /**
+     * @given script file with Iroha account creation logic
+     * @when script file is passed to changelog service twice
+     * @then account is created, second changelog attempt didn't make any effect
+     */
+    @Test
+    fun testIdempotent() {
+        //Create file that creates randomly named account
+        val randomAccountName = String.getRandomString(9)
+        val randomSchema = String.getRandomString(5)
+        createAccountScriptFile(randomAccountName, randomSchema)
+        mvc.perform(
+            MockMvcRequestBuilders
+                .post("/changelog/execute/changelogFile")
+                .contentType(MediaType.APPLICATION_JSON).content(
+                    gson.toJson(createChangelogFileRequest(randomAccountName))
+                )
+        ).andExpect(MockMvcResultMatchers.status().isOk).andReturn()
+
+        //Second changelog attempt
+        mvc.perform(
+            MockMvcRequestBuilders
+                .post("/changelog/execute/changelogFile")
+                .contentType(MediaType.APPLICATION_JSON).content(
+                    gson.toJson(createChangelogFileRequest(randomAccountName))
+                )
+        ).andExpect(MockMvcResultMatchers.status().isOk).andReturn()
+
+    }
+
+    /**
      * @given script with Iroha account creation logic
      * @when script is passed to changelog service
      * @then account is created
