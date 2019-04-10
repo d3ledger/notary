@@ -7,7 +7,7 @@ import com.d3.btc.helper.address.outPutToBase58Address
 import com.d3.btc.peer.SharedPeerGroup
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
-import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
+import com.d3.btc.provider.BtcChangeAddressProvider
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.map
@@ -106,9 +106,10 @@ class TransactionHelper(
 
     /**
      * Returns available addresses (intersection between watched and registered addresses)
+     * @param generatedBefore - only addresses that were generated before certain time are considered available
      * @return result with set full of available addresses
      */
-    fun getAvailableAddresses(): Result<Set<String>, Exception> {
+    fun getAvailableAddresses(generatedBefore: Long): Result<Set<String>, Exception> {
         return btcRegisteredAddressesProvider.getRegisteredAddresses()
             .map { registeredAddresses ->
                 logger.info("Registered addresses ${registeredAddresses.map { address -> address.address }}")
@@ -121,10 +122,12 @@ class TransactionHelper(
                     )
                 }.map { btcAddress -> btcAddress.address }.toMutableSet()
             }
-            .fanout { btcChangeAddressProvider.getChangeAddress() }
-            .map { (availableAddresses, changeAddress) ->
-                //Change address is also available to use
-                availableAddresses.add(changeAddress.address)
+            .fanout { btcChangeAddressProvider.getAllChangeAddresses(generatedBefore) }
+            .map { (availableAddresses, changeAddresses) ->
+                changeAddresses.forEach { changeAddress ->
+                    //Change address is also available to use
+                    availableAddresses.add(changeAddress.address)
+                }
                 availableAddresses
             }
     }
@@ -138,12 +141,14 @@ class TransactionHelper(
 
     /**
      * Returns currently available UTXO height
+     * @param withdrawalTime - time of withdrawal
      * @param confidenceLevel - minimum depth of transactions
      */
     fun getAvailableUTXOHeight(
-        confidenceLevel: Int
+        confidenceLevel: Int,
+        withdrawalTime: Long
     ): Result<Int, Exception> {
-        return getAvailableAddresses().map { availableAddresses ->
+        return getAvailableAddresses(withdrawalTime).map { availableAddresses ->
             getAvailableUnspents(
                 transfersWallet.unspents,
                 Integer.MAX_VALUE,

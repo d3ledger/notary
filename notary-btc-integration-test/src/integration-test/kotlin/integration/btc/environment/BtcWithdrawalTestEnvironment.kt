@@ -3,16 +3,17 @@ package integration.btc.environment
 import com.d3.btc.handler.NewBtcClientRegistrationHandler
 import com.d3.btc.helper.address.outPutToBase58Address
 import com.d3.btc.peer.SharedPeerGroup
+import com.d3.btc.provider.BtcChangeAddressProvider
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
 import com.d3.btc.provider.network.BtcRegTestConfigProvider
 import com.d3.btc.withdrawal.BTC_WITHDRAWAL_SERVICE_NAME
 import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
+import com.d3.btc.withdrawal.handler.NewChangeAddressHandler
 import com.d3.btc.withdrawal.handler.NewConsensusDataHandler
 import com.d3.btc.withdrawal.handler.NewSignatureEventHandler
 import com.d3.btc.withdrawal.handler.NewTransferHandler
 import com.d3.btc.withdrawal.init.BtcWithdrawalInitialization
-import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
 import com.d3.btc.withdrawal.provider.WithdrawalConsensusProvider
 import com.d3.btc.withdrawal.service.BtcRollbackService
@@ -145,7 +146,7 @@ class BtcWithdrawalTestEnvironment(
 
     private val btcNetworkConfigProvider = BtcRegTestConfigProvider()
 
-    private val btcChangeAddressProvider = BtcChangeAddressProvider(
+    val btcChangeAddressProvider = BtcChangeAddressProvider(
         integrationHelper.queryAPI,
         btcWithdrawalConfig.mstRegistrationAccount,
         btcWithdrawalConfig.changeAddressesStorageAccount
@@ -186,6 +187,8 @@ class BtcWithdrawalTestEnvironment(
         transactionHelper,
         btcWithdrawalConfig
     )
+    private val newChangeAddressHandler
+            by lazy { NewChangeAddressHandler(transferWallet, btcNetworkConfigProvider) }
     private val newTransferHandler =
         NewTransferHandler(
             withdrawalStatistics,
@@ -219,6 +222,7 @@ class BtcWithdrawalTestEnvironment(
 
     val btcWithdrawalInitialization by lazy {
         BtcWithdrawalInitialization(
+            btcWithdrawalConfig,
             peerGroup,
             transferWallet,
             btcChangeAddressProvider,
@@ -226,10 +230,10 @@ class BtcWithdrawalTestEnvironment(
             newSignatureEventHandler,
             NewBtcClientRegistrationHandler(btcNetworkConfigProvider),
             newTransferHandler,
+            newChangeAddressHandler,
             newConsensusDataHandler,
             btcRegisteredAddressesProvider,
-            rmqConfig,
-            btcWithdrawalConfig.irohaBlockQueue
+            rmqConfig
         )
     }
 
