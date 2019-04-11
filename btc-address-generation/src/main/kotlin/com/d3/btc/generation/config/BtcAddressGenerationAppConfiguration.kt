@@ -1,6 +1,7 @@
 package com.d3.btc.generation.config
 
 import com.d3.btc.generation.BTC_ADDRESS_GENERATION_SERVICE_NAME
+import com.d3.btc.provider.BtcChangeAddressProvider
 import com.d3.commons.config.loadConfigs
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.provider.NotaryPeerListProvider
@@ -9,7 +10,6 @@ import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.createPrettySingleThreadPool
-import com.d3.commons.util.namedThreadFactory
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
@@ -17,7 +17,6 @@ import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.io.File
-import java.util.concurrent.Executors
 
 val btcAddressGenerationConfig =
     loadConfigs(
@@ -120,4 +119,13 @@ class BtcAddressGenerationAppConfiguration {
 
     @Bean
     fun registrationCredential() = registrationCredential
+
+    @Bean
+    fun btcChangeAddressProvider(): BtcChangeAddressProvider {
+        return BtcChangeAddressProvider(
+            registrationQueryAPI(),
+            btcAddressGenerationConfig.mstRegistrationAccount.accountId,
+            btcAddressGenerationConfig.changeAddressesStorageAccount
+        )
+    }
 }

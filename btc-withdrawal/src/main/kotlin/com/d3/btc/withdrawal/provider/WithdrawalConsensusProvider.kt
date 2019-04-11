@@ -45,27 +45,29 @@ class WithdrawalConsensusProvider(
         ConsensusDataStorage.create(withdrawalDetails)
         val consensusAccountName = withdrawalDetails.irohaFriendlyHashCode()
         val consensusAccountId = "$consensusAccountName@$BTC_CONSENSUS_DOMAIN"
-        return transactionHelper.getAvailableUTXOHeight(btcWithdrawalConfig.bitcoin.confidenceLevel)
-            .map { availableHeight ->
-                val withdrawalConsensus =
-                    WithdrawalConsensus(availableHeight, peerListProvider.getPeerList().size)
-                /**
-                 * Another node may try to create the same account.
-                 * So this transaction may fall legally.
-                 */
-                consensusIrohaConsumer.send(IrohaConverter.convert(createAccountTx(consensusAccountName)))
-                withdrawalConsensus
-            }.map { withdrawalConsensus ->
-                consensusIrohaConsumer.send(
-                    IrohaConverter.convert(addConsensusDataTx(consensusAccountId, withdrawalConsensus))
-                ).fold(
-                    {
-                        logger.info(
-                            "Consensus data $withdrawalConsensus has been " +
-                                    "successfully saved into $consensusAccountId account"
-                        )
-                    }, { ex -> throw ex })
-            }
+        return transactionHelper.getAvailableUTXOHeight(
+            btcWithdrawalConfig.bitcoin.confidenceLevel,
+            withdrawalDetails.withdrawalTime
+        ).map { availableHeight ->
+            val withdrawalConsensus =
+                WithdrawalConsensus(availableHeight, peerListProvider.getPeerList().size)
+            /**
+             * Another node may try to create the same account.
+             * So this transaction may fall legally.
+             */
+            consensusIrohaConsumer.send(IrohaConverter.convert(createAccountTx(consensusAccountName)))
+            withdrawalConsensus
+        }.map { withdrawalConsensus ->
+            consensusIrohaConsumer.send(
+                IrohaConverter.convert(addConsensusDataTx(consensusAccountId, withdrawalConsensus))
+            ).fold(
+                {
+                    logger.info(
+                        "Consensus data $withdrawalConsensus has been " +
+                                "successfully saved into $consensusAccountId account"
+                    )
+                }, { ex -> throw ex })
+        }
     }
 
     /**
