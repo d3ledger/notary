@@ -40,10 +40,8 @@ Command line args > Environment variables > Properties file
 1) Run common services
 2) Create `.wallet` file (ask maintainers how to do that) and put it to desired location
 3) Run address generation process using `PROFILE=mainnet ./gradlew runBtcAddressGeneration`
-4) Create change address by running `./gradlew generateBtcChangeAddress`
-5) Create few free addresses(addresses that may be registered by clients lately) `./gradlew generateBtcFreeAddress`
-6) Run registration service `PROFILE=mainnet ./gradlew runBtcRegistration`
-7) Run notary service `PROFILE=mainnet ./gradlew runBtcDepositWithdrawal`
+4) Run registration service `PROFILE=mainnet ./gradlew runBtcRegistration`
+5) Run notary service `PROFILE=mainnet ./gradlew runBtcDepositWithdrawal`
 
 ## How to run notification services
 1) Create SMTP configuration file located at `configs/smtp.properties`(see test example `configs/smtp_test.properties`). This file contains SMTP server credentials.

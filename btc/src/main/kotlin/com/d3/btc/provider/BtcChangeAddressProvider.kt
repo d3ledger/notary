@@ -1,4 +1,4 @@
-package com.d3.btc.withdrawal.provider
+package com.d3.btc.provider
 
 import com.d3.btc.model.AddressInfo
 import com.d3.btc.model.BtcAddress
@@ -16,7 +16,7 @@ open class BtcChangeAddressProvider(
     private val mstRegistrationAccount: String,
     private val changeAddressesStorageAccount: String
 ) : Monitoring() {
-    override fun monitor() = getChangeAddress()
+    override fun monitor() = getAllChangeAddresses()
 
     /**
      * Returns all change addresses
@@ -27,9 +27,6 @@ open class BtcChangeAddressProvider(
             changeAddressesStorageAccount,
             mstRegistrationAccount
         ).map { details ->
-            if (details.isEmpty()) {
-                throw IllegalStateException("No change address was set")
-            }
             // Map details into BtcAddress collection
             details.entries.map { entry ->
                 BtcAddress(entry.key, AddressInfo.fromJson(entry.value)!!)
@@ -37,14 +34,15 @@ open class BtcChangeAddressProvider(
         }
     }
 
+
     /**
-     * Returns current change address
-     * @return - result with change address object
+     * Returns all change addresses that were generated before given time
+     * @param generatedBefore - only addresses that were generated before this value will be returned
      */
-    fun getChangeAddress(): Result<BtcAddress, Exception> {
+    fun getAllChangeAddresses(generatedBefore: Long): Result<List<BtcAddress>, Exception> {
         return getAllChangeAddresses().map { changeAddresses ->
-            // Get the newest change address
-            changeAddresses.maxBy { address -> address.info.generationTime ?: 0 }!!
+            changeAddresses
+                .filter { changeAddress -> changeAddress.info.generationTime!! <= generatedBefore }
         }
     }
 }

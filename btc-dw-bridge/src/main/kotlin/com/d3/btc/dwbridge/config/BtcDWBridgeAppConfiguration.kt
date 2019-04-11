@@ -5,7 +5,7 @@ import com.d3.btc.deposit.config.BtcDepositConfig
 import com.d3.btc.dwbridge.BTC_DW_BRIDGE_SERVICE_NAME
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
-import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
+import com.d3.btc.provider.BtcChangeAddressProvider
 import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
 import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
 import com.d3.commons.config.*
@@ -90,9 +90,6 @@ class BtcDWBridgeAppConfiguration {
 
     @Bean
     fun rmqConfig() = rmqConfig
-
-    @Bean
-    fun irohaBlocksQueue() = withdrawalConfig.irohaBlockQueue
 
     @Bean
     fun notaryConfig() = depositConfig
