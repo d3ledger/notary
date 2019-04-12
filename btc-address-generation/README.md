@@ -1,8 +1,13 @@
 ## Bitcoin address generation service
 Bitcoin Address Generation service(or simply `btc-address-generation`) is used to create Bitcoin MultiSig addresses that may be registered by D3 clients later. The service is also responsible for creating change addresses (addresses that store changes). 
 
+### Glossary
+ Free address - Bitcoin MultiSig address that may be registered by any D3 client.
+ 
+ Change address - Bitcoin MultiSig address that is used by withdrawal service to store changes.
+ 
 ### Simplified flow
-1) The service waits for a special command that triggers the address generation process. Given the fact, that this process takes approximately 10-15 seconds, few addresses are generated on service start. Addresses are also generated on D3 client registration because one registration takes exactly one MultiSig address. Addresses may be generated using `gradlew generateBtcFreeAddress` and `gradlew generateBtcChangeAddress` to create regular and change address respectively. Attention must be paid to the fact that these commands don't create addresses, they trigger address generation. Calling these commands won't make any effect if the service is not up and running.
+1) The service waits for a special command that triggers the address generation process. Given the fact, that this process takes approximately 10-15 seconds, free and change addresses are generated on service start. Free addresses are also generated on D3 client registration because one registration takes exactly one MultiSig address. Addresses may be generated using `gradlew generateBtcFreeAddress` and `gradlew generateBtcChangeAddress` to create regular and change address respectively. Attention must be paid to the fact that these commands don't create addresses, they trigger address generation. Calling these commands won't make any effect if the service is not up and running.
  2) Once this command appears, the service starts key pair creation and saves it in `keys.d3.wallet` file and Iroha(only public keys go to Iroha).  
 3) Then, the service waits until enough key pairs are collected in Iroha. All the Notaries must create a key pair. If enough key pairs are created, the service generates a new Bitcoin MultiSig address using public keys created by all the Notaries. This MultiSig address is also saved in `keys.d3.wallet` file and Iroha. 
 

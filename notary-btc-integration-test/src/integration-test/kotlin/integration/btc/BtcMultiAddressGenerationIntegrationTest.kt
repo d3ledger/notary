@@ -53,6 +53,9 @@ class BtcMultiAddressGenerationIntegrationTest {
         }
         //Wait services to init
         Thread.sleep(WAIT_PREGEN_PROCESS_MILLIS)
+        environments.forEach { environment ->
+            environment.checkIfChangeAddressesWereGeneratedAtInitialPhase()
+        }
     }
 
     /**
