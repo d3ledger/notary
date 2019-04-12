@@ -17,6 +17,7 @@ import integration.helper.BtcIntegrationHelperUtil
 import integration.registration.RegistrationServiceTestEnvironment
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.bitcoinj.core.Address
 import org.bitcoinj.params.RegTestParams
 import org.junit.jupiter.api.*
 import java.io.File
@@ -33,7 +34,6 @@ class BtcMultiWithdrawalIntegrationTest {
     private val withdrawalEnvironments = ArrayList<BtcWithdrawalTestEnvironment>()
     private val addressGenerationEnvironments = ArrayList<BtcAddressGenerationTestEnvironment>()
     private val registrationServiceEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
-
 
     @AfterAll
     fun dropDown() {
@@ -89,7 +89,6 @@ class BtcMultiWithdrawalIntegrationTest {
         }
         //Wait services to init
         Thread.sleep(WAIT_PREGEN_PROCESS_MILLIS)
-        generateAddress(BtcAddressType.CHANGE)
 
         withdrawalEnvironments.forEach { environment ->
             GlobalScope.launch {
@@ -129,7 +128,7 @@ class BtcMultiWithdrawalIntegrationTest {
             btcAddressDest,
             amount.toPlainString()
         )
-        Thread.sleep(WITHDRAWAL_WAIT_MILLIS * peers)
+        Thread.sleep(WITHDRAWAL_WAIT_MILLIS)
         assertEquals(initTxCount, environment.createdTransactions.size)
         assertEquals(initialSrcBalance, integrationHelper.getIrohaAccountBalance(testClientSrc, BTC_ASSET))
         environment.transactionHelper.addToBlackList(btcAddressDest)
@@ -189,6 +188,18 @@ class BtcMultiWithdrawalIntegrationTest {
                 transactionOutput
             ) == btcAddressDest
         })
+        //Check that change addresses are watched
+        withdrawalEnvironments.forEach { withdrawalEnvironment ->
+            val changeAddresses = withdrawalEnvironment.btcChangeAddressProvider.getAllChangeAddresses().get()
+            changeAddresses.forEach { changeAddress ->
+                withdrawalEnvironment.transferWallet.isAddressWatched(
+                    Address.fromBase58(
+                        RegTestParams.get(),
+                        changeAddress.address
+                    )
+                )
+            }
+        }
     }
 
     /**

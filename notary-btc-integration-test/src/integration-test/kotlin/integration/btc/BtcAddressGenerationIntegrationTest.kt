@@ -20,7 +20,7 @@ import org.junit.jupiter.api.fail
 import java.io.File
 import java.util.*
 
-const val WAIT_PREGEN_PROCESS_MILLIS = 20_000L
+const val WAIT_PREGEN_PROCESS_MILLIS = 15_000L
 const val WAIT_PREGEN_INIT_PROCESS_MILLIS = 30_000L
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -45,7 +45,8 @@ class BtcAddressGenerationIntegrationTest {
         }
         // Wait for initial address generation
         Thread.sleep(WAIT_PREGEN_INIT_PROCESS_MILLIS)
-        environment.checkIfAddressesWereGeneratedAtInitialPhase()
+        environment.checkIfFreeAddressesWereGeneratedAtInitialPhase()
+        environment.checkIfChangeAddressesWereGeneratedAtInitialPhase()
     }
 
     /**

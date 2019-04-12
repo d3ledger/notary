@@ -49,7 +49,7 @@ class BtcFullPipelineTest {
         }
         // Wait for initial address generation
         Thread.sleep(WAIT_PREGEN_PROCESS_MILLIS * addressGenerationEnvironment.btcGenerationConfig.threshold)
-        addressGenerationEnvironment.checkIfAddressesWereGeneratedAtInitialPhase()
+        addressGenerationEnvironment.checkIfFreeAddressesWereGeneratedAtInitialPhase()
         // Run registration
         registrationEnvironment.registrationInitialization.init()
         GlobalScope.launch {

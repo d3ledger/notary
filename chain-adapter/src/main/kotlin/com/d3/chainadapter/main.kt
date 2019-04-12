@@ -67,7 +67,10 @@ fun main(args: Array<String>) {
                 adapter.close()
                 throw ex
             })
-    }.failure { ex -> logger.error("Cannot start chain-adapter", ex) }
+    }.failure { ex ->
+        logger.error("Cannot start chain-adapter", ex)
+        System.exit(1)
+    }
 }
 
 /**

@@ -11,6 +11,7 @@ import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+//TODO refactor handlers
 /**
  * Handler that handles new consensus data appearance
  */
