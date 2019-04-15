@@ -115,7 +115,7 @@ services:
       - d3-network
 
   d3-brvs:
-    image: deploy_brvs-core
+    image: nexus.iroha.tech:19002/brvs-deploy/brvs:1.0.0_rc5
     container_name: d3-brvs
     ports:
       - 8080:8080
