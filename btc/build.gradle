@@ -71,6 +71,16 @@ task btcGenerateBlocks(type: JavaExec) {
     setWorkingDir("$rootDir/")
 }
 
+/** Recreates wallets in RegTest mode
+ *
+ * Usage ./gradlew btcRefreshWallets
+ */
+task btcRefreshWallets(type: JavaExec) {
+    main = 'com.d3.btc.cli.BtcRefreshWalletsMain'
+    classpath = sourceSets.main.runtimeClasspath
+    setWorkingDir("$rootDir/")
+}
+
 sonarqube {
     properties {
         property "sonar.projectKey", "notary:btc"

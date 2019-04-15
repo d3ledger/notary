@@ -42,6 +42,7 @@ services:
   d3-chain-adapter:
     image: nexus.iroha.tech:19002/d3-deploy/chain-adapter:${TAG-master}
     container_name: d3-chain-adapter
+    restart: on-failure
     depends_on:
       - d3-rmq
       - d3-iroha

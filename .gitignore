@@ -77,6 +77,8 @@ hs_err_pid*
 /bootstrap/build/
 /notary-registration/build/
 /notary-sora-integration-test/build/
+/exchanger/build/
+/configs/brvs/key*.*
 *gradlew.bat
 
 # Ignore Gradle GUI config
@@ -169,6 +171,3 @@ configs/smtp.properties
 
 # Push API configs
 configs/push.properties
-
-# Test changelog file
-deploy/bootstrap/changelogs/test_changelog.groovy
