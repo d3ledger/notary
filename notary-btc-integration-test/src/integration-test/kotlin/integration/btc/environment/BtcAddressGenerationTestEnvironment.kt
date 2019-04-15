@@ -4,6 +4,7 @@ import com.d3.btc.generation.BTC_ADDRESS_GENERATION_SERVICE_NAME
 import com.d3.btc.generation.config.BtcAddressGenerationConfig
 import com.d3.btc.generation.init.BtcAddressGenerationInitialization
 import com.d3.btc.generation.trigger.AddressGenerationTrigger
+import com.d3.btc.provider.BtcChangeAddressProvider
 import com.d3.btc.provider.BtcFreeAddressesProvider
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.address.BtcAddressesProvider
@@ -141,11 +142,18 @@ class BtcAddressGenerationTestEnvironment(
     val btcFreeAddressesProvider =
         BtcFreeAddressesProvider(btcGenerationConfig.nodeId, btcAddressesProvider, btcRegisteredAddressesProvider)
 
+    private val btcChangeAddressesProvider = BtcChangeAddressProvider(
+        registrationQueryAPI,
+        btcGenerationConfig.mstRegistrationAccount.accountId,
+        btcGenerationConfig.changeAddressesStorageAccount
+    )
+
     private val addressGenerationTrigger = AddressGenerationTrigger(
         btcKeyGenSessionProvider,
         triggerProvider,
         btcFreeAddressesProvider,
-        IrohaConsumerImpl(registrationCredential, irohaApi)
+        IrohaConsumerImpl(registrationCredential, irohaApi),
+        btcChangeAddressesProvider
     )
 
     val btcAddressGenerationInitialization = BtcAddressGenerationInitialization(
@@ -162,7 +170,7 @@ class BtcAddressGenerationTestEnvironment(
      * Checks if enough free addresses were generated at initial phase
      * @throws IllegalStateException if not enough
      */
-    fun checkIfAddressesWereGeneratedAtInitialPhase() {
+    fun checkIfFreeAddressesWereGeneratedAtInitialPhase() {
         btcFreeAddressesProvider.getFreeAddresses()
             .fold({ freeAddresses ->
                 if (freeAddresses.size < btcGenerationConfig.threshold) {
@@ -173,6 +181,20 @@ class BtcAddressGenerationTestEnvironment(
                     )
                 }
             }, { ex -> throw IllegalStateException("Cannot get free addresses", ex) })
+    }
+
+    /**
+     * Checks if change addresses were generated at initial phase
+     * @throws IllegalStateException if not enough
+     */
+    fun checkIfChangeAddressesWereGeneratedAtInitialPhase() {
+        btcChangeAddressesProvider.getAllChangeAddresses().fold({ changeAddresses ->
+            if (changeAddresses.isEmpty()) {
+                throw IllegalStateException("Change addresses were not generated")
+            }
+        }, { ex ->
+            throw IllegalStateException("Cannot get change addresses", ex)
+        })
     }
 
     override fun close() {

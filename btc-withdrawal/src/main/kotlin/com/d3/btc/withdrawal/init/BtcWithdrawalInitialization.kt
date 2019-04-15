@@ -5,15 +5,17 @@ import com.d3.btc.handler.NewBtcClientRegistrationHandler
 import com.d3.btc.healthcheck.HealthyService
 import com.d3.btc.helper.network.addPeerConnectionStatusListener
 import com.d3.btc.helper.network.startChainDownload
+import com.d3.btc.provider.BtcChangeAddressProvider
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
 import com.d3.btc.wallet.checkWalletNetwork
 import com.d3.btc.withdrawal.BTC_WITHDRAWAL_SERVICE_NAME
+import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
 import com.d3.btc.withdrawal.config.withdrawalConfig
+import com.d3.btc.withdrawal.handler.NewChangeAddressHandler
 import com.d3.btc.withdrawal.handler.NewConsensusDataHandler
 import com.d3.btc.withdrawal.handler.NewSignatureEventHandler
 import com.d3.btc.withdrawal.handler.NewTransferHandler
-import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
 import com.d3.commons.config.RMQConfig
 import com.d3.commons.sidechain.iroha.BTC_CONSENSUS_DOMAIN
 import com.d3.commons.sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
@@ -42,6 +44,7 @@ import java.io.File
  */
 @Component
 class BtcWithdrawalInitialization(
+    @Autowired private val btcWithdrawalConfig: BtcWithdrawalConfig,
     @Autowired private val peerGroup: PeerGroup,
     @Autowired private val transferWallet: Wallet,
     @Autowired private val btcChangeAddressProvider: BtcChangeAddressProvider,
@@ -49,15 +52,14 @@ class BtcWithdrawalInitialization(
     @Autowired private val newSignatureEventHandler: NewSignatureEventHandler,
     @Autowired private val newBtcClientRegistrationHandler: NewBtcClientRegistrationHandler,
     @Autowired private val newTransferHandler: NewTransferHandler,
+    @Autowired private val newChangeAddressHandler: NewChangeAddressHandler,
     @Autowired private val newConsensusDataHandler: NewConsensusDataHandler,
     @Autowired private val btcRegisteredAddressesProvider: BtcRegisteredAddressesProvider,
-    @Autowired private val rmqConfig: RMQConfig,
-    @Qualifier("irohaBlocksQueue")
-    @Autowired private val irohaBlocksQueue: String
+    @Autowired private val rmqConfig: RMQConfig
 ) : HealthyService(), Closeable {
 
     private val irohaChainListener = ReliableIrohaChainListener(
-        rmqConfig, irohaBlocksQueue,
+        rmqConfig, btcWithdrawalConfig.irohaBlockQueue,
         consumerExecutorService = createPrettySingleThreadPool(
             BTC_WITHDRAWAL_SERVICE_NAME,
             "rmq-consumer"
@@ -74,11 +76,16 @@ class BtcWithdrawalInitialization(
         CurrentFeeRate.setMinimum()
         // Check wallet network
         return transferWallet.checkWalletNetwork(btcNetworkConfigProvider.getConfig()).flatMap {
-            btcChangeAddressProvider.getChangeAddress()
-        }.map { changeAddress ->
-            transferWallet.addWatchedAddress(
-                Address.fromBase58(btcNetworkConfigProvider.getConfig(), changeAddress.address)
-            )
+            btcChangeAddressProvider.getAllChangeAddresses()
+        }.map { changeAddresses ->
+            if (changeAddresses.isEmpty()) {
+                throw IllegalStateException("No change addresses were generated")
+            }
+            changeAddresses.forEach { changeAddress ->
+                transferWallet.addWatchedAddress(
+                    Address.fromBase58(btcNetworkConfigProvider.getConfig(), changeAddress.address)
+                )
+            }
         }.flatMap {
             btcRegisteredAddressesProvider.getRegisteredAddresses()
         }.map { registeredAddresses ->
@@ -149,6 +156,14 @@ class BtcWithdrawalInitialization(
         // Handle newly registered Bitcoin addresses. We need it to update transferWallet object.
         getSetDetailCommands(block).forEach { command ->
             newBtcClientRegistrationHandler.handleNewClientCommand(command, transferWallet)
+        }
+
+        // Handle newly generated Bitcoin change addresses. We need it to update transferWallet object.
+        getSetDetailCommands(block).filter { command ->
+            command.hasSetAccountDetail() &&
+                    command.setAccountDetail.accountId == btcWithdrawalConfig.changeAddressesStorageAccount
+        }.forEach { command ->
+            newChangeAddressHandler.handleNewChangeAddress(command.setAccountDetail)
         }
     }
 

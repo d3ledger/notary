@@ -2,7 +2,7 @@ FROM openjdk:8-jre
 
 WORKDIR /opt/notary
 
-COPY exchanger/build/libs/notary-registration-all.jar /opt/notary/exchanger.jar
+COPY exchanger/build/libs/exchanger-all.jar /opt/notary/exchanger.jar
 
 # Please run `kscript --package grpc_healthcheck.kts` before building docker image
 COPY grpc_healthcheck /opt/notary

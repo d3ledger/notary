@@ -14,7 +14,7 @@ Assets will be rolled back to the initiator of transfer in case of error or fail
 * `btc-withdrawal.signatureCollectorCredential` - this account is used to collect Bitcoin withdrawal transaction signatures. The account creates other accounts named after transaction hashes in `btcSignCollect` domain and saves signatures in it.
 * `btc-withdrawal.btcConsensusCredential` - this account is used to create 'withdrawal consensus'. It creates other accounts named after withdrawal operation `hashCode()` in `btcConsensus` domain and saves consensus information in it.
 * `btc-withdrawal.registrationCredential` - the account that was used to register D3 clients in the Bitcoin network. This account is needed to get clients whitelists.
-* `btc-withdrawal.changeAddressesStorageAccount` - Iroha account that we use to store Bitcoin change address 
+* `btc-withdrawal.changeAddressesStorageAccount` - Iroha account that we use to store Bitcoin change addresses. Change addresses are created automatically. 
 * `btc-withdrawal.irohaBlockQueue` - RabbitMQ queue name that `chain-adapter` uses to deliver Iroha blocks
 * `btc-withdrawal.btcTransfersWalletPath` - a path to wallet file where UTXOs from `btc-deposit` service are stored. 
 * `btc-withdrawal.btcKeysWalletPath` - a path to wallet file full of Bitcoin MultiSig addresses private keys. The wallet is used to sign Bitcoin withdrawal transactions.

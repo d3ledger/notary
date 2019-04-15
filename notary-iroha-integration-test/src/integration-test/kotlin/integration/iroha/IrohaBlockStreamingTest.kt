@@ -28,15 +28,12 @@ class IrohaBlockStreamingTest {
 
     private val integrationHelper = IrohaIntegrationHelperUtil()
 
-    /** Test configurations */
-    private val testConfig = integrationHelper.testConfig
-
     private val testCredential = integrationHelper.testCredential
 
     private val creator = testCredential.accountId
 
     private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
-    lateinit private var listener: ReliableIrohaChainListener
+    private lateinit var listener: ReliableIrohaChainListener
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
 
@@ -65,15 +62,19 @@ class IrohaBlockStreamingTest {
      */
     @Test
     fun irohaStreamingTest() {
+        Thread.sleep(5000)
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            var cmds = listOf<iroha.protocol.Commands.Command>()
+            listener.purge()
+            val cmds = mutableListOf<iroha.protocol.Commands.Command>()
             listener.getBlockObservable()
                 .map { obs ->
                     obs.map { (block, _) ->
-                        cmds = block.blockV1.payload.transactionsList
-                            .flatMap {
-                                it.payload.reducedPayload.commandsList
-                            }
+                        cmds.addAll(
+                            block.blockV1.payload.transactionsList
+                                .flatMap {
+                                    it.payload.reducedPayload.commandsList
+                                }
+                        )
                     }.subscribeOn(
                         Schedulers.from(
                             createPrettyFixThreadPool("iroha-block-streaming", "test")

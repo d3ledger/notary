@@ -59,12 +59,16 @@ class BtcAddressGenerationInitialization(
         }.map { irohaObservable ->
             initIrohaObservable(irohaObservable)
         }.flatMap {
-            // Start address generation at initial phase
+            // Start free address generation at initial phase
             addressGenerationTrigger
                 .startFreeAddressGenerationIfNeeded(
                     btcAddressGenerationConfig.threshold,
                     btcAddressGenerationConfig.nodeId
                 )
+        }.flatMap {
+            // Start change address generation at initial phase
+            addressGenerationTrigger
+                .startChangeAddressGenerationIfNeeded(btcAddressGenerationConfig.nodeId)
         }
     }
 

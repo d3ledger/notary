@@ -2,7 +2,7 @@ package com.d3.btc.withdrawal.config
 
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.withdrawal.BTC_WITHDRAWAL_SERVICE_NAME
-import com.d3.btc.withdrawal.provider.BtcChangeAddressProvider
+import com.d3.btc.provider.BtcChangeAddressProvider
 import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
 import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
 import com.d3.commons.config.*
@@ -60,9 +60,6 @@ class BtcWithdrawalAppConfiguration {
 
     @Bean
     fun consensusIrohaConsumer() = IrohaConsumerImpl(consensusIrohaCredential(), irohaAPI())
-
-    @Bean
-    fun irohaBlocksQueue() = withdrawalConfig.irohaBlockQueue
 
     @Bean
     fun healthCheckPort() = withdrawalConfig.healthCheckPort
