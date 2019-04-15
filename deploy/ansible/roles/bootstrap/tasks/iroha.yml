@@ -44,6 +44,7 @@
     register: iroha_keys_gb
     tags: ["iroha"]
 
+    # TODO: bootstrap_eth_notary_container_name always equals the value of variable on current host (which is always the same)
   - name: Assign keys for Iroha peers
     set_fact:
       iroha_peer_keys_gb: "{{ iroha_peer_keys_gb + [{ 'hostPort': iroha_all_nodes[idx].hostname, 'peerKey': item.json.public, 'notaryHostPort': 'http://' + bootstrap_eth_notary_container_name + ':20000' }] }}"
@@ -79,12 +80,14 @@
   delegate_to: localhost
   run_once: yes
   become: no
+  when: bootstrap_generate_iroha_config
 
 - name: Copy private keys
   copy:
     content: "{{ item.0.1 }}"
     dest: "{{ iroha_deploy_dir }}/conf/{{ item.1.human_hostname }}/{{ item.0.0.id }}.priv"
   loop: "{{ accounts_gb_with_priv | subelements('privKeys') | product(iroha_nodes) | list }}"
+  when: bootstrap_generate_iroha_config
   tags: ["iroha"]
 
 - name: Copy public keys
@@ -92,4 +95,5 @@
     content: "{{ item.0.1 }}"
     dest: "{{ iroha_deploy_dir }}/conf/{{ item.1.human_hostname }}/{{ item.0.0.id }}.pub"
   loop: "{{ accounts_gb_with_priv | subelements('pubKeys') | product(iroha_nodes) | list }}"
+  when: bootstrap_generate_iroha_config
   tags: ["iroha"]

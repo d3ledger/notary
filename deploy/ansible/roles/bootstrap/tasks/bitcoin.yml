@@ -10,6 +10,7 @@
   delegate_to: localhost
   run_once: yes
   become: no
+  when: bootstrap_generate_d3_services_config
 
 - name: Save bitcoin wallet to file
   copy:
@@ -19,4 +20,5 @@
     group: root
     owner: root
   loop: "{{ bitcoin_wallet.results }}"
+  when: bootstrap_generate_d3_services_config
   tags: ["bitcoin"]

@@ -18,13 +18,13 @@
     stat:
       path: "{{ bootstrap_api_smart_contracts_credentialspath }}"
     register: bootstrap_service_genesis_wallet
-    tags: ["ethereum"]
+    tags: ["ethereum", "deployment-configs"]
   
   - name: Dump genesis file contents into variable
     set_fact:
       bootstrap_service_genesis_wallet_contents: "{{ lookup('file', bootstrap_api_smart_contracts_credentialspath) }}"
     when: bootstrap_service_genesis_wallet.stat.exists
-    tags: ["ethereum"]
+    tags: ["ethereum", "deployment-configs"]
 
   # Save genesis wallet into a local file ONLY if it does not exist yet
   # You need to remove the file if you want to generate a new one
@@ -63,7 +63,7 @@
     stat:
       path: "{{ bootstrap_api_smart_contracts_addresspath }}"
     register: bootstrap_service_smart_contracts_addresspath_stat
-    tags: ["ethereum"]
+    tags: ["ethereum", "deployment-configs"]
 
   - name: Fetch current ETH to USD conversion rate
     uri:
@@ -74,7 +74,7 @@
     tags: ["ethereum"]
 
   # 7 USD is the approximate cost of deployment of all the master contracts
-  - name: Wait until the genesis account is deposited
+  - name: "Wait until the genesis account is deposited({{ bootstrap_service_genesis_wallet_contents.address }})"
     uri:
       url: "https://api.etherscan.io/api?module=account&action=balance&address=0x{{ bootstrap_service_genesis_wallet_contents.address }}&tag=latest&apikey={{ bootstrap_etherscan_api_token }}"
       return_content: yes
@@ -105,7 +105,7 @@
           masterEthAddress: "0x519d28fdef03913498ef1e6b6f090dc48f42d6f9"
           relayImplementationAddress: "0x81e66a89696c65d4cb1c17cc477afd6be3348c9f"
           relayRegistryEthAddress: "0xdc5924e3f2b457cb1aa5eb66a2c00ce2ab248e0c"
-          soraTokenEthAddress: "0xdc5924e3f2b457cb1aa5eb66a2c00ce2ab248e0c"
+          soraTokenEthAddress: "0xd7b25540ed881f7fbf54073e38295b44d2f74db0"
 
   - debug:
       var: bootstrap_api_smart_contracts_deployed_addresses
@@ -121,11 +121,12 @@
   - name: Dump smart contracts addresses into variable
     set_fact:
       bootstrap_service_smart_contracts_file_contents: "{{ lookup('file', bootstrap_api_smart_contracts_addresspath) | from_json }}"
-    tags: ["ethereum"]
+    tags: ["ethereum", "deployment-configs"]
 
   delegate_to: localhost
   run_once: yes
   become: no
+  when: bootstrap_generate_d3_services_config
 
 - name: Assign smart contract addresses to variables
   set_fact:
@@ -133,7 +134,8 @@
     bootstrap_relay_registration_ethmasterwallet: "{{ bootstrap_service_smart_contracts_file_contents.masterEthAddress }}"
     bootstrap_relay_registration_ethrelayimplementationaddress: "{{ bootstrap_service_smart_contracts_file_contents.relayImplementationAddress }}"
     bootstrap_token_registration_xorethereumaddress: "{{ bootstrap_service_smart_contracts_file_contents.soraTokenEthAddress }}"
-  tags: ["ethereum"]
+  when: bootstrap_generate_d3_services_config
+  tags: ["ethereum", "deployment-configs"]
 
 - name: Copy ethereum keys
   copy:
@@ -142,12 +144,12 @@
   loop: "{{ ethereum.results }}"
   loop_control:
     index_var: idx
-  when: item.item | regex_search('^.+-(peer' + (idx + 1) | string + '|service|wallet)$')
+  when: item.item | regex_search('^.+-(peer' + (idx + 1) | string + '|service|wallet)$') and bootstrap_generate_d3_services_config
   tags: ["ethereum"]
 
 - name: Copy genesis wallet
   copy:
     content: "{{ bootstrap_service_genesis_wallet_contents }}"
     dest: "{{ bootstrap_deployment_basedir}}/conf/{{ bootstrap_eth_keys_path }}/{{ bootstrap_api_smart_contracts_credentialspath | basename }}"
-  when: bootstrap_service_genesis_wallet.stat.exists
+  when: bootstrap_service_genesis_wallet.stat.exists and bootstrap_generate_d3_services_config
   tags: ["ethereum"]

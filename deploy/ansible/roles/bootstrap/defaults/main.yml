@@ -3,6 +3,12 @@ bootstrap_project: D3
 bootstrap_env: test
 bootstrap_deployment_basedir: /opt/d3
 bootstrap_etherscan_api_token: ''
+bootstrap_docker_registry_url: nexus.iroha.tech:19002
+bootstrap_docker_registry_username: ''
+bootstrap_docker_registry_password: ''
+bootstrap_docker_local_network_name: d3-local
+bootstrap_generate_iroha_config: true
+bootstrap_generate_d3_services_config: true
 
 bootstrap_notary_address: ''
 bootstrap_eth_keys_path: 'ethereum/keys'
@@ -14,6 +20,7 @@ bootstrap_btc_wallets:
   - transfers.d3.wallet
 
 bootstrap_eth_notary_container_name: ''
+bootstrap_eth_withdrawal_container_name: ''
 bootstrap_force_smart_contract_deployment: false
 
 bootstrap_gh_configs_base_url: https://raw.githubusercontent.com/d3ledger/notary/develop

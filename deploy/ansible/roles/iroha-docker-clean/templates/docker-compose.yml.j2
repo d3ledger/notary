@@ -9,7 +9,7 @@ services:
     expose:
       - {{ iroha_peer_port }}
     ports:
-        - 127.0.0.1:{{ iroha_torii_port | int + loop.index - 1 }}:{{ iroha_torii_port }}
+        - {{ iroha_torii_port | int + loop.index - 1 }}:{{ iroha_torii_port }}
 {% else %}
     container_name: {{ node.human_hostname }}
     ports:

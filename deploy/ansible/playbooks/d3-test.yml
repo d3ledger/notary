@@ -1,0 +1,28 @@
+- hosts: tag_Name_d3_test_s3,tag_Name_d3_test_s4,tag_Name_d3_test_s5
+  strategy: linear
+  roles:
+    - role: iroha-docker-clean
+      vars:
+        iroha_init_vars: true
+        iroha_generate_init_configs: false 
+        iroha_update_runtime_configs: false
+      tags: ["iroha-init"]
+
+    - role: bootstrap
+      vars:
+        bootstrap_generate_iroha_config: true
+        bootstrap_generate_d3_services_config: false
+      tags: ["bootstrap"]
+
+    - role: iroha-docker-clean
+      vars:
+        iroha_init_vars: false
+        iroha_generate_init_configs: true
+        iroha_update_runtime_configs: true
+      tags: ["iroha-deploy"]
+
+    - role: bootstrap
+      vars:
+        bootstrap_generate_iroha_config: false
+        bootstrap_generate_d3_services_config: true
+      tags: ["bootstrap"]

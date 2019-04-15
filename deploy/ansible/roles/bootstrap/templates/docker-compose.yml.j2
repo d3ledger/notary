@@ -35,7 +35,6 @@ services:
       - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
     networks:
       - d3
-      - iroha-net
       - traefik-net
     labels:
       - filebeat.module=docker
@@ -62,7 +61,6 @@ services:
       - PROFILE
     networks:
       - d3
-      - iroha-net
       - traefik-net
     labels:
       - filebeat.module=docker
@@ -79,7 +77,7 @@ services:
 
   d3-withdrawal:
     image: nexus.iroha.tech:19002/d3-deploy/eth-withdrawal:develop
-    container_name: d3-withdrawal
+    container_name: {{ bootstrap_eth_withdrawal_container_name }}
     volumes:
       - {{ iroha_deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
       - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
@@ -112,7 +110,6 @@ services:
       - PROFILE
     networks:
       - d3
-      - iroha-net
     restart: always
 
   grpcwebproxy:
@@ -130,7 +127,6 @@ services:
       - "traefik.protocol=http"
     networks:
       - d3
-      - iroha-net
       - traefik-net
     restart: always
 
@@ -163,7 +159,6 @@ services:
       - PROFILE
     networks:
       - d3
-      - iroha-net
     restart: always
 
   d3-btc-dw-bridge:
@@ -178,7 +173,6 @@ services:
       - PROFILE
     networks:
       - d3
-      - iroha-net
     restart: always
 
   d3-btc-registration:
@@ -200,7 +194,6 @@ services:
     container_name: d3-btc-registration
     networks:
       - d3
-      - iroha-net
       - traefik-net
     restart: always
 
@@ -221,7 +214,6 @@ services:
       .env-chain-adapter
     networks:
       - d3
-      - iroha-net
     restart: always
 
   d3-brvs-mongodb:
@@ -245,8 +237,8 @@ services:
     container_name: d3-brvs
     env_file:
       .env-brvs
-    expose:
-      - 8080
+    ports:
+      - 8080:8080
     depends_on:
       - d3-brvs-mongodb
       - d3-rmq
@@ -257,7 +249,6 @@ services:
       - {{ iroha_deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/brvs/config/iroha
     networks:
       - d3
-      - iroha-net
     restart: always
 
 volumes:
@@ -267,6 +258,8 @@ volumes:
 
 networks:
   d3:
+    external:
+      name: {{ bootstrap_docker_local_network_name }}
   traefik-net:
     external:
       name: traefik-net

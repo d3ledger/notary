@@ -36,6 +36,7 @@ See [Bootstrap service README](https://github.com/d3ledger/notary/blob/master/bo
 3. Create a playbook
 ```
 - hosts: replace.with.your.host.tld
+  strategy: linear
   roles:
     - role: iroha-docker-clean
       vars:
@@ -79,6 +80,11 @@ $ ansible-playbook playbooks/d3.yml --tags ethereum
 - **Bitcoin**
 ```
 $ ansible-playbook playbooks/d3.yml --tags bitcoin
+```
+
+- **Deployment configs only**
+```
+$ ansible-playbook playbooks/d3-test.yml --tags iroha-init-vars,deployment-configs
 ```
 
 See Iroha role for possible tags.

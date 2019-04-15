@@ -1,103 +1,119 @@
-- name: Create dirs
-  file:
-    state: directory
-    path: "{{ item }}"
-  loop:
-    - "{{ bootstrap_deployment_basedir }}/conf/{{ bootstrap_eth_keys_path }}"
-    - "{{ bootstrap_deployment_basedir }}/conf/{{ bootstrap_eth_tokens_path }}"
-    - "{{ bootstrap_deployment_basedir }}/conf/{{ bootstrap_btc_keys_path }}"
-    - "{{ bootstrap_deployment_basedir }}/conf/{{ bootstrap_btc_blocks_path }}"
-    - "{{ bootstrap_deployment_basedir }}/conf/btc"
-    - "{{ bootstrap_deployment_basedir }}/conf/eth"
-  tags: ["deployment-configs"]
-
-- name: Create Iroha config dirs
-  file:
-    path: "{{ iroha_deploy_dir }}/conf/{{ item.human_hostname }}"
-    state: directory
-  loop: "{{ iroha_nodes }}"
-
 - include: iroha.yml
-- include: ethereum.yml
-- include: bitcoin.yml
+- block:
+  - name: Create dirs
+    file:
+      state: directory
+      path: "{{ item }}"
+    loop:
+      - "{{ bootstrap_deployment_basedir }}/conf/{{ bootstrap_eth_keys_path }}"
+      - "{{ bootstrap_deployment_basedir }}/conf/{{ bootstrap_eth_tokens_path }}"
+      - "{{ bootstrap_deployment_basedir }}/conf/{{ bootstrap_btc_keys_path }}"
+      - "{{ bootstrap_deployment_basedir }}/conf/{{ bootstrap_btc_blocks_path }}"
+      - "{{ bootstrap_deployment_basedir }}/conf/btc"
+      - "{{ bootstrap_deployment_basedir }}/conf/eth"
+    tags: ["deployment-configs"]
 
-# TODO: all the configs must be part of the artifact (Docker image or JAR)
-# Pulling it from GH repo will make a service unstable
-- name: Fetch configs from GitHub
-  get_url:
-    url: "{{ bootstrap_gh_configs_base_url }}/{{ item.value.path | regex_replace('^(.*_).*(\\.properties)$', '\\1' + bootstrap_service_profile + '\\2')}}"
-    dest: "{{ bootstrap_deployment_basedir }}/conf/{{ item.value.dest_dir }}/"
-  loop: "{{ bootstrap_gh_configs_urls | dict2items }}"
-  notify: restart D3 services
-  tags: ["deployment-configs"]
+  - name: Create Iroha config dirs
+    file:
+      path: "{{ iroha_deploy_dir }}/conf/{{ item.human_hostname }}"
+      state: directory
+    loop: "{{ iroha_nodes }}"
 
-# TODO: the file should be in container already by the time of deployment
-- name: Fetch mainnet_tokens.json
-  get_url:
-    url: "{{ bootstrap_gh_configs_base_url }}/deploy/ethereum/tokens/mainnet_tokens.json"
-    dest: "{{ bootstrap_deployment_basedir }}/conf/{{ bootstrap_eth_tokens_path }}/"
-  notify: restart D3 services
-  tags: ["deployment-configs"]
+  - include: ethereum.yml
+  - include: bitcoin.yml
 
-- name: Set vars
-  set_fact:
-    bootstrap_eth_deposit_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
-    bootstrap_eth_deposit_iroha_port: "{{ iroha_torii_port }}"
-    bootstrap_eth_registration_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
-    bootstrap_eth_registration_iroha_port: "{{ iroha_torii_port }}"
-    bootstrap_registration_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
-    bootstrap_registration_iroha_port: "{{ iroha_torii_port }}"
-    bootstrap_withdrawal_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
-    bootstrap_withdrawal_iroha_port: "{{ iroha_torii_port }}"
-    bootstrap_relay_registration_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
-    bootstrap_relay_registration_iroha_port: "{{ iroha_torii_port }}"
-    bootstrap_relay_vacuum_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
-    bootstrap_relay_vacuum_iroha_port: "{{ iroha_torii_port }}"
-    bootstrap_token_registration_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
-    bootstrap_token_registration_iroha_port: "{{ iroha_torii_port }}"
-    bootstrap_grpcwebproxy_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
-    bootstrap_grpcwebproxy_iroha_port: "{{ iroha_torii_port }}"
-    bootstrap_btc_address_generation_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
-    bootstrap_btc_address_generation_iroha_port: "{{ iroha_torii_port }}"
-    bootstrap_btc_dw_bridge_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
-    bootstrap_btc_dw_bridge_iroha_port: "{{ iroha_torii_port }}"
-    bootstrap_btc_deposit_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
-    bootstrap_btc_deposit_iroha_port: "{{ iroha_torii_port }}"
-    bootstrap_btc_withdrawal_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
-    bootstrap_btc_withdrawal_iroha_port: "{{ iroha_torii_port }}"
-    bootstrap_btc_registration_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
-    bootstrap_btc_registration_iroha_port: "{{ iroha_torii_port }}"
-    bootstrap_chain_adapter_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
-    bootstrap_chain_adapter_iroha_port: "{{ iroha_torii_port }}"
-    bootstrap_brvs_iroha_host: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
-    bootstrap_brvs_iroha_port: "{{ iroha_torii_port }}"
-  tags: ["deployment-configs"]
+  # TODO: all the configs must be part of the artifact (Docker image or JAR)
+  # Pulling it from GH repo will make a service unstable
+  - name: Fetch configs from GitHub
+    get_url:
+      url: "{{ bootstrap_gh_configs_base_url }}/{{ item.value.path | regex_replace('^(.*_).*(\\.properties)$', '\\1' + bootstrap_service_profile + '\\2')}}"
+      dest: "{{ bootstrap_deployment_basedir }}/conf/{{ item.value.dest_dir }}/"
+    loop: "{{ bootstrap_gh_configs_urls | dict2items }}"
+    notify: restart D3 services
+    tags: ["deployment-configs"]
 
-- name: Copy templates
-  template:
-    src: "{{ item.file }}.j2"
-    dest: "{{ bootstrap_deployment_basedir }}/{{ item.file }}"
-    mode: "{{ item.mode | default('0600')}}"
-    owner: "{{ item.owner | default('root') }}"
-    group: "{{ item.group | default('root') }}"
-  loop:
-    - { file: '.env-eth-deposit'}
-    - { file: '.env-eth-registration'}
-    - { file: '.env-btc-address-generation'}
-    - { file: '.env-btc-dw-bridge'}
-    - { file: '.env-btc-registration'}
-    - { file: '.env-chain-adapter'}
-    - { file: '.env-registration'}
-    - { file: '.env-relay-registration'}
-    - { file: '.env-withdrawal'}
-    - { file: '.env-brvs'}
-    - { file: '.env'}
-    - { file: 'docker-compose.yml', mode: '0644'}
-  notify: restart D3 services
-  tags: ["deployment-configs"]
+  # TODO: the file should be in container already by the time of deployment
+  - name: Fetch mainnet_tokens.json
+    get_url:
+      url: "{{ bootstrap_gh_configs_base_url }}/deploy/ethereum/tokens/mainnet_tokens.json"
+      dest: "{{ bootstrap_deployment_basedir }}/conf/{{ bootstrap_eth_tokens_path }}/"
+    notify: restart D3 services
+    tags: ["deployment-configs"]
 
-- name: Run services
-  docker_service:
-    project_src: "{{ bootstrap_deployment_basedir }}"
-    state: present
-  tags: ["deployment-configs"]
+  - name: Set vars
+    set_fact:
+      bootstrap_eth_deposit_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
+      bootstrap_eth_deposit_iroha_port: "{{ iroha_torii_port }}"
+      bootstrap_eth_registration_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
+      bootstrap_eth_registration_iroha_port: "{{ iroha_torii_port }}"
+      bootstrap_registration_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
+      bootstrap_registration_iroha_port: "{{ iroha_torii_port }}"
+      bootstrap_withdrawal_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
+      bootstrap_withdrawal_iroha_port: "{{ iroha_torii_port }}"
+      bootstrap_relay_registration_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
+      bootstrap_relay_registration_iroha_port: "{{ iroha_torii_port }}"
+      bootstrap_relay_vacuum_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
+      bootstrap_relay_vacuum_iroha_port: "{{ iroha_torii_port }}"
+      bootstrap_token_registration_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
+      bootstrap_token_registration_iroha_port: "{{ iroha_torii_port }}"
+      bootstrap_grpcwebproxy_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
+      bootstrap_grpcwebproxy_iroha_port: "{{ iroha_torii_port }}"
+      bootstrap_btc_address_generation_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
+      bootstrap_btc_address_generation_iroha_port: "{{ iroha_torii_port }}"
+      bootstrap_btc_dw_bridge_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
+      bootstrap_btc_dw_bridge_iroha_port: "{{ iroha_torii_port }}"
+      bootstrap_btc_deposit_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
+      bootstrap_btc_deposit_iroha_port: "{{ iroha_torii_port }}"
+      bootstrap_btc_withdrawal_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
+      bootstrap_btc_withdrawal_iroha_port: "{{ iroha_torii_port }}"
+      bootstrap_btc_registration_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
+      bootstrap_btc_registration_iroha_port: "{{ iroha_torii_port }}"
+      bootstrap_chain_adapter_iroha_hostname: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
+      bootstrap_chain_adapter_iroha_port: "{{ iroha_torii_port }}"
+      bootstrap_brvs_iroha_host: "{{ iroha_nodes.0.hostname.split(':')[0] }}"
+      bootstrap_brvs_iroha_port: "{{ iroha_torii_port }}"
+    tags: ["deployment-configs"]
+
+  - name: Copy templates
+    template:
+      src: "{{ item.file }}.j2"
+      dest: "{{ bootstrap_deployment_basedir }}/{{ item.file }}"
+      mode: "{{ item.mode | default('0600')}}"
+      owner: "{{ item.owner | default('root') }}"
+      group: "{{ item.group | default('root') }}"
+    loop:
+      - { file: '.env-eth-deposit'}
+      - { file: '.env-eth-registration'}
+      - { file: '.env-btc-address-generation'}
+      - { file: '.env-btc-dw-bridge'}
+      - { file: '.env-btc-registration'}
+      - { file: '.env-chain-adapter'}
+      - { file: '.env-registration'}
+      - { file: '.env-relay-registration'}
+      - { file: '.env-withdrawal'}
+      - { file: '.env-brvs'}
+      - { file: '.env'}
+      - { file: 'docker-compose.yml', mode: '0644'}
+    notify: restart D3 services
+    tags: ["deployment-configs"]
+
+  - name: Log into private registry and force re-authorization
+    docker_login:
+      registry: "{{ bootstrap_docker_registry_url }}"
+      username: "{{ bootstrap_docker_registry_username }}"
+      password: "{{ bootstrap_docker_registry_password }}"
+      reauthorize: yes
+
+  - name: Attach Iroha containers to local D3 network
+    docker_network:
+      name: "{{ bootstrap_docker_local_network_name }}"
+      containers: "{{ iroha_nodes | json_query('[*].hostname') | map('regex_replace', '^(.*):.*$', '\\1') | list }}"
+      appends: yes
+    tags: ["deployment-configs"]
+
+  - name: Run services
+    docker_service:
+      project_src: "{{ bootstrap_deployment_basedir }}"
+      state: present
+    tags: ["deployment-configs"]
+  when: bootstrap_generate_d3_services_config
