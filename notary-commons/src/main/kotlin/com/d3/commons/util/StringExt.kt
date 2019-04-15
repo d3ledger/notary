@@ -64,6 +64,7 @@ fun String.irohaEscape(): String {
 // Reverse changes of 'irohaEscape'
 fun String.irohaUnEscape(): String {
     return this.replace(IROHA_FRIENDLY_QUOTE, "\"")
+            .replace("\\\\n", "\\n")
 }
 
 //TODO can we get rid of klaxon and moshi? Gson is much easier thing to use.
