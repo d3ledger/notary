@@ -1,15 +1,12 @@
 package integration.eth
 
-import com.d3.commons.model.IrohaCredential
-import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
-import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomString
-import com.d3.commons.util.irohaEscape
 import com.d3.commons.util.toHexString
-import com.google.gson.GsonBuilder
 import integration.helper.EthIntegrationHelperUtil
 import integration.registration.RegistrationServiceTestEnvironment
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
+import kotlinx.coroutines.*
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import kotlin.test.assertEquals
@@ -26,22 +23,22 @@ class EthRegistrationTest {
 
     private val ethRegistrationConfig = integrationHelper.ethRegistrationConfig
 
-//    private val ethRegistrationService: Job
-//
-//    init {
-//        registrationServiceEnvironment.registrationInitialization.init()
-//
-//        ethRegistrationService = GlobalScope.launch {
-//            integrationHelper.runEthRegistrationService(ethRegistrationConfig)
-//        }
-//        runBlocking { delay(5_000) }
-//    }
-//
-//    @AfterAll
-//    fun dropDown() {
-//        registrationServiceEnvironment.close()
-//        ethRegistrationService.cancel()
-//    }
+    private val ethRegistrationService: Job
+
+    init {
+        registrationServiceEnvironment.registrationInitialization.init()
+
+        ethRegistrationService = GlobalScope.launch {
+            integrationHelper.runEthRegistrationService(ethRegistrationConfig)
+        }
+        runBlocking { delay(5_000) }
+    }
+
+    @AfterAll
+    fun dropDown() {
+        registrationServiceEnvironment.close()
+        ethRegistrationService.cancel()
+    }
 
     /**
      * Test healthcheck
@@ -77,10 +74,10 @@ class EthRegistrationTest {
         assertEquals(200, res.statusCode)
         // register in Eth
         res = integrationHelper.sendRegistrationRequest(
-            name,
-            whitelist,
-            pubkey,
-            ethRegistrationConfig.port
+                name,
+                whitelist,
+                pubkey,
+                ethRegistrationConfig.port
         )
         assertEquals(200, res.statusCode)
 
@@ -111,10 +108,10 @@ class EthRegistrationTest {
         assertEquals(200, res.statusCode)
         // register in eth
         res = integrationHelper.sendRegistrationRequest(
-            name,
-            whitelist,
-            pubkey,
-            ethRegistrationConfig.port
+                name,
+                whitelist,
+                pubkey,
+                ethRegistrationConfig.port
         )
         assertEquals(200, res.statusCode)
 
@@ -129,10 +126,10 @@ class EthRegistrationTest {
         val anotherWhitelist = "0x0000000000000000000000000000000000000123"
         // try to register with the same name
         res = integrationHelper.sendRegistrationRequest(
-            name,
-            whitelist,
-            pubkey,
-            ethRegistrationConfig.port
+                name,
+                whitelist,
+                pubkey,
+                ethRegistrationConfig.port
         )
         assertEquals(500, res.statusCode)
 
@@ -141,43 +138,6 @@ class EthRegistrationTest {
         // check whitelist the same
         assert(integrationHelper.isWhitelisted(clientId, whitelist))
         assert(!integrationHelper.isWhitelisted(clientId, anotherWhitelist))
-    }
-
-    @Test
-    fun ttt1() {
-        val whitelist = listOf("0x6826d84158e516f631bBf14586a9BE7e255b2D20", "0x6826d84158e516f631bBf14586a9BE7e255b2D23", "xxx")
-        val gson = GsonBuilder().create()
-        val json = gson.toJson(whitelist).irohaEscape()
-
-        val irohaCredential = IrohaCredential(
-                "ddd@d3",
-                ModelUtil.loadKeypair(
-                        "/Users/yex/Downloads/ddd@d3.pub",
-                        "/Users/yex/Downloads/ddd@d3.priv"
-                ).get()
-        )
-        val ic = IrohaConsumerImpl(irohaCredential, integrationHelper.irohaAPI)
-
-        println("send to $json")
-        ModelUtil.setAccountDetail(ic, "ddd@d3", "eth_whitelist", json, ModelUtil.getCurrentTime().toLong(), 2)
-                .get()
-    }
-
-    @Test
-    fun ttt() {
-        val irohaCredential = IrohaCredential(
-                "qw@d3",
-                ModelUtil.loadKeypair(
-                        "/Users/yex/Downloads/qw@d3.pub",
-                        "/Users/yex/Downloads/qw@d3.priv"
-                ).get()
-        )
-        val ic = IrohaConsumerImpl(irohaCredential, integrationHelper.irohaAPI)
-
-        ModelUtil.transferAssetIroha(
-                ic, "qw@d3", "notary@notary", "ether#ethereum", "\" \\ \" \\",
-                "0.001", ModelUtil.getCurrentTime().toLong(), 2
-        ).get()
     }
 
 }
