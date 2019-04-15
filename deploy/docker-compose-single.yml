@@ -105,5 +105,17 @@ services:
       networks:
         - d3-network
 
+  d3-changelog:
+    image: nexus.iroha.tech:19002/changelog-deploy/changelog:1.0.0_rc5
+    container_name: d3-changelog
+    depends_on:
+      - d3-iroha
+    volumes:
+      - ../configs/changelog:/opt/changelog/configs/
+    ports:
+      - 9999:9999
+    networks:
+      - d3-network
+
 networks:
   d3-network:
