@@ -6,6 +6,8 @@ import com.d3.btc.dwbridge.BTC_DW_BRIDGE_SERVICE_NAME
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
 import com.d3.btc.provider.BtcChangeAddressProvider
+import com.d3.btc.wallet.WalletInitializer
+import com.d3.btc.wallet.loadAutoSaveWallet
 import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
 import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
 import com.d3.commons.config.*
@@ -145,7 +147,7 @@ class BtcDWBridgeAppConfiguration {
     fun signatureCollectorConsumer() = IrohaConsumerImpl(signatureCollectorCredential(), irohaAPI())
 
     @Bean
-    fun transferWallet() = Wallet.loadFromFile(File(depositConfig.btcTransferWalletPath))
+    fun transferWallet() = loadAutoSaveWallet(depositConfig.btcTransferWalletPath)
 
     @Bean
     fun notaryCredential() = notaryCredential
@@ -203,4 +205,7 @@ class BtcDWBridgeAppConfiguration {
             withdrawalConfig.notaryListStorageAccount,
             withdrawalConfig.notaryListSetterAccount
         )
+
+    @Bean
+    fun walletInitializer() = WalletInitializer(btcRegisteredAddressesProvider(), btcChangeAddressProvider())
 }
