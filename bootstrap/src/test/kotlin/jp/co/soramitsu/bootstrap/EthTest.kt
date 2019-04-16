@@ -137,7 +137,9 @@ class EthTest {
                     mapper.writeValueAsString(
                         DeployRelayImplementationRequest(
                             network = network,
-                            masterContractAddress = "0xf261477c4d6e6eda4ee4309273ed5ad34f99d741"
+                            masterContractAddress = masterContractResp.contractAddress
+                                ?: throw RuntimeException("relayRegistry response is without contract address")
+
                         )
                     )
                 )
