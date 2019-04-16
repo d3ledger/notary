@@ -8,12 +8,11 @@ import com.github.kittinunf.result.Result
 interface RegistrationStrategy {
 
     /**
-     * Register new client with whitelist
+     * Register new client
      */
     fun register(
         accountName: String,
         domainId: String,
-        whitelist: List<String>,
         publicKey: String
     ): Result<String, Exception>
 

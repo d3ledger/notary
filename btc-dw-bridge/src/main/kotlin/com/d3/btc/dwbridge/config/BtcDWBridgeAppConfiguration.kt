@@ -3,10 +3,9 @@ package com.d3.btc.dwbridge.config
 import com.d3.btc.deposit.BTC_DEPOSIT_SERVICE_NAME
 import com.d3.btc.deposit.config.BtcDepositConfig
 import com.d3.btc.dwbridge.BTC_DW_BRIDGE_SERVICE_NAME
+import com.d3.btc.provider.BtcChangeAddressProvider
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
-import com.d3.btc.provider.BtcChangeAddressProvider
-import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
 import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
 import com.d3.commons.config.*
 import com.d3.commons.model.IrohaCredential
@@ -28,14 +27,21 @@ import org.springframework.context.annotation.Configuration
 import java.io.File
 
 val withdrawalConfig =
-    loadConfigs("btc-withdrawal", BtcWithdrawalConfig::class.java, "/btc/withdrawal.properties").get()
-val depositConfig = loadConfigs("btc-deposit", BtcDepositConfig::class.java, "/btc/deposit.properties").get()
-val dwBridgeConfig = loadConfigs("btc-dw-bridge", BtcDWBridgeConfig::class.java, "/btc/dw-bridge.properties").get()
+    loadConfigs(
+        "btc-withdrawal",
+        BtcWithdrawalConfig::class.java,
+        "/btc/withdrawal.properties"
+    ).get()
+val depositConfig =
+    loadConfigs("btc-deposit", BtcDepositConfig::class.java, "/btc/deposit.properties").get()
+val dwBridgeConfig =
+    loadConfigs("btc-dw-bridge", BtcDWBridgeConfig::class.java, "/btc/dw-bridge.properties").get()
 
 @Configuration
 class BtcDWBridgeAppConfiguration {
 
-    private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
+    private val rmqConfig =
+        loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
 
     private val withdrawalKeypair = ModelUtil.loadKeypair(
         withdrawalConfig.withdrawalCredential.pubkeyPath,
@@ -139,7 +145,10 @@ class BtcDWBridgeAppConfiguration {
 
     @Bean
     fun signatureCollectorCredential() =
-        IrohaCredential(withdrawalConfig.signatureCollectorCredential.accountId, signatureCollectorKeypair)
+        IrohaCredential(
+            withdrawalConfig.signatureCollectorCredential.accountId,
+            signatureCollectorKeypair
+        )
 
     @Bean
     fun signatureCollectorConsumer() = IrohaConsumerImpl(signatureCollectorCredential(), irohaAPI())
@@ -171,15 +180,8 @@ class BtcDWBridgeAppConfiguration {
     )
 
     @Bean
-    fun withdrawalQueryAPI() = QueryAPI(irohaAPI(), withdrawalCredential().accountId, withdrawalCredential().keyPair)
-
-    @Bean
-    fun whiteListProvider(): BtcWhiteListProvider {
-        return BtcWhiteListProvider(
-            withdrawalConfig.registrationCredential.accountId,
-            withdrawalQueryAPI()
-        )
-    }
+    fun withdrawalQueryAPI() =
+        QueryAPI(irohaAPI(), withdrawalCredential().accountId, withdrawalCredential().keyPair)
 
     @Bean
     fun btcChangeAddressProvider(): BtcChangeAddressProvider {

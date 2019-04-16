@@ -1,5 +1,7 @@
 package com.d3.commons.registration
 
+import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+import com.squareup.moshi.Moshi
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.features.CORS
@@ -15,10 +17,6 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import mu.KLogging
-import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
-import com.squareup.moshi.Moshi
-import java.io.PrintWriter
-import java.io.StringWriter
 
 data class Response(val code: HttpStatusCode, val message: String)
 
@@ -49,13 +47,12 @@ class RegistrationServiceEndpoint(
                 post("/users") {
                     val parameters = call.receiveParameters()
                     val name = parameters["name"]
-                    val whitelist = parameters["whitelist"].toString().split(",")
                     val pubkey = parameters["pubkey"]
                     val domain = parameters["domain"]
 
-                    logger.info { "Registration invoked with parameters (name = \"$name\", whitelist = \"$whitelist\", pubkey = \"$pubkey\"" }
+                    logger.info { "Registration invoked with parameters (name = \"$name\", pubkey = \"$pubkey\"" }
 
-                    val response = onPostRegistration(name, domain, whitelist, pubkey)
+                    val response = onPostRegistration(name, domain, pubkey)
                     call.respondText(response.message, status = response.code)
                 }
 
@@ -85,19 +82,17 @@ class RegistrationServiceEndpoint(
     private fun onPostRegistration(
         name: String?,
         domain: String?,
-        whitelist: List<String>?,
         pubkey: String?
     ): Response {
         var reason = ""
         if (name == null) reason = reason.plus("Parameter \"name\" is not specified. ")
         val clientDomain = domain ?: CLIENT_DOMAIN
-        if (whitelist == null) reason = reason.plus("Parameter \"whitelist\" is not specified. ")
         if (pubkey == null) reason = reason.plus("Parameter \"pubkey\" is not specified.")
 
-        if (name == null || whitelist == null || pubkey == null) {
+        if (name == null || pubkey == null) {
             return responseError(HttpStatusCode.BadRequest, reason)
         }
-        registrationStrategy.register(name, clientDomain, whitelist.filter { it.isNotEmpty() }, pubkey).fold(
+        registrationStrategy.register(name, clientDomain, pubkey).fold(
             { address ->
                 logger.info {
                     "Client $name@$clientDomain was successfully registered with address $address"

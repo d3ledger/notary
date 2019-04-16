@@ -98,7 +98,8 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
      * @param addressesToGenerate - number of addresses to generate
      */
     fun preGenFreeBtcAddresses(walletFilePath: String, addressesToGenerate: Int) {
-        val totalBatches = Math.ceil(addressesToGenerate.div(GENERATED_ADDRESSES_PER_BATCH.toDouble())).toInt()
+        val totalBatches =
+            Math.ceil(addressesToGenerate.div(GENERATED_ADDRESSES_PER_BATCH.toDouble())).toInt()
         /*
          Iroha dies if it sees too much of transactions in a batch.
           */
@@ -163,13 +164,20 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
      * @param nodeId - node id. NODE_ID by default
      * @return randomly generated BTC address
      */
-    fun genFreeBtcAddress(walletFilePath: String, nodeId: String = NODE_ID): Result<Address, Exception> {
+    fun genFreeBtcAddress(
+        walletFilePath: String,
+        nodeId: String = NODE_ID
+    ): Result<Address, Exception> {
         val (key, address) = generateKeyAndAddress(walletFilePath)
         return ModelUtil.setAccountDetail(
             mstRegistrationIrohaConsumer,
             accountHelper.notaryAccount.accountId,
             address.toBase58(),
-            AddressInfo.createFreeAddressInfo(listOf(key.publicKeyAsHex), nodeId, System.currentTimeMillis()).toJson()
+            AddressInfo.createFreeAddressInfo(
+                listOf(key.publicKeyAsHex),
+                nodeId,
+                System.currentTimeMillis()
+            ).toJson()
         ).map { address }
     }
 
@@ -232,19 +240,16 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
      * Registers BTC client with no generation
      * @param irohaAccountName - client account in Iroha
      * @param keypair - key pair of new client in Iroha
-     * @param whitelist - list available addresses to send money to
      * @return btc address related to client
      */
     fun registerBtcAddressNoPreGen(
         irohaAccountName: String,
         domain: String,
-        keypair: KeyPair = ModelUtil.generateKeypair(),
-        whitelist: List<String> = emptyList()
+        keypair: KeyPair = ModelUtil.generateKeypair()
     ): String {
         btcRegistrationStrategy.register(
             irohaAccountName,
             domain,
-            whitelist,
             keypair.public.toHexString()
         )
             .fold({ btcAddress ->
