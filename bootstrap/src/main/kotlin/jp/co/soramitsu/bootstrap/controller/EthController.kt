@@ -1,5 +1,6 @@
 package jp.co.soramitsu.bootstrap.controller
 
+import com.d3.eth.sidechain.util.DeployHelper
 import com.d3.eth.sidechain.util.DeployHelperBuilder
 import com.d3.eth.sidechain.util.hashToAddAndRemovePeer
 import jp.co.soramitsu.bootstrap.dto.*
@@ -69,17 +70,61 @@ class EthController {
         }
     }
 
-    @PostMapping("/deploy/D3/smartContracts")
-    fun deployMasterSmartContracts(@NotNull @RequestBody request: MasterContractsRequest): ResponseEntity<MasterContractResponse> {
+    @PostMapping("/deploy/D3/relayRegistry")
+    fun deployRelayRegistry(@NotNull @RequestBody request: EthereumNetworkProperties): ResponseEntity<DeploySmartContractResponse> {
+        return try {
+            val deployHelper = createSmartContractDeployHelper(request)
+            val relayRegistry = deployHelper.deployUpgradableRelayRegistrySmartContract()
+            deployHelper.web3.shutdown()
+            ResponseEntity.ok(DeploySmartContractResponse(relayRegistry.contractAddress))
+        } catch (e: Exception) {
+            log.error("Cannot deploy RelayRegistry smart contract", e)
+            ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(DeploySmartContractResponse(e.javaClass.simpleName, e.message))
+        }
+    }
 
+    @PostMapping("/deploy/D3/masterContract")
+    fun deployMasterSmartContract(@NotNull @RequestBody request: DeployMasterContractRequest): ResponseEntity<DeployMasterContractResponse> {
+        return try {
+            val deployHelper = createSmartContractDeployHelper(request.network)
+            val master =
+                deployHelper.deployUpgradableMasterSmartContract(
+                    request.relayRegistryAddress,
+                    request.notaryEthereumAccounts
+                )
+            deployHelper.web3.shutdown()
+            ResponseEntity.ok(DeployMasterContractResponse(master.contractAddress, master.tokens.send()[0].toString()))
+        } catch (e: Exception) {
+            log.error("Cannot deploy RelayRegistry smart contract", e)
+            val response = DeployMasterContractResponse()
+            response.errorCode = e.javaClass.simpleName
+            response.message = e.message
+            ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(response)
+        }
+    }
+
+    @PostMapping("/deploy/D3/relayImplementation")
+    fun deployRelayImplementation(@NotNull @RequestBody request: DeployRelayImplementationRequest): ResponseEntity<DeploySmartContractResponse> {
+        return try {
+            val deployHelper = createSmartContractDeployHelper(request.network)
+            val relayImplementation = deployHelper.deployRelaySmartContract(request.masterContractAddress)
+            deployHelper.web3.shutdown()
+            ResponseEntity.ok(DeploySmartContractResponse(relayImplementation.contractAddress))
+        } catch (e: Exception) {
+            log.error("Cannot deploy RelayImplementation smart contract", e)
+            ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(DeploySmartContractResponse(e.javaClass.simpleName, e.message))
+        }
+    }
+
+    @PostMapping("/deploy/D3/smartContracts")
+    fun deployInitialSmartContracts(@NotNull @RequestBody request: AllInitialContractsRequest): ResponseEntity<DeployInitialContractsResponse> {
         log.info { "Run predeploy with notary addresses: ${request.notaryEthereumAccounts}" }
-        var response: MasterContractResponse
+        var response: DeployInitialContractsResponse
         try {
-            val deployHelper = DeployHelperBuilder(
-                request.network.ethereumConfig,
-                request.network.ethPasswords
-            ).setFastTransactionManager()
-                .build()
+            val deployHelper = createSmartContractDeployHelper(request.network)
             val relayRegistry = deployHelper.deployUpgradableRelayRegistrySmartContract()
             val master =
                 deployHelper.deployUpgradableMasterSmartContract(
@@ -87,20 +132,29 @@ class EthController {
                     request.notaryEthereumAccounts
                 )
             val relayImplementation = deployHelper.deployRelaySmartContract(master.contractAddress)
-            response = MasterContractResponse(
+            response = DeployInitialContractsResponse(
                 master.contractAddress,
                 relayRegistry.contractAddress,
                 relayImplementation.contractAddress,
                 master.tokens.send()[0].toString()
             )
+            deployHelper.web3.shutdown()
             return ResponseEntity.ok(response)
         } catch (e: Exception) {
             log.error("Cannot deploy smart contract", e)
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(MasterContractResponse(e.javaClass.simpleName, e.message))
+                .body(DeployInitialContractsResponse(e.javaClass.simpleName, e.message))
         }
     }
-    
+
+    private fun createSmartContractDeployHelper(network: EthereumNetworkProperties): DeployHelper {
+        return DeployHelperBuilder(
+            network.ethereumConfig,
+            network.ethPasswords
+        ).setFastTransactionManager()
+            .build()
+    }
+
     @GetMapping("/create/wallet")
     fun createWallet(@NotNull @RequestParam password: String): ResponseEntity<EthWallet> {
         try {
