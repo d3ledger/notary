@@ -122,8 +122,7 @@ class EthController {
     @PostMapping("/deploy/D3/smartContracts")
     fun deployInitialSmartContracts(@NotNull @RequestBody request: AllInitialContractsRequest): ResponseEntity<DeployInitialContractsResponse> {
         log.info { "Run predeploy with notary addresses: ${request.notaryEthereumAccounts}" }
-        var response: DeployInitialContractsResponse
-        try {
+        return try {
             val deployHelper = createSmartContractDeployHelper(request.network)
             val relayRegistry = deployHelper.deployUpgradableRelayRegistrySmartContract()
             val master =
@@ -132,17 +131,18 @@ class EthController {
                     request.notaryEthereumAccounts
                 )
             val relayImplementation = deployHelper.deployRelaySmartContract(master.contractAddress)
-            response = DeployInitialContractsResponse(
-                master.contractAddress,
-                relayRegistry.contractAddress,
-                relayImplementation.contractAddress,
-                master.tokens.send()[0].toString()
-            )
             deployHelper.web3.shutdown()
-            return ResponseEntity.ok(response)
+            return ResponseEntity.ok(
+                DeployInitialContractsResponse(
+                    master.contractAddress,
+                    relayRegistry.contractAddress,
+                    relayImplementation.contractAddress,
+                    master.tokens.send()[0].toString()
+                )
+            )
         } catch (e: Exception) {
             log.error("Cannot deploy smart contract", e)
-            return ResponseEntity.status(HttpStatus.CONFLICT)
+            ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(DeployInitialContractsResponse(e.javaClass.simpleName, e.message))
         }
     }
