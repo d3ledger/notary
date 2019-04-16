@@ -2,6 +2,7 @@ package com.d3.btc.peer
 
 import com.d3.btc.helper.network.getBlockChain
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
+import com.d3.btc.wallet.WalletInitializer
 import com.google.common.util.concurrent.ListenableFuture
 import mu.KLogging
 import org.bitcoinj.core.PeerGroup
@@ -18,11 +19,12 @@ import java.net.InetAddress
 @Component
 class SharedPeerGroup(
     @Autowired btcNetworkConfigProvider: BtcNetworkConfigProvider,
-    @Autowired wallet: Wallet,
+    @Autowired private val wallet: Wallet,
     @Qualifier("blockStoragePath")
     @Autowired blockStoragePath: String,
     @Qualifier("btcHosts")
-    @Autowired hosts: List<String>
+    @Autowired hosts: List<String>,
+    @Autowired private val walletInitializer: WalletInitializer
 ) :
     PeerGroup(
         btcNetworkConfigProvider.getConfig(),
@@ -49,6 +51,8 @@ class SharedPeerGroup(
     @Synchronized
     override fun startAsync(): ListenableFuture<*>? {
         if (!started) {
+            // Initialize wallet only once
+            walletInitializer.initializeWallet(wallet)
             val asyncStart = super.startAsync()
             started = true
             return asyncStart
