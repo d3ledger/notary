@@ -1,5 +1,8 @@
 package com.d3.eth.token
 
+import com.d3.commons.model.IrohaCredential
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
@@ -7,12 +10,7 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.Transaction
-import com.d3.commons.model.IrohaCredential
 import mu.KLogging
-import com.d3.eth.provider.SORA_DOMAIN
-import com.d3.eth.provider.XOR_NAME
-import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
-import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -33,25 +31,37 @@ class ERC20TokenRegistration(
 
     // Initiates process of ERC20 tokens registration
     fun init(): Result<Unit, Exception> {
-        // It takes file full of tokens to be registered and registers it in Iroha
-        return registerERC20XOR(
-            tokenRegistrationConfig.tokenStorageAccount,
-            irohaConsumer
+        return registerTokensFromFile(
+            tokenRegistrationConfig.ethAnchoredTokensFilePath,
+            tokenRegistrationConfig.ethAnchoredTokenStorageAccount
         ).flatMap {
-            readTokensFromFile(tokenRegistrationConfig.tokensFilePath)
-                .flatMap { tokensToRegister ->
-                    if (tokensToRegister.isEmpty()) {
-                        Result.of { logger.warn { "No ERC20 tokens to register" } }
-                    } else {
-                        logger.info { "ERC20 tokens to register $tokensToRegister" }
-                        registerERC20Tokens(
-                            tokensToRegister,
-                            tokenRegistrationConfig.tokenStorageAccount,
-                            irohaConsumer
-                        ).map { Unit }
-                    }
-                }
+            registerTokensFromFile(
+                tokenRegistrationConfig.irohaAnchoredTokensFilePath,
+                tokenRegistrationConfig.irohaAnchoredTokenStorageAccount
+            )
         }
+    }
+
+    /**
+     * Reads ERC20 tokens from file and register them in account details of [storageAccountId].
+     */
+    private fun registerTokensFromFile(
+        path: String,
+        storageAccountId: String
+    ): Result<Unit, Exception> {
+        return readTokensFromFile(path)
+            .flatMap { tokensToRegister ->
+                if (tokensToRegister.isEmpty()) {
+                    Result.of { logger.warn { "No ERC20 tokens to register" } }
+                } else {
+                    logger.info { "ERC20 tokens to register $tokensToRegister" }
+                    registerERC20Tokens(
+                        tokensToRegister,
+                        storageAccountId,
+                        irohaConsumer
+                    ).map { Unit }
+                }
+            }
     }
 
     /**
@@ -108,7 +118,11 @@ class ERC20TokenRegistration(
         return Result.of {
             var utx = Transaction.builder(irohaConsumer.creator)
             tokens.forEach { ethWallet, ethTokenInfo ->
-                utx = utx.createAsset(ethTokenInfo.name, ethTokenInfo.domain, ethTokenInfo.precision)
+                utx = utx.createAsset(
+                    ethTokenInfo.name,
+                    ethTokenInfo.domain,
+                    ethTokenInfo.precision
+                )
                 utx = utx.setAccountDetail(
                     tokenStorageAccount,
                     ethWallet,
@@ -117,26 +131,6 @@ class ERC20TokenRegistration(
             }
 
             utx.build()
-        }.flatMap { utx ->
-            irohaConsumer.send(utx)
-        }
-    }
-
-    /**
-     * Add XOR token
-     */
-    fun registerERC20XOR(
-        tokenStorageAccount: String,
-        irohaConsumer: IrohaConsumer
-    ): Result<String, Exception> {
-        return Result.of {
-            Transaction.builder(irohaConsumer.creator)
-                .setAccountDetail(
-                    tokenStorageAccount,
-                    tokenRegistrationConfig.xorEthereumAddress,
-                    "$XOR_NAME#$SORA_DOMAIN"
-                )
-                .build()
         }.flatMap { utx ->
             irohaConsumer.send(utx)
         }

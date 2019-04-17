@@ -8,6 +8,7 @@ import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.sidechain.iroha.util.getAccountDetails
 import com.d3.commons.sidechain.iroha.util.getSingleTransaction
+import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.eth.deposit.endpoint.BigIntegerMoshiAdapter
 import com.d3.eth.deposit.endpoint.EthNotaryResponse
 import com.d3.eth.deposit.endpoint.EthNotaryResponseMoshiAdapter
@@ -65,9 +66,11 @@ class WithdrawalServiceImpl(
         withdrawalServiceConfig.notaryListSetterAccount
     )
     private val tokensProvider: EthTokensProvider = EthTokensProviderImpl(
-        queryAPI,
-        withdrawalServiceConfig.tokenStorageAccount,
-        withdrawalServiceConfig.tokenSetterAccount
+        IrohaQueryHelperImpl(queryAPI),
+        withdrawalServiceConfig.ethAnchoredTokenStorageAccount,
+        withdrawalServiceConfig.ethAnchoredTokenSetterAccount,
+        withdrawalServiceConfig.irohaAnchoredTokenStorageAccount,
+        withdrawalServiceConfig.irohaAnchoredTokenSetterAccount
     )
 
     private val masterAccount = withdrawalServiceConfig.notaryIrohaAccount

@@ -11,12 +11,15 @@ interface ERC20TokenRegistrationConfig {
     /** Iroha config */
     val iroha: IrohaConfig
 
-    /** Path to file full of tokens in json format */
-    val tokensFilePath: String
+    /** Path to file full of tokens anchored in Ethereum in json format */
+    val ethAnchoredTokensFilePath: String
 
-    /** Account that stores tokens */
-    val tokenStorageAccount: String
+    /** Path to file full of tokens anchored in Iroha in json format */
+    val irohaAnchoredTokensFilePath: String
 
-    /** Address of XOR ERC20 contract */
-    val xorEthereumAddress: String
+    /** Account that stores Ethereum anchored tokens */
+    val ethAnchoredTokenStorageAccount: String
+
+    /** Account that stores Iroha anchored tokens */
+    val irohaAnchoredTokenStorageAccount: String
 }

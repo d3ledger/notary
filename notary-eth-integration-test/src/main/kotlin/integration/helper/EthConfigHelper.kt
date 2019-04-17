@@ -36,7 +36,10 @@ open class EthConfigHelper(
     }
 
     /** Creates config for ERC20 tokens registration */
-    fun createERC20TokenRegistrationConfig(tokensFilePath_: String): ERC20TokenRegistrationConfig {
+    fun createERC20TokenRegistrationConfig(
+        ethTokensFilePath_: String,
+        irohaTokensFilePath_: String
+    ): ERC20TokenRegistrationConfig {
         val ethTokenRegistrationConfig = loadConfigs(
             "token-registration",
             ERC20TokenRegistrationConfig::class.java,
@@ -46,9 +49,12 @@ open class EthConfigHelper(
         return object : ERC20TokenRegistrationConfig {
             override val irohaCredential = ethTokenRegistrationConfig.irohaCredential
             override val iroha = createIrohaConfig()
-            override val tokensFilePath = tokensFilePath_
-            override val tokenStorageAccount = accountHelper.notaryAccount.accountId
-            override val xorEthereumAddress = "0x0000000000000000000000000000000000000000"
+            override val ethAnchoredTokensFilePath = ethTokensFilePath_
+            override val irohaAnchoredTokensFilePath = irohaTokensFilePath_
+            override val ethAnchoredTokenStorageAccount =
+                accountHelper.ethAnchoredTokenStorageAccount.accountId
+            override val irohaAnchoredTokenStorageAccount =
+                accountHelper.irohaAnchoredTokenStorageAccount.accountId
         }
     }
 
@@ -69,7 +75,8 @@ open class EthConfigHelper(
             override val notaryIrohaAccount = accountHelper.notaryAccount.accountId
             override val iroha = createIrohaConfig()
             override val ethereum = relayRegistrationConfig.ethereum
-            override val relayRegistrationCredential = relayRegistrationConfig.relayRegistrationCredential
+            override val relayRegistrationCredential =
+                relayRegistrationConfig.relayRegistrationCredential
         }
     }
 
@@ -98,9 +105,15 @@ open class EthConfigHelper(
         )
     ): EthDepositConfig {
         return object : EthDepositConfig {
-            override val registrationServiceIrohaAccount = accountHelper.registrationAccount.accountId
-            override val tokenStorageAccount = accountHelper.tokenStorageAccount.accountId
-            override val tokenSetterAccount = accountHelper.tokenSetterAccount.accountId
+            override val registrationServiceIrohaAccount =
+                accountHelper.registrationAccount.accountId
+            override val ethAnchoredTokenStorageAccount =
+                accountHelper.ethAnchoredTokenStorageAccount.accountId
+            override val ethAnchoredTokenSetterAccount = accountHelper.tokenSetterAccount.accountId
+            override val irohaAnchoredTokenStorageAccount =
+                accountHelper.irohaAnchoredTokenStorageAccount.accountId
+            override val irohaAnchoredTokenSetterAccount =
+                accountHelper.tokenSetterAccount.accountId
             override val whitelistSetter = accountHelper.registrationAccount.accountId
             override val notaryCredential = notaryCredential_
             override val refund = createRefundConfig()
@@ -111,17 +124,31 @@ open class EthConfigHelper(
     }
 
     /** Test configuration of Withdrawal service with runtime dependencies */
-    fun createWithdrawalConfig(testName: String, useValidEthereum: Boolean = true): WithdrawalServiceConfig {
+    fun createWithdrawalConfig(
+        testName: String,
+        useValidEthereum: Boolean = true
+    ): WithdrawalServiceConfig {
         val withdrawalConfig =
-            loadConfigs("withdrawal", WithdrawalServiceConfig::class.java, "/eth/withdrawal.properties").get()
+            loadConfigs(
+                "withdrawal",
+                WithdrawalServiceConfig::class.java,
+                "/eth/withdrawal.properties"
+            ).get()
 
         val ethereumConfig =
-            if (useValidEthereum) withdrawalConfig.ethereum else getBrokenEthereumConfig(withdrawalConfig)
+            if (useValidEthereum) withdrawalConfig.ethereum else getBrokenEthereumConfig(
+                withdrawalConfig
+            )
 
         return object : WithdrawalServiceConfig {
             override val notaryIrohaAccount = accountHelper.notaryAccount.accountId
-            override val tokenStorageAccount = accountHelper.tokenStorageAccount.accountId
-            override val tokenSetterAccount = accountHelper.tokenSetterAccount.accountId
+            override val ethAnchoredTokenStorageAccount =
+                accountHelper.ethAnchoredTokenStorageAccount.accountId
+            override val ethAnchoredTokenSetterAccount = accountHelper.tokenSetterAccount.accountId
+            override val irohaAnchoredTokenStorageAccount =
+                accountHelper.irohaAnchoredTokenStorageAccount.accountId
+            override val irohaAnchoredTokenSetterAccount =
+                accountHelper.tokenSetterAccount.accountId
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
             override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
             override val registrationIrohaAccount = accountHelper.registrationAccount.accountId
@@ -159,13 +186,22 @@ open class EthConfigHelper(
 
     fun createRelayVacuumConfig(): RelayVacuumConfig {
         val vacuumConfig =
-            loadConfigs("relay-vacuum", RelayVacuumConfig::class.java, "/eth/vacuum.properties").get()
+            loadConfigs(
+                "relay-vacuum",
+                RelayVacuumConfig::class.java,
+                "/eth/vacuum.properties"
+            ).get()
         return object : RelayVacuumConfig {
-            override val registrationServiceIrohaAccount = accountHelper.registrationAccount.accountId
-            override val tokenStorageAccount = accountHelper.tokenStorageAccount.accountId
+            override val registrationServiceIrohaAccount =
+                accountHelper.registrationAccount.accountId
 
-            override val tokenSetterAccount = accountHelper.tokenSetterAccount.accountId
-
+            override val ethAnchoredTokenStorageAccount =
+                accountHelper.ethAnchoredTokenStorageAccount.accountId
+            override val ethAnchoredTokenSetterAccount = accountHelper.tokenSetterAccount.accountId
+            override val irohaAnchoredTokenStorageAccount =
+                accountHelper.irohaAnchoredTokenStorageAccount.accountId
+            override val irohaAnchoredTokenSetterAccount =
+                accountHelper.tokenSetterAccount.accountId
             /** Notary Iroha account that stores relay register */
             override val notaryIrohaAccount = accountHelper.notaryAccount.accountId
 

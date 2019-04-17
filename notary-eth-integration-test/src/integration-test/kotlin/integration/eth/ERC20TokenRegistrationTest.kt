@@ -1,20 +1,17 @@
 package integration.eth
 
-import com.github.kittinunf.result.failure
-import com.github.kittinunf.result.map
+import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
+import com.d3.commons.util.getRandomString
+import com.d3.eth.provider.ETH_DOMAIN
+import com.d3.eth.provider.EthTokensProvider
+import com.d3.eth.provider.EthTokensProviderImpl
+import com.d3.eth.token.EthTokenInfo
+import com.d3.eth.token.executeTokenRegistration
 import com.google.gson.Gson
 import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
 import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
-import com.d3.eth.provider.ETH_DOMAIN
-import com.d3.eth.provider.EthTokensProviderImpl
-import com.d3.eth.provider.SORA_DOMAIN
-import com.d3.eth.provider.XOR_NAME
-import com.d3.eth.token.EthTokenInfo
-import com.d3.eth.token.executeTokenRegistration
-import com.d3.commons.util.getRandomString
+import org.junit.jupiter.api.Assertions.*
 import java.io.File
 import java.time.Duration
 
@@ -24,13 +21,19 @@ import java.time.Duration
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ERC20TokenRegistrationTest {
     private val integrationHelper = EthIntegrationHelperUtil()
-    private val tokensFilePath = "tokens-for-test.json"
+    private val ethTokensFilePath = "eth-tokens-for-test.json"
+    private val irohaTokensFilePath = "iroha-tokens-for-test.json"
     private val tokenRegistrationConfig =
-        integrationHelper.configHelper.createERC20TokenRegistrationConfig(tokensFilePath)
+        integrationHelper.configHelper.createERC20TokenRegistrationConfig(
+            ethTokensFilePath,
+            irohaTokensFilePath
+        )
 
     private val ethTokensProvider = EthTokensProviderImpl(
-        integrationHelper.queryAPI,
-        tokenRegistrationConfig.tokenStorageAccount,
+        IrohaQueryHelperImpl(integrationHelper.queryAPI),
+        tokenRegistrationConfig.ethAnchoredTokenStorageAccount,
+        tokenRegistrationConfig.irohaCredential.accountId,
+        tokenRegistrationConfig.irohaAnchoredTokenStorageAccount,
         tokenRegistrationConfig.irohaCredential.accountId
     )
 
@@ -38,7 +41,8 @@ class ERC20TokenRegistrationTest {
 
     @AfterEach
     fun clearFile() {
-        File(tokensFilePath).delete()
+        File(ethTokensFilePath).delete()
+        File(irohaTokensFilePath).delete()
     }
 
     @AfterAll
@@ -57,35 +61,20 @@ class ERC20TokenRegistrationTest {
     fun testTokenRegistration() {
         assertTimeoutPreemptively(timeoutDuration) {
             integrationHelper.nameCurrentThread(this::class.simpleName!!)
-            val tokens = createRandomTokens()
-            createTokensFile(tokens, tokensFilePath)
-            executeTokenRegistration(tokenRegistrationConfig)
-            ethTokensProvider.getTokens()
-                .map { tokensFromProvider ->
-                    val actual = tokensFromProvider
-                        .map { (ethAddress, tokenId) ->
-                            val name = tokenId.split("#").first()
-                            val domain = tokenId.split("#").last()
-                            Pair(
-                                ethAddress,
-                                EthTokenInfo(
-                                    name,
-                                    domain,
-                                    ethTokensProvider.getTokenPrecision(tokenId).get()
-                                )
-                            )
-                        }.sortedBy { it.first }
+            val ethTokens = createRandomTokens()
+            val irohaTokens = createRandomTokens()
+            createTokensFile(ethTokens, ethTokensFilePath)
+            createTokensFile(irohaTokens, irohaTokensFilePath)
 
-                    // xor token is registered in any case
-                    tokens.put("0x0000000000000000000000000000000000000000",
-                        EthTokenInfo(XOR_NAME, SORA_DOMAIN, 18)
-                    )
-                    assertEquals(
-                        tokens.toList().sortedBy { it.first },
-                        actual
-                    )
-                }
-                .failure { ex -> fail("cannot fetch tokens", ex) }
+            executeTokenRegistration(tokenRegistrationConfig)
+
+            val actualEthTokens =
+                tokensMapToInfo(ethTokensProvider, ethTokensProvider.getEthAnchoredTokens().get())
+            assertEquals(ethTokens.toList().sortedBy { it.first }, actualEthTokens)
+
+            val actualIrohaTokens =
+                tokensMapToInfo(ethTokensProvider, ethTokensProvider.getEthAnchoredTokens().get())
+            assertEquals(ethTokens.toList().sortedBy { it.first }, actualIrohaTokens)
         }
     }
 
@@ -100,14 +89,19 @@ class ERC20TokenRegistrationTest {
     fun testTokenRegistrationEmptyTokenFile() {
         assertTimeoutPreemptively(timeoutDuration) {
             integrationHelper.nameCurrentThread(this::class.simpleName!!)
-            createTokensFile(HashMap(), tokensFilePath)
+            createTokensFile(HashMap(), ethTokensFilePath)
+            createTokensFile(HashMap(), irohaTokensFilePath)
             executeTokenRegistration(tokenRegistrationConfig)
-            ethTokensProvider.getTokens().fold({ tokensFromProvider ->
-                val expected = mapOf(Pair("0x0000000000000000000000000000000000000000", "$XOR_NAME#$SORA_DOMAIN"))
-                assertEquals(expected, tokensFromProvider)
+            ethTokensProvider.getEthAnchoredTokens().fold({ tokensFromProvider ->
+                assertTrue(tokensFromProvider.isEmpty())
+            }, { ex -> fail("cannot fetch tokens", ex) })
+
+            ethTokensProvider.getIrohaAnchoredTokens().fold({ tokensFromProvider ->
+                assertTrue(tokensFromProvider.isEmpty())
             }, { ex -> fail("cannot fetch tokens", ex) })
         }
     }
+
 
     //Creates json file full of ERC20 tokens
     private fun createTokensFile(tokens: Map<String, EthTokenInfo>, tokensFilePath: String) {
@@ -131,5 +125,23 @@ class ERC20TokenRegistrationTest {
             tokens.put(tokenAddress, tokenInfo)
         }
         return tokens
+    }
+
+    private fun tokensMapToInfo(
+        ethTokensProvider: EthTokensProvider,
+        tokens: Map<String, String>
+    ): List<Pair<String, EthTokenInfo>> {
+        return tokens.map { (ethAddress, tokenId) ->
+            val name = tokenId.split("#").first()
+            val domain = tokenId.split("#").last()
+            Pair(
+                ethAddress,
+                EthTokenInfo(
+                    name,
+                    domain,
+                    ethTokensProvider.getTokenPrecision(tokenId).get()
+                )
+            )
+        }.sortedBy { it.first }
     }
 }

@@ -2,13 +2,13 @@
 
 package com.d3.eth.token
 
+import com.d3.commons.config.loadConfigs
+import com.d3.commons.model.IrohaCredential
+import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import com.d3.commons.config.loadConfigs
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import com.d3.commons.model.IrohaCredential
 import mu.KLogging
-import com.d3.commons.sidechain.iroha.util.ModelUtil
 
 private val logger = KLogging().logger
 
@@ -29,7 +29,12 @@ fun executeTokenRegistration(tokenRegistrationConfig: ERC20TokenRegistrationConf
         tokenRegistrationConfig.irohaCredential.pubkeyPath,
         tokenRegistrationConfig.irohaCredential.privkeyPath
     )
-        .map { keypair -> IrohaCredential(tokenRegistrationConfig.irohaCredential.accountId, keypair) }
+        .map { keypair ->
+            IrohaCredential(
+                tokenRegistrationConfig.irohaCredential.accountId,
+                keypair
+            )
+        }
         .flatMap { credentials ->
             IrohaAPI(
                 tokenRegistrationConfig.iroha.hostname,

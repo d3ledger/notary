@@ -103,7 +103,7 @@ class FailedTransactionTest {
             Assertions.assertEquals(200, res.statusCode)
             integrationHelper.registerClientWithoutRelay(clientAccount, listOf())
             val coinName = String.getRandomString(9)
-            integrationHelper.addERC20Token(
+            integrationHelper.addEthAnchoredERC20Token(
                 anotherFailerAddress,
                 EthTokenInfo(coinName, ETH_DOMAIN, 0)
             )

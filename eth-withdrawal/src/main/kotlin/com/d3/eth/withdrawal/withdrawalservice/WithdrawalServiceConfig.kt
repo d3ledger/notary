@@ -12,11 +12,18 @@ interface WithdrawalServiceConfig {
     /** Notary account in Iroha */
     val notaryIrohaAccount: String
 
-    /** Iroha account that stores tokens */
-    val tokenStorageAccount: String
+    /** Iroha account that stores Ethereum anchored ERC20 tokens */
+    val ethAnchoredTokenStorageAccount: String
 
-    /** Iroha account sets tokens */
-    val tokenSetterAccount: String
+    /** Iroha account that sets that stores Ethereum anchored ERC20 tokens */
+    val ethAnchoredTokenSetterAccount: String
+
+
+    /** Iroha account that stores Iroha anchored ERC20 tokens */
+    val irohaAnchoredTokenStorageAccount: String
+
+    /** Iroha account that sets that stores Iroha anchored ERC20 tokens */
+    val irohaAnchoredTokenSetterAccount: String
 
     /** Notary storage account in Iroha */
     val notaryListStorageAccount: String

@@ -49,9 +49,9 @@ class EthTokensProviderTest {
                 val ethWallet = "0x$precision"
                 val tokenInfo = EthTokenInfo(String.getRandomString(9), ETH_DOMAIN, precision)
                 expectedTokens[ethWallet] = tokenInfo
-                integrationHelper.addERC20Token(ethWallet, tokenInfo)
+                integrationHelper.addEthAnchoredERC20Token(ethWallet, tokenInfo)
             }
-            ethTokensProvider.getTokens()
+            ethTokensProvider.getEthAnchoredTokens()
                 .fold(
                     { tokens ->
                         assertFalse(tokens.isEmpty())

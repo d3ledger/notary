@@ -2,9 +2,9 @@ package com.d3.eth.notary.endpoint
 
 import com.d3.commons.notary.endpoint.ServerInitializationBundle
 import com.d3.eth.deposit.endpoint.*
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.mock
 import com.squareup.moshi.Moshi
 import io.ktor.http.HttpStatusCode
 import org.junit.jupiter.api.Assertions.assertEquals

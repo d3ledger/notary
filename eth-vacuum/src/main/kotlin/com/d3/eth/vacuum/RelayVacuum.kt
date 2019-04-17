@@ -1,15 +1,17 @@
 package com.d3.eth.vacuum
 
-import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.flatMap
-import com.github.kittinunf.result.map
 import com.d3.commons.config.EthereumPasswords
-import contract.Relay
-import jp.co.soramitsu.iroha.java.QueryAPI
-import mu.KLogging
+import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.eth.provider.EthRelayProviderIrohaImpl
 import com.d3.eth.provider.EthTokensProviderImpl
 import com.d3.eth.sidechain.util.DeployHelper
+import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.flatMap
+import com.github.kittinunf.result.map
+import contract.Relay
+import jp.co.soramitsu.iroha.java.QueryAPI
+import mu.KLogging
+import org.web3j.tx.gas.StaticGasProvider
 
 /**
  * Class is responsible for relay contracts vacuum
@@ -26,9 +28,11 @@ class RelayVacuum(
     private val deployHelper =
         DeployHelper(relayVacuumConfig.ethereum, relayVacuumEthereumPasswords)
     private val ethTokensProvider = EthTokensProviderImpl(
-        queryAPI,
-        relayVacuumConfig.tokenStorageAccount,
-        relayVacuumConfig.tokenSetterAccount
+        IrohaQueryHelperImpl(queryAPI),
+        relayVacuumConfig.ethAnchoredTokenStorageAccount,
+        relayVacuumConfig.ethAnchoredTokenSetterAccount,
+        relayVacuumConfig.irohaAnchoredTokenStorageAccount,
+        relayVacuumConfig.irohaAnchoredTokenSetterAccount
     )
 
     private val ethRelayProvider = EthRelayProviderIrohaImpl(
@@ -47,8 +51,7 @@ class RelayVacuum(
                     ethPublicKey,
                     deployHelper.web3,
                     deployHelper.credentials,
-                    deployHelper.gasPrice,
-                    deployHelper.gasLimit
+                    StaticGasProvider(deployHelper.gasPrice, deployHelper.gasLimit)
                 )
             }
         }
@@ -58,7 +61,7 @@ class RelayVacuum(
      * Moves all currency(ETH and tokens) from non free relay contracts to master contract
      */
     fun vacuum(): Result<Unit, Exception> {
-        return ethTokensProvider.getTokens().flatMap { providedTokens ->
+        return ethTokensProvider.getEthAnchoredTokens().flatMap { providedTokens ->
             logger.info { "Provided tokens $providedTokens" }
             getAllRelays().map { relays ->
                 logger.info { "Relays to vacuum ${relays.map { relay -> relay.contractAddress }}" }

@@ -6,6 +6,7 @@ import com.d3.commons.config.EthereumPasswords
 import com.d3.commons.config.loadConfigs
 import com.d3.commons.config.loadEthPasswords
 import com.d3.commons.model.IrohaCredential
+import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.eth.provider.EthRelayProviderIrohaImpl
 import com.d3.eth.provider.EthTokensProviderImpl
@@ -76,9 +77,11 @@ fun executeDeposit(
         depositConfig.registrationServiceIrohaAccount
     )
     val ethTokensProvider = EthTokensProviderImpl(
-        queryAPI,
-        depositConfig.tokenStorageAccount,
-        depositConfig.tokenSetterAccount
+        IrohaQueryHelperImpl(queryAPI),
+        depositConfig.ethAnchoredTokenStorageAccount,
+        depositConfig.ethAnchoredTokenSetterAccount,
+        depositConfig.irohaAnchoredTokenStorageAccount,
+        depositConfig.irohaAnchoredTokenSetterAccount
     )
     return EthDepositInitialization(
         irohaCredential,

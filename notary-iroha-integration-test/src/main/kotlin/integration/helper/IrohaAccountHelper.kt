@@ -35,6 +35,9 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
     /** Notary account */
     val notaryAccount by lazy { createNotaryAccount() }
 
+    val ethAnchoredTokenStorageAccount by lazy { createTesterAccount("eth_anch_tokens_") }
+    val irohaAnchoredTokenStorageAccount by lazy { createTesterAccount("iroha_anch_tokens_") }
+
     val clientStorageAccount by lazy { createTesterAccount("client_accounts").accountId }
 
     /**
@@ -119,19 +122,26 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
 
     /** Account that collects withdrawal transaction consensus data */
     val btcConsensusAccount by lazy {
-        createTesterAccount("consensus","consensus_collector")
+        createTesterAccount("consensus", "consensus_collector")
     }
-
-    /** Account that used to store tokens */
-    val tokenStorageAccount by lazy { notaryAccount }
 
     /** Account that sets tokens */
     val tokenSetterAccount by lazy { createTesterAccount("eth_tokens", "eth_token_list_storage") }
 
     /** Account that used to store peers*/
-    val notaryListSetterAccount by lazy { createTesterAccount("notary_setter", "eth_token_list_storage") }
+    val notaryListSetterAccount by lazy {
+        createTesterAccount(
+            "notary_setter",
+            "eth_token_list_storage"
+        )
+    }
 
-    val notaryListStorageAccount by lazy { createTesterAccount("notary_storage", "notary_list_holder") }
+    val notaryListStorageAccount by lazy {
+        createTesterAccount(
+            "notary_storage",
+            "notary_list_holder"
+        )
+    }
 
     val changeAddressesStorageAccount by lazy { createTesterAccount("change_addresses") }
 
@@ -198,7 +208,11 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
     fun addNotarySignatory(keypair: KeyPair) {
         ModelUtil.addSignatory(irohaConsumer, notaryAccount.accountId, keypair.public)
             .flatMap {
-                ModelUtil.setAccountQuorum(irohaConsumer, notaryAccount.accountId, notaryKeys.size + 1)
+                ModelUtil.setAccountQuorum(
+                    irohaConsumer,
+                    notaryAccount.accountId,
+                    notaryKeys.size + 1
+                )
             }
             .fold({
                 notaryKeys.add(keypair)

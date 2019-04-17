@@ -3,7 +3,7 @@ package com.d3.commons.notary
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.SideChainEvent
 import com.d3.commons.sidechain.iroha.util.ModelUtil
-import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockitokotlin2.mock
 import io.reactivex.Observable
 import io.reactivex.observers.TestObserver
 import jp.co.soramitsu.iroha.java.IrohaAPI
