@@ -13,22 +13,18 @@ import java.util.concurrent.ExecutorService
  * @param registeredAddresses - list of registered BTC addresses
  * @param confidenceLevel - level of confidence aka depth of transaction. Recommend value is 6
  * @param confidenceListenerExecutor - executor that will be used to execute confidence listener logic
- * @param btcDepositTxHandler - handles btc deposit transactions
- * @param onTxSave - function that will be called right after deposit('unspent' occurrence)
+ * @param btcDepositTxHandler - handles btc deposit transactions deposit('unspent' occurrence)
  */
 class BitcoinTransactionListener(
     private val registeredAddresses: List<BtcAddress>,
     private val confidenceLevel: Int,
     private val confidenceListenerExecutor: ExecutorService,
-    private val btcDepositTxHandler: BtcDepositTxHandler,
-    private val onTxSave: () -> Unit
+    private val btcDepositTxHandler: BtcDepositTxHandler
 ) {
     fun onTransaction(tx: Transaction, blockTime: Date) {
-        //TODO save change address
         if (!hasRegisteredAddresses(tx)) {
             return
         }
-        onTxSave()
         if (tx.confidence.depthInBlocks >= confidenceLevel) {
             //If tx has desired depth, we call function that handles it
             logger.info { "BTC was received. Tx: ${tx.hashAsString}" }
