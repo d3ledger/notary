@@ -80,7 +80,7 @@ class D3TestGenesisFactory : GenesisInterface {
                             account.domainId,
                             getIrohaPublicKeyFromHex(accountPubInfo.pubKeys[0])
                         )
-                        accountPubInfo.pubKeys.subList(1, accountPubInfo.pubKeys.size)
+                        accountPubInfo.pubKeys.asReversed().subList(0, accountPubInfo.pubKeys.size)
                             .forEach { key ->
                                 transactionBuilder.addSignatory(
                                     account.id,
@@ -91,6 +91,8 @@ class D3TestGenesisFactory : GenesisInterface {
                             transactionBuilder.setAccountQuorum(accountPubInfo.id, accountPubInfo.quorum)
                         } else if (account.quorum <= accountPubInfo.quorum) {
                             transactionBuilder.setAccountQuorum(accountPubInfo.id, accountPubInfo.quorum)
+                        } else {
+                            throw AccountException("Looks like account quorum in request is less than min quorum for this account: ${account.id}")
                         }
                     } else {
                         throw AccountException("Needed account keys are not received: ${account.id}")
