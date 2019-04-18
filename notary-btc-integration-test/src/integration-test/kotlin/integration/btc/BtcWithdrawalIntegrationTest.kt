@@ -476,8 +476,7 @@ class BtcWithdrawalIntegrationTest {
         val btcAddressSrc = integrationHelper.registerBtcAddressNoPreGen(
             randomNameSrc,
             CLIENT_DOMAIN,
-            testClientSrcKeypair,
-            listOf("some_btc_address")
+            testClientSrcKeypair
         )
         integrationHelper.sendBtc(btcAddressSrc, 1, 6)
         val btcAddressDest = integrationHelper.createBtcAddress()
@@ -518,8 +517,7 @@ class BtcWithdrawalIntegrationTest {
         val btcAddressSrc = integrationHelper.registerBtcAddressNoPreGen(
             randomNameSrc,
             CLIENT_DOMAIN,
-            testClientSrcKeypair,
-            listOf(btcAddressDest)
+            testClientSrcKeypair
         )
         val testClientSrc = "$randomNameSrc@$CLIENT_DOMAIN"
         integrationHelper.sendBtc(btcAddressSrc, 1, 6)
