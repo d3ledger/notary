@@ -2,11 +2,9 @@ package com.d3.btc.withdrawal.config
 
 import com.d3.btc.provider.BtcChangeAddressProvider
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
-import com.d3.btc.withdrawal.BTC_WITHDRAWAL_SERVICE_NAME
-import com.d3.btc.provider.BtcChangeAddressProvider
 import com.d3.btc.wallet.WalletInitializer
 import com.d3.btc.wallet.loadAutoSaveWallet
-import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
+import com.d3.btc.withdrawal.BTC_WITHDRAWAL_SERVICE_NAME
 import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
 import com.d3.commons.config.*
 import com.d3.commons.model.IrohaCredential
@@ -17,10 +15,8 @@ import com.d3.commons.util.createPrettySingleThreadPool
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
-import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import java.io.File
 
 val withdrawalConfig =
     loadConfigs(
@@ -160,5 +156,6 @@ class BtcWithdrawalAppConfiguration {
         )
 
     @Bean
-    fun walletInitializer() = WalletInitializer(btcRegisteredAddressesProvider(), btcChangeAddressProvider())
+    fun walletInitializer() =
+        WalletInitializer(btcRegisteredAddressesProvider(), btcChangeAddressProvider())
 }
