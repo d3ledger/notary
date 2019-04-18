@@ -136,13 +136,15 @@ public class IrohaAccountRegistratorTest {
         IrohaOrderedBatch batch = new IrohaOrderedBatch(new ArrayList<>());
 
         doReturn(batch).when(irohaAccountRegistrator)
-                .createAccountCreationBatch(currencyAddress, whitelistKey, whitelist, userName, domain, pubKey, notaryStorageStrategy);
+            .createAccountCreationBatch(currencyAddress, userName, domain, pubKey,
+                notaryStorageStrategy);
         doReturn(unsignedTransactions).when(irohaConverter)
                 .convert(batch);
         when(irohaConsumer.send(unsignedTransactions)).thenReturn(Result.Companion.of(() -> passedTransactions));
         doReturn(false).when(irohaAccountRegistrator)
                 .isAccountCreationBatchSuccessful(passedTransactions);
-        irohaAccountRegistrator.register(currencyAddress, whitelistKey, whitelist, userName, domain, pubKey, notaryStorageStrategy)
+        irohaAccountRegistrator
+            .register(currencyAddress, userName, domain, pubKey, notaryStorageStrategy)
                 .fold(address -> {
                     assertEquals(currencyAddress, address);
                     return null;
@@ -168,13 +170,15 @@ public class IrohaAccountRegistratorTest {
         IrohaOrderedBatch batch = new IrohaOrderedBatch(new ArrayList<>());
 
         doReturn(batch).when(irohaAccountRegistrator)
-                .createAccountCreationBatch(currencyAddress, whitelistKey, whitelist, userName, domain, pubKey, notaryStorageStrategy);
+            .createAccountCreationBatch(currencyAddress, userName, domain, pubKey,
+                notaryStorageStrategy);
         doReturn(unsignedTransactions).when(irohaConverter)
                 .convert(batch);
         when(irohaConsumer.send(unsignedTransactions)).thenReturn(Result.Companion.of(() -> passedTransactions));
         doReturn(true).when(irohaAccountRegistrator)
                 .isAccountCreationBatchSuccessful(passedTransactions);
-        irohaAccountRegistrator.register(currencyAddress, whitelistKey, whitelist, userName, domain, pubKey, notaryStorageStrategy)
+        irohaAccountRegistrator
+            .register(currencyAddress, userName, domain, pubKey, notaryStorageStrategy)
                 .fold(address -> {
                     fail();
                     return "";
