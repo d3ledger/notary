@@ -8,8 +8,11 @@ import com.d3.btc.deposit.service.BtcWalletListenerRestartService
 import com.d3.btc.handler.NewBtcClientRegistrationHandler
 import com.d3.btc.listener.NewBtcClientRegistrationListener
 import com.d3.btc.peer.SharedPeerGroup
+import com.d3.btc.provider.BtcChangeAddressProvider
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcRegTestConfigProvider
+import com.d3.btc.wallet.WalletInitializer
+import com.d3.btc.wallet.loadAutoSaveWallet
 import com.d3.commons.config.BitcoinConfig
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.notary.NotaryImpl
@@ -67,11 +70,20 @@ class BtcNotaryTestEnvironment(
         )
 
     private val transferWallet by lazy {
-        org.bitcoinj.wallet.Wallet.loadFromFile(File(notaryConfig.btcTransferWalletPath))
+        loadAutoSaveWallet(notaryConfig.btcTransferWalletPath)
     }
 
     private val peerGroup by lazy {
         createPeerGroup(transferWallet)
+    }
+
+    private val btcChangeAddressProvider = BtcChangeAddressProvider(
+        queryAPI, depositConfig.mstRegistrationAccount,
+        depositConfig.changeAddressesStorageAccount
+    )
+
+    private val walletInitializer by lazy {
+        WalletInitializer(btcRegisteredAddressesProvider, btcChangeAddressProvider)
     }
 
     fun createPeerGroup(transferWallet: Wallet): SharedPeerGroup {
@@ -79,7 +91,8 @@ class BtcNotaryTestEnvironment(
             transferWallet,
             btcNetworkConfigProvider,
             notaryConfig.bitcoin.blockStoragePath,
-            BitcoinConfig.extractHosts(notaryConfig.bitcoin)
+            BitcoinConfig.extractHosts(notaryConfig.bitcoin),
+            walletInitializer
         )
     }
 

@@ -11,6 +11,7 @@ import com.d3.btc.listener.NewBtcClientRegistrationListener
 import com.d3.btc.peer.SharedPeerGroup
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
+import com.d3.btc.wallet.addWatchedAddresses
 import com.d3.btc.wallet.checkWalletNetwork
 import com.d3.commons.notary.NotaryImpl
 import com.d3.commons.sidechain.SideChainEvent
@@ -84,19 +85,6 @@ class BtcNotaryInitialization(
                 close()
             }
             logger.info { "Registration service listener was successfully initialized" }
-        }.flatMap {
-            btcRegisteredAddressesProvider.getRegisteredAddresses()
-        }.map { registeredAddresses ->
-            // Adding previously registered addresses to the transferWallet
-            registeredAddresses.map { btcAddress ->
-                Address.fromBase58(
-                    btcNetworkConfigProvider.getConfig(),
-                    btcAddress.address
-                )
-            }.forEach { address ->
-                transferWallet.addWatchedAddress(address)
-            }
-            logger.info { "Previously registered addresses were added to the transferWallet" }
         }.map {
             initBtcEvents(peerGroup, btcDepositConfig.bitcoin.confidenceLevel)
         }.map {

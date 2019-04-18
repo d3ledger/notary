@@ -8,6 +8,7 @@ import com.d3.btc.helper.network.startChainDownload
 import com.d3.btc.provider.BtcChangeAddressProvider
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
+import com.d3.btc.wallet.addWatchedAddresses
 import com.d3.btc.wallet.checkWalletNetwork
 import com.d3.btc.withdrawal.BTC_WITHDRAWAL_SERVICE_NAME
 import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
@@ -29,12 +30,10 @@ import com.github.kittinunf.result.map
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
 import mu.KLogging
-import org.bitcoinj.core.Address
 import org.bitcoinj.core.PeerGroup
 import org.bitcoinj.utils.BriefLogFormatter
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import java.io.Closeable
 import java.io.File
@@ -81,33 +80,9 @@ class BtcWithdrawalInitialization(
             if (changeAddresses.isEmpty()) {
                 throw IllegalStateException("No change addresses were generated")
             }
-            changeAddresses.forEach { changeAddress ->
-                transferWallet.addWatchedAddress(
-                    Address.fromBase58(btcNetworkConfigProvider.getConfig(), changeAddress.address)
-                )
-            }
-        }.flatMap {
-            btcRegisteredAddressesProvider.getRegisteredAddresses()
-        }.map { registeredAddresses ->
-            // Adding previously registered addresses to the transferWallet
-            registeredAddresses.map { btcAddress ->
-                Address.fromBase58(
-                    btcNetworkConfigProvider.getConfig(),
-                    btcAddress.address
-                )
-            }.forEach { address ->
-                if (transferWallet.addWatchedAddress(address)) {
-                    logger.info("Address $address was added to wallet")
-                } else {
-                    logger.warn("Address $address was not added to wallet")
-                }
-            }
-            logger.info(
-                "Previously registered addresses were added to the transferWallet"
-            )
         }.flatMap {
             initBtcBlockChain()
-        }.flatMap { peerGroup ->
+        }.flatMap {
             initWithdrawalTransferListener()
         }
     }
