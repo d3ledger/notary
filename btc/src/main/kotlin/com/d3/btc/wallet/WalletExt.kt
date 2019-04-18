@@ -1,12 +1,16 @@
 package com.d3.btc.wallet
 
+import com.d3.btc.model.BtcAddress
 import com.github.kittinunf.result.Result
+import mu.KLogging
+import org.bitcoinj.core.Address
 import org.bitcoinj.core.NetworkParameters
 import org.bitcoinj.wallet.Wallet
 import java.io.File
 import java.io.RandomAccessFile
 import java.nio.channels.FileLock
 
+private val logger = KLogging().logger
 
 /**
  * Saves wallet safely.
@@ -30,7 +34,6 @@ fun safeLoad(walletPath: String): Wallet {
     lockFileApply(walletPath) { wallet = Wallet.loadFromFile(File(walletPath)) }
     return wallet!!
 }
-
 
 /**
  * Checks wallet network
@@ -69,4 +72,43 @@ private fun lockFileApply(filePath: String, apply: () -> Unit) {
             lock?.release()
         }
     }
+}
+
+/**
+ * Adds given addresses to wallet's watched addresses
+ * @param addresses - addresses to watch
+ */
+fun Wallet.addWatchedAddresses(addresses: List<BtcAddress>) {
+    addresses.map { btcAddress ->
+        Address.fromBase58(
+            this.params,
+            btcAddress.address
+        )
+    }.forEach { address ->
+        if (this.addWatchedAddress(address)) {
+            logger.info("Address $address was added to wallet")
+        } else {
+            logger.warn("Address $address was not added to wallet")
+        }
+    }
+}
+
+/**
+ * Loads wallet using given file path and makes it "autosavable"
+ * @param walletPath - path to a wallet
+ * @return wallet
+ */
+fun loadAutoSaveWallet(walletPath: String): Wallet {
+    val wallet = Wallet.loadFromFile(File(walletPath))
+    // Save the wallet file on every received coin in order to track UTXO
+    wallet.addCoinsReceivedEventListener { _, _, _, _ ->
+        wallet.saveToFile(File(walletPath))
+        logger.info("Got coin. Save wallet to $walletPath.")
+    }
+    // Save the wallet file on every sent coin in order to track UTXO
+    wallet.addCoinsSentEventListener { _, _, _, _ ->
+        wallet.saveToFile(File(walletPath))
+        logger.info("Sent coin. Save wallet to $walletPath.")
+    }
+    return wallet
 }

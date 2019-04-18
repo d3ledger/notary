@@ -7,6 +7,8 @@ import com.d3.btc.provider.BtcChangeAddressProvider
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
 import com.d3.btc.provider.network.BtcRegTestConfigProvider
+import com.d3.btc.wallet.WalletInitializer
+import com.d3.btc.wallet.loadAutoSaveWallet
 import com.d3.btc.withdrawal.BTC_WITHDRAWAL_SERVICE_NAME
 import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
 import com.d3.btc.withdrawal.handler.NewChangeAddressHandler
@@ -87,16 +89,7 @@ class BtcWithdrawalTestEnvironment(
     }
 
     val transferWallet by lazy {
-        Wallet.loadFromFile(File(btcWithdrawalConfig.btcTransfersWalletPath))
-    }
-
-    private val peerGroup by lazy {
-        integrationHelper.getPeerGroup(
-            transferWallet,
-            btcNetworkConfigProvider,
-            btcWithdrawalConfig.bitcoin.blockStoragePath,
-            BitcoinConfig.extractHosts(btcWithdrawalConfig.bitcoin)
-        )
+        loadAutoSaveWallet(btcWithdrawalConfig.btcTransfersWalletPath)
     }
 
     private val irohaApi by lazy {
@@ -157,6 +150,20 @@ class BtcWithdrawalTestEnvironment(
         btcWithdrawalConfig.mstRegistrationAccount,
         btcWithdrawalConfig.changeAddressesStorageAccount
     )
+
+    private val walletInitializer by lazy {
+        WalletInitializer(btcRegisteredAddressesProvider, btcChangeAddressProvider)
+    }
+
+    private val peerGroup by lazy {
+        integrationHelper.getPeerGroup(
+            transferWallet,
+            btcNetworkConfigProvider,
+            btcWithdrawalConfig.bitcoin.blockStoragePath,
+            BitcoinConfig.extractHosts(btcWithdrawalConfig.bitcoin),
+            walletInitializer
+        )
+    }
 
     val transactionHelper =
         BlackListableTransactionHelper(

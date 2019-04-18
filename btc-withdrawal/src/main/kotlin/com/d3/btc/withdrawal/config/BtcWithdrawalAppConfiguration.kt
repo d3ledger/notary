@@ -3,6 +3,10 @@ package com.d3.btc.withdrawal.config
 import com.d3.btc.provider.BtcChangeAddressProvider
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.withdrawal.BTC_WITHDRAWAL_SERVICE_NAME
+import com.d3.btc.provider.BtcChangeAddressProvider
+import com.d3.btc.wallet.WalletInitializer
+import com.d3.btc.wallet.loadAutoSaveWallet
+import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
 import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
 import com.d3.commons.config.*
 import com.d3.commons.model.IrohaCredential
@@ -72,7 +76,7 @@ class BtcWithdrawalAppConfiguration {
     fun withdrawalStatistics() = WithdrawalStatistics.create()
 
     @Bean
-    fun transferWallet() = Wallet.loadFromFile(File(withdrawalConfig.btcTransfersWalletPath))
+    fun transferWallet() = loadAutoSaveWallet(withdrawalConfig.btcTransfersWalletPath)
 
     @Bean
     fun withdrawalCredential() =
@@ -154,4 +158,7 @@ class BtcWithdrawalAppConfiguration {
             withdrawalConfig.notaryListStorageAccount,
             withdrawalConfig.notaryListSetterAccount
         )
+
+    @Bean
+    fun walletInitializer() = WalletInitializer(btcRegisteredAddressesProvider(), btcChangeAddressProvider())
 }

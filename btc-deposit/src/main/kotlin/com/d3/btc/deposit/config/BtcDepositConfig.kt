@@ -18,4 +18,8 @@ interface BtcDepositConfig {
     val registrationAccount: String
 
     val btcTransferWalletPath: String
+
+    val mstRegistrationAccount: String
+
+    val changeAddressesStorageAccount: String
 }

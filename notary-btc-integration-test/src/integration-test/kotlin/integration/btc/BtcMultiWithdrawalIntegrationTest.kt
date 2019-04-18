@@ -62,7 +62,12 @@ class BtcMultiWithdrawalIntegrationTest {
                 val testName = testNames[peerCount++]
                 val withdrawalConfig = integrationHelper.configHelper.createBtcWithdrawalConfig(testName)
                 val environment =
-                    BtcWithdrawalTestEnvironment(integrationHelper, testName, withdrawalConfig, withdrawalAccount)
+                    BtcWithdrawalTestEnvironment(
+                        integrationHelper,
+                        testName,
+                        btcWithdrawalConfig = withdrawalConfig,
+                        withdrawalCredential = withdrawalAccount
+                    )
                 environment.withdrawalTransferService.addNewBtcTransactionListener { tx ->
                     environment.createdTransactions[tx.hashAsString] = Pair(System.currentTimeMillis(), tx)
                 }
@@ -116,7 +121,7 @@ class BtcMultiWithdrawalIntegrationTest {
         assertEquals(200, res.statusCode)
         generateAddress(BtcAddressType.FREE)
         integrationHelper.registerBtcAddressNoPreGen(randomNameSrc, CLIENT_DOMAIN, testClientSrcKeypair)
-        val btcAddressDest = integrationHelper.createBtcAddress(environment.transferWallet)
+        val btcAddressDest = integrationHelper.createBtcAddress()
         integrationHelper.addIrohaAssetTo(testClientSrc, BTC_ASSET, amount)
         val initialSrcBalance = integrationHelper.getIrohaAccountBalance(testClientSrc, BTC_ASSET)
         integrationHelper.transferAssetIrohaFromClient(
@@ -155,7 +160,7 @@ class BtcMultiWithdrawalIntegrationTest {
         val btcAddressSrc =
             integrationHelper.registerBtcAddressNoPreGen(randomNameSrc, CLIENT_DOMAIN, testClientSrcKeypair)
         integrationHelper.sendBtc(btcAddressSrc, 1, environment.btcWithdrawalConfig.bitcoin.confidenceLevel)
-        val btcAddressDest = integrationHelper.createBtcAddress(environment.transferWallet)
+        val btcAddressDest = integrationHelper.createBtcAddress()
         integrationHelper.addIrohaAssetTo(testClientSrc, BTC_ASSET, amount)
         integrationHelper.transferAssetIrohaFromClient(
             testClientSrc,
