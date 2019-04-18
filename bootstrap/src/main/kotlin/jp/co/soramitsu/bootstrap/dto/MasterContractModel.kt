@@ -6,7 +6,7 @@ import javax.validation.constraints.NotNull
 data class SigsData(val vv: ArrayList<BigInteger>, val rr: ArrayList<ByteArray>, val ss: ArrayList<ByteArray>)
 
 data class UpdateMasterContractResponse(
-    val success:Boolean = false
+    val success: Boolean = false
 ) : Conflictable() {
     constructor(errorCode: String? = null, message: String? = null) :
             this(false) {
@@ -27,7 +27,7 @@ data class MasterContractProperties(
     @NotNull val notaries: List<StringKeyPair> = emptyList()
 )
 
-data class MasterContractsRequest(
+data class AllInitialContractsRequest(
     @NotNull val network: EthereumNetworkProperties = EthereumNetworkProperties(),
     @NotNull val notaryEthereumAccounts: List<String> = emptyList()
 )
@@ -37,7 +37,7 @@ data class StringKeyPair(
     @NotNull val public: String = ""
 )
 
-data class MasterContractResponse(
+data class DeployInitialContractsResponse(
     val masterEthAddress: String? = null,
     val relayRegistryEthAddress: String? = null,
     val relayImplementationAddress: String? = null,
@@ -49,3 +49,29 @@ data class MasterContractResponse(
         this.message = message
     }
 }
+
+data class DeploySmartContractResponse(
+    val contractAddress: String? = null
+) : Conflictable() {
+    constructor(errorCode: String? = null, message: String? = null) :
+            this(null) {
+        this.errorCode = errorCode
+        this.message = message
+    }
+}
+
+data class DeployMasterContractRequest(
+    @NotNull val network: EthereumNetworkProperties = EthereumNetworkProperties(),
+    @NotNull val notaryEthereumAccounts: List<String> = emptyList(),
+    @NotNull val relayRegistryAddress: String = ""
+)
+
+data class DeployRelayImplementationRequest(
+    @NotNull val network: EthereumNetworkProperties = EthereumNetworkProperties(),
+    @NotNull val masterContractAddress: String = ""
+)
+
+data class DeployMasterContractResponse(
+    val contractAddress: String? = null,
+    val soraAddress: String? = null
+) :Conflictable()

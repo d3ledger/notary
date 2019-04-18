@@ -10,6 +10,7 @@ import com.d3.btc.provider.account.IrohaBtcAccountRegistrator
 import com.d3.btc.provider.address.BtcAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
 import com.d3.btc.registration.strategy.BtcRegistrationStrategyImpl
+import com.d3.btc.wallet.WalletInitializer
 import com.d3.commons.config.BitcoinConfig
 import com.d3.commons.notary.IrohaCommand
 import com.d3.commons.notary.IrohaOrderedBatch
@@ -152,9 +153,10 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
         wallet: Wallet,
         btcNetworkConfigProvider: BtcNetworkConfigProvider,
         blockStoragePath: String,
-        hosts: List<String>
+        hosts: List<String>,
+        walletInitializer: WalletInitializer
     ): SharedPeerGroup {
-        return SharedPeerGroup(btcNetworkConfigProvider, wallet, blockStoragePath, hosts)
+        return SharedPeerGroup(btcNetworkConfigProvider, wallet, blockStoragePath, hosts, walletInitializer)
     }
 
     /**
@@ -224,9 +226,8 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
 
     /**
      * Creates random Bitcoin address
-     * @param wallet - wallet file that is used to generate addresses
      */
-    fun createBtcAddress(wallet: Wallet) = wallet.freshReceiveAddress().toBase58()
+    fun createBtcAddress() = Wallet(RegTestParams.get()).freshReceiveAddress().toBase58()
 
     /**
      * Registers BTC client with no generation

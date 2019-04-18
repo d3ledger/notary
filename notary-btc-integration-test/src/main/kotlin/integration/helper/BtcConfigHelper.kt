@@ -109,6 +109,8 @@ class BtcConfigHelper(
     ): BtcDepositConfig {
         val btcDepositConfig = loadConfigs("btc-deposit", BtcDepositConfig::class.java, "/btc/deposit.properties").get()
         return object : BtcDepositConfig {
+            override val mstRegistrationAccount = accountHelper.mstRegistrationAccount.accountId
+            override val changeAddressesStorageAccount = accountHelper.changeAddressesStorageAccount.accountId
             override val btcTransferWalletPath = createWalletFile("transfers.$testName")
             override val healthCheckPort = btcDepositConfig.healthCheckPort
             override val registrationAccount = accountHelper.registrationAccount.accountId
