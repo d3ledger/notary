@@ -31,7 +31,6 @@ class BitcoinBlockChainDepositListener(
     private val processedBlocks = HashSet<String>()
 
     override fun onBlocksDownloaded(peer: Peer?, block: Block, filteredBlock: FilteredBlock?, blocksLeft: Int) {
-        //TODO call onTxSave() here
         if (block.time.time < System.currentTimeMillis() - DAY_MILLIS) {
             //We cannot handle too old blocks due to Iroha time restrictions.
             return
@@ -52,8 +51,7 @@ class BitcoinBlockChainDepositListener(
                         registeredAddresses,
                         confidenceLevel,
                         confidenceListenerExecutorService,
-                        BtcDepositTxHandler(registeredAddresses, btcEventsSource, onTxSave),
-                        onTxSave
+                        BtcDepositTxHandler(registeredAddresses, btcEventsSource, onTxSave)
                     )
                 block.transactions?.forEach { tx ->
                     receivedCoinsListener.onTransaction(

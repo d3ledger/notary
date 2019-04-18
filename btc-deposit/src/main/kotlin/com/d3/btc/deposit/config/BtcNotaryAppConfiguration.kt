@@ -1,12 +1,14 @@
 package com.d3.btc.deposit.config
 
 import com.d3.btc.deposit.BTC_DEPOSIT_SERVICE_NAME
+import com.d3.btc.provider.BtcChangeAddressProvider
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
+import com.d3.btc.wallet.WalletInitializer
+import com.d3.btc.wallet.loadAutoSaveWallet
 import com.d3.commons.config.BitcoinConfig
 import com.d3.commons.config.loadConfigs
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.notary.NotaryImpl
-import com.d3.commons.provider.NotaryPeerListProviderImpl
 import com.d3.commons.sidechain.SideChainEvent
 import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.util.ModelUtil
@@ -15,10 +17,8 @@ import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
-import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import java.io.File
 
 val depositConfig = loadConfigs("btc-deposit", BtcDepositConfig::class.java, "/btc/deposit.properties").get()
 
@@ -71,7 +71,7 @@ class BtcNotaryAppConfiguration {
         ModelUtil.loadKeypair(depositConfig.notaryCredential.pubkeyPath, depositConfig.notaryCredential.privkeyPath)
             .fold({ keypair ->
                 return BtcRegisteredAddressesProvider(
-                    QueryAPI(irohaAPI(), depositConfig.notaryCredential.accountId, keypair),
+                    queryAPI(),
                     depositConfig.registrationAccount,
                     depositConfig.notaryCredential.accountId
                 )
@@ -83,7 +83,7 @@ class BtcNotaryAppConfiguration {
         createPrettySingleThreadPool(BTC_DEPOSIT_SERVICE_NAME, "reg-clients-listener")
 
     @Bean
-    fun transferWallet() = Wallet.loadFromFile(File(depositConfig.btcTransferWalletPath))
+    fun transferWallet() = loadAutoSaveWallet(depositConfig.btcTransferWalletPath)
 
     @Bean
     fun notaryCredential() = notaryCredential
@@ -100,4 +100,14 @@ class BtcNotaryAppConfiguration {
 
     @Bean
     fun btcHosts() = BitcoinConfig.extractHosts(notaryConfig().bitcoin)
+
+    @Bean
+    fun btcChangeAddressProvider() = BtcChangeAddressProvider(
+        queryAPI(),
+        depositConfig.mstRegistrationAccount,
+        depositConfig.changeAddressesStorageAccount
+    )
+
+    @Bean
+    fun walletInitializer() = WalletInitializer(btcRegisteredAddressesProvider(), btcChangeAddressProvider())
 }
