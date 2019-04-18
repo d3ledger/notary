@@ -155,7 +155,7 @@ class IrohaTest {
             .perform(
                 post("/iroha/create/genesisBlock").contentType(MediaType.APPLICATION_JSON).content(
                     mapper.writeValueAsString(
-                        jp.co.soramitsu.bootstrap.dto.GenesisRequest(
+                        GenesisRequest(
                             peers = peers,
                             accounts = accounts
                         )
