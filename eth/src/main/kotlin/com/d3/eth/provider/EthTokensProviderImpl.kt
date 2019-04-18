@@ -5,7 +5,6 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.map
 import mu.KLogging
-import java.lang.IllegalArgumentException
 
 const val ETH_NAME = "ether"
 const val ETH_DOMAIN = "ethereum"

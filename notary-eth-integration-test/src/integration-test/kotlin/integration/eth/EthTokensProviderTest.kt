@@ -76,18 +76,19 @@ class EthTokensProviderTest {
      */
     @Test
     fun getNonexistentToken() {
+        val nonexistAssetId = " nonexist#token"
         assertTimeoutPreemptively(timeoutDuration) {
             integrationHelper.nameCurrentThread(this::class.simpleName!!)
-            ethTokensProvider.getTokenPrecision("nonexist")
+            ethTokensProvider.getTokenPrecision(nonexistAssetId)
                 .fold(
                     { fail("Result returned success while failure is expected.") },
                     { Unit }
                 )
 
-            ethTokensProvider.getTokenAddress("nonexist")
+            ethTokensProvider.getTokenAddress(nonexistAssetId)
                 .fold(
                     { fail("Result returned success while failure is expected.") },
-                    { assertEquals("Collection is empty.", it.message) }
+                    { assertEquals("Token $nonexistAssetId not found.", it.message) }
                 )
         }
     }
