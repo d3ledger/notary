@@ -13,11 +13,12 @@
     register: accounts
     tags: ["iroha"]
 
+  # If quorum is 1 - generate a single Iroha key, otherwise, number of hosts defines how much keys will be generated
   - name: Generate keys for accounts
     uri: 
       url: "{{ bootstrap_api_address }}/iroha/create/keyPair"
       return_content: yes
-    loop: "{{ range(accounts.json.accounts | json_query('[*].quorum') | map('int')| sum) | list }}"
+    loop: "{{ range(accounts.json.accounts | json_query('[*].quorum') | map('regex_replace', '^1\\d+|[2-9]\\d*$', ansible_play_hosts|length|string) | map('int') | sum) | list }}"
     register: account_keys
     tags: ["iroha"]
 
@@ -28,13 +29,18 @@
       offset: 0
     tags: ["iroha"]
 
+  # Scan through the list of generated accounts while also shifting a pointer in a list of generated keys
+  # Either assign a single key for an account if quorum is 1. Otherwise, number of hosts defines how much keys will be generated for that account (MST account)
   - name: Assign keys for accounts
     set_fact:
-      accounts_gb: "{{ accounts_gb + [ {'pubKeys': account_keys.results | json_query(['([*].json.public)[',offset,':', item.quorum |int + offset|int,']'] | join), 'domainId': item.domainId, 'accountName': item.id, 'id': item.id, 'quorum': item.quorum } ]}}"
-      accounts_gb_with_priv: "{{ accounts_gb_with_priv + [ {'pubKeys': account_keys.results | json_query(['([*].json.public)[',offset,':', item.quorum |int + offset|int,']'] | join), 'privKeys': account_keys.results | json_query(['([*].json.private)[',offset,':', item.quorum |int + offset|int,']'] | join), 'domainId': item.domainId, 'accountName': item.id, 'id': item.id, 'quorum': item.quorum } ]}}"
-      offset: "{{ [offset | int, item.quorum | int] | sum}}"
+      accounts_gb: "{{ accounts_gb + [ {'pubKeys': account_keys.results | json_query(['([*].json.public)[',offset,':', item.quorum | regex_replace('^1\\d+|[2-9]\\d*$', ansible_play_hosts|length|string) | int + offset|int,']'] | join), 'domainId': item.domainId, 'accountName': item.id, 'id': item.id, 'quorum': item.quorum } ]}}"
+      accounts_gb_with_priv: "{{ accounts_gb_with_priv + [ {'pubKeys': account_keys.results | json_query(['([*].json.public)[',offset,':', item.quorum | regex_replace('^1\\d+|[2-9]\\d*$', ansible_play_hosts|length|string) | int + offset|int,']'] | join), 'privKeys': account_keys.results | json_query(['([*].json.private)[',offset,':', item.quorum | regex_replace('^1\\d+|[2-9]\\d*$', ansible_play_hosts|length|string) | int + offset|int,']'] | join), 'domainId': item.domainId, 'accountName': item.id, 'id': item.id, 'quorum': item.quorum } ]}}"
+      offset: "{% if item.quorum | int > 1 %}{{ [offset | int, ansible_play_hosts | length | int] | sum}}{% else %}{{ [offset | int, 1] | sum}}{% endif %}"
     loop: "{{ accounts.json.accounts }}"
     tags: ["iroha"]
+
+  - debug:
+      var: accounts_gb
 
   - name: Generate Iroha peers
     uri:
@@ -44,10 +50,9 @@
     register: iroha_keys_gb
     tags: ["iroha"]
 
-    # TODO: bootstrap_eth_notary_container_name always equals the value of variable on current host (which is always the same)
   - name: Assign keys for Iroha peers
     set_fact:
-      iroha_peer_keys_gb: "{{ iroha_peer_keys_gb + [{ 'hostPort': iroha_all_nodes[idx].hostname, 'peerKey': item.json.public, 'notaryHostPort': 'http://' + bootstrap_eth_notary_container_name + ':20000' }] }}"
+      iroha_peer_keys_gb: "{{ iroha_peer_keys_gb + [{ 'hostPort': iroha_all_nodes[idx].hostname, 'peerKey': item.json.public, 'notaryHostPort': 'http://' + hostvars[ansible_play_hosts[idx]]['bootstrap_eth_notary_container_name'] + ':20000' }] }}"
     loop: "{{ iroha_keys_gb.results }}"
     loop_control:
       index_var: idx
@@ -82,18 +87,19 @@
   become: no
   when: bootstrap_generate_iroha_config
 
+# Use modulo operator to pick a key from the list of keys
 - name: Copy private keys
   copy:
-    content: "{{ item.0.1 }}"
-    dest: "{{ iroha_deploy_dir }}/conf/{{ item.1.human_hostname }}/{{ item.0.0.id }}.priv"
-  loop: "{{ accounts_gb_with_priv | subelements('privKeys') | product(iroha_nodes) | list }}"
+    content: "{{ item.privKeys[(bootstrap_nodeid - 1) % item.privKeys | length] }}"
+    dest: "{{ iroha_deploy_dir }}/conf/{{ iroha_nodes[0].human_hostname }}/{{ item.id }}.priv"
+  loop: "{{ accounts_gb_with_priv }}"
   when: bootstrap_generate_iroha_config
   tags: ["iroha"]
 
 - name: Copy public keys
   copy:
-    content: "{{ item.0.1 }}"
-    dest: "{{ iroha_deploy_dir }}/conf/{{ item.1.human_hostname }}/{{ item.0.0.id }}.pub"
-  loop: "{{ accounts_gb_with_priv | subelements('pubKeys') | product(iroha_nodes) | list }}"
+    content: "{{ item.pubKeys[(bootstrap_nodeid - 1) % item.pubKeys | length] }}"
+    dest: "{{ iroha_deploy_dir }}/conf/{{ iroha_nodes[0].human_hostname }}/{{ item.id }}.pub"
+  loop: "{{ accounts_gb_with_priv }}"
   when: bootstrap_generate_iroha_config
   tags: ["iroha"]

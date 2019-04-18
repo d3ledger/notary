@@ -1,4 +1,11 @@
+- name: Create Iroha config dirs
+  file:
+    path: "{{ iroha_deploy_dir }}/conf/{{ item.human_hostname }}"
+    state: directory
+  loop: "{{ iroha_nodes }}"
+
 - include: iroha.yml
+
 - block:
   - name: Create dirs
     file:
@@ -11,13 +18,8 @@
       - "{{ bootstrap_deployment_basedir }}/conf/{{ bootstrap_btc_blocks_path }}"
       - "{{ bootstrap_deployment_basedir }}/conf/btc"
       - "{{ bootstrap_deployment_basedir }}/conf/eth"
+      - "{{ bootstrap_deployment_basedir }}/conf/brvs"
     tags: ["deployment-configs"]
-
-  - name: Create Iroha config dirs
-    file:
-      path: "{{ iroha_deploy_dir }}/conf/{{ item.human_hostname }}"
-      state: directory
-    loop: "{{ iroha_nodes }}"
 
   - include: ethereum.yml
   - include: bitcoin.yml
@@ -103,13 +105,6 @@
       username: "{{ bootstrap_docker_registry_username }}"
       password: "{{ bootstrap_docker_registry_password }}"
       reauthorize: yes
-
-  - name: Attach Iroha containers to local D3 network
-    docker_network:
-      name: "{{ bootstrap_docker_local_network_name }}"
-      containers: "{{ iroha_nodes | json_query('[*].hostname') | map('regex_replace', '^(.*):.*$', '\\1') | list }}"
-      appends: yes
-    tags: ["deployment-configs"]
 
   - name: Run services
     docker_service:

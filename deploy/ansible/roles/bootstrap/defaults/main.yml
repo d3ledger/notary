@@ -9,6 +9,8 @@ bootstrap_docker_registry_password: ''
 bootstrap_docker_local_network_name: d3-local
 bootstrap_generate_iroha_config: true
 bootstrap_generate_d3_services_config: true
+bootstrap_nodeid: ''
+bootstrap_brvs_enable:
 
 bootstrap_notary_address: ''
 bootstrap_eth_keys_path: 'ethereum/keys'
@@ -18,9 +20,6 @@ bootstrap_btc_blocks_path: 'bitcoin/blocks'
 bootstrap_btc_wallets:
   - keys.d3.wallet
   - transfers.d3.wallet
-
-bootstrap_eth_notary_container_name: ''
-bootstrap_eth_withdrawal_container_name: ''
 bootstrap_force_smart_contract_deployment: false
 
 bootstrap_gh_configs_base_url: https://raw.githubusercontent.com/d3ledger/notary/develop
@@ -71,6 +70,13 @@ bootstrap_gh_configs_urls:
   chain_adapter:
     path: configs/rmq.properties
     dest_dir: ./
+# BRVS
+  brvs_config:
+    path: configs/brvs/application.properties
+    dest_dir: brvs
+  brvs_spring_context:
+    path: configs/brvs/spring-context.xml
+    dest_dir: brvs  
 
 bootstrap_api_smart_contracts_credentialspassword: ''
 bootstrap_api_smart_contracts_nodelogin: ''
@@ -181,7 +187,6 @@ bootstrap_token_registration_tokensfilepath: configs/ethereum/tokens/mainnet_tok
 bootstrap_token_registration_xorethereumaddress: "0x0000000000000000000000000000000000000000"
 
 # grpcwebproxy
-bootstrap_grpcwebproxy_host: ''
 bootstrap_grpcwebproxy_iroha_hostname: ''
 bootstrap_grpcwebproxy_iroha_port: ''
 bootstrap_grpcwebproxy_port: 8080
@@ -263,8 +268,8 @@ bootstrap_chain_adapter_irohacredential_pubkeypath: configs/iroha/rmq@notary.pub
 bootstrap_chain_adapter_jar_name: chain-adapter.jar
 
 # brvs
-bootstrap_brvs_credential_pubkeyfilepath: config/iroha/brvs.pub
-bootstrap_brvs_credential_privkeyfilepath: config/iroha/brvs.priv
+bootstrap_brvs_credential_pubkeyfilepath: config/iroha/brvs@brvs.pub
+bootstrap_brvs_credential_privkeyfilepath: config/iroha/brvs@brvs.priv
 bootstrap_brvs_iroha_host: ''
 bootstrap_brvs_iroha_port: ''
 bootstrap_brvs_mongo_host: d3-brvs-mongodb

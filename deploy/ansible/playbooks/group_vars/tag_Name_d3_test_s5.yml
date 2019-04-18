@@ -8,5 +8,16 @@ bootstrap_btc_registration_host: registration-btc.s5.tst.d3.soramitsu.co.jp
 bootstrap_backend_host: s5.tst.d3.soramitsu.co.jp
 bootstrap_btc_address_generation_nodeid: 3
 bootstrap_btc_registration_nodeid: 3
-bootstrap_eth_notary_container_name: d3-notary-3
-bootstrap_eth_withdrawal_container_name: d3-withdrawal-3
+bootstrap_nodeid: 3
+
+# bootstrap_api_parity_node_url: https://testnet1.s2.tst.d3.soramitsu.co.jp
+bootstrap_api_parity_node_url: https://ropsten.infura.io/v3/9f72ca487ca3415f8b68d0aa4889d98e
+bootstrap_api_smart_contracts_nodelogin:
+bootstrap_api_smart_contracts_nodepassword: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  32303462333436656134623365323339376632363036366135346135646332646335333935333536
+  3938636162363561313561633036333738326433626662310a346539373432633261316539653863
+  31366631343963306634343461313966313530336434373137346236303730336332343163643735
+  6230626232636131300a623866323634633935666432393463306436386539376536623361313039
+  31376361303130323235373066353431373836313264633236363664316434303763313032626531
+  6637373230663334343031616332316130613166376138633139

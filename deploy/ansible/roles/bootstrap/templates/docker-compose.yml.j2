@@ -3,7 +3,7 @@ version: '3'
 services:
   d3-notary:
     image: nexus.iroha.tech:19002/d3-deploy/notary:develop
-    container_name: {{ bootstrap_eth_notary_container_name }}
+    container_name: d3-notary-{{ bootstrap_nodeid }}
     env_file:
       - .env-eth-deposit
     environment:
@@ -26,6 +26,7 @@ services:
 
   d3-eth-registration:
     image: nexus.iroha.tech:19002/d3-deploy/eth-registration:develop
+    container_name: d3-eth-registration-{{ bootstrap_nodeid }}
     env_file:
       - .env-eth-registration
     environment:
@@ -35,6 +36,7 @@ services:
       - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
     networks:
       - d3
+      - iroha-net
       - traefik-net
     labels:
       - filebeat.module=docker
@@ -45,13 +47,14 @@ services:
       - "traefik.docker.network=traefik-net"
       - "traefik.enable=true"
       - "traefik.frontend.rule=Host:${ETH_REGISTRATION_HOST:?ETH_REGISTRATION_HOST is not defined}"
+      - "traefik.frontend.headers.customResponseHeaders=Access-Control-Allow-Origin:https://${BACKEND_HOST:?BACKEND_HOST is not defined}"
       - "traefik.port=${ETH_REGISTRATION_PORT:?ETH_REGISTRATION_PORT is not defined}"
       - "traefik.protocol=http"
     restart: always
 
   d3-registration:
     image: nexus.iroha.tech:19002/d3-deploy/notary-registration:develop
-    container_name: d3-registration
+    container_name: d3-registration-{{ bootstrap_nodeid }}
     volumes:
       - {{ iroha_deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
       - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
@@ -61,6 +64,7 @@ services:
       - PROFILE
     networks:
       - d3
+      - iroha-net
       - traefik-net
     labels:
       - filebeat.module=docker
@@ -73,11 +77,12 @@ services:
       - "traefik.frontend.rule=Host:${REGISTRATION_HOST:?REGISTRATION_HOST is not defined}"
       - "traefik.port=${REGISTRATION_PORT:?REGISTRATION_PORT is not defined}"
       - "traefik.protocol=http"
+      - "traefik.frontend.headers.customResponseHeaders=Access-Control-Allow-Origin:https://${BACKEND_HOST:?BACKEND_HOST is not defined}"
     restart: always
 
   d3-withdrawal:
     image: nexus.iroha.tech:19002/d3-deploy/eth-withdrawal:develop
-    container_name: {{ bootstrap_eth_withdrawal_container_name }}
+    container_name: d3-withdrawal-{{ bootstrap_nodeid }}
     volumes:
       - {{ iroha_deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
       - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
@@ -100,7 +105,7 @@ services:
 
   d3-relay-registration:
     image: nexus.iroha.tech:19002/d3-deploy/eth-relay:develop
-    container_name: d3-relay-registration
+    container_name: d3-relay-registration-{{ bootstrap_nodeid }}
     volumes:
       - {{ iroha_deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
       - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
@@ -110,11 +115,12 @@ services:
       - PROFILE
     networks:
       - d3
+      - iroha-net
     restart: always
 
   grpcwebproxy:
     image: nexus.iroha.tech:19002/d3-deploy/grpcwebproxy
-    container_name: d3-grpcwebproxy
+    container_name: d3-grpcwebproxy-{{ bootstrap_nodeid }}
     entrypoint:
       - grpcwebproxy
       - --backend_addr={{ bootstrap_grpcwebproxy_iroha_hostname }}:{{ bootstrap_grpcwebproxy_iroha_port }}
@@ -122,16 +128,18 @@ services:
     labels:
       - "traefik.docker.network=traefik-net"
       - "traefik.enable=true"
-      - "traefik.frontend.rule=Host:${GRPCWEBPROXY_HOST:?GRPCWEBPROXY_HOST is not defined}"
+      - "traefik.frontend.rule=Host:${GRPCWEBPROXY_HOST:?GRPCWEBPROXY_HOST is not defined};PathPrefix:/iroha.protocol.QueryService_v1"
       - "traefik.port=${GRPCWEBPROXY_PORT:?GRPCWEBPROXY_PORT is not defined}"
       - "traefik.protocol=http"
     networks:
       - d3
+      - iroha-net
       - traefik-net
     restart: always
 
   d3-backend:
     image: sebp/lighttpd
+    container_name: d3-backend
     expose:
       - 80
     volumes:
@@ -149,7 +157,7 @@ services:
 
   d3-btc-address-generation:
     image: nexus.iroha.tech:19002/d3-deploy/btc-address-generation:develop
-    container_name: d3-btc-address-generation
+    container_name: d3-btc-address-generation-{{ bootstrap_nodeid }}
     volumes:
       - {{ iroha_deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
       - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
@@ -159,10 +167,12 @@ services:
       - PROFILE
     networks:
       - d3
+      - iroha-net
     restart: always
 
   d3-btc-dw-bridge:
     image: nexus.iroha.tech:19002/d3-deploy/btc-dw-bridge:develop
+    container_name: d3-btc-dw-bridge-{{ bootstrap_nodeid }}
     volumes:
       - {{ iroha_deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
       - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
@@ -173,10 +183,12 @@ services:
       - PROFILE
     networks:
       - d3
+      - iroha-net
     restart: always
 
   d3-btc-registration:
     image: nexus.iroha.tech:19002/d3-deploy/btc-registration:develop
+    container_name: d3-btc-registration-{{ bootstrap_nodeid }}
     volumes:
       - {{ iroha_deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
       - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
@@ -190,10 +202,10 @@ services:
       - "traefik.frontend.rule=Host:${BTC_REGISTRATION_HOST:?BTC_REGISTRATION_HOST is not defined}"
       - "traefik.port=${BTC_REGISTRATION_PORT:?BTC_REGISTRATION_PORT is not defined}"
       - "traefik.protocol=http"
-      - "traefik.frontend.headers.customResponseHeaders=Access-Control-Allow-Origin:https://${BTC_REGISTRATION_HOST:?BTC_REGISTRATION_HOST is not defined}"
-    container_name: d3-btc-registration
+      - "traefik.frontend.headers.customResponseHeaders=Access-Control-Allow-Origin:https://${BACKEND_HOST:?BACKEND_HOST is not defined}"
     networks:
       - d3
+      - iroha-net
       - traefik-net
     restart: always
 
@@ -206,7 +218,7 @@ services:
 
   d3-chain-adapter:
     image: nexus.iroha.tech:19002/d3-deploy/chain-adapter:develop
-    container_name: d3-chain-adapter
+    container_name: d3-chain-adapter-{{ bootstrap_nodeid }}
     volumes:
       - {{ iroha_deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/notary/configs/iroha
       - {{ bootstrap_deployment_basedir }}/conf:/opt/notary/configs
@@ -214,8 +226,10 @@ services:
       .env-chain-adapter
     networks:
       - d3
+      - iroha-net
     restart: always
 
+{% if bootstrap_brvs_enable %}
   d3-brvs-mongodb:
     image: mongo:4.0.6
     container_name: d3-brvs-mongodb
@@ -234,7 +248,7 @@ services:
 
   d3-brvs:
     image: nexus.iroha.tech:19002/brvs-deploy/brvs:1.0.0_rc5
-    container_name: d3-brvs
+    container_name: d3-brvs-{{ bootstrap_nodeid }}
     env_file:
       .env-brvs
     ports:
@@ -247,9 +261,13 @@ services:
       WAIT_BEFORE_HOSTS: 10
     volumes:
       - {{ iroha_deploy_dir }}/conf/{{ iroha_nodes.0.human_hostname }}:/opt/brvs/config/iroha
+      - {{ bootstrap_deployment_basedir }}/conf/brvs/application.properties:/opt/brvs/config/context/application.properties
+      - {{ bootstrap_deployment_basedir }}/conf/brvs/spring-context.xml:/opt/brvs/config/context/spring-context.xml
     networks:
       - d3
+      - iroha-net
     restart: always
+{% endif %}
 
 volumes:
   dw-bridge-storage:
@@ -258,8 +276,6 @@ volumes:
 
 networks:
   d3:
-    external:
-      name: {{ bootstrap_docker_local_network_name }}
   traefik-net:
     external:
       name: traefik-net

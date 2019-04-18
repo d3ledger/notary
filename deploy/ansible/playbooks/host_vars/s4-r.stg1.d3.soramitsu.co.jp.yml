@@ -1,0 +1,12 @@
+iroha_replicas: 1
+bootstrap_notary_address: 'http://d3-notary-4:20000'
+
+bootstrap_eth_registration_host: registration-eth.s4-r.stg1.d3.soramitsu.co.jp
+bootstrap_registration_host: registration.s4-r.stg1.d3.soramitsu.co.jp
+bootstrap_grpcwebproxy_host: grpcwebproxy.s4-r.stg1.d3.soramitsu.co.jp
+bootstrap_btc_registration_host: registration-btc.s4-r.stg1.d3.soramitsu.co.jp
+bootstrap_backend_host: s4-r.stg1.d3.soramitsu.co.jp
+bootstrap_btc_address_generation_nodeid: 4
+bootstrap_btc_registration_nodeid: 4
+bootstrap_eth_notary_container_name: d3-notary-4
+bootstrap_eth_withdrawal_container_name: d3-withdrawal-4

@@ -1,0 +1,13 @@
+all:
+  children:
+    stage1:
+      hosts:
+        s1.stg1.d3.soramitsu.co.jp:
+          ansible_user: "ubuntu"
+        s2.stg1.d3.soramitsu.co.jp:
+          ansible_user: "ubuntu"
+        s3.stg1.d3.soramitsu.co.jp:
+          ansible_user: "ubuntu"
+        s4-r.stg1.d3.soramitsu.co.jp:
+          ansible_user: "lykkex"
+          ansible_port: 2229

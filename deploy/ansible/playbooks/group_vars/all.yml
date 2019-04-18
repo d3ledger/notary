@@ -1,6 +1,7 @@
 ansible_python_interpreter: /usr/bin/python3
 iroha_overlay_network: true
 iroha_docker_tag: 1.0.0_rc5
+iroha_mst_enable: 'true'
 
 iroha_custom_genesis_block: true
 iroha_custom_genesis_block_path: /tmp/custom_genesis.block
@@ -43,7 +44,6 @@ bootstrap_docker_registry_password: !vault |
   6637666230383063650a323662343134633535313965363339613663336134643463643232376262
   63356537363463333132633639313936633631343863363533326163336466323537
 
-bootstrap_api_parity_node_url: https://parity1.s2.tst.d3.soramitsu.co.jp
 bootstrap_api_bitcoin_node_url: bitcoin1.s2.tst.d3.soramitsu.co.jp
 
 bootstrap_eth_deposit_eth_node_login: "{{ bootstrap_api_smart_contracts_nodelogin }}"
