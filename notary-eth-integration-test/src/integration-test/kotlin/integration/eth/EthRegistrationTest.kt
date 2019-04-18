@@ -74,10 +74,10 @@ class EthRegistrationTest {
         assertEquals(200, res.statusCode)
         // register in Eth
         res = integrationHelper.sendRegistrationRequest(
-            name,
-            whitelist,
-            pubkey,
-            ethRegistrationConfig.port
+                name,
+                whitelist,
+                pubkey,
+                ethRegistrationConfig.port
         )
         assertEquals(200, res.statusCode)
 
@@ -108,10 +108,10 @@ class EthRegistrationTest {
         assertEquals(200, res.statusCode)
         // register in eth
         res = integrationHelper.sendRegistrationRequest(
-            name,
-            whitelist,
-            pubkey,
-            ethRegistrationConfig.port
+                name,
+                whitelist,
+                pubkey,
+                ethRegistrationConfig.port
         )
         assertEquals(200, res.statusCode)
 
@@ -126,10 +126,10 @@ class EthRegistrationTest {
         val anotherWhitelist = "0x0000000000000000000000000000000000000123"
         // try to register with the same name
         res = integrationHelper.sendRegistrationRequest(
-            name,
-            whitelist,
-            pubkey,
-            ethRegistrationConfig.port
+                name,
+                whitelist,
+                pubkey,
+                ethRegistrationConfig.port
         )
         assertEquals(500, res.statusCode)
 
