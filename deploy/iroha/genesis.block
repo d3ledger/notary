@@ -246,14 +246,6 @@
               },
               {
                 "createRole": {
-                  "roleName": "whitelist_setter",
-                  "permissions": [
-                    "can_set_detail"
-                  ]
-                }
-              },
-              {
-                "createRole": {
                   "roleName": "rollback",
                   "permissions": [
                     "can_transfer",
