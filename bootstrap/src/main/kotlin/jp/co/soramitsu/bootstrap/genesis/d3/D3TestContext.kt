@@ -99,7 +99,7 @@ object D3TestContext {
             PassiveAccountPrototype("gen_btc_pk_trigger", "notary"),
             PassiveAccountPrototype("client_accounts", "notary"),
             AccountPrototype("admin", "notary", listOf("admin")),
-            AccountPrototype("sora", "sora", listOf("sora")),
+        AccountPrototype("xor", "sora", listOf("sora")),
             AccountPrototype("brvs", "brvs"),
             NoAccountPrototype("registration_service_primary", "notary"),
             PassiveAccountPrototype("client_account", "notary"),
