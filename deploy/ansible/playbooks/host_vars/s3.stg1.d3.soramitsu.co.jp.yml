@@ -8,5 +8,5 @@ bootstrap_btc_registration_host: registration-btc.s3.stg1.d3.soramitsu.co.jp
 bootstrap_backend_host: s3.stg1.d3.soramitsu.co.jp
 bootstrap_btc_address_generation_nodeid: 3
 bootstrap_btc_registration_nodeid: 3
-bootstrap_eth_notary_container_name: d3-notary-3
-bootstrap_eth_withdrawal_container_name: d3-withdrawal-3
+bootstrap_nodeid: 3
+bootstrap_brvs_enable: true

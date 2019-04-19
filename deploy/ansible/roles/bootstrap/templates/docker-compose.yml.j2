@@ -116,6 +116,12 @@ services:
     networks:
       - d3
       - iroha-net
+    labels:
+      - filebeat.module=docker
+      - filebeat.fields.env=${ENVIRONMENT:?ENVIRONMENT is not defined}
+      - filebeat.fields.app=relay-registration
+      - filebeat.fields.project=d3
+      - filebeat.fields.logtype=d3-java-log
     restart: always
 
   grpcwebproxy:
@@ -168,6 +174,12 @@ services:
     networks:
       - d3
       - iroha-net
+    labels:
+      - filebeat.module=docker
+      - filebeat.fields.env=${ENVIRONMENT:?ENVIRONMENT is not defined}
+      - filebeat.fields.app=btc-address-generation
+      - filebeat.fields.project=d3
+      - filebeat.fields.logtype=d3-java-log
     restart: always
 
   d3-btc-dw-bridge:
@@ -184,6 +196,12 @@ services:
     networks:
       - d3
       - iroha-net
+    labels:
+      - filebeat.module=docker
+      - filebeat.fields.env=${ENVIRONMENT:?ENVIRONMENT is not defined}
+      - filebeat.fields.app=btw-dw-bridge
+      - filebeat.fields.project=d3
+      - filebeat.fields.logtype=d3-java-log
     restart: always
 
   d3-btc-registration:
@@ -197,6 +215,11 @@ services:
     environment:
       - PROFILE
     labels:
+      - filebeat.module=docker
+      - filebeat.fields.env=${ENVIRONMENT:?ENVIRONMENT is not defined}
+      - filebeat.fields.app=btc-registration
+      - filebeat.fields.project=d3
+      - filebeat.fields.logtype=d3-java-log
       - "traefik.docker.network=traefik-net"
       - "traefik.enable=true"
       - "traefik.frontend.rule=Host:${BTC_REGISTRATION_HOST:?BTC_REGISTRATION_HOST is not defined}"
@@ -227,6 +250,12 @@ services:
     networks:
       - d3
       - iroha-net
+    labels:
+      - filebeat.module=docker
+      - filebeat.fields.env=${ENVIRONMENT:?ENVIRONMENT is not defined}
+      - filebeat.fields.app=chain-adapter
+      - filebeat.fields.project=d3
+      - filebeat.fields.logtype=d3-java-log
     restart: always
 
 {% if bootstrap_brvs_enable %}
@@ -266,6 +295,12 @@ services:
     networks:
       - d3
       - iroha-net
+    labels:
+      - filebeat.module=docker
+      - filebeat.fields.env=${ENVIRONMENT:?ENVIRONMENT is not defined}
+      - filebeat.fields.app=brvs
+      - filebeat.fields.project=d3
+      - filebeat.fields.logtype=d3-java-log      
     restart: always
 {% endif %}
 
