@@ -12,14 +12,13 @@ interface RelayVacuumConfig {
     /** Iroha account that stores Ethereum anchored ERC20 tokens */
     val ethAnchoredTokenStorageAccount: String
 
-    /** Iroha account that sets that stores Ethereum anchored ERC20 tokens */
+    /** Iroha account that sets Ethereum anchored ERC20 tokens */
     val ethAnchoredTokenSetterAccount: String
-
 
     /** Iroha account that stores Iroha anchored ERC20 tokens */
     val irohaAnchoredTokenStorageAccount: String
 
-    /** Iroha account that sets that stores Iroha anchored ERC20 tokens */
+    /** Iroha account that sets Iroha anchored ERC20 tokens */
     val irohaAnchoredTokenSetterAccount: String
 
     /** Notary Iroha account that stores relay register */
@@ -32,5 +31,4 @@ interface RelayVacuumConfig {
     val ethereum: EthereumConfig
 
     val vacuumCredential: IrohaCredentialConfig
-
 }

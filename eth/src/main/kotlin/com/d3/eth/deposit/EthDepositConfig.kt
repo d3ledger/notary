@@ -17,14 +17,13 @@ interface EthDepositConfig {
     /** Iroha account that stores Ethereum anchored ERC20 tokens */
     val ethAnchoredTokenStorageAccount: String
 
-    /** Iroha account that sets that stores Ethereum anchored ERC20 tokens */
+    /** Iroha account that sets Ethereum anchored ERC20 tokens */
     val ethAnchoredTokenSetterAccount: String
-
 
     /** Iroha account that stores Iroha anchored ERC20 tokens */
     val irohaAnchoredTokenStorageAccount: String
 
-    /** Iroha account that sets that stores Iroha anchored ERC20 tokens */
+    /** Iroha account that sets Iroha anchored ERC20 tokens */
     val irohaAnchoredTokenSetterAccount: String
 
     /** Iroha account that set whitelist for client */
