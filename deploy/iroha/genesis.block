@@ -727,14 +727,14 @@
               },
               {
                 "createAccount": {
-                  "accountName": "sora",
+                  "accountName": "xor",
                   "domainId": "sora",
                   "publicKey": "5665875b228b9eee51fbb7525e21b7fc8b7db9fb6e92c0c6fd9269b1342a1b03"
                 }
               },
               {
                 "appendRole": {
-                  "accountId": "sora@sora",
+                  "accountId": "xor@sora",
                   "roleName": "sora"
                 }
               },
@@ -747,7 +747,7 @@
               {
                 "transferAsset": {
                   "srcAccountId": "notary@notary",
-                  "destAccountId": "sora@sora",
+                  "destAccountId": "xor@sora",
                   "assetId": "xor#sora",
                   "description": "initial supply",
                   "amount": "1618033988749894848204586834"

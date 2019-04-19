@@ -29,7 +29,7 @@ class SoraIntegrationTest {
 
     private val domain = "sora"
     private val xorAsset = "xor#$domain"
-    private val soraClientId = "sora@sora"
+    private val soraClientId = "xor@sora"
 
     // Moshi adapter for response JSON deserealization
     val moshiAdapter = Moshi
@@ -140,7 +140,10 @@ class SoraIntegrationTest {
         assertEquals(200, res.statusCode)
 
         val soraKeyPair =
-            ModelUtil.loadKeypair("deploy/iroha/keys/sora@sora.pub", "deploy/iroha/keys/sora@sora.priv").get()
+            ModelUtil.loadKeypair(
+                "deploy/iroha/keys/xor@sora.pub",
+                "deploy/iroha/keys/xor@sora.priv"
+            ).get()
         integrationHelper.addIrohaAssetTo(soraClientId, xorAsset, "35")
 
         integrationHelper.transferAssetIrohaFromClient(

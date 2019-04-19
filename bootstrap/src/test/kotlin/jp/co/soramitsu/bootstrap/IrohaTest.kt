@@ -239,7 +239,7 @@ class IrohaTest {
             createAccountDto("vacuumer", "notary"),
             createAccountDto("gen_btc_pk_trigger", "notary"),
             createAccountDto("admin", "notary"),
-            createAccountDto("sora", "sora"),
+            createAccountDto("xor", "sora"),
             createAccountDto("brvs", "brvs"),
             createAccountDto("data_collector", "notary"),
             createAccountDto("rmq", "notary", peersCount - peersCount / 3),
