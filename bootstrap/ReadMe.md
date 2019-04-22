@@ -36,7 +36,7 @@ Example realisation for D3: `genesis.d3.D3TestGenesisFactory`
 
 ### Deploy smart contracts
 There are function to deploy all smart contracts by one API call: 'eth/deploy/D3/smartContracts' and functions to deploy initial ethereum contracts separately.
-Sequence to call smart contract deployment functions:
+The Sequence to call smart contract deployment functions:
 1 - 'eth/deploy/D3/relayRegistry' - then take resulting contract address as an argument for the next function
 2 - 'eth/deploy/D3/masterContract' - then take resulting smart contract address as an argument to the next function
 3 - 'eth/deploy/D3/relayImplementation'
