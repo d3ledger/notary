@@ -18,6 +18,7 @@ import com.d3.commons.model.IrohaCredential
 import com.d3.commons.notary.NotaryImpl
 import com.d3.commons.sidechain.SideChainEvent
 import com.d3.commons.sidechain.iroha.IrohaChainListener
+import com.d3.commons.sidechain.iroha.consumer.MultiSigIrohaConsumer
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.createPrettySingleThreadPool
 import integration.helper.BtcIntegrationHelperUtil
@@ -103,7 +104,7 @@ class BtcNotaryTestEnvironment(
 
     private val btcEventsObservable: Observable<SideChainEvent.PrimaryBlockChainEvent> = btcEventsSource
 
-    private val notary = NotaryImpl(notaryCredential, irohaAPI, btcEventsObservable)
+    private val notary = NotaryImpl(MultiSigIrohaConsumer(notaryCredential, irohaAPI), btcEventsObservable)
 
     private val btcWalletListenerRestartService by lazy {
         BtcWalletListenerRestartService(

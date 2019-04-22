@@ -28,6 +28,7 @@ import com.d3.commons.config.loadRawConfigs
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.provider.NotaryPeerListProviderImpl
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.sidechain.iroha.consumer.MultiSigIrohaConsumer
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.createPrettySingleThreadPool
 import com.rabbitmq.client.ConnectionFactory
@@ -125,7 +126,7 @@ class BtcWithdrawalTestEnvironment(
     private val btcConsensusCredential =
         IrohaCredential(btcWithdrawalConfig.btcConsensusCredential.accountId, btcConsensusKeyPair)
 
-    private val withdrawalIrohaConsumer = IrohaConsumerImpl(
+    private val withdrawalIrohaConsumer = MultiSigIrohaConsumer(
         withdrawalCredential,
         irohaApi
     )

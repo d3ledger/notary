@@ -35,14 +35,12 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
     /** Notary account */
     val notaryAccount by lazy { createNotaryAccount() }
 
-    val clientStorageAccount by lazy { createTesterAccount("client_accounts").accountId }
-
     /**
      * Makes given account multisignature
      * @param account - account to make multisignature
      * @return list of accounts with the same account id but different public keys
      */
-    private fun makeAccountMst(account: IrohaCredential): List<IrohaCredential> {
+    fun makeAccountMst(account: IrohaCredential): List<IrohaCredential> {
         val accounts = ArrayList<IrohaCredential>(peers)
         accounts.add(account)
         // Add signatories
@@ -119,7 +117,7 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
 
     /** Account that collects withdrawal transaction consensus data */
     val btcConsensusAccount by lazy {
-        createTesterAccount("consensus","consensus_collector")
+        createTesterAccount("consensus", "consensus_collector")
     }
 
     /** Account that used to store tokens */

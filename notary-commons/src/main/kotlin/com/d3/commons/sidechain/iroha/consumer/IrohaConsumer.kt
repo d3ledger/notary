@@ -4,6 +4,7 @@ import com.github.kittinunf.result.Result
 import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.java.Transaction
 import jp.co.soramitsu.iroha.java.detail.BuildableAndSignable
+import java.security.KeyPair
 
 /**
  * Interface for consuming Iroha events provided by [notary.Notary]
@@ -12,6 +13,11 @@ interface IrohaConsumer {
 
     /** Iroha transactions creator */
     val creator: String
+
+    /**
+     * KeyPair that will be used to sign transactions
+     */
+    val keyPair: KeyPair
 
     /**
      * Returns consumer quorum value
