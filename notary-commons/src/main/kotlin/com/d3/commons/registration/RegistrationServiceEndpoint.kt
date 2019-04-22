@@ -55,7 +55,7 @@ class RegistrationServiceEndpoint(
                     call.respondText(response.message, status = response.code)
                 }
 
-                post("/users_new") {
+                post("/users/json") {
                     val body = call.receive(UserDto::class)
                     val name = body.name
                     val pubkey = body.pubkey
