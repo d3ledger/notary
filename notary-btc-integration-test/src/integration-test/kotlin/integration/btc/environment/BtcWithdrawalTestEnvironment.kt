@@ -132,7 +132,7 @@ class BtcWithdrawalTestEnvironment(
     private val btcConsensusIrohaConsumer = IrohaConsumerImpl(btcConsensusCredential, irohaApi)
 
     val btcRegisteredAddressesProvider = BtcRegisteredAddressesProvider(
-        integrationHelper.queryAPI,
+        integrationHelper.queryHelper,
         btcWithdrawalConfig.registrationCredential.accountId,
         btcWithdrawalConfig.notaryCredential.accountId
     )
@@ -140,7 +140,7 @@ class BtcWithdrawalTestEnvironment(
     private val btcNetworkConfigProvider = BtcRegTestConfigProvider()
 
     val btcChangeAddressProvider = BtcChangeAddressProvider(
-        integrationHelper.queryAPI,
+        integrationHelper.queryHelper,
         btcWithdrawalConfig.mstRegistrationAccount,
         btcWithdrawalConfig.changeAddressesStorageAccount
     )
@@ -180,7 +180,7 @@ class BtcWithdrawalTestEnvironment(
 
     private val withdrawalStatistics = WithdrawalStatistics.create()
     private val notaryPeerListProvider = NotaryPeerListProviderImpl(
-        integrationHelper.queryAPI,
+        integrationHelper.queryHelper,
         btcWithdrawalConfig.notaryListStorageAccount,
         btcWithdrawalConfig.notaryListSetterAccount
     )
@@ -200,7 +200,7 @@ class BtcWithdrawalTestEnvironment(
         NewTransferHandler(
             withdrawalStatistics,
             BtcWhiteListProvider(
-                btcWithdrawalConfig.registrationCredential.accountId, integrationHelper.queryAPI
+                btcWithdrawalConfig.registrationCredential.accountId, integrationHelper.queryHelper
             ),
             btcWithdrawalConfig,
             withdrawalConsensusProvider,

@@ -1,5 +1,12 @@
 package integration.eth
 
+import com.d3.commons.util.getRandomString
+import com.d3.eth.provider.ETH_DOMAIN
+import com.d3.eth.provider.EthTokensProviderImpl
+import com.d3.eth.provider.SORA_DOMAIN
+import com.d3.eth.provider.XOR_NAME
+import com.d3.eth.token.EthTokenInfo
+import com.d3.eth.token.executeTokenRegistration
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import com.google.gson.Gson
@@ -8,13 +15,6 @@ import integration.helper.IrohaConfigHelper
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
-import com.d3.eth.provider.ETH_DOMAIN
-import com.d3.eth.provider.EthTokensProviderImpl
-import com.d3.eth.provider.SORA_DOMAIN
-import com.d3.eth.provider.XOR_NAME
-import com.d3.eth.token.EthTokenInfo
-import com.d3.eth.token.executeTokenRegistration
-import com.d3.commons.util.getRandomString
 import java.io.File
 import java.time.Duration
 
@@ -29,7 +29,7 @@ class ERC20TokenRegistrationTest {
         integrationHelper.configHelper.createERC20TokenRegistrationConfig(tokensFilePath)
 
     private val ethTokensProvider = EthTokensProviderImpl(
-        integrationHelper.queryAPI,
+        integrationHelper.queryHelper,
         tokenRegistrationConfig.tokenStorageAccount,
         tokenRegistrationConfig.irohaCredential.accountId
     )

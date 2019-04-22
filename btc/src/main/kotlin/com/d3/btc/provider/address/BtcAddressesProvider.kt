@@ -3,14 +3,13 @@ package com.d3.btc.provider.address
 import com.d3.btc.model.AddressInfo
 import com.d3.btc.model.BtcAddress
 import com.d3.btc.monitoring.Monitoring
+import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import jp.co.soramitsu.iroha.java.QueryAPI
-import com.d3.commons.sidechain.iroha.util.getAccountDetails
 
 //Class that provides all created BTC addresses
 class BtcAddressesProvider(
-    private val queryAPI: QueryAPI,
+    private val queryHelper: IrohaQueryHelper,
     private val mstRegistrationAccount: String,
     private val notaryAccount: String
 ) : Monitoring() {
@@ -21,8 +20,7 @@ class BtcAddressesProvider(
      * @return list full of created BTC addresses
      */
     fun getAddresses(): Result<List<BtcAddress>, Exception> {
-        return getAccountDetails(
-            queryAPI,
+        return queryHelper.getAccountDetails(
             notaryAccount,
             mstRegistrationAccount
         ).map { addresses ->

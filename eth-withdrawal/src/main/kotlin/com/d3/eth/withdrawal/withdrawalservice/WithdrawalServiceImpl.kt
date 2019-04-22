@@ -6,8 +6,7 @@ import com.d3.commons.sidechain.SideChainEvent
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
-import com.d3.commons.sidechain.iroha.util.getAccountDetails
-import com.d3.commons.sidechain.iroha.util.getSingleTransaction
+import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.eth.deposit.endpoint.BigIntegerMoshiAdapter
 import com.d3.eth.deposit.endpoint.EthNotaryResponse
 import com.d3.eth.deposit.endpoint.EthNotaryResponseMoshiAdapter
@@ -20,7 +19,6 @@ import com.github.kittinunf.result.map
 import com.squareup.moshi.Moshi
 import io.reactivex.Observable
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.QueryAPI
 import mu.KLogging
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -58,14 +56,20 @@ class WithdrawalServiceImpl(
     private val irohaHandler: Observable<SideChainEvent.IrohaEvent>
 ) : WithdrawalService {
 
-    private val queryAPI by lazy { QueryAPI(irohaAPI, credential.accountId, credential.keyPair) }
+    private val queryHelper by lazy {
+        IrohaQueryHelperImpl(
+            irohaAPI,
+            credential.accountId,
+            credential.keyPair
+        )
+    }
     private val notaryPeerListProvider = NotaryPeerListProviderImpl(
-        queryAPI,
+        queryHelper,
         withdrawalServiceConfig.notaryListStorageAccount,
         withdrawalServiceConfig.notaryListSetterAccount
     )
     private val tokensProvider: EthTokensProvider = EthTokensProviderImpl(
-        queryAPI,
+        queryHelper,
         withdrawalServiceConfig.tokenStorageAccount,
         withdrawalServiceConfig.tokenSetterAccount
     )
@@ -79,8 +83,7 @@ class WithdrawalServiceImpl(
     }
 
     private fun findInAccDetail(acc: String, name: String): Result<String, Exception> {
-        return getAccountDetails(
-            queryAPI,
+        return queryHelper.getAccountDetails(
             acc,
             withdrawalServiceConfig.registrationIrohaAccount
         ).map { relays ->
@@ -158,7 +161,16 @@ class WithdrawalServiceImpl(
 
                 val (coinAddress, precision) = tokenInfo
                 val decimalAmount = BigDecimal(amount).scaleByPowerOfTen(precision).toPlainString()
-                RollbackApproval(coinAddress, decimalAmount, address, hash, rr, ss, vv, relayAddress)
+                RollbackApproval(
+                    coinAddress,
+                    decimalAmount,
+                    address,
+                    hash,
+                    rr,
+                    ss,
+                    vv,
+                    relayAddress
+                )
             }
     }
 
@@ -200,7 +212,7 @@ class WithdrawalServiceImpl(
         }
 
         logger.info("Withdrawal rollback initiated: ${event.proof.irohaHash}")
-        return getSingleTransaction(queryAPI, event.proof.irohaHash)
+        return queryHelper.getSingleTransaction(event.proof.irohaHash)
             .map { tx ->
                 tx.payload.reducedPayload.commandsList.first { command ->
                     val transferAsset = command.transferAsset

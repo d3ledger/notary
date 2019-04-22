@@ -2,14 +2,14 @@
 
 package com.d3.eth.vacuum
 
-import com.github.kittinunf.result.*
 import com.d3.commons.config.loadConfigs
 import com.d3.commons.config.loadEthPasswords
-import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.QueryAPI
 import com.d3.commons.model.IrohaCredential
-import mu.KLogging
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
+import com.github.kittinunf.result.*
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import mu.KLogging
 
 private const val RELAY_VACUUM_PREFIX = "relay-vacuum"
 private val logger = KLogging().logger
@@ -27,7 +27,10 @@ fun main(args: Array<String>) {
         }
 }
 
-fun executeVacuum(relayVacuumConfig: RelayVacuumConfig, args: Array<String> = emptyArray()): Result<Unit, Exception> {
+fun executeVacuum(
+    relayVacuumConfig: RelayVacuumConfig,
+    args: Array<String> = emptyArray()
+): Result<Unit, Exception> {
     logger.info { "Run relay vacuum" }
     return ModelUtil.loadKeypair(
         relayVacuumConfig.vacuumCredential.pubkeyPath,
@@ -37,9 +40,10 @@ fun executeVacuum(relayVacuumConfig: RelayVacuumConfig, args: Array<String> = em
         .fanout {
             Result.of { IrohaAPI(relayVacuumConfig.iroha.hostname, relayVacuumConfig.iroha.port) }
         }.map { (credential, irohaAPI) ->
-            QueryAPI(irohaAPI, credential.accountId, credential.keyPair)
-        }.fanout { loadEthPasswords(RELAY_VACUUM_PREFIX, "/eth/ethereum_password.properties", args) }
-        .flatMap { (queryAPI, passwordConfig) ->
-            RelayVacuum(relayVacuumConfig, passwordConfig, queryAPI).vacuum()
+            IrohaQueryHelperImpl(irohaAPI, credential.accountId, credential.keyPair)
+        }
+        .fanout { loadEthPasswords(RELAY_VACUUM_PREFIX, "/eth/ethereum_password.properties", args) }
+        .flatMap { (queryHelper, passwordConfig) ->
+            RelayVacuum(relayVacuumConfig, passwordConfig, queryHelper).vacuum()
         }
 }

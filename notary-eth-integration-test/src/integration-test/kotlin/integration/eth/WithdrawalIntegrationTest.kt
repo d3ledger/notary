@@ -102,7 +102,7 @@ class WithdrawalIntegrationTest {
             )
             integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
             val relay = EthRelayProviderIrohaImpl(
-                integrationHelper.queryAPI,
+                integrationHelper.queryHelper,
                 masterAccount,
                 integrationHelper.accountHelper.registrationAccount.accountId
             ).getRelays().get().filter {
@@ -121,7 +121,8 @@ class WithdrawalIntegrationTest {
             )
 
             // query
-            res = khttp.get("http://127.0.0.1:${depositConfig.refund.port}/$ENDPOINT_ETHEREUM/$hash")
+            res =
+                khttp.get("http://127.0.0.1:${depositConfig.refund.port}/$ENDPOINT_ETHEREUM/$hash")
 
             val moshi = Moshi
                 .Builder()

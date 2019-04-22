@@ -1,16 +1,17 @@
 package com.d3.eth.deposit.endpoint
 
-import jp.co.soramitsu.iroha.java.QueryAPI
 import com.d3.commons.provider.WhiteListProvider
 import com.d3.commons.registration.ETH_WHITE_LIST_KEY
+import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 
 /*
-    White list provider for Ethereum services
+ * Whitelist provider for Ethereum services
  */
 class EthWhiteListProvider(
     whiteListSetterAccount: String,
-    queryAPI: QueryAPI
+    queryHelper: IrohaQueryHelper
 ) : WhiteListProvider(
-    whiteListSetterAccount, queryAPI,
+    whiteListSetterAccount,
+    queryHelper,
     ETH_WHITE_LIST_KEY
 )

@@ -15,7 +15,7 @@ import com.d3.btc.wallet.checkWalletNetwork
 import com.d3.btc.wallet.safeSave
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.sidechain.iroha.IrohaChainListener
-import com.d3.commons.sidechain.iroha.util.getAccountDetails
+import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 import com.d3.commons.sidechain.iroha.util.getSetDetailCommands
 import com.d3.commons.util.createPrettySingleThreadPool
 import com.github.kittinunf.result.Result
@@ -26,21 +26,20 @@ import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
-import jp.co.soramitsu.iroha.java.QueryAPI
 import mu.KLogging
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
-/*
-   This class listens to special account to be triggered and starts generation process
+/**
+ * This class listens to special account to be triggered and starts generation process
  */
 @Component
 class BtcAddressGenerationInitialization(
     @Autowired private val keysWallet: Wallet,
     @Qualifier("registrationQueryAPI")
-    @Autowired private val registrationQueryAPI: QueryAPI,
+    @Autowired private val registrationQueryAPI: IrohaQueryHelper,
     @Autowired private val btcAddressGenerationConfig: BtcAddressGenerationConfig,
     @Autowired private val btcPublicKeyProvider: BtcPublicKeyProvider,
     @Autowired private val irohaChainListener: IrohaChainListener,
@@ -48,9 +47,9 @@ class BtcAddressGenerationInitialization(
     @Autowired private val btcNetworkConfigProvider: BtcNetworkConfigProvider
 ) : HealthyService() {
 
-    /*
-    Initiates listener that listens to events in trigger account.
-    If trigger account is triggered, new session account full notary public keys will be created
+    /**
+     * Initiates listener that listens to events in trigger account.
+     * If trigger account is triggered, new session account full notary public keys will be created
      */
     fun init(): Result<Unit, Exception> {
         //Check wallet network
@@ -95,11 +94,19 @@ class BtcAddressGenerationInitialization(
                     val sessionAccountName = command.setAccountDetail.key
                     onGenerateKey(sessionAccountName).fold(
                         { pubKey -> logger.info { "New public key $pubKey for BTC multisignature address was created" } },
-                        { ex -> logger.error("Cannot generate public key for BTC multisignature address", ex) })
+                        { ex ->
+                            logger.error(
+                                "Cannot generate public key for BTC multisignature address",
+                                ex
+                            )
+                        })
                 } else if (isNewKey(command)) {
                     val accountId = command.setAccountDetail.accountId
                     //create multisignature address, if we have enough keys in session account
-                    onGenerateMultiSigAddress(accountId, getAddressTypeByAccountId(accountId)).failure { ex ->
+                    onGenerateMultiSigAddress(
+                        accountId,
+                        getAddressTypeByAccountId(accountId)
+                    ).failure { ex ->
                         logger.error(
                             "Cannot generate multi signature address", ex
                         )
@@ -142,15 +149,14 @@ class BtcAddressGenerationInitialization(
         sessionAccount: String,
         addressType: BtcAddressType
     ): Result<Unit, Exception> {
-        return getAccountDetails(
-            registrationQueryAPI,
+        return registrationQueryAPI.getAccountDetails(
             sessionAccount,
             btcAddressGenerationConfig.registrationAccount.accountId
         ).flatMap { details ->
             // Getting time
-            val time = details.remove(ADDRESS_GENERATION_TIME_KEY)!!.toLong()
+            val time = details.toMutableMap().remove(ADDRESS_GENERATION_TIME_KEY)!!.toLong()
             // Getting node id
-            val nodeId = details.remove(ADDRESS_GENERATION_NODE_ID_KEY)!!
+            val nodeId = details.toMutableMap().remove(ADDRESS_GENERATION_NODE_ID_KEY)!!
             // Getting keys
             val notaryKeys = details.values
             if (!notaryKeys.isEmpty()) {

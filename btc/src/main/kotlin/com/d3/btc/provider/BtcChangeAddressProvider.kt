@@ -3,16 +3,15 @@ package com.d3.btc.provider
 import com.d3.btc.model.AddressInfo
 import com.d3.btc.model.BtcAddress
 import com.d3.btc.monitoring.Monitoring
-import com.d3.commons.sidechain.iroha.util.getAccountDetails
+import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import jp.co.soramitsu.iroha.java.QueryAPI
 
 /*
-    Class that is used to get change address
+ * Class that is used to get change address
  */
 open class BtcChangeAddressProvider(
-    private val queryAPI: QueryAPI,
+    private val queryHelper: IrohaQueryHelper,
     private val mstRegistrationAccount: String,
     private val changeAddressesStorageAccount: String
 ) : Monitoring() {
@@ -22,8 +21,7 @@ open class BtcChangeAddressProvider(
      * Returns all change addresses
      */
     fun getAllChangeAddresses(): Result<List<BtcAddress>, Exception> {
-        return getAccountDetails(
-            queryAPI,
+        return queryHelper.getAccountDetails(
             changeAddressesStorageAccount,
             mstRegistrationAccount
         ).map { details ->
@@ -33,7 +31,6 @@ open class BtcChangeAddressProvider(
             }
         }
     }
-
 
     /**
      * Returns all change addresses that were generated before given time

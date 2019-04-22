@@ -1,14 +1,13 @@
 package com.d3.commons.provider
 
+import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import jp.co.soramitsu.iroha.java.QueryAPI
 import mu.KLogging
-import com.d3.commons.sidechain.iroha.util.getAccountDetails
 
 abstract class WhiteListProvider protected constructor(
     private val whiteListSetterAccount: String,
-    private val queryAPI: QueryAPI,
+    private val queryHelper: IrohaQueryHelper,
     private val whiteListKey: String
 ) {
     /**
@@ -18,8 +17,7 @@ abstract class WhiteListProvider protected constructor(
      * @return true if whitelist is not set or empty, otherwise checks if [address] in the whitelist
      */
     fun checkWithdrawalAddress(srcAccountId: String, address: String): Result<Boolean, Exception> {
-        return getAccountDetails(
-            queryAPI,
+        return queryHelper.getAccountDetails(
             srcAccountId,
             whiteListSetterAccount
         ).map { details ->

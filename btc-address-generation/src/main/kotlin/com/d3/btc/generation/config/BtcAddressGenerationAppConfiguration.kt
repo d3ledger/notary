@@ -9,10 +9,10 @@ import com.d3.commons.provider.NotaryPeerListProviderImpl
 import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.util.createPrettySingleThreadPool
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.QueryAPI
 import org.bitcoinj.wallet.Wallet
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -37,7 +37,10 @@ class BtcAddressGenerationAppConfiguration {
         }, { ex -> throw ex })
 
     private val registrationCredential =
-        IrohaCredential(btcAddressGenerationConfig.registrationAccount.accountId, registrationKeyPair)
+        IrohaCredential(
+            btcAddressGenerationConfig.registrationAccount.accountId,
+            registrationKeyPair
+        )
 
     private val mstRegistrationKeyPair =
         ModelUtil.loadKeypair(
@@ -48,7 +51,10 @@ class BtcAddressGenerationAppConfiguration {
         }, { ex -> throw ex })
 
     private val mstRegistrationCredential =
-        IrohaCredential(btcAddressGenerationConfig.mstRegistrationAccount.accountId, mstRegistrationKeyPair)
+        IrohaCredential(
+            btcAddressGenerationConfig.mstRegistrationAccount.accountId,
+            mstRegistrationKeyPair
+        )
 
     @Bean
     fun generationIrohaAPI(): IrohaAPI {
@@ -78,7 +84,7 @@ class BtcAddressGenerationAppConfiguration {
     fun healthCheckPort() = btcAddressGenerationConfig.healthCheckPort
 
     @Bean
-    fun registrationQueryAPI() = QueryAPI(
+    fun registrationQueryAPI() = IrohaQueryHelperImpl(
         generationIrohaAPI(),
         registrationCredential.accountId,
         registrationCredential.keyPair

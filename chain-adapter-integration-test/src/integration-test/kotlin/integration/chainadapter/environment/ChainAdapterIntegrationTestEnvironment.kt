@@ -6,6 +6,7 @@ import com.d3.chainadapter.provider.FileBasedLastReadBlockProvider
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.util.createPrettySingleThreadPool
 import com.d3.commons.util.getRandomString
 import integration.helper.ChainAdapterConfigHelper
@@ -13,7 +14,6 @@ import integration.helper.IrohaIntegrationHelperUtil
 import io.grpc.ManagedChannelBuilder
 import iroha.protocol.Commands
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.QueryAPI
 import java.io.Closeable
 
 /**
@@ -32,7 +32,8 @@ class ChainAdapterIntegrationTestEnvironment : Closeable {
         integrationTestHelper.accountHelper.irohaConsumer
     }
 
-    val consumerExecutorService = createPrettySingleThreadPool(CHAIN_ADAPTER_SERVICE_NAME, "iroha-blocks-consumer")
+    val consumerExecutorService =
+        createPrettySingleThreadPool(CHAIN_ADAPTER_SERVICE_NAME, "iroha-blocks-consumer")
 
     private val chainAdapterConfigHelper = ChainAdapterConfigHelper()
 
@@ -40,7 +41,8 @@ class ChainAdapterIntegrationTestEnvironment : Closeable {
 
     private val irohaCredential = rmqConfig.irohaCredential
 
-    private val keyPair = ModelUtil.loadKeypair(irohaCredential.pubkeyPath, irohaCredential.privkeyPath).get()
+    private val keyPair =
+        ModelUtil.loadKeypair(irohaCredential.pubkeyPath, irohaCredential.privkeyPath).get()
 
     /**
      * It's essential to handle blocks in this service one-by-one.
@@ -60,12 +62,11 @@ class ChainAdapterIntegrationTestEnvironment : Closeable {
         )
     }
 
-    private val queryAPI =
-        QueryAPI(
-            irohaAPI,
-            irohaCredential.accountId,
-            keyPair
-        )
+    private val queryHelper = IrohaQueryHelperImpl(
+        irohaAPI,
+        irohaCredential.accountId,
+        keyPair
+    )
 
     private val irohaChainListener = IrohaChainListener(
         irohaAPI,
@@ -76,7 +77,7 @@ class ChainAdapterIntegrationTestEnvironment : Closeable {
 
     val adapter = ChainAdapter(
         rmqConfig,
-        queryAPI,
+        queryHelper,
         irohaChainListener,
         lastReadBlockProvider
     )

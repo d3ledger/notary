@@ -11,7 +11,7 @@ import com.d3.commons.sidechain.iroha.BTC_SIGN_COLLECT_DOMAIN
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.sidechain.iroha.consumer.IrohaConverter
 import com.d3.commons.sidechain.iroha.util.ModelUtil
-import com.d3.commons.sidechain.iroha.util.getAccountDetails
+import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.util.getRandomId
 import com.d3.commons.util.hex
 import com.d3.commons.util.irohaEscape
@@ -22,7 +22,6 @@ import com.github.kittinunf.result.map
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.QueryAPI
 import mu.KLogging
 import org.bitcoinj.core.ECKey
 import org.bitcoinj.core.Transaction
@@ -44,8 +43,8 @@ class SignCollector(
     @Autowired private val irohaAPI: IrohaAPI,
     @Autowired private val transactionSigner: TransactionSigner
 ) {
-    private val queryAPI by lazy {
-        QueryAPI(
+    private val queryHelper by lazy {
+        IrohaQueryHelperImpl(
             irohaAPI,
             signatureCollectorCredential.accountId,
             signatureCollectorCredential.keyPair
@@ -53,7 +52,12 @@ class SignCollector(
     }
     //Adapter for JSON serialization/deserialization
     private val inputSignatureJsonAdapter = Moshi.Builder().build()
-        .adapter<List<InputSignature>>(Types.newParameterizedType(List::class.java, InputSignature::class.java))
+        .adapter<List<InputSignature>>(
+            Types.newParameterizedType(
+                List::class.java,
+                InputSignature::class.java
+            )
+        )
 
     /**
      * Collects current notary signatures. Process consists of 3 steps:
@@ -82,7 +86,8 @@ class SignCollector(
              * The following Iroha command can fail.
              */
             signatureCollectorConsumer.send(createAccountTx)
-            val setSignaturesTx = IrohaConverter.convert(setSignatureDetailsTx(shortTxHash, signedInputs))
+            val setSignaturesTx =
+                IrohaConverter.convert(setSignatureDetailsTx(shortTxHash, signedInputs))
             signatureCollectorConsumer.send(setSignaturesTx)
         }.fold(
             {
@@ -101,14 +106,14 @@ class SignCollector(
         We use first 32 tx hash symbols as account name because of Iroha account name restrictions ([a-z_0-9]{1,32})
         */
         val signCollectionAccountId = "${shortTxHash(txHash)}@$BTC_SIGN_COLLECT_DOMAIN"
-        return getAccountDetails(
-            queryAPI,
+        return queryHelper.getAccountDetails(
             signCollectionAccountId,
             signatureCollectorCredential.accountId
         ).map { signatureDetails ->
             val totalInputSignatures = HashMap<Int, ArrayList<SignaturePubKey>>()
             signatureDetails.entries.forEach { signatureData ->
-                val notaryInputSignatures = inputSignatureJsonAdapter.fromJson(signatureData.value)!!
+                val notaryInputSignatures =
+                    inputSignatureJsonAdapter.fromJson(signatureData.value)!!
                 combineSignatures(totalInputSignatures, notaryInputSignatures)
             }
             totalInputSignatures
@@ -121,7 +126,10 @@ class SignCollector(
      * @param signatures - map full of input signatures from other notary nodes
      * @return true if all inputs are properly signed
      */
-    fun isEnoughSignaturesCollected(tx: Transaction, signatures: Map<Int, List<SignaturePubKey>>): Boolean {
+    fun isEnoughSignaturesCollected(
+        tx: Transaction,
+        signatures: Map<Int, List<SignaturePubKey>>
+    ): Boolean {
         var inputIndex = 0
         tx.inputs.forEach { input ->
             if (!signatures.containsKey(inputIndex)) {
@@ -160,11 +168,12 @@ class SignCollector(
                     /**
                      * Signatures must be ordered the same way public keys are ordered in redeem script
                      */
-                    val orderedSignatures = signatures[inputIndex]!!.sortedWith(Comparator { sig1, sig2 ->
-                        ECKey.PUBKEY_COMPARATOR.compare(
-                            toEcPubKey(sig1.pubKey), toEcPubKey(sig2.pubKey)
-                        )
-                    })
+                    val orderedSignatures =
+                        signatures[inputIndex]!!.sortedWith(Comparator { sig1, sig2 ->
+                            ECKey.PUBKEY_COMPARATOR.compare(
+                                toEcPubKey(sig1.pubKey), toEcPubKey(sig2.pubKey)
+                            )
+                        })
                     val redeemScript = createMsRedeemScript(usedKeys)
                     logger.info("Redeem script for tx ${tx.hashAsString} input $inputIndex is $redeemScript")
                     logger.info("Signatures for tx ${tx.hashAsString}\n $orderedSignatures\nUsed keys $usedKeys")
@@ -195,8 +204,10 @@ class SignCollector(
 
     /**
      * Function that combines signatures from Iroha into map.
-     * @param totalInputSignatures - collection that stores all the signatures in convenient form: input index as key and list of signatures as value
-     * @param notaryInputSignatures - signatures of particular node from Iroha. It will be added to [totalInputSignatures]
+     * @param totalInputSignatures - collection that stores all the signatures in convenient form:
+     *   input index as key and list of signatures as value
+     * @param notaryInputSignatures - signatures of particular node from Iroha. It will be added to
+     *   [totalInputSignatures]
      */
     private fun combineSignatures(
         totalInputSignatures: HashMap<Int, ArrayList<SignaturePubKey>>,
@@ -206,7 +217,8 @@ class SignCollector(
             if (totalInputSignatures.containsKey(inputSignature.index)) {
                 totalInputSignatures[inputSignature.index]!!.add(inputSignature.sigPubKey)
             } else {
-                totalInputSignatures[inputSignature.index] = ArrayList(listOf(inputSignature.sigPubKey))
+                totalInputSignatures[inputSignature.index] =
+                    ArrayList(listOf(inputSignature.sigPubKey))
             }
         }
     }
@@ -234,7 +246,10 @@ class SignCollector(
     }
 
     //Creates Iroha transaction to store signatures as acount details
-    private fun setSignatureDetailsTx(txShortHash: String, signedInputs: List<InputSignature>): IrohaTransaction {
+    private fun setSignatureDetailsTx(
+        txShortHash: String,
+        signedInputs: List<InputSignature>
+    ): IrohaTransaction {
         val signCollectionAccountId = "$txShortHash@$BTC_SIGN_COLLECT_DOMAIN"
         val signaturesJson = inputSignatureJsonAdapter.toJson(signedInputs).irohaEscape()
         return IrohaTransaction(

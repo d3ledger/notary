@@ -60,7 +60,7 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
     }
 
     private val btcRegisteredAddressesProvider = BtcRegisteredAddressesProvider(
-        queryAPI,
+        queryHelper,
         accountHelper.registrationAccount.accountId,
         accountHelper.notaryAccount.accountId
     )
@@ -68,13 +68,13 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
     private val btcRegistrationStrategy by lazy {
         val btcAddressesProvider =
             BtcAddressesProvider(
-                queryAPI,
+                queryHelper,
                 accountHelper.mstRegistrationAccount.accountId,
                 accountHelper.notaryAccount.accountId
             )
         val btcTakenAddressesProvider =
             BtcRegisteredAddressesProvider(
-                queryAPI,
+                queryHelper,
                 accountHelper.registrationAccount.accountId,
                 accountHelper.notaryAccount.accountId
             )
@@ -99,7 +99,8 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
      * @param addressesToGenerate - number of addresses to generate
      */
     fun preGenFreeBtcAddresses(walletFilePath: String, addressesToGenerate: Int) {
-        val totalBatches = Math.ceil(addressesToGenerate.div(GENERATED_ADDRESSES_PER_BATCH.toDouble())).toInt()
+        val totalBatches =
+            Math.ceil(addressesToGenerate.div(GENERATED_ADDRESSES_PER_BATCH.toDouble())).toInt()
         /*
          Iroha dies if it sees too much of transactions in a batch.
           */
@@ -156,7 +157,13 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
         hosts: List<String>,
         walletInitializer: WalletInitializer
     ): SharedPeerGroup {
-        return SharedPeerGroup(btcNetworkConfigProvider, wallet, blockStoragePath, hosts, walletInitializer)
+        return SharedPeerGroup(
+            btcNetworkConfigProvider,
+            wallet,
+            blockStoragePath,
+            hosts,
+            walletInitializer
+        )
     }
 
     /**
@@ -165,13 +172,20 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
      * @param nodeId - node id. NODE_ID by default
      * @return randomly generated BTC address
      */
-    fun genFreeBtcAddress(walletFilePath: String, nodeId: String = NODE_ID): Result<Address, Exception> {
+    fun genFreeBtcAddress(
+        walletFilePath: String,
+        nodeId: String = NODE_ID
+    ): Result<Address, Exception> {
         val (key, address) = generateKeyAndAddress(walletFilePath)
         return ModelUtil.setAccountDetail(
             mstRegistrationIrohaConsumer,
             accountHelper.notaryAccount.accountId,
             address.toBase58(),
-            AddressInfo.createFreeAddressInfo(listOf(key.publicKeyAsHex), nodeId, System.currentTimeMillis()).toJson()
+            AddressInfo.createFreeAddressInfo(
+                listOf(key.publicKeyAsHex),
+                nodeId,
+                System.currentTimeMillis()
+            ).toJson()
         ).map { address }
     }
 

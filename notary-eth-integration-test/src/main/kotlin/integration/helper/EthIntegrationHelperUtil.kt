@@ -8,6 +8,7 @@ import com.d3.commons.registration.ETH_WHITE_LIST_KEY
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.util.getRandomString
 import com.d3.commons.util.toHexString
 import com.d3.eth.deposit.EthDepositConfig
@@ -26,7 +27,6 @@ import com.d3.eth.token.EthTokenInfo
 import com.d3.eth.vacuum.RelayVacuumConfig
 import com.d3.eth.withdrawal.withdrawalservice.WithdrawalServiceConfig
 import com.github.kittinunf.result.success
-import jp.co.soramitsu.iroha.java.QueryAPI
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import java.math.BigInteger
@@ -80,14 +80,17 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /** Provider that is used to store/fetch tokens*/
     val ethTokensProvider by lazy {
         EthTokensProviderImpl(
-            queryAPI,
+            queryHelper,
             accountHelper.tokenStorageAccount.accountId,
             accountHelper.tokenSetterAccount.accountId
         )
     }
 
-    private val registrationQueryAPI =
-        QueryAPI(irohaAPI, accountHelper.registrationAccount.accountId, accountHelper.registrationAccount.keyPair)
+    private val registrationQueryAPI = IrohaQueryHelperImpl(
+        irohaAPI,
+        accountHelper.registrationAccount.accountId,
+        accountHelper.registrationAccount.keyPair
+    )
 
     /** Provider that is used to get free registered relays*/
     private val ethFreeRelayProvider by lazy {
@@ -130,7 +133,8 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
 
     private val whitelistProvider by lazy {
         EthWhiteListProvider(
-            ethRegistrationConfig.registrationCredential.accountId, queryAPI
+            ethRegistrationConfig.registrationCredential.accountId,
+            queryHelper
         )
     }
 
@@ -180,7 +184,8 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      */
     fun deployERC20Token(name: String, precision: Int): String {
         logger.info { "create $name ERC20 token" }
-        val tokenAddress = contractTestHelper.deployHelper.deployERC20TokenSmartContract().contractAddress
+        val tokenAddress =
+            contractTestHelper.deployHelper.deployERC20TokenSmartContract().contractAddress
         addERC20Token(tokenAddress, EthTokenInfo(name, ETH_DOMAIN, precision))
         masterContract.addToken(tokenAddress).send()
         return tokenAddress
@@ -301,7 +306,12 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         whitelist: List<String>,
         keypair: KeyPair = ModelUtil.generateKeypair()
     ): String {
-        ethRegistrationStrategy.register(name, CLIENT_DOMAIN, whitelist, keypair.public.toHexString())
+        ethRegistrationStrategy.register(
+            name,
+            CLIENT_DOMAIN,
+            whitelist,
+            keypair.public.toHexString()
+        )
             .fold({ registeredEthWallet ->
                 logger.info("registered client $name with relay $registeredEthWallet")
                 return registeredEthWallet
@@ -411,9 +421,15 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      * Run withdrawal service
      */
     fun runEthWithdrawalService(
-        withdrawalServiceConfig: WithdrawalServiceConfig = configHelper.createWithdrawalConfig(String.getRandomString(9)),
+        withdrawalServiceConfig: WithdrawalServiceConfig = configHelper.createWithdrawalConfig(
+            String.getRandomString(9)
+        ),
         relayVacuumConfig: RelayVacuumConfig = configHelper.createRelayVacuumConfig(),
-        rmqConfig: RMQConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
+        rmqConfig: RMQConfig = loadRawConfigs(
+            "rmq",
+            RMQConfig::class.java,
+            "${getConfigFolder()}/rmq.properties"
+        )
     ) {
         com.d3.eth.withdrawal.withdrawalservice.executeWithdrawal(
             withdrawalServiceConfig,

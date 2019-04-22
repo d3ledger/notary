@@ -18,11 +18,13 @@ import java.io.Closeable
 /**
  * Bitcoin client registration service testing environment
  */
-class BtcRegistrationTestEnvironment(private val integrationHelper: BtcIntegrationHelperUtil) : Closeable {
+class BtcRegistrationTestEnvironment(private val integrationHelper: BtcIntegrationHelperUtil) :
+    Closeable {
 
     val btcRegistrationConfig = integrationHelper.configHelper.createBtcRegistrationConfig()
 
-    val btcAddressGenerationConfig = integrationHelper.configHelper.createBtcAddressGenerationConfig(0)
+    val btcAddressGenerationConfig =
+        integrationHelper.configHelper.createBtcAddressGenerationConfig(0)
 
     private val btcRegistrationCredential = ModelUtil.loadKeypair(
         btcRegistrationConfig.registrationCredential.pubkeyPath,
@@ -34,7 +36,8 @@ class BtcRegistrationTestEnvironment(private val integrationHelper: BtcIntegrati
         { ex -> throw ex }
     )
 
-    private val btcClientCreatorConsumer = IrohaConsumerImpl(btcRegistrationCredential, integrationHelper.irohaAPI)
+    private val btcClientCreatorConsumer =
+        IrohaConsumerImpl(btcRegistrationCredential, integrationHelper.irohaAPI)
 
     val btcFreeAddressesProvider = BtcFreeAddressesProvider(
         btcRegistrationConfig.nodeId, btcAddressesProvider(),
@@ -52,7 +55,7 @@ class BtcRegistrationTestEnvironment(private val integrationHelper: BtcIntegrati
 
     private fun btcAddressesProvider(): BtcAddressesProvider {
         return BtcAddressesProvider(
-            integrationHelper.queryAPI,
+            integrationHelper.queryHelper,
             btcRegistrationConfig.mstRegistrationAccount,
             btcRegistrationConfig.notaryAccount
         )
@@ -60,7 +63,7 @@ class BtcRegistrationTestEnvironment(private val integrationHelper: BtcIntegrati
 
     private fun btcRegisteredAddressesProvider(): BtcRegisteredAddressesProvider {
         return BtcRegisteredAddressesProvider(
-            integrationHelper.queryAPI,
+            integrationHelper.queryHelper,
             btcRegistrationCredential.accountId,
             btcRegistrationConfig.notaryAccount
         )
@@ -74,7 +77,7 @@ class BtcRegistrationTestEnvironment(private val integrationHelper: BtcIntegrati
     }
 
     val btcRegisteredAddressesProvider = BtcRegisteredAddressesProvider(
-        integrationHelper.queryAPI,
+        integrationHelper.queryHelper,
         btcRegistrationConfig.registrationCredential.accountId,
         integrationHelper.accountHelper.notaryAccount.accountId
     )

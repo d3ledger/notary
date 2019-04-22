@@ -7,11 +7,11 @@ import com.d3.commons.config.loadConfigs
 import com.d3.commons.config.loadEthPasswords
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.eth.provider.EthRelayProviderIrohaImpl
 import com.d3.eth.provider.EthTokensProviderImpl
 import com.github.kittinunf.result.*
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.QueryAPI
 import mu.KLogging
 
 private val logger = KLogging().logger
@@ -64,7 +64,7 @@ fun executeDeposit(
         depositConfig.iroha.port
     )
 
-    val queryAPI = QueryAPI(
+    val queryAPI = IrohaQueryHelperImpl(
         irohaAPI,
         irohaCredential.accountId,
         irohaCredential.keyPair

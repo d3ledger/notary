@@ -5,7 +5,6 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import com.d3.commons.sidechain.iroha.util.getAccountAsset
 
 /**
  * Test helper class for Iroha queries
@@ -13,7 +12,7 @@ import com.d3.commons.sidechain.iroha.util.getAccountAsset
  * Note: Requires Iroha running.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class RequestHelperTest {
+class IrohaQueryHelperTest {
 
     val integrationHelper = IrohaIntegrationHelperUtil()
 
@@ -32,6 +31,6 @@ class RequestHelperTest {
         val accountId = integrationHelper.testCredential.accountId
         val assetId = "nonexist#nonexist"
 
-        assertEquals("0", getAccountAsset(integrationHelper.queryAPI, accountId, assetId).get())
+        assertEquals("0", integrationHelper.queryHelper.getAccountAsset(accountId, assetId).get())
     }
 }

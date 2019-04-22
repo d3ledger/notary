@@ -1,13 +1,16 @@
 package com.d3.commons.sidechain.iroha.consumer
 
 import com.d3.commons.model.IrohaCredential
-import com.d3.commons.sidechain.iroha.util.getAccountQuorum
+import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.util.hex
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import iroha.protocol.Endpoint
 import iroha.protocol.TransactionOuterClass
-import jp.co.soramitsu.iroha.java.*
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.Transaction
+import jp.co.soramitsu.iroha.java.TransactionStatusObserver
+import jp.co.soramitsu.iroha.java.Utils
 import jp.co.soramitsu.iroha.java.detail.BuildableAndSignable
 import jp.co.soramitsu.iroha.java.detail.InlineTransactionStatusObserver
 import jp.co.soramitsu.iroha.java.subscription.WaitForTerminalStatus
@@ -43,13 +46,14 @@ class IrohaConsumerImpl(
     private val irohaAPI: IrohaAPI
 ) : IrohaConsumer {
 
-    private val queryAPI = QueryAPI(irohaAPI, irohaCredential.accountId, irohaCredential.keyPair)
+    private val queryHelper =
+        IrohaQueryHelperImpl(irohaAPI, irohaCredential.accountId, irohaCredential.keyPair)
 
     override val creator = irohaCredential.accountId
 
     private val keypair = irohaCredential.keyPair
 
-    override fun getConsumerQuorum() = getAccountQuorum(queryAPI, creator)
+    override fun getConsumerQuorum() = queryHelper.getAccountQuorum(creator)
 
     /**
      * Send transaction to Iroha and check if it is committed
@@ -131,24 +135,27 @@ class IrohaConsumerImpl(
             .onError { ex -> txStatus.txException = IllegalStateException(ex) }
             .onMstExpired { expiredTx ->
                 txStatus.txException =
-                        TimeoutException("Tx ${expiredTx.txHash} MST expired. ${expiredTx.errOrCmdName}")
+                    TimeoutException("Tx ${expiredTx.txHash} MST expired. ${expiredTx.errOrCmdName}")
             }
             .onNotReceived { failedTx ->
                 txStatus.txException =
-                        IOException("Tx ${failedTx.txHash} was not received. ${failedTx.errOrCmdName}")
+                    IOException("Tx ${failedTx.txHash} was not received. ${failedTx.errOrCmdName}")
             }
             .onRejected { rejectedTx ->
                 txStatus.txException =
-                        IOException("Tx ${rejectedTx.txHash} was rejected. ${rejectedTx.errOrCmdName}")
+                    IOException("Tx ${rejectedTx.txHash} was rejected. ${rejectedTx.errOrCmdName}")
             }
             .onTransactionFailed { failedTx ->
-                txStatus.txException = Exception("Tx ${failedTx.txHash} failed. ${failedTx.errOrCmdName}")
+                txStatus.txException =
+                    Exception("Tx ${failedTx.txHash} failed. ${failedTx.errOrCmdName}")
             }
             .onUnrecognizedStatus { failedTx ->
                 txStatus.txException =
-                        Exception("Tx ${failedTx.txHash} got unrecognized status. ${failedTx.errOrCmdName}")
+                    Exception("Tx ${failedTx.txHash} got unrecognized status. ${failedTx.errOrCmdName}")
             }
-            .onTransactionCommitted { successTx -> txStatus.txHash = successTx.txHash.toUpperCase() }
+            .onTransactionCommitted { successTx ->
+                txStatus.txHash = successTx.txHash.toUpperCase()
+            }
             .build()
     }
 

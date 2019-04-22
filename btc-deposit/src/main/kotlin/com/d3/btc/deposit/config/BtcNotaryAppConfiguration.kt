@@ -12,15 +12,16 @@ import com.d3.commons.notary.NotaryImpl
 import com.d3.commons.sidechain.SideChainEvent
 import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.util.createPrettySingleThreadPool
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.QueryAPI
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
-val depositConfig = loadConfigs("btc-deposit", BtcDepositConfig::class.java, "/btc/deposit.properties").get()
+val depositConfig =
+    loadConfigs("btc-deposit", BtcDepositConfig::class.java, "/btc/deposit.properties").get()
 
 @Configuration
 class BtcNotaryAppConfiguration {
@@ -30,14 +31,15 @@ class BtcNotaryAppConfiguration {
         depositConfig.notaryCredential.privkeyPath
     ).fold({ keypair -> keypair }, { ex -> throw ex })
 
-    private val notaryCredential = IrohaCredential(depositConfig.notaryCredential.accountId, notaryKeypair)
+    private val notaryCredential =
+        IrohaCredential(depositConfig.notaryCredential.accountId, notaryKeypair)
 
     @Bean
     fun confidenceListenerExecutorService() =
         createPrettySingleThreadPool(BTC_DEPOSIT_SERVICE_NAME, "tx-confidence-listener")
 
     @Bean
-    fun queryAPI() = QueryAPI(irohaAPI(), notaryCredential.accountId, notaryKeypair)
+    fun queryHelper() = IrohaQueryHelperImpl(irohaAPI(), notaryCredential.accountId, notaryKeypair)
 
     @Bean
     fun btcEventsSource(): PublishSubject<SideChainEvent.PrimaryBlockChainEvent> {
@@ -63,15 +65,21 @@ class BtcNotaryAppConfiguration {
 
     @Bean
     fun keypair() =
-        ModelUtil.loadKeypair(depositConfig.notaryCredential.pubkeyPath, depositConfig.notaryCredential.privkeyPath)
+        ModelUtil.loadKeypair(
+            depositConfig.notaryCredential.pubkeyPath,
+            depositConfig.notaryCredential.privkeyPath
+        )
 
 
     @Bean
     fun btcRegisteredAddressesProvider(): BtcRegisteredAddressesProvider {
-        ModelUtil.loadKeypair(depositConfig.notaryCredential.pubkeyPath, depositConfig.notaryCredential.privkeyPath)
+        ModelUtil.loadKeypair(
+            depositConfig.notaryCredential.pubkeyPath,
+            depositConfig.notaryCredential.privkeyPath
+        )
             .fold({ keypair ->
                 return BtcRegisteredAddressesProvider(
-                    queryAPI(),
+                    queryHelper(),
                     depositConfig.registrationAccount,
                     depositConfig.notaryCredential.accountId
                 )
@@ -103,11 +111,12 @@ class BtcNotaryAppConfiguration {
 
     @Bean
     fun btcChangeAddressProvider() = BtcChangeAddressProvider(
-        queryAPI(),
+        queryHelper(),
         depositConfig.mstRegistrationAccount,
         depositConfig.changeAddressesStorageAccount
     )
 
     @Bean
-    fun walletInitializer() = WalletInitializer(btcRegisteredAddressesProvider(), btcChangeAddressProvider())
+    fun walletInitializer() =
+        WalletInitializer(btcRegisteredAddressesProvider(), btcChangeAddressProvider())
 }

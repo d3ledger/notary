@@ -10,12 +10,12 @@ import com.d3.commons.config.loadRawConfigs
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.util.createPrettySingleThreadPool
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.QueryAPI
 import mu.KLogging
 import java.io.File
 import java.io.IOException
@@ -25,7 +25,8 @@ const val CHAIN_ADAPTER_SERVICE_NAME = "chain-adapter"
 
 //TODO Springify
 fun main(args: Array<String>) {
-    val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
+    val rmqConfig =
+        loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
 
     val irohaCredential = rmqConfig.irohaCredential
     ModelUtil.loadKeypair(irohaCredential.pubkeyPath, irohaCredential.privkeyPath).map { keyPair ->
@@ -45,12 +46,11 @@ fun main(args: Array<String>) {
                 )
             ).usePlaintext().build()
         )
-        val queryAPI =
-            QueryAPI(
-                irohaAPI,
-                irohaCredential.accountId,
-                keyPair
-            )
+        val queryAPI = IrohaQueryHelperImpl(
+            irohaAPI,
+            irohaCredential.accountId,
+            keyPair
+        )
         val irohaChainListener = IrohaChainListener(
             irohaAPI,
             IrohaCredential(irohaCredential.accountId, keyPair)

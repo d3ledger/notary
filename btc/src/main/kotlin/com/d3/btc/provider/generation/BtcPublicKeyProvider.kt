@@ -7,7 +7,6 @@ import com.d3.btc.provider.network.BtcNetworkConfigProvider
 import com.d3.commons.provider.NotaryPeerListProvider
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.sidechain.iroha.util.ModelUtil
-import com.d3.commons.sidechain.iroha.util.getAccountQuorum
 import com.d3.commons.util.getRandomId
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
@@ -19,7 +18,7 @@ import org.springframework.stereotype.Component
 
 /**
  *  Bitcoin keys provider
- *  @param walletFile - bitcoin wallet
+ *  @param keysWallet - bitcoin wallet
  *  @param notaryPeerListProvider - provider to query all current notaries
  *  @param notaryAccount - Iroha account of notary service.
  *  Used to store free BTC addresses that can be registered by clients later
@@ -107,7 +106,8 @@ class BtcPublicKeyProvider(
             }
             onMsAddressCreated()
             logger.info("Address $msAddress was added to wallet. Used keys are ${notaryKeys}")
-            val addressStorage = createAddressStorage(addressType, notaryKeys, nodeId, generationTime)
+            val addressStorage =
+                createAddressStorage(addressType, notaryKeys, nodeId, generationTime)
             ModelUtil.setAccountDetail(
                 multiSigConsumer,
                 addressStorage.storageAccount,
@@ -148,14 +148,22 @@ class BtcPublicKeyProvider(
             BtcAddressType.CHANGE -> {
                 logger.info { "Creating change address" }
                 Pair(
-                    AddressInfo.createChangeAddressInfo(ArrayList<String>(notaryKeys), nodeId, generationTime),
+                    AddressInfo.createChangeAddressInfo(
+                        ArrayList<String>(notaryKeys),
+                        nodeId,
+                        generationTime
+                    ),
                     changeAddressStorageAccount
                 )
             }
             BtcAddressType.FREE -> {
                 logger.info { "Creating free address" }
                 Pair(
-                    AddressInfo.createFreeAddressInfo(ArrayList<String>(notaryKeys), nodeId, generationTime),
+                    AddressInfo.createFreeAddressInfo(
+                        ArrayList<String>(notaryKeys),
+                        nodeId,
+                        generationTime
+                    ),
                     //TODO use another account to store addresses
                     notaryAccount
                 )
