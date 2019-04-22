@@ -64,19 +64,19 @@ fun executeDeposit(
         depositConfig.iroha.port
     )
 
-    val queryAPI = IrohaQueryHelperImpl(
+    val queryHelper = IrohaQueryHelperImpl(
         irohaAPI,
         irohaCredential.accountId,
         irohaCredential.keyPair
     )
 
     val ethRelayProvider = EthRelayProviderIrohaImpl(
-        queryAPI,
+        queryHelper,
         irohaCredential.accountId,
         depositConfig.registrationServiceIrohaAccount
     )
     val ethTokensProvider = EthTokensProviderImpl(
-        queryAPI,
+        queryHelper,
         depositConfig.tokenStorageAccount,
         depositConfig.tokenSetterAccount
     )

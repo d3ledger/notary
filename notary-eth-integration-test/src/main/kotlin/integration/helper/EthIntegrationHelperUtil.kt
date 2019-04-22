@@ -86,7 +86,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         )
     }
 
-    private val registrationQueryAPI = IrohaQueryHelperImpl(
+    private val registrationQueryHelper = IrohaQueryHelperImpl(
         irohaAPI,
         accountHelper.registrationAccount.accountId,
         accountHelper.registrationAccount.keyPair
@@ -95,7 +95,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /** Provider that is used to get free registered relays*/
     private val ethFreeRelayProvider by lazy {
         EthFreeRelayProvider(
-            registrationQueryAPI,
+            registrationQueryHelper,
             accountHelper.notaryAccount.accountId,
             accountHelper.registrationAccount.accountId
         )
@@ -104,7 +104,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /** Provider of ETH wallets created by registrationAccount*/
     private val ethRelayProvider by lazy {
         EthRelayProviderIrohaImpl(
-            registrationQueryAPI,
+            registrationQueryHelper,
             accountHelper.notaryAccount.accountId,
             accountHelper.registrationAccount.accountId
         )

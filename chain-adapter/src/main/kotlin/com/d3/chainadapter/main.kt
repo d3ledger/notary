@@ -46,7 +46,7 @@ fun main(args: Array<String>) {
                 )
             ).usePlaintext().build()
         )
-        val queryAPI = IrohaQueryHelperImpl(
+        val queryHelper = IrohaQueryHelperImpl(
             irohaAPI,
             irohaCredential.accountId,
             keyPair
@@ -57,7 +57,7 @@ fun main(args: Array<String>) {
         )
         val adapter = ChainAdapter(
             rmqConfig,
-            queryAPI,
+            queryHelper,
             irohaChainListener,
             FileBasedLastReadBlockProvider(rmqConfig)
         )

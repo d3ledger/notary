@@ -81,9 +81,6 @@ class BtcDWBridgeAppConfiguration {
         createPrettySingleThreadPool(BTC_DEPOSIT_SERVICE_NAME, "tx-confidence-listener")
 
     @Bean
-    fun queryAPI() = QueryAPI(irohaAPI(), notaryCredential.accountId, notaryKeypair)
-
-    @Bean
     fun btcEventsSource(): PublishSubject<SideChainEvent.PrimaryBlockChainEvent> {
         return PublishSubject.create<SideChainEvent.PrimaryBlockChainEvent>()
     }
