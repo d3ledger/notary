@@ -8,7 +8,6 @@ import com.d3.btc.helper.network.startChainDownload
 import com.d3.btc.provider.BtcChangeAddressProvider
 import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.provider.network.BtcNetworkConfigProvider
-import com.d3.btc.wallet.addWatchedAddresses
 import com.d3.btc.wallet.checkWalletNetwork
 import com.d3.btc.withdrawal.BTC_WITHDRAWAL_SERVICE_NAME
 import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
@@ -125,9 +124,10 @@ class BtcWithdrawalInitialization(
                 ) { transferWallet.saveToFile(File(withdrawalConfig.btcTransfersWalletPath)) }
             }
         // Handle 'set new consensus' events
-        getSetDetailCommands(block).filter { command -> isNewConsensus(command) }.forEach { command ->
-            newConsensusDataHandler.handleNewConsensusCommand(command.setAccountDetail)
-        }
+        getSetDetailCommands(block).filter { command -> isNewConsensus(command) }
+            .forEach { command ->
+                newConsensusDataHandler.handleNewConsensusCommand(command.setAccountDetail)
+            }
         // Handle newly registered Bitcoin addresses. We need it to update transferWallet object.
         getSetDetailCommands(block).forEach { command ->
             newBtcClientRegistrationHandler.handleNewClientCommand(command, transferWallet)
