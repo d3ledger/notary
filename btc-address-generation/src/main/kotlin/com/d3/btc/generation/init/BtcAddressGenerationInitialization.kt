@@ -38,8 +38,8 @@ import org.springframework.stereotype.Component
 @Component
 class BtcAddressGenerationInitialization(
     @Autowired private val keysWallet: Wallet,
-    @Qualifier("registrationQueryAPI")
-    @Autowired private val registrationQueryAPI: IrohaQueryHelper,
+    @Qualifier("registrationQueryHelper")
+    @Autowired private val registrationQueryHelper: IrohaQueryHelper,
     @Autowired private val btcAddressGenerationConfig: BtcAddressGenerationConfig,
     @Autowired private val btcPublicKeyProvider: BtcPublicKeyProvider,
     @Autowired private val irohaChainListener: IrohaChainListener,
@@ -149,7 +149,7 @@ class BtcAddressGenerationInitialization(
         sessionAccount: String,
         addressType: BtcAddressType
     ): Result<Unit, Exception> {
-        return registrationQueryAPI.getAccountDetails(
+        return registrationQueryHelper.getAccountDetails(
             sessionAccount,
             btcAddressGenerationConfig.registrationAccount.accountId
         ).flatMap { details ->

@@ -84,7 +84,7 @@ class BtcAddressGenerationAppConfiguration {
     fun healthCheckPort() = btcAddressGenerationConfig.healthCheckPort
 
     @Bean
-    fun registrationQueryAPI() = IrohaQueryHelperImpl(
+    fun registrationQueryHelper() = IrohaQueryHelperImpl(
         generationIrohaAPI(),
         registrationCredential.accountId,
         registrationCredential.keyPair
@@ -99,7 +99,7 @@ class BtcAddressGenerationAppConfiguration {
     @Bean
     fun notaryPeerListProvider(): NotaryPeerListProvider {
         return NotaryPeerListProviderImpl(
-            registrationQueryAPI(),
+            registrationQueryHelper(),
             btcAddressGenerationConfig.notaryListStorageAccount,
             btcAddressGenerationConfig.notaryListSetterAccount
         )
@@ -129,7 +129,7 @@ class BtcAddressGenerationAppConfiguration {
     @Bean
     fun btcChangeAddressProvider(): BtcChangeAddressProvider {
         return BtcChangeAddressProvider(
-            registrationQueryAPI(),
+            registrationQueryHelper(),
             btcAddressGenerationConfig.mstRegistrationAccount.accountId,
             btcAddressGenerationConfig.changeAddressesStorageAccount
         )

@@ -47,7 +47,7 @@ class BtcAddressGenerationTriggerAppConfiguration {
         )
 
     @Bean
-    fun registrationQueryAPI() = IrohaQueryHelperImpl(
+    fun registrationQueryHelper() = IrohaQueryHelperImpl(
         triggerIrohaAPI(),
         registrationCredential.accountId,
         registrationKeyPair
@@ -71,7 +71,7 @@ class BtcAddressGenerationTriggerAppConfiguration {
     @Bean
     fun btcAddressesProvider(): BtcAddressesProvider {
         return BtcAddressesProvider(
-            registrationQueryAPI(),
+            registrationQueryHelper(),
             btcAddressGenerationTriggerConfig.mstRegistrationAccount.accountId,
             btcAddressGenerationTriggerConfig.notaryAccount
         )
@@ -80,7 +80,7 @@ class BtcAddressGenerationTriggerAppConfiguration {
     @Bean
     fun btcRegisteredAddressesProvider(): BtcRegisteredAddressesProvider {
         return BtcRegisteredAddressesProvider(
-            registrationQueryAPI(),
+            registrationQueryHelper(),
             registrationCredential.accountId,
             btcAddressGenerationTriggerConfig.notaryAccount
         )
