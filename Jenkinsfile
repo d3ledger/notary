@@ -37,11 +37,6 @@ pipeline {
           tmp = docker.image("openjdk:8-jdk")
           env.WORKSPACE = pwd()
 
-          tmp.inside("-e JVM_OPTS='-Xmx3200m' -e TERM='dumb' -v ${env.WORKSPACE}/chain-adapter/build/libs:/home/out") {
-            sh "./gradlew chain-adapter:shadowJar"
-
-          }
-
           DOCKER_NETWORK = "${scmVars.CHANGE_ID}-${scmVars.GIT_COMMIT}-${BUILD_NUMBER}"
           writeFile file: ".env", text: "SUBNET=${DOCKER_NETWORK}"
           withCredentials([usernamePassword(credentialsId: 'nexus-d3-docker', usernameVariable: 'login', passwordVariable: 'password')]) {
@@ -129,7 +124,6 @@ pipeline {
                 sh "./gradlew eth-withdrawal:shadowJar"
                 sh "./gradlew eth-registration:shadowJar"
                 sh "./gradlew eth-vacuum:shadowJar"
-                sh "./gradlew chain-adapter:shadowJar"
 
                 sh "./gradlew btc-address-generation:shadowJar"
                 sh "./gradlew btc-registration:shadowJar"
@@ -150,8 +144,6 @@ pipeline {
               btcRegistration = docker.build("nexus.iroha.tech:19002/${login}/btc-registration:${TAG}", "-f docker/btc-registration.dockerfile .")
               btcDwBridge = docker.build("nexus.iroha.tech:19002/${login}/btc-dw-bridge:${TAG}", "-f docker/btc-dw-bridge.dockerfile .")
 
-              chainAdapter = docker.build("nexus.iroha.tech:19002/d3-deploy/chain-adapter:${TAG}", "-f docker/chain-adapter.dockerfile .")
-
               exchanger = docker.build("nexus.iroha.tech:19002/d3-deploy/exchanger:${TAG}", "-f docker/exchanger.dockerfile .")
 
               notaryRegistration.push("${TAG}")
@@ -164,9 +156,6 @@ pipeline {
               btcAddressGeneration.push("${TAG}")
               btcRegistration.push("${TAG}")
               btcDwBridge.push("${TAG}")
-
-              chainAdapter.push("${TAG}")
-
             }
           }
         }
