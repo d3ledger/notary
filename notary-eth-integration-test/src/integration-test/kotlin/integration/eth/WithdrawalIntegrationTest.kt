@@ -89,7 +89,6 @@ class WithdrawalIntegrationTest {
             // register client in Iroha
             var res = integrationHelper.sendRegistrationRequest(
                 client,
-                listOf<String>().toString(),
                 ModelUtil.generateKeypair().public.toHexString(),
                 registrationTestEnvironment.registrationConfig.port
             )
@@ -97,7 +96,6 @@ class WithdrawalIntegrationTest {
             val clientId = "$client@$CLIENT_DOMAIN"
             integrationHelper.registerClientInEth(
                 client,
-                listOf(ethWallet),
                 integrationHelper.testCredential.keyPair
             )
             integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
@@ -121,7 +119,8 @@ class WithdrawalIntegrationTest {
             )
 
             // query
-            res = khttp.get("http://127.0.0.1:${depositConfig.refund.port}/$ENDPOINT_ETHEREUM/$hash")
+            res =
+                khttp.get("http://127.0.0.1:${depositConfig.refund.port}/$ENDPOINT_ETHEREUM/$hash")
 
             val moshi = Moshi
                 .Builder()

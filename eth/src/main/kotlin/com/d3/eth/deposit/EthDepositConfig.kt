@@ -20,9 +20,6 @@ interface EthDepositConfig {
     /** Iroha account sets tokens */
     val tokenSetterAccount: String
 
-    /** Iroha account that set whitelist for client */
-    val whitelistSetter: String
-
     val notaryCredential: IrohaCredentialConfig
 
     val refund: RefundConfig
