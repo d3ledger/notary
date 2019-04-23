@@ -7,6 +7,7 @@ import io.ktor.application.install
 import io.ktor.features.CORS
 import io.ktor.features.ContentNegotiation
 import io.ktor.gson.gson
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
 import io.ktor.request.receiveParameters
@@ -52,7 +53,11 @@ class RegistrationServiceEndpoint(
                     val domain = parameters["domain"] ?: CLIENT_DOMAIN
 
                     val response = invokeRegistration(name, domain, pubkey)
-                    call.respondText(response.message, status = response.code)
+                    call.respondText(
+                        response.message,
+                        status = response.code,
+                        contentType = ContentType.Application.Json
+                    )
                 }
 
                 post("/users/json") {
@@ -62,7 +67,11 @@ class RegistrationServiceEndpoint(
                     val domain = body.domain ?: CLIENT_DOMAIN
 
                     val response = invokeRegistration(name, domain, pubkey)
-                    call.respondText(response.message, status = response.code)
+                    call.respondText(
+                        response.message,
+                        status = response.code,
+                        contentType = ContentType.Application.Json
+                    )
                 }
 
                 get("free-addresses/number") {
