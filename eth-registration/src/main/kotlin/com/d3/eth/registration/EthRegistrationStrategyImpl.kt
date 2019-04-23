@@ -38,13 +38,11 @@ class EthRegistrationStrategyImpl(
      * @param accountName - client name
      * @param domainId - client domain
      * @param publicKey - client public key
-     * @param whitelist - list of addresses from client
      * @return ethereum wallet has been registered
      */
     override fun register(
         accountName: String,
         domainId: String,
-        whitelist: List<String>,
         publicKey: String
     ): Result<String, Exception> {
         return ethFreeRelayProvider.getRelay()
@@ -56,17 +54,9 @@ class EthRegistrationStrategyImpl(
                         if (assignedRelays.isPresent)
                             throw IllegalArgumentException("Client $accountName@$domainId has already been registered with relay: ${assignedRelays.get()}")
 
-                        // register to Ethereum RelayRegistry
-                        deployHelper.addRelayToRelayRegistry(
-                            ethRegistrationConfig.ethRelayRegistryAddress,
-                            freeEthWallet,
-                            whitelist
-                        )
-
                         // register relay to Iroha
                         ethereumAccountRegistrator.register(
                             freeEthWallet,
-                            whitelist,
                             accountName,
                             domainId,
                             publicKey

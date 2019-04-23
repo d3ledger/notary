@@ -22,7 +22,6 @@ class BtcRegistrationStrategyImpl(
      * Registers new Iroha client and associates BTC address to it
      * @param accountName - client name
      * @param domainId - client domain
-     * @param whitelist - list of bitcoin addresses
      * @param publicKey - client public key
      * @return associated BTC address
      */
@@ -30,7 +29,6 @@ class BtcRegistrationStrategyImpl(
     override fun register(
         accountName: String,
         domainId: String,
-        whitelist: List<String>,
         publicKey: String
     ): Result<String, Exception> {
         return btcRegisteredAddressesProvider.ableToRegister("$accountName@$domainId")
@@ -45,11 +43,11 @@ class BtcRegistrationStrategyImpl(
                     throw IllegalStateException("No free btc address to register")
                 }
                 // Get the newest address among free addresses
-                val freeAddress = freeAddresses.maxBy { address -> address.info.generationTime ?: 0 }
+                val freeAddress =
+                    freeAddresses.maxBy { address -> address.info.generationTime ?: 0 }
 
                 irohaBtcAccountCreator.create(
                     freeAddress!!.address,
-                    whitelist,
                     accountName,
                     domainId,
                     publicKey,

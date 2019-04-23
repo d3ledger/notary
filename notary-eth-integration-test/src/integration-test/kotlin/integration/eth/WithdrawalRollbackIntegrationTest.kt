@@ -96,7 +96,6 @@ class WithdrawalRollbackIntegrationTest {
         // register client in Iroha
         var res = integrationHelper.sendRegistrationRequest(
             clientName,
-            listOf(toAddress).toString(),
             keypair.public.toHexString(),
             registrationConfig.port
         )
@@ -105,7 +104,6 @@ class WithdrawalRollbackIntegrationTest {
         // register client in Ethereum
         res = integrationHelper.sendRegistrationRequest(
             clientName,
-            listOf(toAddress).toString(),
             keypair.public.toHexString(),
             ethRegistrationConfig.port
         )

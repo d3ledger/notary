@@ -30,7 +30,8 @@ import java.util.concurrent.TimeUnit
  */
 class BasicAuthenticator(private val ethereumPasswords: EthereumPasswords) : Authenticator {
     override fun authenticate(route: Route, response: Response): Request {
-        val credential = Credentials.basic(ethereumPasswords.nodeLogin!!, ethereumPasswords.nodePassword!!)
+        val credential =
+            Credentials.basic(ethereumPasswords.nodeLogin!!, ethereumPasswords.nodePassword!!)
         return response.request().newBuilder().header("Authorization", credential).build()
     }
 }
@@ -48,7 +49,8 @@ class DeployHelperBuilder(ethereumConfig: EthereumConfig, ethereumPasswords: Eth
      * Specify fast transaction manager to send multiple transactions one by one.
      */
     fun setFastTransactionManager(): DeployHelperBuilder {
-        deployHelper.transactionManager = FastRawTransactionManager(deployHelper.web3, deployHelper.credentials)
+        deployHelper.transactionManager =
+                FastRawTransactionManager(deployHelper.web3, deployHelper.credentials)
         return this
     }
 
@@ -78,7 +80,10 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
 
     /** credentials of ethereum user */
     val credentials by lazy {
-        WalletUtils.loadCredentials(ethereumPasswords.credentialsPassword, ethereumConfig.credentialsPath)
+        WalletUtils.loadCredentials(
+            ethereumPasswords.credentialsPassword,
+            ethereumConfig.credentialsPath
+        )
     }
 
     /** transaction manager */
@@ -98,7 +103,8 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
     fun sendEthereum(amount: BigInteger, to: String) {
         val transfer = Transfer(web3, transactionManager)
         val transactionHash =
-            transfer.sendFunds(to, BigDecimal(amount), Convert.Unit.WEI, gasPrice, gasLimit).send().transactionHash
+            transfer.sendFunds(to, BigDecimal(amount), Convert.Unit.WEI, gasPrice, gasLimit).send()
+                .transactionHash
         logger.info("ETH $amount were sent to $to; tx hash $transactionHash")
     }
 
@@ -234,7 +240,10 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      * @param masterAddress - address of master contract
      * @return [OwnedUpgradeabilityProxy] to upgradable [Relay]
      */
-    fun deployUpgradableRelaySmartContract(relayImplementationAddress: String, masterAddress: String): Relay {
+    fun deployUpgradableRelaySmartContract(
+        relayImplementationAddress: String,
+        masterAddress: String
+    ): Relay {
         // deploy proxy
         val proxy = deployOwnedUpgradeabilityProxy()
 
@@ -261,13 +270,19 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      */
     fun loadTokenSmartContract(tokenAddress: String): SoraToken {
         val soraToken =
-            contract.SoraToken.load(tokenAddress, web3, transactionManager, StaticGasProvider(gasPrice, gasLimit))
+            contract.SoraToken.load(
+                tokenAddress,
+                web3,
+                transactionManager,
+                StaticGasProvider(gasPrice, gasLimit)
+            )
         logger.info { "Sora token contract ${soraToken.contractAddress} was loaded" }
         return soraToken
     }
 
     fun deployFailerContract(): Failer {
-        val failer = Failer.deploy(web3, transactionManager, StaticGasProvider(gasPrice, gasLimit)).send()
+        val failer =
+            Failer.deploy(web3, transactionManager, StaticGasProvider(gasPrice, gasLimit)).send()
         logger.info { "Failer smart contract ${failer.contractAddress} was deployed" }
         return failer
     }
@@ -277,7 +292,8 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      */
     fun deployTransferEthereum(): TransferEthereum {
         val transferEthereum =
-            TransferEthereum.deploy(web3, transactionManager, StaticGasProvider(gasPrice, gasLimit)).send()
+            TransferEthereum.deploy(web3, transactionManager, StaticGasProvider(gasPrice, gasLimit))
+                .send()
         logger.info { "Transfer ethereum contract ${transferEthereum.contractAddress} was deployed" }
         return transferEthereum
     }
@@ -333,7 +349,12 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      */
     fun sendERC20(tokenAddress: String, toAddress: String, amount: BigInteger) {
         val token =
-            contract.BasicCoin.load(tokenAddress, web3, transactionManager, StaticGasProvider(gasPrice, gasLimit))
+            contract.BasicCoin.load(
+                tokenAddress,
+                web3,
+                transactionManager,
+                StaticGasProvider(gasPrice, gasLimit)
+            )
         token.transfer(toAddress, amount).send()
         logger.info { "ERC20 $amount with address $tokenAddress were sent to $toAddress" }
     }
@@ -346,7 +367,12 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      */
     fun getERC20Balance(tokenAddress: String, whoAddress: String): BigInteger {
         val token =
-            contract.BasicCoin.load(tokenAddress, web3, transactionManager, StaticGasProvider(gasPrice, gasLimit))
+            contract.BasicCoin.load(
+                tokenAddress,
+                web3,
+                transactionManager,
+                StaticGasProvider(gasPrice, gasLimit)
+            )
         return token.balanceOf(whoAddress).send()
     }
 
@@ -363,17 +389,16 @@ class DeployHelper(ethereumConfig: EthereumConfig, ethereumPasswords: EthereumPa
      * Register relay to RelayRegistry
      * @ethRelayRegistryAddress - relay registry address
      * @freeEthWallet - wallet that set whitelist to
-     * @whitlist - list of addresses to be whitelisted
      */
-    fun addRelayToRelayRegistry(ethRelayRegistryAddress: String, freeEthWallet: String, whitelist: List<String>) {
-        logger.info { "Add new relay to relay registry relayRegistry=${ethRelayRegistryAddress}, freeWallet=$freeEthWallet, whitelist=$whitelist, creator=${credentials.address}." }
+    fun addRelayToRelayRegistry(ethRelayRegistryAddress: String, freeEthWallet: String) {
+        logger.info { "Add new relay to relay registry relayRegistry=${ethRelayRegistryAddress}, freeWallet=$freeEthWallet, creator=${credentials.address}." }
         val relayRegistry = RelayRegistry.load(
             ethRelayRegistryAddress,
             web3,
             transactionManager,
             StaticGasProvider(gasPrice, gasLimit)
         )
-        relayRegistry.addNewRelayAddress(freeEthWallet, whitelist).send()
+        relayRegistry.addNewRelayAddress(freeEthWallet, emptyList()).send()
     }
 
     /**
