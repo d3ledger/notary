@@ -84,12 +84,11 @@ class BtcRegistrationTestEnvironment(private val integrationHelper: BtcIntegrati
 
     fun register(
         name: String,
-        pubkey: String = ModelUtil.generateKeypair().public.toHexString(),
-        whitelist: String = ""
+        pubkey: String = ModelUtil.generateKeypair().public.toHexString()
     ): Response {
         return post(
             "http://127.0.0.1:${btcRegistrationConfig.port}/users",
-            data = mapOf("name" to name, "pubkey" to pubkey, "whitelist" to whitelist)
+            data = mapOf("name" to name, "pubkey" to pubkey)
         )
     }
 

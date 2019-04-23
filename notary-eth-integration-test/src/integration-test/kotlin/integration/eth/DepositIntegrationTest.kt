@@ -53,13 +53,12 @@ class DepositIntegrationTest {
         // register client in Iroha
         val res = integrationHelper.sendRegistrationRequest(
             clientIrohaAccount,
-            listOf<String>().toString(),
             ModelUtil.generateKeypair().public.toHexString(),
             registrationTestEnvironment.registrationConfig.port
         )
         Assertions.assertEquals(200, res.statusCode)
         // TODO: D3-417 Web3j cannot pass an empty list of addresses to the smart contract.
-        return integrationHelper.registerClientInEth(clientIrohaAccount, listOf())
+        return integrationHelper.registerClientInEth(clientIrohaAccount)
     }
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)

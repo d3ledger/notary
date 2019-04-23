@@ -40,10 +40,6 @@ class EthRefundStrategyImpl(
         depositConfig.registrationServiceIrohaAccount
     )
 
-    private val whiteListProvider = EthWhiteListProvider(
-        depositConfig.whitelistSetter, queryHelper
-    )
-
     private var ecKeyPair: ECKeyPair =
         DeployHelper(ethereumConfig, ethereumPasswords).credentials.ecKeyPair
 
@@ -114,20 +110,12 @@ class EthRefundStrategyImpl(
                     val amount = commands.transferAsset.amount
                     val assetId = commands.transferAsset.assetId
                     val destEthAddress = commands.transferAsset.description
-                    val srcAccountId = commands.transferAsset.srcAccountId
 
                     val tokenInfo = tokensProvider.getTokenAddress(assetId)
                         .fanout { tokensProvider.getTokenPrecision(assetId) }
 
-                    whiteListProvider.checkWithdrawalAddress(srcAccountId, destEthAddress)
-                        .flatMap { isWhitelisted ->
-                            if (!isWhitelisted) {
-                                val errorMsg = "$destEthAddress not in whitelist"
-                                logger.error { errorMsg }
-                                throw NotaryException(errorMsg)
-                            }
-                            relayProvider.getRelayByAccountId(commands.transferAsset.srcAccountId)
-                        }.fanout {
+                    relayProvider.getRelayByAccountId(commands.transferAsset.srcAccountId)
+                        .fanout {
                             tokenInfo
                         }.fold(
                             { (relayAddress, tokenInfo) ->

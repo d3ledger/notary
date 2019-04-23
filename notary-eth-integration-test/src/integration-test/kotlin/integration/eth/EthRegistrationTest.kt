@@ -17,8 +17,6 @@ class EthRegistrationTest {
     /** Integration tests util */
     private val integrationHelper = EthIntegrationHelperUtil()
 
-    private val whitelist = "0x0000000000000000000000000000000000000000"
-
     private val registrationServiceEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
 
     private val ethRegistrationConfig = integrationHelper.ethRegistrationConfig
@@ -74,17 +72,14 @@ class EthRegistrationTest {
         assertEquals(200, res.statusCode)
         // register in Eth
         res = integrationHelper.sendRegistrationRequest(
-                name,
-                whitelist,
-                pubkey,
-                ethRegistrationConfig.port
+            name,
+            pubkey,
+            ethRegistrationConfig.port
         )
         assertEquals(200, res.statusCode)
 
         // check relay address
         assertEquals(freeRelay, integrationHelper.getRelayByAccount(clientId).get())
-        // check whitelist
-        assert(integrationHelper.isWhitelisted(clientId, whitelist))
     }
 
     /**
@@ -108,36 +103,28 @@ class EthRegistrationTest {
         assertEquals(200, res.statusCode)
         // register in eth
         res = integrationHelper.sendRegistrationRequest(
-                name,
-                whitelist,
-                pubkey,
-                ethRegistrationConfig.port
+            name,
+            pubkey,
+            ethRegistrationConfig.port
         )
         assertEquals(200, res.statusCode)
 
         // check relay address
         assertEquals(freeRelay, integrationHelper.getRelayByAccount(clientId).get())
-        // check whitelist
-        assert(integrationHelper.isWhitelisted(clientId, whitelist))
 
 
         // deploy free relay
         integrationHelper.deployRelays(1)
-        val anotherWhitelist = "0x0000000000000000000000000000000000000123"
         // try to register with the same name
         res = integrationHelper.sendRegistrationRequest(
-                name,
-                whitelist,
-                pubkey,
-                ethRegistrationConfig.port
+            name,
+            pubkey,
+            ethRegistrationConfig.port
         )
         assertEquals(500, res.statusCode)
 
         // check relay address the same
         assertEquals(freeRelay, integrationHelper.getRelayByAccount(clientId).get())
-        // check whitelist the same
-        assert(integrationHelper.isWhitelisted(clientId, whitelist))
-        assert(!integrationHelper.isWhitelisted(clientId, anotherWhitelist))
     }
 
 }

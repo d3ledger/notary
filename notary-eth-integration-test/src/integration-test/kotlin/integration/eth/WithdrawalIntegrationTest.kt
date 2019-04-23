@@ -89,7 +89,6 @@ class WithdrawalIntegrationTest {
             // register client in Iroha
             var res = integrationHelper.sendRegistrationRequest(
                 client,
-                listOf<String>().toString(),
                 ModelUtil.generateKeypair().public.toHexString(),
                 registrationTestEnvironment.registrationConfig.port
             )
@@ -97,7 +96,6 @@ class WithdrawalIntegrationTest {
             val clientId = "$client@$CLIENT_DOMAIN"
             integrationHelper.registerClientInEth(
                 client,
-                listOf(ethWallet),
                 integrationHelper.testCredential.keyPair
             )
             integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)

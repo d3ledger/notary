@@ -62,12 +62,11 @@ class FailedTransactionTest {
             // register client in Iroha
             val res = integrationHelper.sendRegistrationRequest(
                 clientAccount,
-                listOf<String>().toString(),
                 ModelUtil.generateKeypair().public.toHexString(),
                 registrationTestEnvironment.registrationConfig.port
             )
             Assertions.assertEquals(200, res.statusCode)
-            integrationHelper.registerClientWithoutRelay(clientAccount, listOf())
+            integrationHelper.registerClientWithoutRelay(clientAccount)
             integrationHelper.sendEth(BigInteger.valueOf(1), failerAddress)
             integrationHelper.waitOneEtherBlock()
             assertEquals(BigInteger.ZERO, integrationHelper.getEthBalance(failerAddress))
@@ -96,12 +95,11 @@ class FailedTransactionTest {
             // register client in Iroha
             val res = integrationHelper.sendRegistrationRequest(
                 clientAccount,
-                listOf<String>().toString(),
                 ModelUtil.generateKeypair().public.toHexString(),
                 registrationTestEnvironment.registrationConfig.port
             )
             Assertions.assertEquals(200, res.statusCode)
-            integrationHelper.registerClientWithoutRelay(clientAccount, listOf())
+            integrationHelper.registerClientWithoutRelay(clientAccount)
             val coinName = String.getRandomString(9)
             integrationHelper.addERC20Token(
                 anotherFailerAddress,

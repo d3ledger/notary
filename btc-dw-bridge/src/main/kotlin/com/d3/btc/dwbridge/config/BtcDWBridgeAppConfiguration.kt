@@ -8,7 +8,7 @@ import com.d3.btc.provider.BtcRegisteredAddressesProvider
 import com.d3.btc.wallet.WalletInitializer
 import com.d3.btc.wallet.loadAutoSaveWallet
 import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
-import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
+import com.d3.btc.withdrawal.config.BtcWithdrawalConfig
 import com.d3.btc.withdrawal.statistics.WithdrawalStatistics
 import com.d3.commons.config.*
 import com.d3.commons.model.IrohaCredential
@@ -188,14 +188,6 @@ class BtcDWBridgeAppConfiguration {
         withdrawalCredential().accountId,
         withdrawalCredential().keyPair
     )
-
-    @Bean
-    fun whiteListProvider(): BtcWhiteListProvider {
-        return BtcWhiteListProvider(
-            withdrawalConfig.registrationCredential.accountId,
-            withdrawalQueryHelper()
-        )
-    }
 
     @Bean
     fun btcChangeAddressProvider(): BtcChangeAddressProvider {

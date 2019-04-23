@@ -16,7 +16,6 @@ import com.d3.btc.withdrawal.handler.NewConsensusDataHandler
 import com.d3.btc.withdrawal.handler.NewSignatureEventHandler
 import com.d3.btc.withdrawal.handler.NewTransferHandler
 import com.d3.btc.withdrawal.init.BtcWithdrawalInitialization
-import com.d3.btc.withdrawal.provider.BtcWhiteListProvider
 import com.d3.btc.withdrawal.provider.WithdrawalConsensusProvider
 import com.d3.btc.withdrawal.service.BtcRollbackService
 import com.d3.btc.withdrawal.service.WithdrawalTransferService
@@ -48,14 +47,15 @@ import java.util.concurrent.ConcurrentHashMap
 class BtcWithdrawalTestEnvironment(
     private val integrationHelper: BtcIntegrationHelperUtil,
     testName: String = "default_test_name",
-    val btcWithdrawalConfig: BtcWithdrawalConfig = integrationHelper.configHelper.createBtcWithdrawalConfig(testName),
-    withdrawalCredential: IrohaCredential =
-        IrohaCredential(
-            btcWithdrawalConfig.withdrawalCredential.accountId, ModelUtil.loadKeypair(
-                btcWithdrawalConfig.withdrawalCredential.pubkeyPath,
-                btcWithdrawalConfig.withdrawalCredential.privkeyPath
-            ).get()
-        )
+    val btcWithdrawalConfig: BtcWithdrawalConfig = integrationHelper.configHelper.createBtcWithdrawalConfig(
+        testName
+    ),
+    withdrawalCredential: IrohaCredential = IrohaCredential(
+        btcWithdrawalConfig.withdrawalCredential.accountId, ModelUtil.loadKeypair(
+            btcWithdrawalConfig.withdrawalCredential.pubkeyPath,
+            btcWithdrawalConfig.withdrawalCredential.privkeyPath
+        ).get()
+    )
 ) : Closeable {
 
     val createdTransactions = ConcurrentHashMap<String, Pair<Long, Transaction>>()
@@ -64,9 +64,11 @@ class BtcWithdrawalTestEnvironment(
      * It's essential to handle blocks in this service one-by-one.
      * This is why we explicitly set single threaded executor.
      */
-    private val executor = createPrettySingleThreadPool(BTC_WITHDRAWAL_SERVICE_NAME, "iroha-chain-listener")
+    private val executor =
+        createPrettySingleThreadPool(BTC_WITHDRAWAL_SERVICE_NAME, "iroha-chain-listener")
 
-    val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
+    val rmqConfig =
+        loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
 
     /**
      * Binds RabbitMQ queue with exchange.
@@ -109,7 +111,10 @@ class BtcWithdrawalTestEnvironment(
     ).fold({ keypair -> keypair }, { ex -> throw ex })
 
     private val signaturesCollectorCredential =
-        IrohaCredential(btcWithdrawalConfig.signatureCollectorCredential.accountId, signaturesCollectorKeypair)
+        IrohaCredential(
+            btcWithdrawalConfig.signatureCollectorCredential.accountId,
+            signaturesCollectorKeypair
+        )
 
     private val btcConsensusKeyPair = ModelUtil.loadKeypair(
         btcWithdrawalConfig.btcConsensusCredential.pubkeyPath,
@@ -169,7 +174,8 @@ class BtcWithdrawalTestEnvironment(
         )
     private val transactionCreator =
         TransactionCreator(btcChangeAddressProvider, btcNetworkConfigProvider, transactionHelper)
-    private val transactionSigner = TransactionSigner(btcRegisteredAddressesProvider, btcChangeAddressProvider)
+    private val transactionSigner =
+        TransactionSigner(btcRegisteredAddressesProvider, btcChangeAddressProvider)
     val signCollector =
         SignCollector(
             signaturesCollectorCredential,
@@ -199,9 +205,6 @@ class BtcWithdrawalTestEnvironment(
     private val newTransferHandler =
         NewTransferHandler(
             withdrawalStatistics,
-            BtcWhiteListProvider(
-                btcWithdrawalConfig.registrationCredential.accountId, integrationHelper.queryHelper
-            ),
             btcWithdrawalConfig,
             withdrawalConsensusProvider,
             btcRollbackService,
@@ -275,9 +278,14 @@ class BtcWithdrawalTestEnvironment(
         }
 
         // Checks if transaction output was addressed to available address
-        override fun isAvailableOutput(availableAddresses: Set<String>, output: TransactionOutput): Boolean {
+        override fun isAvailableOutput(
+            availableAddresses: Set<String>,
+            output: TransactionOutput
+        ): Boolean {
             val btcAddress = outPutToBase58Address(output)
-            return availableAddresses.contains(btcAddress) && !btcAddressBlackList.contains(btcAddress)
+            return availableAddresses.contains(btcAddress) && !btcAddressBlackList.contains(
+                btcAddress
+            )
         }
     }
 

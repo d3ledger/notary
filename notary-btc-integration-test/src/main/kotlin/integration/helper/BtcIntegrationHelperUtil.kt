@@ -247,19 +247,16 @@ class BtcIntegrationHelperUtil(peers: Int = 1) : IrohaIntegrationHelperUtil(peer
      * Registers BTC client with no generation
      * @param irohaAccountName - client account in Iroha
      * @param keypair - key pair of new client in Iroha
-     * @param whitelist - list available addresses to send money to
      * @return btc address related to client
      */
     fun registerBtcAddressNoPreGen(
         irohaAccountName: String,
         domain: String,
-        keypair: KeyPair = ModelUtil.generateKeypair(),
-        whitelist: List<String> = emptyList()
+        keypair: KeyPair = ModelUtil.generateKeypair()
     ): String {
         btcRegistrationStrategy.register(
             irohaAccountName,
             domain,
-            whitelist,
             keypair.public.toHexString()
         )
             .fold({ btcAddress ->
