@@ -19,6 +19,7 @@ import java.math.BigInteger
 
 class NotaryImpl(
     private val notaryIrohaConsumer: IrohaConsumer,
+    private val notaryCredential: IrohaCredential,
     private val primaryChainEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>
 ) : Notary {
 
@@ -26,7 +27,7 @@ class NotaryImpl(
         notaryCredential: IrohaCredential,
         irohaAPI: IrohaAPI,
         primaryChainEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>
-    ) : this(IrohaConsumerImpl(notaryCredential, irohaAPI), primaryChainEvents)
+    ) : this(IrohaConsumerImpl(notaryCredential, irohaAPI), notaryCredential, primaryChainEvents)
 
     /**
      * Handles primary chain deposit event. Notaries create the ordered bunch of
@@ -123,7 +124,7 @@ class NotaryImpl(
                 .subscribe(
                     // send to Iroha network layer
                     { batch ->
-                        val lst = IrohaConverter.convert(batch, notaryIrohaConsumer.keyPair)
+                        val lst = IrohaConverter.convert(batch, notaryCredential.keyPair)
                         notaryIrohaConsumer.send(lst)
                             .fold(
                                 { logger.info { "Send to Iroha success" } },

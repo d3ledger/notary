@@ -104,7 +104,8 @@ class BtcNotaryTestEnvironment(
 
     private val btcEventsObservable: Observable<SideChainEvent.PrimaryBlockChainEvent> = btcEventsSource
 
-    private val notary = NotaryImpl(MultiSigIrohaConsumer(notaryCredential, irohaAPI), btcEventsObservable)
+    private val notary =
+        NotaryImpl(MultiSigIrohaConsumer(notaryCredential, irohaAPI), notaryCredential, btcEventsObservable)
 
     private val btcWalletListenerRestartService by lazy {
         BtcWalletListenerRestartService(

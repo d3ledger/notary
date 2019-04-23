@@ -93,7 +93,8 @@ class BtcDWBridgeAppConfiguration {
     }
 
     @Bean
-    fun notary() = NotaryImpl(MultiSigIrohaConsumer(notaryCredential, irohaAPI()), btcEventsObservable())
+    fun notary() =
+        NotaryImpl(MultiSigIrohaConsumer(notaryCredential, irohaAPI()), notaryCredential, btcEventsObservable())
 
     @Bean
     fun rmqConfig() = rmqConfig

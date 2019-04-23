@@ -40,7 +40,7 @@ open class IrohaConsumerImpl(
     irohaCredential: IrohaCredential,
     private val irohaAPI: IrohaAPI
 ) : IrohaConsumer {
-    override val keyPair = irohaCredential.keyPair
+    private val keyPair = irohaCredential.keyPair
 
     private val queryAPI = QueryAPI(irohaAPI, irohaCredential.accountId, irohaCredential.keyPair)
 
