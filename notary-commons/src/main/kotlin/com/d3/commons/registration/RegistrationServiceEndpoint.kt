@@ -7,7 +7,9 @@ import io.ktor.application.install
 import io.ktor.features.CORS
 import io.ktor.features.ContentNegotiation
 import io.ktor.gson.gson
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.request.receive
 import io.ktor.request.receiveParameters
 import io.ktor.response.respond
 import io.ktor.response.respondText
@@ -48,12 +50,28 @@ class RegistrationServiceEndpoint(
                     val parameters = call.receiveParameters()
                     val name = parameters["name"]
                     val pubkey = parameters["pubkey"]
-                    val domain = parameters["domain"]
+                    val domain = parameters["domain"] ?: CLIENT_DOMAIN
 
-                    logger.info { "Registration invoked with parameters (name = \"$name\", pubkey = \"$pubkey\"" }
+                    val response = invokeRegistration(name, domain, pubkey)
+                    call.respondText(
+                        response.message,
+                        status = response.code,
+                        contentType = ContentType.Application.Json
+                    )
+                }
 
-                    val response = onPostRegistration(name, domain, pubkey)
-                    call.respondText(response.message, status = response.code)
+                post("/users/json") {
+                    val body = call.receive(UserDto::class)
+                    val name = body.name
+                    val pubkey = body.pubkey
+                    val domain = body.domain ?: CLIENT_DOMAIN
+
+                    val response = invokeRegistration(name, domain, pubkey)
+                    call.respondText(
+                        response.message,
+                        status = response.code,
+                        contentType = ContentType.Application.Json
+                    )
                 }
 
                 get("free-addresses/number") {
@@ -71,6 +89,15 @@ class RegistrationServiceEndpoint(
             }
         }
         server.start(wait = false)
+    }
+
+    private fun invokeRegistration(
+        name: String?,
+        domain: String,
+        pubkey: String?
+    ): Response {
+        logger.info { "Registration invoked with parameters (name = \"$name\", domain = \"$domain\", pubkey = \"$pubkey\"" }
+        return onPostRegistration(name, domain, pubkey)
     }
 
     private fun responseError(code: HttpStatusCode, reason: String): Response {
@@ -130,3 +157,9 @@ class RegistrationServiceEndpoint(
      */
     companion object : KLogging()
 }
+
+data class UserDto(
+    val name: String,
+    val pubkey: String,
+    val domain: String?
+)
