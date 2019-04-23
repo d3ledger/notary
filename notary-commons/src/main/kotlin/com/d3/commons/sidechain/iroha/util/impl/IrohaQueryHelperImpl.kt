@@ -32,8 +32,10 @@ class IrohaQueryHelperImpl(val queryAPI: QueryAPI) : IrohaQueryHelper {
         )
     )
 
-    //Query counter
-    private val queryCounter = AtomicLong(1)
+    companion object {
+        // Query counter
+        private val queryCounter = AtomicLong(1)
+    }
 
     /** {@inheritDoc} */
     override fun getAccount(accountId: String): QryResponses.AccountResponse {
