@@ -16,6 +16,7 @@ import com.d3.commons.provider.NotaryPeerListProviderImpl
 import com.d3.commons.sidechain.SideChainEvent
 import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.sidechain.iroha.consumer.MultiSigIrohaConsumer
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.createPrettySingleThreadPool
 import io.grpc.ManagedChannelBuilder
@@ -92,7 +93,8 @@ class BtcDWBridgeAppConfiguration {
     }
 
     @Bean
-    fun notary() = NotaryImpl(notaryCredential, irohaAPI(), btcEventsObservable())
+    fun notary() =
+        NotaryImpl(MultiSigIrohaConsumer(notaryCredential, irohaAPI()), notaryCredential, btcEventsObservable())
 
     @Bean
     fun rmqConfig() = rmqConfig
@@ -157,9 +159,6 @@ class BtcDWBridgeAppConfiguration {
     fun transferWallet() = loadAutoSaveWallet(depositConfig.btcTransferWalletPath)
 
     @Bean
-    fun notaryCredential() = notaryCredential
-
-    @Bean
     fun withdrawalStatistics() = WithdrawalStatistics.create()
 
     @Bean
@@ -167,7 +166,7 @@ class BtcDWBridgeAppConfiguration {
         IrohaCredential(withdrawalConfig.withdrawalCredential.accountId, withdrawalKeypair)
 
     @Bean
-    fun withdrawalConsumer() = IrohaConsumerImpl(withdrawalCredential(), irohaAPI())
+    fun withdrawalConsumer() = MultiSigIrohaConsumer(withdrawalCredential(), irohaAPI())
 
     @Bean
     fun withdrawalConfig() = withdrawalConfig
@@ -176,7 +175,7 @@ class BtcDWBridgeAppConfiguration {
     fun depositIrohaChainListener() = IrohaChainListener(
         dwBridgeConfig.iroha.hostname,
         dwBridgeConfig.iroha.port,
-        notaryCredential()
+        notaryCredential
     )
 
     @Bean
