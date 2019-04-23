@@ -153,12 +153,13 @@ class BtcAddressGenerationInitialization(
             sessionAccount,
             btcAddressGenerationConfig.registrationAccount.accountId
         ).flatMap { details ->
+            val mutableDetails = details.toMutableMap()
             // Getting time
-            val time = details.toMutableMap().remove(ADDRESS_GENERATION_TIME_KEY)!!.toLong()
+            val time = mutableDetails.remove(ADDRESS_GENERATION_TIME_KEY)!!.toLong()
             // Getting node id
-            val nodeId = details.toMutableMap().remove(ADDRESS_GENERATION_NODE_ID_KEY)!!
+            val nodeId = mutableDetails.remove(ADDRESS_GENERATION_NODE_ID_KEY)!!
             // Getting keys
-            val notaryKeys = details.values
+            val notaryKeys = mutableDetails.values
             if (!notaryKeys.isEmpty()) {
                 btcPublicKeyProvider.checkAndCreateMultiSigAddress(
                     notaryKeys.toList(),
