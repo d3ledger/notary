@@ -85,7 +85,10 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     }
 
     private val registrationQueryHelper = IrohaQueryHelperImpl(
-        irohaAPI, accountHelper.registrationAccount.accountId, accountHelper.registrationAccount.keyPair)
+        irohaAPI,
+        accountHelper.registrationAccount.accountId,
+        accountHelper.registrationAccount.keyPair
+    )
 
     /** Provider that is used to get free registered relays*/
     private val ethFreeRelayProvider by lazy {
@@ -123,13 +126,6 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
             accountHelper.registrationAccount,
             irohaAPI,
             configHelper.ethPasswordConfig
-        )
-    }
-
-    private val whitelistProvider by lazy {
-        EthWhiteListProvider(
-            ethRegistrationConfig.registrationCredential.accountId,
-            queryHelper
         )
     }
 
