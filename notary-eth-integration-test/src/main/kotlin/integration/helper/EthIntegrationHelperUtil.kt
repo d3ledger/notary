@@ -4,7 +4,6 @@ import com.d3.commons.config.EthereumPasswords
 import com.d3.commons.config.RMQConfig
 import com.d3.commons.config.getConfigFolder
 import com.d3.commons.config.loadRawConfigs
-import com.d3.commons.registration.ETH_WHITE_LIST_KEY
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
@@ -12,7 +11,6 @@ import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.util.getRandomString
 import com.d3.commons.util.toHexString
 import com.d3.eth.deposit.EthDepositConfig
-import com.d3.eth.deposit.endpoint.EthWhiteListProvider
 import com.d3.eth.deposit.executeDeposit
 import com.d3.eth.provider.ETH_DOMAIN
 import com.d3.eth.provider.EthFreeRelayProvider
@@ -135,12 +133,6 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         )
     }
 
-    private val whitelistProvider by lazy {
-        EthWhiteListProvider(
-            ethRegistrationConfig.registrationCredential.accountId, queryAPI
-        )
-    }
-
     /**
      * Get address of first free relay.
      */
@@ -153,13 +145,6 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      */
     fun getRelayByAccount(clientId: String): Optional<String> {
         return ethRelayProvider.getRelayByAccountId(clientId).get()
-    }
-
-    /**
-     * Check if address is in whitelist of a user.
-     */
-    fun isWhitelisted(clientId: String, address: String): Boolean {
-        return whitelistProvider.checkWithdrawalAddress(clientId, address).get()
     }
 
     /**
@@ -294,11 +279,10 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      */
     fun registerClientInEth(
         name: String,
-        whitelist: List<String>,
         keypair: KeyPair = ModelUtil.generateKeypair()
     ): String {
         deployRelays(1)
-        return registerClientWithoutRelay(name, whitelist, keypair)
+        return registerClientWithoutRelay(name, keypair)
     }
 
     /**
@@ -306,15 +290,9 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      */
     fun registerClientWithoutRelay(
         name: String,
-        whitelist: List<String>,
         keypair: KeyPair = ModelUtil.generateKeypair()
     ): String {
-        ethRegistrationStrategy.register(
-            name,
-            CLIENT_DOMAIN,
-            whitelist,
-            keypair.public.toHexString()
-        )
+        ethRegistrationStrategy.register(name, CLIENT_DOMAIN,  keypair.public.toHexString())
             .fold({ registeredEthWallet ->
                 logger.info("registered client $name with relay $registeredEthWallet")
                 return registeredEthWallet
@@ -343,23 +321,6 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     fun getRegisteredEthWallets(): Set<String> = ethRelayProvider.getRelays().get().keys
 
     /**
-     * Add Ethrereum addresses to client whitelist, so that she can withdraw only for that addresses
-     * @param clientAccount - client account id in Iroha network
-     * @param addresses - ethereum addresses where client can withdraw her assets
-     */
-    fun setWhitelist(clientAccount: String, addresses: List<String>) {
-        val text = addresses.joinToString()
-        logger.info { "Set whitelist $text to $clientAccount by ${registrationConsumer.creator}" }
-
-        ModelUtil.setAccountDetail(
-            registrationConsumer,
-            clientAccount,
-            ETH_WHITE_LIST_KEY,
-            text
-        )
-    }
-
-    /**
      * Add list of [relays].
      * Set relays as details to NotaryAccount from RegistrationAccount
      */
@@ -383,7 +344,6 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      */
     fun sendRegistrationRequest(
         name: String,
-        whitelist: String,
         pubkey: String,
         port: Int
     ): khttp.responses.Response {
@@ -391,7 +351,6 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
             "http://127.0.0.1:${port}/users",
             data = mapOf(
                 "name" to name,
-                "whitelist" to whitelist.trim('[').trim(']'),
                 "pubkey" to pubkey
             )
         )

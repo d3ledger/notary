@@ -3,11 +3,11 @@ package integration.helper
 import com.d3.commons.config.EthereumConfig
 import com.d3.commons.config.EthereumPasswords
 import com.d3.commons.model.IrohaCredential
-import mu.KLogging
-import com.d3.eth.sidechain.util.DeployHelper
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomString
 import com.d3.commons.util.toHexString
+import com.d3.eth.sidechain.util.DeployHelper
+import mu.KLogging
 import java.math.BigInteger
 
 /**
@@ -33,9 +33,6 @@ class NotaryClient(
     /** Client ethereum wallet address outside notary */
     val ethAddress = etherHelper.credentials.address
 
-    /** Client whitelist (where to withdraw) */
-    val whitelist: List<String> = listOf(ethAddress)
-
     /** Client relay */
     var relay: String? = null
 
@@ -49,7 +46,6 @@ class NotaryClient(
     fun signUp(): khttp.responses.Response {
         val response = integrationHelper.sendRegistrationRequest(
             name,
-            whitelist.toString(),
             irohaCredential.keyPair.public.toHexString(),
             integrationHelper.ethRegistrationConfig.port
         )

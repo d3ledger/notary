@@ -20,9 +20,6 @@ open class RegistrationTest {
     /** Correct user name */
     private val correctName = "green"
 
-    /** Correct whitelist*/
-    private val correctWhitelist = listOf("0x3b5db77bf3ea070f561c6a88b230816552bc00c9")
-
     /** Correct user public key */
     private val correctPubkey = "0f0ce16d2afbb8eca23c7d8c2724f0c257a800ee2bbd54688cec6b898e3f7e33"
 
