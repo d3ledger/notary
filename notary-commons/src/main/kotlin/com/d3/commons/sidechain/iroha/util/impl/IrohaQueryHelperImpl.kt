@@ -39,10 +39,7 @@ class IrohaQueryHelperImpl(val queryAPI: QueryAPI) : IrohaQueryHelper {
 
     /** {@inheritDoc} */
     override fun getAccount(accountId: String): QryResponses.AccountResponse {
-        val q = Query.builder(
-            queryAPI.accountId,
-            queryCounter.getAndIncrement()
-        )
+        val q = Query.builder(queryAPI.accountId, queryCounter.getAndIncrement())
             .getAccount(accountId)
             .buildSigned(queryAPI.keyPair)
         val res = queryAPI.api.query(q)
@@ -68,9 +65,9 @@ class IrohaQueryHelperImpl(val queryAPI: QueryAPI) : IrohaQueryHelper {
     ): Result<Map<String, String>, Exception> {
         return getAccountData(storageAccountId).map { json ->
             if (json.map[writerAccountId] == null)
-                mutableMapOf()
+                emptyMap()
             else
-                json.map[writerAccountId] as MutableMap<String, String>
+                json.map[writerAccountId] as Map<String, String>
         }
     }
 
