@@ -54,12 +54,6 @@ class EthRegistrationStrategyImpl(
                         if (assignedRelays.isPresent)
                             throw IllegalArgumentException("Client $accountName@$domainId has already been registered with relay: ${assignedRelays.get()}")
 
-                        // register to Ethereum RelayRegistry
-                        deployHelper.addRelayToRelayRegistry(
-                            ethRegistrationConfig.ethRelayRegistryAddress,
-                            freeEthWallet
-                        )
-
                         // register relay to Iroha
                         ethereumAccountRegistrator.register(
                             freeEthWallet,
