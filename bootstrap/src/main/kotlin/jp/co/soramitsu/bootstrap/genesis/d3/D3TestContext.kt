@@ -48,7 +48,7 @@ object D3TestContext {
         AccountPrototype(
             "eth_registration_service",
             "notary",
-            listOf("registration_service", "client", "relay_deployer", "whitelist_setter")
+            listOf("registration_service", "client", "relay_deployer")
         ),
         AccountPrototype(
             "btc_registration_service",

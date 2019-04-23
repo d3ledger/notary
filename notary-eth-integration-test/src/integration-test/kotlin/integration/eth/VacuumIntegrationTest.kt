@@ -60,12 +60,11 @@ class VacuumIntegrationTest {
             // register client in Iroha
             val res = integrationHelper.sendRegistrationRequest(
                 name,
-                listOf<String>().toString(),
                 ModelUtil.generateKeypair().public.toHexString(),
                 registrationTestEnvironment.registrationConfig.port
             )
             Assertions.assertEquals(200, res.statusCode)
-            integrationHelper.registerClientInEth(name, listOf())
+            integrationHelper.registerClientInEth(name)
             logger.info("test is ready to proceed")
             val amount = BigInteger.valueOf(2_345_678_000_000)
             var totalRelayBalance = BigInteger.ZERO
@@ -89,7 +88,10 @@ class VacuumIntegrationTest {
             val newMasterBalance = integrationHelper.getMasterEthBalance()
             Assertions.assertEquals(newMasterBalance, initialMasterBalance.add(totalRelayBalance))
             wallets.forEach { ethPublicKey ->
-                Assertions.assertEquals(integrationHelper.getEthBalance(ethPublicKey), BigInteger.ZERO)
+                Assertions.assertEquals(
+                    integrationHelper.getEthBalance(ethPublicKey),
+                    BigInteger.ZERO
+                )
             }
         }
     }

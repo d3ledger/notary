@@ -40,7 +40,6 @@ class NotaryRegistrationStrategy(
     override fun register(
         accountName: String,
         domainId: String,
-        whitelist: List<String>,
         publicKey: String
     ): Result<String, Exception> {
         logger.info { "notary registration of client $accountName with pubkey $publicKey" }

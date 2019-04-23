@@ -69,7 +69,8 @@ open class EthConfigHelper(
             override val notaryIrohaAccount = accountHelper.notaryAccount.accountId
             override val iroha = createIrohaConfig()
             override val ethereum = relayRegistrationConfig.ethereum
-            override val relayRegistrationCredential = relayRegistrationConfig.relayRegistrationCredential
+            override val relayRegistrationCredential =
+                relayRegistrationConfig.relayRegistrationCredential
         }
     }
 
@@ -98,10 +99,10 @@ open class EthConfigHelper(
         )
     ): EthDepositConfig {
         return object : EthDepositConfig {
-            override val registrationServiceIrohaAccount = accountHelper.registrationAccount.accountId
+            override val registrationServiceIrohaAccount =
+                accountHelper.registrationAccount.accountId
             override val tokenStorageAccount = accountHelper.tokenStorageAccount.accountId
             override val tokenSetterAccount = accountHelper.tokenSetterAccount.accountId
-            override val whitelistSetter = accountHelper.registrationAccount.accountId
             override val notaryCredential = notaryCredential_
             override val refund = createRefundConfig()
             override val iroha = irohaConfig
@@ -111,12 +112,21 @@ open class EthConfigHelper(
     }
 
     /** Test configuration of Withdrawal service with runtime dependencies */
-    fun createWithdrawalConfig(testName: String, useValidEthereum: Boolean = true): WithdrawalServiceConfig {
+    fun createWithdrawalConfig(
+        testName: String,
+        useValidEthereum: Boolean = true
+    ): WithdrawalServiceConfig {
         val withdrawalConfig =
-            loadConfigs("withdrawal", WithdrawalServiceConfig::class.java, "/eth/withdrawal.properties").get()
+            loadConfigs(
+                "withdrawal",
+                WithdrawalServiceConfig::class.java,
+                "/eth/withdrawal.properties"
+            ).get()
 
         val ethereumConfig =
-            if (useValidEthereum) withdrawalConfig.ethereum else getBrokenEthereumConfig(withdrawalConfig)
+            if (useValidEthereum) withdrawalConfig.ethereum else getBrokenEthereumConfig(
+                withdrawalConfig
+            )
 
         return object : WithdrawalServiceConfig {
             override val notaryIrohaAccount = accountHelper.notaryAccount.accountId
@@ -159,9 +169,14 @@ open class EthConfigHelper(
 
     fun createRelayVacuumConfig(): RelayVacuumConfig {
         val vacuumConfig =
-            loadConfigs("relay-vacuum", RelayVacuumConfig::class.java, "/eth/vacuum.properties").get()
+            loadConfigs(
+                "relay-vacuum",
+                RelayVacuumConfig::class.java,
+                "/eth/vacuum.properties"
+            ).get()
         return object : RelayVacuumConfig {
-            override val registrationServiceIrohaAccount = accountHelper.registrationAccount.accountId
+            override val registrationServiceIrohaAccount =
+                accountHelper.registrationAccount.accountId
             override val tokenStorageAccount = accountHelper.tokenStorageAccount.accountId
 
             override val tokenSetterAccount = accountHelper.tokenSetterAccount.accountId
