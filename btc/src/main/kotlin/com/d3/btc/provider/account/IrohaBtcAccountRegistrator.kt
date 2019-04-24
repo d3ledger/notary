@@ -5,7 +5,6 @@ import com.d3.commons.registration.IrohaAccountRegistrator
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.github.kittinunf.result.Result
 
-const val BTC_WHITE_LIST_KEY = "btc_whitelist"
 const val BTC_CURRENCY_NAME_KEY = "bitcoin"
 
 /*
@@ -21,7 +20,6 @@ class IrohaBtcAccountRegistrator(
     /**
      * Creates new Bitcoin account to Iroha with given address
      * @param btcAddress - Bitcoin address
-     * @param whitelist - list of addresses allowed to withdraw to
      * @param userName - client userName in Iroha
      * @param domain - client domain
      * @param pubkey - client's public key
@@ -31,7 +29,6 @@ class IrohaBtcAccountRegistrator(
      */
     fun create(
         btcAddress: String,
-        whitelist: List<String>,
         userName: String,
         domain: String,
         pubkey: String,
@@ -40,8 +37,6 @@ class IrohaBtcAccountRegistrator(
     ): Result<String, Exception> {
         return irohaAccountRegistrator.register(
             btcAddress,
-            BTC_WHITE_LIST_KEY,
-            whitelist,
             userName,
             domain,
             pubkey

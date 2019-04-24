@@ -2,6 +2,7 @@ package com.d3.commons.notary
 
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.SideChainEvent
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.consumer.IrohaConverter
 import com.d3.commons.util.createPrettySingleThreadPool
@@ -15,15 +16,18 @@ import java.math.BigInteger
 /**
  * Implementation of [Notary] business logic
  */
+
 class NotaryImpl(
+    private val notaryIrohaConsumer: IrohaConsumer,
     private val notaryCredential: IrohaCredential,
-    val irohaAPI: IrohaAPI,
     private val primaryChainEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>
 ) : Notary {
 
-    /** Notary account in Iroha */
-    private val creator = notaryCredential.accountId
-    private val notaryIrohaConsumer = IrohaConsumerImpl(notaryCredential, irohaAPI)
+    constructor(
+        notaryCredential: IrohaCredential,
+        irohaAPI: IrohaAPI,
+        primaryChainEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>
+    ) : this(IrohaConsumerImpl(notaryCredential, irohaAPI), notaryCredential, primaryChainEvents)
 
     /**
      * Handles primary chain deposit event. Notaries create the ordered bunch of
@@ -46,20 +50,20 @@ class NotaryImpl(
         return IrohaOrderedBatch(
             arrayListOf(
                 IrohaTransaction(
-                    creator,
+                    notaryIrohaConsumer.creator,
                     time,
                     quorum,
                     arrayListOf(
                         // insert into Iroha account information for rollback
                         IrohaCommand.CommandSetAccountDetail(
-                            creator,
+                            notaryIrohaConsumer.creator,
                             "last_tx",
                             hash
                         )
                     )
                 ),
                 IrohaTransaction(
-                    creator,
+                    notaryIrohaConsumer.creator,
                     time,
                     quorum,
                     arrayListOf(
@@ -68,7 +72,7 @@ class NotaryImpl(
                             amount
                         ),
                         IrohaCommand.CommandTransferAsset(
-                            creator,
+                            notaryIrohaConsumer.creator,
                             account,
                             asset,
                             from,

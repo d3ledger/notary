@@ -460,47 +460,6 @@ class BtcWithdrawalIntegrationTest {
 
     /**
      * Note: Iroha and bitcoind must be deployed to pass the test.
-     * @given two registered BTC clients. 1st client has 1 BTC in wallet. 1st client has some address in white list.
-     * @when 1st client sends SAT 10000 to 2nd client
-     * @then no tx is created, because 2nd client is not in 1st client white list
-     */
-    @Test
-    fun testWithdrawalNotWhiteListed() {
-        val initTxCount = environment.createdTransactions.size
-        val amount = satToBtc(10000L)
-        val randomNameSrc = String.getRandomString(9)
-        val testClientSrcKeypair = ModelUtil.generateKeypair()
-        val testClientSrc = "$randomNameSrc@$CLIENT_DOMAIN"
-        val res = registrationServiceEnvironment.register(randomNameSrc, testClientSrcKeypair.public.toHexString())
-        assertEquals(200, res.statusCode)
-        val btcAddressSrc = integrationHelper.registerBtcAddressNoPreGen(
-            randomNameSrc,
-            CLIENT_DOMAIN,
-            testClientSrcKeypair,
-            listOf("some_btc_address")
-        )
-        integrationHelper.sendBtc(btcAddressSrc, 1, 6)
-        val btcAddressDest = integrationHelper.createBtcAddress()
-        integrationHelper.addIrohaAssetTo(testClientSrc, BTC_ASSET, amount)
-        val initialSrcBalance = integrationHelper.getIrohaAccountBalance(testClientSrc, BTC_ASSET)
-        integrationHelper.transferAssetIrohaFromClient(
-            testClientSrc,
-            testClientSrcKeypair,
-            testClientSrc,
-            environment.btcWithdrawalConfig.withdrawalCredential.accountId,
-            BTC_ASSET,
-            btcAddressDest,
-            amount.toPlainString()
-        )
-        Thread.sleep(WITHDRAWAL_WAIT_MILLIS)
-        assertEquals(initTxCount, environment.createdTransactions.size)
-        assertEquals(initialSrcBalance, integrationHelper.getIrohaAccountBalance(testClientSrc, BTC_ASSET))
-        environment.transactionHelper.addToBlackList(btcAddressSrc)
-        environment.transactionHelper.addToBlackList(btcAddressDest)
-    }
-
-    /**
-     * Note: Iroha and bitcoind must be deployed to pass the test.
      * @given two registered BTC clients. 1st client has 1 BTC in wallet. 2nd client is in 1st client white list
      * @when 1st client sends SAT 10000 to 2nd client
      * @then new well constructed BTC transaction appears.
@@ -518,8 +477,7 @@ class BtcWithdrawalIntegrationTest {
         val btcAddressSrc = integrationHelper.registerBtcAddressNoPreGen(
             randomNameSrc,
             CLIENT_DOMAIN,
-            testClientSrcKeypair,
-            listOf(btcAddressDest)
+            testClientSrcKeypair
         )
         val testClientSrc = "$randomNameSrc@$CLIENT_DOMAIN"
         integrationHelper.sendBtc(btcAddressSrc, 1, 6)

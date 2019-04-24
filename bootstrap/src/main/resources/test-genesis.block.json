@@ -382,12 +382,6 @@
                 }
               },
               {
-                "appendRole": {
-                  "accountId": "eth_registration_service@notary",
-                  "roleName": "whitelist_setter"
-                }
-              },
-              {
                 "createAccount": {
                   "accountName": "btc_registration_service",
                   "domainId": "notary",
