@@ -12,7 +12,7 @@ interface IrohaConsumer {
 
     /** Iroha transactions creator */
     val creator: String
-
+    
     /**
      * Returns consumer quorum value
      */
