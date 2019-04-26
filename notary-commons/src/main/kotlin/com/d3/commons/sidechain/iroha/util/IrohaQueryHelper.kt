@@ -5,7 +5,6 @@
 
 package com.d3.commons.sidechain.iroha.util
 
-import com.beust.klaxon.JsonObject
 import com.github.kittinunf.result.Result
 import iroha.protocol.QryResponses
 import iroha.protocol.TransactionOuterClass
@@ -18,14 +17,7 @@ interface IrohaQueryHelper {
      * @throws Exception if response contains error
      * @return account
      */
-    fun getAccount(accountId: String): QryResponses.AccountResponse
-
-    /**
-     * Retrieves account JSON data from Iroha
-     * @param acc - account to retrieve details from
-     * @return Map with account details
-     */
-    fun getAccountData(acc: String): Result<JsonObject, Exception>
+    fun getAccount(accountId: String): Result<QryResponses.AccountResponse, Exception>
 
     /**
      * Retrieves account details by setter from Iroha
@@ -62,19 +54,11 @@ interface IrohaQueryHelper {
     ): Result<String, Exception>
 
     /**
-     * Returns raw query response with Iroha block.
-     * May be used to handle Iroha error codes manually
-     * @param height - height of Iroha block to get
-     * @return Iroha block
-     */
-    fun getBlockRawResponse(height: Long): QryResponses.QueryResponse
-
-    /**
      * Returns Iroha block by its height
      * @param height - height of Iroha block to get
      * @return Iroha block response
      */
-    fun getBlock(height: Long): QryResponses.BlockResponse
+    fun getBlock(height: Long): Result<QryResponses.BlockResponse, Exception>
 
     /**
      * Retrieves account quorum from Iroha

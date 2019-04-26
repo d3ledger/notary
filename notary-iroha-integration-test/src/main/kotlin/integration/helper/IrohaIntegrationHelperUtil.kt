@@ -116,7 +116,7 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
      * Return [account] data.
      */
     fun getAccount(account: String): String {
-        return queryHelper.getAccountData(account).get().toString()
+        return queryHelper.getAccount(account).get().toString()
     }
 
     /**

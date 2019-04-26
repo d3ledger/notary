@@ -150,8 +150,8 @@ class IrohaBatchTest {
             listener.purge()
             val successHash = irohaConsumer.send(lst).get()
 
-            val accountJson =
-                integrationHelper.queryHelper.getAccountData(userId).get().toJsonString()
+            val accountDetail =
+                integrationHelper.queryHelper.getAccountDetails(userId, tester).get()
             val tester_amount = integrationHelper.queryHelper.getAccountAsset(
                 tester,
                 "$asset_name#$assetDomain"
@@ -163,7 +163,7 @@ class IrohaBatchTest {
 
             assertEquals(hashes.size, successHash.size)
             assertTrue(successHash.containsAll(hashes))
-            assertTrue(accountJson.contains("\"$tester\":{\"key\":\"value\"}"))
+            assertEquals(mapOf("key" to "value"), accountDetail)
             assertEquals(73, tester_amount.toInt())
             assertEquals(27, u1_amount.toInt())
 
@@ -279,14 +279,14 @@ class IrohaBatchTest {
 
             Thread.sleep(BATCH_TIME_WAIT)
 
-            val accountJson =
-                integrationHelper.queryHelper.getAccountData(userId).get().toJsonString()
+            val accountDetail =
+                integrationHelper.queryHelper.getAccountDetails(userId, tester).get()
             val tester_amount = integrationHelper.queryHelper.getAccountAsset(tester, assetId).get()
             val u1_amount = integrationHelper.queryHelper.getAccountAsset(userId, assetId).get()
 
             assertEquals(expectedHashes.size, successHash.size)
             assertTrue(successHash.containsAll(expectedHashes))
-            assertTrue(accountJson.contains("\"$tester\":{\"key\":\"value\"}"))
+            assertEquals(mapOf("key" to "value"), accountDetail)
             assertEquals(73, tester_amount.toInt())
             assertEquals(27, u1_amount.toInt())
 

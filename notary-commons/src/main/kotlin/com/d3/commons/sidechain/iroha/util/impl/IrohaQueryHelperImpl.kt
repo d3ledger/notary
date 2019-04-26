@@ -5,19 +5,17 @@
 
 package com.d3.commons.sidechain.iroha.util.impl
 
-import com.beust.klaxon.JsonObject
-import com.beust.klaxon.Parser
 import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
-import com.d3.commons.sidechain.iroha.util.getErrorMessage
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import iroha.protocol.QryResponses
 import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.Query
 import jp.co.soramitsu.iroha.java.QueryAPI
 import java.security.KeyPair
-import java.util.concurrent.atomic.AtomicLong
 
 /**
  * The purpose of the class is to hide Iroha query implementation.
@@ -32,30 +30,24 @@ class IrohaQueryHelperImpl(val queryAPI: QueryAPI) : IrohaQueryHelper {
         )
     )
 
-    companion object {
-        // Query counter
-        private val queryCounter = AtomicLong(1)
+    private val gson = Gson()
+
+    /**
+     * Deserialise JSON string to Map<String, String>
+     *
+     * @param jsonStr JSON as String
+     * @return desereialized details as (writer -> (key -> value))
+     */
+    private fun parseAccountDetailsJson(jsonStr: String): Result<Map<String, Map<String, String>>, Exception> {
+        return Result.of {
+            val responseType = object : TypeToken<Map<String, Map<String, String>>>() {}.getType()
+            gson.fromJson<Map<String, Map<String, String>>>(jsonStr, responseType)
+        }
     }
 
     /** {@inheritDoc} */
-    override fun getAccount(accountId: String): QryResponses.AccountResponse {
-        val q = Query.builder(queryAPI.accountId, queryCounter.getAndIncrement())
-            .getAccount(accountId)
-            .buildSigned(queryAPI.keyPair)
-        val res = queryAPI.api.query(q)
-        if (res.hasErrorResponse()) {
-            val errorResponse = res.errorResponse
-            throw Exception("Cannot get account. ${getErrorMessage(errorResponse)}")
-        }
-        return res.accountResponse
-    }
-
-    /** {@inheritDoc} */
-    override fun getAccountData(acc: String): Result<JsonObject, Exception> {
-        return Result.of { getAccount(acc) }.map { queryResponse ->
-            val stringBuilder = StringBuilder(queryResponse.account.jsonData)
-            Parser().parse(stringBuilder) as JsonObject
-        }
+    override fun getAccount(accountId: String): Result<QryResponses.AccountResponse, Exception> {
+        return Result.of { queryAPI.getAccount(accountId) }
     }
 
     /** {@inheritDoc} */
@@ -63,12 +55,14 @@ class IrohaQueryHelperImpl(val queryAPI: QueryAPI) : IrohaQueryHelper {
         storageAccountId: String,
         writerAccountId: String
     ): Result<Map<String, String>, Exception> {
-        return getAccountData(storageAccountId).map { json ->
-            if (json.map[writerAccountId] == null)
-                emptyMap()
-            else
-                json.map[writerAccountId] as Map<String, String>
-        }
+        return Result.of { queryAPI.getAccountDetails(storageAccountId, writerAccountId, null) }
+            .flatMap { str -> parseAccountDetailsJson(str) }
+            .map { details ->
+                if (details.get(writerAccountId) == null)
+                    emptyMap()
+                else
+                    details.getOrDefault(writerAccountId, emptyMap())
+            }
     }
 
     /** {@inheritDoc} */
@@ -107,29 +101,15 @@ class IrohaQueryHelperImpl(val queryAPI: QueryAPI) : IrohaQueryHelper {
     }
 
     /** {@inheritDoc} */
-    override fun getBlockRawResponse(height: Long): QryResponses.QueryResponse {
-        val q = Query.builder(queryAPI.accountId, queryCounter.getAndIncrement())
-            .getBlock(height)
-            .buildSigned(queryAPI.keyPair)
-        return queryAPI.api.query(q)
-    }
-
-    /** {@inheritDoc} */
-    override fun getBlock(height: Long): QryResponses.BlockResponse {
-        val res = getBlockRawResponse(height)
-        if (res.hasErrorResponse()) {
-            val errorResponse = res.errorResponse
-            throw Exception("Cannot get block. ${getErrorMessage(errorResponse)}")
-        }
-        return res.blockResponse
+    override fun getBlock(height: Long): Result<QryResponses.BlockResponse, Exception> {
+        return Result.of { queryAPI.getBlock(height) }
     }
 
     /** {@inheritDoc} */
     override fun getAccountQuorum(acc: String): Result<Int, Exception> {
-        return Result.of { getAccount(acc) }
-            .map { queryResponse ->
-                queryResponse.account.quorum
-            }
+        return getAccount(acc).map { queryResponse ->
+            queryResponse.account.quorum
+        }
     }
 
     /** {@inheritDoc} */
