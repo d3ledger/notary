@@ -8,6 +8,7 @@ import com.d3.commons.provider.NotaryPeerListProvider
 import com.d3.commons.provider.NotaryPeerListProviderImpl
 import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.sidechain.iroha.consumer.MultiSigIrohaConsumer
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.util.createPrettySingleThreadPool
@@ -109,7 +110,7 @@ class BtcAddressGenerationAppConfiguration {
     fun sessionConsumer() = IrohaConsumerImpl(registrationCredential, generationIrohaAPI())
 
     @Bean
-    fun multiSigConsumer() = IrohaConsumerImpl(mstRegistrationCredential, generationIrohaAPI())
+    fun multiSigConsumer() = MultiSigIrohaConsumer(mstRegistrationCredential, generationIrohaAPI())
 
     @Bean
     fun notaryAccount() = btcAddressGenerationConfig.notaryAccount

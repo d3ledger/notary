@@ -11,6 +11,7 @@ import com.d3.commons.config.*
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.provider.NotaryPeerListProviderImpl
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.sidechain.iroha.consumer.MultiSigIrohaConsumer
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.util.createPrettySingleThreadPool
@@ -80,7 +81,7 @@ class BtcWithdrawalAppConfiguration {
         IrohaCredential(withdrawalConfig.withdrawalCredential.accountId, withdrawalKeypair)
 
     @Bean
-    fun withdrawalConsumer() = IrohaConsumerImpl(withdrawalCredential(), irohaAPI())
+    fun withdrawalConsumer() = MultiSigIrohaConsumer(withdrawalCredential(), irohaAPI())
 
     @Bean
     fun signatureCollectorCredential() =
