@@ -17,13 +17,6 @@ services:
       - 8443:8443
     networks:
       - d3-network
-  d3-btc-node0:
-    ports:
-      - 8332:8332
-      - 18333:18333
-      - 18444:18444
-    networks:
-      - d3-network
   d3-rmq:
     ports:
       - 8181:15672
