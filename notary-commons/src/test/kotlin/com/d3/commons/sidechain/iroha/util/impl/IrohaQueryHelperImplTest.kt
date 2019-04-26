@@ -5,8 +5,6 @@
 
 package com.d3.commons.sidechain.iroha.util.impl
 
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.isNull
