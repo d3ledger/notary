@@ -20,6 +20,7 @@
                   "permissions": [
                     "can_get_all_acc_ast",
                     "can_get_all_accounts",
+                    "can_get_all_acc_detail",
                     "can_create_asset",
                     "can_add_asset_qty",
                     "can_transfer",
@@ -61,7 +62,6 @@
                     "can_append_role",
                     "can_create_account",
                     "can_set_detail",
-                    "can_get_all_accounts",
                     "can_get_all_acc_detail",
                     "can_get_domain_accounts",
                     "can_get_all_txs",
@@ -113,7 +113,7 @@
                 "createRole": {
                   "roleName": "withdrawal",
                   "permissions": [
-                    "can_get_all_accounts",
+                    "can_get_all_acc_detail",
                     "can_get_blocks",
                     "can_read_assets",
                     "can_receive",
@@ -127,7 +127,7 @@
                   "permissions": [
                     "can_create_account",
                     "can_set_detail",
-                    "can_get_all_accounts"
+                    "can_get_all_acc_detail"
                   ]
                 }
               },
