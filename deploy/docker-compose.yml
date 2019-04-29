@@ -56,21 +56,6 @@ services:
     networks:
       - d3-network
 
-  # bitcoin
-  d3-btc-node0:
-    image: kylemanna/bitcoind:latest
-    container_name: d3-btc-node0
-    entrypoint:
-    - bitcoind
-    - --rpcuser=test
-    - --rpcpassword=test
-    - --regtest=1
-    - --server=1
-    - --rpcallowip=::/0
-    - --rpcport=8332
-    networks:
-      - d3-network
-
   d3-rmq:
     image: rabbitmq:3-management
     container_name: d3-rmq
