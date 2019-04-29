@@ -4,7 +4,6 @@ Backend code for a D3 notary
 D3 consists of 3 parts. Common services should be run obligatory and rest can be run optionally:
 1) Common services
 2) Ethereum subsystem
-3) Bitcoin subsystem
 
 ## Common services
 1) Clone project `master` branch
@@ -36,13 +35,6 @@ Configurations have the following priority:
 
 Command line args > Environment variables > Properties file
 
-## How to run notary application and services in Bitcoin main net
-1) Run common services
-2) Create `.wallet` file (ask maintainers how to do that) and put it to desired location
-3) Run address generation process using `PROFILE=mainnet ./gradlew runBtcAddressGeneration`
-4) Run registration service `PROFILE=mainnet ./gradlew runBtcRegistration`
-5) Run notary service `PROFILE=mainnet ./gradlew runBtcDepositWithdrawal`
-
 ## How to run notification services
 1) Create SMTP configuration file located at `configs/smtp.properties`(see test example `configs/smtp_test.properties`). This file contains SMTP server credentials.
 2) Create Push API configuration file located at `configs/push.properties`(see test example `configs/push_test.properties`). This file contains VAPID keys. You can generate keys by yourself using [webpush-libs tutorial](https://github.com/web-push-libs/webpush-java/wiki/VAPID).
@@ -60,13 +52,6 @@ smtp.password=ask maintainers
 `./gradlew test` for unit tests
 
 `./gradlew integrationTest` for integation tests
-
-## Testing Bitcoin
-`./gradlew btcRefreshWallets` — recreates Bitcoin wallets in RegTests mode
-
-`./gradlew btcSendToAddress -Paddress=<address> -PamountBtc=<amount>` — sends `<amount>` BTC to `<address>` in Bitcoin regtest network
-
-`./gradlew btcGenerateBlocks -Pblocks=<blocks>` — generates `<blocks>` in Bitcoin regtest network
 
 ## Troubleshooting
 
