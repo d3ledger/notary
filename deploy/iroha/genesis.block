@@ -113,6 +113,7 @@
                 "createRole": {
                   "roleName": "withdrawal",
                   "permissions": [
+                    "can_get_all_accounts",
                     "can_get_all_acc_detail",
                     "can_get_blocks",
                     "can_read_assets",
