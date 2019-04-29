@@ -62,6 +62,7 @@
                     "can_create_account",
                     "can_set_detail",
                     "can_get_all_accounts",
+                    "can_get_all_acc_detail",
                     "can_get_domain_accounts",
                     "can_get_all_txs",
                     "can_get_blocks",
