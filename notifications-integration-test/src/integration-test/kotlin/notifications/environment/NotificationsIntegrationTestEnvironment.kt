@@ -7,6 +7,7 @@ import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.util.getRandomString
 import com.d3.notifications.config.PushAPIConfig
 import com.d3.notifications.config.SMTPConfig
@@ -22,7 +23,6 @@ import com.nhaarman.mockitokotlin2.spy
 import integration.helper.IrohaIntegrationHelperUtil
 import integration.helper.NotificationsConfigHelper
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.QueryAPI
 import nl.martijndwars.webpush.PushService
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.io.Closeable

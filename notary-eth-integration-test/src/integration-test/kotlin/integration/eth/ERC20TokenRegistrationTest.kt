@@ -2,14 +2,6 @@ package integration.eth
 
 import com.d3.commons.util.getRandomString
 import com.d3.eth.provider.ETH_DOMAIN
-import com.d3.eth.provider.EthTokensProviderImpl
-import com.d3.eth.provider.SORA_DOMAIN
-import com.d3.eth.provider.XOR_NAME
-import com.d3.eth.token.EthTokenInfo
-import com.d3.eth.token.executeTokenRegistration
-import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
-import com.d3.commons.util.getRandomString
-import com.d3.eth.provider.ETH_DOMAIN
 import com.d3.eth.provider.EthTokensProvider
 import com.d3.eth.provider.EthTokensProviderImpl
 import com.d3.eth.token.EthTokenInfo
@@ -19,8 +11,6 @@ import integration.helper.EthIntegrationHelperUtil
 import integration.helper.IrohaConfigHelper
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
 import java.io.File
 import java.time.Duration
 
