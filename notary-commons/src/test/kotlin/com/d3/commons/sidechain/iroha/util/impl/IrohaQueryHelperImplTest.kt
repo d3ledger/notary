@@ -5,10 +5,10 @@
 
 package com.d3.commons.sidechain.iroha.util.impl
 
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.eq
-import com.nhaarman.mockito_kotlin.isNull
-import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.eq
+import com.nhaarman.mockitokotlin2.isNull
+import com.nhaarman.mockitokotlin2.mock
 import iroha.protocol.QryResponses
 import jp.co.soramitsu.iroha.java.QueryAPI
 import org.junit.jupiter.api.Test

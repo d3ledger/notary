@@ -1,7 +1,7 @@
 package com.d3.eth.vacuum
 
 import com.d3.commons.config.EthereumPasswords
-import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
+import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 import com.d3.eth.provider.EthRelayProviderIrohaImpl
 import com.d3.eth.provider.EthTokensProviderImpl
 import com.d3.eth.sidechain.util.DeployHelper

@@ -11,9 +11,6 @@ const val ETH_DOMAIN = "ethereum"
 const val ETH_PRECISION: Int = 18
 const val ETH_ADDRESS = "0x0000000000000000000000000000000000000000"
 
-const val XOR_NAME = "xor"
-const val SORA_DOMAIN = "sora"
-
 /**
  * Implementation of [EthTokensProvider] with Iroha storage.
  *
@@ -73,7 +70,6 @@ class EthTokensProviderImpl(
     override fun getTokenPrecision(assetId: String): Result<Int, Exception> {
         return if (assetId == "$ETH_NAME#$ETH_DOMAIN")
             Result.of { ETH_PRECISION }
-        else queryHelper.getAssetPrecision(assetId)
         else irohaQueryHelper.getAssetPrecision(assetId)
     }
 

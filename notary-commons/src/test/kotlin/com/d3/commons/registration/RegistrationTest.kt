@@ -32,7 +32,6 @@ open class RegistrationTest {
             register(
                 any(),
                 any(),
-                any(),
                 any()
             )
         } doReturn Result.of { correctEthWallet }
