@@ -1,5 +1,8 @@
 package integration.eth
 
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.sidechain.iroha.util.ModelUtil.setAccountDetail
+import com.d3.eth.provider.EthFreeRelayProvider
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.success
 import integration.helper.EthIntegrationHelperUtil
@@ -10,9 +13,6 @@ import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
-import com.d3.eth.provider.EthFreeRelayProvider
-import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
-import com.d3.commons.sidechain.iroha.util.ModelUtil.setAccountDetail
 import java.io.File
 import java.time.Duration
 
@@ -23,7 +23,8 @@ class EthFreeRelayProviderTest {
     val integrationHelper = EthIntegrationHelperUtil()
 
     /** Iroha consumer */
-    private val irohaConsumer = IrohaConsumerImpl(integrationHelper.testCredential, integrationHelper.irohaAPI)
+    private val irohaConsumer =
+        IrohaConsumerImpl(integrationHelper.testCredential, integrationHelper.irohaAPI)
 
     /** Iroha transaction creator */
     val creator = integrationHelper.testCredential.accountId
@@ -56,7 +57,7 @@ class EthFreeRelayProviderTest {
 
             val freeWalletsProvider =
                 EthFreeRelayProvider(
-                    integrationHelper.queryAPI,
+                    integrationHelper.queryHelper,
                     integrationHelper.accountHelper.notaryAccount.accountId,
                     creator
                 )
@@ -76,7 +77,7 @@ class EthFreeRelayProviderTest {
         val wrongMasterAccount = "wrong@account"
 
         val freeWalletsProvider =
-            EthFreeRelayProvider(integrationHelper.queryAPI, creator, wrongMasterAccount)
+            EthFreeRelayProvider(integrationHelper.queryHelper, creator, wrongMasterAccount)
         freeWalletsProvider.getRelay()
             .success { fail { "should return Exception" } }
     }
@@ -103,7 +104,7 @@ class EthFreeRelayProviderTest {
 
             val freeWalletsProvider =
                 EthFreeRelayProvider(
-                    integrationHelper.queryAPI,
+                    integrationHelper.queryHelper,
                     integrationHelper.accountHelper.notaryAccount.accountId,
                     integrationHelper.accountHelper.registrationAccount.accountId
                 )

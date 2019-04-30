@@ -1,11 +1,9 @@
 package com.d3.eth.provider
 
+import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import jp.co.soramitsu.iroha.java.QueryAPI
 import mu.KLogging
-import com.d3.commons.sidechain.iroha.util.getAccountDetails
-import com.d3.commons.sidechain.iroha.util.getAssetPrecision
 
 const val ETH_NAME = "ether"
 const val ETH_DOMAIN = "ethereum"
@@ -18,12 +16,12 @@ const val SORA_DOMAIN = "sora"
 /**
  * Implementation of [EthTokensProvider] with Iroha storage.
  *
- * @param queryAPI - iroha queries network layer
+ * @param queryHelper - iroha queries network layer
  * @param tokenStorageAccount - tokenStorageAccount that contains details
  * @param tokenSetterAccount - tokenSetterAccount that holds tokens in tokenStorageAccount account
  */
 class EthTokensProviderImpl(
-    private val queryAPI: QueryAPI,
+    private val queryHelper: IrohaQueryHelper,
     private val tokenStorageAccount: String,
     private val tokenSetterAccount: String
 ) : EthTokensProvider {
@@ -36,8 +34,7 @@ class EthTokensProviderImpl(
      * Get all tokens. Returns EthreumAddress -> TokenName
      */
     override fun getTokens(): Result<Map<String, String>, Exception> {
-        return getAccountDetails(
-            queryAPI,
+        return queryHelper.getAccountDetails(
             tokenStorageAccount,
             tokenSetterAccount
         )
@@ -49,10 +46,7 @@ class EthTokensProviderImpl(
     override fun getTokenPrecision(assetId: String): Result<Int, Exception> {
         return if (assetId == "$ETH_NAME#$ETH_DOMAIN")
             Result.of { ETH_PRECISION }
-        else getAssetPrecision(
-            queryAPI,
-            assetId
-        )
+        else queryHelper.getAssetPrecision(assetId)
     }
 
     /**
@@ -61,8 +55,7 @@ class EthTokensProviderImpl(
     override fun getTokenAddress(assetId: String): Result<String, Exception> {
         return if (assetId == "$ETH_NAME#$ETH_DOMAIN")
             Result.of { ETH_ADDRESS }
-        else getAccountDetails(
-            queryAPI,
+        else queryHelper.getAccountDetails(
             tokenStorageAccount,
             tokenSetterAccount
         ).map { tokens ->

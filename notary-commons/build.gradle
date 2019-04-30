@@ -17,7 +17,7 @@ dependencies {
     compile "io.reactivex.rxjava2:rxkotlin:2.0.0"
 
     // Iroha Pure Java library
-    compile 'com.github.hyperledger.iroha-java:client:4.0.0'
+    compile 'com.github.hyperledger.iroha-java:client:4.1.1'
 
     // logging
     compile 'io.github.microutils:kotlin-logging:1.4.9'
@@ -33,9 +33,6 @@ dependencies {
 
     // khttp - consume http
     compile 'khttp:khttp:0.1.0'
-
-    // JSON parser
-    compile 'com.beust:klaxon:3.0.1'
 
     // JSON converter
     compile 'com.squareup.moshi:moshi-kotlin:1.5.0'

@@ -3,7 +3,7 @@ package com.d3.eth.deposit.endpoint
 import com.d3.commons.config.EthereumConfig
 import com.d3.commons.config.EthereumPasswords
 import com.d3.commons.model.IrohaCredential
-import com.d3.commons.sidechain.iroha.util.getSingleTransaction
+import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.eth.deposit.EthDepositConfig
 import com.d3.eth.provider.EthRelayProviderIrohaImpl
 import com.d3.eth.provider.EthTokensProvider
@@ -15,7 +15,6 @@ import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
 import iroha.protocol.TransactionOuterClass.Transaction
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.QueryAPI
 import mu.KLogging
 import org.web3j.crypto.ECKeyPair
 import java.math.BigDecimal
@@ -33,9 +32,10 @@ class EthRefundStrategyImpl(
     ethereumPasswords: EthereumPasswords,
     private val tokensProvider: EthTokensProvider
 ) : EthRefundStrategy {
-    private val queryAPI = QueryAPI(irohaAPI, credential.accountId, credential.keyPair)
+    private val queryHelper =
+        IrohaQueryHelperImpl(irohaAPI, credential.accountId, credential.keyPair)
     private val relayProvider = EthRelayProviderIrohaImpl(
-        queryAPI,
+        queryHelper,
         credential.accountId,
         depositConfig.registrationServiceIrohaAccount
     )
@@ -46,7 +46,7 @@ class EthRefundStrategyImpl(
     override fun performRefund(request: EthRefundRequest): EthNotaryResponse {
         logger.info("Check tx ${request.irohaTx} for refund")
 
-        return getSingleTransaction(queryAPI, request.irohaTx)
+        return queryHelper.getSingleTransaction(request.irohaTx)
             .flatMap { checkTransaction(it, request) }
             .flatMap { makeRefund(it) }
             .fold({ it },

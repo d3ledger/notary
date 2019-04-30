@@ -7,6 +7,7 @@ import com.d3.commons.config.loadRawConfigs
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.util.getRandomString
 import com.d3.commons.util.toHexString
 import com.d3.eth.deposit.EthDepositConfig
@@ -24,7 +25,6 @@ import com.d3.eth.token.EthTokenInfo
 import com.d3.eth.vacuum.RelayVacuumConfig
 import com.d3.eth.withdrawal.withdrawalservice.WithdrawalServiceConfig
 import com.github.kittinunf.result.success
-import jp.co.soramitsu.iroha.java.QueryAPI
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import java.math.BigInteger
@@ -78,23 +78,22 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /** Provider that is used to store/fetch tokens*/
     val ethTokensProvider by lazy {
         EthTokensProviderImpl(
-            queryAPI,
+            queryHelper,
             accountHelper.tokenStorageAccount.accountId,
             accountHelper.tokenSetterAccount.accountId
         )
     }
 
-    private val registrationQueryAPI =
-        QueryAPI(
-            irohaAPI,
-            accountHelper.registrationAccount.accountId,
-            accountHelper.registrationAccount.keyPair
-        )
+    private val registrationQueryHelper = IrohaQueryHelperImpl(
+        irohaAPI,
+        accountHelper.registrationAccount.accountId,
+        accountHelper.registrationAccount.keyPair
+    )
 
     /** Provider that is used to get free registered relays*/
     private val ethFreeRelayProvider by lazy {
         EthFreeRelayProvider(
-            registrationQueryAPI,
+            registrationQueryHelper,
             accountHelper.notaryAccount.accountId,
             accountHelper.registrationAccount.accountId
         )
@@ -103,7 +102,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /** Provider of ETH wallets created by registrationAccount*/
     private val ethRelayProvider by lazy {
         EthRelayProviderIrohaImpl(
-            registrationQueryAPI,
+            registrationQueryHelper,
             accountHelper.notaryAccount.accountId,
             accountHelper.registrationAccount.accountId
         )
