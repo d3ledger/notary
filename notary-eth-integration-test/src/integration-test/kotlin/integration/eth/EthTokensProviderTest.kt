@@ -49,9 +49,9 @@ class EthTokensProviderTest {
                 val ethWallet = "0x$precision"
                 val tokenInfo = EthTokenInfo(String.getRandomString(9), ETH_DOMAIN, precision)
                 expectedTokens[ethWallet] = tokenInfo
-                integrationHelper.addERC20Token(ethWallet, tokenInfo)
+                integrationHelper.addEthAnchoredERC20Token(ethWallet, tokenInfo)
             }
-            ethTokensProvider.getTokens()
+            ethTokensProvider.getEthAnchoredTokens()
                 .fold(
                     { tokens ->
                         assertFalse(tokens.isEmpty())
@@ -76,18 +76,19 @@ class EthTokensProviderTest {
      */
     @Test
     fun getNonexistentToken() {
+        val nonexistAssetId = "nonexist#token"
         assertTimeoutPreemptively(timeoutDuration) {
             integrationHelper.nameCurrentThread(this::class.simpleName!!)
-            ethTokensProvider.getTokenPrecision("nonexist")
+            ethTokensProvider.getTokenPrecision(nonexistAssetId)
                 .fold(
                     { fail("Result returned success while failure is expected.") },
                     { Unit }
                 )
 
-            ethTokensProvider.getTokenAddress("nonexist")
+            ethTokensProvider.getTokenAddress(nonexistAssetId)
                 .fold(
                     { fail("Result returned success while failure is expected.") },
-                    { assertEquals("Collection is empty.", it.message) }
+                    { assertEquals("Token $nonexistAssetId not found", it.message) }
                 )
         }
     }

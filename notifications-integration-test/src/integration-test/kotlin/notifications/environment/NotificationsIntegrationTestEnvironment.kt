@@ -19,7 +19,7 @@ import com.d3.notifications.service.EmailNotificationService
 import com.d3.notifications.service.PushNotificationService
 import com.d3.notifications.smtp.SMTPServiceImpl
 import com.dumbster.smtp.SimpleSmtpServer
-import com.nhaarman.mockito_kotlin.spy
+import com.nhaarman.mockitokotlin2.spy
 import integration.helper.IrohaIntegrationHelperUtil
 import integration.helper.NotificationsConfigHelper
 import jp.co.soramitsu.iroha.java.IrohaAPI

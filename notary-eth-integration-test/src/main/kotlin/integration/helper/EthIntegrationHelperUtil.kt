@@ -79,7 +79,9 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     val ethTokensProvider by lazy {
         EthTokensProviderImpl(
             queryHelper,
-            accountHelper.tokenStorageAccount.accountId,
+            accountHelper.ethAnchoredTokenStorageAccount.accountId,
+            accountHelper.tokenSetterAccount.accountId,
+            accountHelper.irohaAnchoredTokenStorageAccount.accountId,
             accountHelper.tokenSetterAccount.accountId
         )
     }
@@ -170,7 +172,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         logger.info { "create $name ERC20 token" }
         val tokenAddress =
             contractTestHelper.deployHelper.deployERC20TokenSmartContract().contractAddress
-        addERC20Token(tokenAddress, EthTokenInfo(name, ETH_DOMAIN, precision))
+        addEthAnchoredERC20Token(tokenAddress, EthTokenInfo(name, ETH_DOMAIN, precision))
         masterContract.addToken(tokenAddress).send()
         return tokenAddress
     }
@@ -188,15 +190,15 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
      * @param tokenAddress - token ERC20 smart contract address
      * @param tokenInfo - token info
      */
-    fun addERC20Token(tokenAddress: String, tokenInfo: EthTokenInfo) {
+    fun addEthAnchoredERC20Token(tokenAddress: String, tokenInfo: EthTokenInfo) {
         ModelUtil.createAsset(irohaConsumer, tokenInfo.name, tokenInfo.domain, tokenInfo.precision)
         ModelUtil.setAccountDetail(
             tokenProviderIrohaConsumer,
-            accountHelper.tokenStorageAccount.accountId,
+            accountHelper.ethAnchoredTokenStorageAccount.accountId,
             tokenAddress,
             "${tokenInfo.name}#${tokenInfo.domain}"
         ).success {
-            logger.info { "token ${tokenInfo.name}#${tokenInfo.domain} was added to ${accountHelper.tokenStorageAccount} by ${tokenProviderIrohaConsumer.creator}" }
+            logger.info { "token ${tokenInfo.name}#${tokenInfo.domain} was added to ${accountHelper.ethAnchoredTokenStorageAccount.accountId} by ${tokenProviderIrohaConsumer.creator}" }
         }
     }
 
@@ -288,7 +290,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         name: String,
         keypair: KeyPair = ModelUtil.generateKeypair()
     ): String {
-        ethRegistrationStrategy.register(name, CLIENT_DOMAIN, keypair.public.toHexString())
+        ethRegistrationStrategy.register(name, CLIENT_DOMAIN,  keypair.public.toHexString())
             .fold({ registeredEthWallet ->
                 logger.info("registered client $name with relay $registeredEthWallet")
                 return registeredEthWallet

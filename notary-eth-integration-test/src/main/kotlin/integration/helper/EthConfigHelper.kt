@@ -36,7 +36,10 @@ open class EthConfigHelper(
     }
 
     /** Creates config for ERC20 tokens registration */
-    fun createERC20TokenRegistrationConfig(tokensFilePath_: String): ERC20TokenRegistrationConfig {
+    fun createERC20TokenRegistrationConfig(
+        ethTokensFilePath_: String,
+        irohaTokensFilePath_: String
+    ): ERC20TokenRegistrationConfig {
         val ethTokenRegistrationConfig = loadConfigs(
             "token-registration",
             ERC20TokenRegistrationConfig::class.java,
@@ -46,9 +49,12 @@ open class EthConfigHelper(
         return object : ERC20TokenRegistrationConfig {
             override val irohaCredential = ethTokenRegistrationConfig.irohaCredential
             override val iroha = createIrohaConfig()
-            override val tokensFilePath = tokensFilePath_
-            override val tokenStorageAccount = accountHelper.notaryAccount.accountId
-            override val xorEthereumAddress = "0x0000000000000000000000000000000000000000"
+            override val ethAnchoredTokensFilePath = ethTokensFilePath_
+            override val irohaAnchoredTokensFilePath = irohaTokensFilePath_
+            override val ethAnchoredTokenStorageAccount =
+                accountHelper.ethAnchoredTokenStorageAccount.accountId
+            override val irohaAnchoredTokenStorageAccount =
+                accountHelper.irohaAnchoredTokenStorageAccount.accountId
         }
     }
 
@@ -101,8 +107,13 @@ open class EthConfigHelper(
         return object : EthDepositConfig {
             override val registrationServiceIrohaAccount =
                 accountHelper.registrationAccount.accountId
-            override val tokenStorageAccount = accountHelper.tokenStorageAccount.accountId
-            override val tokenSetterAccount = accountHelper.tokenSetterAccount.accountId
+            override val ethAnchoredTokenStorageAccount =
+                accountHelper.ethAnchoredTokenStorageAccount.accountId
+            override val ethAnchoredTokenSetterAccount = accountHelper.tokenSetterAccount.accountId
+            override val irohaAnchoredTokenStorageAccount =
+                accountHelper.irohaAnchoredTokenStorageAccount.accountId
+            override val irohaAnchoredTokenSetterAccount =
+                accountHelper.tokenSetterAccount.accountId
             override val notaryCredential = notaryCredential_
             override val refund = createRefundConfig()
             override val iroha = irohaConfig
@@ -130,8 +141,13 @@ open class EthConfigHelper(
 
         return object : WithdrawalServiceConfig {
             override val notaryIrohaAccount = accountHelper.notaryAccount.accountId
-            override val tokenStorageAccount = accountHelper.tokenStorageAccount.accountId
-            override val tokenSetterAccount = accountHelper.tokenSetterAccount.accountId
+            override val ethAnchoredTokenStorageAccount =
+                accountHelper.ethAnchoredTokenStorageAccount.accountId
+            override val ethAnchoredTokenSetterAccount = accountHelper.tokenSetterAccount.accountId
+            override val irohaAnchoredTokenStorageAccount =
+                accountHelper.irohaAnchoredTokenStorageAccount.accountId
+            override val irohaAnchoredTokenSetterAccount =
+                accountHelper.tokenSetterAccount.accountId
             override val notaryListStorageAccount = accountHelper.notaryListStorageAccount.accountId
             override val notaryListSetterAccount = accountHelper.notaryListSetterAccount.accountId
             override val registrationIrohaAccount = accountHelper.registrationAccount.accountId
@@ -177,10 +193,14 @@ open class EthConfigHelper(
         return object : RelayVacuumConfig {
             override val registrationServiceIrohaAccount =
                 accountHelper.registrationAccount.accountId
-            override val tokenStorageAccount = accountHelper.tokenStorageAccount.accountId
 
-            override val tokenSetterAccount = accountHelper.tokenSetterAccount.accountId
-
+            override val ethAnchoredTokenStorageAccount =
+                accountHelper.ethAnchoredTokenStorageAccount.accountId
+            override val ethAnchoredTokenSetterAccount = accountHelper.tokenSetterAccount.accountId
+            override val irohaAnchoredTokenStorageAccount =
+                accountHelper.irohaAnchoredTokenStorageAccount.accountId
+            override val irohaAnchoredTokenSetterAccount =
+                accountHelper.tokenSetterAccount.accountId
             /** Notary Iroha account that stores relay register */
             override val notaryIrohaAccount = accountHelper.notaryAccount.accountId
 

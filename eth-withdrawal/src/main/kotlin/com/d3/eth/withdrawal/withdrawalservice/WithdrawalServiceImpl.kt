@@ -70,8 +70,10 @@ class WithdrawalServiceImpl(
     )
     private val tokensProvider: EthTokensProvider = EthTokensProviderImpl(
         queryHelper,
-        withdrawalServiceConfig.tokenStorageAccount,
-        withdrawalServiceConfig.tokenSetterAccount
+        withdrawalServiceConfig.ethAnchoredTokenStorageAccount,
+        withdrawalServiceConfig.ethAnchoredTokenSetterAccount,
+        withdrawalServiceConfig.irohaAnchoredTokenStorageAccount,
+        withdrawalServiceConfig.irohaAnchoredTokenSetterAccount
     )
 
     private val masterAccount = withdrawalServiceConfig.notaryIrohaAccount
