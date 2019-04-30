@@ -5,12 +5,12 @@ import com.d3.commons.model.IrohaCredential
 import com.d3.commons.registration.RegistrationServiceEndpoint
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.eth.provider.EthFreeRelayProvider
 import com.d3.eth.provider.EthRelayProviderIrohaImpl
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.QueryAPI
 import mu.KLogging
 
 /**
@@ -36,41 +36,45 @@ class EthRegistrationServiceInitialization(
         return ModelUtil.loadKeypair(
             ethRegistrationConfig.registrationCredential.pubkeyPath,
             ethRegistrationConfig.registrationCredential.privkeyPath
-        ).map { keypair -> IrohaCredential(ethRegistrationConfig.registrationCredential.accountId, keypair) }
-            .map { credential ->
-                val queryAPI = QueryAPI(irohaAPI, credential.accountId, credential.keyPair)
+        ).map { keypair ->
+            IrohaCredential(
+                ethRegistrationConfig.registrationCredential.accountId,
+                keypair
+            )
+        }.map { credential ->
+            val queryHelper =
+                IrohaQueryHelperImpl(irohaAPI, credential.accountId, credential.keyPair)
+            Pair(
                 Pair(
-                    Pair(
-                        EthFreeRelayProvider(
-                            queryAPI,
-                            ethRegistrationConfig.notaryIrohaAccount,
-                            ethRegistrationConfig.relayRegistrationIrohaAccount
-                        ),
-                        EthRelayProviderIrohaImpl(
-                            queryAPI,
-                            ethRegistrationConfig.notaryIrohaAccount,
-                            ethRegistrationConfig.relayRegistrationIrohaAccount
-                        )
+                    EthFreeRelayProvider(
+                        queryHelper,
+                        ethRegistrationConfig.notaryIrohaAccount,
+                        ethRegistrationConfig.relayRegistrationIrohaAccount
                     ),
-                    IrohaConsumerImpl(credential, irohaAPI)
-                )
-            }
-            .map { (providers, irohaConsumer) ->
-                val (ethFreeRelayProvider, ethRelayProvider) = providers
-                EthRegistrationStrategyImpl(
-                    ethFreeRelayProvider,
-                    ethRelayProvider,
-                    ethRegistrationConfig,
-                    passwordConfig,
-                    irohaConsumer,
-                    ethRegistrationConfig.notaryIrohaAccount
-                )
-            }.map { registrationStrategy ->
-                RegistrationServiceEndpoint(
-                    ethRegistrationConfig.port,
-                    registrationStrategy
-                )
-            }.map { Unit }
+                    EthRelayProviderIrohaImpl(
+                        queryHelper,
+                        ethRegistrationConfig.notaryIrohaAccount,
+                        ethRegistrationConfig.relayRegistrationIrohaAccount
+                    )
+                ),
+                IrohaConsumerImpl(credential, irohaAPI)
+            )
+        }.map { (providers, irohaConsumer) ->
+            val (ethFreeRelayProvider, ethRelayProvider) = providers
+            EthRegistrationStrategyImpl(
+                ethFreeRelayProvider,
+                ethRelayProvider,
+                ethRegistrationConfig,
+                passwordConfig,
+                irohaConsumer,
+                ethRegistrationConfig.notaryIrohaAccount
+            )
+        }.map { registrationStrategy ->
+            RegistrationServiceEndpoint(
+                ethRegistrationConfig.port,
+                registrationStrategy
+            )
+        }.map { Unit }
     }
 
     /**

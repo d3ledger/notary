@@ -100,7 +100,7 @@ class WithdrawalIntegrationTest {
             )
             integrationHelper.addIrohaAssetTo(clientId, assetId, decimalAmount)
             val relay = EthRelayProviderIrohaImpl(
-                integrationHelper.queryAPI,
+                integrationHelper.queryHelper,
                 masterAccount,
                 integrationHelper.accountHelper.registrationAccount.accountId
             ).getRelays().get().filter {

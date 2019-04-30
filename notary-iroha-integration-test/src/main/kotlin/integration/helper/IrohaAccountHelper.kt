@@ -38,14 +38,12 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
     val ethAnchoredTokenStorageAccount by lazy { createTesterAccount("eth_anch_tokens_") }
     val irohaAnchoredTokenStorageAccount by lazy { createTesterAccount("iroha_anch_tokens_") }
 
-    val clientStorageAccount by lazy { createTesterAccount("client_accounts").accountId }
-
     /**
      * Makes given account multisignature
      * @param account - account to make multisignature
      * @return list of accounts with the same account id but different public keys
      */
-    private fun makeAccountMst(account: IrohaCredential): List<IrohaCredential> {
+    fun makeAccountMst(account: IrohaCredential): List<IrohaCredential> {
         val accounts = ArrayList<IrohaCredential>(peers)
         accounts.add(account)
         // Add signatories

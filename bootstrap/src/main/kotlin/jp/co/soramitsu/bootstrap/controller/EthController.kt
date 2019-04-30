@@ -15,6 +15,7 @@ import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Keys
 import org.web3j.crypto.Wallet
 import org.web3j.crypto.WalletFile
+import org.web3j.protocol.core.methods.response.TransactionReceipt
 import java.math.BigInteger
 import javax.validation.constraints.NotNull
 
@@ -33,32 +34,59 @@ class EthController {
                 .build()
             if (request.masterContract.address != null) {
                 val master = deployHelper.loadMasterContract(request.masterContract.address)
-                if (request.newPeerAddress != null) {
-                    val finalHash = hashToAddAndRemovePeer(
-                        request.newPeerAddress,
-                        defaultIrohaHash
+
+                val ecKeyPairs = request.masterContract.notaries.map {
+                    ECKeyPair(
+                        BigInteger(it.private),
+                        BigInteger(it.public)
                     )
-                    val ecKeyPairs = request.masterContract.notaries.map {
-                        ECKeyPair(
-                            BigInteger(it.private),
-                            BigInteger(it.public)
-                        )
+                }
+
+                var addResult = true
+                var removeResult = true
+                var errorStatus: String? = null
+                var errorMessage: String? = null
+
+                if (request.removePeerAddress != null) {
+                    val finalHash = prepareTrxHash(request.removePeerAddress)
+                    val sigs = prepareSignatures(request.masterContract.notaries.size, ecKeyPairs, finalHash)
+                    val trxResult = master.removePeerByPeer(
+                        request.removePeerAddress,
+                        defaultByteHash,
+                        sigs.vv,
+                        sigs.rr,
+                        sigs.ss
+                    ).send()
+                    if (!trxResult.isStatusOK) {
+                        errorStatus = trxResult.status
+                        errorMessage = "Error removeAddress action. Transaction hash is: trxResult.transactionHash"
+                        removeResult = trxResult.isStatusOK
                     }
+                }
+                if (request.newPeerAddress != null) {
+                    val finalHash = prepareTrxHash(request.newPeerAddress)
                     val sigs = prepareSignatures(request.masterContract.notaries.size, ecKeyPairs, finalHash)
 
-                    val result = master.addPeerByPeer(
+                    val trxResult = master.addPeerByPeer(
                         request.newPeerAddress,
                         defaultByteHash,
                         sigs.vv,
                         sigs.rr,
                         sigs.ss
-                    ).send().isStatusOK
-                    val response = UpdateMasterContractResponse(result)
-                    return if (result)
-                        ResponseEntity.ok(response)
-                    else
-                        ResponseEntity.status(HttpStatus.CONFLICT).body(response)
+                    ).send()
+                    if (!trxResult.isStatusOK) {
+                        errorStatus = trxResult.status
+                        errorMessage = "Error addAddress action. Transaction hash is: trxResult.transactionHash"
+                        addResult = trxResult.isStatusOK
+                    }
                 }
+                val response = UpdateMasterContractResponse(addResult && removeResult)
+                response.message = errorMessage
+                response.errorCode = errorStatus
+                return if (addResult && removeResult)
+                    ResponseEntity.ok(response)
+                else
+                    ResponseEntity.status(HttpStatus.CONFLICT).body(response)
             }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(UpdateMasterContractResponse(HttpStatus.BAD_REQUEST.name))
@@ -68,6 +96,12 @@ class EthController {
                 UpdateMasterContractResponse(e.javaClass.simpleName, e.message)
             )
         }
+    }
+    private fun prepareTrxHash(removePeerAddress: String): String {
+        return hashToAddAndRemovePeer(
+            removePeerAddress,
+            defaultIrohaHash
+        )
     }
 
     @PostMapping("/deploy/D3/relayRegistry")

@@ -56,7 +56,7 @@ class EthRelayProviderIrohaTest {
             val valid = entries.filter { it.value != "free" }
 
             EthRelayProviderIrohaImpl(
-                integrationHelper.queryAPI,
+                integrationHelper.queryHelper,
                 relayStorage,
                 relaySetter
             ).getRelays()
@@ -77,7 +77,7 @@ class EthRelayProviderIrohaTest {
         assertTimeoutPreemptively(timeoutDuration) {
             integrationHelper.nameCurrentThread(this::class.simpleName!!)
             EthRelayProviderIrohaImpl(
-                integrationHelper.queryAPI,
+                integrationHelper.queryHelper,
                 integrationHelper.testCredential.accountId,
                 relaySetter
             ).getRelays()
@@ -91,7 +91,7 @@ class EthRelayProviderIrohaTest {
     @Test
     fun testGetByAccountNotFound() {
         val res = EthRelayProviderIrohaImpl(
-            integrationHelper.queryAPI,
+            integrationHelper.queryHelper,
             integrationHelper.testCredential.accountId,
             relaySetter
         ).getRelayByAccountId("nonexist@domain")

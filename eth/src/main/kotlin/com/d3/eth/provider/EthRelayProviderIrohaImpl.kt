@@ -1,21 +1,20 @@
 package com.d3.eth.provider
 
-import com.d3.commons.sidechain.iroha.util.getAccountDetails
+import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import jp.co.soramitsu.iroha.java.QueryAPI
 import mu.KLogging
 import java.util.*
 
 /**
  * Implementation of [EthRelayProvider] with Iroha storage.
  *
- * @param queryAPI - Iroha queries network layer
+ * @param queryHelper - Iroha queries network layer
  * @param notaryAccount - account that contains details
  * @param registrationAccount - account that has set details
  */
 class EthRelayProviderIrohaImpl(
-    private val queryAPI: QueryAPI,
+    private val queryHelper: IrohaQueryHelper,
     private val notaryAccount: String,
     private val registrationAccount: String
 ) : EthRelayProvider {
@@ -31,8 +30,7 @@ class EthRelayProviderIrohaImpl(
      * @return map<eth_wallet -> iroha_account> in success case or exception otherwise
      */
     override fun getRelays(): Result<Map<String, String>, Exception> {
-        return getAccountDetails(
-            queryAPI,
+        return queryHelper.getAccountDetails(
             notaryAccount,
             registrationAccount
         ).map { relays ->

@@ -73,6 +73,7 @@ class EthTokensProviderImpl(
     override fun getTokenPrecision(assetId: String): Result<Int, Exception> {
         return if (assetId == "$ETH_NAME#$ETH_DOMAIN")
             Result.of { ETH_PRECISION }
+        else queryHelper.getAssetPrecision(assetId)
         else irohaQueryHelper.getAssetPrecision(assetId)
     }
 

@@ -25,7 +25,6 @@ import com.d3.eth.token.EthTokenInfo
 import com.d3.eth.vacuum.RelayVacuumConfig
 import com.d3.eth.withdrawal.withdrawalservice.WithdrawalServiceConfig
 import com.github.kittinunf.result.success
-import jp.co.soramitsu.iroha.java.QueryAPI
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import java.math.BigInteger
@@ -79,7 +78,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /** Provider that is used to store/fetch tokens*/
     val ethTokensProvider by lazy {
         EthTokensProviderImpl(
-            IrohaQueryHelperImpl(queryAPI),
+            queryHelper,
             accountHelper.ethAnchoredTokenStorageAccount.accountId,
             accountHelper.tokenSetterAccount.accountId,
             accountHelper.irohaAnchoredTokenStorageAccount.accountId,
@@ -87,17 +86,16 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
         )
     }
 
-    private val registrationQueryAPI =
-        QueryAPI(
-            irohaAPI,
-            accountHelper.registrationAccount.accountId,
-            accountHelper.registrationAccount.keyPair
-        )
+    private val registrationQueryHelper = IrohaQueryHelperImpl(
+        irohaAPI,
+        accountHelper.registrationAccount.accountId,
+        accountHelper.registrationAccount.keyPair
+    )
 
     /** Provider that is used to get free registered relays*/
     private val ethFreeRelayProvider by lazy {
         EthFreeRelayProvider(
-            registrationQueryAPI,
+            registrationQueryHelper,
             accountHelper.notaryAccount.accountId,
             accountHelper.registrationAccount.accountId
         )
@@ -106,7 +104,7 @@ class EthIntegrationHelperUtil : IrohaIntegrationHelperUtil() {
     /** Provider of ETH wallets created by registrationAccount*/
     private val ethRelayProvider by lazy {
         EthRelayProviderIrohaImpl(
-            registrationQueryAPI,
+            registrationQueryHelper,
             accountHelper.notaryAccount.accountId,
             accountHelper.registrationAccount.accountId
         )

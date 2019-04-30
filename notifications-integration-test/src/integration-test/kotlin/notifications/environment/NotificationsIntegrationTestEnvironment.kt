@@ -63,13 +63,13 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
     private val irohaChainListener =
         IrohaChainListener(irohaAPI, integrationHelper.accountHelper.notaryAccount)
 
-    private val notaryQueryAPI = QueryAPI(
+    private val notaryQueryHelper = IrohaQueryHelperImpl(
         irohaAPI,
         integrationHelper.accountHelper.notaryAccount.accountId,
         integrationHelper.accountHelper.notaryAccount.keyPair
     )
 
-    private val d3ClientProvider = D3ClientProvider(notaryQueryAPI)
+    private val d3ClientProvider = D3ClientProvider(notaryQueryHelper)
 
     private val smtpService = SMTPServiceImpl(smtpConfig)
 

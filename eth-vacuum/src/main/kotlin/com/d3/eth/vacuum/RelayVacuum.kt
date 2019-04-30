@@ -9,7 +9,6 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import contract.Relay
-import jp.co.soramitsu.iroha.java.QueryAPI
 import mu.KLogging
 import org.web3j.tx.gas.StaticGasProvider
 
@@ -20,7 +19,7 @@ import org.web3j.tx.gas.StaticGasProvider
 class RelayVacuum(
     relayVacuumConfig: RelayVacuumConfig,
     relayVacuumEthereumPasswords: EthereumPasswords,
-    queryAPI: QueryAPI
+    queryHelper: IrohaQueryHelper
 ) {
     private val ethTokenAddress = "0x0000000000000000000000000000000000000000"
 
@@ -28,7 +27,7 @@ class RelayVacuum(
     private val deployHelper =
         DeployHelper(relayVacuumConfig.ethereum, relayVacuumEthereumPasswords)
     private val ethTokensProvider = EthTokensProviderImpl(
-        IrohaQueryHelperImpl(queryAPI),
+        queryHelper,
         relayVacuumConfig.ethAnchoredTokenStorageAccount,
         relayVacuumConfig.ethAnchoredTokenSetterAccount,
         relayVacuumConfig.irohaAnchoredTokenStorageAccount,
@@ -36,7 +35,7 @@ class RelayVacuum(
     )
 
     private val ethRelayProvider = EthRelayProviderIrohaImpl(
-        queryAPI,
+        queryHelper,
         relayVacuumConfig.notaryIrohaAccount,
         relayVacuumConfig.registrationServiceIrohaAccount
     )

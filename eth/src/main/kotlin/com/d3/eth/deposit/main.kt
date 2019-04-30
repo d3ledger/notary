@@ -12,7 +12,6 @@ import com.d3.eth.provider.EthRelayProviderIrohaImpl
 import com.d3.eth.provider.EthTokensProviderImpl
 import com.github.kittinunf.result.*
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.QueryAPI
 import mu.KLogging
 
 private val logger = KLogging().logger
@@ -65,19 +64,19 @@ fun executeDeposit(
         depositConfig.iroha.port
     )
 
-    val queryAPI = QueryAPI(
+    val queryHelper = IrohaQueryHelperImpl(
         irohaAPI,
         irohaCredential.accountId,
         irohaCredential.keyPair
     )
 
     val ethRelayProvider = EthRelayProviderIrohaImpl(
-        queryAPI,
+        queryHelper,
         irohaCredential.accountId,
         depositConfig.registrationServiceIrohaAccount
     )
     val ethTokensProvider = EthTokensProviderImpl(
-        IrohaQueryHelperImpl(queryAPI),
+        queryHelper,
         depositConfig.ethAnchoredTokenStorageAccount,
         depositConfig.ethAnchoredTokenSetterAccount,
         depositConfig.irohaAnchoredTokenStorageAccount,
