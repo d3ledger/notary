@@ -16,46 +16,42 @@ import org.junit.jupiter.api.assertThrows
 
 class EthTokensProviderImplTest {
 
-    val ethAnchoredResult = Result.of {
-        mapOf(
-            "0x0001" to "token_1#ethereum",
-            "0x0002" to "token_2#ethereum",
-            "0x0003" to "token_3#ethereum"
-        )
-    }
+    private val ethAnchored = mapOf(
+        "0x0001" to "token_1#ethereum",
+        "0x0002" to "token_2#ethereum",
+        "0x0003" to "token_3#ethereum"
+    )
 
-    val irohaAnchoredResult = Result.of {
-        mapOf(
-            "0xAAA1" to "token_1#sora",
-            "0xAAA2" to "token_2#sora",
-            "0xAAA3" to "token_3#sora"
-        )
-    }
+    private val irohaAnchored = mapOf(
+        "0xAAA1" to "token_1#sora",
+        "0xAAA2" to "token_2#sora",
+        "0xAAA3" to "token_3#sora"
+    )
 
-    val wrongAssetId = "wrong#asset"
+    private val wrongAssetId = "wrong#asset"
 
     private val ethAnchoredTokenStorageAccount = "eth_anchored_token_storage@notary"
     private val ethAnchoredTokenSetterAccount = "eth_anchored_token_setter@notary"
     private val irohaAnchoredTokenStorageAccount = "iroha_anchored_token_storage@notary"
     private val irohaAnchoredTokenSetterAccount = "iroha_anchored_token_setter@notary"
 
-    val irohaQueryHelper = mock<IrohaQueryHelper> {
+    private val irohaQueryHelper = mock<IrohaQueryHelper> {
         on {
             getAccountDetails(
                 eq(ethAnchoredTokenStorageAccount),
                 eq(ethAnchoredTokenSetterAccount)
             )
-        } doReturn ethAnchoredResult
+        } doReturn Result.of { ethAnchored }
 
         on {
             getAccountDetails(
                 eq(irohaAnchoredTokenStorageAccount),
                 eq(irohaAnchoredTokenSetterAccount)
             )
-        } doReturn irohaAnchoredResult
+        } doReturn Result.of { irohaAnchored }
     }
 
-    val ethTokenProvider = EthTokensProviderImpl(
+    private val ethTokenProvider = EthTokensProviderImpl(
         irohaQueryHelper,
         ethAnchoredTokenStorageAccount,
         ethAnchoredTokenSetterAccount,
@@ -63,19 +59,27 @@ class EthTokensProviderImplTest {
         irohaAnchoredTokenSetterAccount
     )
 
+    /**
+     * @given initialized ethTokenProvider and lists of iroha and ethereum anchored tokens
+     * @when getTokenAddress() called with assesId
+     * @then corresponding address is returned
+     */
     @Test
     fun getTokenAddressTest() {
-        ethAnchoredResult.get()
-            .forEach { (address, assetId) ->
-                assertEquals(address, ethTokenProvider.getTokenAddress(assetId).get())
-            }
+        ethAnchored.forEach { (address, assetId) ->
+            assertEquals(address, ethTokenProvider.getTokenAddress(assetId).get())
+        }
 
-        irohaAnchoredResult.get()
-            .forEach { (address, assetId) ->
-                assertEquals(address, ethTokenProvider.getTokenAddress(assetId).get())
-            }
+        irohaAnchored.forEach { (address, assetId) ->
+            assertEquals(address, ethTokenProvider.getTokenAddress(assetId).get())
+        }
     }
 
+    /**
+     * @given initialized ethTokenProvider and wrongAssetId is not present
+     * @when query wrongAssetId
+     * @then IllegalArgumentException exception is thrown
+     */
     @Test
     fun getWrongAssetIdTest() {
         assertThrows<IllegalArgumentException> {
