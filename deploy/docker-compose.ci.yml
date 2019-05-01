@@ -18,14 +18,6 @@ services:
     networks:
     - d3-notary
 
-  # ethereum
-  d3-eth-node0:
-    container_name: d3-eth-node0-${SUBNET}
-    expose:
-    - 8545
-    networks:
-    - d3-notary
-
   grpcwebproxy:
     container_name: d3-grpcwebproxy-${SUBNET}
     expose:

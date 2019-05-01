@@ -1,26 +1,6 @@
 version: '3.5'
 
 services:
-  d3-notary:
-    image: nexus.iroha.tech:19002/d3-deploy/notary:${TAG:-master}
-    container_name: d3-notary
-    depends_on:
-      - d3-iroha
-    ports:
-      - 8080:8080
-      - 20000:20000
-    volumes:
-      - ./:/opt/notary/deploy
-      - ../configs:/opt/notary/configs
-    environment:
-      - PROFILE
-      - IROHA_HOST=d3-iroha
-      - IROHA_PORT=50051
-      - ETH_CREDENTIALS_PASSWORD
-      - JAR_NAME=eth-deposit.jar
-      - CLASS=com.d3.eth.deposit.EthDepositMain
-    networks:
-      - d3-network
 
   grpcwebproxy:
     image: nexus.iroha.tech:19002/d3-deploy/grpcwebproxy

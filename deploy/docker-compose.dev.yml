@@ -6,11 +6,6 @@ services:
       - 50051:50051
     networks:
       - d3-network
-  d3-eth-node0:
-    ports:
-      - 8545:8545
-    networks:
-      - d3-network
   grpcwebproxy:
     ports:
       - 8081:8080

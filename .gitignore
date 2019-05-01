@@ -34,23 +34,10 @@ hs_err_pid*
 /d3testreport/gradlew
 /d3testreport/gradlew.bat
 /d3testreport/build
-/eth/build/
-/eth-erc20-registration/build/
-/eth-registration/build/
-/eth-vacuum/build/
-/eth-withdrawal/build/
 /notary-commons/build/
-/notary-eth-integration-test/build/
-/notary-eth-integration-test/gradle/
-/notary-eth-integration-test/gradlew
 /notary-iroha-integration-test/build/
 /notary-iroha-integration-test/gradle/
 /notary-iroha-integration-test/gradlew
-/test-longevity/build/
-/chain-adapter/build/
-/chain-adapter-integration-test/build/
-/chain-adapter-integration-test/gradle/
-/chain-adapter-integration-test/gradlew
 /bootstrap/build/
 /notary-registration/build/
 /notary-sora-integration-test/build/
@@ -120,15 +107,6 @@ fabric.properties
 
 # Editor-based Rest Client
 .idea/httpRequests
-
-# Ethereum passwords config
-configs/eth/ethereum_password*
-
-# Artifacts of parity node
-deploy/ethereum/cache
-deploy/ethereum/data
-deploy/ethereum/network
-deploy/ethereum/keys/test
 
 # Chain-adapter files
 deploy/chain-adapter/
