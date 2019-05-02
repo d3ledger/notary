@@ -6,29 +6,11 @@ project(':notifications-integration-test').projectDir = 'notifications-integrati
 include 'notifications'
 project(':notifications').projectDir = 'notifications' as File
 
-include 'eth'
-project(':eth').projectDir = 'eth' as File
-
-include 'eth-erc20-registration'
-project(':eth-erc20-registration').projectDir = 'eth-erc20-registration' as File
-
-include 'eth-registration'
-project(':eth-registration').projectDir = 'eth-registration' as File
-
-include 'eth-vacuum'
-project(':eth-vacuum').projectDir = 'eth-vacuum' as File
-
-include 'eth-withdrawal'
-project(':eth-withdrawal').projectDir = 'eth-withdrawal' as File
-
 include 'exchanger'
 project(':exchanger').projectDir = 'exchanger' as File
 
 include 'notary-commons'
 project(':notary-commons').projectDir = 'notary-commons' as File
-
-include 'notary-eth-integration-test'
-project(':notary-eth-integration-test').projectDir = 'notary-eth-integration-test' as File
 
 include 'notary-registration'
 project(':notary-registration').projectDir = 'notary-registration' as File
@@ -39,17 +21,8 @@ project(':notary-iroha-integration-test').projectDir = 'notary-iroha-integration
 include 'notary-sora-integration-test'
 project(':notary-sora-integration-test').projectDir = 'notary-sora-integration-test' as File
 
-include 'test-longevity'
-project(':test-longevity').projectDir = 'test-longevity' as File
-
 include 'd3testreport'
 project(':d3testreport').projectDir = 'd3testreport' as File
 
-include 'chain-adapter'
-project(':chain-adapter').projectDir = 'chain-adapter' as File
-
 include 'bootstrap'
 project(':bootstrap').projectDir = 'bootstrap' as File
-
-include 'chain-adapter-integration-test'
-project(':chain-adapter-integration-test').projectDir = 'chain-adapter-integration-test' as File

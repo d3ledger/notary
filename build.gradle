@@ -86,11 +86,6 @@ wrapper {
     gradleVersion = 4.10
 }
 
-jar {
-    manifest {
-        attributes 'Main-Class': 'notary.eth.EthDepositMain'
-    }
-}
 
 allprojects {
     compileKotlin {
@@ -119,69 +114,6 @@ protobuf {
 
 compileKotlin.dependsOn ':generateProto'
 
-task buildEthereumContracts(type: Exec) {
-    description = 'Build Ethereum contracts'
-
-    String contract_path = projectDir.toString().concat("/deploy/ethereum/contract")
-    String bin_path = contract_path.concat("/bin")
-    file(bin_path).mkdirs()
-
-    doLast {
-        logger.info(standardOutput.toString())
-        logger.error(errorOutput.toString())
-    }
-
-    commandLine 'sh', '-c', 'solc <path>/*.sol --bin --abi --optimize -o <path>/bin --overwrite'.replace("<path>", contract_path)
-
-}
-
-task buildEthereumContractsBindings(type: Exec) {
-
-    String contract_path = projectDir.toString().concat("/deploy/ethereum/contract")
-    String bin_path = contract_path.concat("/bin")
-    String wildcard = "<path>/*.bin".replace("<path>", bin_path)
-    String cmd = 'for f in ' + wildcard + '; ' +
-            'do ' +
-            'name=$(echo "$f" | cut -f 1 -d \'.\'); ' +
-            'web3j solidity generate -b ${name}.bin --abiFile=${name}.abi -o <bin_path> -p contract \n'.replace("<bin_path>", bin_path) +
-            'done \n' +
-            'cp deploy/ethereum/contract/bin/contract/* eth/src/main/java/contract'
-
-    commandLine 'bash', '-c', cmd
-}
-
-buildEthereumContractsBindings.dependsOn ':buildEthereumContracts'
-
-// -------------------------| Iroha bindings |-------------------------
-
-import org.gradle.internal.os.OperatingSystem
-
-import static org.apache.tools.ant.taskdefs.condition.Os.*
-
-//Forms a list of ETH passwords from command line arguments
-def getEthPasswordsArgs() {
-    List<String> args = new ArrayList<>()
-    if (project.hasProperty("credentialsPassword")) {
-        args.add(project.property("credentialsPassword").toString())
-    }
-    if (project.hasProperty("nodeLogin")) {
-        args.add(project.property("nodeLogin").toString())
-    }
-    if (project.hasProperty("nodePassword")) {
-        args.add(project.property("nodePassword").toString())
-    }
-    return args
-}
-
-task osInfo {
-    description = 'Show information about the operating system'
-    doLast {
-        println "System:       ${OperatingSystem.current()}"
-        println "Family:       ${OS_NAME}"
-        println "Version:      ${OS_VERSION}"
-        println "Architecture: ${OS_ARCH}"
-    }
-}
 
 // -------------------------| End Iroha bindings |-------------------------
 

@@ -62,20 +62,6 @@ pipeline {
               """)
             }
           }
-          // scan smartcontracts only on pull requests to master
-          try {
-            if (env.CHANGE_TARGET == "master") {
-              docker.image("mythril/myth").inside("--entrypoint=''") {
-                sh "echo 'Smart contracts scan results' > mythril.txt"
-                // using mythril to scan all solidity files
-                sh "find . -name '*.sol' -exec myth --execution-timeout 900 --create-timeout 900 -x {} \\; | tee mythril.txt"
-              }
-              // save results as a build artifact
-              zip archive: true, dir: '', glob: 'mythril.txt', zipFile: 'smartcontracts-scan-results.zip'
-            }
-          }
-          catch(MissingPropertyException e) { }
-          
         }
       }
       post {
@@ -92,7 +78,6 @@ pipeline {
           """
           
           sh "tar -zcvf build-logs/notaryIrohaIntegrationTest.gz -C notary-iroha-integration-test/build/reports/tests integrationTest || true"
-          sh "tar -zcvf build-logs/notaryEthIntegrationTest.gz -C notary-eth-integration-test/build/reports/tests integrationTest || true"
           sh "tar -zcvf build-logs/jacoco.gz -C build/reports jacoco || true"
           sh "tar -zcvf build-logs/dokka.gz -C build/reports dokka || true"
           archiveArtifacts artifacts: 'build-logs/*.gz'
@@ -116,29 +101,15 @@ pipeline {
               iC = docker.image("openjdk:8-jdk")
               iC.inside("-e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
                 sh "./gradlew notary-registration:shadowJar"
-
-                sh "./gradlew eth:shadowJar"
-                sh "./gradlew eth-withdrawal:shadowJar"
-                sh "./gradlew eth-registration:shadowJar"
-                sh "./gradlew eth-vacuum:shadowJar"
-
                 sh "./gradlew exchanger:shadowJar"
               }
 
               notaryRegistration = docker.build("nexus.iroha.tech:19002/${login}/notary-registration:${TAG}", "-f docker/notary-registration.dockerfile .")
 
-              ethRelay = docker.build("nexus.iroha.tech:19002/${login}/eth-relay:${TAG}", "-f docker/eth-relay.dockerfile .")
-              ethRegistration = docker.build("nexus.iroha.tech:19002/${login}/eth-registration:${TAG}", "-f docker/eth-registration.dockerfile .")
-              notary = docker.build("nexus.iroha.tech:19002/${login}/notary:${TAG}", "-f docker/eth-deposit.dockerfile .")
-              ethWithdrawal = docker.build("nexus.iroha.tech:19002/${login}/eth-withdrawal:${TAG}", "-f docker/eth-withdrawal.dockerfile .")
               exchanger = docker.build("nexus.iroha.tech:19002/d3-deploy/exchanger:${TAG}", "-f docker/exchanger.dockerfile .")
 
               notaryRegistration.push("${TAG}")
 
-              ethRelay.push("${TAG}")
-              ethRegistration.push("${TAG}")
-              notary.push("${TAG}")
-              ethWithdrawal.push("${TAG}")
             }
           }
         }
