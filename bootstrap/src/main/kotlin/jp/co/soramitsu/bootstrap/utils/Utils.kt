@@ -9,9 +9,9 @@ import org.web3j.utils.Numeric
 import java.math.BigInteger
 
 val defaultIrohaHash = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))
-val defaultByteHash = irohaHashToByteHash(defaultIrohaHash)
+val defaultByteHash = toByteHash(Hash.sha3(String.format("%064x", BigInteger.valueOf(System.currentTimeMillis()))))
 
-fun irohaHashToByteHash(irohaHash: String) = Numeric.hexStringToByteArray(irohaHash.slice(2 until irohaHash.length))
+fun toByteHash(irohaHash: String) = Numeric.hexStringToByteArray(irohaHash.slice(2 until irohaHash.length))
 
 fun prepareSignatures(amount: Int, keypairs: List<ECKeyPair>, toSign: String): SigsData {
     val vv = ArrayList<BigInteger>()

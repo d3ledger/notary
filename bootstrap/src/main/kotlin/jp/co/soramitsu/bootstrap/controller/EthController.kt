@@ -4,18 +4,14 @@ import com.d3.eth.sidechain.util.DeployHelper
 import com.d3.eth.sidechain.util.DeployHelperBuilder
 import com.d3.eth.sidechain.util.hashToAddAndRemovePeer
 import jp.co.soramitsu.bootstrap.dto.*
-import jp.co.soramitsu.bootstrap.utils.defaultByteHash
 import jp.co.soramitsu.bootstrap.utils.defaultIrohaHash
+import jp.co.soramitsu.bootstrap.utils.toByteHash
 import jp.co.soramitsu.bootstrap.utils.prepareSignatures
 import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import org.web3j.crypto.ECKeyPair
-import org.web3j.crypto.Keys
-import org.web3j.crypto.Wallet
-import org.web3j.crypto.WalletFile
-import org.web3j.protocol.core.methods.response.TransactionReceipt
+import org.web3j.crypto.*
 import java.math.BigInteger
 import javax.validation.constraints.NotNull
 
@@ -36,23 +32,19 @@ class EthController {
                 val master = deployHelper.loadMasterContract(request.masterContract.address)
 
                 val ecKeyPairs = request.masterContract.notaries.map {
-                    ECKeyPair(
-                        BigInteger(it.private),
-                        BigInteger(it.public)
-                    )
+                    Credentials.create(it.private).ecKeyPair
                 }
 
                 var addResult = true
                 var removeResult = true
                 var errorStatus: String? = null
                 var errorMessage: String? = null
-
                 if (request.removePeerAddress != null) {
                     val finalHash = prepareTrxHash(request.removePeerAddress)
                     val sigs = prepareSignatures(request.masterContract.notaries.size, ecKeyPairs, finalHash)
                     val trxResult = master.removePeerByPeer(
                         request.removePeerAddress,
-                        defaultByteHash,
+                        toByteHash(Hash.sha3(String.format("%064x", BigInteger.valueOf(System.currentTimeMillis())))),
                         sigs.vv,
                         sigs.rr,
                         sigs.ss
@@ -66,10 +58,9 @@ class EthController {
                 if (request.newPeerAddress != null) {
                     val finalHash = prepareTrxHash(request.newPeerAddress)
                     val sigs = prepareSignatures(request.masterContract.notaries.size, ecKeyPairs, finalHash)
-
                     val trxResult = master.addPeerByPeer(
                         request.newPeerAddress,
-                        defaultByteHash,
+                        toByteHash(Hash.sha3(String.format("%064x", BigInteger.valueOf(System.currentTimeMillis())))),
                         sigs.vv,
                         sigs.rr,
                         sigs.ss
@@ -100,7 +91,7 @@ class EthController {
     private fun prepareTrxHash(removePeerAddress: String): String {
         return hashToAddAndRemovePeer(
             removePeerAddress,
-            defaultIrohaHash
+            defaultIrohaHash + System.currentTimeMillis()
         )
     }
 
@@ -154,6 +145,7 @@ class EthController {
     }
 
     @PostMapping("/deploy/D3/smartContracts")
+    @Deprecated("Use API for separate contract deployment")
     fun deployInitialSmartContracts(@NotNull @RequestBody request: AllInitialContractsRequest): ResponseEntity<DeployInitialContractsResponse> {
         log.info { "Run predeploy with notary addresses: ${request.notaryEthereumAccounts}" }
         return try {
