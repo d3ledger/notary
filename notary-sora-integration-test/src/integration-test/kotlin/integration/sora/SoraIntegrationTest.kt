@@ -63,7 +63,7 @@ class SoraIntegrationTest {
 
         assertEquals(
             "0",
-            integrationHelper.getAccountAssets(clientId).getOrDefault(xorAsset, "0")
+            integrationHelper.queryHelper.getAccountAsset(clientId, xorAsset).get()
         )
 
         integrationHelper.addIrohaAssetTo(clientId, xorAsset, "1334")

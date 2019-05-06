@@ -9,12 +9,11 @@ import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
-import com.d3.commons.sidechain.iroha.util.getAccountAsset
+import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.util.getRandomString
 import com.github.kittinunf.result.Result
 import integration.TestConfig
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.QueryAPI
 import jp.co.soramitsu.iroha.java.Transaction
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
@@ -35,7 +34,8 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
     }
 
     val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
-    val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
+    val rmqConfig =
+        loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
     val testQueue = String.getRandomString(20)
 
     val testCredential = IrohaCredential(
@@ -65,7 +65,13 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
      * Tester account has all the permissions, while accounts that will be used
      * in production may be out of some crucial permissions by mistake.
      */
-    val queryAPI by lazy { QueryAPI(irohaAPI, testCredential.accountId, testCredential.keyPair) }
+    val queryHelper by lazy {
+        IrohaQueryHelperImpl(
+            irohaAPI,
+            testCredential.accountId,
+            testCredential.keyPair
+        )
+    }
 
     private val irohaChainListenerDelegate = lazy {
         ReliableIrohaChainListener(
@@ -96,9 +102,11 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
         }
     }
 
-    fun getAccountDetails(accountDetailHolder: String, accountDetailSetter: String): Map<String, String> {
-        return com.d3.commons.sidechain.iroha.util.getAccountDetails(
-            queryAPI,
+    fun getAccountDetails(
+        accountDetailHolder: String,
+        accountDetailSetter: String
+    ): Map<String, String> {
+        return queryHelper.getAccountDetails(
             accountDetailHolder,
             accountDetailSetter
         ).get()
@@ -108,10 +116,7 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
      * Return [account] data.
      */
     fun getAccount(account: String): String {
-        return com.d3.commons.sidechain.iroha.util.getAccountData(
-            queryAPI,
-            account
-        ).get().toString()
+        return queryHelper.getAccount(account).get().toString()
     }
 
     /**
@@ -161,8 +166,7 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
      * @return balance of account asset
      */
     fun getIrohaAccountBalance(accountId: String, assetId: String): String {
-        return getAccountAsset(
-            queryAPI,
+        return queryHelper.getAccountAsset(
             accountId,
             assetId
         ).get()
@@ -264,9 +268,7 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
     fun getAccountAssets(
         accountId: String
     ): Map<String, String> {
-        return queryAPI.getAccountAssets(accountId).accountAssetsList.associate { asset ->
-            asset.assetId to asset.balance
-        }
+        return queryHelper.getAccountAssets(accountId).get()
     }
 
     /**

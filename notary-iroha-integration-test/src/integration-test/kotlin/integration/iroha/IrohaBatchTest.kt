@@ -11,8 +11,6 @@ import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.consumer.IrohaConverter
 import com.d3.commons.sidechain.iroha.util.ModelUtil
-import com.d3.commons.sidechain.iroha.util.getAccountAsset
-import com.d3.commons.sidechain.iroha.util.getAccountData
 import com.d3.commons.util.getRandomId
 import com.d3.commons.util.getRandomString
 import com.d3.commons.util.hex
@@ -44,7 +42,8 @@ class IrohaBatchTest {
     private val testCredential = integrationHelper.testCredential
 
     private val tester = testCredential.accountId
-    private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
+    private val rmqConfig =
+        loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
 
     val assetDomain = "notary"
 
@@ -151,14 +150,20 @@ class IrohaBatchTest {
             listener.purge()
             val successHash = irohaConsumer.send(lst).get()
 
-            val accountJson = getAccountData(integrationHelper.queryAPI, userId).get().toJsonString()
-            val tester_amount = getAccountAsset(integrationHelper.queryAPI, tester, "$asset_name#$assetDomain").get()
-            val u1_amount =
-                getAccountAsset(integrationHelper.queryAPI, userId, "$asset_name#$assetDomain").get()
+            val accountDetail =
+                integrationHelper.queryHelper.getAccountDetails(userId, tester).get()
+            val tester_amount = integrationHelper.queryHelper.getAccountAsset(
+                tester,
+                "$asset_name#$assetDomain"
+            ).get()
+            val u1_amount = integrationHelper.queryHelper.getAccountAsset(
+                userId,
+                "$asset_name#$assetDomain"
+            ).get()
 
             assertEquals(hashes.size, successHash.size)
             assertTrue(successHash.containsAll(hashes))
-            assertTrue(accountJson.contains("\"$tester\":{\"key\":\"value\"}"))
+            assertEquals(mapOf("key" to "value"), accountDetail)
             assertEquals(73, tester_amount.toInt())
             assertEquals(27, u1_amount.toInt())
 
@@ -274,14 +279,14 @@ class IrohaBatchTest {
 
             Thread.sleep(BATCH_TIME_WAIT)
 
-            val accountJson = getAccountData(integrationHelper.queryAPI, userId).get().toJsonString()
-            val tester_amount = getAccountAsset(integrationHelper.queryAPI, tester, assetId).get()
-            val u1_amount =
-                getAccountAsset(integrationHelper.queryAPI, userId, assetId).get()
+            val accountDetail =
+                integrationHelper.queryHelper.getAccountDetails(userId, tester).get()
+            val tester_amount = integrationHelper.queryHelper.getAccountAsset(tester, assetId).get()
+            val u1_amount = integrationHelper.queryHelper.getAccountAsset(userId, assetId).get()
 
             assertEquals(expectedHashes.size, successHash.size)
             assertTrue(successHash.containsAll(expectedHashes))
-            assertTrue(accountJson.contains("\"$tester\":{\"key\":\"value\"}"))
+            assertEquals(mapOf("key" to "value"), accountDetail)
             assertEquals(73, tester_amount.toInt())
             assertEquals(27, u1_amount.toInt())
 

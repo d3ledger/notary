@@ -1,19 +1,21 @@
 package com.d3.commons.sidechain.iroha.consumer
 
 import com.d3.commons.model.IrohaCredential
-import com.d3.commons.sidechain.iroha.util.getAccountQuorum
+import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.util.hex
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import iroha.protocol.Endpoint
 import iroha.protocol.TransactionOuterClass
-import jp.co.soramitsu.iroha.java.*
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.Transaction
+import jp.co.soramitsu.iroha.java.TransactionStatusObserver
+import jp.co.soramitsu.iroha.java.Utils
 import jp.co.soramitsu.iroha.java.detail.BuildableAndSignable
 import jp.co.soramitsu.iroha.java.detail.InlineTransactionStatusObserver
 import jp.co.soramitsu.iroha.java.subscription.WaitForTerminalStatus
 import mu.KLogging
 import java.io.IOException
-import java.security.KeyPair
 import java.util.*
 import java.util.concurrent.TimeoutException
 
@@ -42,13 +44,14 @@ open class IrohaConsumerImpl(
 ) : IrohaConsumer {
     private val keyPair = irohaCredential.keyPair
 
-    private val queryAPI = QueryAPI(irohaAPI, irohaCredential.accountId, irohaCredential.keyPair)
+    private val queryHelper =
+        IrohaQueryHelperImpl(irohaAPI, irohaCredential.accountId, irohaCredential.keyPair)
 
     override val creator = irohaCredential.accountId
 
     protected open val waitForTerminalStatus = WaitForTerminalStatus(terminalStatuses)
 
-    override fun getConsumerQuorum() = getAccountQuorum(queryAPI, creator)
+    override fun getConsumerQuorum() = queryHelper.getAccountQuorum(creator)
 
     /**
      * Send transaction to Iroha and check if it is committed
@@ -153,6 +156,7 @@ open class IrohaConsumerImpl(
                 )
             }
             .onTransactionCommitted { successTx -> txStatus.success(successTx.txHash.toUpperCase()) }
+
     }
 
     /**

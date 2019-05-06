@@ -2,9 +2,8 @@ package com.d3.exchange.exchanger
 
 import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
+import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 import com.d3.commons.sidechain.iroha.util.ModelUtil
-import com.d3.commons.sidechain.iroha.util.getAccountAsset
-import com.d3.commons.sidechain.iroha.util.getAssetPrecision
 import com.d3.exchange.exchanger.exception.AssetNotFoundException
 import com.d3.exchange.exchanger.exception.TooLittleAssetVolumeException
 import com.d3.exchange.exchanger.exception.TooMuchAssetVolumeException
@@ -12,7 +11,6 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
-import jp.co.soramitsu.iroha.java.QueryAPI
 import mu.KLogging
 import org.apache.commons.math3.analysis.UnivariateFunction
 import org.apache.commons.math3.analysis.integration.RombergIntegrator
@@ -30,7 +28,7 @@ private val logger = KLogging().logger
  */
 class ExchangerService(
     @Autowired private val irohaConsumer: IrohaConsumer,
-    @Autowired private val queryAPI: QueryAPI,
+    @Autowired private val queryhelper: IrohaQueryHelper,
     @Autowired private val chainListener: ReliableIrohaChainListener,
     @Autowired private val liquidityProviderAccounts: List<String>
 ) : Closeable {
@@ -82,7 +80,8 @@ class ExchangerService(
         val destAccountId = transfer.srcAccountId
         logger.info { "Got a conversion request from $destAccountId: $amount $sourceAsset to $targetAsset." }
         Result.of {
-            val relevantAmount = calculateRelevantAmount(sourceAsset, targetAsset, BigDecimal(amount))
+            val relevantAmount =
+                calculateRelevantAmount(sourceAsset, targetAsset, BigDecimal(amount))
 
             ModelUtil.transferAssetIroha(
                 irohaConsumer,
@@ -92,7 +91,8 @@ class ExchangerService(
                 "Conversion from $sourceAsset to $targetAsset",
                 relevantAmount
             )
-        }.fold({ logger.info { "Successfully converted $amount of $sourceAsset to $targetAsset." } },
+        }.fold(
+            { logger.info { "Successfully converted $amount of $sourceAsset to $targetAsset." } },
             {
                 logger.error("Exchanger error occurred. Performing rollback.", it)
 
@@ -117,12 +117,14 @@ class ExchangerService(
      */
     private fun calculateRelevantAmount(from: String, to: String, amount: BigDecimal): String {
         val sourceAssetBalance = BigDecimal(
-            getAccountAsset(queryAPI, irohaConsumer.creator, from).get()
+            queryhelper.getAccountAsset(irohaConsumer.creator, from).get()
         ).minus(amount).toDouble()
-        val targetAssetBalance = BigDecimal(getAccountAsset(queryAPI, irohaConsumer.creator, to).get()).toDouble()
+        val targetAssetBalance =
+            BigDecimal(queryhelper.getAccountAsset(irohaConsumer.creator, to).get()).toDouble()
         val amountMinusFee = amount.minus(amount.multiply(FEE_RATIO)).toDouble()
 
-        val precision = getAssetPrecision(queryAPI, to).fold({ it },
+        val precision = queryhelper.getAssetPrecision(to).fold(
+            { it },
             { throw AssetNotFoundException("Seems asset $to does not exist.") })
 
         val calculatedAmount = integrate(sourceAssetBalance, targetAssetBalance, amountMinusFee)
@@ -131,7 +133,8 @@ class ExchangerService(
             throw TooMuchAssetVolumeException("Asset supplement exceeds the balance.")
         }
 
-        val respectPrecision = respectPrecision(BigDecimal(calculatedAmount).toPlainString(), precision)
+        val respectPrecision =
+            respectPrecision(BigDecimal(calculatedAmount).toPlainString(), precision)
         // If the result is not bigger than zero
         if (BigDecimal(respectPrecision) <= BigDecimal.ZERO) {
             throw TooLittleAssetVolumeException("Asset supplement it too low for specified conversion")
@@ -174,8 +177,13 @@ class ExchangerService(
         /**
          * Performs integration of target asset amount function
          */
-        fun integrate(sourceAssetBalance: Double, targetAssetBalance: Double, amount: Double): Double {
-            val function = UnivariateFunction { x -> targetAssetBalance / (sourceAssetBalance + x + 1) }
+        fun integrate(
+            sourceAssetBalance: Double,
+            targetAssetBalance: Double,
+            amount: Double
+        ): Double {
+            val function =
+                UnivariateFunction { x -> targetAssetBalance / (sourceAssetBalance + x + 1) }
             return integrator.integrate(EVALUATIONS, function, LOWER_BOUND, LOWER_BOUND + amount)
         }
     }

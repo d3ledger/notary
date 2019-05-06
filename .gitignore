@@ -25,22 +25,6 @@ hs_err_pid*
 ### Gradle template
 .gradle
 /build/
-/btc/build/
-/btc/gradle/
-/btc/gradlew
-/btc-address-generation/build/
-/btc-address-generation/gradle/
-/btc-address-generation/gradlew
-/btc-deposit/build/
-/btc-deposit/gradle/
-/btc-deposit/gradlew
-/btc-registration/build/
-/btc-registration/gradle/
-/btc-registration/gradlew
-/btc-withdrawal/build
-/btc-withdrawal/gradle
-/btc-withdrawal/gradlew
-/btc-withdrawal/gradlew.bat
 /notifications/build
 /notifications/gradle
 /notifications/gradlew
@@ -50,30 +34,10 @@ hs_err_pid*
 /d3testreport/gradlew
 /d3testreport/gradlew.bat
 /d3testreport/build
-/eth/build/
-/eth-erc20-registration/build/
-/eth-registration/build/
-/eth-vacuum/build/
-/eth-withdrawal/build/
 /notary-commons/build/
-/notary-btc-integration-test/build/
-/notary-btc-integration-test/gradle/
-/notary-btc-integration-test/gradlew
-/notary-eth-integration-test/build/
-/notary-eth-integration-test/gradle/
-/notary-eth-integration-test/gradlew
 /notary-iroha-integration-test/build/
 /notary-iroha-integration-test/gradle/
 /notary-iroha-integration-test/gradlew
-/test-longevity/build/
-/btc-dw-bridge/build
-/btc-dw-bridge/gradle
-/btc-dw-bridge/gradlew
-/btc-dw-bridge/gradlew.bat
-/chain-adapter/build/
-/chain-adapter-integration-test/build/
-/chain-adapter-integration-test/gradle/
-/chain-adapter-integration-test/gradlew
 /bootstrap/build/
 /notary-registration/build/
 /notary-sora-integration-test/build/
@@ -144,27 +108,8 @@ fabric.properties
 # Editor-based Rest Client
 .idea/httpRequests
 
-# Ethereum passwords config
-configs/eth/ethereum_password*
-
-# Artifacts of parity node
-deploy/ethereum/cache
-deploy/ethereum/data
-deploy/ethereum/network
-deploy/ethereum/keys/test
-
-# Bitcoin wallets, blockchain and etc.
-deploy/bitcoin/testnet/blocks/
-deploy/bitcoin/testnet/keys.d3.wallet
-deploy/bitcoin/testnet/transfers.d3.wallet
-deploy/bitcoin/regtest/blocks/
-deploy/bitcoin/mainnet/
-
 # Chain-adapter files
 deploy/chain-adapter/
-
-# Bitcoin test wallets
-deploy/bitcoin/regtest/test wallets/
 
 # SMTP configs
 configs/smtp.properties
