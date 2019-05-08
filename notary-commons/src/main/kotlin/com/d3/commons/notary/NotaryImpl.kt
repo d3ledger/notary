@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.commons.notary
 
 import com.d3.commons.model.IrohaCredential
@@ -120,7 +125,14 @@ class NotaryImpl(
             // Init Iroha Consumer pipeline
             irohaOutput()
                 // convert from Notary model to Iroha model
-                .subscribeOn(Schedulers.from(createPrettySingleThreadPool("notary", "iroha-consumer")))
+                .subscribeOn(
+                    Schedulers.from(
+                        createPrettySingleThreadPool(
+                            "notary",
+                            "iroha-consumer"
+                        )
+                    )
+                )
                 .subscribe(
                     // send to Iroha network layer
                     { batch ->

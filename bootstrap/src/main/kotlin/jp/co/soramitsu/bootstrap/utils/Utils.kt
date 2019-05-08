@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package jp.co.soramitsu.bootstrap.utils
 
 import com.d3.eth.sidechain.util.extractVRS
@@ -11,7 +16,8 @@ import java.math.BigInteger
 val defaultIrohaHash = Hash.sha3(String.format("%064x", BigInteger.valueOf(12345)))
 val defaultByteHash = irohaHashToByteHash(defaultIrohaHash)
 
-fun irohaHashToByteHash(irohaHash: String) = Numeric.hexStringToByteArray(irohaHash.slice(2 until irohaHash.length))
+fun irohaHashToByteHash(irohaHash: String) =
+    Numeric.hexStringToByteArray(irohaHash.slice(2 until irohaHash.length))
 
 fun prepareSignatures(amount: Int, keypairs: List<ECKeyPair>, toSign: String): SigsData {
     val vv = ArrayList<BigInteger>()

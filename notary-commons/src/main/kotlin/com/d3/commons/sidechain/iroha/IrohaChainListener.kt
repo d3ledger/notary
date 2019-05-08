@@ -1,14 +1,19 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.commons.sidechain.iroha
 
+import com.d3.commons.model.IrohaCredential
+import com.d3.commons.sidechain.ChainListener
+import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import io.reactivex.Observable
 import iroha.protocol.BlockOuterClass
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import com.d3.commons.model.IrohaCredential
 import mu.KLogging
-import com.d3.commons.sidechain.ChainListener
-import com.d3.commons.sidechain.iroha.util.ModelUtil
 
 /**
  * Plain implementation of [ChainListener] with effective dependencies

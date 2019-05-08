@@ -1,12 +1,17 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.notifications.push
 
+import com.d3.notifications.provider.D3ClientProvider
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import mu.KLogging
 import nl.martijndwars.webpush.Notification
 import nl.martijndwars.webpush.PushService
 import nl.martijndwars.webpush.Subscription
-import com.d3.notifications.provider.D3ClientProvider
 import org.apache.http.util.EntityUtils
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.springframework.beans.factory.annotation.Autowired

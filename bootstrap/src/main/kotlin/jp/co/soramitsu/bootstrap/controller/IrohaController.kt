@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package jp.co.soramitsu.bootstrap.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -9,9 +14,7 @@ import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.util.stream.Collectors.toList
 import javax.xml.bind.DatatypeConverter
-import kotlin.streams.toList
 
 @RestController
 @RequestMapping("/iroha")
@@ -27,9 +30,12 @@ class IrohaController(val genesisFactories: List<GenesisInterface>) {
         @PathVariable("peersCount") peersCount: Int
     ): ResponseEntity<NeededAccountsResponse> {
         if (peersCount == 0) {
-            return ResponseEntity.ok<NeededAccountsResponse>(NeededAccountsResponse(
-                ErrorCodes.INCORRECT_PEERS_COUNT.name,
-                "peersCount path variable should exist with value >0"))
+            return ResponseEntity.ok<NeededAccountsResponse>(
+                NeededAccountsResponse(
+                    ErrorCodes.INCORRECT_PEERS_COUNT.name,
+                    "peersCount path variable should exist with value >0"
+                )
+            )
         }
 
         val accounts = ArrayList<AccountPrototype>()
@@ -101,7 +107,7 @@ class IrohaController(val genesisFactories: List<GenesisInterface>) {
             it.getProject().contentEquals(request.meta.project)
                     && it.getEnvironment().contentEquals(request.meta.environment)
         }.findAny().get()
-        var genesis: GenesisResponse
+        val genesis: GenesisResponse
         if (genesisFactory != null) {
             try {
                 genesis =

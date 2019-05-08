@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package integration.sora
 
 import com.d3.commons.sidechain.iroha.util.ModelUtil
@@ -57,7 +62,8 @@ class SoraIntegrationTest {
 
         val keypairAlice = Ed25519Sha3().generateKeypair()
 
-        val res = registrationEnvironment.register(clientName, keypairAlice.public.toHexString(), domain)
+        val res =
+            registrationEnvironment.register(clientName, keypairAlice.public.toHexString(), domain)
 
         assertEquals(200, res.statusCode)
 
@@ -84,13 +90,18 @@ class SoraIntegrationTest {
         val aliceClientName = String.getRandomString(9)
         val aliceClientId = "$aliceClientName@$domain"
         val keypairAlice = Ed25519Sha3().generateKeypair()
-        var res = registrationEnvironment.register(aliceClientName, keypairAlice.public.toHexString(), domain)
+        var res = registrationEnvironment.register(
+            aliceClientName,
+            keypairAlice.public.toHexString(),
+            domain
+        )
 
         assertEquals(200, res.statusCode)
         val bobClientName = String.getRandomString(9)
         val bobClientId = "$bobClientName@$domain"
         val keypairBob = Ed25519Sha3().generateKeypair()
-        res = registrationEnvironment.register(bobClientName, keypairBob.public.toHexString(), domain)
+        res =
+            registrationEnvironment.register(bobClientName, keypairBob.public.toHexString(), domain)
 
         assertEquals(200, res.statusCode)
 
@@ -128,14 +139,19 @@ class SoraIntegrationTest {
         val aliceClientName = String.getRandomString(9)
         val aliceClientId = "$aliceClientName@$domain"
         val keypairAlice = Ed25519Sha3().generateKeypair()
-        var res = registrationEnvironment.register(aliceClientName, keypairAlice.public.toHexString(), domain)
+        var res = registrationEnvironment.register(
+            aliceClientName,
+            keypairAlice.public.toHexString(),
+            domain
+        )
 
         assertEquals(200, res.statusCode)
 
         val bobClientName = String.getRandomString(9)
         val bobClientId = "$bobClientName@$domain"
         val keypairBob = Ed25519Sha3().generateKeypair()
-        res = registrationEnvironment.register(bobClientName, keypairBob.public.toHexString(), domain)
+        res =
+            registrationEnvironment.register(bobClientName, keypairBob.public.toHexString(), domain)
 
         assertEquals(200, res.statusCode)
 
@@ -212,5 +228,4 @@ class SoraIntegrationTest {
             integrationHelper.getIrohaAccountBalance(soraClientId, xorAsset)
         )
     }
-
 }

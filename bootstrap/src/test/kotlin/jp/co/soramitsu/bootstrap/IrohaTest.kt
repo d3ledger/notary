@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package jp.co.soramitsu.bootstrap
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -27,7 +32,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
-
 
 @RunWith(SpringRunner::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -77,11 +81,14 @@ class IrohaTest {
             .perform(get("/iroha/config/accounts/D3/test/5"))
             .andExpect(status().isOk)
             .andReturn()
-        val respBody = mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
+        val respBody =
+            mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
         val activeAccounts = ArrayList<AccountPrototype>()
-        d3Genesis.getAccountsForConfiguration(5).forEach { if (it.type != AccountType.PASSIVE) activeAccounts.add(it) }
+        d3Genesis.getAccountsForConfiguration(5)
+            .forEach { if (it.type != AccountType.PASSIVE) activeAccounts.add(it) }
         assertEquals(activeAccounts.size, respBody.accounts.size)
-        val dependentAccounts = respBody.accounts.stream().filter { it.peersDependentQuorum }.collect(toList())
+        val dependentAccounts =
+            respBody.accounts.stream().filter { it.peersDependentQuorum }.collect(toList())
         dependentAccounts.forEach { assertEquals(4, it.quorum) }
     }
 
@@ -91,7 +98,8 @@ class IrohaTest {
             .perform(get("/iroha/config/accounts/D3/test/0"))
             .andExpect(status().isOk)
             .andReturn()
-        val respBody = mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
+        val respBody =
+            mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
         assertEquals(respBody.errorCode, ErrorCodes.INCORRECT_PEERS_COUNT.name)
     }
 
@@ -101,8 +109,10 @@ class IrohaTest {
             .perform(get("/iroha/config/accounts/D3/test/1"))
             .andExpect(status().isOk)
             .andReturn()
-        val respBody = mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
-        val dependentAccounts = respBody.accounts.stream().filter { it.peersDependentQuorum }.collect(toList())
+        val respBody =
+            mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
+        val dependentAccounts =
+            respBody.accounts.stream().filter { it.peersDependentQuorum }.collect(toList())
         dependentAccounts.forEach { assertEquals(1, it.quorum) }
     }
 
@@ -112,8 +122,10 @@ class IrohaTest {
             .perform(get("/iroha/config/accounts/D3/test/2"))
             .andExpect(status().isOk)
             .andReturn()
-        val respBody = mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
-        val dependentAccounts = respBody.accounts.stream().filter { it.peersDependentQuorum }.collect(toList())
+        val respBody =
+            mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
+        val dependentAccounts =
+            respBody.accounts.stream().filter { it.peersDependentQuorum }.collect(toList())
         dependentAccounts.forEach { assertEquals(2, it.quorum) }
     }
 
@@ -254,7 +266,11 @@ class IrohaTest {
         )
     }
 
-    private fun createAccountDto(title: String, domain: String, quorum: Int = 1): AccountPublicInfo {
+    private fun createAccountDto(
+        title: String,
+        domain: String,
+        quorum: Int = 1
+    ): AccountPublicInfo {
         val keys = ArrayList<String>()
         repeat(quorum) {
             keys.add(generatePublicKeyHex())
@@ -267,4 +283,3 @@ class IrohaTest {
     private fun generatePublicKeyHex() =
         DatatypeConverter.printHexBinary(Ed25519Sha3().generateKeypair().public.encoded)
 }
-

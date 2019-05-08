@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.commons.util
 
 import org.junit.jupiter.api.Assertions.assertArrayEquals
@@ -21,5 +26,12 @@ class StringExtTest {
     fun testIrohaEscape() {
         val text = "\"kek\""
         assertEquals("\\\"kek\\\"", text.irohaEscape())
+    }
+
+    @Test
+    fun testIrohaUnEscape() {
+        val expected = "\"kek\"\nnewline"
+        val actual = expected.irohaEscape().irohaUnEscape()
+        assertEquals(expected, actual)
     }
 }

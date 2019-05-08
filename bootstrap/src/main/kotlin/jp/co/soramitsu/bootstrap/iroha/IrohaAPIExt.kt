@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package jp.co.soramitsu.bootstrap.iroha
 
 import com.github.kittinunf.result.Result
@@ -11,7 +16,6 @@ import jp.co.soramitsu.iroha.java.subscription.WaitForTerminalStatus
 import java.io.IOException
 import java.util.*
 import java.util.concurrent.TimeoutException
-
 
 /**
  * Statuses that we consider terminal
@@ -41,22 +45,23 @@ private fun createTxStatusObserverMST(txStatus: TxStatus): InlineTransactionStat
         .onError { ex -> txStatus.txException = IllegalStateException(ex) }
         .onMstExpired { expiredTx ->
             txStatus.txException =
-                    TimeoutException("Tx ${expiredTx.txHash} MST expired. ${expiredTx.errOrCmdName}")
+                TimeoutException("Tx ${expiredTx.txHash} MST expired. ${expiredTx.errOrCmdName}")
         }
         .onNotReceived { failedTx ->
             txStatus.txException =
-                    IOException("Tx ${failedTx.txHash} was not received. ${failedTx.errOrCmdName}")
+                IOException("Tx ${failedTx.txHash} was not received. ${failedTx.errOrCmdName}")
         }
         .onRejected { rejectedTx ->
             txStatus.txException =
-                    IOException("Tx ${rejectedTx.txHash} was rejected. ${rejectedTx.errOrCmdName}")
+                IOException("Tx ${rejectedTx.txHash} was rejected. ${rejectedTx.errOrCmdName}")
         }
         .onTransactionFailed { failedTx ->
-            txStatus.txException = Exception("Tx ${failedTx.txHash} failed. ${failedTx.errOrCmdName}")
+            txStatus.txException =
+                Exception("Tx ${failedTx.txHash} failed. ${failedTx.errOrCmdName}")
         }
         .onUnrecognizedStatus { failedTx ->
             txStatus.txException =
-                    Exception("Tx ${failedTx.txHash} got unrecognized status. ${failedTx.errOrCmdName}")
+                Exception("Tx ${failedTx.txHash} got unrecognized status. ${failedTx.errOrCmdName}")
         }
         .onTransactionCommitted { successTx -> txStatus.txHash = successTx.txHash.toUpperCase() }
         .onMstPending { pendingTx -> txStatus.txHash = pendingTx.txHash.toUpperCase() }

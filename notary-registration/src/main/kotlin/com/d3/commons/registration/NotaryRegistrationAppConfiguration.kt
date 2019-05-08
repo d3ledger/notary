@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.commons.registration
 
 import com.d3.commons.config.loadConfigs
@@ -9,7 +14,11 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 val registrationConfig =
-    loadConfigs("registration", NotaryRegistrationConfig::class.java, "/registration.properties").get()
+    loadConfigs(
+        "registration",
+        NotaryRegistrationConfig::class.java,
+        "/registration.properties"
+    ).get()
 
 /**
  * Spring configuration for Notary Registration Service
@@ -49,5 +58,8 @@ class NotaryRegistrationAppConfiguration {
 
     @Bean
     fun primaryKeyPair() =
-        ModelUtil.loadKeypair(registrationConfig.primaryPubkeyPath, registrationConfig.primaryPrivkeyPath).get()
+        ModelUtil.loadKeypair(
+            registrationConfig.primaryPubkeyPath,
+            registrationConfig.primaryPrivkeyPath
+        ).get()
 }

@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 @file:JvmName("NotificationsMain")
 
 package com.d3.notifications
@@ -10,7 +15,7 @@ import mu.KLogging
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.ComponentScan
 
-const val NOTIFICATIONS_SERVICE_NAME="notifications"
+const val NOTIFICATIONS_SERVICE_NAME = "notifications"
 
 @ComponentScan(basePackages = ["com.d3.notifications"])
 class NotificationApplication

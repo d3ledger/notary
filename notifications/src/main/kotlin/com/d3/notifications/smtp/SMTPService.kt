@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.notifications.smtp
 
 import com.github.kittinunf.result.Result
@@ -15,5 +20,10 @@ interface SMTPService {
      * @param message - message itself
      * @return result of operation
      */
-    fun sendMessage(from: String, to: String, subject: String, message: String): Result<Unit, Exception>
+    fun sendMessage(
+        from: String,
+        to: String,
+        subject: String,
+        message: String
+    ): Result<Unit, Exception>
 }
