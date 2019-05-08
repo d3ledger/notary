@@ -1,4 +1,13 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import com.d3.commons.config.loadConfigs
+import com.d3.commons.registration.NotaryRegistrationConfig
+import com.d3.commons.registration.main
+import com.d3.commons.util.getRandomString
+import com.d3.commons.util.toHexString
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -7,17 +16,17 @@ import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import com.d3.commons.registration.NotaryRegistrationConfig
-import com.d3.commons.registration.main
-import com.d3.commons.util.getRandomString
-import com.d3.commons.util.toHexString
 import kotlin.test.assertEquals
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class NotaryRegistrationTest {
 
     val registrationConfig =
-        loadConfigs("registration", NotaryRegistrationConfig::class.java, "/registration.properties").get()
+        loadConfigs(
+            "registration",
+            NotaryRegistrationConfig::class.java,
+            "/registration.properties"
+        ).get()
 
     init {
         GlobalScope.launch {

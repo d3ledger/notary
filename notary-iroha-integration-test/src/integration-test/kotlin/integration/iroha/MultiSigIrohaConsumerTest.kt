@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package integration.iroha
 
 import com.d3.commons.sidechain.iroha.consumer.MultiSigIrohaConsumer
@@ -29,7 +34,12 @@ class MultiSigIrohaConsumerTest {
             // Make notary account MultiSig
             integrationHelperUtil.accountHelper.makeAccountMst(
                 integrationHelperUtil.accountHelper.notaryAccount
-            ).map { credential -> MultiSigIrohaConsumer(credential, integrationHelperUtil.irohaAPI) }
+            ).map { credential ->
+                MultiSigIrohaConsumer(
+                    credential,
+                    integrationHelperUtil.irohaAPI
+                )
+            }
         )
     }
 

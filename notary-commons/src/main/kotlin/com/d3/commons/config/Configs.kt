@@ -1,9 +1,13 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.commons.config
 
 import com.github.kittinunf.result.Result
 import com.jdiazcano.cfg4k.loaders.EnvironmentConfigLoader
 import com.jdiazcano.cfg4k.loaders.PropertyConfigLoader
-import com.jdiazcano.cfg4k.providers.DefaultConfigProvider
 import com.jdiazcano.cfg4k.providers.OverrideConfigProvider
 import com.jdiazcano.cfg4k.providers.ProxyConfigProvider
 import com.jdiazcano.cfg4k.sources.ConfigSource
@@ -33,7 +37,6 @@ private val logger = KLogging().logger
 /**
  * RMQ configurations
  */
-
 interface RMQConfig {
     val host: String
     val irohaExchange: String
@@ -82,7 +85,8 @@ interface BitcoinConfig {
     val hosts: String
 
     companion object {
-        fun extractHosts(bitcoinConfig: BitcoinConfig) = bitcoinConfig.hosts.replace(" ", "").split(",")
+        fun extractHosts(bitcoinConfig: BitcoinConfig) =
+            bitcoinConfig.hosts.replace(" ", "").split(",")
     }
 }
 
@@ -174,7 +178,8 @@ fun loadEthPasswords(
     var config = loadConfigs(prefix, EthereumPasswords::class.java, filename).get()
 
     config = object : EthereumPasswords {
-        override val credentialsPassword = System.getenv(ETH_CREDENTIALS_PASSWORD_ENV) ?: config.credentialsPassword
+        override val credentialsPassword =
+            System.getenv(ETH_CREDENTIALS_PASSWORD_ENV) ?: config.credentialsPassword
         override val nodeLogin = System.getenv(ETH_NODE_LOGIN_ENV) ?: config.nodeLogin
         override val nodePassword = System.getenv(ETH_NODE_PASSWORD_ENV) ?: config.nodePassword
     }

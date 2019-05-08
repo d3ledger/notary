@@ -1,3 +1,7 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 @file:JvmName("BootstrapMain")
 
@@ -12,11 +16,9 @@ import org.springframework.context.annotation.ComponentScan
 @ComponentScan(basePackages = ["jp.co.soramitsu.bootstrap"])
 class Application
 
-    private val logger = KLogging().logger
+private val logger = KLogging().logger
 
-    fun main(args: Array<String>) {
-        val app = SpringApplication(Application::class.java)
-        app.run(*args)
-    }
-
-
+fun main(args: Array<String>) {
+    val app = SpringApplication(Application::class.java)
+    app.run(*args)
+}

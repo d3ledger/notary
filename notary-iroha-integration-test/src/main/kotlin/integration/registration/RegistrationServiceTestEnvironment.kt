@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package integration.registration
 
 import com.d3.commons.model.IrohaCredential
@@ -13,9 +18,11 @@ import java.io.Closeable
 /**
  * Environment for registration service running in tests
  */
-class RegistrationServiceTestEnvironment(private val integrationHelper: IrohaIntegrationHelperUtil) : Closeable {
+class RegistrationServiceTestEnvironment(private val integrationHelper: IrohaIntegrationHelperUtil) :
+    Closeable {
 
-    val registrationConfig = integrationHelper.configHelper.createRegistrationConfig(integrationHelper.accountHelper)
+    val registrationConfig =
+        integrationHelper.configHelper.createRegistrationConfig(integrationHelper.accountHelper)
 
     private val registrationCredentials = ModelUtil.loadKeypair(
         registrationConfig.registrationCredential.pubkeyPath,
@@ -27,7 +34,8 @@ class RegistrationServiceTestEnvironment(private val integrationHelper: IrohaInt
         { ex -> throw ex }
     )
 
-    private val irohaConsumer = IrohaConsumerImpl(registrationCredentials, integrationHelper.irohaAPI)
+    private val irohaConsumer =
+        IrohaConsumerImpl(registrationCredentials, integrationHelper.irohaAPI)
 
     private val primaryKeyPair = ModelUtil.loadKeypair(
         registrationConfig.primaryPubkeyPath,

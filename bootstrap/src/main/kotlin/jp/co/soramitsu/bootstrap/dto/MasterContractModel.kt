@@ -1,9 +1,18 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package jp.co.soramitsu.bootstrap.dto
 
 import java.math.BigInteger
 import javax.validation.constraints.NotNull
 
-data class SigsData(val vv: ArrayList<BigInteger>, val rr: ArrayList<ByteArray>, val ss: ArrayList<ByteArray>)
+data class SigsData(
+    val vv: ArrayList<BigInteger>,
+    val rr: ArrayList<ByteArray>,
+    val ss: ArrayList<ByteArray>
+)
 
 data class UpdateMasterContractResponse(
     val success: Boolean = false
@@ -74,4 +83,4 @@ data class DeployRelayImplementationRequest(
 data class DeployMasterContractResponse(
     val contractAddress: String? = null,
     val soraAddress: String? = null
-) :Conflictable()
+) : Conflictable()

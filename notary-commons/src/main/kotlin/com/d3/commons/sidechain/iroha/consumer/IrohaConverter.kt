@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.commons.sidechain.iroha.consumer
 
 import com.d3.commons.notary.IrohaCommand
@@ -16,7 +21,10 @@ import java.security.KeyPair
  */
 object IrohaConverter {
 
-    private fun appendCommand(txBuilder: TransactionBuilder, cmd: IrohaCommand): TransactionBuilder {
+    private fun appendCommand(
+        txBuilder: TransactionBuilder,
+        cmd: IrohaCommand
+    ): TransactionBuilder {
         return when (cmd) {
             is IrohaCommand.CommandCreateAccount ->
                 txBuilder.createAccount(

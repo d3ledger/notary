@@ -1,8 +1,14 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package integration.helper
 
 import com.d3.notifications.config.NotificationsConfig
 
-class NotificationsConfigHelper(private val accountHelper: IrohaAccountHelper) : IrohaConfigHelper() {
+class NotificationsConfigHelper(private val accountHelper: IrohaAccountHelper) :
+    IrohaConfigHelper() {
 
     /**
      * Creates notification services config
@@ -12,7 +18,8 @@ class NotificationsConfigHelper(private val accountHelper: IrohaAccountHelper) :
             override val iroha = createIrohaConfig()
             override val smtpConfigPath = "smtp_test.properties"
             override val pushApiConfigPath = "push_test.properties"
-            override val notaryCredential = accountHelper.createCredentialConfig(accountHelper.notaryAccount)
+            override val notaryCredential =
+                accountHelper.createCredentialConfig(accountHelper.notaryAccount)
         }
     }
 }
