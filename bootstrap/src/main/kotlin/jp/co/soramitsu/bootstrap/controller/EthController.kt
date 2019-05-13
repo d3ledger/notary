@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.web3j.crypto.*
+import java.lang.IllegalArgumentException
 import javax.validation.constraints.NotNull
 
 @RestController
@@ -41,6 +42,11 @@ class EthController {
                         it.path
                     )
                 }.map { it.ecKeyPair }
+
+                if(ecKeyPairs.isEmpty()){
+                    throw IllegalArgumentException("Provide paths to wallets of notaries, " +
+                            "registered in smart contract for signature creation")
+                }
 
                 var addResult = true
                 var removeResult = true
