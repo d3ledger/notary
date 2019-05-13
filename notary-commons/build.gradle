@@ -41,7 +41,7 @@ dependencies {
     compile group: 'com.github.kittinunf.result', name: 'result', version: '1.4.0'
 
     // Configuration
-    compile group: 'com.jdiazcano.cfg4k', name: 'cfg4k-core', version: '0.9.3'
+    compile 'com.github.jdiazcano:cfg4k:0.9.41'
 
     compile "com.rabbitmq:amqp-client:5.6.0"
 

@@ -97,10 +97,8 @@ class ConfigsPriorityTest {
     fun testTestConfigEnv() {
         val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
         environmentVariables.set("ENV_ETHTESTACCOUNT", testConfig.ethTestAccount)
-        environmentVariables.set("ENV_IROHA", "")
         environmentVariables.set("ENV_IROHA_HOSTNAME", testConfig.iroha.hostname)
         environmentVariables.set("ENV_IROHA_PORT", testConfig.iroha.port.toString())
-        environmentVariables.set("ENV_ETHEREUM", "")
         environmentVariables.set("ENV_ETHEREUM_URL", testConfig.ethereum.url)
         environmentVariables.set(
             "ENV_ETHEREUM_CONFIRMATIONPERIOD",
@@ -112,7 +110,6 @@ class ConfigsPriorityTest {
         )
         environmentVariables.set("ENV_ETHEREUM_GASPRICE", testConfig.ethereum.gasPrice.toString())
         environmentVariables.set("ENV_ETHEREUM_GASLIMIT", testConfig.ethereum.gasLimit.toString())
-        environmentVariables.set("ENV_TESTCREDENTIALCONFIG", "")
         environmentVariables.set(
             "ENV_TESTCREDENTIALCONFIG_ACCOUNTID",
             testConfig.testCredentialConfig.accountId
