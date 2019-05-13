@@ -33,7 +33,7 @@ data class UpdateMasterContractRequest(
 
 data class MasterContractProperties(
     @NotNull val address: String? = null,
-    @NotNull val notaries: List<StringKeyPair> = emptyList()
+    @NotNull val notaries: List<InitWalletInfo> = emptyList()
 )
 
 data class AllInitialContractsRequest(
@@ -41,9 +41,9 @@ data class AllInitialContractsRequest(
     @NotNull val notaryEthereumAccounts: List<String> = emptyList()
 )
 
-data class StringKeyPair(
-    @NotNull val private: String = "",
-    @NotNull val public: String = ""
+data class InitWalletInfo(
+    @NotNull val password: String = "",
+    @NotNull val path: String = ""
 )
 
 data class DeployInitialContractsResponse(

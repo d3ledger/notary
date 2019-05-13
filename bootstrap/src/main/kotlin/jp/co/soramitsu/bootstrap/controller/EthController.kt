@@ -16,11 +16,7 @@ import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import org.web3j.crypto.ECKeyPair
-import org.web3j.crypto.Keys
-import org.web3j.crypto.Wallet
-import org.web3j.crypto.WalletFile
-import java.math.BigInteger
+import org.web3j.crypto.*
 import javax.validation.constraints.NotNull
 
 @RestController
@@ -40,11 +36,11 @@ class EthController {
                 val master = deployHelper.loadMasterContract(request.masterContract.address)
 
                 val ecKeyPairs = request.masterContract.notaries.map {
-                    ECKeyPair(
-                        BigInteger(it.private),
-                        BigInteger(it.public)
+                    WalletUtils.loadCredentials(
+                        it.password,
+                        it.path
                     )
-                }
+                }.map { it.ecKeyPair }
 
                 var addResult = true
                 var removeResult = true
