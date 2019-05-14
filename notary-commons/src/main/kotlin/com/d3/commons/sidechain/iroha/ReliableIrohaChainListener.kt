@@ -59,7 +59,7 @@ class ReliableIrohaChainListener(
         // Handle connection errors
         factory.exceptionHandler = object : DefaultExceptionHandler() {
             override fun handleUnexpectedConnectionDriverException(conn: Connection, exception: Throwable) {
-                super.handleUnexpectedConnectionDriverException(conn, exception)
+                //super.handleUnexpectedConnectionDriverException(conn, exception)
                 onRmqFail()
             }
         }
