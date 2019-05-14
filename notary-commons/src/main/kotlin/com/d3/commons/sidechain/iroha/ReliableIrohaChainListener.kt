@@ -8,9 +8,11 @@ package com.d3.commons.sidechain.iroha
 import com.d3.commons.config.RMQConfig
 import com.d3.commons.sidechain.ChainListener
 import com.github.kittinunf.result.Result
+import com.rabbitmq.client.Connection
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.Delivery
 import com.rabbitmq.client.GetResponse
+import com.rabbitmq.client.impl.DefaultExceptionHandler
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import iroha.protocol.BlockOuterClass
@@ -26,24 +28,26 @@ private const val DEFAULT_LAST_READ_BLOCK = -1L
  * @param subscribe - function that will be called on new block
  * @param consumerExecutorService - executor that is used to execure RabbitMQ consumer code.
  * @param autoAck - enables auto acknowledgment
+ * @param onRmqFail - function that will be called on RMQ failure
  */
 class ReliableIrohaChainListener(
     private val rmqConfig: RMQConfig,
     private val irohaQueue: String,
     private val subscribe: (iroha.protocol.BlockOuterClass.Block, () -> Unit) -> Unit,
     private val consumerExecutorService: ExecutorService?,
-    private val autoAck: Boolean
+    private val autoAck: Boolean,
+    private val onRmqFail: () -> Unit
 ) : ChainListener<Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit>> {
     constructor(
         rmqConfig: RMQConfig,
         irohaQueue: String
-    ) : this(rmqConfig, irohaQueue, { _, _ -> }, null, true)
+    ) : this(rmqConfig, irohaQueue, { _, _ -> }, null, true, {})
 
     constructor(
         rmqConfig: RMQConfig,
         irohaQueue: String,
         consumerExecutorService: ExecutorService
-    ) : this(rmqConfig, irohaQueue, { _, _ -> }, consumerExecutorService, true)
+    ) : this(rmqConfig, irohaQueue, { _, _ -> }, consumerExecutorService, true, {})
 
 
     private val factory = ConnectionFactory()
@@ -52,6 +56,13 @@ class ReliableIrohaChainListener(
     private var lastReadBlockNum: Long = DEFAULT_LAST_READ_BLOCK
 
     private val conn by lazy {
+        // Handle connection errors
+        factory.exceptionHandler = object : DefaultExceptionHandler() {
+            override fun handleUnexpectedConnectionDriverException(conn: Connection, exception: Throwable) {
+                super.handleUnexpectedConnectionDriverException(conn, exception)
+                onRmqFail()
+            }
+        }
         factory.host = rmqConfig.host
         if (consumerExecutorService != null) {
             factory.newConnection(consumerExecutorService)
@@ -82,7 +93,7 @@ class ReliableIrohaChainListener(
             val deliverCallback = { consumerTag: String, delivery: Delivery ->
                 // This code is executed inside consumerExecutorService
                 val block = iroha.protocol.BlockOuterClass.Block.parseFrom(delivery.body)
-                //TODO shall we ignore too old blocks?
+                // TODO shall we ignore too old blocks?
                 if (ableToHandleBlock(block)) {
                     source.onNext(Pair(block, delivery.envelope.deliveryTag))
                 } else {
@@ -106,6 +117,9 @@ class ReliableIrohaChainListener(
             obs
         }
     }
+    /**
+     *  getBlockObservable().subscribe()
+     */
 
     /**
      * @return a block as soon as it is committed to iroha
