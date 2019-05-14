@@ -58,8 +58,13 @@ class ReliableIrohaChainListener(
     private val conn by lazy {
         // Handle connection errors
         factory.exceptionHandler = object : DefaultExceptionHandler() {
+            override fun handleConnectionRecoveryException(conn: Connection, exception: Throwable) {
+                logger.error("RMQ connection error", exception)
+                onRmqFail()
+            }
+
             override fun handleUnexpectedConnectionDriverException(conn: Connection, exception: Throwable) {
-                //super.handleUnexpectedConnectionDriverException(conn, exception)
+                logger.error("RMQ connection error", exception)
                 onRmqFail()
             }
         }
