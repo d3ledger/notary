@@ -122,9 +122,6 @@ class ReliableIrohaChainListener(
             obs
         }
     }
-    /**
-     *  getBlockObservable().subscribe()
-     */
 
     /**
      * @return a block as soon as it is committed to iroha
