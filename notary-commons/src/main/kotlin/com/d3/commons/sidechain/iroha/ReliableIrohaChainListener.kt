@@ -28,7 +28,7 @@ private const val DEFAULT_LAST_READ_BLOCK = -1L
  * @param subscribe - function that will be called on new block
  * @param consumerExecutorService - executor that is used to execure RabbitMQ consumer code.
  * @param autoAck - enables auto acknowledgment
- * @param onRmqFail - function that will be called on RMQ failure
+ * @param onRmqFail - function that will be called on RMQ failure. Terminates process by default.
  */
 class ReliableIrohaChainListener(
     private val rmqConfig: RMQConfig,
@@ -36,19 +36,22 @@ class ReliableIrohaChainListener(
     private val subscribe: (iroha.protocol.BlockOuterClass.Block, () -> Unit) -> Unit,
     private val consumerExecutorService: ExecutorService?,
     private val autoAck: Boolean,
-    private val onRmqFail: () -> Unit
+    private val onRmqFail: () -> Unit = {
+        logger.error("RMQ failure. Exit.")
+        System.exit(1)
+    }
 ) : ChainListener<Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit>> {
     constructor(
         rmqConfig: RMQConfig,
         irohaQueue: String
-    ) : this(rmqConfig, irohaQueue, { _, _ -> }, null, true, {})
+    ) : this(rmqConfig, irohaQueue, { _, _ -> }, null, true)
+
 
     constructor(
         rmqConfig: RMQConfig,
         irohaQueue: String,
         consumerExecutorService: ExecutorService
-    ) : this(rmqConfig, irohaQueue, { _, _ -> }, consumerExecutorService, true, {})
-
+    ) : this(rmqConfig, irohaQueue, { _, _ -> }, consumerExecutorService, true)
 
     private val factory = ConnectionFactory()
 
