@@ -45,8 +45,7 @@ class ReliableIrohaChainListener(
         rmqConfig: RMQConfig,
         irohaQueue: String
     ) : this(rmqConfig, irohaQueue, { _, _ -> }, null, true)
-
-
+    
     constructor(
         rmqConfig: RMQConfig,
         irohaQueue: String,
