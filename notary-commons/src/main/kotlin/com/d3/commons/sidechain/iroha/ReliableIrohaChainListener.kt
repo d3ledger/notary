@@ -71,6 +71,7 @@ class ReliableIrohaChainListener(
             }
         }
         factory.host = rmqConfig.host
+        factory.port = rmqConfig.port
         if (consumerExecutorService != null) {
             factory.newConnection(consumerExecutorService)
         } else {
