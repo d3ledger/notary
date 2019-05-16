@@ -188,7 +188,7 @@ private fun <T : Any> loadStreamConfig(
             )
             provider.bind(prefix, type)
         }
-    } catch (e: IOException) {
+    } catch (e: Exception) {
         logger.warn { "Couldn't open a file $filename. Trying to use only env variables." }
         envProvider.bind(prefix, type)
     }
