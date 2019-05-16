@@ -39,7 +39,7 @@ class NotaryImpl(
      * transactions: {tx1: setAccountDetail, tx2: addAssetQuantity, transferAsset}.
      * SetAccountDetail insert into notary account information about the transaction (hash) for rollback.
      */
-    private fun onPrimaryChainDeposit(
+    private fun chainAnchoredOnPrimaryChainDeposit(
         hash: String,
         time: BigInteger,
         account: String,
@@ -47,7 +47,6 @@ class NotaryImpl(
         amount: String,
         from: String
     ): IrohaOrderedBatch {
-
         logger.info { "Transfer $asset event: hash($hash) time($time) user($account) asset($asset) value ($amount)" }
 
         val quorum = notaryIrohaConsumer.getConsumerQuorum().get()
@@ -90,12 +89,72 @@ class NotaryImpl(
     }
 
     /**
+     * Handles primary chain deposit event. Notaries create the ordered bunch of
+     * transactions: {tx1: setAccountDetail, tx2: transferAsset}. Without add asset qty.
+     * SetAccountDetail insert into notary account information about the transaction (hash) for rollback.
+     */
+    private fun irohaAnchoredOnPrimaryChainDeposit(
+        hash: String,
+        time: BigInteger,
+        account: String,
+        asset: String,
+        amount: String,
+        from: String
+    ): IrohaOrderedBatch {
+        logger.info { "Transfer Iroha anchored $asset event: hash($hash) time($time) user($account) asset($asset) value ($amount)" }
+
+        val quorum = notaryIrohaConsumer.getConsumerQuorum().get()
+
+        return IrohaOrderedBatch(
+            arrayListOf(
+                IrohaTransaction(
+                    notaryIrohaConsumer.creator,
+                    time,
+                    quorum,
+                    arrayListOf(
+                        // insert into Iroha account information for rollback
+                        IrohaCommand.CommandSetAccountDetail(
+                            notaryIrohaConsumer.creator,
+                            "last_tx",
+                            hash
+                        )
+                    )
+                ),
+                IrohaTransaction(
+                    notaryIrohaConsumer.creator,
+                    time,
+                    quorum,
+                    arrayListOf(
+                        IrohaCommand.CommandTransferAsset(
+                            notaryIrohaConsumer.creator,
+                            account,
+                            asset,
+                            from,
+                            amount
+                        )
+                    )
+                )
+            )
+        )
+    }
+
+    /**
      * Handle primary chain event
      */
     override fun onPrimaryChainEvent(chainInputEvent: SideChainEvent.PrimaryBlockChainEvent): IrohaOrderedBatch {
         logger.info { "Notary performs primary chain event $chainInputEvent" }
+
         return when (chainInputEvent) {
-            is SideChainEvent.PrimaryBlockChainEvent.OnPrimaryChainDeposit -> onPrimaryChainDeposit(
+            is SideChainEvent.PrimaryBlockChainEvent.ChainAnchoredOnPrimaryChainDeposit -> chainAnchoredOnPrimaryChainDeposit(
+                chainInputEvent.hash,
+                chainInputEvent.time,
+                chainInputEvent.user,
+                chainInputEvent.asset,
+                chainInputEvent.amount,
+                chainInputEvent.from
+            )
+
+            is SideChainEvent.PrimaryBlockChainEvent.IrohaAnchoredOnPrimaryChainDeposit -> irohaAnchoredOnPrimaryChainDeposit(
                 chainInputEvent.hash,
                 chainInputEvent.time,
                 chainInputEvent.user,
