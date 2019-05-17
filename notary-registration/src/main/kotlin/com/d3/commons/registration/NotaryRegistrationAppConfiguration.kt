@@ -5,7 +5,7 @@
 
 package com.d3.commons.registration
 
-import com.d3.commons.config.loadConfigs
+import com.d3.commons.config.loadLocalConfigs
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
@@ -14,10 +14,10 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 val registrationConfig =
-    loadConfigs(
+    loadLocalConfigs(
         "registration",
         NotaryRegistrationConfig::class.java,
-        "/registration.properties"
+        "registration.properties"
     ).get()
 
 /**

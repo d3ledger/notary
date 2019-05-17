@@ -5,8 +5,7 @@
 
 package com.d3.notifications.config
 
-import com.d3.commons.config.getConfigFolder
-import com.d3.commons.config.loadRawConfigs
+import com.d3.commons.config.loadRawLocalConfigs
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.util.ModelUtil
@@ -19,12 +18,10 @@ import jp.co.soramitsu.iroha.java.IrohaAPI
 import nl.martijndwars.webpush.PushService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import java.io.File
 
-val notificationsConfig = loadRawConfigs(
+val notificationsConfig = loadRawLocalConfigs(
     "notifications",
-    NotificationsConfig::class.java,
-    getConfigFolder() + "/notifications.properties"
+    NotificationsConfig::class.java, "notifications.properties"
 )
 
 @Configuration
@@ -38,11 +35,6 @@ class NotificationAppConfiguration {
     private val notaryCredential =
         IrohaCredential(notificationsConfig.notaryCredential.accountId, notaryKeypair)
 
-    private val pushAPIConfig = loadRawConfigs(
-        "push",
-        PushAPIConfig::class.java,
-        getConfigFolder() + File.separator + notificationsConfig.pushApiConfigPath
-    )
 
     @Bean
     fun irohaAPI(): IrohaAPI {
@@ -65,11 +57,7 @@ class NotificationAppConfiguration {
     @Bean
     fun smtpService() =
         SMTPServiceImpl(
-            loadRawConfigs(
-                "smtp",
-                SMTPConfig::class.java,
-                getConfigFolder() + File.separator + notificationsConfig.smtpConfigPath
-            )
+            notificationsConfig.smtp
         )
 
     @Bean
@@ -82,8 +70,8 @@ class NotificationAppConfiguration {
     fun pushServiceFactory() = object : PushServiceFactory {
         override fun create() =
             PushService(
-                pushAPIConfig.vapidPubKeyBase64,
-                pushAPIConfig.vapidPrivKeyBase64,
+                notificationsConfig.push.vapidPubKeyBase64,
+                notificationsConfig.push.vapidPrivKeyBase64,
                 "D3 notifications"
             )
     }

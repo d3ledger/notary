@@ -6,8 +6,7 @@
 package integration.iroha
 
 import com.d3.commons.config.RMQConfig
-import com.d3.commons.config.getConfigFolder
-import com.d3.commons.config.loadRawConfigs
+import com.d3.commons.config.loadRawLocalConfigs
 import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.util.createPrettyFixThreadPool
@@ -38,7 +37,7 @@ class IrohaBlockStreamingTest {
     private val creator = testCredential.accountId
 
     private val rmqConfig =
-        loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
+        loadRawLocalConfigs("rmq", RMQConfig::class.java, "rmq.properties")
     private lateinit var listener: ReliableIrohaChainListener
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)

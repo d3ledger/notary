@@ -5,6 +5,7 @@
 
 package integration.helper
 
+import com.d3.commons.config.loadRawLocalConfigs
 import com.d3.notifications.config.NotificationsConfig
 
 class NotificationsConfigHelper(private val accountHelper: IrohaAccountHelper) :
@@ -14,10 +15,14 @@ class NotificationsConfigHelper(private val accountHelper: IrohaAccountHelper) :
      * Creates notification services config
      */
     fun createNotificationsConfig(): NotificationsConfig {
+        val notificationsConfig = loadRawLocalConfigs(
+            "notifications",
+            NotificationsConfig::class.java, "notifications.properties"
+        )
         return object : NotificationsConfig {
             override val iroha = createIrohaConfig()
-            override val smtpConfigPath = "smtp_test.properties"
-            override val pushApiConfigPath = "push_test.properties"
+            override val smtp = notificationsConfig.smtp
+            override val push = notificationsConfig.push
             override val notaryCredential =
                 accountHelper.createCredentialConfig(accountHelper.notaryAccount)
         }
