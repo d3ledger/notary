@@ -7,16 +7,16 @@ package com.d3.commons.sidechain.iroha
 
 import com.d3.commons.config.RMQConfig
 import com.d3.commons.sidechain.ChainListener
+import com.d3.commons.util.createPrettySingleThreadPool
 import com.github.kittinunf.result.Result
 import com.rabbitmq.client.Connection
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.Delivery
 import com.rabbitmq.client.GetResponse
 import com.rabbitmq.client.impl.DefaultExceptionHandler
-import io.reactivex.Observable
-import io.reactivex.subjects.PublishSubject
 import iroha.protocol.BlockOuterClass
 import mu.KLogging
+import java.io.Closeable
 import java.util.concurrent.ExecutorService
 
 private const val DEFAULT_LAST_READ_BLOCK = -1L
@@ -34,23 +34,16 @@ class ReliableIrohaChainListener(
     private val rmqConfig: RMQConfig,
     private val irohaQueue: String,
     private val subscribe: (iroha.protocol.BlockOuterClass.Block, () -> Unit) -> Unit,
-    private val consumerExecutorService: ExecutorService?,
-    private val autoAck: Boolean,
+    private val consumerExecutorService: ExecutorService = createPrettySingleThreadPool(
+        "notary-commons",
+        "iroha-rmq-listener"
+    ),
+    private val autoAck: Boolean = true,
     private val onRmqFail: () -> Unit = {
         logger.error("RMQ failure. Exit.")
         System.exit(1)
     }
-) : ChainListener<Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit>> {
-    constructor(
-        rmqConfig: RMQConfig,
-        irohaQueue: String
-    ) : this(rmqConfig, irohaQueue, { _, _ -> }, null, true)
-    
-    constructor(
-        rmqConfig: RMQConfig,
-        irohaQueue: String,
-        consumerExecutorService: ExecutorService
-    ) : this(rmqConfig, irohaQueue, { _, _ -> }, consumerExecutorService, true)
+) : Closeable {
 
     private val factory = ConnectionFactory()
 
@@ -72,12 +65,7 @@ class ReliableIrohaChainListener(
         }
         factory.host = rmqConfig.host
         factory.port = rmqConfig.port
-        if (consumerExecutorService != null) {
-            factory.newConnection(consumerExecutorService)
-        } else {
-            factory.newConnection()
-        }
-
+        factory.newConnection(consumerExecutorService)
     }
 
     private val channel by lazy { conn.createChannel() }
@@ -92,18 +80,20 @@ class ReliableIrohaChainListener(
     }
 
     /**
-     * Returns an observable that emits a new block every time it gets it from Iroha
+     * Listens to incoming Iroha blocks
      */
-    override fun getBlockObservable(
-    ): Result<Observable<Pair<BlockOuterClass.Block, () -> Unit>>, Exception> {
+    fun listen(): Result<Unit, Exception> {
         return Result.of {
-            val source = PublishSubject.create<Pair<BlockOuterClass.Block, Long>>()
-            val deliverCallback = { consumerTag: String, delivery: Delivery ->
+            val deliverCallback = { _: String, delivery: Delivery ->
                 // This code is executed inside consumerExecutorService
                 val block = iroha.protocol.BlockOuterClass.Block.parseFrom(delivery.body)
                 // TODO shall we ignore too old blocks?
                 if (ableToHandleBlock(block)) {
-                    source.onNext(Pair(block, delivery.envelope.deliveryTag))
+                    subscribe(block) {
+                        if (!autoAck) {
+                            confirmDelivery(delivery.envelope.deliveryTag)
+                        }
+                    }
                 } else {
                     logger.warn { "Not able to handle Iroha block ${block.blockV1.payload.height}" }
                     if (!autoAck) {
@@ -111,25 +101,14 @@ class ReliableIrohaChainListener(
                     }
                 }
             }
-            val obs: Observable<Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit>> =
-                source.map { (block, deliveryTag) ->
-                    logger.info { "New Iroha block from RMQ arrived. Height ${block.blockV1.payload.height}" }
-                    Pair(block, {
-                        if (!autoAck) {
-                            confirmDelivery(deliveryTag)
-                        }
-                    })
-                }
-            obs.subscribe { (block, ack) -> subscribe(block, ack) }
             consumerTag = channel.basicConsume(irohaQueue, autoAck, deliverCallback, { _ -> })
-            obs
         }
     }
 
     /**
      * @return a block as soon as it is committed to iroha
      */
-    override suspend fun getBlock(): Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit> {
+    suspend fun getBlock(): Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit> {
         var resp: GetResponse?
         do {
             Thread.sleep(10L)
@@ -184,7 +163,7 @@ class ReliableIrohaChainListener(
         consumerTag?.let {
             channel.basicCancel(it)
         }
-        consumerExecutorService?.shutdownNow()
+        consumerExecutorService.shutdownNow()
     }
 
     /**

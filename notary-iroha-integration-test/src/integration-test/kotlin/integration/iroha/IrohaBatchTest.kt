@@ -51,9 +51,10 @@ class IrohaBatchTest {
 
     val assetDomain = "notary"
 
-    val listener = ReliableIrohaChainListener(
+    private val listener = ReliableIrohaChainListener(
         rmqConfig,
-        String.getRandomId()
+        String.getRandomId(),
+        { _, _ -> }
     )
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
