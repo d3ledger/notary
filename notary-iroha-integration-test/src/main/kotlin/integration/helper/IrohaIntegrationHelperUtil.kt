@@ -6,9 +6,8 @@
 package integration.helper
 
 import com.d3.commons.config.RMQConfig
-import com.d3.commons.config.getConfigFolder
 import com.d3.commons.config.loadConfigs
-import com.d3.commons.config.loadRawConfigs
+import com.d3.commons.config.loadRawLocalConfigs
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
@@ -40,7 +39,7 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
 
     val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
     val rmqConfig =
-        loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
+        loadRawLocalConfigs("rmq", RMQConfig::class.java, "rmq.properties")
     val testQueue = String.getRandomString(20)
 
     val testCredential = IrohaCredential(

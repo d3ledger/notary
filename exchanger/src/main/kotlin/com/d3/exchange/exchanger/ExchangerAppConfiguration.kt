@@ -6,8 +6,7 @@
 package com.d3.exchange.exchanger
 
 import com.d3.commons.config.RMQConfig
-import com.d3.commons.config.getConfigFolder
-import com.d3.commons.config.loadRawConfigs
+import com.d3.commons.config.loadRawLocalConfigs
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
@@ -19,13 +18,13 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 val exchangerConfig =
-    loadRawConfigs(
+    loadRawLocalConfigs(
         "exchanger",
         ExchangerConfig::class.java,
-        "${getConfigFolder()}/exchanger.properties"
+        "exchanger.properties"
     )
 
-val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
+val rmqConfig = loadRawLocalConfigs("rmq", RMQConfig::class.java, "rmq.properties")
 
 const val EXCHANGER_SERVICE_NAME = "exchanger-service"
 
