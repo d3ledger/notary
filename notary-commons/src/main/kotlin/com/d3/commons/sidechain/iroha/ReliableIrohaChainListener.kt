@@ -83,12 +83,17 @@ class ReliableIrohaChainListener(
         channel.basicQos(1)
     }
 
+    /**
+     * Returns observable that may be used to define subscribers.
+     * Subscribers will be called inside [consumerExecutorService] thread pool.
+     */
     override fun getBlockObservable(): Result<Observable<Pair<BlockOuterClass.Block, () -> Unit>>, Exception> {
         return Result.of { sharedSource }
     }
 
     /**
-     * Listens to incoming Iroha blocks
+     * Starts an RMQ consuming process.
+     * The function MUST not be called more than once. Otherwise, [IllegalStateException] will be thrown.
      */
     fun listen(): Result<Unit, Exception> {
         return Result.of {
@@ -100,6 +105,7 @@ class ReliableIrohaChainListener(
                 val block = iroha.protocol.BlockOuterClass.Block.parseFrom(delivery.body)
                 // TODO shall we ignore too old blocks?
                 if (ableToHandleBlock(block)) {
+                    logger.info { "New RMQ Iroha block ${block.blockV1.payload.height}" }
                     source.onNext(Pair(block, {
                         if (!autoAck) {
                             confirmDelivery(delivery.envelope.deliveryTag)
