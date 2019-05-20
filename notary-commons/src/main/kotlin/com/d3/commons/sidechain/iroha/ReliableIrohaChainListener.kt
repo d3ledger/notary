@@ -18,6 +18,7 @@ import iroha.protocol.BlockOuterClass
 import mu.KLogging
 import java.io.Closeable
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.atomic.AtomicBoolean
 
 private const val DEFAULT_LAST_READ_BLOCK = -1L
 
@@ -45,6 +46,7 @@ class ReliableIrohaChainListener(
     }
 ) : Closeable {
 
+    private val started = AtomicBoolean()
     private val factory = ConnectionFactory()
 
     // Last read Iroha block number. Used to detect double read.
@@ -84,6 +86,10 @@ class ReliableIrohaChainListener(
      */
     fun listen(): Result<Unit, Exception> {
         return Result.of {
+            if (!started.compareAndSet(false, true)) {
+                logger.warn("Iroha block listener has been started already")
+                return@of
+            }
             val deliverCallback = { _: String, delivery: Delivery ->
                 // This code is executed inside consumerExecutorService
                 val block = iroha.protocol.BlockOuterClass.Block.parseFrom(delivery.body)
