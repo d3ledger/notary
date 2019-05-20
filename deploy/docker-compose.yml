@@ -58,7 +58,6 @@ services:
       - d3-rmq
     volumes:
       - ./:/opt/chain-adapter/deploy
-      - ../configs:/opt/chain-adapter/configs
     environment:
       - WAIT_HOSTS=d3-iroha:50051, d3-rmq:5672
       - WAIT_HOSTS_TIMEOUT=300

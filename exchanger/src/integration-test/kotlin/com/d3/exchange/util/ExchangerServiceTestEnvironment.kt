@@ -6,8 +6,7 @@
 package com.d3.exchange.util
 
 import com.d3.commons.config.RMQConfig
-import com.d3.commons.config.getConfigFolder
-import com.d3.commons.config.loadRawConfigs
+import com.d3.commons.config.loadRawLocalConfigs
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
@@ -24,7 +23,7 @@ class ExchangerServiceTestEnvironment(private val integrationHelper: IrohaIntegr
     Closeable {
 
     private val rmqConfig =
-        loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
+        loadRawLocalConfigs("rmq", RMQConfig::class.java, "rmq.properties")
 
     val exchangerAccount = integrationHelper.accountHelper.exchangerAccount
 
