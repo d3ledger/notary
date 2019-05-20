@@ -53,7 +53,6 @@ class ExchangerServiceTestEnvironment(private val integrationHelper: IrohaIntegr
     }
 
     override fun close() {
-        chainListener.close()
         exchangerService.close()
         integrationHelper.close()
     }
