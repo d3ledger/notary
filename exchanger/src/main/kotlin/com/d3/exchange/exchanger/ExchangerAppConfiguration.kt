@@ -52,16 +52,16 @@ class ExchangerAppConfiguration {
         exchangerCredential, irohaAPI()
     )
 
-    /** Configurations for Exchanger Service */
     @Bean
-    fun exchangerConfig() = exchangerConfig
-
-    @Bean
-    fun chainListener() = ReliableIrohaChainListener(
+    fun reliableIrohaChainListener() = ReliableIrohaChainListener(
         rmqConfig,
         exchangerConfig.irohaBlockQueue,
         createPrettySingleThreadPool(EXCHANGER_SERVICE_NAME, "rmq-consumer")
     )
+
+    /** Configurations for Exchanger Service */
+    @Bean
+    fun exchangerConfig() = exchangerConfig
 
     @Bean
     fun queryhelper() =
