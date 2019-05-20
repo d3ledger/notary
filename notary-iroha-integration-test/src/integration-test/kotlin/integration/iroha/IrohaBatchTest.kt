@@ -51,7 +51,7 @@ class IrohaBatchTest {
 
     val assetDomain = "notary"
 
-    val listener = ReliableIrohaChainListener(
+    private val listener = ReliableIrohaChainListener(
         rmqConfig,
         String.getRandomId()
     )
