@@ -14,6 +14,8 @@ import com.d3.exchange.exchanger.exception.AssetNotFoundException
 import com.d3.exchange.exchanger.exception.TooLittleAssetVolumeException
 import com.d3.exchange.exchanger.exception.TooMuchAssetVolumeException
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.flatMap
+import com.github.kittinunf.result.map
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
 import mu.KLogging
@@ -34,26 +36,23 @@ private val logger = KLogging().logger
 class ExchangerService(
     @Autowired private val irohaConsumer: IrohaConsumer,
     @Autowired private val queryhelper: IrohaQueryHelper,
-    @Autowired exchangerConfig: ExchangerConfig,
+    @Autowired private val chainListener: ReliableIrohaChainListener,
     @Autowired private val liquidityProviderAccounts: List<String>
 ) : Closeable {
 
     // Exchanger account
     private val exchangerAccountId = irohaConsumer.creator
 
-    private val chainListener = ReliableIrohaChainListener(
-        rmqConfig,
-        exchangerConfig.irohaBlockQueue,
-        { block, _ -> processBlock(block) },
-        createPrettySingleThreadPool(EXCHANGER_SERVICE_NAME, "rmq-consumer")
-    )
-
     /**
      * Starts blocks listening and processing
      */
     fun start(): Result<Unit, Exception> {
         logger.info { "Exchanger service is started. Waiting for incoming transactions." }
-        return chainListener.listen()
+        return chainListener.getBlockObservable()
+            .map { observable ->
+                observable.subscribe { (block, _) -> processBlock(block) }
+            }
+            .flatMap { chainListener.listen() }
     }
 
     /**

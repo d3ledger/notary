@@ -53,8 +53,7 @@ class IrohaBatchTest {
 
     private val listener = ReliableIrohaChainListener(
         rmqConfig,
-        String.getRandomId(),
-        { _, _ -> }
+        String.getRandomId()
     )
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)

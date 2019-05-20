@@ -14,9 +14,10 @@ import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.Delivery
 import com.rabbitmq.client.GetResponse
 import com.rabbitmq.client.impl.DefaultExceptionHandler
+import io.reactivex.Observable
+import io.reactivex.subjects.PublishSubject
 import iroha.protocol.BlockOuterClass
 import mu.KLogging
-import java.io.Closeable
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -34,7 +35,6 @@ private const val DEFAULT_LAST_READ_BLOCK = -1L
 class ReliableIrohaChainListener(
     private val rmqConfig: RMQConfig,
     private val irohaQueue: String,
-    private val subscribe: (iroha.protocol.BlockOuterClass.Block, () -> Unit) -> Unit,
     private val consumerExecutorService: ExecutorService = createPrettySingleThreadPool(
         "notary-commons",
         "iroha-rmq-listener"
@@ -44,8 +44,10 @@ class ReliableIrohaChainListener(
         logger.error("RMQ failure. Exit.")
         System.exit(1)
     }
-) : Closeable {
+) : ChainListener<Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit>> {
 
+    private val source = PublishSubject.create<Pair<BlockOuterClass.Block, () -> Unit>>()
+    private val sharedSource = source.share()
     private val started = AtomicBoolean()
     private val factory = ConnectionFactory()
 
@@ -81,25 +83,28 @@ class ReliableIrohaChainListener(
         channel.basicQos(1)
     }
 
+    override fun getBlockObservable(): Result<Observable<Pair<BlockOuterClass.Block, () -> Unit>>, Exception> {
+        return Result.of { sharedSource }
+    }
+
     /**
      * Listens to incoming Iroha blocks
      */
     fun listen(): Result<Unit, Exception> {
         return Result.of {
             if (!started.compareAndSet(false, true)) {
-                logger.warn("Iroha block listener has been started already")
-                return@of
+                throw IllegalStateException("Iroha block listener has been started already")
             }
             val deliverCallback = { _: String, delivery: Delivery ->
                 // This code is executed inside consumerExecutorService
                 val block = iroha.protocol.BlockOuterClass.Block.parseFrom(delivery.body)
                 // TODO shall we ignore too old blocks?
                 if (ableToHandleBlock(block)) {
-                    subscribe(block) {
+                    source.onNext(Pair(block, {
                         if (!autoAck) {
                             confirmDelivery(delivery.envelope.deliveryTag)
                         }
-                    }
+                    }))
                 } else {
                     logger.warn { "Not able to handle Iroha block ${block.blockV1.payload.height}" }
                     if (!autoAck) {
@@ -114,7 +119,7 @@ class ReliableIrohaChainListener(
     /**
      * @return a block as soon as it is committed to iroha
      */
-    suspend fun getBlock(): Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit> {
+    override suspend fun getBlock(): Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit> {
         var resp: GetResponse?
         do {
             Thread.sleep(10L)

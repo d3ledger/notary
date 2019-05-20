@@ -39,6 +39,14 @@ class IrohaBlockStreamingTest {
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
 
+    @BeforeEach
+    fun setUp() {
+        listener = ReliableIrohaChainListener(
+            rmqConfig,
+            String.getRandomId()
+        )
+    }
+
     @AfterEach
     fun dropDown() {
         listener.close()
@@ -59,18 +67,14 @@ class IrohaBlockStreamingTest {
         Thread.sleep(5000)
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             val cmds = mutableListOf<iroha.protocol.Commands.Command>()
-            listener = ReliableIrohaChainListener(
-                rmqConfig,
-                String.getRandomId(),
-                { block, _ ->
-                    cmds.addAll(
-                        block.blockV1.payload.transactionsList
-                            .flatMap {
-                                it.payload.reducedPayload.commandsList
-                            }
-                    )
-                }
-            )
+            listener.getBlockObservable().get().subscribe { (block, _) ->
+                cmds.addAll(
+                    block.blockV1.payload.transactionsList
+                        .flatMap {
+                            it.payload.reducedPayload.commandsList
+                        }
+                )
+            }
             listener.purge()
             listener.listen()
             val utx = Transaction.builder(creator)
@@ -96,11 +100,6 @@ class IrohaBlockStreamingTest {
     @Test
     fun irohaGetBlockTest() {
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            listener = ReliableIrohaChainListener(
-                rmqConfig,
-                String.getRandomId(),
-                { _, _ -> }
-            )
             val block = GlobalScope.async {
                 listener.getBlock()
             }

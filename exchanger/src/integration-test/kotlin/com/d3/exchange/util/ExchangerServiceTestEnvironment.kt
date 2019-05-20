@@ -5,14 +5,15 @@
 
 package com.d3.exchange.util
 
-import com.d3.commons.config.RMQConfig
-import com.d3.commons.config.loadRawLocalConfigs
 import com.d3.commons.model.IrohaCredential
+import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
+import com.d3.commons.util.createPrettySingleThreadPool
 import com.d3.commons.util.getRandomString
-import com.d3.exchange.exchanger.ExchangerConfig
+import com.d3.exchange.exchanger.EXCHANGER_SERVICE_NAME
 import com.d3.exchange.exchanger.ExchangerService
+import com.d3.exchange.exchanger.rmqConfig
 import integration.helper.IrohaIntegrationHelperUtil
 import java.io.Closeable
 
@@ -29,19 +30,11 @@ class ExchangerServiceTestEnvironment(private val integrationHelper: IrohaIntegr
 
     private val irohaConsumer = IrohaConsumerImpl(exchangerCredential, integrationHelper.irohaAPI)
 
-    private fun createExchangerConfig(): ExchangerConfig {
-        val config = loadRawLocalConfigs(
-            "exchanger",
-            ExchangerConfig::class.java,
-            "exchanger.properties"
-        )
-        return object : ExchangerConfig {
-            override val iroha = config.iroha
-            override val irohaCredential = config.irohaCredential
-            override val irohaBlockQueue = "exchanger_blocks_${String.getRandomString(5)}"
-            override val liquidityProviders = config.liquidityProviders
-        }
-    }
+    private val chainListener = ReliableIrohaChainListener(
+        rmqConfig,
+        "exchanger_blocks_${String.getRandomString(5)}",
+        createPrettySingleThreadPool(EXCHANGER_SERVICE_NAME, "rmq-consumer")
+    )
 
     private lateinit var exchangerService: ExchangerService
 
@@ -53,13 +46,14 @@ class ExchangerServiceTestEnvironment(private val integrationHelper: IrohaIntegr
                 exchangerCredential.accountId,
                 exchangerAccount.keyPair
             ),
-            createExchangerConfig(),
+            chainListener,
             listOf(integrationHelper.testCredential.accountId)
         )
         exchangerService.start()
     }
 
     override fun close() {
+        chainListener.close()
         exchangerService.close()
         integrationHelper.close()
     }

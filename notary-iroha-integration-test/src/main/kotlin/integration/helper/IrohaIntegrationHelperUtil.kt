@@ -80,8 +80,7 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
     private val irohaChainListenerDelegate = lazy {
         ReliableIrohaChainListener(
             rmqConfig,
-            testQueue,
-            { _, _ -> }
+            testQueue
         )
     }
 
