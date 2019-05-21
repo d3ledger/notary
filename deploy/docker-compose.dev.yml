@@ -1,20 +1,27 @@
 version: '3.5'
 
 services:
+
   d3-iroha:
     ports:
       - 50051:50051
     networks:
       - d3-network
+
   grpcwebproxy:
     ports:
       - 8081:8080
       - 8443:8443
     networks:
       - d3-network
+
   d3-rmq:
     ports:
       - 8181:15672
       - 5672:5672
     networks:
       - d3-network
+
+  d3-chain-adapter:
+    environment:
+      - CHAIN_ADAPTER_DROPLASTREADBLOCK=true
