@@ -31,7 +31,7 @@ class ContainerHelper : Closeable {
             .withPeerConfig(getPeerConfig())
             .withLogger(null)!! // turn of nasty Iroha logs
 
-    val rmq =
+    val rmqContainer =
         KGenericContainer("rabbitmq:3-management").withExposedPorts(DEFAULT_RMQ_PORT)
 
     /**
@@ -82,8 +82,8 @@ class ContainerHelper : Closeable {
         ) {
             irohaContainer.stop()
         }
-        if (rmq.isRunning) {
-            rmq.close()
+        if (rmqContainer.isRunning) {
+            rmqContainer.close()
         }
     }
 }
