@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import com.d3.commons.config.loadConfigs
+import com.d3.commons.config.loadLocalConfigs
 import com.d3.commons.registration.NotaryRegistrationConfig
 import com.d3.commons.registration.main
 import com.d3.commons.util.getRandomString
@@ -22,10 +22,10 @@ import kotlin.test.assertEquals
 class NotaryRegistrationTest {
 
     val registrationConfig =
-        loadConfigs(
+        loadLocalConfigs(
             "registration",
             NotaryRegistrationConfig::class.java,
-            "/registration.properties"
+            "registration.properties"
         ).get()
 
     init {

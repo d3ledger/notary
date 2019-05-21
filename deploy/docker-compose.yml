@@ -50,7 +50,7 @@ services:
       - d3-network
 
   d3-chain-adapter:
-    image: nexus.iroha.tech:19002/d3-deploy/chain-adapter:1.0.0_rc5
+    image: nexus.iroha.tech:19002/d3-deploy/chain-adapter:master
     container_name: d3-chain-adapter
     restart: on-failure
     depends_on:
@@ -58,7 +58,6 @@ services:
       - d3-rmq
     volumes:
       - ./:/opt/chain-adapter/deploy
-      - ../configs:/opt/chain-adapter/configs
     environment:
       - WAIT_HOSTS=d3-iroha:50051, d3-rmq:5672
       - WAIT_HOSTS_TIMEOUT=300

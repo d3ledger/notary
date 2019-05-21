@@ -12,7 +12,6 @@ services:
       - 7075:7075
     volumes:
       - ./:/opt/notary/deploy
-      - ../configs:/opt/notary/configs
     environment:
       - PROFILE
     networks:
@@ -23,7 +22,6 @@ services:
     container_name: d3-exchanger
     volumes:
       - ./:/opt/notary/deploy
-      - ../configs:/opt/notary/configs
     environment:
       - PROFILE
       - WAIT_HOSTS=d3-iroha:50051
@@ -35,8 +33,6 @@ services:
   d3-changelog:
     image: nexus.iroha.tech:19002/changelog-deploy/changelog:1.0.0_rc5
     container_name: d3-changelog
-    volumes:
-      - ../configs/changelog:/opt/changelog/configs/
     ports:
       - 9999:9999
     networks:
@@ -47,7 +43,6 @@ services:
     container_name: d3-notifications
     volumes:
       - ../deploy/iroha/keys:/opt/notary/deploy/iroha/keys
-      - ../configs:/opt/notary/configs
     environment:
       - WAIT_HOSTS=d3-iroha:50051
       - WAIT_HOSTS_TIMEOUT=300

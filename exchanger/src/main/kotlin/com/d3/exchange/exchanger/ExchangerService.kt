@@ -9,10 +9,12 @@ import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.createPrettySingleThreadPool
 import com.d3.exchange.exchanger.exception.AssetNotFoundException
 import com.d3.exchange.exchanger.exception.TooLittleAssetVolumeException
 import com.d3.exchange.exchanger.exception.TooMuchAssetVolumeException
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
@@ -46,10 +48,11 @@ class ExchangerService(
      */
     fun start(): Result<Unit, Exception> {
         logger.info { "Exchanger service is started. Waiting for incoming transactions." }
-        return chainListener.getBlockObservable().map { observable ->
-            observable.subscribe { (block, _) -> processBlock(block) }
-            Unit
-        }
+        return chainListener.getBlockObservable()
+            .map { observable ->
+                observable.subscribe { (block, _) -> processBlock(block) }
+            }
+            .flatMap { chainListener.listen() }
     }
 
     /**
