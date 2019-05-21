@@ -147,6 +147,7 @@
                   "roleName": "vacuumer",
                   "permissions": [
                     "can_get_domain_accounts",
+                    "can_get_all_acc_detail",
                     "can_read_assets"
                   ]
                 }
