@@ -23,7 +23,7 @@ class ContainerHelper : Closeable {
     private val irohaContainerDelegate = lazy {
         IrohaContainer()
             .withPeerConfig(getPeerConfig())
-            .withLogger(null)!! // turn of nasty Iroha logs}
+            .withLogger(null)!! // turn off nasty Iroha logs
     }
 
     val irohaContainer by irohaContainerDelegate
