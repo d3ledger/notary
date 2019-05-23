@@ -706,7 +706,7 @@
                 "setAccountDetail": {
                   "accountId": "notaries@notary",
                   "key": "some_notary",
-                  "value": "http://localhost:20000"
+                  "value": "http://d3-eth-deposit:20000"
                 }
               },
               {
