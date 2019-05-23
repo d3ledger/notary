@@ -1,8 +1,8 @@
 package integration.helper
 
-import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.google.protobuf.util.JsonFormat
 import iroha.protocol.BlockOuterClass
+import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import jp.co.soramitsu.iroha.testcontainers.IrohaContainer
 import jp.co.soramitsu.iroha.testcontainers.PeerConfig
 import org.testcontainers.containers.GenericContainer
@@ -20,20 +20,19 @@ class ContainerHelper : Closeable {
 
     val userDir = System.getProperty("user.dir")!!
 
-    private val peerKeyPair =
-        ModelUtil.loadKeypair(
-            "$userDir/deploy/iroha/keys/node0.pub",
-            "$userDir/deploy/iroha/keys/node0.priv"
-        ).get()
-
-    val irohaContainer =
+    private val irohaContainerDelegate = lazy {
         IrohaContainer()
             .withPeerConfig(getPeerConfig())
-            .withLogger(null)!! // turn of nasty Iroha logs
+            .withLogger(null)!! // turn off nasty Iroha logs
+    }
 
-    val rmqContainer =
+    val irohaContainer by irohaContainerDelegate
+
+    private val rmqContainerDelegate = lazy {
         KGenericContainer("rabbitmq:3-management").withExposedPorts(DEFAULT_RMQ_PORT)
+    }
 
+    val rmqContainer by rmqContainerDelegate
     /**
      * Creates service docker container based on [dockerFile]
      * @param jarFile - path to jar file that will be used to run service
@@ -57,7 +56,7 @@ class ContainerHelper : Closeable {
         val config = PeerConfig.builder()
             .genesisBlock(builder.build())
             .build()
-        config.withPeerKeyPair(peerKeyPair)
+        config.withPeerKeyPair(Ed25519Sha3().generateKeypair())
         return config
     }
 
@@ -77,12 +76,12 @@ class ContainerHelper : Closeable {
     fun isServiceDead(serviceContainer: KGenericContainerImage) = !serviceContainer.isRunning
 
     override fun close() {
-        if (irohaContainer.irohaDockerContainer != null
+        if (irohaContainerDelegate.isInitialized() && irohaContainer.irohaDockerContainer != null
             && irohaContainer.irohaDockerContainer.isRunning()
         ) {
             irohaContainer.stop()
         }
-        if (rmqContainer.isRunning) {
+        if (rmqContainerDelegate.isInitialized() && rmqContainer.isRunning) {
             rmqContainer.close()
         }
     }
