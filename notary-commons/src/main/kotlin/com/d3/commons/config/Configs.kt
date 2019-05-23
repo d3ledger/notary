@@ -44,6 +44,7 @@ interface IrohaConfig {
     val port: Int
 }
 
+//TODO this config must be removed
 /**
  * Configuration for Iroha credential
  */
@@ -51,6 +52,18 @@ interface IrohaCredentialConfig {
     val accountId: String
     val pubkeyPath: String
     val privkeyPath: String
+}
+
+/**
+ * Configuration for Iroha credential
+ */
+interface IrohaCredentialRawConfig {
+    // ID of Iroha account
+    val accountId: String
+    // Raw public key data in hex format
+    val pubkey: String
+    // Raw private key data in hex format
+    val privkey: String
 }
 
 /**
