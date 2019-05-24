@@ -7,6 +7,7 @@ package com.d3.exchange.exchanger
 
 import com.d3.commons.config.IrohaConfig
 import com.d3.commons.config.IrohaCredentialConfig
+import com.d3.commons.config.IrohaCredentialRawConfig
 
 /**
  * Interface represents configs for exchanger service
@@ -17,7 +18,7 @@ interface ExchangerConfig {
     val iroha: IrohaConfig
 
     /** Iroha registration service credential */
-    val irohaCredential: IrohaCredentialConfig
+    val irohaCredential: IrohaCredentialRawConfig
 
     /** RMQ queue name */
     val irohaBlockQueue: String

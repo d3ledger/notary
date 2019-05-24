@@ -24,7 +24,7 @@ class NotificationsConfigHelper(private val accountHelper: IrohaAccountHelper) :
             override val smtp = notificationsConfig.smtp
             override val push = notificationsConfig.push
             override val notaryCredential =
-                accountHelper.createCredentialConfig(accountHelper.notaryAccount)
+                accountHelper.createCredentialRawConfig(accountHelper.notaryAccount)
         }
     }
 }

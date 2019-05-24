@@ -15,6 +15,7 @@ import com.d3.notifications.push.PushServiceFactory
 import com.d3.notifications.smtp.SMTPServiceImpl
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.Utils
 import nl.martijndwars.webpush.PushService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -27,10 +28,10 @@ val notificationsConfig = loadRawLocalConfigs(
 @Configuration
 class NotificationAppConfiguration {
 
-    private val notaryKeypair = ModelUtil.loadKeypair(
-        notificationsConfig.notaryCredential.pubkeyPath,
-        notificationsConfig.notaryCredential.privkeyPath
-    ).fold({ keypair -> keypair }, { ex -> throw ex })
+    private val notaryKeypair = Utils.parseHexKeypair(
+        notificationsConfig.notaryCredential.pubkey,
+        notificationsConfig.notaryCredential.privkey
+    )
 
     private val notaryCredential =
         IrohaCredential(notificationsConfig.notaryCredential.accountId, notaryKeypair)
