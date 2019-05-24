@@ -6,11 +6,14 @@
 package integration.helper
 
 import com.d3.commons.config.IrohaCredentialConfig
+import com.d3.commons.config.IrohaCredentialRawConfig
 import com.d3.commons.config.loadConfigs
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomString
+import com.d3.commons.util.hex
+import com.d3.commons.util.toHexString
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import integration.TestConfig
@@ -153,6 +156,7 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
         createTesterAccount("exchanger", "exchange")
     }
 
+    // TODO this must be removed soon
     fun createCredentialConfig(credential: IrohaCredential): IrohaCredentialConfig {
         return object : IrohaCredentialConfig {
             override val pubkeyPath: String
@@ -164,6 +168,14 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
         }
     }
 
+    fun createCredentialRawConfig(credential: IrohaCredential): IrohaCredentialRawConfig {
+        return object : IrohaCredentialRawConfig {
+            override val pubkey = credential.keyPair.public.toHexString()
+            override val privkey = String.hex(credential.keyPair.private.encoded)
+            override val accountId = credential.accountId
+        }
+    }
+
     /**
      * Creates randomly named tester account in Iroha
      */
@@ -171,7 +183,7 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
         val name = prefix + "_${String.getRandomString(9)}"
         val domain = "notary"
         // TODO - Bulat - generate new keys for account?
-
+        // TODO - Anton - yes
         ModelUtil.createAccount(
             irohaConsumer,
             name,
@@ -180,6 +192,7 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
             *roleName
         ).fold({
             logger.info("account $name@$domain was created")
+            // TODO keypair must be created randomly on every call
             return IrohaCredential("$name@$domain", testCredential.keyPair)
         }, { ex ->
             throw ex
