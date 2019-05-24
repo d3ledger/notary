@@ -203,7 +203,10 @@ class NotaryImpl(
                             )
                     },
                     // on error
-                    { ex -> logger.error("OnError called", ex) },
+                    { ex ->
+                        logger.error("OnError called", ex)
+                        System.exit(1)
+                    },
                     // should be never called
                     { logger.error { "OnComplete called" } }
                 )
