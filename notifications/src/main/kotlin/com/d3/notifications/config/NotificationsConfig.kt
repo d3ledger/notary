@@ -7,6 +7,7 @@ package com.d3.notifications.config
 
 import com.d3.commons.config.IrohaConfig
 import com.d3.commons.config.IrohaCredentialConfig
+import com.d3.commons.config.IrohaCredentialRawConfig
 
 /**
  * Configuration of notification service
@@ -15,7 +16,7 @@ interface NotificationsConfig {
     // Iroha configs
     val iroha: IrohaConfig
     // Notary account credential. Used to listen to Iroha blocks
-    val notaryCredential: IrohaCredentialConfig
+    val notaryCredential: IrohaCredentialRawConfig
     // SMTP config
     val smtp: SMTPConfig
     // Push API config
