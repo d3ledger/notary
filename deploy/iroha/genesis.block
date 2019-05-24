@@ -772,7 +772,7 @@
               },
               {
                 "appendRole": {
-                  "accountId": "data_collector",
+                  "accountId": "data_collector@notary",
                   "roleName": "data_collector"
                 }
               },
