@@ -25,6 +25,28 @@ import javax.validation.constraints.NotNull
 class EthController {
     private val log = KLogging().logger
 
+    @PostMapping("/deploy/D3/masterContract/data")
+    fun getMasterContractData(@NotNull @RequestBody request: GetMasterContractPeersRequest): ResponseEntity<UpdateMasterContractResponse> {
+        try {
+            val deployHelper = DeployHelperBuilder(
+                request.network.ethereumConfig,
+                request.network.ethPasswords
+            ).setFastTransactionManager()
+                .build()
+            if (request.masterContractAddress != null) {
+                val master = deployHelper.loadMasterContract(request.masterContractAddress)
+
+                val tokens = master.tokens.send()
+                val peers = master.peers(address)
+            }
+        } catch (e: Exception) {
+            log.error("Error adding peer to smart contract", e)
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                UpdateMasterContractResponse(e.javaClass.simpleName, e.message)
+            )
+        }
+    }
+
     @PostMapping("/deploy/D3/masterContract/update")
     fun addPeerToMasterContract(@NotNull @RequestBody request: UpdateMasterContractRequest): ResponseEntity<UpdateMasterContractResponse> {
         try {

@@ -24,6 +24,11 @@ data class UpdateMasterContractResponse(
     }
 }
 
+data class GetMasterContractPeersRequest(
+    @NotNull val network: EthereumNetworkProperties = EthereumNetworkProperties(),
+    @NotNull val masterContractAddress: String? = null
+)
+
 data class UpdateMasterContractRequest(
     @NotNull val network: EthereumNetworkProperties = EthereumNetworkProperties(),
     @NotNull val masterContract: MasterContractProperties = MasterContractProperties(),
