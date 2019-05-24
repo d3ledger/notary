@@ -124,6 +124,14 @@
               },
               {
                 "createRole": {
+                  "roleName": "data_collector",
+                  "permissions": [
+                    "can_get_blocks"
+                  ]
+                }
+              },
+              {
+                "createRole": {
                   "roleName": "signature_collector",
                   "permissions": [
                     "can_create_account",
@@ -753,6 +761,19 @@
                 "appendRole": {
                   "accountId": "xor@sora",
                   "roleName": "sora"
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "data_collector",
+                  "domainId": "notary",
+                  "publicKey": "97B888554684FB30F29FAB92991AB7ECEFFFE433AB3AF501E5DEAEE69392518C"
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "data_collector",
+                  "roleName": "data_collector"
                 }
               },
               {
