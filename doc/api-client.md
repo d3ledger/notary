@@ -12,6 +12,8 @@ A registration of the client is responsibility of D3 service.
 That's why D3 services provide registration of new client via HTTP POST request. 
 
 ### Register
+    
+    Send to registration service.
 
     POST /users
 
@@ -55,7 +57,96 @@ That's why D3 services provide registration of new client via HTTP POST request.
             "message": "Tx 12851857e1a929f490275e2850383484a3bed342d37a5db851748f888fe7ee01 failed. CreateAccount",
             "details": "java.lang.Exception: Tx 12851857e1a929f490275e2850383484a3bed342d37a5db851748f888fe7ee01 failed. CreateAccount"
          }
+
+### Register in Ethereum
+
+    Send to Ethereum registration service
+
+    POST /users
+    
+* **Parameters:**
+
+    * ***name*** - client name
+    * ***domain*** - client domain
+
+* **Successfull Response:**
+
+  * **Code:** `200` <br />
+    **Content:** `:ethereum_relay_address`
+    
+    ethereum_relay_address - Ethereum address of relay assigned to the client
+    
+* **Example:**
+  
+      curl -v -F "name=myname" \
+      -F "domain=d3" \
+      http://localhost:8082/users
       
+* **Example response:**
+    
+    **Code:** `200` <br />
+    
+    **Content:** 
+    
+        {
+            "clientId": "0xe102953c793b5aa60b67af3d8b7e92956429ed76"
+        }
+              
+* **Example error response:**
+    
+    **Code:** `500` <br />
+    
+    **Content:** 
+    
+        {
+            "message": "Tx 12851857e1a929f490275e2850383484a3bed342d37a5db851748f888fe7ee01 failed. CreateAccount",
+            "details": "java.lang.Exception: Tx 12851857e1a929f490275e2850383484a3bed342d37a5db851748f888fe7ee01 failed. CreateAccount"
+         }
+         
+### Register in Bitcoin
+
+    Send to Bitcoin registration service
+
+    POST /users
+    
+* **Parameters:**
+
+    * ***name*** - client name
+    * ***domain*** - client domain
+
+* **Successfull Response:**
+
+  * **Code:** `200` <br />
+    **Content:** `:bitcoin_relay_address`
+    
+    bitcoin_relay_address - Bitcoin address of relay assigned to the client
+    
+* **Example:**
+  
+      curl -v -F "name=myname" \
+      -F "domain=d3" \
+      http://localhost:8086/users
+      
+* **Example response:**
+    
+    **Code:** `200` <br />
+    
+    **Content:** 
+    
+        {
+            "clientId": "3JqtMykGwREYxhfkfMwXkVzguBLRn81Nz5"
+        }
+              
+* **Example error response:**
+    
+    **Code:** `500` <br />
+    
+    **Content:** 
+    
+        {
+            "message": "Tx 12851857e1a929f490275e2850383484a3bed342d37a5db851748f888fe7ee01 failed. CreateAccount",
+            "details": "java.lang.Exception: Tx 12851857e1a929f490275e2850383484a3bed342d37a5db851748f888fe7ee01 failed. CreateAccount"
+         }         
 
 ### Get free addresses number
 
@@ -175,12 +266,34 @@ setter `eth_registration_service@notary`.
         }
     }
 
+### Set whitelist
+
+Client whitelist in Ethereum or Bitcoin can be set by 
+[SetAccountDetail](https://iroha.readthedocs.io/en/latest/api/commands.html#set-account-detail)
+on client account. Whitelist is accessed by key `eth_whitelist` for Ethereum and `btc_whitelist` for
+Bitcoin, detail setter is client herself. Whitelist should be presented as JSON array:
+`["0x6826d84158e516f631bBf14586a9BE7e255b2D23", "0xe102953c793b5aa60b67af3d8b7e92956429ed76"]`
+
+**Request schema:**
+
+    message SetAccountDetail{
+        string account_id = 1;
+        string key = 2;
+        string value = 3;
+    }
+    
+| Field          | Description                           |
+| ---            | ---                                   |    
+| **account_id** | destination account, should be client |
+| **key**        | `eth_whitelist` or `btc_whitelist`    |
+| **value**      | Whitelist as JSON array     |
+
 ### Get whitelist
 
 Client Ethereum whitelist can be queried with 
 [GetAccountDetail](https://iroha.readthedocs.io/en/latest/api/queries.html#get-account-detail)
-on client account. Whitelist is accessed by key `eth_whitelist`, detail
-setter `eth_registration_service@notary`.
+on client account. Whitelist is accessed by key `eth_whitelist` for Ethereum and 'btc_whitelist' for
+Bitcoin, detail setter is client herself.
 
 **Request schema:**
 
@@ -205,8 +318,8 @@ setter `eth_registration_service@notary`.
 **Response example:**
 
     {
-        "eth_registration_service@notary": {
-            "eth_whitelist": "0x6826d84158e516f631bBf14586a9BE7e255b2D23"
+        "client_name@d3": {
+            "eth_whitelist": "["0x6826d84158e516f631bBf14586a9BE7e255b2D23"]"
         }
     }
 

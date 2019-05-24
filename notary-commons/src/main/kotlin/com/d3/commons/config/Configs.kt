@@ -1,9 +1,13 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.commons.config
 
 import com.github.kittinunf.result.Result
 import com.jdiazcano.cfg4k.loaders.EnvironmentConfigLoader
 import com.jdiazcano.cfg4k.loaders.PropertyConfigLoader
-import com.jdiazcano.cfg4k.providers.DefaultConfigProvider
 import com.jdiazcano.cfg4k.providers.OverrideConfigProvider
 import com.jdiazcano.cfg4k.providers.ProxyConfigProvider
 import com.jdiazcano.cfg4k.sources.ConfigSource
@@ -20,26 +24,16 @@ const val ETH_NODE_LOGIN_ENV = "ETH_NODE_LOGIN"
 const val ETH_NODE_PASSWORD_ENV = "ETH_NODE_PASSWORD"
 //Environment variable that holds current application profile
 const val PROFILE_ENV = "PROFILE"
-//Environment variable that holds address of the master wallet
-const val ETH_MASTER_WALLET_ENV = "ETH_MASTER_WALLET"
-//Environment variable that holds address of the Relay implementation contract
-const val ETH_RELAY_IMPLEMENTATION_ADDRESS_ENV = "ETH_RELAY_IMPLEMENTATION_ADDRESS"
-//Environment variable that holds address of the relay registry
-const val ETH_RELAY_REGISTRY_ENV = "ETH_RELAY_REGISTRY"
-
 
 private val logger = KLogging().logger
 
 /**
  * RMQ configurations
  */
-
 interface RMQConfig {
     val host: String
+    val port: Int
     val irohaExchange: String
-    val irohaCredential: IrohaCredentialConfig
-    val iroha: IrohaConfig
-    val lastReadBlockFilePath: String
 }
 
 /**
@@ -50,6 +44,7 @@ interface IrohaConfig {
     val port: Int
 }
 
+//TODO this config must be removed
 /**
  * Configuration for Iroha credential
  */
@@ -57,6 +52,18 @@ interface IrohaCredentialConfig {
     val accountId: String
     val pubkeyPath: String
     val privkeyPath: String
+}
+
+/**
+ * Configuration for Iroha credential
+ */
+interface IrohaCredentialRawConfig {
+    // ID of Iroha account
+    val accountId: String
+    // Raw public key data in hex format
+    val pubkey: String
+    // Raw private key data in hex format
+    val privkey: String
 }
 
 /**
@@ -82,7 +89,8 @@ interface BitcoinConfig {
     val hosts: String
 
     companion object {
-        fun extractHosts(bitcoinConfig: BitcoinConfig) = bitcoinConfig.hosts.replace(" ", "").split(",")
+        fun extractHosts(bitcoinConfig: BitcoinConfig) =
+            bitcoinConfig.hosts.replace(" ", "").split(",")
     }
 }
 
@@ -108,35 +116,47 @@ fun getProfile(): String {
 }
 
 /**
+ * Returns default D3 config folder
+ */
+fun getConfigFolder() = System.getProperty("user.dir") + "/configs"
+
+/**
  * Load configs from Java properties
  */
 fun <T : Any> loadConfigs(
     prefix: String,
     type: Class<T>,
-    filename: String,
-    vararg validators: ConfigValidationRule<T>
+    filename: String
 ): Result<T, Exception> {
-    return Result.of { loadValidatedConfigs(prefix, type, filename, *validators) }
+    return Result.of {
+        val path = "${getConfigFolder()}${getProfiledConfigFileName(filename)}"
+        logger.info { "Loading config from $path, prefix $prefix" }
+        loadRawConfigs(prefix, type, path)
+    }
 }
 
 /**
- * Returns default D3 config folder
+ * Load configs from Java properties located in 'resources' folder
  */
-fun getConfigFolder() = System.getProperty("user.dir") + "/configs"
-
-private fun <T : Any> loadValidatedConfigs(
+fun <T : Any> loadLocalConfigs(
     prefix: String,
     type: Class<T>,
-    filename: String,
-    vararg validators: ConfigValidationRule<T>
-): T {
+    filename: String
+): Result<T, Exception> {
+    return Result.of {
+        val path = getProfiledConfigFileName(filename)
+        logger.info { "Loading local config from $path, prefix $prefix" }
+        loadRawLocalConfigs(prefix, type, path)
+    }
+}
+
+/**
+ * Returns filename with profile postfix
+ */
+private fun getProfiledConfigFileName(filename: String): String {
     val profile = getProfile()
     val (file, extension) = filename.split(".")
-    val path = "${getConfigFolder()}${file}_$profile.$extension"
-    logger.info { "Loading config from $path, prefix $prefix" }
-    val config = loadRawConfigs(prefix, type, path)
-    validators.forEach { rule -> rule.validate(config) }
-    return config
+    return "${file}_$profile.$extension"
 }
 
 class Stream(private val stream: InputStream) : ConfigSource {
@@ -145,18 +165,43 @@ class Stream(private val stream: InputStream) : ConfigSource {
     }
 }
 
-fun <T : Any> loadRawConfigs(prefix: String, type: Class<T>, filename: String): T {
+/**
+ * Loads configs as is(no profiles).
+ */
+fun <T : Any> loadRawConfigs(
+    prefix: String,
+    type: Class<T>,
+    filename: String
+) = loadStreamConfig(prefix, type, filename) { File(filename).inputStream() }
+
+/**
+ * Loads configs from 'resources' folder as is(no profiles).
+ */
+fun <T : Any> loadRawLocalConfigs(
+    prefix: String,
+    type: Class<T>,
+    filename: String
+) = loadStreamConfig(prefix, type, filename) { Thread.currentThread().contextClassLoader.getResourceAsStream(filename) }
+
+private fun <T : Any> loadStreamConfig(
+    prefix: String,
+    type: Class<T>,
+    filename: String,
+    streamLoader: (String) -> InputStream
+): T {
     val envLoader = EnvironmentConfigLoader()
     val envProvider = ProxyConfigProvider(envLoader)
     return try {
-        val stream = Stream(File(filename).inputStream())
-        val configLoader = PropertyConfigLoader(stream)
-        val provider = OverrideConfigProvider(
-            envProvider,
-            ProxyConfigProvider(configLoader)
-        )
-        provider.bind(prefix, type)
-    } catch (e: IOException) {
+        streamLoader(filename).use { inputStream ->
+            val stream = Stream(inputStream)
+            val configLoader = PropertyConfigLoader(stream)
+            val provider = OverrideConfigProvider(
+                envProvider,
+                ProxyConfigProvider(configLoader)
+            )
+            provider.bind(prefix, type)
+        }
+    } catch (e: Exception) {
         logger.warn { "Couldn't open a file $filename. Trying to use only env variables." }
         envProvider.bind(prefix, type)
     }
@@ -168,52 +213,15 @@ fun <T : Any> loadRawConfigs(prefix: String, type: Class<T>, filename: String): 
  */
 fun loadEthPasswords(
     prefix: String,
-    filename: String,
-    args: Array<String> = emptyArray()
+    filename: String
 ): Result<EthereumPasswords, Exception> {
     var config = loadConfigs(prefix, EthereumPasswords::class.java, filename).get()
-
     config = object : EthereumPasswords {
-        override val credentialsPassword = System.getenv(ETH_CREDENTIALS_PASSWORD_ENV) ?: config.credentialsPassword
+        override val credentialsPassword =
+            System.getenv(ETH_CREDENTIALS_PASSWORD_ENV) ?: config.credentialsPassword
         override val nodeLogin = System.getenv(ETH_NODE_LOGIN_ENV) ?: config.nodeLogin
         override val nodePassword = System.getenv(ETH_NODE_PASSWORD_ENV) ?: config.nodePassword
     }
 
     return Result.of(config)
-}
-
-/**
- * Creates ETH passwords from command line arguments
- * [0]->credentialsPassword
- * [1]->nodeLogin
- * [2]->nodePassword
- * @param args command line arguments
- * @return config full of passwords or null if no arguments were provided
- */
-private fun createEthPasswordsFromArgs(args: Array<String>): EthereumPasswords? {
-    if (args.size != 3)
-        return null
-    return object : EthereumPasswords {
-        override val credentialsPassword = args[0]
-        override val nodeLogin = args[1]
-        override val nodePassword = args[2]
-    }
-}
-
-/**
- * Creates ETH passwords from environment variables
- * @return config full of passwords or null if no env variables were set
- */
-private fun createEthPasswordsFromEnv(): EthereumPasswords? {
-    val envCredentialsPassword = System.getenv(ETH_CREDENTIALS_PASSWORD_ENV)
-    val envNodeLogin = System.getenv(ETH_NODE_LOGIN_ENV)
-    val envNodePassword = System.getenv(ETH_NODE_PASSWORD_ENV)
-    if (envCredentialsPassword == null || envNodeLogin == null || envNodePassword == null) {
-        return null
-    }
-    return object : EthereumPasswords {
-        override val credentialsPassword = envCredentialsPassword
-        override val nodeLogin = envNodeLogin
-        override val nodePassword = envNodePassword
-    }
 }

@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package jp.co.soramitsu.bootstrap
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -41,7 +46,9 @@ class EthTest {
 
         val result: MvcResult = mvc
             .perform(
-                MockMvcRequestBuilders.post("/eth/deploy/D3/masterContract/update").contentType(MediaType.APPLICATION_JSON).content(
+                MockMvcRequestBuilders.post("/eth/deploy/D3/masterContract/update").contentType(
+                    MediaType.APPLICATION_JSON
+                ).content(
                     mapper.writeValueAsString(
                         UpdateMasterContractRequest(
                             network = EthereumNetworkProperties(
@@ -68,7 +75,10 @@ class EthTest {
             )
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andReturn()
-        val respBody = mapper.readValue(result.response.contentAsString, UpdateMasterContractResponse::class.java)
+        val respBody = mapper.readValue(
+            result.response.contentAsString,
+            UpdateMasterContractResponse::class.java
+        )
 
         assertNull(respBody.errorCode)
         assertNotNull(respBody.success)
@@ -106,7 +116,10 @@ class EthTest {
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andReturn()
         val relayRegistryResp =
-            mapper.readValue(result.response.contentAsString, DeploySmartContractResponse::class.java)
+            mapper.readValue(
+                result.response.contentAsString,
+                DeploySmartContractResponse::class.java
+            )
         log.info("Deploy RelayRegistry Response: ${result.response.contentAsString}")
 
         Thread.sleep(10000)
@@ -127,14 +140,19 @@ class EthTest {
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andReturn()
         val masterContractResp =
-            mapper.readValue(result.response.contentAsString, DeployMasterContractResponse::class.java)
+            mapper.readValue(
+                result.response.contentAsString,
+                DeployMasterContractResponse::class.java
+            )
         log.info("Deploy MasterContract Response: ${result.response.contentAsString}")
 
         Thread.sleep(10000)
 
         result = mvc
             .perform(
-                MockMvcRequestBuilders.post("/eth/deploy/D3/relayImplementation").contentType(MediaType.APPLICATION_JSON).content(
+                MockMvcRequestBuilders.post("/eth/deploy/D3/relayImplementation").contentType(
+                    MediaType.APPLICATION_JSON
+                ).content(
                     mapper.writeValueAsString(
                         DeployRelayImplementationRequest(
                             network = network,
@@ -148,7 +166,10 @@ class EthTest {
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andReturn()
         val relayImplementationResp =
-            mapper.readValue(result.response.contentAsString, DeploySmartContractResponse::class.java)
+            mapper.readValue(
+                result.response.contentAsString,
+                DeploySmartContractResponse::class.java
+            )
         log.info("Deploy RelayImplementation Response: ${result.response.contentAsString}")
     }
 
@@ -183,7 +204,10 @@ class EthTest {
             )
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andReturn()
-        val respBody = mapper.readValue(result.response.contentAsString, DeployInitialContractsResponse::class.java)
+        val respBody = mapper.readValue(
+            result.response.contentAsString,
+            DeployInitialContractsResponse::class.java
+        )
         log.info("DeployResponse: ${result.response.contentAsString}")
         assertNull(respBody.errorCode)
     }

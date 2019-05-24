@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package jp.co.soramitsu.bootstrap.genesis.d3
 
 import com.google.protobuf.util.JsonFormat
@@ -18,7 +23,8 @@ class D3TestGenesisFactory : GenesisInterface {
 
     private val zeroPubKey = "0000000000000000000000000000000000000000000000000000000000000000"
     override fun getAccountsForConfiguration(peersCount: Int): List<AccountPrototype> {
-        val activeAccounts = D3TestContext.d3neededAccounts.filter { it.type != AccountType.PASSIVE }
+        val activeAccounts =
+            D3TestContext.d3neededAccounts.filter { it.type != AccountType.PASSIVE }
         activeAccounts
             .filter { it.peersDependentQuorum }
             .forEach { it.quorum = peersCount - peersCount / 3 }
@@ -80,9 +86,9 @@ class D3TestGenesisFactory : GenesisInterface {
                             account.domainId,
                             getIrohaPublicKeyFromHex(accountPubInfo.pubKeys[0])
                         )
-                        if(accountPubInfo.pubKeys.size > 1) {
+                        if (accountPubInfo.pubKeys.size > 1) {
                             accountPubInfo.pubKeys
-                                .filterIndexed{ index, _ -> index > 0}
+                                .filterIndexed { index, _ -> index > 0 }
                                 .forEach { key ->
                                     transactionBuilder.addSignatory(
                                         account.id,
@@ -91,9 +97,15 @@ class D3TestGenesisFactory : GenesisInterface {
                                 }
                         }
                         if (account.peersDependentQuorum) {
-                            transactionBuilder.setAccountQuorum(accountPubInfo.id, accountPubInfo.quorum)
+                            transactionBuilder.setAccountQuorum(
+                                accountPubInfo.id,
+                                accountPubInfo.quorum
+                            )
                         } else if (account.quorum <= accountPubInfo.quorum) {
-                            transactionBuilder.setAccountQuorum(accountPubInfo.id, accountPubInfo.quorum)
+                            transactionBuilder.setAccountQuorum(
+                                accountPubInfo.id,
+                                accountPubInfo.quorum
+                            )
                         } else {
                             throw AccountException("Looks like account quorum in request is less than min quorum for this account: ${account.id}")
                         }

@@ -1,14 +1,14 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package jp.co.soramitsu.bootstrap
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import jp.co.soramitsu.bootstrap.dto.BtcNetwork
 import jp.co.soramitsu.bootstrap.dto.BtcWallet
-import jp.co.soramitsu.bootstrap.dto.EthWallet
 import mu.KLogging
-import org.bitcoinj.crypto.MnemonicCode
-import org.bitcoinj.params.RegTestParams
-import org.bitcoinj.wallet.DeterministicSeed
-import org.bitcoinj.wallet.Wallet
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -19,15 +19,9 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.testcontainers.shaded.org.apache.commons.io.FileUtils
-import java.io.ByteArrayOutputStream
-import java.io.File
-import javax.xml.bind.DatatypeConverter
-import kotlin.random.Random
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 @RunWith(SpringRunner::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -62,9 +56,8 @@ class BtcTest {
         assertNull(respBody.message)
         assertNotNull(respBody.file)
         assertEquals(BtcNetwork.RegTest, respBody.network)
-       /* Uncomment if you'd like to look at file
-         val binary = DatatypeConverter.parseBase64Binary(respBody.file)
-        FileUtils.writeByteArrayToFile(File("btc-wallet-test.wallet"), binary)*/
+        /* Uncomment if you'd like to look at file
+          val binary = DatatypeConverter.parseBase64Binary(respBody.file)
+         FileUtils.writeByteArrayToFile(File("btc-wallet-test.wallet"), binary)*/
     }
 }
-

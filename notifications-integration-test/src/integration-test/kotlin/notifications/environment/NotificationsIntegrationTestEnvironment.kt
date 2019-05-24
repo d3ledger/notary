@@ -1,7 +1,10 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package notifications.environment
 
-import com.d3.commons.config.getConfigFolder
-import com.d3.commons.config.loadRawConfigs
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.sidechain.iroha.IrohaChainListener
@@ -9,8 +12,6 @@ import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.util.getRandomString
-import com.d3.notifications.config.PushAPIConfig
-import com.d3.notifications.config.SMTPConfig
 import com.d3.notifications.init.NotificationInitialization
 import com.d3.notifications.provider.D3ClientProvider
 import com.d3.notifications.push.PushServiceFactory
@@ -26,7 +27,6 @@ import jp.co.soramitsu.iroha.java.IrohaAPI
 import nl.martijndwars.webpush.PushService
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.io.Closeable
-import java.io.File
 import java.security.Security
 
 /**
@@ -44,18 +44,7 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
 
     private val notificationsConfig = notificationsConfigHelper.createNotificationsConfig()
 
-    private val smtpConfig = loadRawConfigs(
-        "smtp",
-        SMTPConfig::class.java,
-        getConfigFolder() + File.separator + notificationsConfig.smtpConfigPath
-    )
-
-    private val pushAPIConfig = loadRawConfigs(
-        "push",
-        PushAPIConfig::class.java,
-        getConfigFolder() + File.separator + notificationsConfig.pushApiConfigPath
-    )
-    val dumbster = SimpleSmtpServer.start(smtpConfig.port)!!
+    val dumbster = SimpleSmtpServer.start(notificationsConfig.smtp.port)!!
 
     private val irohaAPI =
         IrohaAPI(notificationsConfig.iroha.hostname, notificationsConfig.iroha.port)
@@ -71,7 +60,7 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
 
     private val d3ClientProvider = D3ClientProvider(notaryQueryHelper)
 
-    private val smtpService = SMTPServiceImpl(smtpConfig)
+    private val smtpService = SMTPServiceImpl(notificationsConfig.smtp)
 
     private val emailNotificationService =
         EmailNotificationService(smtpService, d3ClientProvider)
@@ -79,8 +68,8 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
     val pushService =
         spy(
             PushService(
-                pushAPIConfig.vapidPubKeyBase64,
-                pushAPIConfig.vapidPrivKeyBase64,
+                notificationsConfig.push.vapidPubKeyBase64,
+                notificationsConfig.push.vapidPrivKeyBase64,
                 "D3 notifications"
             )
         )

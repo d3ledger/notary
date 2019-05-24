@@ -1,18 +1,23 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.commons.provider
 
-import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.map
-import jp.co.soramitsu.iroha.java.IrohaAPI
 import com.d3.commons.model.IrohaCredential
-import mu.KLogging
 import com.d3.commons.notary.IrohaCommand
 import com.d3.commons.notary.IrohaTransaction
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.consumer.IrohaConverter
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.map
+import jp.co.soramitsu.iroha.java.IrohaAPI
+import mu.KLogging
 
 /*
-    Provider that helps us to implement pub/sub mechanism in Iroha using account as an event source.
+ * Provider that helps us to implement pub/sub mechanism in Iroha using account as an event source.
  */
 class TriggerProvider(
     private val callerCredential: IrohaCredential,

@@ -12,40 +12,41 @@ services:
       - 7075:7075
     volumes:
       - ./:/opt/notary/deploy
-      - ../configs:/opt/notary/configs
     environment:
       - PROFILE
-      - IROHA_HOST=d3-iroha
-      - IROHA_PORT=50051
-      - JAR_NAME=notary-registration.jar
-      - CLASS=com.d3.commons.registration.RegistrationMain
     networks:
       - d3-network
 
-    d3-exchanger:
-      image: nexus.iroha.tech:19002/d3-deploy/exchanger:${TAG-master}
-      container_name: d3-exchanger
-      volumes:
-        - ./:/opt/notary/deploy
-        - ../configs:/opt/notary/configs
-      environment:
-        - PROFILE
-        - IROHA_HOST=d3-iroha
-        - IROHA_PORT=50051
-        - JAR_NAME=exchanger.jar
-        - CLASS=com.d3.exchange.exchanger.ExchangerMain
-      networks:
-        - d3-network
+  d3-exchanger:
+    image: nexus.iroha.tech:19002/d3-deploy/exchanger:${TAG-master}
+    container_name: d3-exchanger
+    volumes:
+      - ./:/opt/notary/deploy
+    environment:
+      - PROFILE
+      - WAIT_HOSTS=d3-iroha:50051
+      - WAIT_HOSTS_TIMEOUT=300
+      - WAIT_SLEEP_INTERVAL=3
+    networks:
+      - d3-network
 
   d3-changelog:
     image: nexus.iroha.tech:19002/changelog-deploy/changelog:1.0.0_rc5
     container_name: d3-changelog
-    depends_on:
-      - d3-iroha
-    volumes:
-      - ../configs/changelog:/opt/changelog/configs/
     ports:
       - 9999:9999
+    networks:
+      - d3-network
+
+  d3-notifications:
+    image: nexus.iroha.tech:19002/d3-deploy/notifications:${TAG-master}
+    container_name: d3-notifications
+    volumes:
+      - ../deploy/iroha/keys:/opt/notary/deploy/iroha/keys
+    environment:
+      - WAIT_HOSTS=d3-iroha:50051
+      - WAIT_HOSTS_TIMEOUT=300
+      - WAIT_SLEEP_INTERVAL=3
     networks:
       - d3-network
 

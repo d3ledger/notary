@@ -1,10 +1,14 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.notifications.init
 
 import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.NOTARY_DOMAIN
 import com.d3.commons.sidechain.iroha.util.getTransferCommands
 import com.d3.commons.util.createPrettySingleThreadPool
-import com.d3.commons.util.namedThreadFactory
 import com.d3.notifications.NOTIFICATIONS_SERVICE_NAME
 import com.d3.notifications.service.NotificationService
 import com.d3.notifications.service.TransferNotifyEvent
@@ -16,7 +20,6 @@ import mu.KLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
-import java.util.concurrent.Executors
 
 /**
  * Notifications initialization service

@@ -1,9 +1,18 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package jp.co.soramitsu.bootstrap.dto
 
 import java.math.BigInteger
 import javax.validation.constraints.NotNull
 
-data class SigsData(val vv: ArrayList<BigInteger>, val rr: ArrayList<ByteArray>, val ss: ArrayList<ByteArray>)
+data class SigsData(
+    val vv: ArrayList<BigInteger>,
+    val rr: ArrayList<ByteArray>,
+    val ss: ArrayList<ByteArray>
+)
 
 data class UpdateMasterContractResponse(
     val success: Boolean = false
@@ -24,7 +33,7 @@ data class UpdateMasterContractRequest(
 
 data class MasterContractProperties(
     @NotNull val address: String? = null,
-    @NotNull val notaries: List<StringKeyPair> = emptyList()
+    @NotNull val notaries: List<InitWalletInfo> = emptyList()
 )
 
 data class AllInitialContractsRequest(
@@ -32,9 +41,9 @@ data class AllInitialContractsRequest(
     @NotNull val notaryEthereumAccounts: List<String> = emptyList()
 )
 
-data class StringKeyPair(
-    @NotNull val private: String = "",
-    @NotNull val public: String = ""
+data class InitWalletInfo(
+    @NotNull val password: String = "",
+    @NotNull val path: String = ""
 )
 
 data class DeployInitialContractsResponse(
@@ -74,4 +83,4 @@ data class DeployRelayImplementationRequest(
 data class DeployMasterContractResponse(
     val contractAddress: String? = null,
     val soraAddress: String? = null
-) :Conflictable()
+) : Conflictable()

@@ -1,8 +1,12 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package jp.co.soramitsu.bootstrap.dto
 
 import jp.co.soramitsu.bootstrap.genesis.getIrohaPublicKeyFromHex
 import jp.co.soramitsu.iroha.java.TransactionBuilder
-
 
 data class GenesisRequest(
     val accounts: List<AccountPublicInfo> = emptyList(),
@@ -19,7 +23,8 @@ data class GenesisResponse(val blockData: String? = null) :
     }
 }
 
-data class NeededAccountsResponse(val accounts: List<AccountPrototype> = emptyList()) : Conflictable() {
+data class NeededAccountsResponse(val accounts: List<AccountPrototype> = emptyList()) :
+    Conflictable() {
     constructor(errorCode: String? = null, message: String? = null) : this() {
         this.errorCode = errorCode
         this.message = message

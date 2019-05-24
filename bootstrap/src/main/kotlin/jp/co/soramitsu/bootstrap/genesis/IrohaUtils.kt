@@ -1,11 +1,15 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package jp.co.soramitsu.bootstrap.genesis
 
-import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
-import jp.co.soramitsu.iroha.java.TransactionBuilder
 import jp.co.soramitsu.bootstrap.dto.Peer
 import jp.co.soramitsu.bootstrap.exceptions.IrohaPublicKeyException
+import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
+import jp.co.soramitsu.iroha.java.TransactionBuilder
 import mu.KLogging
-import java.lang.NullPointerException
 import java.security.PublicKey
 import javax.xml.bind.DatatypeConverter
 
@@ -23,7 +27,6 @@ fun getIrohaPublicKeyFromHex(hex: String?): PublicKey {
         throw IrohaPublicKeyException("${e.javaClass}:${e.message}")
     }
 }
-
 
 fun createDomain(
     builder: TransactionBuilder,

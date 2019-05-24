@@ -1,7 +1,12 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.commons.notary
 
-import com.github.kittinunf.result.Result
 import com.d3.commons.sidechain.SideChainEvent
+import com.github.kittinunf.result.Result
 
 /**
  * Interface for performing 2WP in Iroha and side chains

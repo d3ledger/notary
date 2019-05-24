@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package jp.co.soramitsu.bootstrap.controller
 
 import com.d3.eth.sidechain.util.DeployHelper
@@ -11,12 +16,8 @@ import mu.KLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import org.web3j.crypto.ECKeyPair
-import org.web3j.crypto.Keys
-import org.web3j.crypto.Wallet
-import org.web3j.crypto.WalletFile
-import org.web3j.protocol.core.methods.response.TransactionReceipt
-import java.math.BigInteger
+import org.web3j.crypto.*
+import java.lang.IllegalArgumentException
 import javax.validation.constraints.NotNull
 
 @RestController
@@ -36,10 +37,15 @@ class EthController {
                 val master = deployHelper.loadMasterContract(request.masterContract.address)
 
                 val ecKeyPairs = request.masterContract.notaries.map {
-                    ECKeyPair(
-                        BigInteger(it.private),
-                        BigInteger(it.public)
+                    WalletUtils.loadCredentials(
+                        it.password,
+                        it.path
                     )
+                }.map { it.ecKeyPair }
+
+                if(ecKeyPairs.isEmpty()){
+                    throw IllegalArgumentException("Provide paths to wallets of notaries, " +
+                            "registered in smart contract for signature creation")
                 }
 
                 var addResult = true
@@ -49,7 +55,11 @@ class EthController {
 
                 if (request.removePeerAddress != null) {
                     val finalHash = prepareTrxHash(request.removePeerAddress)
-                    val sigs = prepareSignatures(request.masterContract.notaries.size, ecKeyPairs, finalHash)
+                    val sigs = prepareSignatures(
+                        request.masterContract.notaries.size,
+                        ecKeyPairs,
+                        finalHash
+                    )
                     val trxResult = master.removePeerByPeer(
                         request.removePeerAddress,
                         defaultByteHash,
@@ -59,13 +69,18 @@ class EthController {
                     ).send()
                     if (!trxResult.isStatusOK) {
                         errorStatus = trxResult.status
-                        errorMessage = "Error removeAddress action. Transaction hash is: trxResult.transactionHash"
+                        errorMessage =
+                            "Error removeAddress action. Transaction hash is: trxResult.transactionHash"
                         removeResult = trxResult.isStatusOK
                     }
                 }
                 if (request.newPeerAddress != null) {
                     val finalHash = prepareTrxHash(request.newPeerAddress)
-                    val sigs = prepareSignatures(request.masterContract.notaries.size, ecKeyPairs, finalHash)
+                    val sigs = prepareSignatures(
+                        request.masterContract.notaries.size,
+                        ecKeyPairs,
+                        finalHash
+                    )
 
                     val trxResult = master.addPeerByPeer(
                         request.newPeerAddress,
@@ -76,7 +91,8 @@ class EthController {
                     ).send()
                     if (!trxResult.isStatusOK) {
                         errorStatus = trxResult.status
-                        errorMessage = "Error addAddress action. Transaction hash is: trxResult.transactionHash"
+                        errorMessage =
+                            "Error addAddress action. Transaction hash is: trxResult.transactionHash"
                         addResult = trxResult.isStatusOK
                     }
                 }
@@ -97,6 +113,7 @@ class EthController {
             )
         }
     }
+
     private fun prepareTrxHash(removePeerAddress: String): String {
         return hashToAddAndRemovePeer(
             removePeerAddress,
@@ -128,7 +145,12 @@ class EthController {
                     request.notaryEthereumAccounts
                 )
             deployHelper.web3.shutdown()
-            ResponseEntity.ok(DeployMasterContractResponse(master.contractAddress, master.tokens.send()[0].toString()))
+            ResponseEntity.ok(
+                DeployMasterContractResponse(
+                    master.contractAddress,
+                    master.tokens.send()[0].toString()
+                )
+            )
         } catch (e: Exception) {
             log.error("Cannot deploy RelayRegistry smart contract", e)
             val response = DeployMasterContractResponse()
@@ -143,7 +165,8 @@ class EthController {
     fun deployRelayImplementation(@NotNull @RequestBody request: DeployRelayImplementationRequest): ResponseEntity<DeploySmartContractResponse> {
         return try {
             val deployHelper = createSmartContractDeployHelper(request.network)
-            val relayImplementation = deployHelper.deployRelaySmartContract(request.masterContractAddress)
+            val relayImplementation =
+                deployHelper.deployRelaySmartContract(request.masterContractAddress)
             deployHelper.web3.shutdown()
             ResponseEntity.ok(DeploySmartContractResponse(relayImplementation.contractAddress))
         } catch (e: Exception) {

@@ -147,6 +147,7 @@
                   "roleName": "vacuumer",
                   "permissions": [
                     "can_get_domain_accounts",
+                    "can_get_all_acc_detail",
                     "can_read_assets"
                   ]
                 }
@@ -705,7 +706,7 @@
                 "setAccountDetail": {
                   "accountId": "notaries@notary",
                   "key": "some_notary",
-                  "value": "http://localhost:20000"
+                  "value": "http://d3-eth-deposit:20000"
                 }
               },
               {

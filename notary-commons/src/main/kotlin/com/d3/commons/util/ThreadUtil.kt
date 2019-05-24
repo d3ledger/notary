@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.commons.util
 
 import mu.KLogging
@@ -24,7 +29,8 @@ fun namedThreadFactory(
         private val threadCounter = AtomicInteger(0)
         override fun newThread(runnable: Runnable): Thread {
             val thread = Executors.defaultThreadFactory().newThread(runnable)
-            thread.name = "$serviceName:$purpose:th-${threadCounter.getAndIncrement()}:id-${thread.id}"
+            thread.name =
+                "$serviceName:$purpose:th-${threadCounter.getAndIncrement()}:id-${thread.id}"
             return thread
         }
     }

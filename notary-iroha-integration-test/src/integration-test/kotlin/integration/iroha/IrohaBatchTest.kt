@@ -1,8 +1,12 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package integration.iroha
 
 import com.d3.commons.config.RMQConfig
-import com.d3.commons.config.getConfigFolder
-import com.d3.commons.config.loadRawConfigs
+import com.d3.commons.config.loadRawLocalConfigs
 import com.d3.commons.notary.IrohaCommand
 import com.d3.commons.notary.IrohaOrderedBatch
 import com.d3.commons.notary.IrohaTransaction
@@ -43,11 +47,11 @@ class IrohaBatchTest {
 
     private val tester = testCredential.accountId
     private val rmqConfig =
-        loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
+        loadRawLocalConfigs("rmq", RMQConfig::class.java, "rmq.properties")
 
     val assetDomain = "notary"
 
-    val listener = ReliableIrohaChainListener(
+    private val listener = ReliableIrohaChainListener(
         rmqConfig,
         String.getRandomId()
     )

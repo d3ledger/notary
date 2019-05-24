@@ -102,14 +102,18 @@ pipeline {
               iC.inside("-e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
                 sh "./gradlew notary-registration:shadowJar"
                 sh "./gradlew exchanger:shadowJar"
+                sh "./gradlew notifications:shadowJar"
               }
 
-              notaryRegistration = docker.build("nexus.iroha.tech:19002/${login}/notary-registration:${TAG}", "-f docker/notary-registration.dockerfile .")
+              notaryRegistration = docker.build("nexus.iroha.tech:19002/${login}/notary-registration:${TAG}", "-f docker/Dockerfile --build-arg JAR_FILE=notary-registration/build/libs/notary-registration-all.jar .")
 
-              exchanger = docker.build("nexus.iroha.tech:19002/d3-deploy/exchanger:${TAG}", "-f docker/exchanger.dockerfile .")
+              exchanger = docker.build("nexus.iroha.tech:19002/d3-deploy/exchanger:${TAG}", "-f docker/Dockerfile --build-arg JAR_FILE=exchanger/build/libs/exchanger-all.jar .")
 
+              notifications = docker.build("nexus.iroha.tech:19002/d3-deploy/notifications:${TAG}", "-f docker/Dockerfile --build-arg JAR_FILE=notifications/build/libs/notifications-all.jar .")
+
+              exchanger.push("${TAG}")
               notaryRegistration.push("${TAG}")
-
+              notifications.push("${TAG}")
             }
           }
         }
