@@ -4,6 +4,7 @@
  */
 
 import com.d3.commons.config.loadLocalConfigs
+import com.d3.commons.config.loadRawLocalConfigs
 import com.d3.commons.registration.NotaryRegistrationConfig
 import com.d3.commons.registration.main
 import com.d3.commons.util.getRandomString
@@ -22,11 +23,11 @@ import kotlin.test.assertEquals
 class NotaryRegistrationTest {
 
     val registrationConfig =
-        loadLocalConfigs(
+        loadRawLocalConfigs(
             "registration",
             NotaryRegistrationConfig::class.java,
             "registration.properties"
-        ).get()
+        )
 
     init {
         GlobalScope.launch {
