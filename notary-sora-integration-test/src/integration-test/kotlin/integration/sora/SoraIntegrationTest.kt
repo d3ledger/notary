@@ -234,7 +234,6 @@ class SoraIntegrationTest {
 
         val res = registrationEnvironment.register(name, pubkey, domain)
 
-
         assertEquals(500, res.statusCode)
 
         val response = moshiAdapter.fromJson(res.jsonObject.toString())!!
