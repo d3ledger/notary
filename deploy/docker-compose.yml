@@ -2,7 +2,7 @@ version: '3.5'
 
 services:
   d3-iroha:
-    image: hyperledger/iroha:1.0.0_rc5
+    image: hyperledger/iroha:1.0.0
     container_name: d3-iroha
     depends_on:
       - d3-iroha-postgres
@@ -82,7 +82,7 @@ services:
       - d3-network
 
   d3-brvs:
-    image: nexus.iroha.tech:19002/brvs-deploy/brvs:1.0.0_rc5
+    image: nexus.iroha.tech:19002/brvs-deploy/brvs:1.0.0
     container_name: d3-brvs
     ports:
       - 8080:8080
