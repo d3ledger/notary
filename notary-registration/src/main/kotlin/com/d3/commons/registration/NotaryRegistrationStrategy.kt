@@ -141,22 +141,24 @@ class NotaryRegistrationStrategy(
             )
         )
 
-        val trueBatch = IrohaConverter.convertToUnsignedBatch(irohaBatch)
-
-        return irohaConsumer.sign(
-            trueBatch[0]
-        ).fanout {
+        return Result.of {
+            IrohaConverter.convertToUnsignedBatch(irohaBatch)
+        }.flatMap { trueBatch ->
             irohaConsumer.sign(
-                trueBatch[2]
-            )
-        }.map { (createAccountTx, newSignatoryTx) ->
-            listOf<TransactionOuterClass.Transaction>(
-                createAccountTx.build(),
-                trueBatch[1]
-                    .sign(primaryKeyPair)
-                    .build(),
-                newSignatoryTx.build()
-            )
+                trueBatch[0]
+            ).fanout {
+                irohaConsumer.sign(
+                    trueBatch[2]
+                )
+            }.map { (createAccountTx, newSignatoryTx) ->
+                listOf<TransactionOuterClass.Transaction>(
+                    createAccountTx.build(),
+                    trueBatch[1]
+                        .sign(primaryKeyPair)
+                        .build(),
+                    newSignatoryTx.build()
+                )
+            }
         }
     }
 

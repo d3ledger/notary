@@ -106,9 +106,8 @@ class RegistrationServiceEndpoint(
     }
 
     private fun responseError(code: HttpStatusCode, reason: String): Response {
-        val errorMsg = "Response has been failed. $reason"
-        logger.error { errorMsg }
-        return Response(code, errorMsg)
+        logger.error { "Response has been failed with code $code. $reason" }
+        return Response(code, reason)
     }
 
     private fun onPostRegistration(
