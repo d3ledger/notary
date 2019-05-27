@@ -1,67 +1,73 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package d3.report.model;
 
 /*
-    Brief report information
+ * Brief report information
  */
 public class Summary {
-    //Title of report
-    private String title;
-    // Date of report generation
-    private String generationDate;
-    // Total amount of test files
-    private int filesWithTests;
-    // Total amount of test cases
-    private int testCases;
-    // Total amount of test cases with no properly formed description
-    private int lacksInDescription;
-    // Total amount of disabled test cases
-    private int disabledCases;
 
-    public String getGenerationDate() {
-        return generationDate;
-    }
+  //Title of report
+  private String title;
+  // Date of report generation
+  private String generationDate;
+  // Total amount of test files
+  private int filesWithTests;
+  // Total amount of test cases
+  private int testCases;
+  // Total amount of test cases with no properly formed description
+  private int lacksInDescription;
+  // Total amount of disabled test cases
+  private int disabledCases;
 
-    public void setGenerationDate(String generationDate) {
-        this.generationDate = generationDate;
-    }
+  public String getGenerationDate() {
+    return generationDate;
+  }
 
-    public int getFilesWithTests() {
-        return filesWithTests;
-    }
+  public void setGenerationDate(String generationDate) {
+    this.generationDate = generationDate;
+  }
 
-    public void setFilesWithTests(int filesWithTests) {
-        this.filesWithTests = filesWithTests;
-    }
+  public int getFilesWithTests() {
+    return filesWithTests;
+  }
 
-    public int getTestCases() {
-        return testCases;
-    }
+  public void setFilesWithTests(int filesWithTests) {
+    this.filesWithTests = filesWithTests;
+  }
 
-    public void setTestCases(int testCases) {
-        this.testCases = testCases;
-    }
+  public int getTestCases() {
+    return testCases;
+  }
 
-    public int getLacksInDescription() {
-        return lacksInDescription;
-    }
+  public void setTestCases(int testCases) {
+    this.testCases = testCases;
+  }
 
-    public void setLacksInDescription(int lacksInDescription) {
-        this.lacksInDescription = lacksInDescription;
-    }
+  public int getLacksInDescription() {
+    return lacksInDescription;
+  }
 
-    public int getDisabledCases() {
-        return disabledCases;
-    }
+  public void setLacksInDescription(int lacksInDescription) {
+    this.lacksInDescription = lacksInDescription;
+  }
 
-    public void setDisabledCases(int disabledCases) {
-        this.disabledCases = disabledCases;
-    }
+  public int getDisabledCases() {
+    return disabledCases;
+  }
 
-    public String getTitle() {
-        return title;
-    }
+  public void setDisabledCases(int disabledCases) {
+    this.disabledCases = disabledCases;
+  }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+  public String getTitle() {
+    return title;
+  }
+
+  public void setTitle(String title) {
+    this.title = title;
+  }
 }

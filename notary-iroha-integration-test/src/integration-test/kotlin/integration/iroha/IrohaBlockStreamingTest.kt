@@ -1,16 +1,17 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package integration.iroha
 
 import com.d3.commons.config.RMQConfig
-import com.d3.commons.config.getConfigFolder
-import com.d3.commons.config.loadRawConfigs
+import com.d3.commons.config.loadRawLocalConfigs
 import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
-import com.d3.commons.util.createPrettyFixThreadPool
 import com.d3.commons.util.getRandomId
-import com.github.kittinunf.result.map
 import integration.helper.IrohaConfigHelper
 import integration.helper.IrohaIntegrationHelperUtil
-import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.iroha.java.Transaction
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -28,15 +29,13 @@ class IrohaBlockStreamingTest {
 
     private val integrationHelper = IrohaIntegrationHelperUtil()
 
-    /** Test configurations */
-    private val testConfig = integrationHelper.testConfig
-
     private val testCredential = integrationHelper.testCredential
 
     private val creator = testCredential.accountId
 
-    private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
-    lateinit private var listener: ReliableIrohaChainListener
+    private val rmqConfig =
+        loadRawLocalConfigs("rmq", RMQConfig::class.java, "rmq.properties")
+    private lateinit var listener: ReliableIrohaChainListener
 
     private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
 
@@ -65,22 +64,19 @@ class IrohaBlockStreamingTest {
      */
     @Test
     fun irohaStreamingTest() {
+        Thread.sleep(5000)
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
-            var cmds = listOf<iroha.protocol.Commands.Command>()
-            listener.getBlockObservable()
-                .map { obs ->
-                    obs.map { (block, _) ->
-                        cmds = block.blockV1.payload.transactionsList
-                            .flatMap {
-                                it.payload.reducedPayload.commandsList
-                            }
-                    }.subscribeOn(
-                        Schedulers.from(
-                            createPrettyFixThreadPool("iroha-block-streaming", "test")
-                        )
-                    ).subscribe()
-                }
-
+            val cmds = mutableListOf<iroha.protocol.Commands.Command>()
+            listener.getBlockObservable().get().subscribe { (block, _) ->
+                cmds.addAll(
+                    block.blockV1.payload.transactionsList
+                        .flatMap {
+                            it.payload.reducedPayload.commandsList
+                        }
+                )
+            }
+            listener.purge()
+            listener.listen()
             val utx = Transaction.builder(creator)
                 .setAccountDetail(creator, "test", "test")
                 .build()

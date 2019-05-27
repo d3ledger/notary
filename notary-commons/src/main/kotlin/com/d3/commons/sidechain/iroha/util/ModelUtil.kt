@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.commons.sidechain.iroha.util
 
 import com.d3.commons.model.IrohaCredential
@@ -54,7 +59,10 @@ object ModelUtil {
             try {
                 Utils.parseHexKeypair(readKeyFromFile(pubkeyPath), readKeyFromFile(privkeyPath))
             } catch (e: IOException) {
-                throw Exception("Unable to read Iroha key files. Public key: $pubkeyPath, Private key: $privkeyPath", e)
+                throw Exception(
+                    "Unable to read Iroha key files. Public key: $pubkeyPath, Private key: $privkeyPath",
+                    e
+                )
             }
         }
     }

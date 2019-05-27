@@ -1,7 +1,13 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.notifications.config
 
 import com.d3.commons.config.IrohaConfig
 import com.d3.commons.config.IrohaCredentialConfig
+import com.d3.commons.config.IrohaCredentialRawConfig
 
 /**
  * Configuration of notification service
@@ -9,12 +15,12 @@ import com.d3.commons.config.IrohaCredentialConfig
 interface NotificationsConfig {
     // Iroha configs
     val iroha: IrohaConfig
-    // Path to file with SMTP configs
-    val smtpConfigPath: String
-    // Path to file with Push API configs
-    val pushApiConfigPath: String
     // Notary account credential. Used to listen to Iroha blocks
-    val notaryCredential: IrohaCredentialConfig
+    val notaryCredential: IrohaCredentialRawConfig
+    // SMTP config
+    val smtp: SMTPConfig
+    // Push API config
+    val push: PushAPIConfig
 }
 
 /**

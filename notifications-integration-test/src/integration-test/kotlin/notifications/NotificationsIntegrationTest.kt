@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package notifications
 
 import com.d3.commons.util.irohaEscape
@@ -10,7 +15,7 @@ import com.d3.notifications.service.D3_WITHDRAWAL_EMAIL_SUBJECT
 import com.d3.notifications.service.NOTIFICATION_EMAIL
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
-import com.nhaarman.mockito_kotlin.*
+import com.nhaarman.mockitokotlin2.*
 import integration.helper.IrohaIntegrationHelperUtil
 import integration.registration.RegistrationServiceTestEnvironment
 import notifications.environment.NotificationsIntegrationTestEnvironment

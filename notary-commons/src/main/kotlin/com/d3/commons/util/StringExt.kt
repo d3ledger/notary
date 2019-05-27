@@ -1,14 +1,16 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.commons.util
 
 import com.google.gson.GsonBuilder
+import jp.co.soramitsu.iroha.java.Utils
 import java.util.*
 import javax.xml.bind.DatatypeConverter
 
-
 private const val CHAR = "abcdefghijklmnopqrstuvwxyz"
-
-//Iroha can't stand unescaped quote symbols
-private const val IROHA_FRIENDLY_QUOTE = "\\\""
 
 //JSON formatter
 private val gson = GsonBuilder().setPrettyPrinting().create()
@@ -53,15 +55,13 @@ fun String.Companion.unHex(s: String): ByteArray {
     return DatatypeConverter.parseHexBinary(s)
 }
 
-// Escapes string so it can be used in Iroha
-fun String.irohaEscape(): String {
-    return this.replace("\"", IROHA_FRIENDLY_QUOTE)
-}
+/**
+ * Escapes symbols reserved in JSON so it can be used in Iroha
+ */
+fun String.irohaEscape(): String = Utils.irohaEscape(this)
 
 // Reverse changes of 'irohaEscape'
-fun String.irohaUnEscape(): String {
-    return this.replace(IROHA_FRIENDLY_QUOTE, "\"")
-}
+fun String.irohaUnEscape(): String = Utils.irohaUnEscape(this)
 
 //TODO can we get rid of klaxon and moshi? Gson is much easier thing to use.
 // Turns any object to JSON

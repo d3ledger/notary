@@ -1,14 +1,18 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.commons.provider
 
-import jp.co.soramitsu.iroha.java.QueryAPI
+import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 import mu.KLogging
-import com.d3.commons.sidechain.iroha.util.getAccountDetails
 
 /**
  * Provides with list of all notaries peers in the system
  */
 class NotaryPeerListProviderImpl(
-    private val queryAPI: QueryAPI,
+    private val queryHelper: IrohaQueryHelper,
     private val notaryListStorageAccount: String,
     private val notaryListSetterAccount: String
 ) : NotaryPeerListProvider {
@@ -22,8 +26,7 @@ class NotaryPeerListProviderImpl(
 
     override fun getPeerList(
     ): List<PeerAddress> {
-        return getAccountDetails(
-            queryAPI,
+        return queryHelper.getAccountDetails(
             notaryListStorageAccount,
             notaryListSetterAccount
         ).fold(

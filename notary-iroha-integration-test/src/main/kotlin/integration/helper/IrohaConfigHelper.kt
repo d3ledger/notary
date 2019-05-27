@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package integration.helper
 
 import com.d3.commons.config.IrohaConfig
@@ -29,11 +34,11 @@ open class IrohaConfigHelper {
             override val port = portCounter.incrementAndGet()
             override val iroha = createIrohaConfig()
             override val registrationCredential =
-                accountHelper.createCredentialConfig(accountHelper.registrationAccount)
+                accountHelper.createCredentialRawConfig(accountHelper.registrationAccount)
             override val clientStorageAccount = testConfig.clientStorageAccount
             override val brvsAccount = testConfig.brvsAccount
-            override val primaryPubkeyPath = testConfig.testCredentialConfig.pubkeyPath
-            override val primaryPrivkeyPath = testConfig.testCredentialConfig.privkeyPath
+            override val primaryPubkey = registrationCredential.pubkey
+            override val primaryPrivkey = registrationCredential.privkey
         }
     }
 

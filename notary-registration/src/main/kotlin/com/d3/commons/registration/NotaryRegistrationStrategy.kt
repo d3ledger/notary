@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.commons.registration
 
 import com.d3.commons.notary.IrohaCommand
@@ -40,7 +45,6 @@ class NotaryRegistrationStrategy(
     override fun register(
         accountName: String,
         domainId: String,
-        whitelist: List<String>,
         publicKey: String
     ): Result<String, Exception> {
         logger.info { "notary registration of client $accountName with pubkey $publicKey" }

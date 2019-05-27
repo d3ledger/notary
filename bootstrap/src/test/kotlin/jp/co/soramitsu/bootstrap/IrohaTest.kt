@@ -1,6 +1,12 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package jp.co.soramitsu.bootstrap
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import jp.co.soramitsu.bootstrap.changelog.ChangelogInterface
 import jp.co.soramitsu.bootstrap.dto.*
 import jp.co.soramitsu.bootstrap.dto.block.GenesisBlock
 import jp.co.soramitsu.bootstrap.exceptions.ErrorCodes
@@ -23,9 +29,9 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.util.stream.Collectors.toList
 import javax.xml.bind.DatatypeConverter
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
-
 
 @RunWith(SpringRunner::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -40,6 +46,8 @@ class IrohaTest {
     val d3Genesis = D3TestGenesisFactory()
 
     private val mapper = ObjectMapper()
+
+    private val nonexistentAccounts = setOf("registration_service_primary@notary")
 
     @Test
     @Throws(Exception::class)
@@ -73,12 +81,15 @@ class IrohaTest {
             .perform(get("/iroha/config/accounts/D3/test/5"))
             .andExpect(status().isOk)
             .andReturn()
-        val respBody = mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
+        val respBody =
+            mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
         val activeAccounts = ArrayList<AccountPrototype>()
-        d3Genesis.getAccountsForConfiguration(5).forEach { if (!it.passive) activeAccounts.add(it) }
+        d3Genesis.getAccountsForConfiguration(5)
+            .forEach { if (it.type != AccountType.PASSIVE) activeAccounts.add(it) }
         assertEquals(activeAccounts.size, respBody.accounts.size)
-        val dependentAccounts = respBody.accounts.stream().filter { it.peersDependentQuorum == true }.collect(toList())
-        dependentAccounts.forEach { assertEquals(3, it.quorum) }
+        val dependentAccounts =
+            respBody.accounts.stream().filter { it.peersDependentQuorum }.collect(toList())
+        dependentAccounts.forEach { assertEquals(4, it.quorum) }
     }
 
     @Test
@@ -87,7 +98,8 @@ class IrohaTest {
             .perform(get("/iroha/config/accounts/D3/test/0"))
             .andExpect(status().isOk)
             .andReturn()
-        val respBody = mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
+        val respBody =
+            mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
         assertEquals(respBody.errorCode, ErrorCodes.INCORRECT_PEERS_COUNT.name)
     }
 
@@ -97,8 +109,10 @@ class IrohaTest {
             .perform(get("/iroha/config/accounts/D3/test/1"))
             .andExpect(status().isOk)
             .andReturn()
-        val respBody = mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
-        val dependentAccounts = respBody.accounts.stream().filter { it.peersDependentQuorum == true }.collect(toList())
+        val respBody =
+            mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
+        val dependentAccounts =
+            respBody.accounts.stream().filter { it.peersDependentQuorum }.collect(toList())
         dependentAccounts.forEach { assertEquals(1, it.quorum) }
     }
 
@@ -108,9 +122,11 @@ class IrohaTest {
             .perform(get("/iroha/config/accounts/D3/test/2"))
             .andExpect(status().isOk)
             .andReturn()
-        val respBody = mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
-        val dependentAccounts = respBody.accounts.stream().filter { it.peersDependentQuorum == true }.collect(toList())
-        dependentAccounts.forEach { assertEquals(1, it.quorum) }
+        val respBody =
+            mapper.readValue(result.response.contentAsString, NeededAccountsResponse().javaClass)
+        val dependentAccounts =
+            respBody.accounts.stream().filter { it.peersDependentQuorum }.collect(toList())
+        dependentAccounts.forEach { assertEquals(2, it.quorum) }
     }
 
     @Test
@@ -136,6 +152,7 @@ class IrohaTest {
 
     @Test
     fun testGenesisBlock() {
+        val transactionCreatorRecord = """\"creatorAccountId\":\"notary@notary\""""
         val peerKey1 = generatePublicKeyHex()
         val peerKey2 = generatePublicKeyHex()
         val notaryAddress1 = "notaryHost1:43652"
@@ -150,7 +167,7 @@ class IrohaTest {
             .perform(
                 post("/iroha/create/genesisBlock").contentType(MediaType.APPLICATION_JSON).content(
                     mapper.writeValueAsString(
-                        jp.co.soramitsu.bootstrap.dto.GenesisRequest(
+                        GenesisRequest(
                             peers = peers,
                             accounts = accounts
                         )
@@ -167,42 +184,46 @@ class IrohaTest {
         assertTrue(respBody.contains("firstTHost:12435"))
         assertTrue(respBody.contains("secondTHost:987654"))
 
-        //Check passive - keyless accounts added
+        //Check type - keyless accounts added
         assertTrue(respBody.contains("notaries"))
-        assertTrue(respBody.contains("gen_btc_pk_trigge"))
+        assertTrue(respBody.contains("gen_btc_pk_trigger"))
         assertTrue(respBody.contains("btc_change_addresses"))
+        //Check type - ignored accounts is not added
+        assertFalse(respBody.contains("registration_service_primary"))
 
         assertTrue(respBody.contains(peerKey1))
         assertTrue(respBody.contains(peerKey2))
         assertTrue(respBody.contains(notaryAddress1))
         assertTrue(respBody.contains(notaryAddress2))
+        assertTrue(respBody.contains(transactionCreatorRecord))
 
         val quorumCheck =
             "{\\\"accountId\\\":\\\"mst_btc_registration_service@notary\\\",\\\"quorum\\\":${peers.size - peers.size / 3}}"
         assertTrue(respBody.contains(quorumCheck))
-        accounts.forEach {
+        accounts.filter { !nonexistentAccounts.contains(it.id) }.forEach {
             val pubKey = it.pubKeys[0]
             assertTrue(
                 respBody.contains(pubKey),
                 "pubKey not exists in block when should for account ${it.accountName}@${it.domainId} pubKey:${it.pubKeys[0]}"
             )
-            D3TestContext.d3neededAccounts.forEach {account ->
-                account.roles.forEach {role ->
-                    val testValue = "{\\\"appendRole\\\":{\\\"accountId\\\":\\\"" + account.id + "\\\",\\\"roleName\\\":\\\"" + role + "\\\"}}"
+            D3TestContext.d3neededAccounts.forEach { account ->
+                account.roles.forEach { role ->
+                    val testValue =
+                        "{\\\"appendRole\\\":{\\\"accountId\\\":\\\"" + account.id + "\\\",\\\"roleName\\\":\\\"" + role + "\\\"}}"
 
                     log.info("TestValue: $testValue")
-                    assertTrue(respBody.contains(testValue)
-                    )
+                    assertTrue(respBody.contains(testValue))
                 }
             }
         }
-        val jsonRolesContainsChecks = listOf("btc_fee_rate_setter",
+        val jsonRolesContainsChecks = listOf(
             "sora_client",
-            "notary_list_holder")
+            "notary_list_holder"
+        )
 
-        jsonRolesContainsChecks.forEach { assertTrue(respBody.contains(
-            "{\\\"createRole\\\":{\\\"roleName\\\":\\\"" + it
-        )) }
+        jsonRolesContainsChecks.forEach {
+            assertTrue(respBody.contains("{\\\"createRole\\\":{\\\"roleName\\\":\\\"$it"))
+        }
 
         val genesisResponse =
             mapper.readValue(respBody, GenesisResponse::class.java)
@@ -223,7 +244,6 @@ class IrohaTest {
             createAccountDto("mst_btc_registration_service", "notary", peersCount - peersCount / 3),
             createAccountDto("eth_token_storage_service", "notary"),
             createAccountDto("withdrawal", "notary"),
-            createAccountDto("btc_fee_rate", "notary"),
             createAccountDto("btc_withdrawal_service", "notary", peersCount - peersCount / 3),
             createAccountDto("btc_sign_collector", "notary"),
             createAccountDto("btc_change_addresses", "notary"),
@@ -231,22 +251,35 @@ class IrohaTest {
             createAccountDto("vacuumer", "notary"),
             createAccountDto("gen_btc_pk_trigger", "notary"),
             createAccountDto("admin", "notary"),
-            createAccountDto("sora", "sora"),
+            createAccountDto("xor", "sora"),
             createAccountDto("brvs", "brvs"),
-            createAccountDto("client_account", "notary"),
-            createAccountDto("superuser", "bootstrap")
+            createAccountDto("data_collector", "notary"),
+            createAccountDto("rmq", "notary", peersCount - peersCount / 3),
+            createAccountDto("btc_consensus_collector", "notary"),
+            createAccountDto("registration_service_primary", "notary"),
+            createAccountDto("exchanger", "notary"),
+            createAccountDto(
+                ChangelogInterface.superuserAccount,
+                ChangelogInterface.superuserDomain,
+                peersCount - peersCount / 3
+            )
         )
     }
 
-    private fun createAccountDto(title: String, domain: String, quorum: Int = 1): AccountPublicInfo {
+    private fun createAccountDto(
+        title: String,
+        domain: String,
+        quorum: Int = 1
+    ): AccountPublicInfo {
+        val keys = ArrayList<String>()
+        repeat(quorum) {
+            keys.add(generatePublicKeyHex())
+        }
         return AccountPublicInfo(
-            listOf(
-                generatePublicKeyHex()
-            ), domain, title, quorum
+            keys, domain, title, quorum
         )
     }
 
     private fun generatePublicKeyHex() =
         DatatypeConverter.printHexBinary(Ed25519Sha3().generateKeypair().public.encoded)
 }
-
