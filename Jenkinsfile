@@ -72,9 +72,9 @@ pipeline {
         cleanup {
           sh "mkdir -p build-logs"
           sh """#!/bin/bash
-            while read -r LINE; do \
+            for LINE in \$(docker ps --filter "network=d3-${DOCKER_NETWORK}" --format "{{.ID}} {{.Names}}"); do \
               docker logs \$(echo \$LINE | cut -d ' ' -f1) | gzip -6 > build-logs/\$(echo \$LINE | cut -d ' ' -f2).log.gz; \
-            done < <(docker ps --filter "network=d3-${DOCKER_NETWORK}" --format "{{.ID}} {{.Names}}")
+            done
           """
           
           sh "tar -zcvf build-logs/notaryIrohaIntegrationTest.gz -C notary-iroha-integration-test/build/reports/tests integrationTest || true"
