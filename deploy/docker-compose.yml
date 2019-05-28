@@ -82,7 +82,7 @@ services:
       - d3-network
 
   d3-brvs:
-    image: nexus.iroha.tech:19002/brvs-deploy/brvs:2.0.0-SNAPSHOT
+    image: nexus.iroha.tech:19002/brvs-deploy/brvs:latest
     container_name: d3-brvs
     ports:
       - 8080:8080
