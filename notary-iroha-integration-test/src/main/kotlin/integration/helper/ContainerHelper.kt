@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package integration.helper
 
 import com.google.protobuf.util.JsonFormat
@@ -9,7 +14,6 @@ import org.testcontainers.containers.GenericContainer
 import org.testcontainers.images.builder.ImageFromDockerfile
 import java.io.Closeable
 import java.io.File
-
 
 const val DEFAULT_RMQ_PORT = 5672
 
