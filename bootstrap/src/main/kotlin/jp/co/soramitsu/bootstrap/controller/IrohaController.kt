@@ -106,7 +106,7 @@ class IrohaController(val genesisFactories: List<GenesisInterface>) {
         val genesisFactory = genesisFactories.stream().filter {
             it.getProject().contentEquals(request.meta.project)
                     && it.getEnvironment().contentEquals(request.meta.environment)
-        }.findAny().get()
+        }.findAny().orElse(null)
         val genesis: GenesisResponse
         if (genesisFactory != null) {
             try {

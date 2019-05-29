@@ -108,7 +108,12 @@ object D3TestContext {
         AccountPrototype("brvs", "brvs"),
         NoAccountPrototype("registration_service_primary", "notary"),
         PassiveAccountPrototype("client_account", "notary"),
-        AccountPrototype("exchanger", "notary", listOf("exchange"))
+        AccountPrototype("exchanger", "notary", listOf("exchange")),
+        AccountPrototype("dapp_manager", "dapp", listOf("dapp_manager")),
+        AccountPrototype("brvs", "dapp", listOf("brvs")),
+        PassiveAccountPrototype("dapp_repo", "dapp"),
+        PassiveAccountPrototype("dapp_journal", "dapp"),
+        PassiveAccountPrototype("dapp_accounts", "dapp")
     )
 
     fun createDataCollectorRole(builder: TransactionBuilder) {
@@ -401,6 +406,36 @@ object D3TestContext {
                 Primitive.RolePermission.can_receive,
                 Primitive.RolePermission.can_read_assets,
                 Primitive.RolePermission.can_get_my_acc_ast
+            )
+        )
+    }
+
+    fun createDappInstanceRole(builder: TransactionBuilder) {
+        builder.createRole(
+            "dapp",
+            listOf(
+                Primitive.RolePermission.can_get_my_acc_detail,
+                Primitive.RolePermission.can_get_blocks,
+                Primitive.RolePermission.can_grant_can_set_my_quorum,
+                Primitive.RolePermission.can_grant_can_add_my_signatory,
+                Primitive.RolePermission.can_grant_can_remove_my_signatory
+            )
+        )
+    }
+
+    fun createDappManagerRole(builder: TransactionBuilder) {
+        builder.createRole(
+            "dapp_manager",
+            listOf(
+                Primitive.RolePermission.can_add_signatory,
+                Primitive.RolePermission.can_remove_signatory,
+                Primitive.RolePermission.can_set_quorum,
+                Primitive.RolePermission.can_create_account,
+                Primitive.RolePermission.can_set_detail,
+                Primitive.RolePermission.can_get_domain_accounts,
+                Primitive.RolePermission.can_get_domain_signatories,
+                Primitive.RolePermission.can_get_domain_acc_detail,
+                Primitive.RolePermission.can_get_blocks
             )
         )
     }
