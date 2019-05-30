@@ -43,6 +43,7 @@ hs_err_pid*
 /notary-sora-integration-test/build/
 /exchanger/build/
 /configs/brvs/key*.*
+/configs/brvs/keys/key*.*
 *gradlew.bat
 
 # Ignore Gradle GUI config

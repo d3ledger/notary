@@ -152,7 +152,7 @@ class ReliableIrohaChainListener(
             lastReadBlockNum = height
             return true
         } else if (height <= lastReadBlockNum) {
-            logger.warn("Iroha block $height has been read previously")
+            logger.warn("Iroha block $height has been read previously. Last read block $lastReadBlockNum")
             return false
         }
         val missedBlocks = height - lastReadBlockNum

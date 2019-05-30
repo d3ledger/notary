@@ -258,6 +258,11 @@ class IrohaTest {
             createAccountDto("btc_consensus_collector", "notary"),
             createAccountDto("registration_service_primary", "notary"),
             createAccountDto("exchanger", "notary"),
+            createAccountDto("dapp_manager", "dapp"),
+            createAccountDto("brvs", "dapp"),
+            createAccountDto("dapp_repo", "dapp"),
+            createAccountDto("dapp_journal", "dapp"),
+            createAccountDto("dapp_accounts", "dapp"),
             createAccountDto(
                 ChangelogInterface.superuserAccount,
                 ChangelogInterface.superuserDomain,

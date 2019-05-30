@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 /**
  * This test case tests Sora integration.
@@ -221,6 +222,31 @@ class SoraIntegrationTest {
         }
     }
 
+    /**
+     * @given registrtion service is up
+     * @when send registration request with wrong key
+     * @then error response is returned
+     */
+    @Test
+    fun wrongKeyRegistration() {
+        val name = String.getRandomString(9)
+        val pubkey = "wrong_key"
+
+        val res = registrationEnvironment.register(name, pubkey, domain)
+
+        assertEquals(500, res.statusCode)
+
+        val response = moshiAdapter.fromJson(res.jsonObject.toString())!!
+
+        assertNotNull(response["message"])
+        assertNotNull(response["details"])
+    }
+
+    /**
+     * @given system is not initiated
+     * @when system is initiated
+     * @then initial supply of XOR is 1618033988749894848204586834
+     */
     @Test
     fun initialSupplyXOR() {
         assertEquals(

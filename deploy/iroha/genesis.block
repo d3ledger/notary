@@ -124,6 +124,14 @@
               },
               {
                 "createRole": {
+                  "roleName": "data_collector",
+                  "permissions": [
+                    "can_get_blocks"
+                  ]
+                }
+              },
+              {
+                "createRole": {
                   "roleName": "signature_collector",
                   "permissions": [
                     "can_create_account",
@@ -756,6 +764,19 @@
                 }
               },
               {
+                "createAccount": {
+                  "accountName": "data_collector",
+                  "domainId": "notary",
+                  "publicKey": "97B888554684FB30F29FAB92991AB7ECEFFFE433AB3AF501E5DEAEE69392518C"
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "data_collector@notary",
+                  "roleName": "data_collector"
+                }
+              },
+              {
                 "addAssetQuantity": {
                   "assetId": "xor#sora",
                   "amount": "1618033988749894848204586834"
@@ -768,6 +789,87 @@
                   "assetId": "xor#sora",
                   "description": "initial supply",
                   "amount": "1618033988749894848204586834"
+                }
+              },
+              {
+                "createRole": {
+                  "roleName": "dapp",
+                  "permissions": [
+                    "can_get_my_acc_detail",
+                    "can_get_blocks",
+                    "can_grant_can_set_my_quorum",
+                    "can_grant_can_add_my_signatory",
+                    "can_grant_can_remove_my_signatory",
+                    "can_grant_can_set_my_account_detail"
+                  ]
+                }
+              },
+              {
+                "createRole": {
+                  "roleName": "dapp_manager",
+                  "permissions": [
+                    "can_add_signatory",
+                    "can_remove_signatory",
+                    "can_set_quorum",
+                    "can_create_account",
+                    "can_set_detail",
+                    "can_get_domain_accounts",
+                    "can_get_domain_signatories",
+                    "can_get_domain_acc_detail"
+                  ]
+                }
+              },
+              {
+                "createDomain": {
+                  "domainId": "dapp",
+                  "defaultRole": "dapp"
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "dapp_manager",
+                  "domainId": "dapp",
+                  "publicKey": "4c7c040308e853a91b05038cf51f23e8a1bbb42691d2822df992bbdc56fa563e"
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "dapp_manager@dapp",
+                  "roleName": "dapp_manager"
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "dapp_brvs",
+                  "domainId": "dapp",
+                  "publicKey": "0e73d5e941060c3a3af9c6b69fe8a766471a91076ff9fe15029f7c8d350ca461"
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "dapp_brvs@dapp",
+                  "roleName": "brvs"
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "dapp_repo",
+                  "domainId": "dapp",
+                  "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "dapp_journal",
+                  "domainId": "dapp",
+                  "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "dapp_accounts",
+                  "domainId": "dapp",
+                  "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
                 }
               }
             ],
