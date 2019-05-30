@@ -418,7 +418,8 @@ object D3TestContext {
                 Primitive.RolePermission.can_get_blocks,
                 Primitive.RolePermission.can_grant_can_set_my_quorum,
                 Primitive.RolePermission.can_grant_can_add_my_signatory,
-                Primitive.RolePermission.can_grant_can_remove_my_signatory
+                Primitive.RolePermission.can_grant_can_remove_my_signatory,
+                Primitive.RolePermission.can_grant_can_set_my_account_detail
             )
         )
     }
