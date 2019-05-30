@@ -28,6 +28,17 @@ fun getSetDetailCommands(block: BlockOuterClass.Block): List<Commands.Command> {
 }
 
 /**
+ * Return all "create account" commands from Iroha block
+ * @param block - Iroha block
+ * @return list full of "create account" commands
+ */
+fun getCreateAccountCommands(block: BlockOuterClass.Block): List<Commands.Command> {
+    return block.blockV1.payload.transactionsList.flatMap { tx ->
+        tx.payload.reducedPayload.commandsList
+    }.filter { command -> command.hasCreateAccount() }
+}
+
+/**
  * Return all "transfer asset" commands from Iroha block
  * @param block - Iroha block
  * @return list full of "transfer asset" commands
