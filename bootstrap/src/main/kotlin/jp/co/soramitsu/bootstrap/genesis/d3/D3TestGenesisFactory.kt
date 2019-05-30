@@ -164,6 +164,7 @@ class D3TestGenesisFactory : GenesisInterface {
         createDomain(builder, "brvs", "brvs")
         createDomain(builder, "bootstrap", "none")
         createDomain(builder, "btcConsensus", "none")
+        createDomain(builder, "dapp", "dapp")
     }
 
 
@@ -190,5 +191,7 @@ class D3TestGenesisFactory : GenesisInterface {
         D3TestContext.createBtcConsensusRole(builder)
         D3TestContext.createDataCollectorRole(builder)
         D3TestContext.createExchangeRole(builder)
+        D3TestContext.createDappInstanceRole(builder)
+        D3TestContext.createDappManagerRole(builder)
     }
 }
