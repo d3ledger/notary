@@ -37,13 +37,17 @@ class ContainerHelper : Closeable {
     }
 
     val rmqContainer by rmqContainerDelegate
-    //TODO must be removed soon
+
     /**
      * Creates service docker container based on [dockerFile]
      * @param jarFile - path to jar file that will be used to run service
      * @param dockerFile - path to docker file that will be used to create containers
      * @return container
      */
+    @Deprecated(
+        level = DeprecationLevel.WARNING,
+        message = "This function is not needed since we are moving to sora-pluigin right now"
+    )
     fun createContainer(jarFile: String, dockerFile: String): KGenericContainerImage {
         return KGenericContainerImage(
             ImageFromDockerfile()
