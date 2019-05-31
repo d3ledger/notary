@@ -37,6 +37,7 @@ class ContainerHelper : Closeable {
     }
 
     val rmqContainer by rmqContainerDelegate
+    //TODO must be removed soon
     /**
      * Creates service docker container based on [dockerFile]
      * @param jarFile - path to jar file that will be used to run service
@@ -49,6 +50,21 @@ class ContainerHelper : Closeable {
                 .withFileFromFile(jarFile, File(jarFile))
                 .withFileFromFile("Dockerfile", File(dockerFile)).withBuildArg("JAR_FILE", jarFile)
         ).withLogConsumer { outputFrame -> print(outputFrame.utf8String) }.withNetworkMode("host")
+    }
+
+    /**
+     * Creates sora-plugin based docker container
+     * @return container
+     */
+    fun createSoraPluginContainer(contextFolder: String, dockerFile: String): KGenericContainerImage {
+        return KGenericContainerImage(
+            ImageFromDockerfile()
+                .withFileFromFile("", File(contextFolder))
+                .withFileFromFile("Dockerfile", File(dockerFile))
+
+        )
+            .withLogConsumer { outputFrame -> print(outputFrame.utf8String) }
+            .withNetworkMode("host")
     }
 
     /**
