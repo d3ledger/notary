@@ -46,7 +46,7 @@ class ContainerHelper : Closeable {
      */
     @Deprecated(
         level = DeprecationLevel.WARNING,
-        message = "This function is not needed since we are moving to sora-pluigin right now"
+        message = "This function is not needed since we are moving to sora-plugin right now"
     )
     fun createContainer(jarFile: String, dockerFile: String): KGenericContainerImage {
         return KGenericContainerImage(
