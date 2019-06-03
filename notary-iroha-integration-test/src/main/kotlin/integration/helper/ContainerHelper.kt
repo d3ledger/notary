@@ -37,18 +37,38 @@ class ContainerHelper : Closeable {
     }
 
     val rmqContainer by rmqContainerDelegate
+
     /**
      * Creates service docker container based on [dockerFile]
      * @param jarFile - path to jar file that will be used to run service
      * @param dockerFile - path to docker file that will be used to create containers
      * @return container
      */
+    @Deprecated(
+        level = DeprecationLevel.WARNING,
+        message = "This function is not needed since we are moving to sora-plugin right now"
+    )
     fun createContainer(jarFile: String, dockerFile: String): KGenericContainerImage {
         return KGenericContainerImage(
             ImageFromDockerfile()
                 .withFileFromFile(jarFile, File(jarFile))
                 .withFileFromFile("Dockerfile", File(dockerFile)).withBuildArg("JAR_FILE", jarFile)
         ).withLogConsumer { outputFrame -> print(outputFrame.utf8String) }.withNetworkMode("host")
+    }
+
+    /**
+     * Creates sora-plugin based docker container
+     * @return container
+     */
+    fun createSoraPluginContainer(contextFolder: String, dockerFile: String): KGenericContainerImage {
+        return KGenericContainerImage(
+            ImageFromDockerfile()
+                .withFileFromFile("", File(contextFolder))
+                .withFileFromFile("Dockerfile", File(dockerFile))
+
+        )
+            .withLogConsumer { outputFrame -> print(outputFrame.utf8String) }
+            .withNetworkMode("host")
     }
 
     /**
