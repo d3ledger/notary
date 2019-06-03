@@ -2,8 +2,15 @@ buildscript {
     repositories {
         mavenCentral()
         jcenter()
+        // gradle plugins repository
+        gradlePluginPortal()
     }
 }
+
+plugins {
+    id 'jp.co.soramitsu.sora-plugin' version '0.1.2'
+}
+
 apply plugin: 'application'
 apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
 apply plugin: 'com.github.johnrengelman.shadow'
@@ -11,6 +18,20 @@ apply plugin: 'com.github.johnrengelman.shadow'
 mainClassName = "com.d3.notifications.NotificationsMain"
 shadowDistZip.classifier = 'shadow'
 shadowDistTar.classifier = 'shadow'
+// name of jar file that the shadowJar plugin generates
+shadowJar.archiveName = 'app.jar'
+
+// sora-plugin configs
+soramitsu {
+    projectGroup = 'd3-deploy'
+    docker {
+        // docker tag
+        tag = System.getenv("TAG")
+        // jar file that is used in the generated Dockerfile
+        jar = new File("build/libs/app.jar")
+        // the rest in configured using env variables
+    }
+}
 
 dependencies {
     compile project(":notary-commons")
