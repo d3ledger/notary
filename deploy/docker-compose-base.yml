@@ -40,7 +40,7 @@ services:
       - d3-network
 
   d3-chain-adapter:
-    image: nexus.iroha.tech:19002/d3-deploy/chain-adapter:1.0.0
+    image: nexus.iroha.tech:19002/d3-deploy/chain-adapter:latest
     container_name: d3-chain-adapter
     restart: on-failure
     depends_on:
