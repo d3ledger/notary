@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package integration
 
 import com.d3.commons.util.getRandomString
@@ -18,7 +23,8 @@ class NotaryRegistrationTest {
     /** Integration tests util */
     private val integrationHelper = IrohaIntegrationHelperUtil()
 
-    private val registrationServiceEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
+    private val registrationServiceEnvironment =
+        RegistrationServiceTestEnvironment(integrationHelper)
 
     init {
         registrationServiceEnvironment.registrationInitialization.init()

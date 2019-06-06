@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package integration.sora
 
 import com.d3.commons.sidechain.iroha.util.ModelUtil
@@ -15,6 +20,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 /**
  * This test case tests Sora integration.
@@ -29,7 +35,7 @@ class SoraIntegrationTest {
 
     private val domain = "sora"
     private val xorAsset = "xor#$domain"
-    private val soraClientId = "sora@sora"
+    private val soraClientId = "xor@sora"
 
     // Moshi adapter for response JSON deserealization
     val moshiAdapter = Moshi
@@ -57,13 +63,14 @@ class SoraIntegrationTest {
 
         val keypairAlice = Ed25519Sha3().generateKeypair()
 
-        val res = registrationEnvironment.register(clientName, keypairAlice.public.toHexString(), domain)
+        val res =
+            registrationEnvironment.register(clientName, keypairAlice.public.toHexString(), domain)
 
         assertEquals(200, res.statusCode)
 
         assertEquals(
             "0",
-            integrationHelper.getAccountAssets(clientId).getOrDefault(xorAsset, "0")
+            integrationHelper.queryHelper.getAccountAsset(clientId, xorAsset).get()
         )
 
         integrationHelper.addIrohaAssetTo(clientId, xorAsset, "1334")
@@ -84,13 +91,18 @@ class SoraIntegrationTest {
         val aliceClientName = String.getRandomString(9)
         val aliceClientId = "$aliceClientName@$domain"
         val keypairAlice = Ed25519Sha3().generateKeypair()
-        var res = registrationEnvironment.register(aliceClientName, keypairAlice.public.toHexString(), domain)
+        var res = registrationEnvironment.register(
+            aliceClientName,
+            keypairAlice.public.toHexString(),
+            domain
+        )
 
         assertEquals(200, res.statusCode)
         val bobClientName = String.getRandomString(9)
         val bobClientId = "$bobClientName@$domain"
         val keypairBob = Ed25519Sha3().generateKeypair()
-        res = registrationEnvironment.register(bobClientName, keypairBob.public.toHexString(), domain)
+        res =
+            registrationEnvironment.register(bobClientName, keypairBob.public.toHexString(), domain)
 
         assertEquals(200, res.statusCode)
 
@@ -128,19 +140,27 @@ class SoraIntegrationTest {
         val aliceClientName = String.getRandomString(9)
         val aliceClientId = "$aliceClientName@$domain"
         val keypairAlice = Ed25519Sha3().generateKeypair()
-        var res = registrationEnvironment.register(aliceClientName, keypairAlice.public.toHexString(), domain)
+        var res = registrationEnvironment.register(
+            aliceClientName,
+            keypairAlice.public.toHexString(),
+            domain
+        )
 
         assertEquals(200, res.statusCode)
 
         val bobClientName = String.getRandomString(9)
         val bobClientId = "$bobClientName@$domain"
         val keypairBob = Ed25519Sha3().generateKeypair()
-        res = registrationEnvironment.register(bobClientName, keypairBob.public.toHexString(), domain)
+        res =
+            registrationEnvironment.register(bobClientName, keypairBob.public.toHexString(), domain)
 
         assertEquals(200, res.statusCode)
 
         val soraKeyPair =
-            ModelUtil.loadKeypair("deploy/iroha/keys/sora@sora.pub", "deploy/iroha/keys/sora@sora.priv").get()
+            ModelUtil.loadKeypair(
+                "deploy/iroha/keys/xor@sora.pub",
+                "deploy/iroha/keys/xor@sora.priv"
+            ).get()
         integrationHelper.addIrohaAssetTo(soraClientId, xorAsset, "35")
 
         integrationHelper.transferAssetIrohaFromClient(
@@ -202,6 +222,31 @@ class SoraIntegrationTest {
         }
     }
 
+    /**
+     * @given registrtion service is up
+     * @when send registration request with wrong key
+     * @then error response is returned
+     */
+    @Test
+    fun wrongKeyRegistration() {
+        val name = String.getRandomString(9)
+        val pubkey = "wrong_key"
+
+        val res = registrationEnvironment.register(name, pubkey, domain)
+
+        assertEquals(500, res.statusCode)
+
+        val response = moshiAdapter.fromJson(res.jsonObject.toString())!!
+
+        assertNotNull(response["message"])
+        assertNotNull(response["details"])
+    }
+
+    /**
+     * @given system is not initiated
+     * @when system is initiated
+     * @then initial supply of XOR is 1618033988749894848204586834
+     */
     @Test
     fun initialSupplyXOR() {
         assertEquals(
@@ -209,5 +254,4 @@ class SoraIntegrationTest {
             integrationHelper.getIrohaAccountBalance(soraClientId, xorAsset)
         )
     }
-
 }

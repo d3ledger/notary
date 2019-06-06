@@ -2,7 +2,7 @@ version: '3.5'
 
 services:
   d3-iroha:
-    image: hyperledger/iroha:1.0.0_rc4-hotfix1
+    image: hyperledger/iroha:1.0.0
     container_name: d3-iroha
     ports:
       - 50051:50051
@@ -40,23 +40,20 @@ services:
       - d3-network
 
   d3-chain-adapter:
-    image: nexus.iroha.tech:19002/d3-deploy/chain-adapter:${TAG-master}
+    image: nexus.iroha.tech:19002/d3-deploy/chain-adapter:latest
     container_name: d3-chain-adapter
+    restart: on-failure
     depends_on:
       - d3-rmq
       - d3-iroha
     volumes:
-      - ./:/opt/notary/deploy
-      - ../configs:/opt/notary/configs
+      - ./:/opt/chain-adapter/deploy
+      - ../configs:/opt/chain-adapter/configs
     environment:
       - WAIT_HOSTS=d3-iroha:50051, d3-rmq:5672
       - WAIT_HOSTS_TIMEOUT=300
       - WAIT_SLEEP_INTERVAL=3
       - PROFILE
-      - IROHA_HOST=d3-iroha
-      - IROHA_PORT=50051
-      - JAR_NAME=chain-adapter.jar
-      - CLASS=com.d3.chainadapter.ChainAdapterMain
     networks:
       - d3-network
 
@@ -74,11 +71,23 @@ services:
     command: mongod --smallfiles
 
   d3-brvs:
-    image: nexus.iroha.tech:19002/brvs-deploy/brvs:1.0.0_rc4-hotfix1
+    image: nexus.iroha.tech:19002/brvs-deploy/brvs:latest
     container_name: d3-brvs
+    ports:
+    - 8080:8080
     depends_on:
-    - d3-rmq
     - d3-brvs-mongodb
+    - d3-rmq
+    environment:
+      WAIT_HOSTS: d3-brvs-mongodb:27017, d3-rmq:5672, d3-iroha:50051
+      WAIT_BEFORE_HOSTS: 10
+      WAIT_HOSTS_TIMEOUT: 60
+      CREDENTIAL_PUBKEY: b9679bbf526a1c936cd1144b56a370d376fa8246b248cd72f952b45a2f20bdad
+      CREDENTIAL_PRIVKEY: 56a3c52cd039d9b73a1720052600a20962350b1ea169b4783cefbf87ed99406a
+    volumes:
+    - ../configs/brvs/keys:/opt/brvs/config/keys/
+    networks:
+    - d3-network
 
 volumes:
   iroha_block_store:

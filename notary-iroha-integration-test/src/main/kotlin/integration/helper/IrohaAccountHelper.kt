@@ -1,11 +1,19 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package integration.helper
 
 import com.d3.commons.config.IrohaCredentialConfig
+import com.d3.commons.config.IrohaCredentialRawConfig
 import com.d3.commons.config.loadConfigs
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.getRandomString
+import com.d3.commons.util.hex
+import com.d3.commons.util.toHexString
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import integration.TestConfig
@@ -35,14 +43,15 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
     /** Notary account */
     val notaryAccount by lazy { createNotaryAccount() }
 
-    val clientStorageAccount by lazy { createTesterAccount("client_accounts").accountId }
+    val ethAnchoredTokenStorageAccount by lazy { createTesterAccount("eth_anch_tokens_") }
+    val irohaAnchoredTokenStorageAccount by lazy { createTesterAccount("iroha_anch_tokens_") }
 
     /**
      * Makes given account multisignature
      * @param account - account to make multisignature
      * @return list of accounts with the same account id but different public keys
      */
-    private fun makeAccountMst(account: IrohaCredential): List<IrohaCredential> {
+    fun makeAccountMst(account: IrohaCredential): List<IrohaCredential> {
         val accounts = ArrayList<IrohaCredential>(peers)
         accounts.add(account)
         // Add signatories
@@ -119,27 +128,35 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
 
     /** Account that collects withdrawal transaction consensus data */
     val btcConsensusAccount by lazy {
-        createTesterAccount("consensus","consensus_collector")
+        createTesterAccount("consensus", "consensus_collector")
     }
-
-    /** Account that stores current fee rate */
-    val btcFeeRateAccount by lazy {
-        createTesterAccount("fee_rate", "btc_fee_rate_setter")
-    }
-
-    /** Account that used to store tokens */
-    val tokenStorageAccount by lazy { notaryAccount }
 
     /** Account that sets tokens */
     val tokenSetterAccount by lazy { createTesterAccount("eth_tokens", "eth_token_list_storage") }
 
     /** Account that used to store peers*/
-    val notaryListSetterAccount by lazy { createTesterAccount("notary_setter", "eth_token_list_storage") }
+    val notaryListSetterAccount by lazy {
+        createTesterAccount(
+            "notary_setter",
+            "eth_token_list_storage"
+        )
+    }
 
-    val notaryListStorageAccount by lazy { createTesterAccount("notary_storage", "notary_list_holder") }
+    val notaryListStorageAccount by lazy {
+        createTesterAccount(
+            "notary_storage",
+            "notary_list_holder"
+        )
+    }
 
     val changeAddressesStorageAccount by lazy { createTesterAccount("change_addresses") }
 
+    /** Account that exchanges tokens */
+    val exchangerAccount by lazy {
+        createTesterAccount("exchanger", "exchange")
+    }
+
+    // TODO this must be removed soon
     fun createCredentialConfig(credential: IrohaCredential): IrohaCredentialConfig {
         return object : IrohaCredentialConfig {
             override val pubkeyPath: String
@@ -151,6 +168,14 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
         }
     }
 
+    fun createCredentialRawConfig(credential: IrohaCredential): IrohaCredentialRawConfig {
+        return object : IrohaCredentialRawConfig {
+            override val pubkey = credential.keyPair.public.toHexString()
+            override val privkey = String.hex(credential.keyPair.private.encoded)
+            override val accountId = credential.accountId
+        }
+    }
+
     /**
      * Creates randomly named tester account in Iroha
      */
@@ -158,7 +183,7 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
         val name = prefix + "_${String.getRandomString(9)}"
         val domain = "notary"
         // TODO - Bulat - generate new keys for account?
-
+        // TODO - Anton - yes
         ModelUtil.createAccount(
             irohaConsumer,
             name,
@@ -167,6 +192,7 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
             *roleName
         ).fold({
             logger.info("account $name@$domain was created")
+            // TODO keypair must be created randomly on every call
             return IrohaCredential("$name@$domain", testCredential.keyPair)
         }, { ex ->
             throw ex
@@ -198,7 +224,11 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
     fun addNotarySignatory(keypair: KeyPair) {
         ModelUtil.addSignatory(irohaConsumer, notaryAccount.accountId, keypair.public)
             .flatMap {
-                ModelUtil.setAccountQuorum(irohaConsumer, notaryAccount.accountId, notaryKeys.size + 1)
+                ModelUtil.setAccountQuorum(
+                    irohaConsumer,
+                    notaryAccount.accountId,
+                    notaryKeys.size + 1
+                )
             }
             .fold({
                 notaryKeys.add(keypair)

@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.notifications.client
 
 import com.google.gson.Gson
@@ -35,7 +40,10 @@ data class D3Client(
                 if (subscriptionJson == null || subscriptionJson == "") {
                     subscription = null
                 } else {
-                    subscription = gson.fromJson(details[D3_CLIENT_PUSH_SUBSCRIPTION], Subscription::class.java)
+                    subscription = gson.fromJson(
+                        details[D3_CLIENT_PUSH_SUBSCRIPTION],
+                        Subscription::class.java
+                    )
                 }
             }
             return D3Client(

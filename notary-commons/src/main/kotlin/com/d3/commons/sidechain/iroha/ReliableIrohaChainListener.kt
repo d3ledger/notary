@@ -1,16 +1,25 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.commons.sidechain.iroha
 
 import com.d3.commons.config.RMQConfig
 import com.d3.commons.sidechain.ChainListener
+import com.d3.commons.util.createPrettySingleThreadPool
 import com.github.kittinunf.result.Result
+import com.rabbitmq.client.Connection
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.Delivery
 import com.rabbitmq.client.GetResponse
+import com.rabbitmq.client.impl.DefaultExceptionHandler
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import iroha.protocol.BlockOuterClass
 import mu.KLogging
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.atomic.AtomicBoolean
 
 private const val DEFAULT_LAST_READ_BLOCK = -1L
 
@@ -21,39 +30,46 @@ private const val DEFAULT_LAST_READ_BLOCK = -1L
  * @param subscribe - function that will be called on new block
  * @param consumerExecutorService - executor that is used to execure RabbitMQ consumer code.
  * @param autoAck - enables auto acknowledgment
+ * @param onRmqFail - function that will be called on RMQ failure. Terminates process by default.
  */
 class ReliableIrohaChainListener(
     private val rmqConfig: RMQConfig,
     private val irohaQueue: String,
-    private val subscribe: (iroha.protocol.BlockOuterClass.Block, () -> Unit) -> Unit,
-    private val consumerExecutorService: ExecutorService?,
-    private val autoAck: Boolean
+    private val consumerExecutorService: ExecutorService = createPrettySingleThreadPool(
+        "notary-commons",
+        "iroha-rmq-listener"
+    ),
+    private val autoAck: Boolean = true,
+    private val onRmqFail: () -> Unit = {
+        logger.error("RMQ failure. Exit.")
+        System.exit(1)
+    }
 ) : ChainListener<Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit>> {
-    constructor(
-        rmqConfig: RMQConfig,
-        irohaQueue: String
-    ) : this(rmqConfig, irohaQueue, { _, _ -> }, null, true)
 
-    constructor(
-        rmqConfig: RMQConfig,
-        irohaQueue: String,
-        consumerExecutorService: ExecutorService
-    ) : this(rmqConfig, irohaQueue, { _, _ -> }, consumerExecutorService, true)
-
-
+    private val source = PublishSubject.create<Pair<BlockOuterClass.Block, () -> Unit>>()
+    private val sharedSource = source.share()
+    private val started = AtomicBoolean()
     private val factory = ConnectionFactory()
 
     // Last read Iroha block number. Used to detect double read.
     private var lastReadBlockNum: Long = DEFAULT_LAST_READ_BLOCK
 
     private val conn by lazy {
-        factory.host = rmqConfig.host
-        if (consumerExecutorService != null) {
-            factory.newConnection(consumerExecutorService)
-        } else {
-            factory.newConnection()
-        }
+        // Handle connection errors
+        factory.exceptionHandler = object : DefaultExceptionHandler() {
+            override fun handleConnectionRecoveryException(conn: Connection, exception: Throwable) {
+                logger.error("RMQ connection error", exception)
+                onRmqFail()
+            }
 
+            override fun handleUnexpectedConnectionDriverException(conn: Connection, exception: Throwable) {
+                logger.error("RMQ connection error", exception)
+                onRmqFail()
+            }
+        }
+        factory.host = rmqConfig.host
+        factory.port = rmqConfig.port
+        factory.newConnection(consumerExecutorService)
     }
 
     private val channel by lazy { conn.createChannel() }
@@ -64,41 +80,46 @@ class ReliableIrohaChainListener(
         channel.exchangeDeclare(rmqConfig.irohaExchange, "fanout", true)
         channel.queueDeclare(irohaQueue, true, false, false, null)
         channel.queueBind(irohaQueue, rmqConfig.irohaExchange, "")
+        //TODO not sure if it's enough
         channel.basicQos(1)
     }
 
     /**
-     * Returns an observable that emits a new block every time it gets it from Iroha
+     * Returns observable that may be used to define subscribers.
+     * Subscribers will be called inside [consumerExecutorService] thread pool.
      */
-    override fun getBlockObservable(
-    ): Result<Observable<Pair<BlockOuterClass.Block, () -> Unit>>, Exception> {
+    override fun getBlockObservable(): Result<Observable<Pair<BlockOuterClass.Block, () -> Unit>>, Exception> {
+        return Result.of { sharedSource }
+    }
+
+    /**
+     * Starts an RMQ consuming process.
+     * The function MUST not be called more than once. Otherwise, [IllegalStateException] will be thrown.
+     */
+    fun listen(): Result<Unit, Exception> {
         return Result.of {
-            val source = PublishSubject.create<Pair<BlockOuterClass.Block, Long>>()
-            val deliverCallback = { consumerTag: String, delivery: Delivery ->
+            if (!started.compareAndSet(false, true)) {
+                throw IllegalStateException("Iroha block listener has been started already")
+            }
+            val deliverCallback = { _: String, delivery: Delivery ->
                 // This code is executed inside consumerExecutorService
                 val block = iroha.protocol.BlockOuterClass.Block.parseFrom(delivery.body)
-                //TODO shall we ignore too old blocks?
+                // TODO shall we ignore too old blocks?
                 if (ableToHandleBlock(block)) {
-                    source.onNext(Pair(block, delivery.envelope.deliveryTag))
+                    logger.info { "New RMQ Iroha block ${block.blockV1.payload.height}" }
+                    source.onNext(Pair(block, {
+                        if (!autoAck) {
+                            confirmDelivery(delivery.envelope.deliveryTag, block)
+                        }
+                    }))
                 } else {
                     logger.warn { "Not able to handle Iroha block ${block.blockV1.payload.height}" }
                     if (!autoAck) {
-                        confirmDelivery(delivery.envelope.deliveryTag)
+                        confirmDelivery(delivery.envelope.deliveryTag, block)
                     }
                 }
             }
-            val obs: Observable<Pair<iroha.protocol.BlockOuterClass.Block, () -> Unit>> =
-                source.map { (block, deliveryTag) ->
-                    logger.info { "New Iroha block from RMQ arrived. Height ${block.blockV1.payload.height}" }
-                    Pair(block, {
-                        if (!autoAck) {
-                            confirmDelivery(deliveryTag)
-                        }
-                    })
-                }
-            obs.subscribe { (block, ack) -> subscribe(block, ack) }
             consumerTag = channel.basicConsume(irohaQueue, autoAck, deliverCallback, { _ -> })
-            obs
         }
     }
 
@@ -115,7 +136,7 @@ class ReliableIrohaChainListener(
         val block = iroha.protocol.BlockOuterClass.Block.parseFrom(resp.body)
         return Pair(block, {
             if (!autoAck)
-                confirmDelivery(resp.envelope.deliveryTag)
+                confirmDelivery(resp.envelope.deliveryTag, block)
         })
     }
 
@@ -132,7 +153,7 @@ class ReliableIrohaChainListener(
             lastReadBlockNum = height
             return true
         } else if (height <= lastReadBlockNum) {
-            logger.warn("Iroha block $height has been read previously")
+            logger.warn("Iroha block $height has been read previously. Last read block $lastReadBlockNum")
             return false
         }
         val missedBlocks = height - lastReadBlockNum
@@ -146,10 +167,11 @@ class ReliableIrohaChainListener(
     /**
      * Confirms Iroha block delivery
      * @param deliveryTag - delivery to confirm
+     * @param block - delivered block
      */
-    private fun confirmDelivery(deliveryTag: Long) {
+    private fun confirmDelivery(deliveryTag: Long, block: iroha.protocol.BlockOuterClass.Block) {
         channel.basicAck(deliveryTag, false)
-        logger.info { "Iroha block delivery confirmed" }
+        logger.info { "RMQ Iroha block ${block.blockV1.payload.height} delivery confirmed" }
     }
 
     fun purge() {
@@ -160,7 +182,7 @@ class ReliableIrohaChainListener(
         consumerTag?.let {
             channel.basicCancel(it)
         }
-        consumerExecutorService?.shutdownNow()
+        consumerExecutorService.shutdownNow()
     }
 
     /**

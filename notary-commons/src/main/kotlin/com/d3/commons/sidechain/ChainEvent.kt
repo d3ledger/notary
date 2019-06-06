@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.commons.sidechain
 
 import iroha.protocol.Commands
@@ -76,14 +81,31 @@ sealed class SideChainEvent {
     sealed class PrimaryBlockChainEvent : SideChainEvent() {
 
         /**
-         * Event which occures when custodian deposits some amount of certain asset
+         * Event which occurs when custodian deposits some amount of asset anchored on chain
          * @param hash transaction hash
          * @param user user name in Iroha
          * @param asset asset name
          * @param amount amount of tokens
          * @param from - from primary blockchain address
          */
-        data class OnPrimaryChainDeposit(
+        data class ChainAnchoredOnPrimaryChainDeposit(
+            val hash: String,
+            val time: BigInteger,
+            val user: String,
+            val asset: String,
+            val amount: String,
+            val from: String
+        ) : PrimaryBlockChainEvent()
+
+        /**
+         * Event which occurs when custodian deposits some amount of certain asset anchored on Iroha
+         * @param hash transaction hash
+         * @param user user name in Iroha
+         * @param asset asset name
+         * @param amount amount of tokens
+         * @param from - from primary blockchain address
+         */
+        data class IrohaAnchoredOnPrimaryChainDeposit(
             val hash: String,
             val time: BigInteger,
             val user: String,

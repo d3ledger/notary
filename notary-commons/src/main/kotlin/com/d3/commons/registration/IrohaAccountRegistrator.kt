@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.commons.registration
 
 import com.d3.commons.notary.IrohaCommand
@@ -21,7 +26,6 @@ open class IrohaAccountRegistrator(
     /**
      * Creates new account to Iroha with given address
      * @param currencyAddress - address of crypto currency wallet
-     * @param whitelist - list of addresses allowed to withdraw to
      * @param userName - client userName in Iroha
      * @param domain - client domain in Iroha
      * @param pubkey - client's public key
@@ -30,8 +34,6 @@ open class IrohaAccountRegistrator(
      */
     fun register(
         currencyAddress: String,
-        whitelistKey: String,
-        whitelist: List<String>,
         userName: String,
         domain: String,
         pubkey: String,
@@ -40,8 +42,6 @@ open class IrohaAccountRegistrator(
         return Result.of {
             createAccountCreationBatch(
                 currencyAddress,
-                whitelistKey,
-                whitelist,
                 userName,
                 domain,
                 pubkey,
@@ -64,10 +64,7 @@ open class IrohaAccountRegistrator(
      * Creates account creation batch with the following commands
      * - SetAccountDetail on client account with assigned [currencyAddress]
      * - SetAccountDetail on notary node account to mark [currencyAddress] as assigned to the particular user
-     * - SetWhitelist on client account
      * @param currencyAddress - address of crypto currency wallet
-     * @param whitelistKey - key to whitelist records
-     * @param whitelist - list of addresses allowed to withdraw to
      * @param userName - client userName in Iroha
      * @param domain - client domain
      * @param pubkey - client's public key
@@ -76,8 +73,6 @@ open class IrohaAccountRegistrator(
      */
     protected open fun createAccountCreationBatch(
         currencyAddress: String,
-        whitelistKey: String,
-        whitelist: List<String>,
         userName: String,
         domain: String,
         pubkey: String,
@@ -102,12 +97,6 @@ open class IrohaAccountRegistrator(
                             notaryIrohaAccount,
                             currencyAddress,
                             notaryStorageStrategy()
-                        ),
-                        //set whitelist
-                        IrohaCommand.CommandSetAccountDetail(
-                            accountId,
-                            whitelistKey,
-                            whitelist.toString().trim('[').trim(']')
                         )
                     )
                 )

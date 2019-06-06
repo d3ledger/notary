@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.commons.registration
 
 import com.d3.commons.notary.IrohaCommand
@@ -40,7 +45,6 @@ class NotaryRegistrationStrategy(
     override fun register(
         accountName: String,
         domainId: String,
-        whitelist: List<String>,
         publicKey: String
     ): Result<String, Exception> {
         logger.info { "notary registration of client $accountName with pubkey $publicKey" }
@@ -137,22 +141,24 @@ class NotaryRegistrationStrategy(
             )
         )
 
-        val trueBatch = IrohaConverter.convertToUnsignedBatch(irohaBatch)
-
-        return irohaConsumer.sign(
-            trueBatch[0]
-        ).fanout {
+        return Result.of {
+            IrohaConverter.convertToUnsignedBatch(irohaBatch)
+        }.flatMap { trueBatch ->
             irohaConsumer.sign(
-                trueBatch[2]
-            )
-        }.map { (createAccountTx, newSignatoryTx) ->
-            listOf<TransactionOuterClass.Transaction>(
-                createAccountTx.build(),
-                trueBatch[1]
-                    .sign(primaryKeyPair)
-                    .build(),
-                newSignatoryTx.build()
-            )
+                trueBatch[0]
+            ).fanout {
+                irohaConsumer.sign(
+                    trueBatch[2]
+                )
+            }.map { (createAccountTx, newSignatoryTx) ->
+                listOf<TransactionOuterClass.Transaction>(
+                    createAccountTx.build(),
+                    trueBatch[1]
+                        .sign(primaryKeyPair)
+                        .build(),
+                    newSignatoryTx.build()
+                )
+            }
         }
     }
 

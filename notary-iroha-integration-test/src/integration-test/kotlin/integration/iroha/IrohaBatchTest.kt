@@ -1,8 +1,12 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package integration.iroha
 
 import com.d3.commons.config.RMQConfig
-import com.d3.commons.config.getConfigFolder
-import com.d3.commons.config.loadRawConfigs
+import com.d3.commons.config.loadRawLocalConfigs
 import com.d3.commons.notary.IrohaCommand
 import com.d3.commons.notary.IrohaOrderedBatch
 import com.d3.commons.notary.IrohaTransaction
@@ -11,8 +15,6 @@ import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.consumer.IrohaConverter
 import com.d3.commons.sidechain.iroha.util.ModelUtil
-import com.d3.commons.sidechain.iroha.util.getAccountAsset
-import com.d3.commons.sidechain.iroha.util.getAccountData
 import com.d3.commons.util.getRandomId
 import com.d3.commons.util.getRandomString
 import com.d3.commons.util.hex
@@ -44,11 +46,12 @@ class IrohaBatchTest {
     private val testCredential = integrationHelper.testCredential
 
     private val tester = testCredential.accountId
-    private val rmqConfig = loadRawConfigs("rmq", RMQConfig::class.java, "${getConfigFolder()}/rmq.properties")
+    private val rmqConfig =
+        loadRawLocalConfigs("rmq", RMQConfig::class.java, "rmq.properties")
 
     val assetDomain = "notary"
 
-    val listener = ReliableIrohaChainListener(
+    private val listener = ReliableIrohaChainListener(
         rmqConfig,
         String.getRandomId()
     )
@@ -70,6 +73,7 @@ class IrohaBatchTest {
      */
     @Test
     fun allValidBatchTest() {
+        Thread.sleep(5000)
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             listener.purge()
 
@@ -138,31 +142,37 @@ class IrohaBatchTest {
             val hashes = lst.map { String.hex(Utils.hash(it)) }
 
             val blockHashes = GlobalScope.async {
-                val (block, ack) = listener.getBlock()
-                ack()
-                block.blockV1.payload.transactionsList.map {
-                    String.hex(Utils.hash(it))
+                withTimeout(10_000) {
+                    val (block, ack) = listener.getBlock()
+                    ack()
+                    block.blockV1.payload.transactionsList.map {
+                        String.hex(Utils.hash(it))
+                    }
                 }
             }
 
             listener.purge()
             val successHash = irohaConsumer.send(lst).get()
 
-            val accountJson = getAccountData(integrationHelper.queryAPI, userId).get().toJsonString()
-            val tester_amount = getAccountAsset(integrationHelper.queryAPI, tester, "$asset_name#$assetDomain").get()
-            val u1_amount =
-                getAccountAsset(integrationHelper.queryAPI, userId, "$asset_name#$assetDomain").get()
+            val accountDetail =
+                integrationHelper.queryHelper.getAccountDetails(userId, tester).get()
+            val tester_amount = integrationHelper.queryHelper.getAccountAsset(
+                tester,
+                "$asset_name#$assetDomain"
+            ).get()
+            val u1_amount = integrationHelper.queryHelper.getAccountAsset(
+                userId,
+                "$asset_name#$assetDomain"
+            ).get()
 
             assertEquals(hashes.size, successHash.size)
             assertTrue(successHash.containsAll(hashes))
-            assertEquals("{\"$tester\":{\"key\":\"value\"}}", accountJson)
+            assertEquals(mapOf("key" to "value"), accountDetail)
             assertEquals(73, tester_amount.toInt())
             assertEquals(27, u1_amount.toInt())
 
             runBlocking {
-                withTimeout(10_000) {
-                    assertEquals(hashes, blockHashes.await())
-                }
+                assertEquals(hashes, blockHashes.await())
             }
         }
     }
@@ -174,6 +184,7 @@ class IrohaBatchTest {
      */
     @Test
     fun notAllValidBatchTest() {
+        Thread.sleep(5000)
         Assertions.assertTimeoutPreemptively(timeoutDuration) {
             listener.purge()
 
@@ -258,10 +269,12 @@ class IrohaBatchTest {
             val expectedHashes = hashes.subList(0, hashes.size - 1)
 
             val blockHashes = GlobalScope.async {
-                val (block, ack) = listener.getBlock()
-                ack()
-                block.blockV1.payload.transactionsList.map {
-                    String.hex(Utils.hash(it))
+                withTimeout(10_000) {
+                    val (block, ack) = listener.getBlock()
+                    ack()
+                    block.blockV1.payload.transactionsList.map {
+                        String.hex(Utils.hash(it))
+                    }
                 }
             }
 
@@ -270,21 +283,19 @@ class IrohaBatchTest {
 
             Thread.sleep(BATCH_TIME_WAIT)
 
-            val accountJson = getAccountData(integrationHelper.queryAPI, userId).get().toJsonString()
-            val tester_amount = getAccountAsset(integrationHelper.queryAPI, tester, assetId).get()
-            val u1_amount =
-                getAccountAsset(integrationHelper.queryAPI, userId, assetId).get()
+            val accountDetail =
+                integrationHelper.queryHelper.getAccountDetails(userId, tester).get()
+            val tester_amount = integrationHelper.queryHelper.getAccountAsset(tester, assetId).get()
+            val u1_amount = integrationHelper.queryHelper.getAccountAsset(userId, assetId).get()
 
             assertEquals(expectedHashes.size, successHash.size)
             assertTrue(successHash.containsAll(expectedHashes))
-            assertEquals("{\"$tester\":{\"key\":\"value\"}}", accountJson)
+            assertEquals(mapOf("key" to "value"), accountDetail)
             assertEquals(73, tester_amount.toInt())
             assertEquals(27, u1_amount.toInt())
 
             runBlocking {
-                withTimeout(10_000) {
-                    assertEquals(expectedHashes, blockHashes.await())
-                }
+                assertEquals(expectedHashes, blockHashes.await())
             }
         }
     }

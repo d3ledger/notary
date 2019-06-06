@@ -17,7 +17,7 @@ dependencies {
     compile "io.reactivex.rxjava2:rxkotlin:2.0.0"
 
     // Iroha Pure Java library
-    compile 'com.github.hyperledger.iroha-java:client:3.2.1'
+    compile 'com.github.hyperledger.iroha-java:client:5.1.1'
 
     // logging
     compile 'io.github.microutils:kotlin-logging:1.4.9'
@@ -34,9 +34,6 @@ dependencies {
     // khttp - consume http
     compile 'khttp:khttp:0.1.0'
 
-    // JSON parser
-    compile 'com.beust:klaxon:3.0.1'
-
     // JSON converter
     compile 'com.squareup.moshi:moshi-kotlin:1.5.0'
 
@@ -44,7 +41,7 @@ dependencies {
     compile group: 'com.github.kittinunf.result', name: 'result', version: '1.4.0'
 
     // Configuration
-    compile group: 'com.jdiazcano.cfg4k', name: 'cfg4k-core', version: '0.9.0'
+    compile 'com.github.jdiazcano:cfg4k:0.9.41'
 
     compile "com.rabbitmq:amqp-client:5.6.0"
 

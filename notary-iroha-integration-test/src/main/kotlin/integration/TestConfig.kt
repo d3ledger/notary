@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package integration
 
 import com.d3.commons.config.EthereumConfig
@@ -9,7 +14,7 @@ interface TestConfig {
     val ethereum: EthereumConfig
     val iroha: IrohaConfig
     val testCredentialConfig: IrohaCredentialConfig
-    val testQueue : String
-    val clientStorageAccount : String
-    val brvsAccount : String
+    val testQueue: String
+    val clientStorageAccount: String
+    val brvsAccount: String
 }

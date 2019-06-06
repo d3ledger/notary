@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.notifications.smtp
 
 import com.d3.notifications.config.SMTPConfig
@@ -27,7 +32,12 @@ class SMTPServiceImpl(private val smtpConfig: SMTPConfig) :
         properties["mail.smtp.starttls.enable"] = true
     }
 
-    override fun sendMessage(from: String, to: String, subject: String, message: String): Result<Unit, Exception> {
+    override fun sendMessage(
+        from: String,
+        to: String,
+        subject: String,
+        message: String
+    ): Result<Unit, Exception> {
         return Result.of {
             Session.getInstance(properties, object : Authenticator() {
                 override fun getPasswordAuthentication(): PasswordAuthentication {

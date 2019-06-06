@@ -7,88 +7,39 @@ services:
   d3-registration:
     image: nexus.iroha.tech:19002/d3-deploy/notary-registration:${TAG-master}
     container_name: d3-registration
+    restart: on-failure
     ports:
       - 8085:8085
       - 7075:7075
-    volumes:
-      - ./:/opt/notary/deploy
-      - ../configs:/opt/notary/configs
     environment:
       - PROFILE
-      - IROHA_HOST=d3-iroha
-      - IROHA_PORT=50051
-      - JAR_NAME=notary-registration.jar
-      - CLASS=com.d3.commons.registration.RegistrationMain
     networks:
       - d3-network
 
-  d3-eth-relay:
-    image: nexus.iroha.tech:19002/d3-deploy/eth-relay:${TAG-master}
-    container_name: d3-eth-relay
-    volumes:
-      - ./:/opt/notary/deploy
-      - ../configs:/opt/notary/configs
+  d3-exchanger:
+    image: nexus.iroha.tech:19002/d3-deploy/exchanger:${TAG-master}
+    container_name: d3-exchanger
+    restart: on-failure
     environment:
-      - ETH_MASTER_WALLET
-      - ETH_CREDENTIALS_PASSWORD
       - PROFILE
-      - IROHA_HOST=d3-iroha
-      - IROHA_PORT=50051
-      - JAR_NAME=eth-registration.jar
-      - CLASS=com.d3.eth.registration.relay.DeployRelayMain
     networks:
       - d3-network
 
-  d3-eth-registration:
-    image: nexus.iroha.tech:19002/d3-deploy/eth-registration:${TAG-master}
-    container_name: d3-eth-registration
+  d3-changelog:
+    image: nexus.iroha.tech:19002/d3-deploy/changelog-endpoint:master
+    container_name: d3-changelog
+    restart: on-failure
     ports:
-      - 8083:8083
-    volumes:
-      - ./:/opt/notary/deploy
-      - ../configs:/opt/notary/configs
-    environment:
-      - ETH_RELAY_REGISTRY
-      - PROFILE
-      - IROHA_HOST=d3-iroha
-      - IROHA_PORT=50051
-      - JAR_NAME=eth-registration.jar
-      - CLASS=com.d3.eth.registration.EthRegistrationMain
+      - 9999:9999
     networks:
       - d3-network
 
-  d3-eth-withdrawal:
-    image: nexus.iroha.tech:19002/d3-deploy/eth-withdrawal:${TAG-master}
-    container_name: d3-eth-withdrawal
-    volumes:
-      - ./:/opt/notary/deploy
-      - ../configs:/opt/notary/configs
-    ports:
-      - 8084:8084
-    environment:
-      - ETH_CREDENTIALS_PASSWORD
-      - PROFILE
-      - IROHA_HOST=d3-iroha
-      - IROHA_PORT=50051
-      - JAR_NAME=eth-withdrawal.jar
-      - CLASS=com.d3.eth.withdrawal.withdrawalservice.WithdrawalServiceMain
+  d3-notifications:
+    image: nexus.iroha.tech:19002/d3-deploy/notifications:${TAG-master}
+    container_name: d3-notifications
+    restart: on-failure
     networks:
       - d3-network
-
-  d3-btc-registration:
-    image: nexus.iroha.tech:19002/d3-deploy/btc-registration:${TAG-master}
-    container_name: d3-btc-registration
-    volumes:
-    - ./:/opt/notary/deploy
-    - ../configs:/opt/notary/configs
-    environment:
-    - PROFILE
-    - IROHA_HOST=d3-iroha
-    - IROHA_PORT=50051
-    - JAR_NAME=btc-registration.jar
-    - CLASS=com.d3.btc.registration.BtcRegistrationMain
-    networks:
-    - d3-network
 
 networks:
   d3-network:
