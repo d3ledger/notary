@@ -80,6 +80,7 @@ class ReliableIrohaChainListener(
         channel.exchangeDeclare(rmqConfig.irohaExchange, "fanout", true)
         channel.queueDeclare(irohaQueue, true, false, false, null)
         channel.queueBind(irohaQueue, rmqConfig.irohaExchange, "")
+        //TODO not sure if it's enough
         channel.basicQos(1)
     }
 
@@ -108,13 +109,13 @@ class ReliableIrohaChainListener(
                     logger.info { "New RMQ Iroha block ${block.blockV1.payload.height}" }
                     source.onNext(Pair(block, {
                         if (!autoAck) {
-                            confirmDelivery(delivery.envelope.deliveryTag)
+                            confirmDelivery(delivery.envelope.deliveryTag, block)
                         }
                     }))
                 } else {
                     logger.warn { "Not able to handle Iroha block ${block.blockV1.payload.height}" }
                     if (!autoAck) {
-                        confirmDelivery(delivery.envelope.deliveryTag)
+                        confirmDelivery(delivery.envelope.deliveryTag, block)
                     }
                 }
             }
@@ -135,7 +136,7 @@ class ReliableIrohaChainListener(
         val block = iroha.protocol.BlockOuterClass.Block.parseFrom(resp.body)
         return Pair(block, {
             if (!autoAck)
-                confirmDelivery(resp.envelope.deliveryTag)
+                confirmDelivery(resp.envelope.deliveryTag, block)
         })
     }
 
@@ -166,10 +167,11 @@ class ReliableIrohaChainListener(
     /**
      * Confirms Iroha block delivery
      * @param deliveryTag - delivery to confirm
+     * @param block - delivered block
      */
-    private fun confirmDelivery(deliveryTag: Long) {
+    private fun confirmDelivery(deliveryTag: Long, block: iroha.protocol.BlockOuterClass.Block) {
         channel.basicAck(deliveryTag, false)
-        logger.info { "Iroha block delivery confirmed" }
+        logger.info { "RMQ Iroha block ${block.blockV1.payload.height} delivery confirmed" }
     }
 
     fun purge() {
