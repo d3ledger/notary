@@ -102,7 +102,7 @@ pipeline {
                   " -e DOCKER_REGISTRY_URL='https://nexus.iroha.tech:19002'"+
                   " -e DOCKER_REGISTRY_USERNAME='${login}'"+
                   " -e DOCKER_REGISTRY_PASSWORD='${password}'"+
-                  " -e TAG='${TEST}'") {
+                  " -e TAG='${TAG}'") {
                     sh "gradle shadowJar"
                     sh "gradle dockerPush"
                   }
