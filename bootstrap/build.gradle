@@ -26,7 +26,7 @@ dependencies {
 
     implementation project(":notary-commons")
     //TODO change version after release
-    implementation "com.github.d3ledger.d3-eth:eth:8cb3237c2d"
+    implementation "com.github.d3ledger.d3-eth:eth:35e2b4cd37361d142c961dcdea72f71f86e51e99"
 
     // kotlin related
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
