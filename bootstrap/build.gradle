@@ -12,11 +12,27 @@ buildscript {
     }
 }
 
+plugins {
+    id 'jp.co.soramitsu.sora-plugin' version '0.1.2'
+}
+
 apply plugin: 'application'
 apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
 apply plugin: 'com.github.johnrengelman.shadow'
 shadowDistZip.classifier = 'shadow'
 shadowDistTar.classifier = 'shadow'
+
+// sora-plugin configs
+soramitsu {
+    projectGroup = 'bootstrap'
+    docker {
+        // docker tag
+        tag = System.getenv("TAG")
+        // jar file that is used in the generated Dockerfile
+        jar = new File("build/libs/app.jar")
+        // the rest in configured using env variables
+    }
+}
 
 dependencies {
 
