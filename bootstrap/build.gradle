@@ -27,7 +27,7 @@ shadowJar.archiveName = 'app.jar'
 
 // sora-plugin configs
 soramitsu {
-    projectGroup = 'bootstrap'
+    projectGroup = 'd3-deploy'
     docker {
         // docker tag
         tag = System.getenv("TAG")
