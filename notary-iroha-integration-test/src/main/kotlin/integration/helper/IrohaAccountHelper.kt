@@ -18,7 +18,9 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import integration.TestConfig
 import iroha.protocol.Primitive
+import jp.co.soramitsu.bootstrap.changelog.ChangelogInterface
 import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.Utils
 import mu.KLogging
 import java.security.KeyPair
 
@@ -88,6 +90,14 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
         createTesterAccount("registration", "registration_service", "client")
     }
 
+    /** Superuser account.*/
+    val superuserAccount = IrohaCredential(
+        ChangelogInterface.superuserAccountId, Utils.parseHexKeypair(
+            "02a3c31288f3800e08bcb7f1a2fe446ee5921434096e71f8b7535eda9210524b",
+            "90b1d9d24deef4b27ac27125c6c77e368e0bcfdce179133a99025b1574dfc402"
+        )
+    )
+
     /** Account that used to store registered clients in mst fashion.*/
     val mstRegistrationAccount by lazy {
         val credential = createTesterAccount("mst_registration", "registration_service", "client")
@@ -150,6 +160,8 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
     }
 
     val changeAddressesStorageAccount by lazy { createTesterAccount("change_addresses") }
+
+    val expansionTriggerAccount by lazy { createTesterAccount("expansion") }
 
     /** Account that exchanges tokens */
     val exchangerAccount by lazy {
