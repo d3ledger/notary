@@ -18,6 +18,10 @@ apply plugin: 'com.github.johnrengelman.shadow'
 shadowDistZip.classifier = 'shadow'
 shadowDistTar.classifier = 'shadow'
 
+shadowJar {
+    zip64 true
+}
+
 dependencies {
 
     final def springfoxSwagger2Version = '2.9.2'
