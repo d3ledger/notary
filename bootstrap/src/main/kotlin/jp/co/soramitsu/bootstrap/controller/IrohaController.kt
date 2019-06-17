@@ -29,7 +29,7 @@ class IrohaController(val genesisFactories: List<GenesisInterface>) {
         @PathVariable("env") env: String,
         @PathVariable("peersCount") peersCount: Int
     ): ResponseEntity<NeededAccountsResponse> {
-        if (peersCount == 0) {
+        if (peersCount <= 0) {
             return ResponseEntity.ok<NeededAccountsResponse>(
                 NeededAccountsResponse(
                     ErrorCodes.INCORRECT_PEERS_COUNT.name,
