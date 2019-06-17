@@ -138,6 +138,7 @@ class ExchangerIntegrationTest {
         val res = registrationServiceEnvironment.register(userName, userPubkey)
         assertEquals(200, res.statusCode)
         val userId = "$userName@$CLIENT_DOMAIN"
+        val tooMuchAmount = "99"
 
         integrationHelper.addIrohaAssetTo(
             exchangerServiceEnvironment.exchangerAccount.accountId,
@@ -153,7 +154,7 @@ class ExchangerIntegrationTest {
         integrationHelper.addIrohaAssetTo(
             userId,
             "xor#sora",
-            "1000000"
+            tooMuchAmount
         )
         integrationHelper.transferAssetIrohaFromClient(
             userId,
@@ -162,13 +163,13 @@ class ExchangerIntegrationTest {
             exchangerServiceEnvironment.exchangerAccount.accountId,
             "xor#sora",
             "ether#ethereum",
-            "1000000"
+            tooMuchAmount
         )
 
         Thread.sleep(TRANSFER_WAIT_TIME)
 
         val xorBalance = integrationHelper.getIrohaAccountBalance(userId, "xor#sora")
-        assertEquals("1000000", xorBalance)
+        assertEquals(tooMuchAmount, xorBalance)
         val etherBalance = integrationHelper.getIrohaAccountBalance(userId, "ether#ethereum")
         assertEquals("0", etherBalance)
     }
