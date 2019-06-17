@@ -115,15 +115,15 @@ class SoraIntegrationTest {
             bobClientId,
             xorAsset,
             "descr",
-            "12"
+            "10"
         )
 
         assertEquals(
-            "4",
+            "2",
             integrationHelper.getIrohaAccountBalance(aliceClientId, xorAsset)
         )
         assertEquals(
-            "12",
+            "10",
             integrationHelper.getIrohaAccountBalance(bobClientId, xorAsset)
         )
     }
