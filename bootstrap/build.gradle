@@ -18,15 +18,20 @@ apply plugin: 'com.github.johnrengelman.shadow'
 shadowDistZip.classifier = 'shadow'
 shadowDistTar.classifier = 'shadow'
 
+shadowJar {
+    zip64 true
+}
+
 dependencies {
 
     final def springfoxSwagger2Version = '2.9.2'
     final def springBootVersion = '2.1.3.RELEASE'
     final def kotlinVersion = '1.3.10'
+    final def d3EthVersion = '0.0.1-snapshot'
 
     implementation project(":notary-commons")
     //TODO change version after release
-    implementation "com.github.d3ledger.d3-eth:eth:8cb3237c2d"
+    implementation "com.github.d3ledger.d3-eth:eth:$d3EthVersion"
 
     // kotlin related
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"

@@ -16,6 +16,7 @@ import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.util.getRandomString
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.map
 import integration.TestConfig
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.Transaction
@@ -300,6 +301,25 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
             // first is for user, second is for brvs instance
             2
         )
+    }
+
+    /**
+     * Create Iroha asset
+     */
+    fun createAsset(
+        assetName: String = String.getRandomString(7),
+        assetDomain: String = "test",
+        precision: Int = 18
+    ): Result<String, Exception> {
+        return ModelUtil.createAsset(
+            accountHelper.irohaConsumer,
+            assetName,
+            assetDomain,
+            precision
+        ).map {
+            logger.info { "Token $assetName#$assetDomain was created" }
+            "$assetName#$assetDomain"
+        }
     }
 
     /**

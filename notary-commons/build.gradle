@@ -1,4 +1,5 @@
 dependencies {
+    compile 'com.github.d3ledger:bootstrap-changelog:72b15aabbcfaa88176617444ea36a201b0b347b7'
     // protobuf
     compile 'com.google.protobuf:protobuf-java:3.5.1'
     compile 'io.grpc:grpc-netty:1.14.0'

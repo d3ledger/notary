@@ -9,7 +9,6 @@ import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 import com.d3.commons.sidechain.iroha.util.ModelUtil
-import com.d3.commons.util.createPrettySingleThreadPool
 import com.d3.exchange.exchanger.exception.AssetNotFoundException
 import com.d3.exchange.exchanger.exception.TooLittleAssetVolumeException
 import com.d3.exchange.exchanger.exception.TooMuchAssetVolumeException
