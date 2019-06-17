@@ -148,7 +148,7 @@ class EthController {
             ResponseEntity.ok(
                 DeployMasterContractResponse(
                     master.contractAddress,
-                    master.tokens.send()[0].toString()
+                    master.xorTokenInstance().send()
                 )
             )
         } catch (e: Exception) {
@@ -194,7 +194,7 @@ class EthController {
                     master.contractAddress,
                     relayRegistry.contractAddress,
                     relayImplementation.contractAddress,
-                    master.tokens.send()[0].toString()
+                    master.xorTokenInstance().send()
                 )
             )
         } catch (e: Exception) {
