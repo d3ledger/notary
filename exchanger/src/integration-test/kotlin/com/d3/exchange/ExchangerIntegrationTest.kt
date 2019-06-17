@@ -28,7 +28,8 @@ class ExchangerIntegrationTest {
 
     private val integrationHelper = IrohaIntegrationHelperUtil()
 
-    private val registrationServiceEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
+    private val registrationServiceEnvironment =
+        RegistrationServiceTestEnvironment(integrationHelper)
 
     private val exchangerServiceEnvironment = ExchangerServiceTestEnvironment(integrationHelper)
 
@@ -53,6 +54,9 @@ class ExchangerIntegrationTest {
      */
     @Test
     fun correctExchange() {
+        val tokenA = integrationHelper.createAsset().get()
+        val tokenB = integrationHelper.createAsset().get()
+
         val userName = String.getRandomString(7)
         val userKeypair = Ed25519Sha3().generateKeypair()
         val userPubkey = userKeypair.public.toHexString()
@@ -62,29 +66,29 @@ class ExchangerIntegrationTest {
 
         integrationHelper.addIrohaAssetTo(
             exchangerServiceEnvironment.exchangerAccount.accountId,
-            "xor#sora",
+            tokenA,
             "10"
         )
         integrationHelper.addIrohaAssetTo(
             exchangerServiceEnvironment.exchangerAccount.accountId,
-            "ether#ethereum",
+            tokenB,
             "10"
         )
 
-        integrationHelper.addIrohaAssetTo(userId, "xor#sora", "1")
+        integrationHelper.addIrohaAssetTo(userId, tokenA, "1")
         integrationHelper.transferAssetIrohaFromClient(
             userId,
             userKeypair,
             userId,
             exchangerServiceEnvironment.exchangerAccount.accountId,
-            "xor#sora",
-            "ether#ethereum",
+            tokenA,
+            tokenB,
             "1"
         )
 
         Thread.sleep(TRANSFER_WAIT_TIME)
 
-        val etherBalance = integrationHelper.getIrohaAccountBalance(userId, "ether#ethereum")
+        val etherBalance = integrationHelper.getIrohaAccountBalance(userId, tokenB)
         assertTrue(BigDecimal(etherBalance) > BigDecimal.ZERO)
     }
 
@@ -96,6 +100,8 @@ class ExchangerIntegrationTest {
      */
     @Test
     fun rollbackUnknownExchange() {
+        val tokenA = integrationHelper.createAsset().get()
+
         val userName = String.getRandomString(7)
         val userKeypair = Ed25519Sha3().generateKeypair()
         val userPubkey = userKeypair.public.toHexString()
@@ -105,7 +111,7 @@ class ExchangerIntegrationTest {
 
         integrationHelper.addIrohaAssetTo(
             userId,
-            "xor#sora",
+            tokenA,
             "1"
         )
         integrationHelper.transferAssetIrohaFromClient(
@@ -113,14 +119,14 @@ class ExchangerIntegrationTest {
             userKeypair,
             userId,
             exchangerServiceEnvironment.exchangerAccount.accountId,
-            "xor#sora",
+            tokenA,
             "soramichka#sora",
             "1"
         )
 
         Thread.sleep(TRANSFER_WAIT_TIME)
 
-        val xorBalance = integrationHelper.getIrohaAccountBalance(userId, "xor#sora")
+        val xorBalance = integrationHelper.getIrohaAccountBalance(userId, tokenA)
         assertEquals("1", xorBalance)
     }
 
@@ -132,44 +138,48 @@ class ExchangerIntegrationTest {
      */
     @Test
     fun rollbackTooMuchExchange() {
+        val tokenA = integrationHelper.createAsset().get()
+        val tokenB = integrationHelper.createAsset().get()
+
         val userName = String.getRandomString(7)
         val userKeypair = Ed25519Sha3().generateKeypair()
         val userPubkey = userKeypair.public.toHexString()
         val res = registrationServiceEnvironment.register(userName, userPubkey)
         assertEquals(200, res.statusCode)
         val userId = "$userName@$CLIENT_DOMAIN"
+        val tooMuchAmount = "1000000"
 
         integrationHelper.addIrohaAssetTo(
             exchangerServiceEnvironment.exchangerAccount.accountId,
-            "xor#sora",
+            tokenA,
             "10"
         )
         integrationHelper.addIrohaAssetTo(
             exchangerServiceEnvironment.exchangerAccount.accountId,
-            "ether#ethereum",
+            tokenB,
             "10"
         )
 
         integrationHelper.addIrohaAssetTo(
             userId,
-            "xor#sora",
-            "1000000"
+            tokenA,
+            tooMuchAmount
         )
         integrationHelper.transferAssetIrohaFromClient(
             userId,
             userKeypair,
             userId,
             exchangerServiceEnvironment.exchangerAccount.accountId,
-            "xor#sora",
-            "ether#ethereum",
-            "1000000"
+            tokenA,
+            tokenB,
+            tooMuchAmount
         )
 
         Thread.sleep(TRANSFER_WAIT_TIME)
 
-        val xorBalance = integrationHelper.getIrohaAccountBalance(userId, "xor#sora")
-        assertEquals("1000000", xorBalance)
-        val etherBalance = integrationHelper.getIrohaAccountBalance(userId, "ether#ethereum")
+        val xorBalance = integrationHelper.getIrohaAccountBalance(userId, tokenA)
+        assertEquals(tooMuchAmount, xorBalance)
+        val etherBalance = integrationHelper.getIrohaAccountBalance(userId, tokenB)
         assertEquals("0", etherBalance)
     }
 
@@ -181,6 +191,9 @@ class ExchangerIntegrationTest {
      */
     @Test
     fun rollbackTooLittleExchange() {
+        val tokenA = integrationHelper.createAsset().get()
+        val tokenB = integrationHelper.createAsset().get()
+
         val userName = String.getRandomString(7)
         val userKeypair = Ed25519Sha3().generateKeypair()
         val userPubkey = userKeypair.public.toHexString()
@@ -190,18 +203,18 @@ class ExchangerIntegrationTest {
 
         integrationHelper.addIrohaAssetTo(
             exchangerServiceEnvironment.exchangerAccount.accountId,
-            "xor#sora",
+            tokenA,
             "10000"
         )
         integrationHelper.addIrohaAssetTo(
             exchangerServiceEnvironment.exchangerAccount.accountId,
-            "btc#bitcoin",
+            tokenB,
             "0.00000001"
         )
 
         integrationHelper.addIrohaAssetTo(
             userId,
-            "xor#sora",
+            tokenA,
             "1"
         )
         integrationHelper.transferAssetIrohaFromClient(
@@ -209,16 +222,16 @@ class ExchangerIntegrationTest {
             userKeypair,
             userId,
             exchangerServiceEnvironment.exchangerAccount.accountId,
-            "xor#sora",
-            "btc#bitcoin",
+            tokenA,
+            tokenB,
             "0.000000000000000001"
         )
 
         Thread.sleep(TRANSFER_WAIT_TIME)
 
-        val xorBalance = integrationHelper.getIrohaAccountBalance(userId, "xor#sora")
+        val xorBalance = integrationHelper.getIrohaAccountBalance(userId, tokenA)
         assertEquals("1.000000000000000000", xorBalance)
-        val etherBalance = integrationHelper.getIrohaAccountBalance(userId, "btc#bitcoin")
+        val etherBalance = integrationHelper.getIrohaAccountBalance(userId, tokenB)
         assertEquals("0", etherBalance)
     }
 }
