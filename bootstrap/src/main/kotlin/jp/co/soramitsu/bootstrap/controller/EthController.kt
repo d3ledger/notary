@@ -152,7 +152,7 @@ class EthController {
                 )
             )
         } catch (e: Exception) {
-            log.error("Cannot deploy RelayRegistry smart contract", e)
+            log.error("Cannot deploy Master smart contract", e)
             val response = DeployMasterContractResponse()
             response.errorCode = e.javaClass.simpleName
             response.message = e.message

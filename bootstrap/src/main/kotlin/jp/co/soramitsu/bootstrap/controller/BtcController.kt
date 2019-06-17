@@ -11,6 +11,7 @@ import mu.KLogging
 import org.bitcoinj.core.NetworkParameters
 import org.bitcoinj.wallet.Wallet
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.PropertySource
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -21,6 +22,7 @@ import javax.xml.bind.DatatypeConverter
 
 @RestController
 @RequestMapping("/btc")
+@PropertySource("classpath:application.properties")
 class BtcController {
 
     private val log = KLogging().logger
