@@ -106,7 +106,7 @@ class SoraIntegrationTest {
 
         assertEquals(200, res.statusCode)
 
-        integrationHelper.addIrohaAssetTo(aliceClientId, xorAsset, "1334")
+        integrationHelper.addIrohaAssetTo(aliceClientId, xorAsset, "12")
 
         integrationHelper.transferAssetIrohaFromClient(
             aliceClientId,
@@ -115,15 +115,15 @@ class SoraIntegrationTest {
             bobClientId,
             xorAsset,
             "descr",
-            "1330"
+            "10"
         )
 
         assertEquals(
-            "4",
+            "2",
             integrationHelper.getIrohaAccountBalance(aliceClientId, xorAsset)
         )
         assertEquals(
-            "1330",
+            "10",
             integrationHelper.getIrohaAccountBalance(bobClientId, xorAsset)
         )
     }
