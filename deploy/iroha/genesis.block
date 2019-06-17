@@ -335,6 +335,12 @@
               },
               {
                 "createDomain": {
+                  "domainId": "test",
+                  "defaultRole": "none"
+                }
+              },
+              {
+                "createDomain": {
                   "domainId": "bootstrap",
                   "defaultRole": "none"
                 }
