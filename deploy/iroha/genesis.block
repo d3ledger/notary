@@ -935,35 +935,35 @@
                 "createAccount": {
                   "accountName": "transfer_billing",
                   "domainId": "d3",
-                  "publicKey": "548a734a73872d20ce46dc2f72c8a69f3a5890406d662600dd9dc8bbd92a0b92"
+                  "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
                 }
               },
               {
                 "createAccount": {
                   "accountName": "custody_billing",
                   "domainId": "d3",
-                  "publicKey": "64ff795a8395a83a82030873f05955d65158a137efd516cc90cda59f222d2dea"
+                  "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
                 }
               },
               {
                 "createAccount": {
                   "accountName": "account_creation_billing",
                   "domainId": "d3",
-                  "publicKey": "d56621bdd9b354d89523d404a405be48352771d16168d4f12c8cfa41991198fd"
+                  "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
                 }
               },
               {
                 "createAccount": {
                   "accountName": "exchange_billing",
                   "domainId": "d3",
-                  "publicKey": "1f9195df82ca6ad074141c307307b1d642c17f6060c293b7a3b8f19bf7587979"
+                  "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
                 }
               },
               {
                 "createAccount": {
                   "accountName": "withdrawal_billing",
                   "domainId": "d3",
-                  "publicKey": "5c65f42a43deded4cf8871539daa618901966210f0661755eeb421106d65b2f3"
+                  "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
                 }
               },
               {
