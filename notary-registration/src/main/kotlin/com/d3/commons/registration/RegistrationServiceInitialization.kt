@@ -17,8 +17,8 @@ import org.springframework.stereotype.Component
  */
 @Component
 class RegistrationServiceInitialization(
-    @Autowired private val registrationConfig: NotaryRegistrationConfig,
-    @Autowired private val registrationStrategy: RegistrationStrategy
+    private val registrationConfig: NotaryRegistrationConfig,
+    private val registrationStrategy: RegistrationStrategy
 ) {
 
     /**

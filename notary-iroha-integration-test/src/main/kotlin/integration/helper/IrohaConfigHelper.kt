@@ -39,6 +39,7 @@ open class IrohaConfigHelper {
             override val brvsAccount = testConfig.brvsAccount
             override val primaryPubkey = registrationCredential.pubkey
             override val primaryPrivkey = registrationCredential.privkey
+            override val isBrvsEnabled = true
         }
     }
 
