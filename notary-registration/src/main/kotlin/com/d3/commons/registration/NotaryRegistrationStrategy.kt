@@ -177,7 +177,7 @@ class NotaryRegistrationStrategy(
             commands.add(
                 IrohaCommand.CommandSetAccountQuorum(
                     accountId,
-                    2
+                    DEFAULT_BRVS_QUORUM
                 )
             )
         }
@@ -191,5 +191,7 @@ class NotaryRegistrationStrategy(
     /**
      * Logger
      */
-    companion object : KLogging()
+    companion object : KLogging() {
+        const val DEFAULT_BRVS_QUORUM = 2
+    }
 }
