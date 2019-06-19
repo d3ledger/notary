@@ -54,6 +54,7 @@ pipeline {
             sh "./gradlew integrationTest --info"
             sh "./gradlew codeCoverageReport --info"
             sh "./gradlew dokka --info"
+            sh "./gradlew d3TestReport"
             // sh "./gradlew pitest --info"
             withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
               sh(script: """./gradlew sonarqube --configure-on-demand \
@@ -62,6 +63,14 @@ pipeline {
               """)
             }
           }
+          publishHTML (target: [
+              allowMissing: false,
+              alwaysLinkToLastBuild: false,
+              keepAll: true,
+              reportDir: 'build/reports',
+              reportFiles: 'd3-test-report.html',
+              reportName: "D3 test report"
+            ])
         }
       }
       post {
