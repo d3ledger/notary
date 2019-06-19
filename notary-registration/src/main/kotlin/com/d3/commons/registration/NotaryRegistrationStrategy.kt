@@ -130,20 +130,7 @@ class NotaryRegistrationStrategy(
             // But we need to increase user's quorum to prohibit transactions using only user's key
             // Several moments later BRVS react on the createAccountTransaction and
             // user's quorum will be set as 1+2/3 of BRVS instances for now
-            IrohaTransaction(
-                newUserAccountId,
-                ModelUtil.getCurrentTime(),
-                listOf(
-                    IrohaCommand.CommandAddSignatory(
-                        newUserAccountId,
-                        pubkey
-                    ),
-                    IrohaCommand.CommandSetAccountQuorum(
-                        newUserAccountId,
-                        2
-                    )
-                )
-            )
+            getSignatoryTx(newUserAccountId, pubkey)
         )
 
         val irohaBatch = IrohaOrderedBatch(transactions)
@@ -176,6 +163,29 @@ class NotaryRegistrationStrategy(
 
     override fun getFreeAddressNumber(): Result<Int, Exception> {
         return Result.of { throw Exception("not supported") }
+    }
+
+    private fun getSignatoryTx(accountId: String, publicKey: String): IrohaTransaction {
+        val commands = ArrayList<IrohaCommand>()
+        commands.add(
+            IrohaCommand.CommandAddSignatory(
+                accountId,
+                publicKey
+            )
+        )
+        if (isBrvsEnabled) {
+            commands.add(
+                IrohaCommand.CommandSetAccountQuorum(
+                    accountId,
+                    2
+                )
+            )
+        }
+        return IrohaTransaction(
+            accountId,
+            ModelUtil.getCurrentTime(),
+            commands
+        )
     }
 
     /**
