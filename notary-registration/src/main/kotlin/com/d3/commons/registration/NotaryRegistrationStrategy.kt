@@ -12,7 +12,6 @@ import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.sidechain.iroha.consumer.IrohaConverter
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import iroha.protocol.Primitive
@@ -132,7 +131,7 @@ class NotaryRegistrationStrategy(
             // Several moments later BRVS react on the createAccountTransaction and
             // user's quorum will be set as 1+2/3 of BRVS instances for now
             IrohaTransaction(
-                irohaConsumer.creator,
+                newUserAccountId,
                 ModelUtil.getCurrentTime(),
                 listOf(
                     IrohaCommand.CommandAddSignatory(
@@ -154,23 +153,24 @@ class NotaryRegistrationStrategy(
         }.flatMap { trueBatch ->
             irohaConsumer.sign(
                 trueBatch[0]
-            ).fanout {
-                irohaConsumer.sign(
-                    trueBatch[if (isBrvsEnabled) 2 else 1]
-                )
-            }.map { (createAccountTx, newSignatoryTx) ->
-                val irohaTransactions = ArrayList<TransactionOuterClass.Transaction>()
-                irohaTransactions.add(createAccountTx.build())
-                if (isBrvsEnabled) {
+            )
+                .map { createAccountTx ->
+                    val irohaTransactions = ArrayList<TransactionOuterClass.Transaction>()
+                    irohaTransactions.add(createAccountTx.build())
+                    if (isBrvsEnabled) {
+                        irohaTransactions.add(
+                            trueBatch[1]
+                                .sign(primaryKeyPair)
+                                .build()
+                        )
+                    }
                     irohaTransactions.add(
-                        trueBatch[1]
+                        trueBatch[if (isBrvsEnabled) 2 else 1]
                             .sign(primaryKeyPair)
                             .build()
                     )
+                    irohaTransactions
                 }
-                irohaTransactions.add(newSignatoryTx.build())
-                irohaTransactions
-            }
         }
     }
 
