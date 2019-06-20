@@ -8,6 +8,7 @@ package com.d3.commons.sidechain.iroha.util
 import com.github.kittinunf.result.Result
 import iroha.protocol.QryResponses
 import iroha.protocol.TransactionOuterClass
+import java.util.*
 
 interface IrohaQueryHelper {
 
@@ -29,6 +30,21 @@ interface IrohaQueryHelper {
         storageAccountId: String,
         writerAccountId: String
     ): Result<Map<String, String>, Exception>
+
+
+    /**
+     * Retrieves account detail by setter and key from Iroha
+     * @param storageAccountId - account to read details from
+     * @param writerAccountId - account that has set the details
+     * @param key - key of detail
+     * @return optional detail
+     */
+    fun getAccountDetails(
+        storageAccountId: String,
+        writerAccountId: String,
+        key: String
+    ): Result<Optional<String>, Exception>
+
 
     /**
      * Get asset precision
