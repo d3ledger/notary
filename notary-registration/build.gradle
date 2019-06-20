@@ -43,7 +43,7 @@ dependencies {
 }
 
 task runRegistration(type: JavaExec) {
-    main = 'com.d3.commons.registration.RegistrationMain' 
+    main = mainClassName
     classpath = sourceSets.main.runtimeClasspath
     setWorkingDir("$rootDir/")
 }

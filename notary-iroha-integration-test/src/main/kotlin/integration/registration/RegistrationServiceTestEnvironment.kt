@@ -45,8 +45,9 @@ class RegistrationServiceTestEnvironment(private val integrationHelper: IrohaInt
         NotaryRegistrationStrategy(
             irohaConsumer,
             registrationConfig.clientStorageAccount,
-            registrationConfig.brvsAccount,
-            primaryKeyPair
+            registrationConfig.brvsAccount!!,
+            primaryKeyPair,
+            registrationConfig.isBrvsEnabled
         )
 
     val registrationInitialization =

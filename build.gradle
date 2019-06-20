@@ -6,6 +6,8 @@ buildscript {
     repositories {
         mavenCentral()
         jcenter()
+        // gradle plugins repository
+        gradlePluginPortal()
     }
     configurations.maybeCreate("pitest")
     dependencies {
@@ -20,6 +22,9 @@ buildscript {
     }
 }
 
+plugins {
+    id "com.github.dolgopolovwork.testreport" version "1"
+}
 
 group = 'd3'
 version = '1.0-SNAPSHOT'
@@ -30,6 +35,13 @@ apply plugin: "jacoco"
 apply plugin: 'info.solidsoft.pitest'
 apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'org.sonarqube'
+
+testReport {
+    testFolders = Arrays.asList(
+            "notary-iroha-integration-test",
+            "notary-sora-integration-test",
+            "notifications-integration-test")
+}
 
 allprojects {
     apply plugin: 'java'

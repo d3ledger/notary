@@ -32,7 +32,7 @@ private const val DEFAULT_LAST_READ_BLOCK = -1L
  * @param autoAck - enables auto acknowledgment
  * @param onRmqFail - function that will be called on RMQ failure. Terminates process by default.
  */
-class ReliableIrohaChainListener(
+class ReliableIrohaChainListener @JvmOverloads constructor(
     private val rmqConfig: RMQConfig,
     private val irohaQueue: String,
     private val consumerExecutorService: ExecutorService = createPrettySingleThreadPool(

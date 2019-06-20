@@ -12,14 +12,12 @@ import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.sidechain.iroha.consumer.IrohaConverter
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.fanout
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import iroha.protocol.Primitive
 import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.java.Utils
 import mu.KLogging
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import java.security.KeyPair
@@ -29,10 +27,11 @@ import java.security.KeyPair
  */
 @Component
 class NotaryRegistrationStrategy(
-    @Autowired private val irohaConsumer: IrohaConsumer,
-    @Autowired @Qualifier("clientStorageAccount") private val clientStorageAccount: String,
-    @Autowired @Qualifier("brvsAccount") private val brvsAccount: String,
-    @Autowired @Qualifier("primaryKeyPair") private val primaryKeyPair: KeyPair
+    private val irohaConsumer: IrohaConsumer,
+    @Qualifier("clientStorageAccount") private val clientStorageAccount: String,
+    @Qualifier("brvsAccount") private val brvsAccount: String,
+    @Qualifier("primaryKeyPair") private val primaryKeyPair: KeyPair,
+    private val isBrvsEnabled: Boolean
 ) : RegistrationStrategy {
 
     /**
@@ -60,7 +59,7 @@ class NotaryRegistrationStrategy(
     }
 
     /**
-     * Creates the registration batch allowing BRVS receive needed power relatively to the user
+     * Creates the registration batch allowing BRVS receive needed power relatively to the user if needed
      */
     private fun createRegistrationBatch(
         name: String,
@@ -69,25 +68,29 @@ class NotaryRegistrationStrategy(
     ): Result<List<TransactionOuterClass.Transaction>, Exception> {
         val newUserAccountId = "$name@$domain"
 
-        val irohaBatch = IrohaOrderedBatch(
-            listOf(
-                // First step is to create user account but with our own key, not user's one
-                IrohaTransaction(
-                    irohaConsumer.creator,
-                    ModelUtil.getCurrentTime(),
-                    listOf(
-                        IrohaCommand.CommandCreateAccount(
-                            name,
-                            domain,
-                            Utils.toHex(primaryKeyPair.public.encoded)
-                        ),
-                        IrohaCommand.CommandSetAccountDetail(
-                            clientStorageAccount,
-                            "$name$domain",
-                            domain
-                        )
+        val transactions = ArrayList<IrohaTransaction>()
+
+        transactions.add(
+            // First step is to create user account but with our own key, not user's one
+            IrohaTransaction(
+                irohaConsumer.creator,
+                ModelUtil.getCurrentTime(),
+                listOf(
+                    IrohaCommand.CommandCreateAccount(
+                        name,
+                        domain,
+                        Utils.toHex(primaryKeyPair.public.encoded)
+                    ),
+                    IrohaCommand.CommandSetAccountDetail(
+                        clientStorageAccount,
+                        "$name$domain",
+                        domain
                     )
-                ),
+                )
+            )
+        )
+        if (isBrvsEnabled) {
+            transactions.add(
                 // Second step is to give permissions from the user to brvs and registration service
                 // Here we need our own key to sign this stuff
                 IrohaTransaction(
@@ -119,46 +122,42 @@ class NotaryRegistrationStrategy(
                             Primitive.GrantablePermission.can_remove_my_signatory_VALUE
                         )
                     )
-                ),
-                // Finally we need to add user's original pub key to the signatories list
-                // But we need to increase user's quorum to prohibit transactions using only user's key
-                // Several moments later BRVS react on the createAccountTransaction and
-                // user's quorum will be set as 1+2/3 of BRVS instances for now
-                IrohaTransaction(
-                    irohaConsumer.creator,
-                    ModelUtil.getCurrentTime(),
-                    listOf(
-                        IrohaCommand.CommandAddSignatory(
-                            newUserAccountId,
-                            pubkey
-                        ),
-                        IrohaCommand.CommandSetAccountQuorum(
-                            newUserAccountId,
-                            2
-                        )
-                    )
                 )
             )
+        }
+        transactions.add(
+            // Finally we need to add user's original pub key to the signatories list
+            // But we need to increase user's quorum to prohibit transactions using only user's key
+            // Several moments later BRVS react on the createAccountTransaction and
+            // user's quorum will be set as 1+2/3 of BRVS instances for now
+            getSignatoryTx(newUserAccountId, pubkey)
         )
+
+        val irohaBatch = IrohaOrderedBatch(transactions)
 
         return Result.of {
             IrohaConverter.convertToUnsignedBatch(irohaBatch)
         }.flatMap { trueBatch ->
             irohaConsumer.sign(
                 trueBatch[0]
-            ).fanout {
-                irohaConsumer.sign(
-                    trueBatch[2]
-                )
-            }.map { (createAccountTx, newSignatoryTx) ->
-                listOf<TransactionOuterClass.Transaction>(
-                    createAccountTx.build(),
-                    trueBatch[1]
-                        .sign(primaryKeyPair)
-                        .build(),
-                    newSignatoryTx.build()
-                )
-            }
+            )
+                .map { createAccountTx ->
+                    val irohaTransactions = ArrayList<TransactionOuterClass.Transaction>()
+                    irohaTransactions.add(createAccountTx.build())
+                    if (isBrvsEnabled) {
+                        irohaTransactions.add(
+                            trueBatch[1]
+                                .sign(primaryKeyPair)
+                                .build()
+                        )
+                    }
+                    irohaTransactions.add(
+                        trueBatch[if (isBrvsEnabled) 2 else 1]
+                            .sign(primaryKeyPair)
+                            .build()
+                    )
+                    irohaTransactions
+                }
         }
     }
 
@@ -166,8 +165,33 @@ class NotaryRegistrationStrategy(
         return Result.of { throw Exception("not supported") }
     }
 
+    private fun getSignatoryTx(accountId: String, publicKey: String): IrohaTransaction {
+        val commands = ArrayList<IrohaCommand>()
+        commands.add(
+            IrohaCommand.CommandAddSignatory(
+                accountId,
+                publicKey
+            )
+        )
+        if (isBrvsEnabled) {
+            commands.add(
+                IrohaCommand.CommandSetAccountQuorum(
+                    accountId,
+                    DEFAULT_BRVS_QUORUM
+                )
+            )
+        }
+        return IrohaTransaction(
+            accountId,
+            ModelUtil.getCurrentTime(),
+            commands
+        )
+    }
+
     /**
      * Logger
      */
-    companion object : KLogging()
+    companion object : KLogging() {
+        const val DEFAULT_BRVS_QUORUM = 2
+    }
 }

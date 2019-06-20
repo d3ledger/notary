@@ -97,7 +97,51 @@
                 "createRole": {
                   "roleName": "admin",
                   "permissions": [
-                    "can_get_all_accounts"
+                    "can_create_account",
+                    "can_set_detail",
+                    "can_create_asset",
+                    "can_receive",
+                    "can_transfer",
+                    "can_add_asset_qty",
+                    "can_subtract_asset_qty",
+                    "can_add_domain_asset_qty",
+                    "can_subtract_domain_asset_qty",
+                    "can_create_domain",
+                    "can_grant_can_add_my_signatory",
+                    "can_grant_can_remove_my_signatory",
+                    "can_grant_can_set_my_account_detail",
+                    "can_grant_can_set_my_quorum",
+                    "can_grant_can_transfer_my_assets",
+                    "can_add_peer",
+                    "can_append_role",
+                    "can_create_role",
+                    "can_detach_role",
+                    "can_add_signatory",
+                    "can_remove_signatory",
+                    "can_set_quorum",
+                    "can_get_all_acc_detail",
+                    "can_get_all_accounts",
+                    "can_get_domain_acc_detail",
+                    "can_get_domain_accounts",
+                    "can_get_my_acc_detail",
+                    "can_get_my_account",
+                    "can_get_all_acc_ast",
+                    "can_get_domain_acc_ast",
+                    "can_get_my_acc_ast",
+                    "can_get_all_acc_ast_txs",
+                    "can_get_domain_acc_ast_txs",
+                    "can_get_my_acc_ast_txs",
+                    "can_get_all_acc_txs",
+                    "can_get_domain_acc_txs",
+                    "can_get_my_acc_txs",
+                    "can_read_assets",
+                    "can_get_blocks",
+                    "can_get_roles",
+                    "can_get_all_signatories",
+                    "can_get_domain_signatories",
+                    "can_get_my_signatories",
+                    "can_get_all_txs",
+                    "can_get_my_txs"
                   ]
                 }
               },
@@ -331,6 +375,12 @@
                     "can_set_quorum",
                     "can_set_detail"
                   ]
+                }
+              },
+              {
+                "createDomain": {
+                  "domainId": "test",
+                  "defaultRole": "none"
                 }
               },
               {
@@ -870,6 +920,80 @@
                   "accountName": "dapp_accounts",
                   "domainId": "dapp",
                   "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
+                }
+              },
+              {
+                "createRole": {
+                  "roleName": "billing",
+                  "permissions": [
+                    "can_transfer",
+                    "can_receive"
+                  ]
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "transfer_billing",
+                  "domainId": "d3",
+                  "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "custody_billing",
+                  "domainId": "d3",
+                  "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "account_creation_billing",
+                  "domainId": "d3",
+                  "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "exchange_billing",
+                  "domainId": "d3",
+                  "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "withdrawal_billing",
+                  "domainId": "d3",
+                  "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "transfer_billing@d3",
+                  "roleName": "billing"
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "custody_billing@d3",
+                  "roleName": "billing"
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "account_creation_billing@d3",
+                  "roleName": "billing"
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "exchange_billing@d3",
+                  "roleName": "billing"
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "withdrawal_billing@d3",
+                  "roleName": "billing"
                 }
               }
             ],

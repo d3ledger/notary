@@ -52,7 +52,7 @@ class NotaryRegistrationAppConfiguration {
     fun clientStorageAccount() = registrationConfig().clientStorageAccount
 
     @Bean
-    fun brvsAccount() = registrationConfig().brvsAccount
+    fun brvsAccount() = registrationConfig().brvsAccount ?: ""
 
     @Bean
     fun primaryKeyPair() =
@@ -60,4 +60,7 @@ class NotaryRegistrationAppConfiguration {
             registrationConfig.primaryPubkey,
             registrationConfig.primaryPrivkey
         )
+
+    @Bean
+    fun isBrvsEnabled() = registrationConfig.isBrvsEnabled
 }

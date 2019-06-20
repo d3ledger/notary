@@ -1,10 +1,9 @@
-group 'd3'
-version '1.0'
-
 buildscript {
     repositories {
         mavenCentral()
         jcenter()
+        // gradle plugins repository
+        gradlePluginPortal()
     }
     dependencies {
         //Spring-boot
@@ -12,21 +11,46 @@ buildscript {
     }
 }
 
+plugins {
+    id 'jp.co.soramitsu.sora-plugin' version '0.1.2'
+}
+
 apply plugin: 'application'
 apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
 apply plugin: 'com.github.johnrengelman.shadow'
+
+mainClassName = "jp.co.soramitsu.bootstrap.BootstrapMain"
 shadowDistZip.classifier = 'shadow'
 shadowDistTar.classifier = 'shadow'
+// name of jar file that the shadowJar plugin generates
+shadowJar.archiveName = 'app.jar'
+
+// sora-plugin configs
+soramitsu {
+    projectGroup = 'd3-deploy'
+    docker {
+        // docker tag
+        tag = System.getenv("TAG")
+        // jar file that is used in the generated Dockerfile
+        jar = new File("build/libs/app.jar")
+        // the rest in configured using env variables
+    }
+}
+
+shadowJar {
+    zip64 true
+}
 
 dependencies {
 
     final def springfoxSwagger2Version = '2.9.2'
     final def springBootVersion = '2.1.3.RELEASE'
     final def kotlinVersion = '1.3.10'
+    final def d3EthVersion = '0.0.1-snapshot'
 
     implementation project(":notary-commons")
     //TODO change version after release
-    implementation "com.github.d3ledger.d3-eth:eth:8cb3237c2d"
+    implementation "com.github.d3ledger.d3-eth:eth:$d3EthVersion"
 
     // kotlin related
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
@@ -52,7 +76,7 @@ dependencies {
     implementation "io.springfox:springfox-swagger-ui:$springfoxSwagger2Version"
 
     // Changelog interface
-    compile 'com.github.d3ledger:bootstrap-changelog:1'
+    compile 'com.github.d3ledger.bootstrap-changelog:changelog-interface:72b15aabbcfaa88176617444ea36a201b0b347b7'
 
     //TODO this is very dirty hack. This dependency must be removed after migration to newer version of Spring Boot
     // https://mvnrepository.com/artifact/org.hibernate/hibernate-validator
@@ -75,9 +99,6 @@ dependencies {
 }
 
 sourceCompatibility = 1.8
-
-
-mainClassName = "jp.co.soramitsu.bootstrap.BootstrapMain"
 
 task runBootstrap(type: JavaExec ) {
     main = mainClassName

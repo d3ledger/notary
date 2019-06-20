@@ -17,6 +17,9 @@ interface NotaryRegistrationConfig {
     /** Registration service port */
     val port: Int
 
+    /** Registration service Iroha domain */
+    val domain: String?
+
     /** Iroha configs */
     val iroha: IrohaConfig
 
@@ -26,8 +29,11 @@ interface NotaryRegistrationConfig {
     /** Iroha account to store clients */
     val clientStorageAccount: String
 
+    /** Property indicating if a brvs used in the system **/
+    val isBrvsEnabled: Boolean
+
     /** Iroha account of validator service */
-    val brvsAccount: String
+    val brvsAccount: String?
 
     /** Fake pubkey to register user accounts with first**/
     val primaryPubkey: String

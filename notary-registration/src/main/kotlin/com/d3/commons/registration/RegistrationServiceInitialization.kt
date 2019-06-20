@@ -17,8 +17,8 @@ import org.springframework.stereotype.Component
  */
 @Component
 class RegistrationServiceInitialization(
-    @Autowired private val registrationConfig: NotaryRegistrationConfig,
-    @Autowired private val registrationStrategy: RegistrationStrategy
+    private val registrationConfig: NotaryRegistrationConfig,
+    private val registrationStrategy: RegistrationStrategy
 ) {
 
     /**
@@ -29,7 +29,8 @@ class RegistrationServiceInitialization(
         return Result.of {
             RegistrationServiceEndpoint(
                 registrationConfig.port,
-                registrationStrategy
+                registrationStrategy,
+                registrationConfig.domain
             )
             Unit
         }
