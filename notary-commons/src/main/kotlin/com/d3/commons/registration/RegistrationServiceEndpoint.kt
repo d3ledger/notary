@@ -172,5 +172,5 @@ class RegistrationServiceEndpoint(
 data class UserDto(
     val name: String,
     val pubkey: String,
-    val domain: String
+    val domain: String?
 )
