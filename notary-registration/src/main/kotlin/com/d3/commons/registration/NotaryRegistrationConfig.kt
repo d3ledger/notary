@@ -17,6 +17,9 @@ interface NotaryRegistrationConfig {
     /** Registration service port */
     val port: Int
 
+    /** Registration service Iroha domain */
+    val domain: String?
+
     /** Iroha configs */
     val iroha: IrohaConfig
 

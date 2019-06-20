@@ -29,7 +29,8 @@ class RegistrationServiceInitialization(
         return Result.of {
             RegistrationServiceEndpoint(
                 registrationConfig.port,
-                registrationStrategy
+                registrationStrategy,
+                registrationConfig.domain
             )
             Unit
         }
