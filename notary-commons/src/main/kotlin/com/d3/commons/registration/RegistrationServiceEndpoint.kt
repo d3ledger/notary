@@ -32,8 +32,15 @@ data class Response(val code: HttpStatusCode, val message: String)
  */
 class RegistrationServiceEndpoint(
     port: Int,
-    private val registrationStrategy: RegistrationStrategy
+    private val registrationStrategy: RegistrationStrategy,
+    private val domain: String?
 ) {
+    constructor(port: Int, registrationStrategy: RegistrationStrategy) : this(
+        port,
+        registrationStrategy,
+        null
+    )
+
     // Moshi adapter for response serialization
     val moshiAdapter = Moshi.Builder().build()!!.adapter(Map::class.java)!!
 
@@ -55,7 +62,7 @@ class RegistrationServiceEndpoint(
                     val parameters = call.receiveParameters()
                     val name = parameters["name"]
                     val pubkey = parameters["pubkey"]
-                    val domain = parameters["domain"] ?: CLIENT_DOMAIN
+                    val domain = domain ?: parameters["domain"] ?: CLIENT_DOMAIN
 
                     val response = invokeRegistration(name, domain, pubkey)
                     call.respondText(
@@ -69,7 +76,7 @@ class RegistrationServiceEndpoint(
                     val body = call.receive(UserDto::class)
                     val name = body.name
                     val pubkey = body.pubkey
-                    val domain = body.domain ?: CLIENT_DOMAIN
+                    val domain = domain ?: body.domain ?: CLIENT_DOMAIN
 
                     val response = invokeRegistration(name, domain, pubkey)
                     call.respondText(
@@ -98,7 +105,7 @@ class RegistrationServiceEndpoint(
 
     private fun invokeRegistration(
         name: String?,
-        domain: String,
+        domain: String?,
         pubkey: String?
     ): Response {
         logger.info { "Registration invoked with parameters (name = \"$name\", domain = \"$domain\", pubkey = \"$pubkey\"" }
@@ -116,17 +123,17 @@ class RegistrationServiceEndpoint(
         pubkey: String?
     ): Response {
         var reason = ""
-        if (name == null) reason = reason.plus("Parameter \"name\" is not specified. ")
-        val clientDomain = domain ?: CLIENT_DOMAIN
-        if (pubkey == null) reason = reason.plus("Parameter \"pubkey\" is not specified.")
+        if (name.isNullOrEmpty()) reason = reason.plus("Parameter \"name\" is not specified. ")
+        if (domain.isNullOrEmpty()) reason = reason.plus("Parameter \"domain\" is not specified. ")
+        if (pubkey.isNullOrEmpty()) reason = reason.plus("Parameter \"pubkey\" is not specified.")
 
-        if (name == null || pubkey == null) {
+        if (name.isNullOrEmpty() || domain.isNullOrEmpty() || pubkey.isNullOrEmpty()) {
             return responseError(HttpStatusCode.BadRequest, reason)
         }
-        registrationStrategy.register(name, clientDomain, pubkey).fold(
+        registrationStrategy.register(name, domain, pubkey).fold(
             { address ->
                 logger.info {
-                    "Client $name@$clientDomain was successfully registered with address $address"
+                    "Client $name@$domain was successfully registered with address $address"
                 }
 
                 val response = mapOf("clientId" to address)
@@ -165,5 +172,5 @@ class RegistrationServiceEndpoint(
 data class UserDto(
     val name: String,
     val pubkey: String,
-    val domain: String?
+    val domain: String
 )
