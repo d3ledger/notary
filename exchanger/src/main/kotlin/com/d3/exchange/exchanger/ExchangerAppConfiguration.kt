@@ -10,11 +10,9 @@ import com.d3.commons.config.loadRawLocalConfigs
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
-import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.util.createPrettySingleThreadPool
 import jp.co.soramitsu.iroha.java.IrohaAPI
-import jp.co.soramitsu.iroha.java.Utils
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -35,14 +33,9 @@ const val EXCHANGER_SERVICE_NAME = "exchanger-service"
 @Configuration
 class ExchangerAppConfiguration {
 
-    private final val keyPair = Utils.parseHexKeypair(
-        exchangerConfig.irohaCredential.pubkey,
-        exchangerConfig.irohaCredential.privkey
-    )
-
     /** Exchanger service credentials */
     private val exchangerCredential =
-        IrohaCredential(exchangerConfig.irohaCredential.accountId, keyPair)
+        IrohaCredential(exchangerConfig.irohaCredential)
 
     /** Iroha network connection */
     @Bean
@@ -66,7 +59,7 @@ class ExchangerAppConfiguration {
 
     @Bean
     fun queryhelper() =
-        IrohaQueryHelperImpl(irohaAPI(), exchangerConfig.irohaCredential.accountId, keyPair)
+        IrohaQueryHelperImpl(irohaAPI(), IrohaCredential(exchangerConfig.irohaCredential))
 
     @Bean
     fun liquidityProviders() = exchangerConfig.liquidityProviders.split(",").toList()

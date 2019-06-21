@@ -5,6 +5,7 @@
 
 package com.d3.commons.sidechain.iroha.util.impl
 
+import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
@@ -27,6 +28,14 @@ class IrohaQueryHelperImpl(val queryAPI: QueryAPI) : IrohaQueryHelper {
             irohaAPI,
             accountId,
             keyPair
+        )
+    )
+
+    constructor(irohaAPI: IrohaAPI, irohaCredential: IrohaCredential) : this(
+        QueryAPI(
+            irohaAPI,
+            irohaCredential.accountId,
+            irohaCredential.keyPair
         )
     )
 
