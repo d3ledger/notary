@@ -25,13 +25,8 @@ class RegistrationServiceTestEnvironment(private val integrationHelper: IrohaInt
     val registrationConfig =
         integrationHelper.configHelper.createRegistrationConfig(integrationHelper.accountHelper)
 
-    private val registrationKeyPair = Utils.parseHexKeypair(
-        registrationConfig.registrationCredential.pubkey,
-        registrationConfig.registrationCredential.privkey
-    )
-
     private val registrationCredentials =
-        IrohaCredential(registrationConfig.registrationCredential.accountId, registrationKeyPair)
+        IrohaCredential(registrationConfig.registrationCredential)
 
     private val irohaConsumer =
         IrohaConsumerImpl(registrationCredentials, integrationHelper.irohaAPI)

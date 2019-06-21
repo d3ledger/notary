@@ -5,7 +5,6 @@
 
 package integration.helper
 
-import com.d3.commons.config.IrohaCredentialConfig
 import com.d3.commons.config.IrohaCredentialRawConfig
 import com.d3.commons.config.loadConfigs
 import com.d3.commons.model.IrohaCredential
@@ -166,18 +165,6 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
     /** Account that exchanges tokens */
     val exchangerAccount by lazy {
         createTesterAccount("exchanger", "exchange")
-    }
-
-    // TODO this must be removed soon
-    fun createCredentialConfig(credential: IrohaCredential): IrohaCredentialConfig {
-        return object : IrohaCredentialConfig {
-            override val pubkeyPath: String
-                get() = testConfig.testCredentialConfig.pubkeyPath
-            override val privkeyPath: String
-                get() = testConfig.testCredentialConfig.privkeyPath
-            override val accountId: String
-                get() = credential.accountId
-        }
     }
 
     fun createCredentialRawConfig(credential: IrohaCredential): IrohaCredentialRawConfig {
