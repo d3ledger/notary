@@ -31,6 +31,7 @@ open class IrohaConfigHelper {
     /** Test configuration of Registration with runtime dependencies */
     fun createRegistrationConfig(accountHelper: IrohaAccountHelper): NotaryRegistrationConfig {
         return object : NotaryRegistrationConfig {
+            override val domain: String? = null
             override val port = portCounter.incrementAndGet()
             override val iroha = createIrohaConfig()
             override val registrationCredential =
