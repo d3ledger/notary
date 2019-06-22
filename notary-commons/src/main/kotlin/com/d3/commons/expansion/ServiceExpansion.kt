@@ -33,7 +33,7 @@ class ServiceExpansion(
      */
     fun expand(
         block: BlockOuterClass.Block,
-        expansionLogic: (ExpansionDetails) -> Unit = {}
+        expansionLogic: (ExpansionDetails, Long) -> Unit = { _, _ -> }
     ) {
         block.blockV1.payload.transactionsList
             // Get superuser transactions
@@ -52,7 +52,7 @@ class ServiceExpansion(
                 )
             }
             .forEach { expansionDetails ->
-                expansionLogic(expansionDetails)
+                expansionLogic(expansionDetails, block.blockV1.payload.createdTime)
             }
     }
 

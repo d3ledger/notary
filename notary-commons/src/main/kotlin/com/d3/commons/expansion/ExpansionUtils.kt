@@ -6,7 +6,6 @@
 package com.d3.commons.expansion
 
 import com.google.gson.Gson
-import jp.co.soramitsu.bootstrap.changelog.ExpansionDetails
 import jp.co.soramitsu.iroha.java.Transaction
 import jp.co.soramitsu.iroha.java.Utils
 
