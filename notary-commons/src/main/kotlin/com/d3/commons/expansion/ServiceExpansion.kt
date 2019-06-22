@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.commons.expansion
 
 import com.d3.commons.model.IrohaCredential
@@ -7,8 +12,6 @@ import com.d3.commons.util.unHex
 import com.google.gson.Gson
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
-import jp.co.soramitsu.bootstrap.changelog.ChangelogInterface
-import jp.co.soramitsu.bootstrap.changelog.ExpansionDetails
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.Transaction
 import mu.KLogging
@@ -16,10 +19,12 @@ import mu.KLogging
 /**
  * Service expansion class
  * @param expansionTriggerAccountId - account is used as an expansion trigger
+ * @param expansionTriggerCreatorAccountId - account id that creates an expansion trigger
  * @param irohaAPI - Iroha API
  */
 class ServiceExpansion(
     private val expansionTriggerAccountId: String,
+    private val expansionTriggerCreatorAccountId: String,
     private val irohaAPI: IrohaAPI
 ) {
 
@@ -38,11 +43,12 @@ class ServiceExpansion(
     ) {
         block.blockV1.payload.transactionsList
             // Get superuser transactions
-            .filter { tx -> tx.payload.reducedPayload.creatorAccountId == ChangelogInterface.superuserAccountId }
+            .filter { tx -> tx.payload.reducedPayload.creatorAccountId == expansionTriggerCreatorAccountId }
             // Get commands
             .flatMap { tx -> tx.payload.reducedPayload.commandsList }
             // Get set account details
-            .filter { command -> command.hasSetAccountDetail() }.map { command -> command.setAccountDetail }
+            .filter { command -> command.hasSetAccountDetail() }
+            .map { command -> command.setAccountDetail }
             // Get expansion details
             .filter { setAccountDetail -> isExpansionEvent(setAccountDetail) }
             .map { setAccountDetail ->
@@ -111,13 +117,12 @@ class ServiceExpansion(
         account: IrohaCredential,
         expansionDetails: ExpansionDetails, txTime: Long,
         currentQuorum: Int
-    ) =
-        Transaction.builder(account.accountId)
-            .addSignatory(account.accountId, String.unHex(expansionDetails.publicKey.toLowerCase()))
-            .setAccountQuorum(account.accountId, expansionDetails.quorum)
-            .setQuorum(currentQuorum)
-            .setCreatedTime(txTime)
-            .build()
+    ) = Transaction.builder(account.accountId)
+        .addSignatory(account.accountId, String.unHex(expansionDetails.publicKey.toLowerCase()))
+        .setAccountQuorum(account.accountId, expansionDetails.quorum)
+        .setQuorum(currentQuorum)
+        .setCreatedTime(txTime)
+        .build()
 
     /**
      * Checks if command is 'expansion' command

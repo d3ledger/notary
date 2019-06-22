@@ -162,6 +162,8 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
 
     val expansionTriggerAccount by lazy { createTesterAccount("expansion") }
 
+    val expansionCreatorAccount = ChangelogInterface.superuserAccountId
+
     /** Account that exchanges tokens */
     val exchangerAccount by lazy {
         createTesterAccount("exchanger", "exchange")
