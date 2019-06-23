@@ -11,14 +11,11 @@ import com.d3.commons.expansion.ServiceExpansion
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
-import com.d3.commons.sidechain.iroha.consumer.MultiSigIrohaConsumer
 import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.util.toHexString
-import com.d3.commons.util.unHex
 import com.github.kittinunf.result.failure
 import integration.helper.IrohaIntegrationHelperUtil
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
-import jp.co.soramitsu.iroha.java.Transaction
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
@@ -36,10 +33,6 @@ class ServiceExpansionTest {
         integrationHelperUtil.accountHelper.notaryAccount.keyPair
     )
 
-    val mstAccount =
-        integrationHelperUtil.accountHelper.makeAccountMst(integrationHelperUtil.accountHelper.notaryAccount)
-            .first()
-
     /**
      * Expansion logic that adds signatory to account
      */
@@ -48,17 +41,11 @@ class ServiceExpansionTest {
         expansionDetails: ExpansionDetails,
         triggerTime: Long
     ) {
-        val consumer = MultiSigIrohaConsumer(mstAccount, integrationHelperUtil.irohaAPI)
-        consumer.send(
-            Transaction.builder(expansionDetails.accountIdToExpand)
-                .addSignatory(
-                    expansionDetails.accountIdToExpand,
-                    String.unHex(expansionDetails.publicKey.toLowerCase())
-                )
-                .setAccountQuorum(mstAccount.accountId, expansionDetails.quorum)
-                .setQuorum(consumer.getConsumerQuorum().get())
-                .setCreatedTime(triggerTime)
-                .build()
+        ExpansionUtils.addSignatureExpansionLogic(
+            integrationHelperUtil.irohaAPI,
+            mstAccount,
+            expansionDetails,
+            triggerTime
         ).failure { ex -> throw ex }
     }
 

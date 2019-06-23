@@ -5,13 +5,45 @@
 
 package com.d3.commons.expansion
 
+import com.d3.commons.model.IrohaCredential
+import com.d3.commons.sidechain.iroha.consumer.MultiSigIrohaConsumer
+import com.d3.commons.util.unHex
+import com.github.kittinunf.result.Result
 import com.google.gson.Gson
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.Transaction
 import jp.co.soramitsu.iroha.java.Utils
 
 object ExpansionUtils {
 
     private val gson = Gson()
+
+    /**
+     * Expansion logic that adds signature to the account passed in [expansionDetails]
+     * @param irohaAPI - iroha API
+     * @param mstAccount - credentials of account that adds signatories
+     * @param expansionDetails - expansions details that contain account id to expand
+     * @param triggerTime - time of transaction that is used in multisig
+     */
+    fun addSignatureExpansionLogic(
+        irohaAPI: IrohaAPI,
+        mstAccount: IrohaCredential,
+        expansionDetails: ExpansionDetails,
+        triggerTime: Long
+    ): Result<String, Exception> {
+        val consumer = MultiSigIrohaConsumer(mstAccount, irohaAPI)
+        return consumer.send(
+            Transaction.builder(expansionDetails.accountIdToExpand)
+                .addSignatory(
+                    expansionDetails.accountIdToExpand,
+                    String.unHex(expansionDetails.publicKey.toLowerCase())
+                )
+                .setAccountQuorum(mstAccount.accountId, expansionDetails.quorum)
+                .setQuorum(consumer.getConsumerQuorum().get())
+                .setCreatedTime(triggerTime)
+                .build()
+        )
+    }
 
     /**
      * Creates transaction that triggers the expansion process
