@@ -45,6 +45,7 @@ class ServiceExpansionTest {
         ).getBlockObservable().get().subscribe { block ->
             ServiceExpansion(
                 integrationHelperUtil.accountHelper.expansionTriggerAccount.accountId,
+                integrationHelperUtil.accountHelper.expansionCreatorAccount,
                 integrationHelperUtil.irohaAPI
             ).expand(block, listOf(accountToExpand))
         }

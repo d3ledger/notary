@@ -5,6 +5,7 @@
 
 package com.d3.commons.sidechain.iroha.util.impl
 
+import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
@@ -16,17 +17,25 @@ import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import java.security.KeyPair
+import java.util.*
 
 /**
  * The purpose of the class is to hide Iroha query implementation.
  */
 class IrohaQueryHelperImpl(val queryAPI: QueryAPI) : IrohaQueryHelper {
-
     constructor(irohaAPI: IrohaAPI, accountId: String, keyPair: KeyPair) : this(
         QueryAPI(
             irohaAPI,
             accountId,
             keyPair
+        )
+    )
+
+    constructor(irohaAPI: IrohaAPI, irohaCredential: IrohaCredential) : this(
+        QueryAPI(
+            irohaAPI,
+            irohaCredential.accountId,
+            irohaCredential.keyPair
         )
     )
 
@@ -58,10 +67,29 @@ class IrohaQueryHelperImpl(val queryAPI: QueryAPI) : IrohaQueryHelper {
         return Result.of { queryAPI.getAccountDetails(storageAccountId, writerAccountId, null) }
             .flatMap { str -> parseAccountDetailsJson(str) }
             .map { details ->
-                if (details.get(writerAccountId) == null)
+                if (details[writerAccountId] == null)
                     emptyMap()
                 else
                     details.getOrDefault(writerAccountId, emptyMap())
+            }
+    }
+
+    /** {@inheritDoc} */
+    override fun getAccountDetails(
+        storageAccountId: String,
+        writerAccountId: String,
+        key: String
+    ): Result<Optional<String>, Exception> {
+        return Result.of { queryAPI.getAccountDetails(storageAccountId, writerAccountId, null) }
+            .flatMap { str -> parseAccountDetailsJson(str) }
+            .map { details ->
+                val result: String?
+                if (details[writerAccountId] == null) {
+                    result = null
+                } else {
+                    result = details.getOrDefault(writerAccountId, emptyMap())[key]
+                }
+                Optional.ofNullable(result)
             }
     }
 

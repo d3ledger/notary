@@ -26,14 +26,9 @@ val registrationConfig =
 @Configuration
 class NotaryRegistrationAppConfiguration {
 
-    private val registrationKeyPair = Utils.parseHexKeypair(
-        registrationConfig.registrationCredential.pubkey,
-        registrationConfig.registrationCredential.privkey
-    )
-
     /** Registartion service credentials */
     private val registrationCredential =
-        IrohaCredential(registrationConfig.registrationCredential.accountId, registrationKeyPair)
+        IrohaCredential(registrationConfig.registrationCredential)
 
     /** Iroha network connection */
     @Bean
