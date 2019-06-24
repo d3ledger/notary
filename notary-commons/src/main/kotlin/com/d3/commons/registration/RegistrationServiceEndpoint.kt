@@ -77,7 +77,7 @@ class RegistrationServiceEndpoint(
                     val name = body.name
                     val pubkey = body.pubkey
                     val domain = determineDomain(domain, body.domain, CLIENT_DOMAIN)
-                    
+
                     val response = invokeRegistration(name, domain, pubkey)
                     call.respondText(
                         response.message,
