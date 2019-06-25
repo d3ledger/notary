@@ -376,7 +376,21 @@ object D3TestContext {
         builder.createRole(
             "admin",
             listOf(
-                Primitive.RolePermission.can_get_all_accounts
+                Primitive.RolePermission.can_get_all_accounts,
+                Primitive.RolePermission.can_create_account,
+                Primitive.RolePermission.can_set_detail,
+                Primitive.RolePermission.can_create_asset,
+                Primitive.RolePermission.can_create_domain,
+                Primitive.RolePermission.can_get_all_acc_detail,
+                Primitive.RolePermission.can_get_all_acc_ast,
+                Primitive.RolePermission.can_get_all_acc_ast_txs,
+                Primitive.RolePermission.can_get_all_acc_txs,
+                Primitive.RolePermission.can_read_assets,
+                Primitive.RolePermission.can_get_blocks,
+                Primitive.RolePermission.can_get_all_signatories,
+                Primitive.RolePermission.can_get_all_txs,
+                Primitive.RolePermission.can_add_asset_qty,
+                Primitive.RolePermission.can_subtract_asset_qty
             )
         )
     }
