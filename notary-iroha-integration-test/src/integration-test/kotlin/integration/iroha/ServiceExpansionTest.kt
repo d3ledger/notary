@@ -61,7 +61,13 @@ class ServiceExpansionTest {
                 integrationHelperUtil.accountHelper.expansionTriggerAccount.accountId,
                 integrationHelperUtil.accountHelper.expansionCreatorAccount,
                 integrationHelperUtil.irohaAPI
-            ).expand(block) { details, time -> expansionLogic(accountToExpand, details, time) }
+            ).expand(block) { details, hash, time ->
+                expansionLogic(
+                    accountToExpand,
+                    details,
+                    time
+                )
+            }
         }
     }
 

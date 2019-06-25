@@ -5,11 +5,13 @@
 
 package com.d3.commons.expansion
 
+import com.d3.commons.util.hex
 import com.d3.commons.util.irohaUnEscape
 import com.google.gson.Gson
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
 import jp.co.soramitsu.iroha.java.IrohaAPI
+import jp.co.soramitsu.iroha.java.Utils
 import mu.KLogging
 
 /**
@@ -33,11 +35,15 @@ class ServiceExpansion(
      */
     fun expand(
         block: BlockOuterClass.Block,
-        expansionLogic: (ExpansionDetails, Long) -> Unit = { _, _ -> }
+        expansionLogic: (ExpansionDetails, String, Long) -> Unit = { _, _, _ -> }
     ) {
+        var txHash = ""
         block.blockV1.payload.transactionsList
             // Get superuser transactions
-            .filter { tx -> tx.payload.reducedPayload.creatorAccountId == expansionTriggerCreatorAccountId }
+            .filter { tx ->
+                txHash = String.hex(Utils.hash(tx))
+                tx.payload.reducedPayload.creatorAccountId == expansionTriggerCreatorAccountId
+            }
             // Get commands
             .flatMap { tx -> tx.payload.reducedPayload.commandsList }
             // Get set account details
@@ -52,10 +58,9 @@ class ServiceExpansion(
                 )
             }
             .forEach { expansionDetails ->
-                expansionLogic(expansionDetails, block.blockV1.payload.createdTime)
+                expansionLogic(expansionDetails, txHash, block.blockV1.payload.createdTime)
             }
     }
-
 
     /**
      * Checks if command is 'expansion' command
