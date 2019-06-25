@@ -133,9 +133,9 @@ class RegistrationServiceEndpoint(
         var reason = ""
         if (name.isNullOrEmpty()) reason = reason.plus("Parameter \"name\" is not specified. ")
         if (domain.isNullOrEmpty()) reason = reason.plus("Parameter \"domain\" is not specified. ")
-        if (pubkey.isNullOrEmpty()) reason = reason.plus("Parameter \"pubkey\" is not specified.")
+        if (pubkey == null) reason = reason.plus("Parameter \"pubkey\" is not specified.")
 
-        if (name.isNullOrEmpty() || domain.isNullOrEmpty() || pubkey.isNullOrEmpty()) {
+        if (name.isNullOrEmpty() || domain.isNullOrEmpty() || pubkey == null) {
             return responseError(HttpStatusCode.BadRequest, reason)
         }
         registrationStrategy.register(name, domain, pubkey).fold(
