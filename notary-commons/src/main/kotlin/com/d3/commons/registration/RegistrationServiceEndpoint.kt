@@ -62,7 +62,7 @@ class RegistrationServiceEndpoint(
                     val parameters = call.receiveParameters()
                     val name = parameters["name"]
                     val pubkey = parameters["pubkey"]
-                    val domain = domain ?: parameters["domain"] ?: CLIENT_DOMAIN
+                    val domain = determineDomain(domain, parameters["domain"], CLIENT_DOMAIN)
 
                     val response = invokeRegistration(name, domain, pubkey)
                     call.respondText(
@@ -76,7 +76,7 @@ class RegistrationServiceEndpoint(
                     val body = call.receive(UserDto::class)
                     val name = body.name
                     val pubkey = body.pubkey
-                    val domain = domain ?: body.domain ?: CLIENT_DOMAIN
+                    val domain = determineDomain(domain, body.domain, CLIENT_DOMAIN)
 
                     val response = invokeRegistration(name, domain, pubkey)
                     call.respondText(
@@ -103,6 +103,14 @@ class RegistrationServiceEndpoint(
         server.start(wait = false)
     }
 
+    private fun determineDomain(vararg candidates: String?) =
+        try {
+            candidates.first { domainCandidate -> !domainCandidate.isNullOrBlank() }!!
+        } catch (e: NoSuchElementException) {
+            logger.error("All passed domains were invalid: $candidates", e)
+            throw IllegalArgumentException("All passed domains were invalid: $candidates", e)
+        }
+
     private fun invokeRegistration(
         name: String?,
         domain: String?,
@@ -125,9 +133,9 @@ class RegistrationServiceEndpoint(
         var reason = ""
         if (name.isNullOrEmpty()) reason = reason.plus("Parameter \"name\" is not specified. ")
         if (domain.isNullOrEmpty()) reason = reason.plus("Parameter \"domain\" is not specified. ")
-        if (pubkey.isNullOrEmpty()) reason = reason.plus("Parameter \"pubkey\" is not specified.")
+        if (pubkey == null) reason = reason.plus("Parameter \"pubkey\" is not specified.")
 
-        if (name.isNullOrEmpty() || domain.isNullOrEmpty() || pubkey.isNullOrEmpty()) {
+        if (name.isNullOrEmpty() || domain.isNullOrEmpty() || pubkey == null) {
             return responseError(HttpStatusCode.BadRequest, reason)
         }
         registrationStrategy.register(name, domain, pubkey).fold(

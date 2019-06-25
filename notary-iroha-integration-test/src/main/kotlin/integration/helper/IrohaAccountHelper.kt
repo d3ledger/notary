@@ -175,7 +175,7 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
     /**
      * Creates randomly named tester account in Iroha
      */
-    private fun createTesterAccount(prefix: String, vararg roleName: String): IrohaCredential {
+    fun createTesterAccount(prefix: String, vararg roleName: String): IrohaCredential {
         val name = prefix + "_${String.getRandomString(9)}"
         val domain = "notary"
         // TODO - Bulat - generate new keys for account?
