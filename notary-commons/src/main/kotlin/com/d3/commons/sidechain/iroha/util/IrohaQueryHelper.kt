@@ -21,6 +21,14 @@ interface IrohaQueryHelper {
     fun getAccount(accountId: String): Result<QryResponses.AccountResponse, Exception>
 
     /**
+     * Get signatories of an account
+     * @param accountId - account to retrieve
+     * @throws Exception if response contains error
+     * @return account
+     */
+    fun getSignatories(accountId: String): Result<List<String>, Exception>
+
+    /**
      * Retrieves account details by setter from Iroha
      * @param storageAccountId - account to read details from
      * @param writerAccountId - account that has set the details
