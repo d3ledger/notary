@@ -46,7 +46,7 @@ class ServiceExpansionTest {
             mstAccount,
             expansionDetails,
             triggerTime
-        ).failure { ex -> throw ex }
+        )
     }
 
     /**

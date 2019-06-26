@@ -8,7 +8,7 @@ package com.d3.commons.expansion
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.consumer.MultiSigIrohaConsumer
 import com.d3.commons.util.unHex
-import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.failure
 import com.google.gson.Gson
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.Transaction
@@ -30,19 +30,21 @@ object ExpansionUtils {
         mstAccount: IrohaCredential,
         expansionDetails: ExpansionDetails,
         triggerTime: Long
-    ): Result<String, Exception> {
-        val consumer = MultiSigIrohaConsumer(mstAccount, irohaAPI)
-        return consumer.send(
-            Transaction.builder(expansionDetails.accountIdToExpand)
-                .addSignatory(
-                    expansionDetails.accountIdToExpand,
-                    String.unHex(expansionDetails.publicKey.toLowerCase())
-                )
-                .setAccountQuorum(mstAccount.accountId, expansionDetails.quorum)
-                .setQuorum(consumer.getConsumerQuorum().get())
-                .setCreatedTime(triggerTime)
-                .build()
-        )
+    ) {
+        if (mstAccount.accountId == expansionDetails.accountIdToExpand) {
+            val consumer = MultiSigIrohaConsumer(mstAccount, irohaAPI)
+            consumer.send(
+                Transaction.builder(expansionDetails.accountIdToExpand)
+                    .addSignatory(
+                        expansionDetails.accountIdToExpand,
+                        String.unHex(expansionDetails.publicKey.toLowerCase())
+                    )
+                    .setAccountQuorum(mstAccount.accountId, expansionDetails.quorum)
+                    .setQuorum(consumer.getConsumerQuorum().get())
+                    .setCreatedTime(triggerTime)
+                    .build()
+            ).failure { throw it }
+        }
     }
 
     /**
