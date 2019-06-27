@@ -5,14 +5,50 @@
 
 package com.d3.commons.expansion
 
+import com.d3.commons.model.IrohaCredential
+import com.d3.commons.sidechain.iroha.consumer.MultiSigIrohaConsumer
+import com.d3.commons.util.unHex
 import com.google.gson.Gson
-import jp.co.soramitsu.bootstrap.changelog.ExpansionDetails
+import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.Transaction
 import jp.co.soramitsu.iroha.java.Utils
+import mu.KLogging
 
-object ExpansionUtils {
+object ExpansionUtils : KLogging() {
 
     private val gson = Gson()
+
+    /**
+     * Expansion logic that adds signature to the account passed in [expansionDetails]
+     * @param irohaAPI - iroha API
+     * @param mstAccount - credentials of account that adds signatories
+     * @param expansionDetails - expansions details that contain account id to expand
+     * @param triggerTime - time of transaction that is used in multisig
+     */
+    fun addSignatureExpansionLogic(
+        irohaAPI: IrohaAPI,
+        mstAccount: IrohaCredential,
+        expansionDetails: ExpansionDetails,
+        triggerTime: Long
+    ) {
+        if (mstAccount.accountId == expansionDetails.accountIdToExpand) {
+            val consumer = MultiSigIrohaConsumer(mstAccount, irohaAPI)
+            consumer.send(
+                Transaction.builder(expansionDetails.accountIdToExpand)
+                    .addSignatory(
+                        expansionDetails.accountIdToExpand,
+                        String.unHex(expansionDetails.publicKey.toLowerCase())
+                    )
+                    .setAccountQuorum(mstAccount.accountId, expansionDetails.quorum)
+                    .setQuorum(consumer.getConsumerQuorum().get())
+                    .setCreatedTime(triggerTime)
+                    .build()
+            ).fold(
+                { hash -> logger.info { "Expansion transaction with hash $hash was sent, expansion details: $expansionDetails" } },
+                { ex -> throw ex }
+            )
+        }
+    }
 
     /**
      * Creates transaction that triggers the expansion process

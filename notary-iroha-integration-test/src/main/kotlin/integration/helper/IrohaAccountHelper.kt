@@ -144,12 +144,7 @@ class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int 
     val tokenSetterAccount by lazy { createTesterAccount("eth_tokens", "eth_token_list_storage") }
 
     /** Account that used to store peers*/
-    val notaryListSetterAccount by lazy {
-        createTesterAccount(
-            "notary_setter",
-            "eth_token_list_storage"
-        )
-    }
+    val notaryListSetterAccount = notaryAccount
 
     val notaryListStorageAccount by lazy {
         createTesterAccount(

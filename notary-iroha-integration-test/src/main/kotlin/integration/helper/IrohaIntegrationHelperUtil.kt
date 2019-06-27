@@ -125,6 +125,13 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
     }
 
     /**
+     * Return signatories of an account.
+     */
+    fun getSignatories(accountId: String): List<String> {
+        return queryHelper.getSignatories(accountId).get()
+    }
+
+    /**
      * Names current thread
      * @param name - name of thread
      */

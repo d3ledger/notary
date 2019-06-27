@@ -60,6 +60,14 @@ class IrohaQueryHelperImpl(val queryAPI: QueryAPI) : IrohaQueryHelper {
     }
 
     /** {@inheritDoc} */
+    override fun getSignatories(accountId: String): Result<List<String>, Exception> {
+        return Result.of {
+            val sigs = queryAPI.getSignatories(accountId)
+            sigs.keysList
+        }
+    }
+
+    /** {@inheritDoc} */
     override fun getAccountDetails(
         storageAccountId: String,
         writerAccountId: String
