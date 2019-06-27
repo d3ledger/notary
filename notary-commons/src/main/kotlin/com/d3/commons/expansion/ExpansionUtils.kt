@@ -44,7 +44,7 @@ object ExpansionUtils : KLogging() {
                     .setCreatedTime(triggerTime)
                     .build()
             ).fold(
-                { hash -> logger.info { "Expansion transaction with hash $hash was sent" } },
+                { hash -> logger.info { "Expansion transaction with hash $hash was sent, expansion details: $expansionDetails" } },
                 { ex -> throw ex }
             )
         }
