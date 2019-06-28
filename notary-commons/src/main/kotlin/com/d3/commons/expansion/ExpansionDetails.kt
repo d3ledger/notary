@@ -17,7 +17,7 @@ class ExpansionDetails(
     val accountIdToExpand: String,
     val publicKey: String,
     val quorum: Int,
-    val additionalData: Map<String, String>
+    val additionalData: Map<String, String> = emptyMap()
 ) {
 
     override fun toString(): String {

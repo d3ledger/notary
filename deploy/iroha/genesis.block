@@ -667,6 +667,20 @@
                 }
               },
               {
+                "createAccount": {
+                  "accountName": "btc_tx_storage",
+                  "domainId": "notary",
+                  "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "btc_utxo_storage_v2",
+                  "domainId": "notary",
+                  "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
+                }
+              },
+              {
                 "appendRole": {
                   "accountId": "btc_withdrawal_service@notary",
                   "roleName": "withdrawal"
