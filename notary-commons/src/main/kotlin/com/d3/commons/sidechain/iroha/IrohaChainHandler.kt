@@ -38,7 +38,13 @@ class IrohaChainHandler : ChainHandler<iroha.protocol.BlockOuterClass.Block> {
                         )
                     )
                     command.hasTransferAsset() -> {
-                        logger.info { "transfer iroha event (from: ${command.transferAsset.srcAccountId}, to ${command.transferAsset.destAccountId}, amount: ${command.transferAsset.amount}, asset: ${command.transferAsset.assetId}" }
+                        logger.info {
+                            "transfer iroha event (from: ${command.transferAsset.srcAccountId}, " +
+                                    "to ${command.transferAsset.destAccountId}, " +
+                                    "amount: ${command.transferAsset.amount}, " +
+                                    "asset: ${command.transferAsset.assetId}) " +
+                                    "txHash=$hash"
+                        }
                         listOf(
                             SideChainEvent.IrohaEvent.SideChainTransfer.fromProto(
                                 command.transferAsset,
