@@ -37,27 +37,27 @@ class ServiceExpansion(
         block: BlockOuterClass.Block,
         expansionLogic: (ExpansionDetails, String, Long) -> Unit = { _, _, _ -> }
     ) {
-        var txHash = ""
         block.blockV1.payload.transactionsList
             // Get superuser transactions
-            .filter { tx ->
-                txHash = String.hex(Utils.hash(tx))
-                tx.payload.reducedPayload.creatorAccountId == expansionTriggerCreatorAccountId
-            }
+            .filter { tx -> tx.payload.reducedPayload.creatorAccountId == expansionTriggerCreatorAccountId }
             // Get commands
-            .flatMap { tx -> tx.payload.reducedPayload.commandsList }
-            // Get set account details
-            .filter { command -> command.hasSetAccountDetail() }
-            .map { command -> command.setAccountDetail }
-            // Get expansion details
-            .filter { setAccountDetail -> isExpansionEvent(setAccountDetail) }
-            .map { setAccountDetail ->
-                gson.fromJson(
-                    setAccountDetail.value.irohaUnEscape(),
-                    ExpansionDetails::class.java
-                )
+            .flatMap { tx ->
+                val txHash = String.hex(Utils.hash(tx))
+                tx.payload.reducedPayload.commandsList
+                    .filter { command -> command.hasSetAccountDetail() }
+                    .map { command -> command.setAccountDetail }
+                    // Get expansion details
+                    .filter { setAccountDetail -> isExpansionEvent(setAccountDetail) }
+                    .map { setAccountDetail ->
+                        gson.fromJson(
+                            setAccountDetail.value.irohaUnEscape(),
+                            ExpansionDetails::class.java
+                        )
+                    }.map { details ->
+                        Pair(txHash, details)
+                    }
             }
-            .forEach { expansionDetails ->
+            .forEach { (txHash, expansionDetails) ->
                 expansionLogic(expansionDetails, txHash, block.blockV1.payload.createdTime)
             }
     }
