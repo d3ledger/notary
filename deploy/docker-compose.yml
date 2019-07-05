@@ -82,7 +82,7 @@ services:
       - d3-network
 
   d3-brvs:
-    image: nexus.iroha.tech:19002/brvs-deploy/brvs:latest
+    image: nexus.iroha.tech:19002/brvs-deploy/brvs-core:develop
     container_name: d3-brvs
     ports:
       - 8080:8080
@@ -90,13 +90,42 @@ services:
       - d3-brvs-mongodb
       - d3-rmq
     environment:
-      WAIT_HOSTS: d3-brvs-mongodb:27017, d3-rmq:5672, d3-iroha:50051
-      WAIT_BEFORE_HOSTS: 10
-      WAIT_HOSTS_TIMEOUT: 60
       CREDENTIAL_PUBKEY: b9679bbf526a1c936cd1144b56a370d376fa8246b248cd72f952b45a2f20bdad
       CREDENTIAL_PRIVKEY: 56a3c52cd039d9b73a1720052600a20962350b1ea169b4783cefbf87ed99406a
+      BILLING_URL: http://data-collector:8080/cache/get/billing
+      BILLING_ASSET_PRECISION_URL: http://data-collector:8080/iroha/asset/precision/
     volumes:
       - ../configs/brvs/keys:/opt/brvs/config/keys/
+    networks:
+      - d3-network
+    restart: always
+
+  data-collector:
+    image: nexus.iroha.tech:19002/d3-deploy/data-collector:develop
+    container_name: "data-collector"
+    restart: on-failure
+    ports:
+      - 8087:8080
+    depends_on:
+      - dc-postgres
+      - d3-rmq
+    environment:
+      POSTGRES_HOST: dc-postgres
+      POSTGRES_DATABASE: postgres
+      SPRING_RABBITMQ_HOST: d3-rmq
+      IROHA_HOST: d3-iroha
+      IROHA_PORT: 50051
+      SPRING_DATASOURCE_USERNAME: test
+      SPRING_DATASOURCE_PASSWORD: test
+    networks:
+      - d3-network
+
+  dc-postgres:
+    image: postgres
+    container_name: "dc-postgres"
+    environment:
+      POSTGRES_PASSWORD: test
+      POSTGRES_USER: test
     networks:
       - d3-network
 
