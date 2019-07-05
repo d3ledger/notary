@@ -85,7 +85,7 @@ services:
     image: nexus.iroha.tech:19002/brvs-deploy/brvs-core:develop
     container_name: d3-brvs
     ports:
-      - 8082:8080
+      - 8080:8080
     depends_on:
       - d3-brvs-mongodb
       - d3-rmq
