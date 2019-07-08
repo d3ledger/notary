@@ -16,6 +16,20 @@ import jp.co.soramitsu.iroha.java.TransactionBuilder
 object D3TestContext {
 
     val d3neededAccounts = listOf(
+        AccountPrototype(
+            "deposit_service",
+            "notary",
+            listOf("deposit")
+        ),
+        AccountPrototype(
+            "broadcast",
+            "notary",
+            listOf("broadcast")
+        ),
+        PassiveAccountPrototype(
+            "btc_utxo_storage_v2",
+            "notary"
+        ),
         PassiveAccountPrototype(
             "changelog_history",
             "bootstrap"
@@ -123,6 +137,36 @@ object D3TestContext {
         )
     }
 
+    fun createDepositRole(builder: TransactionBuilder) {
+        builder.createRole(
+            "deposit",
+            listOf(
+                Primitive.RolePermission.can_get_all_acc_ast,
+                Primitive.RolePermission.can_get_all_accounts,
+                Primitive.RolePermission.can_create_asset,
+                Primitive.RolePermission.can_add_asset_qty,
+                Primitive.RolePermission.can_transfer,
+                Primitive.RolePermission.can_set_detail,
+                Primitive.RolePermission.can_get_all_txs,
+                Primitive.RolePermission.can_get_blocks,
+                Primitive.RolePermission.can_read_assets,
+                Primitive.RolePermission.can_add_signatory,
+                Primitive.RolePermission.can_set_quorum,
+                Primitive.RolePermission.can_grant_can_set_my_quorum,
+                Primitive.RolePermission.can_grant_can_add_my_signatory,
+                Primitive.RolePermission.can_grant_can_transfer_my_assets
+            )
+        )
+    }
+
+    fun createBroadcastsRole(builder: TransactionBuilder) {
+        builder.createRole(
+            "broadcasts",
+            listOf(
+                Primitive.RolePermission.can_set_detail
+            )
+        )
+    }
 
     fun createNotaryRole(builder: TransactionBuilder) {
         builder.createRole(

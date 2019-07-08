@@ -169,6 +169,8 @@ class D3TestGenesisFactory : GenesisInterface {
 
 
     private fun createRoles(builder: TransactionBuilder) {
+        D3TestContext.createBroadcastsRole(builder)
+        D3TestContext.createDepositRole(builder)
         D3TestContext.createNotaryRole(builder)
         D3TestContext.createRelayDeployerRole(builder)
         D3TestContext.createEthTokenListStorageRole(builder)

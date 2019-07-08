@@ -187,6 +187,7 @@ class IrohaTest {
         //Check type - keyless accounts added
         assertTrue(respBody.contains("notaries"))
         assertTrue(respBody.contains("gen_btc_pk_trigger"))
+        assertTrue(respBody.contains("broadcast"))
         assertTrue(respBody.contains("btc_change_addresses"))
         //Check type - ignored accounts is not added
         assertFalse(respBody.contains("registration_service_primary"))
@@ -262,7 +263,9 @@ class IrohaTest {
             createAccountDto("brvs", "dapp"),
             createAccountDto("dapp_repo", "dapp"),
             createAccountDto("dapp_journal", "dapp"),
-            createAccountDto("dapp_accounts", "dapp"),
+            createAccountDto("deposit_service", "notary", peersCount - peersCount / 3),
+            createAccountDto("broadcast", "notary"),
+            createAccountDto("btc_utxo_storage_v2", "notary"),
             createAccountDto(
                 ChangelogInterface.superuserAccount,
                 ChangelogInterface.superuserDomain,
