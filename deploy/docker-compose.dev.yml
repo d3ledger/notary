@@ -8,24 +8,6 @@ services:
     networks:
       - d3-network
 
-  grpcwebproxy:
-    ports:
-      - 8081:8080
-      - 8443:8443
-    networks:
-      - d3-network
-
-  d3-rmq:
-    ports:
-      - 8181:15672
-      - 5672:5672
-    networks:
-      - d3-network
-
-  d3-chain-adapter:
-    environment:
-      - CHAIN_ADAPTER_DROPLASTREADBLOCK=true
-
   d3-brvs:
     environment:
       WHITELIST_VALIDATION: 10

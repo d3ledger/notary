@@ -43,7 +43,7 @@ configurations {
     integrationTestRuntime.extendsFrom testRuntime
 }
 
-task integrationTest(type: Test) {
+/*task integrationTest(type: Test) {
     group = LifecycleBasePlugin.VERIFICATION_GROUP
     description = 'Runs the integration tests.'
 
@@ -56,7 +56,7 @@ task integrationTest(type: Test) {
 
     mustRunAfter test
 }
-check.dependsOn integrationTest
+check.dependsOn integrationTest*/
 
 sonarqube {
     properties {

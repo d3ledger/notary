@@ -4,6 +4,15 @@ buildscript {
         jcenter()
     }
 }
+
+plugins {
+    id 'com.avast.gradle.docker-compose' version '0.7.1'
+}
+
+dockerCompose {
+    useComposeFiles = ['../deploy/docker-compose.dev.yml','../deploy/docker-compose.yml']
+}
+
 dependencies {
     compile project(":notary-commons")
     compile project(":notary-registration")
@@ -19,7 +28,7 @@ dependencies {
 
     // unit tests
     testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
-    testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0') 
+    testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
 }
 
 sourceSets {
