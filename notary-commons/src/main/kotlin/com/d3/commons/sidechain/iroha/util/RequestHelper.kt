@@ -65,3 +65,17 @@ fun getTransferTransactions(
                 .any { it.hasTransferAsset() && it.transferAsset.destAccountId == withdrawalAccount }
         }
 }
+
+/**
+ * Check if transaction is withdrawal transaction.
+ * Transaction is withdrawal when it has 2 transfer commands:
+ * 1) transfer to withdrawal account with amount to withdraw
+ * 2) transfer to billing account with fee
+ */
+fun isWithdrawalTransaction(
+    transaction: TransactionOuterClass.Transaction,
+    dstAccountId: String
+): Boolean {
+    val commands = transaction.payload.reducedPayload.commandsList
+    return commands.all { cmd -> cmd.hasTransferAsset() && cmd.transferAsset.destAccountId == dstAccountId }
+}
