@@ -50,19 +50,15 @@ fun getTransferCommands(block: BlockOuterClass.Block): List<Commands.Command> {
 }
 
 /**
- * Return all transactions that contain 'tranfer asset" command to specific account
- * @param block - Iroha block
- * @param accountId - account id to filter transactions
+ * Check if transaction is withdrawal transaction.
+ * Transaction is withdrawal when it has 2 transfer commands:
+ * 1) transfer to withdrawal account with amount to withdraw
+ * 2) transfer to billing account with fee
  */
-fun getTransferToAccountCommands(
-    block: BlockOuterClass.BlockOrBuilder,
-    accountId: String
-): List<TransactionOuterClass.Transaction> {
-    return block.blockV1OrBuilder.payloadOrBuilder.transactionsList.filter { tx ->
-        tx.payload.reducedPayload.commandsList.filter { cmd ->
-            cmd.hasTransferAsset()
-        }.filter { transferAssetCommand ->
-            transferAssetCommand.transferAsset.destAccountId == accountId
-        }.isNotEmpty()
-    }
+fun isWithdrawalTransaction(
+    transaction: TransactionOuterClass.Transaction,
+    dstAccountId: String
+): Boolean {
+    val commands = transaction.payload.reducedPayload.commandsList
+    return commands.all { cmd -> cmd.hasTransferAsset() && cmd.transferAsset.destAccountId == dstAccountId }
 }
