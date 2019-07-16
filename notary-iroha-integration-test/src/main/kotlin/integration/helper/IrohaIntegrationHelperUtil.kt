@@ -297,14 +297,15 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
         amount: String,
         feeAssetId: String,
         feeAmount: String,
+        feeDescription: String = "transfer fee",
         createdTime: Long = System.currentTimeMillis(),
         // first is for user, second is for brvs instance
         quorum: Int = 2
     ): String {
-        logger.info { "Iroha transfer of $amount $assetId from $srcAccountId to $destAccountId" }
+        logger.info { "Iroha transfer of $amount $assetId from $srcAccountId to $destAccountId. Fee $feeAmount" }
         val tx = Transaction.builder(creator)
             .transferAsset(srcAccountId, destAccountId, assetId, description, amount)
-            .transferAsset(srcAccountId, destAccountId, feeAssetId, "transfer fee", feeAmount)
+            .transferAsset(srcAccountId, destAccountId, feeAssetId, feeDescription, feeAmount)
             .setCreatedTime(createdTime)
             .setQuorum(quorum)
             .sign(kp)
