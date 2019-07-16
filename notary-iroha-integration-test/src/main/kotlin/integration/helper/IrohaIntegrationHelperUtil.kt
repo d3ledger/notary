@@ -16,6 +16,7 @@ import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.util.getRandomString
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.map
 import integration.TestConfig
 import jp.co.soramitsu.iroha.java.IrohaAPI
@@ -147,7 +148,7 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
      * @param amount - amount to add
      */
     fun addIrohaAssetTo(accountId: String, assetId: String, amount: String) {
-        ModelUtil.addAssetIroha(irohaConsumer, assetId, amount)
+        ModelUtil.addAssetIroha(irohaConsumer, assetId, amount).failure { ex -> throw ex }
         if (irohaConsumer.creator != accountId)
             ModelUtil.transferAssetIroha(
                 irohaConsumer,
