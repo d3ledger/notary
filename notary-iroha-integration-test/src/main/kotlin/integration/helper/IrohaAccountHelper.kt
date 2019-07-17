@@ -26,7 +26,7 @@ import java.security.KeyPair
 /**
  * Class that handles all the accounts in running configuration.
  */
-class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int = 1) {
+open class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers: Int = 1) {
 
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
 
