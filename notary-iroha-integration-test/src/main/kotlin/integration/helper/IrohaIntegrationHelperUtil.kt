@@ -296,7 +296,7 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
         description: String,
         amount: String,
         feeAssetId: String,
-        feeDescription: String,
+        feeDescription: String = "transfer fee",
         feeAmount: String,
         createdTime: Long = System.currentTimeMillis(),
         // first is for user, second is for brvs instance
