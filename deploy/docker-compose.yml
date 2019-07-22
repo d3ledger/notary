@@ -66,6 +66,18 @@ services:
     networks:
       - d3-network
 
+  d3-notifications:
+    image: nexus.iroha.tech:19002/d3-deploy/notifications:develop
+    container_name: d3-notifications
+    restart: on-failure
+    environment:
+      - NOTIFICATIONS_SMTP_HOST=smtp.mailtrap.io
+      - NOTIFICATIONS_SMTP_PORT=2525
+      - NOTIFICATIONS_SMTP_PASSWORD=4bf667d5bd903a
+      - NOTIFICATIONS_SMTP_USERNAME=c9e459e405ef1c
+    networks:
+      - d3-network
+
   d3-brvs-mongodb:
     image: mongo:4.0.6
     container_name: d3-brvs-mongodb
