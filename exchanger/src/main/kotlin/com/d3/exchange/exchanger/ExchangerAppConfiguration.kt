@@ -63,4 +63,10 @@ class ExchangerAppConfiguration {
 
     @Bean
     fun liquidityProviders() = exchangerConfig.liquidityProviders.split(",").toList()
+
+    @Bean
+    fun tradePairSetter() = exchangerConfig.tradePairSetter
+
+    @Bean
+    fun tradePairKey() = exchangerConfig.tradePairKey
 }

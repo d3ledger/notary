@@ -9,23 +9,25 @@ import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.irohaUnEscape
 import com.d3.exchange.exchanger.exception.AssetNotFoundException
 import com.d3.exchange.exchanger.exception.TooLittleAssetVolumeException
 import com.d3.exchange.exchanger.exception.TooMuchAssetVolumeException
+import com.d3.exchange.exchanger.exception.UnsupportedTradingPairException
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
+import iroha.protocol.TransactionOuterClass
 import mu.KLogging
 import org.apache.commons.math3.analysis.UnivariateFunction
 import org.apache.commons.math3.analysis.integration.RombergIntegrator
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.io.Closeable
 import java.math.BigDecimal
-
-private val logger = KLogging().logger
 
 @Component
 /**
@@ -33,14 +35,18 @@ private val logger = KLogging().logger
  * in order to support automatic asset conversions
  */
 class ExchangerService(
-    @Autowired private val irohaConsumer: IrohaConsumer,
-    @Autowired private val queryhelper: IrohaQueryHelper,
-    @Autowired private val chainListener: ReliableIrohaChainListener,
-    @Autowired private val liquidityProviderAccounts: List<String>
+    private val irohaConsumer: IrohaConsumer,
+    private val queryhelper: IrohaQueryHelper,
+    private val chainListener: ReliableIrohaChainListener,
+    private val liquidityProviderAccounts: List<String>,
+    private val tradePairSetter: String,
+    private val tradePairKey: String
 ) : Closeable {
 
     // Exchanger account
     private val exchangerAccountId = irohaConsumer.creator
+    private var tradingPairs = emptyMap<String, List<String>>()
+    private val gson = Gson()
 
     /**
      * Starts blocks listening and processing
@@ -61,6 +67,7 @@ class ExchangerService(
      */
     private fun processBlock(block: BlockOuterClass.Block) {
         block.blockV1.payload.transactionsList.map { transaction ->
+            updateTradingPairs(transaction)
             transaction.payload.reducedPayload.commandsList.filter { command ->
                 command.hasTransferAsset()
                         && !liquidityProviderAccounts.contains(command.transferAsset.srcAccountId)
@@ -71,6 +78,29 @@ class ExchangerService(
         }.map { exchangeCommands ->
             exchangeCommands.forEach { exchangeCommand ->
                 performConversion(exchangeCommand)
+            }
+        }
+    }
+
+    /**
+     * Indicates if there was an update of the trade pairs value and loads it
+     */
+    private fun updateTradingPairs(transaction: TransactionOuterClass.Transaction) {
+        val reducedPayload = transaction.payload.reducedPayload
+        if (reducedPayload.creatorAccountId == tradePairSetter &&
+            reducedPayload.commandsList.any { command ->
+                command.hasSetAccountDetail()
+                        && command.setAccountDetail.accountId == exchangerAccountId
+                        && command.setAccountDetail.key == tradePairKey
+            }
+        ) {
+            queryhelper.getAccountDetails(exchangerAccountId, tradePairSetter, tradePairKey).map {
+                if (it.isPresent) {
+                    tradingPairs = gson.fromJson<Map<String, List<String>>>(
+                        it.get().irohaUnEscape(),
+                        typeToken
+                    )
+                }
             }
         }
     }
@@ -87,6 +117,10 @@ class ExchangerService(
         val destAccountId = transfer.srcAccountId
         logger.info { "Got a conversion request from $destAccountId: $amount $sourceAsset to $targetAsset." }
         Result.of {
+            val sourceTrades = tradingPairs[sourceAsset]
+            if (sourceTrades == null || !sourceTrades.contains(targetAsset)) {
+                throw UnsupportedTradingPairException("Not supported trading pair: $sourceAsset -> $targetAsset")
+            }
             val relevantAmount =
                 calculateRelevantAmount(sourceAsset, targetAsset, BigDecimal(amount))
 
@@ -123,16 +157,16 @@ class ExchangerService(
      * @throws TooLittleAssetVolumeException in case of impossible conversion when supplied too little
      */
     private fun calculateRelevantAmount(from: String, to: String, amount: BigDecimal): String {
+        val precision = queryhelper.getAssetPrecision(to).fold(
+            { it },
+            { throw AssetNotFoundException("Seems asset $to does not exist.") })
+
         val sourceAssetBalance = BigDecimal(
             queryhelper.getAccountAsset(irohaConsumer.creator, from).get()
         ).minus(amount).toDouble()
         val targetAssetBalance =
             BigDecimal(queryhelper.getAccountAsset(irohaConsumer.creator, to).get()).toDouble()
-        val amountMinusFee = amount.minus(amount.multiply(FEE_RATIO)).toDouble()
-
-        val precision = queryhelper.getAssetPrecision(to).fold(
-            { it },
-            { throw AssetNotFoundException("Seems asset $to does not exist.") })
+        val amountMinusFee = amount.multiply(MINUS_FEE_MULTIPLIER).toDouble()
 
         val calculatedAmount = integrate(sourceAssetBalance, targetAssetBalance, amountMinusFee)
 
@@ -169,13 +203,14 @@ class ExchangerService(
         chainListener.close()
     }
 
-    companion object {
+    companion object : KLogging() {
+        private val typeToken = object : TypeToken<Map<String, Set<String>>>() {}.type
         // Number of evaluations during integration
         private const val EVALUATIONS = 1000
         // Integrating from the relevant rate which is at x=0
         private const val LOWER_BOUND = 0.0
         // 1% so far
-        private val FEE_RATIO = BigDecimal(0.01)
+        private val MINUS_FEE_MULTIPLIER = BigDecimal("0.99")
         private const val DELIMITER = '.'
 
         // Integrals

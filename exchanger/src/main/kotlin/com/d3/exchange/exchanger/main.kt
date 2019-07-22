@@ -31,7 +31,7 @@ fun main(args: Array<String>) {
     }.flatMap { context ->
         context.getBean(ExchangerService::class.java).start()
     }.failure { ex ->
-        logger.error("Exchanger exited with exception", ex)
+        logger.error("Exchanger exited with an exception", ex)
         System.exit(1)
     }
 }
