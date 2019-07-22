@@ -5,9 +5,11 @@
 
 package com.d3.commons.sidechain.provider
 
+import com.d3.commons.util.createFolderIfDoesntExist
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
+import java.io.IOException
 import java.math.BigInteger
 import java.util.*
 
@@ -16,6 +18,26 @@ import java.util.*
  */
 class FileBasedLastReadBlockProvider(private val lastReadBlockFilePath: String) :
     LastReadBlockProvider {
+
+    init {
+        createLastReadBlockFile(lastReadBlockFilePath)
+    }
+
+    /**
+     * Creates last read block file
+     * @param lastReadBlockFilePath - path to the file
+     */
+    private fun createLastReadBlockFile(lastReadBlockFilePath: String) {
+        val file = File(lastReadBlockFilePath)
+        if (file.exists()) {
+            //No need to create
+            return
+        }
+        createFolderIfDoesntExist(file.parentFile.absolutePath)
+        if (!file.createNewFile()) {
+            throw IOException("Cannot create file for last read block storage")
+        }
+    }
 
     /**
      * Returns last processed block
