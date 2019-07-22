@@ -96,10 +96,12 @@ class ExchangerService(
         ) {
             queryhelper.getAccountDetails(exchangerAccountId, tradePairSetter, tradePairKey).map {
                 if (it.isPresent) {
+                    val unEscape = it.get().irohaUnEscape()
                     tradingPairs = gson.fromJson<Map<String, Set<String>>>(
-                        it.get().irohaUnEscape(),
+                        unEscape,
                         typeToken
                     )
+                    logger.info { "Updated pairs: $unEscape" }
                 }
             }
         }
