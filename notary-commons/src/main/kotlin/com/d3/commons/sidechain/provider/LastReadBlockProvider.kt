@@ -5,7 +5,9 @@
 
 package com.d3.commons.sidechain.provider
 
+import java.math.BigInteger
+
 interface LastReadBlockProvider {
-    fun getLastBlockHeight(): Long
-    fun saveLastBlockHeight(height: Long)
+    fun getLastBlockHeight(): BigInteger
+    fun saveLastBlockHeight(height: BigInteger)
 }

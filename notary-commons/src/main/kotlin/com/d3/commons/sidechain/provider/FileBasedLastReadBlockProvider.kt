@@ -8,6 +8,7 @@ package com.d3.commons.sidechain.provider
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
+import java.math.BigInteger
 import java.util.*
 
 /**
@@ -21,12 +22,12 @@ class FileBasedLastReadBlockProvider(private val lastReadBlockFilePath: String) 
      * Value is read from file
      */
     @Synchronized
-    override fun getLastBlockHeight(): Long {
+    override fun getLastBlockHeight(): BigInteger {
         Scanner(File(lastReadBlockFilePath)).use { scanner ->
             return if (scanner.hasNextLine()) {
-                scanner.next().toLong()
+                scanner.next().toBigInteger()
             } else {
-                0
+                BigInteger.ZERO
             }
         }
     }
@@ -36,7 +37,7 @@ class FileBasedLastReadBlockProvider(private val lastReadBlockFilePath: String) 
      * @param height - height of block that will be saved
      */
     @Synchronized
-    override fun saveLastBlockHeight(height: Long) {
+    override fun saveLastBlockHeight(height: BigInteger) {
         FileWriter(File(lastReadBlockFilePath)).use { fileWriter ->
             BufferedWriter(fileWriter).use { writer ->
                 writer.write(height.toString())
