@@ -340,6 +340,32 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
         value: String,
         createdTime: Long = System.currentTimeMillis()
     ): Result<String, Exception> {
+        return setAccountDetail(
+            irohaConsumer,
+            accountId,
+            key,
+            value,
+            createdTime,
+            2
+        )
+    }
+
+    /**
+     * Send SetAccountDetail to Iroha
+     * @param irohaConsumer - iroha network layer
+     * @param accountId - account to set details
+     * @param key - key of detail
+     * @param value - value of detail
+     * @return hex representation of transaction hash
+     */
+    fun setAccountDetail(
+        irohaConsumer: IrohaConsumer,
+        accountId: String,
+        key: String,
+        value: String,
+        createdTime: Long = System.currentTimeMillis(),
+        quorum: Int = 1
+    ): Result<String, Exception> {
         return ModelUtil.setAccountDetail(
             irohaConsumer,
             accountId,
@@ -347,7 +373,7 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
             value,
             createdTime,
             // first is for user, second is for brvs instance
-            2
+            quorum
         )
     }
 
