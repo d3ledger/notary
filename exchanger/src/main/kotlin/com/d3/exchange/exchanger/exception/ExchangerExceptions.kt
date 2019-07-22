@@ -5,23 +5,10 @@
 
 package com.d3.exchange.exchanger.exception
 
-class AssetNotFoundException : Exception {
-    constructor(message: String, ex: Exception?) : super(message, ex)
-    constructor(message: String) : super(message)
-    constructor(ex: Exception) : super(ex)
-    constructor()
-}
+class AssetNotFoundException(message: String, ex: Exception?) : Exception(message, ex)
 
-class TooMuchAssetVolumeException : Exception {
-    constructor(message: String, ex: Exception?) : super(message, ex)
-    constructor(message: String) : super(message)
-    constructor(ex: Exception) : super(ex)
-    constructor()
-}
+class TooMuchAssetVolumeException(message: String) : Exception(message)
 
-class TooLittleAssetVolumeException : Exception {
-    constructor(message: String, ex: Exception?) : super(message, ex)
-    constructor(message: String) : super(message)
-    constructor(ex: Exception) : super(ex)
-    constructor()
-}
+class TooLittleAssetVolumeException(message: String) : Exception(message)
+
+class UnsupportedTradingPairException(message: String) : Exception(message)
