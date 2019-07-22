@@ -45,7 +45,7 @@ class ExchangerService(
 
     // Exchanger account
     private val exchangerAccountId = irohaConsumer.creator
-    private var tradingPairs = emptyMap<String, List<String>>()
+    private var tradingPairs = emptyMap<String, Set<String>>()
     private val gson = Gson()
 
     /**
@@ -96,7 +96,7 @@ class ExchangerService(
         ) {
             queryhelper.getAccountDetails(exchangerAccountId, tradePairSetter, tradePairKey).map {
                 if (it.isPresent) {
-                    tradingPairs = gson.fromJson<Map<String, List<String>>>(
+                    tradingPairs = gson.fromJson<Map<String, Set<String>>>(
                         it.get().irohaUnEscape(),
                         typeToken
                     )

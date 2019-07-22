@@ -7,6 +7,7 @@ package com.d3.exchange
 
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.util.getRandomString
+import com.d3.commons.util.irohaEscape
 import com.d3.commons.util.toHexString
 import com.d3.exchange.util.ExchangerServiceTestEnvironment
 import com.google.gson.Gson
@@ -248,13 +249,13 @@ class ExchangerIntegrationTest {
     }
 
     private fun saveTradingPair(fromAsset: String, toAsset: String) {
-        val map = mutableMapOf<String, List<String>>()
-        map[fromAsset] = listOf(toAsset)
+        val map = mutableMapOf<String, Set<String>>()
+        map[fromAsset] = setOf(toAsset)
         integrationHelper.setAccountDetail(
             integrationHelper.irohaConsumer,
             exchangerServiceEnvironment.exchangerAccount.accountId,
             exchangerServiceEnvironment.testDetailKey,
-            gson.toJson(map)
+            gson.toJson(map).irohaEscape()
         )
     }
 }
