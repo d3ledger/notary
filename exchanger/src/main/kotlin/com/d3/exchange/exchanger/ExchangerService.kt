@@ -159,7 +159,7 @@ class ExchangerService(
     private fun calculateRelevantAmount(from: String, to: String, amount: BigDecimal): String {
         val precision = queryhelper.getAssetPrecision(to).fold(
             { it },
-            { throw AssetNotFoundException("Seems asset $to does not exist.") })
+            { throw AssetNotFoundException("Seems the asset $to does not exist.", it) })
 
         val sourceAssetBalance = BigDecimal(
             queryhelper.getAccountAsset(irohaConsumer.creator, from).get()
