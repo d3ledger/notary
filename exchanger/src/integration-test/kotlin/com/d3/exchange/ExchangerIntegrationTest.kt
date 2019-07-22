@@ -7,8 +7,10 @@ package com.d3.exchange
 
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.util.getRandomString
+import com.d3.commons.util.irohaEscape
 import com.d3.commons.util.toHexString
 import com.d3.exchange.util.ExchangerServiceTestEnvironment
+import com.google.gson.Gson
 import integration.helper.IrohaIntegrationHelperUtil
 import integration.registration.RegistrationServiceTestEnvironment
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
@@ -25,6 +27,8 @@ private const val TRANSFER_WAIT_TIME = 10_000L
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ExchangerIntegrationTest {
+
+    private val gson = Gson()
 
     private val integrationHelper = IrohaIntegrationHelperUtil()
 
@@ -56,6 +60,8 @@ class ExchangerIntegrationTest {
     fun correctExchange() {
         val tokenA = integrationHelper.createAsset().get()
         val tokenB = integrationHelper.createAsset().get()
+
+        saveTradingPair(tokenA, tokenB)
 
         val userName = String.getRandomString(7)
         val userKeypair = Ed25519Sha3().generateKeypair()
@@ -101,6 +107,9 @@ class ExchangerIntegrationTest {
     @Test
     fun rollbackUnknownExchange() {
         val tokenA = integrationHelper.createAsset().get()
+        val tokenB = "soramichka#sora"
+
+        saveTradingPair(tokenA, tokenB)
 
         val userName = String.getRandomString(7)
         val userKeypair = Ed25519Sha3().generateKeypair()
@@ -120,7 +129,7 @@ class ExchangerIntegrationTest {
             userId,
             exchangerServiceEnvironment.exchangerAccount.accountId,
             tokenA,
-            "soramichka#sora",
+            tokenB,
             "1"
         )
 
@@ -140,6 +149,8 @@ class ExchangerIntegrationTest {
     fun rollbackTooMuchExchange() {
         val tokenA = integrationHelper.createAsset().get()
         val tokenB = integrationHelper.createAsset().get()
+
+        saveTradingPair(tokenA, tokenB)
 
         val userName = String.getRandomString(7)
         val userKeypair = Ed25519Sha3().generateKeypair()
@@ -194,6 +205,8 @@ class ExchangerIntegrationTest {
         val tokenA = integrationHelper.createAsset().get()
         val tokenB = integrationHelper.createAsset().get()
 
+        saveTradingPair(tokenA, tokenB)
+
         val userName = String.getRandomString(7)
         val userKeypair = Ed25519Sha3().generateKeypair()
         val userPubkey = userKeypair.public.toHexString()
@@ -233,5 +246,16 @@ class ExchangerIntegrationTest {
         assertEquals("1.000000000000000000", xorBalance)
         val etherBalance = integrationHelper.getIrohaAccountBalance(userId, tokenB)
         assertEquals("0", etherBalance)
+    }
+
+    private fun saveTradingPair(fromAsset: String, toAsset: String) {
+        val map = mutableMapOf<String, Set<String>>()
+        map[fromAsset] = setOf(toAsset)
+        integrationHelper.setAccountDetail(
+            integrationHelper.irohaConsumer,
+            exchangerServiceEnvironment.exchangerAccount.accountId,
+            exchangerServiceEnvironment.testDetailKey,
+            gson.toJson(map).irohaEscape()
+        )
     }
 }

@@ -91,11 +91,10 @@ class IrohaQueryHelperImpl(val queryAPI: QueryAPI) : IrohaQueryHelper {
         return Result.of { queryAPI.getAccountDetails(storageAccountId, writerAccountId, null) }
             .flatMap { str -> parseAccountDetailsJson(str) }
             .map { details ->
-                val result: String?
-                if (details[writerAccountId] == null) {
-                    result = null
+                val result = if (details[writerAccountId] == null) {
+                    null
                 } else {
-                    result = details.getOrDefault(writerAccountId, emptyMap())[key]
+                    details.getOrDefault(writerAccountId, emptyMap())[key]
                 }
                 Optional.ofNullable(result)
             }

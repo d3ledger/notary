@@ -22,6 +22,12 @@ interface ExchangerConfig {
     /** RMQ queue name */
     val irohaBlockQueue: String
 
-    /** Liquidity providers account names */
+    /** Liquidity providers account ids */
     val liquidityProviders: String
+
+    /** Asset pairs to be traded details setter account id */
+    val tradePairSetter: String
+
+    /** Asset pairs to be traded details key */
+    val tradePairKey: String
 }
