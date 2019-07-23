@@ -5,8 +5,7 @@
 
 package com.d3.notifications.init
 
-import com.d3.commons.sidechain.iroha.IrohaChainListener
-import com.d3.commons.sidechain.iroha.NOTARY_DOMAIN
+import com.d3.commons.sidechain.iroha.*
 import com.d3.commons.sidechain.iroha.util.getTransferCommands
 import com.d3.commons.util.createPrettySingleThreadPool
 import com.d3.notifications.NOTIFICATIONS_SERVICE_NAME
@@ -17,7 +16,6 @@ import com.github.kittinunf.result.map
 import io.reactivex.schedulers.Schedulers
 import iroha.protocol.Commands
 import mu.KLogging
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
 
@@ -26,15 +24,15 @@ import java.math.BigDecimal
  */
 @Component
 class NotificationInitialization(
-    @Autowired private val irohaChainListener: IrohaChainListener,
-    @Autowired private val notificationServices: List<NotificationService>
+    private val irohaChainListener: IrohaChainListener,
+    private val notificationServices: List<NotificationService>
 ) {
 
     /**
      * Initiates notification service
-     * @param onIrohaChainFailure - function that will be called in case of Iroha failure
+     * @param onIrohaChainFailure - function that will be called in case of Iroha failure. Does nothing by default.
      */
-    fun init(onIrohaChainFailure: () -> Unit) {
+    fun init(onIrohaChainFailure: () -> Unit = {}) {
         irohaChainListener.getBlockObservable().map { irohaObservable ->
             irohaObservable
                 .subscribeOn(
@@ -57,6 +55,14 @@ class NotificationInitialization(
                             else if (isWithdrawal(transferAsset)) {
                                 handleWithdrawalEventNotification(transferAsset)
                             }
+                            // Notify transfer
+                            else if (isClientToClientTransfer(transferAsset)) {
+                                handleClientToClientEventNotification(transferAsset)
+                            }
+                            // Notify rollback
+                            else if (isRollback(transferAsset)) {
+                                handleRollbackEventNotification(transferAsset)
+                            }
                         }
                     }, { ex ->
                         logger.error("Error on Iroha subscribe", ex)
@@ -65,9 +71,34 @@ class NotificationInitialization(
         }
     }
 
+    // Checks if transfer is client to client
+    private fun isClientToClientTransfer(transferAsset: Commands.TransferAsset) = transferAsset.srcAccountId.endsWith(
+        "@$CLIENT_DOMAIN"
+    ) && transferAsset.destAccountId.endsWith("@$CLIENT_DOMAIN")
+
+    // Checks if withdrawal event
+    private fun isWithdrawal(transferAsset: Commands.TransferAsset) =
+        transferAsset.destAccountId.endsWith("@$NOTARY_DOMAIN") && transferAsset.description != FEE_DESCRIPTION
+
     // Checks if deposit event
     private fun isDeposit(transferAsset: Commands.TransferAsset): Boolean {
-        return transferAsset.srcAccountId.endsWith("@$NOTARY_DOMAIN")
+        val depositSign = transferAsset.srcAccountId.endsWith("@$NOTARY_DOMAIN")
+        return depositSign && !isRollbackSign(transferAsset)
+    }
+
+    // Checks if rollback event
+    private fun isRollback(transferAsset: Commands.TransferAsset): Boolean {
+        val depositSign = transferAsset.srcAccountId.endsWith("@$NOTARY_DOMAIN")
+        return depositSign && isRollbackSign(transferAsset)
+    }
+
+    // Check if command contains any signs of rollback
+    private fun isRollbackSign(transferAsset: Commands.TransferAsset): Boolean {
+        return if (transferAsset.description != null) {
+            transferAsset.description.startsWith(ROLLBACK_DESCRIPTION)
+        } else {
+            false
+        }
     }
 
     // Handles deposit event notification
@@ -75,19 +106,15 @@ class NotificationInitialization(
         val transferNotifyEvent = TransferNotifyEvent(
             transferAsset.destAccountId,
             BigDecimal(transferAsset.amount),
-            transferAsset.assetId
+            transferAsset.assetId,
+            transferAsset.description
         )
         logger.info { "Notify deposit $transferNotifyEvent" }
         notificationServices.forEach {
             it.notifyDeposit(
                 transferNotifyEvent
-            ).failure { ex -> logger.error("Cannot notify deposit", ex) }
+            ).failure { ex -> logger.error("Cannot notify deposit: $transferNotifyEvent", ex) }
         }
-    }
-
-    // Checks if withdrawal event
-    private fun isWithdrawal(transferAsset: Commands.TransferAsset): Boolean {
-        return transferAsset.destAccountId.endsWith("@$NOTARY_DOMAIN")
     }
 
     // Handles withdrawal event notification
@@ -95,23 +122,58 @@ class NotificationInitialization(
         val transferNotifyEvent = TransferNotifyEvent(
             transferAsset.srcAccountId,
             BigDecimal(transferAsset.amount),
-            transferAsset.assetId
+            transferAsset.assetId,
+            transferAsset.description
         )
         logger.info { "Notify withdrawal $transferNotifyEvent" }
         notificationServices.forEach {
             it.notifyWithdrawal(
                 transferNotifyEvent
-            ).failure { ex -> logger.error("Cannot notify withdrawal", ex) }
+            ).failure { ex -> logger.error("Cannot notify withdrawal: $transferNotifyEvent", ex) }
         }
     }
 
-    /**
-     *  Initiates notification service.
-     *  This overloaded version does nothing on Iroha failure.
-     *  Good for testing purposes.
-     */
-    fun init() {
-        init {}
+    // Handles transfer event notification
+    private fun handleClientToClientEventNotification(transferAsset: Commands.TransferAsset) {
+        val transferNotifyReceiveEvent = TransferNotifyEvent(
+            transferAsset.destAccountId,
+            BigDecimal(transferAsset.amount),
+            transferAsset.assetId,
+            transferAsset.description
+        )
+        val transferNotifySendEvent = TransferNotifyEvent(
+            transferAsset.srcAccountId,
+            BigDecimal(transferAsset.amount),
+            transferAsset.assetId,
+            transferAsset.description
+        )
+        logger.info { "Notify transfer receive $transferNotifyReceiveEvent" }
+        logger.info { "Notify transfer send $transferNotifySendEvent" }
+        notificationServices.forEach {
+            it.notifySendToClient(
+                transferNotifySendEvent
+            ).failure { ex -> logger.error("Cannot notify transfer: $transferNotifySendEvent", ex) }
+
+            it.notifyReceiveFromClient(
+                transferNotifyReceiveEvent
+            ).failure { ex -> logger.error("Cannot notify transfer: $transferNotifyReceiveEvent", ex) }
+        }
+    }
+
+    // Handles rollback event notification
+    private fun handleRollbackEventNotification(transferAsset: Commands.TransferAsset) {
+        val transferNotifyEvent = TransferNotifyEvent(
+            transferAsset.destAccountId,
+            BigDecimal(transferAsset.amount),
+            transferAsset.assetId,
+            transferAsset.description
+        )
+        logger.info { "Notify rollback $transferNotifyEvent" }
+        notificationServices.forEach {
+            it.notifyRollback(
+                transferNotifyEvent
+            ).failure { ex -> logger.error("Cannot notify rollback: $transferNotifyEvent", ex) }
+        }
     }
 
     /**

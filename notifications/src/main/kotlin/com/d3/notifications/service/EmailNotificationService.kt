@@ -10,21 +10,49 @@ import com.d3.notifications.smtp.SMTPService
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import mu.KLogging
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 const val NOTIFICATION_EMAIL = "no-reply@d3ledger.com"
 const val D3_WITHDRAWAL_EMAIL_SUBJECT = "D3 withdrawal"
 const val D3_DEPOSIT_EMAIL_SUBJECT = "D3 deposit"
+const val D3_DEPOSIT_TRANSFER_SUBJECT = "D3 transfer"
+const val D3_DEPOSIT_ROLLBACK_SUBJECT = "D3 rollback"
 
 /**
  * Service for email notifications
  */
 @Component
 class EmailNotificationService(
-    @Autowired private val smtpService: SMTPService,
-    @Autowired private val d3ClientProvider: D3ClientProvider
+    private val smtpService: SMTPService,
+    private val d3ClientProvider: D3ClientProvider
 ) : NotificationService {
+
+    override fun notifySendToClient(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
+        val message =
+            "Dear client, transfer of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} from your account ${transferNotifyEvent.accountId} is successful.\nDescription:${transferNotifyEvent.description}"
+        return checkClientAndSendMessage(
+            transferNotifyEvent.accountId,
+            D3_DEPOSIT_TRANSFER_SUBJECT, message
+        )
+    }
+
+    override fun notifyReceiveFromClient(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
+        val message =
+            "Dear client, transfer of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} to your account ${transferNotifyEvent.accountId} is successful.\nDescription:${transferNotifyEvent.description}"
+        return checkClientAndSendMessage(
+            transferNotifyEvent.accountId,
+            D3_DEPOSIT_TRANSFER_SUBJECT, message
+        )
+    }
+
+    override fun notifyRollback(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
+        val message =
+            "Dear client, unfortunately, we failed to withdraw ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} from your account ${transferNotifyEvent.accountId}. Rollback has been executed, so your money(including fee) is going back to your account."
+        return checkClientAndSendMessage(
+            transferNotifyEvent.accountId,
+            D3_DEPOSIT_ROLLBACK_SUBJECT, message
+        )
+    }
 
     override fun notifyDeposit(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
         val message =

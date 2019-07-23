@@ -25,6 +25,27 @@ interface NotificationService {
      * @return result of operation
      * */
     fun notifyWithdrawal(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception>
+
+    /**
+     * Notifies client about sent transfer
+     * @param transferNotifyEvent - transfer event
+     * @return result of operation
+     * */
+    fun notifySendToClient(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception>
+
+    /**
+     * Notifies client about received transfer
+     * @param transferNotifyEvent - transfer event
+     * @return result of operation
+     * */
+    fun notifyReceiveFromClient(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception>
+
+    /**
+     * Notifies client about rollback event
+     * @param transferNotifyEvent - transfer event
+     * @return result of operation
+     * */
+    fun notifyRollback(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception>
 }
 
 /**
@@ -33,5 +54,11 @@ interface NotificationService {
  * @param accountId - account id that will be notified
  * @param amount - transfer amount
  * @param assetName - name of asset
+ * @param description - description of transfer
  */
-data class TransferNotifyEvent(val accountId: String, val amount: BigDecimal, val assetName: String)
+data class TransferNotifyEvent(
+    val accountId: String,
+    val amount: BigDecimal,
+    val assetName: String,
+    val description: String
+)
