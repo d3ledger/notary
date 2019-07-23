@@ -10,6 +10,7 @@ import iroha.protocol.BlockOuterClass
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import jp.co.soramitsu.iroha.testcontainers.IrohaContainer
 import jp.co.soramitsu.iroha.testcontainers.PeerConfig
+import org.testcontainers.containers.FixedHostPortGenericContainer
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.images.builder.ImageFromDockerfile
 import java.io.Closeable
@@ -37,6 +38,15 @@ class ContainerHelper : Closeable {
     }
 
     val rmqContainer by rmqContainerDelegate
+
+    private val rmqFixedPortsContainerDelegate = lazy {
+        KFixedHostPortGenericContainer("rabbitmq:3-management").withFixedExposedPort(
+            DEFAULT_RMQ_PORT,
+            DEFAULT_RMQ_PORT
+        )
+    }
+
+    val rmqFixedPortContainer by rmqFixedPortsContainerDelegate
 
     /**
      * Creates service docker container based on [dockerFile]
@@ -87,7 +97,6 @@ class ContainerHelper : Closeable {
     /**
      * Checks if service is healthy
      * @param serviceContainer - container of service to check
-     * @param healthCheckPort - port of health check service
      * @return true if healthy
      */
     fun isServiceHealthy(serviceContainer: KGenericContainerImage) = serviceContainer.isRunning
@@ -108,6 +117,9 @@ class ContainerHelper : Closeable {
         if (rmqContainerDelegate.isInitialized() && rmqContainer.isRunning) {
             rmqContainer.close()
         }
+        if (rmqFixedPortsContainerDelegate.isInitialized() && rmqFixedPortContainer.isRunning) {
+            rmqFixedPortContainer.close()
+        }
     }
 }
 
@@ -118,3 +130,6 @@ class ContainerHelper : Closeable {
 class KGenericContainerImage(image: ImageFromDockerfile) : GenericContainer<KGenericContainerImage>(image)
 
 class KGenericContainer(imageName: String) : GenericContainer<KGenericContainer>(imageName)
+
+class KFixedHostPortGenericContainer(imageName: String) :
+    FixedHostPortGenericContainer<KFixedHostPortGenericContainer>(imageName)
