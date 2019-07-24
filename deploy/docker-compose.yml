@@ -73,8 +73,8 @@ services:
     environment:
       - NOTIFICATIONS_SMTP_HOST=smtp.mailtrap.io
       - NOTIFICATIONS_SMTP_PORT=2525
-      - NOTIFICATIONS_SMTP_PASSWORD=4bf667d5bd903a
-      - NOTIFICATIONS_SMTP_USERNAME=c9e459e405ef1c
+      - NOTIFICATIONS_SMTP_PASSWORD=c9e459e405ef1c
+      - NOTIFICATIONS_SMTP_USERNAME=4bf667d5bd903a
     networks:
       - d3-network
 
