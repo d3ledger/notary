@@ -107,7 +107,7 @@ services:
       BILLING_URL: http://data-collector:8080/cache/get/billing
       BILLING_ASSET_PRECISION_URL: http://data-collector:8080/iroha/asset/precision/
     volumes:
-      - ../configs/brvs/keys:/opt/brvs/config/keys/
+      - ../configs/brvs/keys:/config/keys
     networks:
       - d3-network
     restart: always
