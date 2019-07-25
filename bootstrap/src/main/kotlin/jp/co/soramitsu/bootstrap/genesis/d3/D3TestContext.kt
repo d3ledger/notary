@@ -235,7 +235,11 @@ object D3TestContext {
                 Primitive.RolePermission.can_get_blocks,
                 Primitive.RolePermission.can_read_assets,
                 Primitive.RolePermission.can_receive,
-                Primitive.RolePermission.can_get_all_txs
+                Primitive.RolePermission.can_get_all_txs,
+                Primitive.RolePermission.can_set_detail,
+                Primitive.RolePermission.can_set_quorum,
+                Primitive.RolePermission.can_add_signatory,
+                Primitive.RolePermission.can_subtract_asset_qty
             )
 
         )

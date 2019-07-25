@@ -162,7 +162,11 @@
                     "can_get_blocks",
                     "can_read_assets",
                     "can_receive",
-                    "can_get_all_txs"
+                    "can_get_all_txs",
+                    "can_add_signatory",
+                    "can_set_quorum",
+                    "can_set_detail",
+                    "can_subtract_asset_qty"
                   ]
                 }
               },
