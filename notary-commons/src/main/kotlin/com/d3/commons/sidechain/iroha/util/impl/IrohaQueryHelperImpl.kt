@@ -5,6 +5,7 @@
 
 package com.d3.commons.sidechain.iroha.util.impl
 
+import com.d3.commons.config.IrohaCredentialRawConfig
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 import com.github.kittinunf.result.Result
@@ -37,6 +38,11 @@ class IrohaQueryHelperImpl(val queryAPI: QueryAPI) : IrohaQueryHelper {
             irohaCredential.accountId,
             irohaCredential.keyPair
         )
+    )
+
+    constructor(irohaAPI: IrohaAPI, irohaCredentialRawConfig: IrohaCredentialRawConfig) : this(
+        irohaAPI,
+        IrohaCredential(irohaCredentialRawConfig)
     )
 
     private val gson = Gson()
