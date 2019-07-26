@@ -17,7 +17,7 @@ import com.d3.exchange.exchanger.exception.UnsupportedTradingPairException
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import com.google.gson.Gson
+import com.d3.commons.util.GsonInstance
 import com.google.gson.reflect.TypeToken
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
@@ -46,7 +46,7 @@ class ExchangerService(
     // Exchanger account
     private val exchangerAccountId = irohaConsumer.creator
     private var tradingPairs = emptyMap<String, Set<String>>()
-    private val gson = Gson()
+    private val gson = GsonInstance.get()
 
     /**
      * Starts blocks listening and processing

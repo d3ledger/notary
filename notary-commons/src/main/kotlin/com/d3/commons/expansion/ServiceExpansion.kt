@@ -7,7 +7,7 @@ package com.d3.commons.expansion
 
 import com.d3.commons.util.hex
 import com.d3.commons.util.irohaUnEscape
-import com.google.gson.Gson
+import com.d3.commons.util.GsonInstance
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
 import jp.co.soramitsu.iroha.java.IrohaAPI
@@ -26,7 +26,7 @@ class ServiceExpansion(
     private val irohaAPI: IrohaAPI
 ) {
 
-    private val gson = Gson()
+    private val gson = GsonInstance.get()
 
     /**
      * Expands given accounts quorum

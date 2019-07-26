@@ -11,7 +11,7 @@ import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import com.google.gson.Gson
+import com.d3.commons.util.GsonInstance
 import com.google.gson.reflect.TypeToken
 import iroha.protocol.QryResponses
 import iroha.protocol.TransactionOuterClass
@@ -45,7 +45,7 @@ class IrohaQueryHelperImpl(val queryAPI: QueryAPI) : IrohaQueryHelper {
         IrohaCredential(irohaCredentialRawConfig)
     )
 
-    private val gson = Gson()
+    private val gson = GsonInstance.get()
 
     /**
      * Deserialise JSON string to Map<String, String>
