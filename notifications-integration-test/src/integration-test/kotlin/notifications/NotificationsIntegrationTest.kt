@@ -5,7 +5,8 @@
 
 package notifications
 
-import com.d3.commons.sidechain.iroha.FEE_DESCRIPTION
+import com.d3.commons.service.WithdrawalFinalizationDetails
+import com.d3.commons.service.WithdrawalFinalizer
 import com.d3.commons.sidechain.iroha.ROLLBACK_DESCRIPTION
 import com.d3.commons.util.irohaEscape
 import com.d3.commons.util.toHexString
@@ -14,6 +15,7 @@ import com.d3.notifications.client.D3_CLIENT_ENABLE_NOTIFICATIONS
 import com.d3.notifications.client.D3_CLIENT_PUSH_SUBSCRIPTION
 import com.d3.notifications.service.*
 import com.github.kittinunf.result.failure
+import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import com.nhaarman.mockitokotlin2.*
 import integration.helper.IrohaIntegrationHelperUtil
@@ -105,6 +107,13 @@ class NotificationsIntegrationTest {
             amount
         )
 
+        // Enriching withdrawal account 
+        integrationHelper.addIrohaAssetTo(
+            integrationHelper.accountHelper.btcWithdrawalAccount.accountId,
+            BTC_ASSET,
+            amount
+        )
+
         // Enriching src account
         integrationHelper.addIrohaAssetTo(
             environment.srcClientId,
@@ -178,7 +187,7 @@ class NotificationsIntegrationTest {
     /**
      * Note: Iroha must be deployed to pass the test.
      * @given D3 client with enabled email notifications and notary account
-     * @when D3 client sends money to notary account
+     * @when D3 client finalizes withdrawal operation
      * @then D3 client is notified about withdrawal(both email and push)
      */
     @Test
@@ -189,20 +198,17 @@ class NotificationsIntegrationTest {
             environment.srcClientId,
             D3_CLIENT_ENABLE_NOTIFICATIONS,
             "true"
-        ).map {
-            val notaryAccount = integrationHelper.accountHelper.notaryAccount
-            integrationHelper.transferAssetIrohaFromClientWithFee(
-                environment.srcClientId,
-                environment.srcClientKeyPair,
-                environment.srcClientId,
-                notaryAccount.accountId,
+        ).flatMap {
+            val withdrawalFinalizer = WithdrawalFinalizer(environment.withdrawalIrohaConsumer, "withdrawal_billing@d3")
+            val withdrawalFinalizationDetails = WithdrawalFinalizationDetails(
+                withdrawalValue,
                 BTC_ASSET,
-                "no description",
-                withdrawalValue.toPlainString(),
+                BigDecimal("0.1"),
                 BTC_ASSET,
-                BigDecimal("0.1").toPlainString(),
-                FEE_DESCRIPTION
+                environment.srcClientId,
+                System.currentTimeMillis()
             )
+            withdrawalFinalizer.finalize(withdrawalFinalizationDetails)
         }.map {
             Thread.sleep(TRANSFER_WAIT_TIME)
             val receivedEmails = environment.dumbster.receivedEmails
