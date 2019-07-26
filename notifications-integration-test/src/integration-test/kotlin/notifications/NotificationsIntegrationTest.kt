@@ -107,7 +107,7 @@ class NotificationsIntegrationTest {
             amount
         )
 
-        // Enriching withdrawal account
+        // Enriching withdrawal account 
         integrationHelper.addIrohaAssetTo(
             integrationHelper.accountHelper.btcWithdrawalAccount.accountId,
             BTC_ASSET,
