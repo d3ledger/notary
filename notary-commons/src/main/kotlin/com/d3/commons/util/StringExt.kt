@@ -5,15 +5,11 @@
 
 package com.d3.commons.util
 
-import com.google.gson.GsonBuilder
 import jp.co.soramitsu.iroha.java.Utils
 import java.util.*
 import javax.xml.bind.DatatypeConverter
 
 private const val CHAR = "abcdefghijklmnopqrstuvwxyz"
-
-//JSON formatter
-private val gson = GsonBuilder().setPrettyPrinting().create()
 
 /**
  * Extension function to convert hexidecimal string to text
@@ -62,7 +58,3 @@ fun String.irohaEscape(): String = Utils.irohaEscape(this)
 
 // Reverse changes of 'irohaEscape'
 fun String.irohaUnEscape(): String = Utils.irohaUnEscape(this)
-
-//TODO can we get rid of klaxon and moshi? Gson is much easier thing to use.
-// Turns any object to JSON
-fun String.Companion.toJson(obj: Any) = gson.toJson(obj)

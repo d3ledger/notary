@@ -10,7 +10,7 @@ import com.d3.commons.util.getRandomString
 import com.d3.commons.util.irohaEscape
 import com.d3.commons.util.toHexString
 import com.d3.exchange.util.ExchangerServiceTestEnvironment
-import com.google.gson.Gson
+import com.d3.commons.util.GsonInstance
 import integration.helper.IrohaIntegrationHelperUtil
 import integration.registration.RegistrationServiceTestEnvironment
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
@@ -28,7 +28,7 @@ private const val TRANSFER_WAIT_TIME = 10_000L
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ExchangerIntegrationTest {
 
-    private val gson = Gson()
+    private val gson = GsonInstance.get()
 
     private val integrationHelper = IrohaIntegrationHelperUtil()
 

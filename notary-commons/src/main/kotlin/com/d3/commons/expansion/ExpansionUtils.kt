@@ -8,7 +8,7 @@ package com.d3.commons.expansion
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.consumer.MultiSigIrohaConsumer
 import com.d3.commons.util.unHex
-import com.google.gson.Gson
+import com.d3.commons.util.GsonInstance
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.Transaction
 import jp.co.soramitsu.iroha.java.Utils
@@ -16,7 +16,7 @@ import mu.KLogging
 
 object ExpansionUtils : KLogging() {
 
-    private val gson = Gson()
+    private val gson = GsonInstance.get()
 
     /**
      * Expansion logic that adds signature to the account passed in [expansionDetails]

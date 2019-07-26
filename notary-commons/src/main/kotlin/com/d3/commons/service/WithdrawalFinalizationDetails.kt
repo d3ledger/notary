@@ -5,10 +5,9 @@
 
 package com.d3.commons.service
 
-import com.google.gson.Gson
+import com.d3.commons.util.GsonInstance
 import java.math.BigDecimal
 
-private val gson = Gson()
 
 /**
  * Data class that stores details of withdrawal finalization
@@ -19,7 +18,7 @@ private val gson = Gson()
  * @param srcAccountId - id of account that initiated current withdrawal
  * @param withdrawalTime - time of withdrawal
  */
-data class FinalizationDetails(
+data class WithdrawalFinalizationDetails(
     val withdrawalAmount: BigDecimal,
     val withdrawalAssetId: String,
     val feeAmount: BigDecimal,
@@ -31,7 +30,7 @@ data class FinalizationDetails(
      * Transforms finalization details object into json string
      * @return json string
      */
-    fun toJson() = gson.toJson(this)
+    fun toJson() = GsonInstance.get().toJson(this)
 
     companion object {
         /**
@@ -39,6 +38,6 @@ data class FinalizationDetails(
          * @return finalization details object
          */
         fun fromJson(json: String) =
-            gson.fromJson(json, FinalizationDetails::class.java)
+            GsonInstance.get().fromJson(json, WithdrawalFinalizationDetails::class.java)
     }
 }

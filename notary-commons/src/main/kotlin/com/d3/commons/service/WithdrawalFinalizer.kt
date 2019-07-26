@@ -24,42 +24,42 @@ class WithdrawalFinalizer(
 
     /**
      * Finalizes withdrawal
-     * @param finalizationDetails - details of finalization
+     * @param withdrawalFinalizationDetails - details of finalization
      * @return hash of transaction if successful
      */
-    fun finalize(finalizationDetails: FinalizationDetails): Result<String, Exception> {
+    fun finalize(withdrawalFinalizationDetails: WithdrawalFinalizationDetails): Result<String, Exception> {
         return withdrawalIrohaConsumer.getConsumerQuorum().flatMap { quorum ->
-            withdrawalIrohaConsumer.send(createFinalizeTransaction(finalizationDetails, quorum))
+            withdrawalIrohaConsumer.send(createFinalizeTransaction(withdrawalFinalizationDetails, quorum))
         }
     }
 
     /**
      * Creates transaction that finalizes withdrawal operation
-     * @param finalizationDetails - details of finalization
+     * @param withdrawalFinalizationDetails - details of finalization
      * @return transaction
      */
-    private fun createFinalizeTransaction(finalizationDetails: FinalizationDetails, quorum: Int): Transaction {
+    private fun createFinalizeTransaction(withdrawalFinalizationDetails: WithdrawalFinalizationDetails, quorum: Int): Transaction {
         val transactionBuilder = Transaction.builder(withdrawalIrohaConsumer.creator)
-        if (finalizationDetails.feeAmount > BigDecimal.ZERO) {
+        if (withdrawalFinalizationDetails.feeAmount > BigDecimal.ZERO) {
             // Pay fees to the corresponding account
             transactionBuilder.transferAsset(
                 withdrawalIrohaConsumer.creator,
                 billingAccount,
-                finalizationDetails.feeAssetId,
+                withdrawalFinalizationDetails.feeAssetId,
                 "Fee",
-                finalizationDetails.feeAmount
+                withdrawalFinalizationDetails.feeAmount
             )
         }
         // Set last successful withdrawal
         transactionBuilder.setAccountDetail(
             withdrawalIrohaConsumer.creator,
             LAST_SUCCESSFUL_WITHDRAWAL_KEY,
-            finalizationDetails.toJson().irohaEscape()
+            withdrawalFinalizationDetails.toJson().irohaEscape()
         )
         // Burn withdrawal account money to keep 2WP consistent
         transactionBuilder
-            .subtractAssetQuantity(finalizationDetails.withdrawalAssetId, finalizationDetails.withdrawalAmount)
-            .setCreatedTime(finalizationDetails.withdrawalTime)
+            .subtractAssetQuantity(withdrawalFinalizationDetails.withdrawalAssetId, withdrawalFinalizationDetails.withdrawalAmount)
+            .setCreatedTime(withdrawalFinalizationDetails.withdrawalTime)
             .setQuorum(quorum)
         return transactionBuilder.build()
     }

@@ -5,13 +5,13 @@
 
 package com.d3.notifications.client
 
-import com.google.gson.Gson
+import com.d3.commons.util.GsonInstance
 import nl.martijndwars.webpush.Subscription
 
 const val D3_CLIENT_EMAIL_KEY = "email"
 const val D3_CLIENT_ENABLE_NOTIFICATIONS = "notifications"
 const val D3_CLIENT_PUSH_SUBSCRIPTION = "push_subscription"
-private val gson = Gson()
+private val gson = GsonInstance.get()
 
 /**
  * D3 client data class
