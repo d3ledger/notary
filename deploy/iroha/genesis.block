@@ -161,6 +161,8 @@
                     "can_get_all_acc_detail",
                     "can_get_blocks",
                     "can_read_assets",
+                    "can_subtract_asset_qty",
+                    "can_transfer",
                     "can_receive",
                     "can_get_all_txs",
                     "can_add_signatory",
