@@ -5,6 +5,7 @@
 
 package com.d3.commons.sidechain.iroha.util.impl
 
+import com.d3.commons.config.IrohaCredentialRawConfig
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 import com.github.kittinunf.result.Result
@@ -37,6 +38,11 @@ class IrohaQueryHelperImpl(val queryAPI: QueryAPI) : IrohaQueryHelper {
             irohaCredential.accountId,
             irohaCredential.keyPair
         )
+    )
+
+    constructor(irohaAPI: IrohaAPI, irohaCredentialRawConfig: IrohaCredentialRawConfig) : this(
+        irohaAPI,
+        IrohaCredential(irohaCredentialRawConfig)
     )
 
     private val gson = Gson()
@@ -91,11 +97,10 @@ class IrohaQueryHelperImpl(val queryAPI: QueryAPI) : IrohaQueryHelper {
         return Result.of { queryAPI.getAccountDetails(storageAccountId, writerAccountId, null) }
             .flatMap { str -> parseAccountDetailsJson(str) }
             .map { details ->
-                val result: String?
-                if (details[writerAccountId] == null) {
-                    result = null
+                val result = if (details[writerAccountId] == null) {
+                    null
                 } else {
-                    result = details.getOrDefault(writerAccountId, emptyMap())[key]
+                    details.getOrDefault(writerAccountId, emptyMap())[key]
                 }
                 Optional.ofNullable(result)
             }

@@ -66,6 +66,18 @@ services:
     networks:
       - d3-network
 
+  d3-notifications:
+    image: nexus.iroha.tech:19002/d3-deploy/notifications:develop
+    container_name: d3-notifications
+    restart: on-failure
+    environment:
+      - NOTIFICATIONS_SMTP_HOST=smtp.mailtrap.io
+      - NOTIFICATIONS_SMTP_PORT=2525
+      - NOTIFICATIONS_SMTP_PASSWORD=c9e459e405ef1c
+      - NOTIFICATIONS_SMTP_USERNAME=4bf667d5bd903a
+    networks:
+      - d3-network
+
   d3-brvs-mongodb:
     image: mongo:4.0.6
     container_name: d3-brvs-mongodb
@@ -95,7 +107,7 @@ services:
       BILLING_URL: http://data-collector:8080/cache/get/billing
       BILLING_ASSET_PRECISION_URL: http://data-collector:8080/iroha/asset/precision/
     volumes:
-      - ../configs/brvs/keys:/opt/brvs/config/keys/
+      - ../configs/brvs/keys:/config/keys
     networks:
       - d3-network
     restart: always

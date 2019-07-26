@@ -25,6 +25,8 @@ class ExchangerServiceTestEnvironment(private val integrationHelper: IrohaIntegr
 
     val exchangerAccount = integrationHelper.accountHelper.exchangerAccount
 
+    val testDetailKey = "test"
+
     private val exchangerCredential =
         IrohaCredential(exchangerAccount.accountId, exchangerAccount.keyPair)
 
@@ -47,7 +49,9 @@ class ExchangerServiceTestEnvironment(private val integrationHelper: IrohaIntegr
                 exchangerAccount.keyPair
             ),
             chainListener,
-            listOf(integrationHelper.testCredential.accountId)
+            listOf(integrationHelper.testCredential.accountId),
+            integrationHelper.testCredential.accountId,
+            testDetailKey
         )
         exchangerService.start()
     }

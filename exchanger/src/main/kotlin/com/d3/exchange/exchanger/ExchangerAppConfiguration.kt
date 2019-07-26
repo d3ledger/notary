@@ -59,8 +59,14 @@ class ExchangerAppConfiguration {
 
     @Bean
     fun queryhelper() =
-        IrohaQueryHelperImpl(irohaAPI(), IrohaCredential(exchangerConfig.irohaCredential))
+        IrohaQueryHelperImpl(irohaAPI(), exchangerConfig.irohaCredential)
 
     @Bean
     fun liquidityProviders() = exchangerConfig.liquidityProviders.split(",").toList()
+
+    @Bean
+    fun tradePairSetter() = exchangerConfig.tradePairSetter
+
+    @Bean
+    fun tradePairKey() = exchangerConfig.tradePairKey
 }

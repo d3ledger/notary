@@ -164,7 +164,11 @@
                     "can_subtract_asset_qty",
                     "can_transfer",
                     "can_receive",
-                    "can_get_all_txs"
+                    "can_get_all_txs",
+                    "can_add_signatory",
+                    "can_set_quorum",
+                    "can_set_detail",
+                    "can_subtract_asset_qty"
                   ]
                 }
               },
@@ -305,7 +309,8 @@
                     "can_get_domain_accounts",
                     "can_get_all_txs",
                     "can_get_domain_acc_detail",
-                    "can_read_assets"
+                    "can_read_assets",
+                    "can_get_my_acc_detail"
                   ]
                 }
               },
@@ -335,6 +340,7 @@
                     "can_transfer",
                     "can_receive",
                     "can_get_my_acc_ast",
+                    "can_get_my_acc_detail",
                     "can_read_assets"
                   ]
                 }
@@ -815,7 +821,7 @@
                 "createAccount": {
                   "accountName": "exchanger",
                   "domainId": "notary",
-                  "publicKey": "6ddd0509439afc402200d5c745444d501179f7952c4f687666972aaa35fdd948"
+                  "publicKey": "8f0f6ceb147679fb81549c48e720345f14ed0340879e4ad370a21b6ddc3281c9"
                 }
               },
               {
