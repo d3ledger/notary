@@ -5,9 +5,13 @@
 
 package com.d3.notifications.init
 
+import com.d3.commons.service.LAST_SUCCESSFUL_WITHDRAWAL_KEY
+import com.d3.commons.service.WithdrawalFinalizationDetails
 import com.d3.commons.sidechain.iroha.*
+import com.d3.commons.sidechain.iroha.util.getSetDetailCommands
 import com.d3.commons.sidechain.iroha.util.getTransferCommands
 import com.d3.commons.util.createPrettySingleThreadPool
+import com.d3.commons.util.irohaUnEscape
 import com.d3.notifications.NOTIFICATIONS_SERVICE_NAME
 import com.d3.notifications.service.NotificationService
 import com.d3.notifications.service.TransferNotifyEvent
@@ -44,16 +48,18 @@ class NotificationInitialization(
                 )
                 .subscribe(
                     { block ->
+                        getSetDetailCommands(block).map { it.setAccountDetail }.forEach { setDetailCommand ->
+                            // Notify withdrawal
+                            if (isWithdrawal(setDetailCommand)) {
+                                handleWithdrawalEventNotification(setDetailCommand)
+                            }
+                        }
                         //Get transfer commands from block
                         getTransferCommands(block).forEach { command ->
                             val transferAsset = command.transferAsset
                             // Notify deposit
                             if (isDeposit(transferAsset)) {
                                 handleDepositNotification(transferAsset)
-                            }
-                            // Notify withdrawal
-                            else if (isWithdrawal(transferAsset)) {
-                                handleWithdrawalEventNotification(transferAsset)
                             }
                             // Notify transfer
                             else if (isClientToClientTransfer(transferAsset)) {
@@ -77,8 +83,8 @@ class NotificationInitialization(
     ) && transferAsset.destAccountId.endsWith("@$CLIENT_DOMAIN")
 
     // Checks if withdrawal event
-    private fun isWithdrawal(transferAsset: Commands.TransferAsset) =
-        transferAsset.destAccountId.endsWith("@$NOTARY_DOMAIN") && transferAsset.description != FEE_DESCRIPTION
+    private fun isWithdrawal(setAccountDetail: Commands.SetAccountDetail) =
+        setAccountDetail.accountId.endsWith("@$NOTARY_DOMAIN") && setAccountDetail.key == LAST_SUCCESSFUL_WITHDRAWAL_KEY
 
     // Checks if deposit event
     private fun isDeposit(transferAsset: Commands.TransferAsset): Boolean {
@@ -118,12 +124,14 @@ class NotificationInitialization(
     }
 
     // Handles withdrawal event notification
-    private fun handleWithdrawalEventNotification(transferAsset: Commands.TransferAsset) {
+    private fun handleWithdrawalEventNotification(setAccountDetail: Commands.SetAccountDetail) {
+        val withdrawalFinalizationDetails =
+            WithdrawalFinalizationDetails.fromJson(setAccountDetail.value.irohaUnEscape())
         val transferNotifyEvent = TransferNotifyEvent(
-            transferAsset.srcAccountId,
-            BigDecimal(transferAsset.amount),
-            transferAsset.assetId,
-            transferAsset.description
+            withdrawalFinalizationDetails.srcAccountId,
+            withdrawalFinalizationDetails.withdrawalAmount,
+            withdrawalFinalizationDetails.withdrawalAssetId,
+            ""
         )
         logger.info { "Notify withdrawal $transferNotifyEvent" }
         notificationServices.forEach {

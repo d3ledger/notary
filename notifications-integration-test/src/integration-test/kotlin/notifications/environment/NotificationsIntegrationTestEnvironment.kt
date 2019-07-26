@@ -92,6 +92,8 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
             listOf(emailNotificationService, pushNotificationService)
         )
 
+    val withdrawalIrohaConsumer = IrohaConsumerImpl(integrationHelper.accountHelper.btcWithdrawalAccount, irohaAPI)
+
     // Source account
     val srcClientName = String.getRandomString(9)
     val srcClientKeyPair = ModelUtil.generateKeypair()
