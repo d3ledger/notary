@@ -20,6 +20,8 @@ interface NotificationsConfig {
     val smtp: SMTPConfig
     // Push API config
     val push: PushAPIConfig
+    // Billing account for transfers
+    val transferBillingAccount: String
 }
 
 /**

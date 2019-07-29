@@ -7,6 +7,7 @@ package notifications
 
 import com.d3.commons.service.WithdrawalFinalizationDetails
 import com.d3.commons.service.WithdrawalFinalizer
+import com.d3.commons.sidechain.iroha.FEE_DESCRIPTION
 import com.d3.commons.sidechain.iroha.ROLLBACK_DESCRIPTION
 import com.d3.commons.util.irohaEscape
 import com.d3.commons.util.toHexString
@@ -20,12 +21,12 @@ import com.github.kittinunf.result.map
 import com.nhaarman.mockitokotlin2.*
 import integration.helper.IrohaIntegrationHelperUtil
 import integration.registration.RegistrationServiceTestEnvironment
+import jp.co.soramitsu.iroha.java.Transaction
 import notifications.environment.NotificationsIntegrationTestEnvironment
 import org.apache.http.HttpResponse
 import org.apache.http.StatusLine
 import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import java.math.BigDecimal
 
 const val BTC_ASSET = "btc#bitcoin"
@@ -40,6 +41,7 @@ private const val SUBSCRIPTION_JSON = "{" +
         "  }" +
         "}"
 
+//TODO add new test (transfer with fee)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class NotificationsIntegrationTest {
 
@@ -187,12 +189,13 @@ class NotificationsIntegrationTest {
     /**
      * Note: Iroha must be deployed to pass the test.
      * @given D3 client with enabled email notifications and notary account
-     * @when D3 client finalizes withdrawal operation
-     * @then D3 client is notified about withdrawal(both email and push)
+     * @when D3 client finalizes withdrawal operation with fee
+     * @then D3 client is notified about withdrawal(both email and push) and fee
      */
     @Test
-    fun testNotificationWithdrawal() {
+    fun testNotificationWithdrawalWithFee() {
         val withdrawalValue = BigDecimal(1)
+        val fee = BigDecimal("0.1")
         integrationHelper.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
             environment.srcClientId,
@@ -203,7 +206,7 @@ class NotificationsIntegrationTest {
             val withdrawalFinalizationDetails = WithdrawalFinalizationDetails(
                 withdrawalValue,
                 BTC_ASSET,
-                BigDecimal("0.1"),
+                fee,
                 BTC_ASSET,
                 environment.srcClientId,
                 System.currentTimeMillis()
@@ -217,6 +220,47 @@ class NotificationsIntegrationTest {
             assertEquals(D3_WITHDRAWAL_EMAIL_SUBJECT, lastEmail.getHeaderValue("Subject"))
             assertEquals(SRC_USER_EMAIL, lastEmail.getHeaderValue("To"))
             assertEquals(NOTIFICATION_EMAIL, lastEmail.getHeaderValue("From"))
+            assertTrue(lastEmail.body.contains("Fee is $fee $BTC_ASSET"))
+            verify(environment.pushService).send(any())
+            Unit
+        }.failure { ex -> fail(ex) }
+    }
+
+    /**
+     * Note: Iroha must be deployed to pass the test.
+     * @given D3 client with enabled email notifications and notary account
+     * @when D3 client finalizes withdrawal operation with no fee
+     * @then D3 client is notified about withdrawal(both email and push)
+     */
+    @Test
+    fun testNotificationWithdrawalNoFee() {
+        val withdrawalValue = BigDecimal(1)
+        val fee = BigDecimal.ZERO
+        integrationHelper.setAccountDetailWithRespectToBrvs(
+            environment.srcClientConsumer,
+            environment.srcClientId,
+            D3_CLIENT_ENABLE_NOTIFICATIONS,
+            "true"
+        ).flatMap {
+            val withdrawalFinalizer = WithdrawalFinalizer(environment.withdrawalIrohaConsumer, "withdrawal_billing@d3")
+            val withdrawalFinalizationDetails = WithdrawalFinalizationDetails(
+                withdrawalValue,
+                BTC_ASSET,
+                fee,
+                BTC_ASSET,
+                environment.srcClientId,
+                System.currentTimeMillis()
+            )
+            withdrawalFinalizer.finalize(withdrawalFinalizationDetails)
+        }.map {
+            Thread.sleep(TRANSFER_WAIT_TIME)
+            val receivedEmails = environment.dumbster.receivedEmails
+            assertEquals(1, receivedEmails.size)
+            val lastEmail = receivedEmails.last()
+            assertEquals(D3_WITHDRAWAL_EMAIL_SUBJECT, lastEmail.getHeaderValue("Subject"))
+            assertEquals(SRC_USER_EMAIL, lastEmail.getHeaderValue("To"))
+            assertEquals(NOTIFICATION_EMAIL, lastEmail.getHeaderValue("From"))
+            assertFalse(lastEmail.body.contains("Fee is"))
             verify(environment.pushService).send(any())
             Unit
         }.failure { ex -> fail(ex) }
@@ -264,18 +308,18 @@ class NotificationsIntegrationTest {
     /**
      * Note: Iroha must be deployed to pass the test.
      * @given 2 D3 clients with enabled email notifications
-     * @when 1st client sends money to 2nd
+     * @when 1st client sends money to 2nd with no fee
      * @then Both clients are notified
      */
     @Test
-    fun testNotificationSimpleTransfer() {
+    fun testNotificationSimpleTransferNoFee() {
         val transferValue = BigDecimal(1)
         integrationHelper.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
             environment.srcClientId,
             D3_CLIENT_ENABLE_NOTIFICATIONS,
             "true"
-        ).map {
+        ).flatMap {
             integrationHelper.setAccountDetailWithRespectToBrvs(
                 environment.destClientConsumer,
                 environment.destClientId,
@@ -298,6 +342,7 @@ class NotificationsIntegrationTest {
             environment.dumbster.receivedEmails.forEach { message ->
                 assertEquals(D3_DEPOSIT_TRANSFER_SUBJECT, message.getHeaderValue("Subject"))
                 assertEquals(NOTIFICATION_EMAIL, message.getHeaderValue("From"))
+                assertFalse(message.body.contains("Fee is"))
             }
             verify(environment.pushService, times(2)).send(any())
             Unit
@@ -306,9 +351,9 @@ class NotificationsIntegrationTest {
 
     /**
      * Note: Iroha must be deployed to pass the test.
-     * @given D3 client with disabled email notifications and notary account
+     * @given D3 client with disabled notifications and notary account
      * @when notary sends money to D3 client
-     * @then D3 client is not notified about deposit via email, but client must be notified via push
+     * @then D3 client is not notified
      */
     @Test
     fun testNotificationDepositNotEnabledEmail() {
@@ -333,7 +378,7 @@ class NotificationsIntegrationTest {
         }.map {
             Thread.sleep(TRANSFER_WAIT_TIME)
             assertTrue(environment.dumbster.receivedEmails.isEmpty())
-            verify(environment.pushService).send(any())
+            verify(environment.pushService, never()).send(any())
             Unit
         }.failure { ex -> fail(ex) }
     }

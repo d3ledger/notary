@@ -29,7 +29,7 @@ class EmailNotificationService(
 
     override fun notifySendToClient(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
         val message =
-            "Dear client, transfer of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} from your account ${transferNotifyEvent.accountId} is successful.\nDescription:${transferNotifyEvent.description}"
+            "Dear client, transfer of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} from your account ${transferNotifyEvent.accountId} is successful.\n${transferNotifyEvent.description}"
         return checkClientAndSendMessage(
             transferNotifyEvent.accountId,
             D3_DEPOSIT_TRANSFER_SUBJECT, message
@@ -38,7 +38,7 @@ class EmailNotificationService(
 
     override fun notifyReceiveFromClient(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
         val message =
-            "Dear client, transfer of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} to your account ${transferNotifyEvent.accountId} is successful.\nDescription:${transferNotifyEvent.description}"
+            "Dear client, transfer of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} to your account ${transferNotifyEvent.accountId} is successful.\n${transferNotifyEvent.description}"
         return checkClientAndSendMessage(
             transferNotifyEvent.accountId,
             D3_DEPOSIT_TRANSFER_SUBJECT, message
@@ -65,7 +65,7 @@ class EmailNotificationService(
 
     override fun notifyWithdrawal(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
         val message =
-            "Dear client, withdrawal of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} from your account ${transferNotifyEvent.accountId} is successful."
+            "Dear client, withdrawal of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} from your account ${transferNotifyEvent.accountId} is successful.\n${transferNotifyEvent.description}"
         return checkClientAndSendMessage(
             transferNotifyEvent.accountId,
             D3_WITHDRAWAL_EMAIL_SUBJECT, message
@@ -86,10 +86,10 @@ class EmailNotificationService(
     ): Result<Unit, Exception> {
         return d3ClientProvider.getClient(accountId).flatMap { d3Client ->
             if (!d3Client.enableNotifications) {
-                logger.info { "Client ${d3Client.accountId} doesn't want to be notified" }
+                logger.info { "Cannot send push notification. Client ${d3Client.accountId} doesn't want to be notified" }
                 return@flatMap Result.of { Unit }
             } else if (d3Client.email == null) {
-                logger.warn { "Client ${d3Client.accountId} wants to be notified, but no email was set" }
+                logger.warn { "Cannot send push notification. Client ${d3Client.accountId} wants to be notified, but no email was set" }
                 return@flatMap Result.of { Unit }
             }
             smtpService.sendMessage(NOTIFICATION_EMAIL, d3Client.email, subject, message)
