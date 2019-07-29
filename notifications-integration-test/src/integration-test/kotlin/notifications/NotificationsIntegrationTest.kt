@@ -7,7 +7,6 @@ package notifications
 
 import com.d3.commons.service.WithdrawalFinalizationDetails
 import com.d3.commons.service.WithdrawalFinalizer
-import com.d3.commons.sidechain.iroha.FEE_DESCRIPTION
 import com.d3.commons.sidechain.iroha.ROLLBACK_DESCRIPTION
 import com.d3.commons.util.irohaEscape
 import com.d3.commons.util.toHexString
@@ -21,7 +20,6 @@ import com.github.kittinunf.result.map
 import com.nhaarman.mockitokotlin2.*
 import integration.helper.IrohaIntegrationHelperUtil
 import integration.registration.RegistrationServiceTestEnvironment
-import jp.co.soramitsu.iroha.java.Transaction
 import notifications.environment.NotificationsIntegrationTestEnvironment
 import org.apache.http.HttpResponse
 import org.apache.http.StatusLine
@@ -339,10 +337,17 @@ class NotificationsIntegrationTest {
         }.map {
             Thread.sleep(TRANSFER_WAIT_TIME)
             assertEquals(2, environment.dumbster.receivedEmails.size)
+            assertTrue(environment.dumbster.receivedEmails.any { message -> message.getHeaderValue("To") == SRC_USER_EMAIL })
+            assertTrue(environment.dumbster.receivedEmails.any { message -> message.getHeaderValue("To") == DEST_USER_EMAIL })
             environment.dumbster.receivedEmails.forEach { message ->
                 assertEquals(D3_DEPOSIT_TRANSFER_SUBJECT, message.getHeaderValue("Subject"))
                 assertEquals(NOTIFICATION_EMAIL, message.getHeaderValue("From"))
                 assertFalse(message.body.contains("Fee is"))
+                if (message.getHeaderValue("To") == SRC_USER_EMAIL) {
+                    assertTrue(message.body.contains("to ${environment.destClientId}"))
+                } else if (message.getHeaderValue("To") == DEST_USER_EMAIL) {
+                    assertTrue(message.body.contains("from ${environment.srcClientId}"))
+                }
             }
             verify(environment.pushService, times(2)).send(any())
             Unit
