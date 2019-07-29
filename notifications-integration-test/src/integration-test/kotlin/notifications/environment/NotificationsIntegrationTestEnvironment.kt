@@ -42,7 +42,7 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
     private val notificationsConfigHelper =
         NotificationsConfigHelper(integrationHelper.accountHelper)
 
-    private val notificationsConfig = notificationsConfigHelper.createNotificationsConfig()
+    val notificationsConfig = notificationsConfigHelper.createNotificationsConfig()
 
     val dumbster = SimpleSmtpServer.start(notificationsConfig.smtp.port)!!
 
@@ -88,6 +88,7 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
 
     val notificationInitialization =
         NotificationInitialization(
+            notificationsConfig,
             irohaChainListener,
             listOf(emailNotificationService, pushNotificationService)
         )

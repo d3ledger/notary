@@ -30,7 +30,11 @@ class WebPushAPIServiceImpl(
     override fun push(accountId: String, message: String): Result<Unit, Exception> {
         return d3ClientProvider.getClient(accountId)
             .map { d3Client ->
-                if (d3Client.subscription == null) {
+                if (!d3Client.enableNotifications) {
+                    logger.warn {
+                        "Cannot send push notification. Client $accountId doesn't want to be notified"
+                    }
+                } else if (d3Client.subscription == null) {
                     logger.warn {
                         "Cannot send push notification. Client $accountId has no push subscription data"
                     }

@@ -75,4 +75,7 @@ class NotificationAppConfiguration {
                 "D3 notifications"
             )
     }
+
+    @Bean
+    fun notificationsConfig() = notificationsConfig
 }

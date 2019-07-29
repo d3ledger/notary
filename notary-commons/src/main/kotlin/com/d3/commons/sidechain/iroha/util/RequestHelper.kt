@@ -50,12 +50,25 @@ fun getTransferCommands(block: BlockOuterClass.Block): List<Commands.Command> {
 }
 
 /**
+ * Return transactions with "transfer asset" commands from Iroha block
+ * @param block - Iroha block
+ * @return list full of transactions with "transfer asset" commands
+ */
+fun getTransferTransactions(block: BlockOuterClass.Block): List<TransactionOuterClass.Transaction> {
+    return block.blockV1.payload.transactionsList
+        .filter { tx ->
+            tx.payload.reducedPayload.commandsList
+                .any { command -> command.hasTransferAsset() }
+        }
+}
+
+/**
  * Return all withdrawal transactions from Iroha block
  * @param block - Iroha block
  * @param withdrawalAccount - account that is used to perform withdrawals
  * @return list full of "transfer asset" transactions
  */
-fun getTransferTransactions(
+fun getWithdrawalTransactions(
     block: BlockOuterClass.Block,
     withdrawalAccount: String
 ): List<TransactionOuterClass.Transaction> {
