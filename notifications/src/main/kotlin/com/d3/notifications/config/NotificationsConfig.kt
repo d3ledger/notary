@@ -22,6 +22,8 @@ interface NotificationsConfig {
     val push: PushAPIConfig
     // Billing account for transfers
     val transferBillingAccount: String
+    // Billing account for withdrawals
+    val withdrawalBillingAccount: String
 }
 
 /**

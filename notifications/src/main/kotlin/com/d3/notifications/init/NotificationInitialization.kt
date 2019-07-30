@@ -115,13 +115,20 @@ class NotificationInitialization(
 
     // Checks if deposit event
     private fun isDeposit(transferAsset: Commands.TransferAsset): Boolean {
-        val depositSign = transferAsset.srcAccountId.endsWith("@$NOTARY_DOMAIN")
+        val depositSign =
+            transferAsset.srcAccountId.endsWith("@$NOTARY_DOMAIN")
+                    && (transferAsset.destAccountId.endsWith("@$CLIENT_DOMAIN") &&
+                    transferAsset.destAccountId != notificationsConfig.transferBillingAccount &&
+                    transferAsset.destAccountId != notificationsConfig.withdrawalBillingAccount)
         return depositSign && !isRollbackSign(transferAsset)
     }
 
     // Checks if rollback event
     private fun isRollback(transferAsset: Commands.TransferAsset): Boolean {
         val depositSign = transferAsset.srcAccountId.endsWith("@$NOTARY_DOMAIN")
+                && (transferAsset.destAccountId.endsWith("@$CLIENT_DOMAIN") &&
+                transferAsset.destAccountId != notificationsConfig.transferBillingAccount &&
+                transferAsset.destAccountId != notificationsConfig.withdrawalBillingAccount)
         return depositSign && isRollbackSign(transferAsset)
     }
 
@@ -182,7 +189,8 @@ class NotificationInitialization(
             transferAsset.destAccountId,
             BigDecimal(transferAsset.amount),
             transferAsset.assetId,
-            ""
+            description = "",
+            from = transferAsset.srcAccountId
         )
         val transferDescription = if (fee == null) {
             ""
@@ -193,7 +201,8 @@ class NotificationInitialization(
             transferAsset.srcAccountId,
             BigDecimal(transferAsset.amount),
             transferAsset.assetId,
-            transferDescription
+            transferDescription,
+            to = transferAsset.destAccountId
         )
         logger.info { "Notify transfer receive $transferNotifyReceiveEvent" }
         logger.info { "Notify transfer send $transferNotifySendEvent" }

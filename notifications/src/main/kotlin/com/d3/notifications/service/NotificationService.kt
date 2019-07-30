@@ -55,10 +55,14 @@ interface NotificationService {
  * @param amount - transfer amount
  * @param assetName - name of asset
  * @param description - description of transfer
+ * @param from - defines the origin of transfer. null by default
+ * @param to - defines the destination of transfer. null by default.
  */
 data class TransferNotifyEvent(
     val accountId: String,
     val amount: BigDecimal,
     val assetName: String,
-    val description: String
+    val description: String,
+    val from: String? = null,
+    val to: String? = null
 )

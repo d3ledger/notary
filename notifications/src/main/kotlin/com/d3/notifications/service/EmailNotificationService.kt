@@ -28,8 +28,13 @@ class EmailNotificationService(
 ) : NotificationService {
 
     override fun notifySendToClient(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
+        val toMessage = if (transferNotifyEvent.to != null) {
+            "to ${transferNotifyEvent.to} "
+        } else {
+            ""
+        }
         val message =
-            "Dear client, transfer of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} from your account ${transferNotifyEvent.accountId} is successful.\n${transferNotifyEvent.description}"
+            "Dear client, transfer of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} from your account ${transferNotifyEvent.accountId} ${toMessage}is successful.\n${transferNotifyEvent.description}"
         return checkClientAndSendMessage(
             transferNotifyEvent.accountId,
             D3_DEPOSIT_TRANSFER_SUBJECT, message
@@ -37,8 +42,13 @@ class EmailNotificationService(
     }
 
     override fun notifyReceiveFromClient(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
+        val fromMessage = if (transferNotifyEvent.from != null) {
+            "from ${transferNotifyEvent.from} "
+        } else {
+            ""
+        }
         val message =
-            "Dear client, transfer of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} to your account ${transferNotifyEvent.accountId} is successful.\n${transferNotifyEvent.description}"
+            "Dear client, transfer of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} ${fromMessage}to your account ${transferNotifyEvent.accountId} is successful.\n${transferNotifyEvent.description}"
         return checkClientAndSendMessage(
             transferNotifyEvent.accountId,
             D3_DEPOSIT_TRANSFER_SUBJECT, message
