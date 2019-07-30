@@ -11,7 +11,7 @@ dependencies {
     // 'iroha-java:testcontainers' has this dependency inside but it's slightly old
     compile group: 'org.testcontainers', name: 'testcontainers', version: '1.11.2'
     //Iroha-java related
-    compile('com.github.hyperledger.iroha-java:testcontainers:5.1.1')
+    compile('com.github.hyperledger.iroha-java:testcontainers:6.0.0')
     compile('org.slf4j:slf4j-api:1.7.25')
     compile('org.slf4j:slf4j-simple:1.7.25')
     // https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java-util

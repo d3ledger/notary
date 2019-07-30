@@ -59,7 +59,7 @@ dependencies {
     testCompile "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
 
     //Iroha-java related
-    implementation('com.github.hyperledger.iroha-java:testcontainers:5.1.1') {
+    implementation('com.github.hyperledger.iroha-java:testcontainers:6.0.0') {
         exclude group: 'org.slf4j'
     }
 
