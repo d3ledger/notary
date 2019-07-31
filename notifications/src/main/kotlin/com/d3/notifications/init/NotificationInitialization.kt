@@ -28,6 +28,7 @@ import mu.KLogging
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
 
+//TODO refactor handlers
 /**
  * Notifications initialization service
  */
@@ -147,7 +148,8 @@ class NotificationInitialization(
             transferAsset.destAccountId,
             BigDecimal(transferAsset.amount),
             transferAsset.assetId,
-            transferAsset.description
+            description = "",
+            from = transferAsset.description
         )
         logger.info { "Notify deposit $transferNotifyEvent" }
         notificationServices.forEach {

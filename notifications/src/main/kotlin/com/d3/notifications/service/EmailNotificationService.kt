@@ -65,8 +65,13 @@ class EmailNotificationService(
     }
 
     override fun notifyDeposit(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
+        val fromMessage = if (transferNotifyEvent.from != null) {
+            "from ${transferNotifyEvent.from} "
+        } else {
+            ""
+        }
         val message =
-            "Dear client, deposit of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} to your account ${transferNotifyEvent.accountId} is successful."
+            "Dear client, deposit of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} ${fromMessage}to your account ${transferNotifyEvent.accountId} is successful."
         return checkClientAndSendMessage(
             transferNotifyEvent.accountId,
             D3_DEPOSIT_EMAIL_SUBJECT, message
