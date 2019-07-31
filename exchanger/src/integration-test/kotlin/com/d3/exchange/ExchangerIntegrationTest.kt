@@ -6,20 +6,24 @@
 package com.d3.exchange
 
 import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
+
+import com.d3.commons.util.GsonInstance
 import com.d3.commons.util.getRandomString
 import com.d3.commons.util.irohaEscape
 import com.d3.commons.util.toHexString
 import com.d3.exchange.util.ExchangerServiceTestEnvironment
-import com.d3.commons.util.GsonInstance
+import integration.helper.IrohaConfigHelper
 import integration.helper.IrohaIntegrationHelperUtil
 import integration.registration.RegistrationServiceTestEnvironment
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.math.BigDecimal
+import java.time.Duration
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -50,6 +54,8 @@ class ExchangerIntegrationTest {
         registrationServiceEnvironment.close()
     }
 
+    private val timeoutDuration = Duration.ofMinutes(IrohaConfigHelper.timeoutMinutes)
+
     /**
      * Test of a correct asset exchange
      * @given Registered user in Iroha
@@ -58,44 +64,46 @@ class ExchangerIntegrationTest {
      */
     @Test
     fun correctExchange() {
-        val tokenA = integrationHelper.createAsset().get()
-        val tokenB = integrationHelper.createAsset().get()
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            val tokenA = integrationHelper.createAsset().get()
+            val tokenB = integrationHelper.createAsset().get()
 
-        saveTradingPair(tokenA, tokenB)
+            saveTradingPair(tokenA, tokenB)
 
-        val userName = String.getRandomString(7)
-        val userKeypair = Ed25519Sha3().generateKeypair()
-        val userPubkey = userKeypair.public.toHexString()
-        val res = registrationServiceEnvironment.register(userName, userPubkey)
-        assertEquals(200, res.statusCode)
-        val userId = "$userName@$CLIENT_DOMAIN"
+            val userName = String.getRandomString(7)
+            val userKeypair = Ed25519Sha3().generateKeypair()
+            val userPubkey = userKeypair.public.toHexString()
+            val res = registrationServiceEnvironment.register(userName, userPubkey)
+            assertEquals(200, res.statusCode)
+            val userId = "$userName@$CLIENT_DOMAIN"
 
-        integrationHelper.addIrohaAssetTo(
-            exchangerServiceEnvironment.exchangerAccount.accountId,
-            tokenA,
-            "10"
-        )
-        integrationHelper.addIrohaAssetTo(
-            exchangerServiceEnvironment.exchangerAccount.accountId,
-            tokenB,
-            "10"
-        )
+            integrationHelper.addIrohaAssetTo(
+                exchangerServiceEnvironment.exchangerAccount.accountId,
+                tokenA,
+                "10"
+            )
+            integrationHelper.addIrohaAssetTo(
+                exchangerServiceEnvironment.exchangerAccount.accountId,
+                tokenB,
+                "10"
+            )
 
-        integrationHelper.addIrohaAssetTo(userId, tokenA, "1")
-        integrationHelper.transferAssetIrohaFromClient(
-            userId,
-            userKeypair,
-            userId,
-            exchangerServiceEnvironment.exchangerAccount.accountId,
-            tokenA,
-            tokenB,
-            "1"
-        )
+            integrationHelper.addIrohaAssetTo(userId, tokenA, "1")
+            integrationHelper.transferAssetIrohaFromClient(
+                userId,
+                userKeypair,
+                userId,
+                exchangerServiceEnvironment.exchangerAccount.accountId,
+                tokenA,
+                tokenB,
+                "1"
+            )
 
-        Thread.sleep(TRANSFER_WAIT_TIME)
+            Thread.sleep(TRANSFER_WAIT_TIME)
 
-        val etherBalance = integrationHelper.getIrohaAccountBalance(userId, tokenB)
-        assertTrue(BigDecimal(etherBalance) > BigDecimal.ZERO)
+            val etherBalance = integrationHelper.getIrohaAccountBalance(userId, tokenB)
+            assertTrue(BigDecimal(etherBalance) > BigDecimal.ZERO)
+        }
     }
 
     /**
@@ -106,37 +114,39 @@ class ExchangerIntegrationTest {
      */
     @Test
     fun rollbackUnknownExchange() {
-        val tokenA = integrationHelper.createAsset().get()
-        val tokenB = "soramichka#sora"
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            val tokenA = integrationHelper.createAsset().get()
+            val tokenB = "soramichka#sora"
 
-        saveTradingPair(tokenA, tokenB)
+            saveTradingPair(tokenA, tokenB)
 
-        val userName = String.getRandomString(7)
-        val userKeypair = Ed25519Sha3().generateKeypair()
-        val userPubkey = userKeypair.public.toHexString()
-        val res = registrationServiceEnvironment.register(userName, userPubkey)
-        assertEquals(200, res.statusCode)
-        val userId = "$userName@$CLIENT_DOMAIN"
+            val userName = String.getRandomString(7)
+            val userKeypair = Ed25519Sha3().generateKeypair()
+            val userPubkey = userKeypair.public.toHexString()
+            val res = registrationServiceEnvironment.register(userName, userPubkey)
+            assertEquals(200, res.statusCode)
+            val userId = "$userName@$CLIENT_DOMAIN"
 
-        integrationHelper.addIrohaAssetTo(
-            userId,
-            tokenA,
-            "1"
-        )
-        integrationHelper.transferAssetIrohaFromClient(
-            userId,
-            userKeypair,
-            userId,
-            exchangerServiceEnvironment.exchangerAccount.accountId,
-            tokenA,
-            tokenB,
-            "1"
-        )
+            integrationHelper.addIrohaAssetTo(
+                userId,
+                tokenA,
+                "1"
+            )
+            integrationHelper.transferAssetIrohaFromClient(
+                userId,
+                userKeypair,
+                userId,
+                exchangerServiceEnvironment.exchangerAccount.accountId,
+                tokenA,
+                tokenB,
+                "1"
+            )
 
-        Thread.sleep(TRANSFER_WAIT_TIME)
+            Thread.sleep(TRANSFER_WAIT_TIME)
 
-        val xorBalance = integrationHelper.getIrohaAccountBalance(userId, tokenA)
-        assertEquals("1", xorBalance)
+            val xorBalance = integrationHelper.getIrohaAccountBalance(userId, tokenA)
+            assertEquals("1", xorBalance)
+        }
     }
 
     /**
@@ -147,51 +157,53 @@ class ExchangerIntegrationTest {
      */
     @Test
     fun rollbackTooMuchExchange() {
-        val tokenA = integrationHelper.createAsset().get()
-        val tokenB = integrationHelper.createAsset().get()
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            val tokenA = integrationHelper.createAsset().get()
+            val tokenB = integrationHelper.createAsset().get()
 
-        saveTradingPair(tokenA, tokenB)
+            saveTradingPair(tokenA, tokenB)
 
-        val userName = String.getRandomString(7)
-        val userKeypair = Ed25519Sha3().generateKeypair()
-        val userPubkey = userKeypair.public.toHexString()
-        val res = registrationServiceEnvironment.register(userName, userPubkey)
-        assertEquals(200, res.statusCode)
-        val userId = "$userName@$CLIENT_DOMAIN"
-        val tooMuchAmount = "1000000"
+            val userName = String.getRandomString(7)
+            val userKeypair = Ed25519Sha3().generateKeypair()
+            val userPubkey = userKeypair.public.toHexString()
+            val res = registrationServiceEnvironment.register(userName, userPubkey)
+            assertEquals(200, res.statusCode)
+            val userId = "$userName@$CLIENT_DOMAIN"
+            val tooMuchAmount = "1000000"
 
-        integrationHelper.addIrohaAssetTo(
-            exchangerServiceEnvironment.exchangerAccount.accountId,
-            tokenA,
-            "10"
-        )
-        integrationHelper.addIrohaAssetTo(
-            exchangerServiceEnvironment.exchangerAccount.accountId,
-            tokenB,
-            "10"
-        )
+            integrationHelper.addIrohaAssetTo(
+                exchangerServiceEnvironment.exchangerAccount.accountId,
+                tokenA,
+                "10"
+            )
+            integrationHelper.addIrohaAssetTo(
+                exchangerServiceEnvironment.exchangerAccount.accountId,
+                tokenB,
+                "10"
+            )
 
-        integrationHelper.addIrohaAssetTo(
-            userId,
-            tokenA,
-            tooMuchAmount
-        )
-        integrationHelper.transferAssetIrohaFromClient(
-            userId,
-            userKeypair,
-            userId,
-            exchangerServiceEnvironment.exchangerAccount.accountId,
-            tokenA,
-            tokenB,
-            tooMuchAmount
-        )
+            integrationHelper.addIrohaAssetTo(
+                userId,
+                tokenA,
+                tooMuchAmount
+            )
+            integrationHelper.transferAssetIrohaFromClient(
+                userId,
+                userKeypair,
+                userId,
+                exchangerServiceEnvironment.exchangerAccount.accountId,
+                tokenA,
+                tokenB,
+                tooMuchAmount
+            )
 
-        Thread.sleep(TRANSFER_WAIT_TIME)
+            Thread.sleep(TRANSFER_WAIT_TIME)
 
-        val xorBalance = integrationHelper.getIrohaAccountBalance(userId, tokenA)
-        assertEquals(tooMuchAmount, xorBalance)
-        val etherBalance = integrationHelper.getIrohaAccountBalance(userId, tokenB)
-        assertEquals("0", etherBalance)
+            val xorBalance = integrationHelper.getIrohaAccountBalance(userId, tokenA)
+            assertEquals(tooMuchAmount, xorBalance)
+            val etherBalance = integrationHelper.getIrohaAccountBalance(userId, tokenB)
+            assertEquals("0", etherBalance)
+        }
     }
 
     /**
@@ -202,50 +214,52 @@ class ExchangerIntegrationTest {
      */
     @Test
     fun rollbackTooLittleExchange() {
-        val tokenA = integrationHelper.createAsset().get()
-        val tokenB = integrationHelper.createAsset().get()
+        Assertions.assertTimeoutPreemptively(timeoutDuration) {
+            val tokenA = integrationHelper.createAsset().get()
+            val tokenB = integrationHelper.createAsset().get()
 
-        saveTradingPair(tokenA, tokenB)
+            saveTradingPair(tokenA, tokenB)
 
-        val userName = String.getRandomString(7)
-        val userKeypair = Ed25519Sha3().generateKeypair()
-        val userPubkey = userKeypair.public.toHexString()
-        val res = registrationServiceEnvironment.register(userName, userPubkey)
-        assertEquals(200, res.statusCode)
-        val userId = "$userName@$CLIENT_DOMAIN"
+            val userName = String.getRandomString(7)
+            val userKeypair = Ed25519Sha3().generateKeypair()
+            val userPubkey = userKeypair.public.toHexString()
+            val res = registrationServiceEnvironment.register(userName, userPubkey)
+            assertEquals(200, res.statusCode)
+            val userId = "$userName@$CLIENT_DOMAIN"
 
-        integrationHelper.addIrohaAssetTo(
-            exchangerServiceEnvironment.exchangerAccount.accountId,
-            tokenA,
-            "10000"
-        )
-        integrationHelper.addIrohaAssetTo(
-            exchangerServiceEnvironment.exchangerAccount.accountId,
-            tokenB,
-            "0.00000001"
-        )
+            integrationHelper.addIrohaAssetTo(
+                exchangerServiceEnvironment.exchangerAccount.accountId,
+                tokenA,
+                "10000"
+            )
+            integrationHelper.addIrohaAssetTo(
+                exchangerServiceEnvironment.exchangerAccount.accountId,
+                tokenB,
+                "0.00000001"
+            )
 
-        integrationHelper.addIrohaAssetTo(
-            userId,
-            tokenA,
-            "1"
-        )
-        integrationHelper.transferAssetIrohaFromClient(
-            userId,
-            userKeypair,
-            userId,
-            exchangerServiceEnvironment.exchangerAccount.accountId,
-            tokenA,
-            tokenB,
-            "0.000000000000000001"
-        )
+            integrationHelper.addIrohaAssetTo(
+                userId,
+                tokenA,
+                "1"
+            )
+            integrationHelper.transferAssetIrohaFromClient(
+                userId,
+                userKeypair,
+                userId,
+                exchangerServiceEnvironment.exchangerAccount.accountId,
+                tokenA,
+                tokenB,
+                "0.000000000000000001"
+            )
 
-        Thread.sleep(TRANSFER_WAIT_TIME)
+            Thread.sleep(TRANSFER_WAIT_TIME)
 
-        val xorBalance = integrationHelper.getIrohaAccountBalance(userId, tokenA)
-        assertEquals("1.000000000000000000", xorBalance)
-        val etherBalance = integrationHelper.getIrohaAccountBalance(userId, tokenB)
-        assertEquals("0", etherBalance)
+            val xorBalance = integrationHelper.getIrohaAccountBalance(userId, tokenA)
+            assertEquals("1.000000000000000000", xorBalance)
+            val etherBalance = integrationHelper.getIrohaAccountBalance(userId, tokenB)
+            assertEquals("0", etherBalance)
+        }
     }
 
     private fun saveTradingPair(fromAsset: String, toAsset: String) {
