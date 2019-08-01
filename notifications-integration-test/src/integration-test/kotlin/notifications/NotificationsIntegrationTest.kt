@@ -195,6 +195,7 @@ class NotificationsIntegrationTest {
     fun testNotificationWithdrawalWithFee() {
         val withdrawalValue = BigDecimal(1)
         val fee = BigDecimal("0.1")
+        val destAddress = "0x123"
         integrationHelper.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
             environment.srcClientId,
@@ -208,7 +209,8 @@ class NotificationsIntegrationTest {
                 fee,
                 BTC_ASSET,
                 environment.srcClientId,
-                System.currentTimeMillis()
+                System.currentTimeMillis(),
+                destAddress
             )
             withdrawalFinalizer.finalize(withdrawalFinalizationDetails)
         }.map {
@@ -235,6 +237,7 @@ class NotificationsIntegrationTest {
     fun testNotificationWithdrawalNoFee() {
         val withdrawalValue = BigDecimal(1)
         val fee = BigDecimal.ZERO
+        val destAddress = "0x123"
         integrationHelper.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
             environment.srcClientId,
@@ -248,7 +251,8 @@ class NotificationsIntegrationTest {
                 fee,
                 BTC_ASSET,
                 environment.srcClientId,
-                System.currentTimeMillis()
+                System.currentTimeMillis(),
+                destAddress
             )
             withdrawalFinalizer.finalize(withdrawalFinalizationDetails)
         }.map {

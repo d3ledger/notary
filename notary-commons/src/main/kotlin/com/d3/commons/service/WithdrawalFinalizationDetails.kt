@@ -17,6 +17,7 @@ import java.math.BigDecimal
  * @param feeAssetId - asset id of fee
  * @param srcAccountId - id of account that initiated current withdrawal
  * @param withdrawalTime - time of withdrawal
+ * @param destinationAddress - destination address
  */
 data class WithdrawalFinalizationDetails(
     val withdrawalAmount: BigDecimal,
@@ -24,7 +25,8 @@ data class WithdrawalFinalizationDetails(
     val feeAmount: BigDecimal,
     val feeAssetId: String,
     val srcAccountId: String,
-    val withdrawalTime: Long
+    val withdrawalTime: Long,
+    val destinationAddress: String
 ) {
     /**
      * Transforms finalization details object into json string
