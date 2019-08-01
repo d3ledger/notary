@@ -46,7 +46,7 @@ dependencies {
     final def springfoxSwagger2Version = '2.9.2'
     final def springBootVersion = '2.1.3.RELEASE'
     final def kotlinVersion = '1.3.10'
-    final def d3EthVersion = '0.0.1-snapshot'
+    final def d3EthVersion = '9b302a5fcb211878b9754a426195bba012b630f2'
 
     implementation project(":notary-commons")
     //TODO change version after release
