@@ -153,7 +153,7 @@ class NotificationsIntegrationTest {
     @Test
     fun testNotificationDeposit() {
         val depositValue = BigDecimal(1)
-
+        val from = "0x123"
         integrationHelper.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
             environment.srcClientId,
@@ -167,7 +167,7 @@ class NotificationsIntegrationTest {
                 notaryAccount.accountId,
                 environment.srcClientId,
                 BTC_ASSET,
-                "no description",
+                from,
                 depositValue.toPlainString(),
                 quorum = 1
             )
@@ -179,6 +179,7 @@ class NotificationsIntegrationTest {
             assertEquals(D3_DEPOSIT_EMAIL_SUBJECT, lastEmail.getHeaderValue("Subject"))
             assertEquals(SRC_USER_EMAIL, lastEmail.getHeaderValue("To"))
             assertEquals(NOTIFICATION_EMAIL, lastEmail.getHeaderValue("From"))
+            assertTrue(lastEmail.body.contains("from $from"))
             verify(environment.pushService).send(any())
             Unit
         }.failure { ex -> fail(ex) }
