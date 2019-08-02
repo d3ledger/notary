@@ -22,6 +22,7 @@ class IrohaChainHandler(val withdrawalAccount: String, val feeDescription: Strin
 
     /**
      * Parse Iroha block for interesting commands
+     * @param block - Iroha block
      */
     override fun parseBlock(block: iroha.protocol.BlockOuterClass.Block): List<SideChainEvent.IrohaEvent> {
         logger.info { "Iroha chain handler for block ${block.blockV1.payload.height}" }
@@ -39,6 +40,7 @@ class IrohaChainHandler(val withdrawalAccount: String, val feeDescription: Strin
                                     "to ${command.transferAsset.destAccountId}, " +
                                     "amount: ${command.transferAsset.amount}, " +
                                     "asset: ${command.transferAsset.assetId}) " +
+                                    "description: ${command.transferAsset.description}" +
                                     "txHash=$hash"
                         }
                         listOf(
