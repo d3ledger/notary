@@ -172,7 +172,8 @@ class NotificationInitialization(
             withdrawalFinalizationDetails.srcAccountId,
             withdrawalFinalizationDetails.withdrawalAmount,
             withdrawalFinalizationDetails.withdrawalAssetId,
-            withdrawalDescription
+            withdrawalDescription,
+            to = withdrawalFinalizationDetails.destinationAddress
         )
         logger.info { "Notify withdrawal $transferNotifyEvent" }
         notificationServices.forEach {

@@ -222,6 +222,7 @@ class NotificationsIntegrationTest {
             assertEquals(SRC_USER_EMAIL, lastEmail.getHeaderValue("To"))
             assertEquals(NOTIFICATION_EMAIL, lastEmail.getHeaderValue("From"))
             assertTrue(lastEmail.body.contains("Fee is $fee $BTC_ASSET"))
+            assertTrue(lastEmail.body.contains("to $destAddress"))
             verify(environment.pushService).send(any())
             Unit
         }.failure { ex -> fail(ex) }
@@ -264,6 +265,7 @@ class NotificationsIntegrationTest {
             assertEquals(SRC_USER_EMAIL, lastEmail.getHeaderValue("To"))
             assertEquals(NOTIFICATION_EMAIL, lastEmail.getHeaderValue("From"))
             assertFalse(lastEmail.body.contains("Fee is"))
+            assertTrue(lastEmail.body.contains("to $destAddress"))
             verify(environment.pushService).send(any())
             Unit
         }.failure { ex -> fail(ex) }

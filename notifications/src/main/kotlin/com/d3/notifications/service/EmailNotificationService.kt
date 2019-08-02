@@ -79,8 +79,13 @@ class EmailNotificationService(
     }
 
     override fun notifyWithdrawal(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
+        val toMessage = if (transferNotifyEvent.to != null) {
+            "to ${transferNotifyEvent.to} "
+        } else {
+            ""
+        }
         val message =
-            "Dear client, withdrawal of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} from your account ${transferNotifyEvent.accountId} is successful.\n${transferNotifyEvent.description}"
+            "Dear client, withdrawal of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} ${toMessage}from your account ${transferNotifyEvent.accountId} is successful.\n${transferNotifyEvent.description}"
         return checkClientAndSendMessage(
             transferNotifyEvent.accountId,
             D3_WITHDRAWAL_EMAIL_SUBJECT, message
