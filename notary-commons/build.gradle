@@ -2,6 +2,8 @@ dependencies {
     compile 'com.github.d3ledger.bootstrap-changelog:changelog-interface:72b15aabbcfaa88176617444ea36a201b0b347b7'
     // protobuf
     compile 'com.google.protobuf:protobuf-java:3.5.1'
+    testCompile 'com.google.protobuf:protobuf-java-util:3.5.1'
+    
     compile 'io.grpc:grpc-netty:1.14.0'
     compile 'io.grpc:grpc-protobuf:1.14.0'
     compile 'io.grpc:grpc-stub:1.14.0'
@@ -18,7 +20,8 @@ dependencies {
     compile "io.reactivex.rxjava2:rxkotlin:2.0.0"
 
     // Iroha Pure Java library
-    compile 'com.github.hyperledger.iroha-java:client:5.1.1'
+    compile 'com.github.hyperledger.iroha-java:client:6.0.0'
+    testCompile 'com.github.hyperledger.iroha-java:testcontainers:6.0.0'
 
     // logging
     compile 'io.github.microutils:kotlin-logging:1.4.9'

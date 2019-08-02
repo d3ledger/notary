@@ -2,7 +2,7 @@ version: '3.5'
 
 services:
   d3-iroha:
-    image: hyperledger/iroha:1.0.0
+    image: hyperledger/iroha:1.1.0
     container_name: d3-iroha
     depends_on:
       - d3-iroha-postgres
