@@ -22,9 +22,10 @@ import java.util.*
 /**
  * The purpose of the class is to hide Iroha query implementation.
  * @param queryAPI - query API by Iroha-Java library
- * @param pageSize - number of items per one Iroha query
+ * @param pageSize - number of items per one Iroha query. 100 by default
  */
-class IrohaQueryHelperImpl(val queryAPI: QueryAPI, val pageSize: Int = 100) : IrohaQueryHelper {
+open class IrohaQueryHelperImpl(val queryAPI: QueryAPI, val pageSize: Int = 100) : IrohaQueryHelper {
+
     constructor(irohaAPI: IrohaAPI, accountId: String, keyPair: KeyPair) : this(
         QueryAPI(
             irohaAPI,
@@ -196,4 +197,8 @@ class IrohaQueryHelperImpl(val queryAPI: QueryAPI, val pageSize: Int = 100) : Ir
 
             queryResponse.transactionsList[0]
         }
+
+    /** {@inheritDoc} */
+    override fun getPeersCount(): Result<Int, Exception> = Result.of { queryAPI.peers.peersCount }
+
 }
