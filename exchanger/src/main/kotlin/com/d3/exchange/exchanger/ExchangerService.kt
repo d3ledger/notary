@@ -40,12 +40,15 @@ class ExchangerService(
     private val chainListener: ReliableIrohaChainListener,
     private val liquidityProviderAccounts: List<String>,
     private val tradePairSetter: String,
-    private val tradePairKey: String
+    private val tradePairKey: String,
+    private val unusualAssetsKey: String,
+    private val unusualAssetsRateStrategy: RateStrategy
 ) : Closeable {
 
     // Exchanger account
     private val exchangerAccountId = irohaConsumer.creator
     private var tradingPairs = emptyMap<String, Set<String>>()
+    private var unusualAssets = emptySet<String>()
     private val gson = GsonInstance.get()
 
     /**
@@ -88,14 +91,19 @@ class ExchangerService(
      */
     private fun updateTradingPairsOnBlock(transaction: TransactionOuterClass.Transaction) {
         val reducedPayload = transaction.payload.reducedPayload
-        if (reducedPayload.creatorAccountId == tradePairSetter &&
-            reducedPayload.commandsList.any { command ->
+        if (reducedPayload.creatorAccountId == tradePairSetter) {
+            val exchangerDetails = reducedPayload.commandsList.filter { command ->
                 command.hasSetAccountDetail()
                         && command.setAccountDetail.accountId == exchangerAccountId
-                        && command.setAccountDetail.key == tradePairKey
+            }.map {
+                it.setAccountDetail
             }
-        ) {
-            updateTradingPairs()
+            if (exchangerDetails.any { command -> command.key == tradePairKey }) {
+                updateTradingPairs()
+            }
+            if (exchangerDetails.any { command -> command.key == unusualAssetsKey }) {
+                updateUnusualAssets()
+            }
         }
     }
 
@@ -112,6 +120,22 @@ class ExchangerService(
                     typeToken
                 )
                 logger.info { "Updated trading pairs: $unEscape" }
+            }
+        }
+    }
+
+    /**
+     * Queries Iroha for unusual assets details and loads it
+     */
+    private fun updateUnusualAssets() {
+        queryhelper.getAccountDetails(exchangerAccountId, tradePairSetter, unusualAssetsKey).map {
+            if (it.isPresent) {
+                val unEscape = it.get().irohaUnEscape()
+                unusualAssets = gson.fromJson<Set<String>>(
+                    unEscape,
+                    typeToken
+                )
+                logger.info { "Updated unusual assets: $unEscape" }
             }
         }
     }
@@ -172,21 +196,32 @@ class ExchangerService(
             { it },
             { throw AssetNotFoundException("Seems the asset $to does not exist.", it) })
 
-        val sourceAssetBalance = BigDecimal(
-            queryhelper.getAccountAsset(irohaConsumer.creator, from).get()
-        ).minus(amount).toDouble()
-        val targetAssetBalance =
-            BigDecimal(queryhelper.getAccountAsset(irohaConsumer.creator, to).get()).toDouble()
-        val amountMinusFee = amount.multiply(MINUS_FEE_MULTIPLIER).toDouble()
+        val calculatedAmount: BigDecimal
+        if (!unusualAssets.contains(from) && !unusualAssets.contains(to)) {
+            val sourceAssetBalance = BigDecimal(
+                queryhelper.getAccountAsset(irohaConsumer.creator, from).get()
+            ).minus(amount).toDouble()
+            val targetAssetBalance =
+                BigDecimal(queryhelper.getAccountAsset(irohaConsumer.creator, to).get())
+            val amountMinusFee = amount.multiply(MINUS_FEE_MULTIPLIER).toDouble()
 
-        val calculatedAmount = integrate(sourceAssetBalance, targetAssetBalance, amountMinusFee)
+            calculatedAmount = BigDecimal(
+                integrate(
+                    sourceAssetBalance,
+                    targetAssetBalance.toDouble(),
+                    amountMinusFee
+                )
+            )
 
-        if (calculatedAmount >= targetAssetBalance) {
-            throw TooMuchAssetVolumeException("Asset supplement exceeds the balance.")
+            if (calculatedAmount >= targetAssetBalance) {
+                throw TooMuchAssetVolumeException("Asset supplement exceeds the balance.")
+            }
+        } else {
+            calculatedAmount = amount.multiply(unusualAssetsRateStrategy.getRate(from, to))
         }
 
         val respectPrecision =
-            respectPrecision(BigDecimal(calculatedAmount).toPlainString(), precision)
+            respectPrecision(calculatedAmount.toPlainString(), precision)
         // If the result is not bigger than zero
         if (BigDecimal(respectPrecision) <= BigDecimal.ZERO) {
             throw TooLittleAssetVolumeException("Asset supplement it too low for specified conversion")
