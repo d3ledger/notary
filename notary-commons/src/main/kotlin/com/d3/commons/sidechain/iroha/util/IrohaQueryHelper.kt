@@ -104,4 +104,10 @@ interface IrohaQueryHelper {
      * @return first transaction
      */
     fun getSingleTransaction(hash: String): Result<TransactionOuterClass.Transaction, Exception>
+
+    /**
+     * Return number of peers
+     * @return number of peers
+     */
+    fun getPeersCount(): Result<Int, Exception>
 }
