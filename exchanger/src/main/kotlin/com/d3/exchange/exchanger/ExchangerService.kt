@@ -9,6 +9,7 @@ import com.d3.chainadapter.client.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.GsonInstance
 import com.d3.commons.util.irohaUnEscape
 import com.d3.exchange.exchanger.exception.AssetNotFoundException
 import com.d3.exchange.exchanger.exception.TooLittleAssetVolumeException
@@ -17,7 +18,6 @@ import com.d3.exchange.exchanger.exception.UnsupportedTradingPairException
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import com.d3.commons.util.GsonInstance
 import com.google.gson.reflect.TypeToken
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
@@ -53,6 +53,7 @@ class ExchangerService(
      */
     fun start(): Result<Unit, Exception> {
         logger.info { "Exchanger service is started. Waiting for incoming transactions." }
+        updateTradingPairs()
         return chainListener.getBlockObservable()
             .map { observable ->
                 observable.subscribe { (block, _) -> processBlock(block) }
@@ -67,7 +68,7 @@ class ExchangerService(
      */
     private fun processBlock(block: BlockOuterClass.Block) {
         block.blockV1.payload.transactionsList.map { transaction ->
-            updateTradingPairs(transaction)
+            updateTradingPairsOnBlock(transaction)
             transaction.payload.reducedPayload.commandsList.filter { command ->
                 command.hasTransferAsset()
                         && !liquidityProviderAccounts.contains(command.transferAsset.srcAccountId)
@@ -85,7 +86,7 @@ class ExchangerService(
     /**
      * Indicates if there was an update of the trade pairs value and loads it
      */
-    private fun updateTradingPairs(transaction: TransactionOuterClass.Transaction) {
+    private fun updateTradingPairsOnBlock(transaction: TransactionOuterClass.Transaction) {
         val reducedPayload = transaction.payload.reducedPayload
         if (reducedPayload.creatorAccountId == tradePairSetter &&
             reducedPayload.commandsList.any { command ->
@@ -94,15 +95,23 @@ class ExchangerService(
                         && command.setAccountDetail.key == tradePairKey
             }
         ) {
-            queryhelper.getAccountDetails(exchangerAccountId, tradePairSetter, tradePairKey).map {
-                if (it.isPresent) {
-                    val unEscape = it.get().irohaUnEscape()
-                    tradingPairs = gson.fromJson<Map<String, Set<String>>>(
-                        unEscape,
-                        typeToken
-                    )
-                    logger.info { "Updated pairs: $unEscape" }
-                }
+            updateTradingPairs()
+        }
+    }
+
+
+    /**
+     * Queries Iroha for trading pairs details and loads it
+     */
+    private fun updateTradingPairs() {
+        queryhelper.getAccountDetails(exchangerAccountId, tradePairSetter, tradePairKey).map {
+            if (it.isPresent) {
+                val unEscape = it.get().irohaUnEscape()
+                tradingPairs = gson.fromJson<Map<String, Set<String>>>(
+                    unEscape,
+                    typeToken
+                )
+                logger.info { "Updated trading pairs: $unEscape" }
             }
         }
     }
