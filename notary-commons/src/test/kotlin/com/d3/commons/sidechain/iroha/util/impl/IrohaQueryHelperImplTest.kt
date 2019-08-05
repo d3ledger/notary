@@ -33,7 +33,7 @@ class IrohaQueryHelperImplTest {
     private val details = mapOf("key1" to "value1", "key2" to "value2", "key3" to "value3")
     private val assets = mapOf("asset1" to "1", "asset2" to "2", "asset3" to "3")
 
-    val iroha = IrohaContainer().withPeerConfig(getPeerConfig())
+    private val iroha = IrohaContainer().withPeerConfig(getPeerConfig())
 
     init {
         iroha.start()
@@ -49,13 +49,14 @@ class IrohaQueryHelperImplTest {
                     .addPeer("0.0.0.0:10001", peerKeypair.public)
                     .createRole(
                         rolename,
-                        Arrays.asList(
+                        listOf(
                             Primitive.RolePermission.can_get_all_acc_detail,
                             Primitive.RolePermission.can_set_detail,
-                            Primitive.RolePermission.can_get_all_acc_ast
+                            Primitive.RolePermission.can_get_all_acc_ast,
+                            Primitive.RolePermission.can_get_peers
                         )
                     ).createDomain(domain, rolename)
-                    .createAccount(accountName, domain, accountKeypair.getPublic())
+                    .createAccount(accountName, domain, accountKeypair.public)
                     .build() // returns ipj model Transaction
                     .build() // returns unsigned protobuf Transaction
             )
@@ -133,6 +134,17 @@ class IrohaQueryHelperImplTest {
     fun getNonExistAccountDetailsTest() {
         val actual = queryHelper.getAccountDetails(accountId, accountId, "nonexist_key").get()
         assertTrue(!actual.isPresent)
+    }
+
+    /**
+     * @given queryHelper and one Iroha peer
+     * @when getPeersCount() is called
+     * @then '1' is returned
+     */
+    @Test
+    fun getPeersCountTest() {
+        val peers = queryHelper.getPeersCount().get()
+        assertEquals(1, peers)
     }
 
     /**
