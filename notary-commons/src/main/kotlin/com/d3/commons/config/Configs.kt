@@ -28,15 +28,6 @@ const val PROFILE_ENV = "PROFILE"
 private val logger = KLogging().logger
 
 /**
- * RMQ configurations
- */
-interface RMQConfig {
-    val host: String
-    val port: Int
-    val irohaExchange: String
-}
-
-/**
  * Iroha configurations
  */
 interface IrohaConfig {

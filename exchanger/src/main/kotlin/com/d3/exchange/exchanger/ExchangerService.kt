@@ -5,7 +5,7 @@
 
 package com.d3.exchange.exchanger
 
-import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
+import com.d3.chainadapter.client.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 import com.d3.commons.sidechain.iroha.util.ModelUtil

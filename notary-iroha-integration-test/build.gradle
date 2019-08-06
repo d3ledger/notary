@@ -16,7 +16,7 @@ dependencies {
     compile('org.slf4j:slf4j-simple:1.7.25')
     // https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java-util
     compile group: 'com.google.protobuf', name: 'protobuf-java-util', version: '3.7.1'
-
+    compile "com.github.d3ledger.chain-adapter:chain-adapter-client:$chain_adapter_client_version"
     // unit tests
     testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
     testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0') 
