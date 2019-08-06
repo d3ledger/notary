@@ -31,10 +31,11 @@ class RollbackService(private val withdrawalConsumer: IrohaConsumer) {
         return withdrawalConsumer.getConsumerQuorum()
             .map { quorum ->
                 val transaction = Transaction
-                    .builder(withdrawalConsumer.creator, withdrawalDetails.withdrawalTime)
+                    .builder(withdrawalConsumer.creator)
+                    .setCreatedTime(withdrawalDetails.withdrawalTime)
                     .setQuorum(quorum)
                     .transferAsset(
-                        withdrawalDetails.destinationAddress,
+                        withdrawalConsumer.creator,
                         withdrawalDetails.srcAccountId,
                         withdrawalDetails.withdrawalAssetId,
                         "$ROLLBACK_DESCRIPTION. $reason".take(64).toLowerCase(),
@@ -43,7 +44,7 @@ class RollbackService(private val withdrawalConsumer: IrohaConsumer) {
 
                 if (withdrawalDetails.feeAmount > BigDecimal.ZERO)
                     transaction.transferAsset(
-                        withdrawalDetails.destinationAddress,
+                        withdrawalConsumer.creator,
                         withdrawalDetails.srcAccountId,
                         withdrawalDetails.feeAssetId,
                         "$ROLLBACK_DESCRIPTION. $reason".take(64).toLowerCase(),
