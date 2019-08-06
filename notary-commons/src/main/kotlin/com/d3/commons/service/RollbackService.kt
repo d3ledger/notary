@@ -11,7 +11,6 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import jp.co.soramitsu.iroha.java.Transaction
-import mu.KLogging
 import java.math.BigDecimal
 
 /**
@@ -34,7 +33,6 @@ class RollbackService(private val withdrawalConsumer: IrohaConsumer) {
                 val transaction = Transaction
                     .builder(withdrawalConsumer.creator, withdrawalDetails.withdrawalTime)
                     .setQuorum(quorum)
-                    .setCreatedTime(withdrawalDetails.withdrawalTime)
                     .transferAsset(
                         withdrawalDetails.destinationAddress,
                         withdrawalDetails.srcAccountId,
