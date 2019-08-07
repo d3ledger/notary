@@ -6,7 +6,7 @@
 package com.d3.exchange.util
 
 import com.d3.commons.model.IrohaCredential
-import com.d3.commons.sidechain.iroha.ReliableIrohaChainListener
+import com.d3.chainadapter.client.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.util.createPrettySingleThreadPool
