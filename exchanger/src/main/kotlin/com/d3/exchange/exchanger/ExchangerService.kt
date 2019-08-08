@@ -57,13 +57,17 @@ class ExchangerService(
      */
     fun start(): Result<Unit, Exception> {
         logger.info { "Exchanger service is started. Waiting for incoming transactions." }
-        updateTradingPairs()
-        updateUnusualAssets()
-        return chainListener.getBlockObservable()
-            .map { observable ->
-                observable.subscribe { (block, _) -> processBlock(block) }
-            }
-            .flatMap { chainListener.listen() }
+        return Result.of {
+            updateTradingPairs()
+        }.map {
+            updateUnusualAssets()
+        }.flatMap {
+            chainListener.getBlockObservable()
+                .map { observable ->
+                    observable.subscribe { (block, _) -> processBlock(block) }
+                }
+                .flatMap { chainListener.listen() }
+        }
     }
 
     /**
