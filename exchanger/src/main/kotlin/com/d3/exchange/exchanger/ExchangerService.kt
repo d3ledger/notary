@@ -63,10 +63,10 @@ class ExchangerService(
             updateUnusualAssets()
         }.flatMap {
             chainListener.getBlockObservable()
-                .map { observable ->
-                    observable.subscribe { (block, _) -> processBlock(block) }
-                }
-                .flatMap { chainListener.listen() }
+        }.map { observable ->
+            observable.subscribe { (block, _) -> processBlock(block) }
+        }.flatMap {
+            chainListener.listen()
         }
     }
 
