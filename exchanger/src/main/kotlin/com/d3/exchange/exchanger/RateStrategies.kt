@@ -43,7 +43,7 @@ class DcRateStrategy(
             } else {
                 getRateFor(to)
             }
-        return toRate.divide(fromRate)
+        return fromRate.divide(toRate)
     }
 
     /**
