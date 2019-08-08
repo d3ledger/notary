@@ -181,7 +181,9 @@ class ExchangerService(
                 targetAsset,
                 "Conversion from $sourceAsset to $targetAsset",
                 relevantAmount
-            )
+            ).failure {
+                throw it
+            }
         }.fold(
             { logger.info { "Successfully converted $amount of $sourceAsset to $targetAsset." } },
             {
@@ -194,7 +196,9 @@ class ExchangerService(
                     sourceAsset,
                     "Conversion rollback transaction",
                     amount
-                )
+                ).failure { ex ->
+                    logger.error("Error during rollback", ex)
+                }
             })
     }
 
