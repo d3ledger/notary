@@ -16,6 +16,7 @@ import com.d3.exchange.exchanger.exception.TooLittleAssetVolumeException
 import com.d3.exchange.exchanger.exception.TooMuchAssetVolumeException
 import com.d3.exchange.exchanger.exception.UnsupportedTradingPairException
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import com.google.gson.reflect.TypeToken
@@ -126,6 +127,8 @@ class ExchangerService(
                     emptyMap()
                 }
             }
+        }.failure {
+            throw it
         }
     }
 
@@ -147,6 +150,8 @@ class ExchangerService(
                     emptySet()
                 }
             }
+        }.failure {
+            throw it
         }
     }
 
