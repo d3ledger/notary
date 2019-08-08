@@ -108,7 +108,6 @@ class ExchangerService(
         }
     }
 
-
     /**
      * Queries Iroha for trading pairs details and loads it
      */
@@ -116,11 +115,16 @@ class ExchangerService(
         queryhelper.getAccountDetails(exchangerAccountId, tradePairSetter, tradePairKey).map {
             if (it.isPresent) {
                 val unEscape = it.get().irohaUnEscape()
-                tradingPairs = gson.fromJson<Map<String, Set<String>>>(
-                    unEscape,
-                    typeToken
-                )
-                logger.info { "Updated trading pairs: $unEscape" }
+                logger.info { "Got trading pairs update: $unEscape" }
+                tradingPairs = try {
+                    gson.fromJson<Map<String, Set<String>>>(
+                        unEscape,
+                        typeToken
+                    )
+                } catch (e: Exception) {
+                    logger.warn("Error parsing the value, setting trading pairs to empty", e)
+                    emptyMap()
+                }
             }
         }
     }
@@ -132,11 +136,16 @@ class ExchangerService(
         queryhelper.getAccountDetails(exchangerAccountId, tradePairSetter, unusualAssetsKey).map {
             if (it.isPresent) {
                 val unEscape = it.get().irohaUnEscape()
-                unusualAssets = gson.fromJson<Set<String>>(
-                    unEscape,
-                    typeToken
-                )
-                logger.info { "Updated unusual assets: $unEscape" }
+                logger.info { "Got unusual assets update: $unEscape" }
+                unusualAssets = try {
+                    gson.fromJson<Set<String>>(
+                        unEscape,
+                        typeToken
+                    )
+                } catch (e: Exception) {
+                    logger.warn("Error parsing the value, setting unusual assets to empty", e)
+                    emptySet()
+                }
             }
         }
     }
