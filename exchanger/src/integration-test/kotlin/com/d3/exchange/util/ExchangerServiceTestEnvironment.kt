@@ -13,9 +13,11 @@ import com.d3.commons.util.createPrettySingleThreadPool
 import com.d3.commons.util.getRandomString
 import com.d3.exchange.exchanger.EXCHANGER_SERVICE_NAME
 import com.d3.exchange.exchanger.ExchangerService
+import com.d3.exchange.exchanger.RateStrategy
 import com.d3.exchange.exchanger.rmqConfig
 import integration.helper.IrohaIntegrationHelperUtil
 import java.io.Closeable
+import java.math.BigDecimal
 
 /**
  * Environment for exchanger service running in tests
@@ -51,7 +53,11 @@ class ExchangerServiceTestEnvironment(private val integrationHelper: IrohaIntegr
             chainListener,
             listOf(integrationHelper.testCredential.accountId),
             integrationHelper.testCredential.accountId,
-            testDetailKey
+            testDetailKey,
+            "assets",
+            object : RateStrategy {
+                override fun getRate(from: String, to: String): BigDecimal = BigDecimal.ONE
+            }
         )
         exchangerService.start()
     }
