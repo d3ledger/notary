@@ -325,8 +325,7 @@ object D3TestContext {
                 Primitive.RolePermission.can_get_blocks,
                 Primitive.RolePermission.can_get_all_signatories,
                 Primitive.RolePermission.can_get_all_txs,
-                Primitive.RolePermission.can_add_asset_qty,
-                Primitive.RolePermission.can_subtract_asset_qty
+                Primitive.RolePermission.can_transfer
             )
         )
     }
