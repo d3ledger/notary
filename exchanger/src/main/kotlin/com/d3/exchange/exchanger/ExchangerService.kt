@@ -9,15 +9,16 @@ import com.d3.chainadapter.client.ReliableIrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 import com.d3.commons.sidechain.iroha.util.ModelUtil
+import com.d3.commons.util.GsonInstance
 import com.d3.commons.util.irohaUnEscape
 import com.d3.exchange.exchanger.exception.AssetNotFoundException
 import com.d3.exchange.exchanger.exception.TooLittleAssetVolumeException
 import com.d3.exchange.exchanger.exception.TooMuchAssetVolumeException
 import com.d3.exchange.exchanger.exception.UnsupportedTradingPairException
 import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import com.d3.commons.util.GsonInstance
 import com.google.gson.reflect.TypeToken
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
@@ -40,12 +41,15 @@ class ExchangerService(
     private val chainListener: ReliableIrohaChainListener,
     private val liquidityProviderAccounts: List<String>,
     private val tradePairSetter: String,
-    private val tradePairKey: String
+    private val tradePairKey: String,
+    private val unusualAssetsKey: String,
+    private val unusualAssetsRateStrategy: RateStrategy
 ) : Closeable {
 
     // Exchanger account
     private val exchangerAccountId = irohaConsumer.creator
     private var tradingPairs = emptyMap<String, Set<String>>()
+    private var unusualAssets = emptySet<String>()
     private val gson = GsonInstance.get()
 
     /**
@@ -53,11 +57,17 @@ class ExchangerService(
      */
     fun start(): Result<Unit, Exception> {
         logger.info { "Exchanger service is started. Waiting for incoming transactions." }
-        return chainListener.getBlockObservable()
-            .map { observable ->
-                observable.subscribe { (block, _) -> processBlock(block) }
-            }
-            .flatMap { chainListener.listen() }
+        return Result.of {
+            updateTradingPairs()
+        }.map {
+            updateUnusualAssets()
+        }.flatMap {
+            chainListener.getBlockObservable()
+        }.map { observable ->
+            observable.subscribe { (block, _) -> processBlock(block) }
+        }.flatMap {
+            chainListener.listen()
+        }
     }
 
     /**
@@ -67,7 +77,7 @@ class ExchangerService(
      */
     private fun processBlock(block: BlockOuterClass.Block) {
         block.blockV1.payload.transactionsList.map { transaction ->
-            updateTradingPairs(transaction)
+            updateTradingPairsOnBlock(transaction)
             transaction.payload.reducedPayload.commandsList.filter { command ->
                 command.hasTransferAsset()
                         && !liquidityProviderAccounts.contains(command.transferAsset.srcAccountId)
@@ -85,25 +95,67 @@ class ExchangerService(
     /**
      * Indicates if there was an update of the trade pairs value and loads it
      */
-    private fun updateTradingPairs(transaction: TransactionOuterClass.Transaction) {
+    private fun updateTradingPairsOnBlock(transaction: TransactionOuterClass.Transaction) {
         val reducedPayload = transaction.payload.reducedPayload
-        if (reducedPayload.creatorAccountId == tradePairSetter &&
-            reducedPayload.commandsList.any { command ->
+        if (reducedPayload.creatorAccountId == tradePairSetter) {
+            val exchangerDetails = reducedPayload.commandsList.filter { command ->
                 command.hasSetAccountDetail()
                         && command.setAccountDetail.accountId == exchangerAccountId
-                        && command.setAccountDetail.key == tradePairKey
+            }.map {
+                it.setAccountDetail
             }
-        ) {
-            queryhelper.getAccountDetails(exchangerAccountId, tradePairSetter, tradePairKey).map {
-                if (it.isPresent) {
-                    val unEscape = it.get().irohaUnEscape()
-                    tradingPairs = gson.fromJson<Map<String, Set<String>>>(
+            if (exchangerDetails.any { command -> command.key == tradePairKey }) {
+                updateTradingPairs()
+            }
+            if (exchangerDetails.any { command -> command.key == unusualAssetsKey }) {
+                updateUnusualAssets()
+            }
+        }
+    }
+
+    /**
+     * Queries Iroha for trading pairs details and loads it
+     */
+    private fun updateTradingPairs() {
+        queryhelper.getAccountDetails(exchangerAccountId, tradePairSetter, tradePairKey).map {
+            if (it.isPresent) {
+                val unEscape = it.get().irohaUnEscape()
+                logger.info { "Got trading pairs update: $unEscape" }
+                tradingPairs = try {
+                    gson.fromJson<Map<String, Set<String>>>(
                         unEscape,
                         typeToken
                     )
-                    logger.info { "Updated pairs: $unEscape" }
+                } catch (e: Exception) {
+                    logger.warn("Error parsing the value, setting trading pairs to empty", e)
+                    emptyMap()
                 }
             }
+        }.failure {
+            throw it
+        }
+    }
+
+    /**
+     * Queries Iroha for unusual assets details and loads it
+     */
+    private fun updateUnusualAssets() {
+        queryhelper.getAccountDetails(exchangerAccountId, tradePairSetter, unusualAssetsKey).map {
+            if (it.isPresent) {
+                val unEscape = it.get().irohaUnEscape()
+                logger.info { "Got unusual assets update: $unEscape" }
+                unusualAssets = try {
+                    gson.fromJson<Set<String>>(
+                        unEscape,
+                        typeToken
+                    )
+                } catch (e: Exception) {
+                    logger.warn("Error parsing the value, setting unusual assets to empty", e)
+                    emptySet()
+                }
+            }
+        }.failure {
+            throw it
         }
     }
 
@@ -133,7 +185,9 @@ class ExchangerService(
                 targetAsset,
                 "Conversion from $sourceAsset to $targetAsset",
                 relevantAmount
-            )
+            ).failure {
+                throw it
+            }
         }.fold(
             { logger.info { "Successfully converted $amount of $sourceAsset to $targetAsset." } },
             {
@@ -146,7 +200,9 @@ class ExchangerService(
                     sourceAsset,
                     "Conversion rollback transaction",
                     amount
-                )
+                ).failure { ex ->
+                    logger.error("Error during rollback", ex)
+                }
             })
     }
 
@@ -163,21 +219,32 @@ class ExchangerService(
             { it },
             { throw AssetNotFoundException("Seems the asset $to does not exist.", it) })
 
-        val sourceAssetBalance = BigDecimal(
-            queryhelper.getAccountAsset(irohaConsumer.creator, from).get()
-        ).minus(amount).toDouble()
-        val targetAssetBalance =
-            BigDecimal(queryhelper.getAccountAsset(irohaConsumer.creator, to).get()).toDouble()
-        val amountMinusFee = amount.multiply(MINUS_FEE_MULTIPLIER).toDouble()
+        val calculatedAmount: BigDecimal
+        if (!unusualAssets.contains(from) && !unusualAssets.contains(to)) {
+            val sourceAssetBalance = BigDecimal(
+                queryhelper.getAccountAsset(irohaConsumer.creator, from).get()
+            ).minus(amount).toDouble()
+            val targetAssetBalance =
+                BigDecimal(queryhelper.getAccountAsset(irohaConsumer.creator, to).get())
+            val amountMinusFee = amount.multiply(MINUS_FEE_MULTIPLIER).toDouble()
 
-        val calculatedAmount = integrate(sourceAssetBalance, targetAssetBalance, amountMinusFee)
+            calculatedAmount = BigDecimal(
+                integrate(
+                    sourceAssetBalance,
+                    targetAssetBalance.toDouble(),
+                    amountMinusFee
+                )
+            )
 
-        if (calculatedAmount >= targetAssetBalance) {
-            throw TooMuchAssetVolumeException("Asset supplement exceeds the balance.")
+            if (calculatedAmount >= targetAssetBalance) {
+                throw TooMuchAssetVolumeException("Asset supplement exceeds the balance.")
+            }
+        } else {
+            calculatedAmount = amount.multiply(unusualAssetsRateStrategy.getRate(from, to))
         }
 
         val respectPrecision =
-            respectPrecision(BigDecimal(calculatedAmount).toPlainString(), precision)
+            respectPrecision(calculatedAmount.toPlainString(), precision)
         // If the result is not bigger than zero
         if (BigDecimal(respectPrecision) <= BigDecimal.ZERO) {
             throw TooLittleAssetVolumeException("Asset supplement it too low for specified conversion")

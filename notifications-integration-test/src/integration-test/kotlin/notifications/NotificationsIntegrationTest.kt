@@ -7,6 +7,7 @@ package notifications
 
 import com.d3.commons.service.WithdrawalFinalizationDetails
 import com.d3.commons.service.WithdrawalFinalizer
+import com.d3.commons.sidechain.iroha.FEE_ROLLBACK_DESCRIPTION
 import com.d3.commons.sidechain.iroha.ROLLBACK_DESCRIPTION
 import com.d3.commons.util.irohaEscape
 import com.d3.commons.util.toHexString
@@ -20,6 +21,7 @@ import com.github.kittinunf.result.map
 import com.nhaarman.mockitokotlin2.*
 import integration.helper.IrohaIntegrationHelperUtil
 import integration.registration.RegistrationServiceTestEnvironment
+import jp.co.soramitsu.iroha.java.Transaction
 import notifications.environment.NotificationsIntegrationTestEnvironment
 import org.apache.http.HttpResponse
 import org.apache.http.StatusLine
@@ -278,7 +280,7 @@ class NotificationsIntegrationTest {
      * @then D3 client is notified about rollback(both email and push)
      */
     @Test
-    fun testNotificationRollback() {
+    fun testNotificationRollbackNoFee() {
         val rollbackValue = BigDecimal(1)
         integrationHelper.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
@@ -305,6 +307,57 @@ class NotificationsIntegrationTest {
             assertEquals(D3_DEPOSIT_ROLLBACK_SUBJECT, lastEmail.getHeaderValue("Subject"))
             assertEquals(SRC_USER_EMAIL, lastEmail.getHeaderValue("To"))
             assertEquals(NOTIFICATION_EMAIL, lastEmail.getHeaderValue("From"))
+            verify(environment.pushService).send(any())
+            Unit
+        }.failure { ex -> fail(ex) }
+    }
+
+    /**
+     * Note: Iroha must be deployed to pass the test.
+     * @given D3 client with enabled email notifications and notary account
+     * @when notary account rollbacks money+fee to D3 client
+     * @then D3 client is notified about rollback+fee(both email and push)
+     */
+    @Test
+    fun testNotificationRollbackWithFee() {
+        val rollbackValue = BigDecimal(1)
+        val rollbackFeeValue = BigDecimal("0.1")
+        integrationHelper.setAccountDetailWithRespectToBrvs(
+            environment.srcClientConsumer,
+            environment.srcClientId,
+            D3_CLIENT_ENABLE_NOTIFICATIONS,
+            "true"
+        ).map {
+            val notaryAccount = integrationHelper.accountHelper.notaryAccount
+            val tx = Transaction.builder(notaryAccount.accountId)
+                .transferAsset(
+                    notaryAccount.accountId,
+                    environment.srcClientId,
+                    BTC_ASSET,
+                    ROLLBACK_DESCRIPTION,
+                    rollbackValue.toPlainString()
+                )
+                .transferAsset(
+                    notaryAccount.accountId,
+                    environment.srcClientId,
+                    BTC_ASSET,
+                    FEE_ROLLBACK_DESCRIPTION,
+                    rollbackFeeValue.toPlainString()
+                )
+                .setCreatedTime(System.currentTimeMillis())
+                .setQuorum(1)
+                .sign(notaryAccount.keyPair)
+                .build()
+            integrationHelper.irohaConsumer.send(tx).get()
+        }.map {
+            Thread.sleep(TRANSFER_WAIT_TIME)
+            val receivedEmails = environment.dumbster.receivedEmails
+            assertEquals(1, receivedEmails.size)
+            val lastEmail = receivedEmails.last()
+            assertEquals(D3_DEPOSIT_ROLLBACK_SUBJECT, lastEmail.getHeaderValue("Subject"))
+            assertEquals(SRC_USER_EMAIL, lastEmail.getHeaderValue("To"))
+            assertEquals(NOTIFICATION_EMAIL, lastEmail.getHeaderValue("From"))
+            assertTrue(lastEmail.body.contains("Fee $rollbackFeeValue $BTC_ASSET is rolled back as well."))
             verify(environment.pushService).send(any())
             Unit
         }.failure { ex -> fail(ex) }

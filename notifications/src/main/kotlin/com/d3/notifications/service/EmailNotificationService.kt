@@ -57,7 +57,9 @@ class EmailNotificationService(
 
     override fun notifyRollback(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
         val message =
-            "Dear client, unfortunately, we failed to withdraw ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} from your account ${transferNotifyEvent.accountId}. Rollback has been executed, so your money(including fee) is going back to your account."
+            "Dear client, unfortunately, we failed to withdraw ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} from your account ${transferNotifyEvent.accountId}. " +
+                    "Rollback has been executed, so your money is going back to your account.\n" +
+                    transferNotifyEvent.description
         return checkClientAndSendMessage(
             transferNotifyEvent.accountId,
             D3_DEPOSIT_ROLLBACK_SUBJECT, message
