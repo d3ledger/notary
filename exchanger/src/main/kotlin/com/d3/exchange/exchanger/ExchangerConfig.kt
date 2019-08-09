@@ -30,4 +30,13 @@ interface ExchangerConfig {
 
     /** Asset pairs to be traded details key */
     val tradePairKey: String
+
+    /** Asset conversion rate base url **/
+    val assetRateBaseUrl: String
+
+    /** Base asset to read rate in comparison with **/
+    val baseAssetId: String
+
+    /** Attribute to parse rate from **/
+    val rateAttribute: String
 }

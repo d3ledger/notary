@@ -5,6 +5,7 @@
 
 package com.d3.commons.service
 
+import com.d3.commons.sidechain.iroha.FEE_ROLLBACK_DESCRIPTION
 import com.d3.commons.sidechain.iroha.ROLLBACK_DESCRIPTION
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.github.kittinunf.result.Result
@@ -47,7 +48,7 @@ class RollbackService(private val withdrawalConsumer: IrohaConsumer) {
                         withdrawalConsumer.creator,
                         withdrawalDetails.srcAccountId,
                         withdrawalDetails.feeAssetId,
-                        "$ROLLBACK_DESCRIPTION. $reason".take(64).toLowerCase(),
+                        FEE_ROLLBACK_DESCRIPTION,
                         withdrawalDetails.feeAmount
                     )
 

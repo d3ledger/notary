@@ -53,10 +53,6 @@ class ExchangerAppConfiguration {
         createPrettySingleThreadPool(EXCHANGER_SERVICE_NAME, "rmq-consumer")
     )
 
-    /** Configurations for Exchanger Service */
-    @Bean
-    fun exchangerConfig() = exchangerConfig
-
     @Bean
     fun queryhelper() =
         IrohaQueryHelperImpl(irohaAPI(), exchangerConfig.irohaCredential)
@@ -69,4 +65,11 @@ class ExchangerAppConfiguration {
 
     @Bean
     fun tradePairKey() = exchangerConfig.tradePairKey
+
+    @Bean
+    fun rateStrategy() = DcRateStrategy(
+        exchangerConfig.assetRateBaseUrl,
+        exchangerConfig.baseAssetId,
+        exchangerConfig.rateAttribute
+    )
 }

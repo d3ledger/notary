@@ -7,10 +7,7 @@ package com.d3.notifications.init
 
 import com.d3.commons.service.LAST_SUCCESSFUL_WITHDRAWAL_KEY
 import com.d3.commons.service.WithdrawalFinalizationDetails
-import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
-import com.d3.commons.sidechain.iroha.IrohaChainListener
-import com.d3.commons.sidechain.iroha.NOTARY_DOMAIN
-import com.d3.commons.sidechain.iroha.ROLLBACK_DESCRIPTION
+import com.d3.commons.sidechain.iroha.*
 import com.d3.commons.sidechain.iroha.util.getSetDetailCommands
 import com.d3.commons.sidechain.iroha.util.getTransferTransactions
 import com.d3.commons.util.createPrettySingleThreadPool
@@ -75,7 +72,7 @@ class NotificationInitialization(
                                 }
                                 // Notify rollback
                                 else if (isRollback(transferAsset)) {
-                                    handleRollbackEventNotification(transferAsset)
+                                    handleRollbackEventNotification(transferAsset, getWithdrawalRollbackFee(tx))
                                 }
                             }
                         }
@@ -93,9 +90,28 @@ class NotificationInitialization(
      */
     private fun getTransferFee(tx: TransactionOuterClass.Transaction): OperationFee? {
         val feeTransfer = tx.payload.reducedPayload.commandsList.find { command ->
-            command.hasTransferAsset() && command.transferAsset.srcAccountId.endsWith(
-                "@$CLIENT_DOMAIN"
-            ) && command.transferAsset.destAccountId == notificationsConfig.transferBillingAccount
+            command.hasTransferAsset()
+                    && command.transferAsset.srcAccountId.endsWith("@$CLIENT_DOMAIN")
+                    && command.transferAsset.destAccountId == notificationsConfig.transferBillingAccount
+        }
+        return if (feeTransfer == null) {
+            null
+        } else {
+            OperationFee(BigDecimal(feeTransfer.transferAsset.amount), feeTransfer.transferAsset.assetId)
+        }
+    }
+
+    /**
+     * Returns withdrawal rollback fee
+     * @param tx - transaction that is used to find withdrawal rollback fee
+     * @return withdrawal rollback or null if not found
+     */
+    private fun getWithdrawalRollbackFee(tx: TransactionOuterClass.Transaction): OperationFee? {
+        val feeTransfer = tx.payload.reducedPayload.commandsList.find { command ->
+            command.hasTransferAsset()
+                    && command.transferAsset.srcAccountId.endsWith("@$NOTARY_DOMAIN")
+                    && command.transferAsset.destAccountId.endsWith("@$CLIENT_DOMAIN")
+                    && command.transferAsset.description == FEE_ROLLBACK_DESCRIPTION
         }
         return if (feeTransfer == null) {
             null
@@ -118,18 +134,18 @@ class NotificationInitialization(
     private fun isDeposit(transferAsset: Commands.TransferAsset): Boolean {
         val depositSign =
             transferAsset.srcAccountId.endsWith("@$NOTARY_DOMAIN")
-                    && (transferAsset.destAccountId.endsWith("@$CLIENT_DOMAIN") &&
-                    transferAsset.destAccountId != notificationsConfig.transferBillingAccount &&
-                    transferAsset.destAccountId != notificationsConfig.withdrawalBillingAccount)
-        return depositSign && !isRollbackSign(transferAsset)
+                    && (transferAsset.destAccountId.endsWith("@$CLIENT_DOMAIN")
+                    && transferAsset.destAccountId != notificationsConfig.transferBillingAccount
+                    && transferAsset.destAccountId != notificationsConfig.withdrawalBillingAccount)
+        return depositSign && !isRollbackSign(transferAsset) && transferAsset.description != FEE_ROLLBACK_DESCRIPTION
     }
 
     // Checks if rollback event
     private fun isRollback(transferAsset: Commands.TransferAsset): Boolean {
         val depositSign = transferAsset.srcAccountId.endsWith("@$NOTARY_DOMAIN")
-                && (transferAsset.destAccountId.endsWith("@$CLIENT_DOMAIN") &&
-                transferAsset.destAccountId != notificationsConfig.transferBillingAccount &&
-                transferAsset.destAccountId != notificationsConfig.withdrawalBillingAccount)
+                && (transferAsset.destAccountId.endsWith("@$CLIENT_DOMAIN")
+                && transferAsset.destAccountId != notificationsConfig.transferBillingAccount
+                && transferAsset.destAccountId != notificationsConfig.withdrawalBillingAccount)
         return depositSign && isRollbackSign(transferAsset)
     }
 
@@ -221,12 +237,20 @@ class NotificationInitialization(
     }
 
     // Handles rollback event notification
-    private fun handleRollbackEventNotification(transferAsset: Commands.TransferAsset) {
+    private fun handleRollbackEventNotification(
+        transferAsset: Commands.TransferAsset,
+        rollbackFee: OperationFee?
+    ) {
+        val rollbackDescription = if (rollbackFee == null) {
+            ""
+        } else {
+            "Fee ${rollbackFee.feeAmount} ${rollbackFee.feeAssetId} is rolled back as well."
+        }
         val transferNotifyEvent = TransferNotifyEvent(
             transferAsset.destAccountId,
             BigDecimal(transferAsset.amount),
             transferAsset.assetId,
-            transferAsset.description
+            rollbackDescription
         )
         logger.info { "Notify rollback $transferNotifyEvent" }
         notificationServices.forEach {
