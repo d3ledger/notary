@@ -217,8 +217,25 @@ class IrohaTest {
             }
         }
         val jsonRolesContainsChecks = listOf(
-            "sora_client",
-            "notary_list_holder"
+            "notary",
+            "relay_deployer",
+            "eth_token_list_storage",
+            "rmq",
+            "consensus_collector",
+            "registration_service",
+            "client",
+            "withdrawal",
+            "signature_collector",
+            "vacuumer",
+            "none",
+            "whitelist_setter",
+            "rollback",
+            "notary_list_holder",
+            "admin",
+            "brvs",
+            "exchange",
+            "billing",
+            "broadcast"
         )
 
         jsonRolesContainsChecks.forEach {
@@ -238,31 +255,22 @@ class IrohaTest {
     private fun getAccounts(peersCount: Int): List<AccountPublicInfo> {
         return listOf(
             createAccountDto("notary", "notary", peersCount - peersCount / 3),
-            createAccountDto("registration_service", "notary"),
             createAccountDto("eth_registration_service", "notary"),
             createAccountDto("btc_registration_service", "notary"),
             createAccountDto("mst_btc_registration_service", "notary", peersCount - peersCount / 3),
-            createAccountDto("eth_token_storage_service", "notary"),
+            createAccountDto("eth_token_service", "notary"),
             createAccountDto("withdrawal", "notary"),
             createAccountDto("btc_withdrawal_service", "notary", peersCount - peersCount / 3),
             createAccountDto("btc_sign_collector", "notary"),
             createAccountDto("btc_change_addresses", "notary"),
-            createAccountDto("test", "notary"),
             createAccountDto("vacuumer", "notary"),
             createAccountDto("gen_btc_pk_trigger", "notary"),
             createAccountDto("admin", "notary"),
-            createAccountDto("xor", "sora"),
-            createAccountDto("brvs", "brvs"),
             createAccountDto("data_collector", "notary"),
             createAccountDto("rmq", "notary", peersCount - peersCount / 3),
             createAccountDto("btc_consensus_collector", "notary"),
-            createAccountDto("registration_service_primary", "notary"),
             createAccountDto("exchanger", "notary"),
-            createAccountDto("dapp_manager", "dapp"),
-            createAccountDto("brvs", "dapp"),
-            createAccountDto("dapp_repo", "dapp"),
-            createAccountDto("dapp_journal", "dapp"),
-            createAccountDto("dapp_accounts", "dapp"),
+            createAccountDto("broadcast", "notary"),
             createAccountDto(
                 ChangelogInterface.superuserAccount,
                 ChangelogInterface.superuserDomain,

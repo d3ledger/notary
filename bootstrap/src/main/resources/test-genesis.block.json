@@ -428,14 +428,14 @@
               },
               {
                 "createAccount": {
-                  "accountName": "eth_token_storage_service",
+                  "accountName": "eth_token_service",
                   "domainId": "notary",
                   "publicKey": "8f0f6ceb147679fb81549c48e720345f14ed0340879e4ad370a21b6ddc3281c9"
                 }
               },
               {
                 "appendRole": {
-                  "accountId": "eth_token_storage_service@notary",
+                  "accountId": "eth_token_service@notary",
                   "roleName": "eth_token_list_storage"
                 }
               },

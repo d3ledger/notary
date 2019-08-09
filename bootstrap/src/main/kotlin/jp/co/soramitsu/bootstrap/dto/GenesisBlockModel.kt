@@ -66,11 +66,6 @@ class PassiveAccountPrototype(
     type = AccountType.PASSIVE,
     quorum = quorum
 ) {
-
-    fun createAccount(builder: TransactionBuilder) {
-        createAccount(builder)
-    }
-
     override fun createAccount(
         builder: TransactionBuilder,
         publicKey: String
@@ -100,7 +95,6 @@ class NoAccountPrototype(
         /* do nothing */
     }
 }
-
 
 open class AccountPrototype(
     val name: String? = null,
