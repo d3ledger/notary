@@ -315,8 +315,6 @@ object D3TestContext {
                 Primitive.RolePermission.can_get_all_accounts,
                 Primitive.RolePermission.can_create_account,
                 Primitive.RolePermission.can_set_detail,
-                Primitive.RolePermission.can_create_asset,
-                Primitive.RolePermission.can_create_domain,
                 Primitive.RolePermission.can_get_all_acc_detail,
                 Primitive.RolePermission.can_get_all_acc_ast,
                 Primitive.RolePermission.can_get_all_acc_ast_txs,
