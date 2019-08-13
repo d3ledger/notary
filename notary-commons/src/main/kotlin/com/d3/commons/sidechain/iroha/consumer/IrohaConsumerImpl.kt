@@ -6,6 +6,8 @@
 package com.d3.commons.sidechain.iroha.consumer
 
 import com.d3.commons.model.IrohaCredential
+import com.d3.commons.sidechain.iroha.consumer.status.IrohaTxStatus
+import com.d3.commons.sidechain.iroha.consumer.status.createTxStatusObserver
 import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.util.hex
 import com.github.kittinunf.result.Result
@@ -14,15 +16,12 @@ import iroha.protocol.Endpoint
 import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.Transaction
-import jp.co.soramitsu.iroha.java.TransactionStatusObserver
 import jp.co.soramitsu.iroha.java.Utils
 import jp.co.soramitsu.iroha.java.detail.BuildableAndSignable
-import jp.co.soramitsu.iroha.java.detail.InlineTransactionStatusObserver
 import jp.co.soramitsu.iroha.java.subscription.WaitForTerminalStatus
 import mu.KLogging
-import java.io.IOException
 import java.util.*
-import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Statuses that we consider terminal
@@ -76,13 +75,13 @@ open class IrohaConsumerImpl(
      */
     override fun send(tx: TransactionOuterClass.Transaction): Result<String, Exception> {
         return Result.of {
-            val txStatus = TxStatus.createEmpty()
+            val statusReference = AtomicReference<IrohaTxStatus>()
             irohaAPI.transaction(tx, waitForTerminalStatus)
-                .blockingSubscribe(createTxStatusObserver(txStatus).build())
-            if (txStatus.isSuccessful()) {
-                txStatus.txHash!!
+                .blockingSubscribe(getTxStatusObserver(statusReference).build())
+            if (statusReference.get().isSuccessful()) {
+                String.hex(Utils.hash(tx))
             } else {
-                throw txStatus.txException!!
+                throw statusReference.get().txException!!
             }
         }
     }
@@ -115,13 +114,13 @@ open class IrohaConsumerImpl(
             val successfulTxHashesList = ArrayList<String>()
             irohaAPI.transactionListSync(lst)
             lst.map { tx -> Utils.hash(tx) }.forEach { txHash ->
-                val txStatus = TxStatus.createEmpty()
+                val statusReference = AtomicReference<IrohaTxStatus>()
                 waitForTerminalStatus.subscribe(irohaAPI, txHash)
-                    .blockingSubscribe(createTxStatusObserver(txStatus).build())
-                if (txStatus.isSuccessful()) {
-                    successfulTxHashesList.add(txStatus.txHash!!)
+                    .blockingSubscribe(getTxStatusObserver(statusReference).build())
+                if (statusReference.get().isSuccessful()) {
+                    successfulTxHashesList.add(String.hex(txHash))
                 } else {
-                    logger.error("Iroha batch error", txStatus.txException!!)
+                    logger.error("Iroha batch error", statusReference.get().txException!!)
                 }
             }
             successfulTxHashesList
@@ -129,40 +128,12 @@ open class IrohaConsumerImpl(
     }
 
     /**
-     * Create tx status observer
-     * @param txStatus - object that will hold tx status after observer completion
+     * Create tx status observer.
+     * @param statusReference - reference to an object that will hold tx status after observer completion
      * @return tx status observer
      */
-    protected open fun createTxStatusObserver(txStatus: TxStatus):
-            InlineTransactionStatusObserver.InlineTransactionStatusObserverBuilder {
-        return TransactionStatusObserver.builder()
-            .onError { ex -> txStatus.txException = IllegalStateException(ex) }
-            .onMstExpired { expiredTx ->
-                txStatus.fail(
-                    TimeoutException("Tx ${expiredTx.txHash} MST expired. ${expiredTx.errOrCmdName}")
-                )
-            }
-            .onNotReceived { failedTx ->
-                txStatus.fail(
-                    IOException("Tx ${failedTx.txHash} was not received. ${failedTx.errOrCmdName}")
-                )
-            }
-            .onRejected { rejectedTx ->
-                txStatus.fail(
-                    IOException("Tx ${rejectedTx.txHash} was rejected. ${rejectedTx.errOrCmdName}")
-                )
-            }
-            .onTransactionFailed { failedTx ->
-                txStatus.fail(Exception("Tx ${failedTx.txHash} failed. ${failedTx.errOrCmdName}"))
-            }
-            .onUnrecognizedStatus { failedTx ->
-                txStatus.fail(
-                    Exception("Tx ${failedTx.txHash} got unrecognized status. ${failedTx.errOrCmdName}")
-                )
-            }
-            .onTransactionCommitted { successTx -> txStatus.success(successTx.txHash.toUpperCase()) }
-
-    }
+    protected open fun getTxStatusObserver(statusReference: AtomicReference<IrohaTxStatus>) =
+        createTxStatusObserver(statusReference)
 
     /**
      * Sign given IPJ transaction
@@ -176,41 +147,4 @@ open class IrohaConsumerImpl(
      * Logger
      */
     companion object : KLogging()
-}
-
-/**
- * Data class that holds information about tx status
- * @param txHash - hash of transaction
- * @param txException - exception that occurs during transaction commitment
- */
-data class TxStatus(var txHash: String?, var txException: Exception?) {
-
-    /**
-     * Marks transaction as successful
-     * @param txHash - hash of successful transaction
-     */
-    fun success(txHash: String) {
-        this.txHash = txHash
-    }
-
-    /**
-     * Marks transaction as failed
-     * @param ex - exception
-     */
-    fun fail(ex: Exception) {
-        this.txException = ex
-    }
-
-    /**
-     * Cheks if transaction is considered successful
-     */
-    fun isSuccessful() = txHash != null
-
-    companion object {
-        /**
-         * Creates empty transaction status
-         * @return empty status
-         */
-        fun createEmpty() = TxStatus(null, null)
-    }
 }
