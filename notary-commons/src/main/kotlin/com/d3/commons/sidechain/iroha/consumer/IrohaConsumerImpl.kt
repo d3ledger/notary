@@ -6,7 +6,7 @@
 package com.d3.commons.sidechain.iroha.consumer
 
 import com.d3.commons.model.IrohaCredential
-import com.d3.commons.sidechain.iroha.consumer.status.TxStatus
+import com.d3.commons.sidechain.iroha.consumer.status.IrohaTxStatus
 import com.d3.commons.sidechain.iroha.consumer.status.createTxStatusObserver
 import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.util.hex
@@ -75,7 +75,7 @@ open class IrohaConsumerImpl(
      */
     override fun send(tx: TransactionOuterClass.Transaction): Result<String, Exception> {
         return Result.of {
-            val statusReference = AtomicReference<TxStatus>()
+            val statusReference = AtomicReference<IrohaTxStatus>()
             irohaAPI.transaction(tx, waitForTerminalStatus)
                 .blockingSubscribe(getTxStatusObserver(statusReference).build())
             if (statusReference.get().isSuccessful()) {
@@ -114,7 +114,7 @@ open class IrohaConsumerImpl(
             val successfulTxHashesList = ArrayList<String>()
             irohaAPI.transactionListSync(lst)
             lst.map { tx -> Utils.hash(tx) }.forEach { txHash ->
-                val statusReference = AtomicReference<TxStatus>()
+                val statusReference = AtomicReference<IrohaTxStatus>()
                 waitForTerminalStatus.subscribe(irohaAPI, txHash)
                     .blockingSubscribe(getTxStatusObserver(statusReference).build())
                 if (statusReference.get().isSuccessful()) {
@@ -132,7 +132,7 @@ open class IrohaConsumerImpl(
      * @param statusReference - reference to an object that will hold tx status after observer completion
      * @return tx status observer
      */
-    protected open fun getTxStatusObserver(statusReference: AtomicReference<TxStatus>) =
+    protected open fun getTxStatusObserver(statusReference: AtomicReference<IrohaTxStatus>) =
         createTxStatusObserver(statusReference)
 
     /**

@@ -6,7 +6,7 @@
 package com.d3.commons.sidechain.iroha.consumer
 
 import com.d3.commons.model.IrohaCredential
-import com.d3.commons.sidechain.iroha.consumer.status.TxStatus
+import com.d3.commons.sidechain.iroha.consumer.status.IrohaTxStatus
 import iroha.protocol.Endpoint
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.detail.InlineTransactionStatusObserver
@@ -35,9 +35,9 @@ class MultiSigIrohaConsumer(irohaCredential: IrohaCredential, irohaAPI: IrohaAPI
      * @param statusReference - reference to an object that will hold tx status after observer completion
      * @return tx status observer
      */
-    override protected fun getTxStatusObserver(statusReference: AtomicReference<TxStatus>):
+    override protected fun getTxStatusObserver(statusReference: AtomicReference<IrohaTxStatus>):
             InlineTransactionStatusObserver.InlineTransactionStatusObserverBuilder {
         return super.getTxStatusObserver(statusReference)
-            .onMstPending { pendingTx -> statusReference.set(TxStatus.createSuccessful()) }
+            .onMstPending { statusReference.set(IrohaTxStatus.createSuccessful(Endpoint.TxStatus.MST_PENDING)) }
     }
 }
