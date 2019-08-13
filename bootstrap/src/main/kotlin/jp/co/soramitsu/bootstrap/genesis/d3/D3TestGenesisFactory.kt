@@ -136,7 +136,11 @@ class D3TestGenesisFactory : GenesisInterface {
             } else if (it.type != AccountType.PASSIVE) {
                 val pubKeysCount = accountsMap[it.id]?.pubKeys?.size ?: 0
                 if (it.quorum > pubKeysCount || (accountsMap[it.id]?.quorum ?: 1 > pubKeysCount)) {
-                    errors.add("Default or received quorum exceeds number of keys for account ${it.id}. Received(${accountsMap[it.id]?.quorum}) quorum should not be less than default(${it.quorum}) for this account")
+                    errors.add(
+                        "Default or received quorum exceeds number of keys for account ${it.id}. " +
+                                "Received(${accountsMap[it.id]?.quorum}) quorum should not be " +
+                                "less than default(${it.quorum}) for this account"
+                    )
                 }
             }
         }
@@ -148,25 +152,21 @@ class D3TestGenesisFactory : GenesisInterface {
 
 
     private fun createAssets(builder: TransactionBuilder) {
-        createAsset(builder, "xor", "sora", 18)
+        // Sidechain-anchored
         createAsset(builder, "ether", "ethereum", 18)
         createAsset(builder, "btc", "bitcoin", 8)
     }
 
     private fun createDomains(builder: TransactionBuilder) {
         createDomain(builder, "notary", "none")
-        createDomain(builder, "d3", "client")
         createDomain(builder, "btcSession", "none")
         createDomain(builder, "ethereum", "none")
-        createDomain(builder, "sora", "sora_client")
-        createDomain(builder, "bitcoin", "client")
+        createDomain(builder, "bitcoin", "none")
         createDomain(builder, "btcSignCollect", "none")
         createDomain(builder, "brvs", "brvs")
         createDomain(builder, "bootstrap", "none")
         createDomain(builder, "btcConsensus", "none")
-        createDomain(builder, "dapp", "dapp")
     }
-
 
     private fun createRoles(builder: TransactionBuilder) {
         D3TestContext.createNotaryRole(builder)
@@ -178,12 +178,9 @@ class D3TestGenesisFactory : GenesisInterface {
         D3TestContext.createSignatureCollectorRole(builder)
         D3TestContext.createVacuumerRole(builder)
         D3TestContext.createNoneRole(builder)
-        D3TestContext.createTesterRole(builder)
         D3TestContext.createWhiteListSetterRole(builder)
         D3TestContext.createRollBackRole(builder)
         D3TestContext.createNotaryListHolderRole(builder)
-        D3TestContext.createSoraClientRole(builder)
-        D3TestContext.createSoraRole(builder)
         D3TestContext.createBrvsRole(builder)
         D3TestContext.createSuperuserRole(builder)
         D3TestContext.createAdminRole(builder)
@@ -191,7 +188,7 @@ class D3TestGenesisFactory : GenesisInterface {
         D3TestContext.createBtcConsensusRole(builder)
         D3TestContext.createDataCollectorRole(builder)
         D3TestContext.createExchangeRole(builder)
-        D3TestContext.createDappInstanceRole(builder)
-        D3TestContext.createDappManagerRole(builder)
+        D3TestContext.createBillingRole(builder)
+        D3TestContext.createBroadcastRole(builder)
     }
 }
