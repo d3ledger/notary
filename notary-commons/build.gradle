@@ -46,9 +46,6 @@ dependencies {
 
     // Configuration
     compile 'com.github.jdiazcano:cfg4k:0.9.41'
-
-    compile "com.rabbitmq:amqp-client:5.6.0"
-
 }
 sonarqube {
     properties {
