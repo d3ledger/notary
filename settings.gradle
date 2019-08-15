@@ -20,6 +20,3 @@ project(':notary-iroha-integration-test').projectDir = 'notary-iroha-integration
 
 include 'notary-sora-integration-test'
 project(':notary-sora-integration-test').projectDir = 'notary-sora-integration-test' as File
-
-include 'bootstrap'
-project(':bootstrap').projectDir = 'bootstrap' as File
