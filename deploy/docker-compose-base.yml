@@ -40,20 +40,14 @@ services:
       - d3-network
 
   d3-chain-adapter:
-    image: nexus.iroha.tech:19002/d3-deploy/chain-adapter:latest
+    image: nexus.iroha.tech:19004/soramitsu/chain-adapter:develop
     container_name: d3-chain-adapter
     restart: on-failure
     depends_on:
       - d3-rmq
       - d3-iroha
     volumes:
-      - ./:/opt/chain-adapter/deploy
-      - ../configs:/opt/chain-adapter/configs
-    environment:
-      - WAIT_HOSTS=d3-iroha:50051, d3-rmq:5672
-      - WAIT_HOSTS_TIMEOUT=300
-      - WAIT_SLEEP_INTERVAL=3
-      - PROFILE
+      - ../deploy/chain-adapter/:/deploy/chain-adapter
     networks:
       - d3-network
 
