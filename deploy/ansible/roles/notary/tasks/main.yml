@@ -88,7 +88,7 @@
   with_items:
     - btc_registration_service@notary
     - eth_registration_service@notary
-    - eth_token_storage_service@notary
+    - eth_token_service@notary
     - mst_btc_registration_service@notary
     - vacuumer@notary
     - withdrawal@notary
@@ -102,7 +102,7 @@
   with_items:
     - btc_registration_service@notary
     - eth_registration_service@notary
-    - eth_token_storage_service@notary
+    - eth_token_service@notary
     - mst_btc_registration_service@notary
     - vacuumer@notary
     - withdrawal@notary

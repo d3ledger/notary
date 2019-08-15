@@ -8,4 +8,5 @@ package com.d3.commons.sidechain.iroha
 const val CLIENT_DOMAIN = "d3"
 const val NOTARY_DOMAIN = "notary"
 const val FEE_DESCRIPTION = "withdrawal fee"
+const val FEE_ROLLBACK_DESCRIPTION = "withdrawal fee rollback"
 const val ROLLBACK_DESCRIPTION = "rollback"

@@ -6,10 +6,12 @@
 package com.d3.commons.sidechain.iroha.consumer
 
 import com.d3.commons.model.IrohaCredential
+import com.d3.commons.sidechain.iroha.consumer.status.IrohaTxStatus
 import iroha.protocol.Endpoint
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.detail.InlineTransactionStatusObserver
 import jp.co.soramitsu.iroha.java.subscription.WaitForTerminalStatus
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Statuses that we consider terminal
@@ -30,12 +32,12 @@ class MultiSigIrohaConsumer(irohaCredential: IrohaCredential, irohaAPI: IrohaAPI
     /**
      * Create tx status observer.
      * It does the same thing as [IrohaConsumerImpl], but also reacts on MST_PENDING status
-     * @param txStatus - object that will hold tx status after observer completion
+     * @param statusReference - reference to an object that will hold tx status after observer completion
      * @return tx status observer
      */
-    override fun createTxStatusObserver(txStatus: TxStatus):
+    override protected fun getTxStatusObserver(statusReference: AtomicReference<IrohaTxStatus>):
             InlineTransactionStatusObserver.InlineTransactionStatusObserverBuilder {
-        return super.createTxStatusObserver(txStatus)
-            .onMstPending { pendingTx -> txStatus.success(pendingTx.txHash.toUpperCase()) }
+        return super.getTxStatusObserver(statusReference)
+            .onMstPending { statusReference.set(IrohaTxStatus.createSuccessful(Endpoint.TxStatus.MST_PENDING)) }
     }
 }
