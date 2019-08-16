@@ -7,12 +7,14 @@
 
 package com.d3.exchange.exchanger
 
+import com.d3.exchange.exchanger.service.ExchangerService
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import mu.KLogging
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.ComponentScan
+import kotlin.system.exitProcess
 
 private val logger = KLogging().logger
 
@@ -22,7 +24,7 @@ class ExchangerApplication
 /**
  * Entry point for notary exchanger service. Performs asset conversions.
  */
-fun main(args: Array<String>) {
+fun main() {
     Result.of {
         val context = AnnotationConfigApplicationContext()
         context.register(ExchangerApplication::class.java)
@@ -32,6 +34,6 @@ fun main(args: Array<String>) {
         context.getBean(ExchangerService::class.java).start()
     }.failure { ex ->
         logger.error("Exchanger exited with an exception", ex)
-        System.exit(1)
+        exitProcess(1)
     }
 }

@@ -5,7 +5,7 @@
 
 package com.d3.exchange
 
-import com.d3.exchange.exchanger.ExchangerService
+import com.d3.exchange.exchanger.strategy.CurveRateStrategy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import kotlin.test.assertTrue
@@ -24,7 +24,7 @@ class IntegrateTest {
     @Test
     fun integrateTest() {
         val resultAmount =
-            ExchangerService.integrate(SOURCE_BALANCE, TARGET_BALANCE, SUPPLY * (1 - FEE))
+            CurveRateStrategy.integrate(SOURCE_BALANCE, TARGET_BALANCE, SUPPLY * (1 - FEE))
         // Invariant
         assertTrue((SOURCE_BALANCE + SUPPLY) * (TARGET_BALANCE - resultAmount) > SOURCE_BALANCE * TARGET_BALANCE)
         // Can be false for huge amount

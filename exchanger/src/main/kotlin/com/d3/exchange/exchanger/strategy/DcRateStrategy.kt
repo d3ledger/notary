@@ -3,21 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package com.d3.exchange.exchanger
+package com.d3.exchange.exchanger.strategy
 
 import com.google.gson.JsonParser
 import java.math.BigDecimal
-
-/**
- * Rate retrieval interface
- */
-interface RateStrategy {
-
-    /**
-     * Method for retrieving relevant exchange rate for 'non standard' assets
-     */
-    fun getRate(from: String, to: String): BigDecimal
-}
 
 /**
  * Rate strategy based on http querying of data collector service
@@ -25,12 +14,13 @@ interface RateStrategy {
 class DcRateStrategy(
     private val baseRateUrl: String,
     private val baseAssetId: String,
-    private val rateAttribute: String
-) : RateStrategy {
+    private val rateAttribute: String,
+    feeFraction: BigDecimal
+) : RateStrategy(feeFraction) {
 
     private val parser = JsonParser()
 
-    override fun getRate(from: String, to: String): BigDecimal {
+    override fun getAmount(from: String, to: String, amount: BigDecimal): BigDecimal {
         val fromRate: BigDecimal =
             if (from == baseAssetId) {
                 BigDecimal.ONE
@@ -43,7 +33,7 @@ class DcRateStrategy(
             } else {
                 getRateFor(to)
             }
-        return fromRate.divide(toRate)
+        return fromRate.divide(toRate).multiply(amount.multiply(feeFraction))
     }
 
     /**
