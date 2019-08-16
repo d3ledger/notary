@@ -10,5 +10,5 @@ import com.d3.commons.config.IrohaCredentialRawConfig
 interface ExchangerCurveContextConfig {
 
     /** Iroha exchanger service credential for conversions */
-    val exchangerIrohaCredential: IrohaCredentialRawConfig
+    val irohaCredential: IrohaCredentialRawConfig
 }

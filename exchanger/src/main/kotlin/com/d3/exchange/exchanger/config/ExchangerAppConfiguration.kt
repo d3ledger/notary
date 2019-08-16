@@ -64,7 +64,7 @@ class ExchangerAppConfiguration {
     fun liquidityProviders() = exchangerConfig.liquidityProviders.split(",").toList()
 
     @Bean
-    fun curveIrohaCredential() = IrohaCredential(exchangerCurveConfig.exchangerIrohaCredential)
+    fun curveIrohaCredential() = IrohaCredential(exchangerCurveConfig.irohaCredential)
 
     @Bean
     fun curveIrohaConsumer() =
@@ -74,7 +74,7 @@ class ExchangerAppConfiguration {
         )
 
     @Bean
-    fun curveAccountId() = exchangerCurveConfig.exchangerIrohaCredential.accountId
+    fun curveAccountId() = exchangerCurveConfig.irohaCredential.accountId
 
     @Bean
     fun curveQueryAPI() =
@@ -82,8 +82,8 @@ class ExchangerAppConfiguration {
             irohaAPI(),
             curveAccountId(),
             Utils.parseHexKeypair(
-                exchangerCurveConfig.exchangerIrohaCredential.pubkey,
-                exchangerCurveConfig.exchangerIrohaCredential.privkey
+                exchangerCurveConfig.irohaCredential.pubkey,
+                exchangerCurveConfig.irohaCredential.privkey
             )
         )
 
@@ -118,7 +118,7 @@ class ExchangerAppConfiguration {
         )
 
     @Bean
-    fun dcIrohaCredential() = IrohaCredential(exchangerDcConfig.exchangerIrohaCredential)
+    fun dcIrohaCredential() = IrohaCredential(exchangerDcConfig.irohaCredential)
 
     @Bean
     fun dcIrohaConsumer() =
@@ -128,7 +128,7 @@ class ExchangerAppConfiguration {
         )
 
     @Bean
-    fun dcAccountId() = exchangerDcConfig.exchangerIrohaCredential.accountId
+    fun dcAccountId() = exchangerDcConfig.irohaCredential.accountId
 
     @Bean
     fun dcQueryAPI() =
@@ -136,8 +136,8 @@ class ExchangerAppConfiguration {
             irohaAPI(),
             dcAccountId(),
             Utils.parseHexKeypair(
-                exchangerDcConfig.exchangerIrohaCredential.pubkey,
-                exchangerDcConfig.exchangerIrohaCredential.privkey
+                exchangerDcConfig.irohaCredential.pubkey,
+                exchangerDcConfig.irohaCredential.privkey
             )
         )
 

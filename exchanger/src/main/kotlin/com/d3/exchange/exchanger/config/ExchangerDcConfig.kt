@@ -10,7 +10,7 @@ import com.d3.commons.config.IrohaCredentialRawConfig
 interface ExchangerDcConfig {
 
     /** Iroha exchanger service credential for conversions */
-    val exchangerIrohaCredential: IrohaCredentialRawConfig
+    val irohaCredential: IrohaCredentialRawConfig
 
     /** Asset conversion rate base url **/
     val assetRateBaseUrl: String
