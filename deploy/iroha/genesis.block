@@ -834,6 +834,19 @@
               },
               {
                 "createAccount": {
+                  "accountName": "exchanger_fiat",
+                  "domainId": "notary",
+                  "publicKey": "8f0f6ceb147679fb81549c48e720345f14ed0340879e4ad370a21b6ddc3281c9"
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "exchanger_fiat@notary",
+                  "roleName": "exchange"
+                }
+              },
+              {
+                "createAccount": {
                   "accountName": "admin",
                   "domainId": "notary",
                   "publicKey": "092e71b031a51adae924f7cd944f0371ae8b8502469e32693885334dedcc6001"

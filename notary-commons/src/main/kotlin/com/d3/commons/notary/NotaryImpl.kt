@@ -17,6 +17,7 @@ import io.reactivex.schedulers.Schedulers
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import mu.KLogging
 import java.math.BigInteger
+import kotlin.system.exitProcess
 
 /**
  * Implementation of [Notary] business logic
@@ -35,9 +36,7 @@ class NotaryImpl(
     ) : this(IrohaConsumerImpl(notaryCredential, irohaAPI), notaryCredential, primaryChainEvents)
 
     /**
-     * Handles primary chain deposit event. Notaries create the ordered bunch of
-     * transactions: {tx1: setAccountDetail, tx2: addAssetQuantity, transferAsset}.
-     * SetAccountDetail insert into notary account information about the transaction (hash) for rollback.
+     * Handles primary chain deposit event. Notaries create {addAssetQuantity, transferAsset} transactions.
      */
     private fun chainAnchoredOnPrimaryChainDeposit(
         hash: String,
@@ -46,52 +45,32 @@ class NotaryImpl(
         asset: String,
         amount: String,
         from: String
-    ): IrohaOrderedBatch {
+    ): IrohaTransaction {
         logger.info { "Transfer $asset event: hash($hash) time($time) user($account) asset($asset) value ($amount)" }
 
         val quorum = notaryIrohaConsumer.getConsumerQuorum().get()
-
-        return IrohaOrderedBatch(
+        return IrohaTransaction(
+            notaryIrohaConsumer.creator,
+            time,
+            quorum,
             arrayListOf(
-                IrohaTransaction(
-                    notaryIrohaConsumer.creator,
-                    time,
-                    quorum,
-                    arrayListOf(
-                        // insert into Iroha account information for rollback
-                        IrohaCommand.CommandSetAccountDetail(
-                            notaryIrohaConsumer.creator,
-                            "last_tx",
-                            hash
-                        )
-                    )
+                IrohaCommand.CommandAddAssetQuantity(
+                    asset,
+                    amount
                 ),
-                IrohaTransaction(
+                IrohaCommand.CommandTransferAsset(
                     notaryIrohaConsumer.creator,
-                    time,
-                    quorum,
-                    arrayListOf(
-                        IrohaCommand.CommandAddAssetQuantity(
-                            asset,
-                            amount
-                        ),
-                        IrohaCommand.CommandTransferAsset(
-                            notaryIrohaConsumer.creator,
-                            account,
-                            asset,
-                            from,
-                            amount
-                        )
-                    )
+                    account,
+                    asset,
+                    from,
+                    amount
                 )
             )
         )
     }
 
     /**
-     * Handles primary chain deposit event. Notaries create the ordered bunch of
-     * transactions: {tx1: setAccountDetail, tx2: transferAsset}. Without add asset qty.
-     * SetAccountDetail insert into notary account information about the transaction (hash) for rollback.
+     * Handles primary chain deposit event. Notaries create 'transferAsset' transactions. Without add asset qty.
      */
     private fun irohaAnchoredOnPrimaryChainDeposit(
         hash: String,
@@ -100,39 +79,20 @@ class NotaryImpl(
         asset: String,
         amount: String,
         from: String
-    ): IrohaOrderedBatch {
+    ): IrohaTransaction {
         logger.info { "Transfer Iroha anchored $asset event: hash($hash) time($time) user($account) asset($asset) value ($amount)" }
-
         val quorum = notaryIrohaConsumer.getConsumerQuorum().get()
-
-        return IrohaOrderedBatch(
+        return IrohaTransaction(
+            notaryIrohaConsumer.creator,
+            time,
+            quorum,
             arrayListOf(
-                IrohaTransaction(
+                IrohaCommand.CommandTransferAsset(
                     notaryIrohaConsumer.creator,
-                    time,
-                    quorum,
-                    arrayListOf(
-                        // insert into Iroha account information for rollback
-                        IrohaCommand.CommandSetAccountDetail(
-                            notaryIrohaConsumer.creator,
-                            "last_tx",
-                            hash
-                        )
-                    )
-                ),
-                IrohaTransaction(
-                    notaryIrohaConsumer.creator,
-                    time,
-                    quorum,
-                    arrayListOf(
-                        IrohaCommand.CommandTransferAsset(
-                            notaryIrohaConsumer.creator,
-                            account,
-                            asset,
-                            from,
-                            amount
-                        )
-                    )
+                    account,
+                    asset,
+                    from,
+                    amount
                 )
             )
         )
@@ -141,7 +101,7 @@ class NotaryImpl(
     /**
      * Handle primary chain event
      */
-    override fun onPrimaryChainEvent(chainInputEvent: SideChainEvent.PrimaryBlockChainEvent): IrohaOrderedBatch {
+    override fun onPrimaryChainEvent(chainInputEvent: SideChainEvent.PrimaryBlockChainEvent): IrohaTransaction {
         logger.info { "Notary performs primary chain event $chainInputEvent" }
 
         return when (chainInputEvent) {
@@ -168,7 +128,7 @@ class NotaryImpl(
     /**
      * Relay side chain [SideChainEvent] to Iroha output
      */
-    override fun irohaOutput(): Observable<IrohaOrderedBatch> {
+    override fun irohaOutput(): Observable<IrohaTransaction> {
         return primaryChainEvents.map { event ->
             onPrimaryChainEvent(event)
         }
@@ -194,9 +154,9 @@ class NotaryImpl(
                 )
                 .subscribe(
                     // send to Iroha network layer
-                    { batch ->
-                        val lst = IrohaConverter.convert(batch, notaryCredential.keyPair)
-                        notaryIrohaConsumer.send(lst)
+                    { irohaTransaction ->
+                        val tx = IrohaConverter.convert(irohaTransaction, notaryCredential.keyPair)
+                        notaryIrohaConsumer.send(tx)
                             .fold(
                                 { logger.info { "Send to Iroha success" } },
                                 { ex -> logger.error("Send failure", ex) }
@@ -205,7 +165,7 @@ class NotaryImpl(
                     // on error
                     { ex ->
                         logger.error("Exit with error: ", ex)
-                        System.exit(1)
+                        exitProcess(1)
                     },
                     // should be never called
                     { logger.error { "OnComplete called" } }
