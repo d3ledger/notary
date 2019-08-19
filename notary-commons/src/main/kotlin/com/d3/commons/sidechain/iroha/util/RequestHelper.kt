@@ -29,6 +29,23 @@ fun getSetDetailCommands(block: BlockOuterClass.Block): List<Commands.Command> {
 }
 
 /**
+ * Return all "set account detail" commands with its creator from Iroha block
+ * @param block - Iroha block
+ * @return list full of "set account detail" commands
+ */
+fun getSetDetailCommandsWithCreator(block: BlockOuterClass.Block): List<CommandWithCreator> {
+    return block.blockV1.payload.transactionsList
+        .map { tx ->
+            tx.payload.reducedPayload.commandsList.map { command ->
+                Pair(command, tx.payload.reducedPayload.creatorAccountId)
+            }
+        }
+        .flatten()
+        .filter { (command, _) -> command.hasSetAccountDetail() }
+        .map { (command, creator) -> CommandWithCreator(command, creator) }
+}
+
+/**
  * Return all "create account" commands from Iroha block
  * @param block - Iroha block
  * @return list full of "create account" commands
@@ -92,3 +109,8 @@ fun isWithdrawalTransaction(
     val commands = transaction.payload.reducedPayload.commandsList
     return commands.all { cmd -> cmd.hasTransferAsset() && cmd.transferAsset.destAccountId == dstAccountId }
 }
+
+/**
+ * Data class that represents Iroha command with its creator
+ */
+data class CommandWithCreator(val command: Commands.Command, val creator: String)
