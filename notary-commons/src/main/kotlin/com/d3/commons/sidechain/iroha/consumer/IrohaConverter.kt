@@ -17,7 +17,7 @@ import jp.co.soramitsu.iroha.java.Utils
 import java.security.KeyPair
 
 /**
- * Class converts Notary [notary.IrohaOrderedBatch] to Iroha [Transaction]
+ * Class converts Notary [com.d3.commons.notary.IrohaOrderedBatch] to Iroha [Transaction]
  */
 object IrohaConverter {
 
@@ -98,10 +98,24 @@ object IrohaConverter {
     }
 
     /**
-     * Convert Notary intention [notary.IrohaTransaction] to Iroha java [Transaction]
+     * Convert Notary intention [com.d3.commons.notary.IrohaTransaction] to unsigned Iroha java [Transaction]
+     * @param transaction - Iroha transaction to convert
+     * @return unsigned transaction
      */
     fun convert(transaction: IrohaTransaction): Transaction {
         val txBuilder = appendCommands(buildModelTransactionBuilder(transaction), transaction)
+        return txBuilder.build()
+    }
+
+    /**
+     * Convert Notary intention [com.d3.commons.notary.IrohaTransaction] to Iroha java [Transaction]
+     * @param transaction - Iroha transaction to convert
+     * @param keyPair - keypair that is used to sign given transaction
+     * @return signed transaction
+     */
+    fun convert(transaction: IrohaTransaction, keyPair: KeyPair): Transaction {
+        val txBuilder = appendCommands(buildModelTransactionBuilder(transaction), transaction)
+        txBuilder.sign(keyPair)
         return txBuilder.build()
     }
 
