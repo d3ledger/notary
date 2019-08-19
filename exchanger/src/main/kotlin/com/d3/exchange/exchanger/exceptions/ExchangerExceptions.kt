@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package com.d3.exchange.exchanger.exception
+package com.d3.exchange.exchanger.exceptions
 
 class AssetNotFoundException(message: String, ex: Exception?) : Exception(message, ex)
 

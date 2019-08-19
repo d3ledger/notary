@@ -3,10 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package com.d3.exchange.exchanger
+package com.d3.exchange.exchanger.config
 
 import com.d3.commons.config.IrohaConfig
-import com.d3.commons.config.IrohaCredentialRawConfig
 
 /**
  * Interface represents configs for exchanger service
@@ -15,9 +14,6 @@ interface ExchangerConfig {
 
     /** Iroha configs */
     val iroha: IrohaConfig
-
-    /** Iroha registration service credential */
-    val irohaCredential: IrohaCredentialRawConfig
 
     /** RMQ queue name */
     val irohaBlockQueue: String
@@ -31,12 +27,6 @@ interface ExchangerConfig {
     /** Asset pairs to be traded details key */
     val tradePairKey: String
 
-    /** Asset conversion rate base url **/
-    val assetRateBaseUrl: String
-
-    /** Base asset to read rate in comparison with **/
-    val baseAssetId: String
-
-    /** Attribute to parse rate from **/
-    val rateAttribute: String
+    /** Fee fraction 0.(0)1..1 1 means no fee**/
+    val feeFraction: String
 }
