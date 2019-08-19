@@ -1,0 +1,70 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+package com.d3.commons.registration
+
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
+import com.github.kittinunf.result.Result
+import com.github.kittinunf.result.flatMap
+import com.github.kittinunf.result.map
+import jp.co.soramitsu.iroha.java.Transaction
+import mu.KLogging
+
+/**
+ * Class responsible to bind sidechain address to account in Iroha.
+ */
+open class SideChainRegistrator(
+    private val irohaConsumer: IrohaConsumer,
+    private val walletStorageIrohaAccountId: String,
+    private val sidechainName: String
+) {
+    /**
+     * Creates new account to Iroha with given address
+     * @param currencyAddress - address of crypto currency wallet
+     * @param userName - client userName in Iroha
+     * @param domain - client domain in Iroha
+     * @param pubkey - client's public key
+     * @param notaryStorageStrategy - function that defines the way newly created account data will be stored in notary
+     * @return address associated with userName
+     */
+    fun register(
+        currencyAddress: String,
+        accountId: String,
+        notaryStorageStrategy: () -> String
+    ): Result<String, Exception> {
+        return buildTx(currencyAddress, accountId, notaryStorageStrategy)
+            .flatMap { tx ->
+                irohaConsumer.send(tx)
+            }.map { hash ->
+                logger.info { "$currencyAddress was assigned to account $accountId in iroha tx $hash" }
+                currencyAddress
+            }
+    }
+
+    /**
+     * Create registration iroha transaction
+     */
+    private fun buildTx(
+        currencyAddress: String,
+        accountId: String,
+        notaryStorageStrategy: () -> String
+    ): Result<Transaction, java.lang.Exception> {
+        return Result.of {
+            Transaction.builder(irohaConsumer.creator)
+                .setAccountDetail(accountId, sidechainName, currencyAddress)
+                .setAccountDetail(
+                    walletStorageIrohaAccountId,
+                    currencyAddress,
+                    notaryStorageStrategy()
+                )
+                .build()
+        }
+    }
+
+    /**
+     * Logger
+     */
+    companion object : KLogging()
+}
