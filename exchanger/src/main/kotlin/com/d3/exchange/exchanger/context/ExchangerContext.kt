@@ -11,7 +11,6 @@ import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.exchange.exchanger.exceptions.AssetNotFoundException
 import com.d3.exchange.exchanger.exceptions.TooLittleAssetVolumeException
 import com.d3.exchange.exchanger.exceptions.UnsupportedTradingPairException
-import com.d3.exchange.exchanger.service.ExchangerService
 import com.d3.exchange.exchanger.strategy.RateStrategy
 import com.d3.exchange.exchanger.util.TradingPairsHelper
 import com.d3.exchange.exchanger.util.respectPrecision
@@ -19,6 +18,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
+import mu.KLogging
 import java.math.BigDecimal
 
 /**
@@ -63,7 +63,7 @@ abstract class ExchangerContext(
         val targetAsset = exchangeCommand.description
         val amount = exchangeCommand.amount
         val destAccountId = exchangeCommand.srcAccountId
-        ExchangerService.logger.info { "Got a conversion request from $destAccountId: $amount $sourceAsset to $targetAsset." }
+        logger.info { "Got a conversion request from $destAccountId: $amount $sourceAsset to $targetAsset." }
         Result.of {
             val precision = queryHelper.getAssetPrecision(targetAsset).fold(
                 { it },
@@ -89,9 +89,9 @@ abstract class ExchangerContext(
             performTransferLogic(exchangeCommand, respectPrecision)
 
         }.fold(
-            { ExchangerService.logger.info { "Successfully converted $amount of $sourceAsset to $targetAsset." } },
+            { logger.info { "Successfully converted $amount of $sourceAsset to $targetAsset." } },
             {
-                ExchangerService.logger.error("Exchanger error occurred. Performing rollback.", it)
+                logger.error("Exchanger error occurred. Performing rollback.", it)
 
                 ModelUtil.transferAssetIroha(
                     irohaConsumer,
@@ -101,7 +101,7 @@ abstract class ExchangerContext(
                     "Conversion rollback transaction",
                     amount
                 ).failure { ex ->
-                    ExchangerService.logger.error("Error during rollback", ex)
+                    logger.error("Error during rollback", ex)
                 }
             })
     }
@@ -125,4 +125,6 @@ abstract class ExchangerContext(
             throw it
         }
     }
+
+    companion object : KLogging()
 }
