@@ -5,7 +5,12 @@
 
 package com.d3.commons.registration;
 
-import com.d3.commons.notary.IrohaOrderedBatch;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer;
 import com.d3.commons.sidechain.iroha.consumer.IrohaConverter;
 import com.github.kittinunf.result.Result;
@@ -16,14 +21,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 public class IrohaAccountRegistratorTest {
 
-  private IrohaAccountRegistrator irohaAccountRegistrator;
+  private SideChainRegistrator sidechainRegistrator;
   private IrohaConsumer irohaConsumer;
   private IrohaConverter irohaConverter;
 
@@ -31,95 +31,9 @@ public class IrohaAccountRegistratorTest {
   public void setUp() {
     irohaConsumer = mock(IrohaConsumer.class);
     when(irohaConsumer.getCreator()).thenReturn("creator");
-    irohaAccountRegistrator = Mockito.spy(new IrohaAccountRegistrator(irohaConsumer, "notary_account", "currency_name"));
+    sidechainRegistrator = Mockito
+        .spy(new SideChainRegistrator(irohaConsumer, "wallets@domain", "currency_name"));
     irohaConverter = IrohaConverter.INSTANCE;
-  }
-
-  /**
-   * @given map of several not passed transactions
-   * @when status of batch is checked
-   * @then batch is considered failed, because there are no passed transactions
-   */
-  @Test
-  public void testIsAccountCreationBatchFailedNoPassed() {
-    Map<String, Boolean> transactionsResultsMap = new HashMap<>();
-    transactionsResultsMap.put("first", false);
-    transactionsResultsMap.put("second", false);
-    assertFalse(irohaAccountRegistrator.isAccountCreationBatchSuccessful(transactionsResultsMap));
-  }
-
-  /**
-   * @given all unsigned transactions hashes are in passed transactions map
-   * @when status of batch is checked
-   * @then batch is considered succeeded
-   */
-  @Test
-  public void testIsAccountCreationBatchFailedAllPassed() {
-    byte[] firstHash = mock(byte[].class);
-    when(firstHash).thenReturn("123".getBytes());
-    Transaction firstUnsignedTx = mock(Transaction.class);
-    when(firstUnsignedTx.hash()).thenReturn(firstHash);
-
-    byte[] secondHash = mock(byte[].class);
-    when(secondHash).thenReturn("456".getBytes());
-    Transaction secondUnsignedTx = mock(Transaction.class);
-    when(secondUnsignedTx.hash()).thenReturn(secondHash);
-
-    Map<String, Boolean> passedTransactions = new HashMap<>();
-    passedTransactions.put(Arrays.toString(firstHash), true);
-    passedTransactions.put(Arrays.toString(secondHash), true);
-
-    assertTrue(irohaAccountRegistrator.isAccountCreationBatchSuccessful(passedTransactions));
-  }
-
-  /**
-   * @given all unsigned transactions hashes except for the first transaction are in passed transactions map
-   * @when status of batch is checked
-   * @then batch is considered succeeded, because the first transaction may fail
-   */
-  @Test
-  public void testIsAccountCreationBatchFailedFirstNotPassed() {
-    byte[] firstHash = mock(byte[].class);
-    when(firstHash).thenReturn("123".getBytes());
-    Transaction firstUnsignedTx = mock(Transaction.class);
-    when(firstUnsignedTx.hash()).thenReturn(firstHash);
-
-    byte[] secondHash = mock(byte[].class);
-    when(secondHash).thenReturn("456".getBytes());
-    Transaction secondUnsignedTx = mock(Transaction.class);
-    when(secondUnsignedTx.hash()).thenReturn(secondHash);
-
-    Map<String, Boolean> passedTransactions = new HashMap<>();
-    passedTransactions.put(Arrays.toString(firstHash), false);
-    passedTransactions.put(Arrays.toString(secondHash), true);
-
-    assertTrue(irohaAccountRegistrator.isAccountCreationBatchSuccessful(passedTransactions));
-
-  }
-
-  /**
-   * @given all unsigned transactions hashes except for the second transaction are in passed transactions map
-   * @when status of batch is checked
-   * @then batch is considered failed
-   */
-  @Test
-  public void testIsAccountCreationBatchFailedSecondNotPassed() {
-    byte[] firstHash = mock(byte[].class);
-    when(firstHash).thenReturn("123".getBytes());
-    Transaction firstUnsignedTx = mock(Transaction.class);
-    when(firstUnsignedTx.hash()).thenReturn(firstHash);
-
-    byte[] secondHash = mock(byte[].class);
-    when(secondHash).thenReturn("456".getBytes());
-    Transaction secondUnsignedTx = mock(Transaction.class);
-    when(secondUnsignedTx.hash()).thenReturn(secondHash);
-
-    Map<String, Boolean> passedTransactions = new HashMap<>();
-    passedTransactions.put(Arrays.toString(firstHash), true);
-    passedTransactions.put(Arrays.toString(secondHash), false);
-
-    assertFalse(irohaAccountRegistrator.isAccountCreationBatchSuccessful(passedTransactions));
-
   }
 
   /**
@@ -131,21 +45,13 @@ public class IrohaAccountRegistratorTest {
   public void testRegister() {
     Function0<String> notaryStorageStrategy = () -> "";
     String currencyAddress = "123";
-    String userName = "user_name";
-    String domain = "domain";
-    String pubKey = "pub_key";
-    List<Transaction> unsignedTransactions = new ArrayList<>();
-    Map<String, Boolean> passedTransactions = new HashMap<>();
-    IrohaOrderedBatch batch = new IrohaOrderedBatch(new ArrayList<>());
+    String userId = "user_name@domain";
 
-    doReturn(batch).when(irohaAccountRegistrator)
-        .createAccountCreationBatch(currencyAddress, userName, domain, pubKey, notaryStorageStrategy);
-    doReturn(unsignedTransactions).when(irohaConverter)
-        .convert(batch);
-    when(irohaConsumer.send(unsignedTransactions)).thenReturn(Result.Companion.of(() -> passedTransactions));
-    doReturn(false).when(irohaAccountRegistrator)
-        .isAccountCreationBatchSuccessful(passedTransactions);
-    irohaAccountRegistrator.register(currencyAddress, userName, domain, pubKey, notaryStorageStrategy)
+    when(irohaConsumer.send(any(Transaction.class)))
+        .thenReturn(Result.Companion.of(() -> "passed_hash"));
+
+    sidechainRegistrator
+        .register(currencyAddress, userId, notaryStorageStrategy)
         .fold(address -> {
           assertEquals(currencyAddress, address);
           return null;
@@ -161,21 +67,13 @@ public class IrohaAccountRegistratorTest {
   public void testRegisterFailed() {
     Function0<String> notaryStorageStrategy = () -> "";
     String currencyAddress = "123";
-    String userName = "user_name";
-    String domain = "domain";
-    String pubKey = "pub_key";
-    List<Transaction> unsignedTransactions = new ArrayList<>();
-    Map<String, Boolean> passedTransactions = new HashMap<>();
-    IrohaOrderedBatch batch = new IrohaOrderedBatch(new ArrayList<>());
+    String userId = "wron_user_id";
 
-    doReturn(batch).when(irohaAccountRegistrator)
-        .createAccountCreationBatch(currencyAddress, userName, domain, pubKey, notaryStorageStrategy);
-    doReturn(unsignedTransactions).when(irohaConverter)
-        .convert(batch);
-    when(irohaConsumer.send(unsignedTransactions)).thenReturn(Result.Companion.of(() -> passedTransactions));
-    doReturn(true).when(irohaAccountRegistrator)
-        .isAccountCreationBatchSuccessful(passedTransactions);
-    irohaAccountRegistrator.register(currencyAddress, userName, domain, pubKey, notaryStorageStrategy)
+    when(irohaConsumer.send(any(Transaction.class)))
+        .thenReturn(Result.Companion.of(() -> "passed_hash"));
+
+    sidechainRegistrator
+        .register(currencyAddress, userId, notaryStorageStrategy)
         .fold(address -> {
           fail();
           return "";
