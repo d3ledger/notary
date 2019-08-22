@@ -70,11 +70,6 @@ services:
     image: nexus.iroha.tech:19002/d3-deploy/notifications:develop
     container_name: d3-notifications
     restart: on-failure
-    environment:
-      - NOTIFICATIONS_SMTP_HOST=smtp.mailtrap.io
-      - NOTIFICATIONS_SMTP_PORT=2525
-      - NOTIFICATIONS_SMTP_PASSWORD=c9e459e405ef1c
-      - NOTIFICATIONS_SMTP_USERNAME=4bf667d5bd903a
     networks:
       - d3-network
 
