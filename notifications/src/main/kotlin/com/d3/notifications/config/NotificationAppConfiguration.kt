@@ -12,6 +12,7 @@ import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.notifications.provider.D3ClientProvider
 import com.d3.notifications.push.PushServiceFactory
 import com.d3.notifications.smtp.SMTPServiceImpl
+import com.dumbster.smtp.SimpleSmtpServer
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.Utils
@@ -78,4 +79,8 @@ class NotificationAppConfiguration {
 
     @Bean
     fun notificationsConfig() = notificationsConfig
+
+    @Bean
+    fun dumbster() = SimpleSmtpServer.start(notificationsConfig.smtp.port)!!
+
 }

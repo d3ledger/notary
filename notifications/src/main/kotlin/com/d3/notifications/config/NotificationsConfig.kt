@@ -24,6 +24,8 @@ interface NotificationsConfig {
     val transferBillingAccount: String
     // Billing account for withdrawals
     val withdrawalBillingAccount: String
+    // HTTP port for web-services
+    val webPort: Int
 }
 
 /**

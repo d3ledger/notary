@@ -10,8 +10,6 @@ dependencies {
     // unit tests
     testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
     testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
-    // https://mvnrepository.com/artifact/dumbster/dumbster
-    testCompile group: 'com.github.kirviq', name: 'dumbster', version: '1.7.1'
 }
 
 sourceSets {
