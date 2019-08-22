@@ -16,6 +16,7 @@ import com.d3.notifications.init.NotificationInitialization
 import com.d3.notifications.provider.D3ClientProvider
 import com.d3.notifications.push.PushServiceFactory
 import com.d3.notifications.push.WebPushAPIServiceImpl
+import com.d3.notifications.rest.DumbsterEndpoint
 import com.d3.notifications.service.EmailNotificationService
 import com.d3.notifications.service.PushNotificationService
 import com.d3.notifications.smtp.SMTPServiceImpl
@@ -45,6 +46,8 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
     val notificationsConfig = notificationsConfigHelper.createNotificationsConfig()
 
     val dumbster = SimpleSmtpServer.start(notificationsConfig.smtp.port)!!
+
+    val dumbsterEndpoint = DumbsterEndpoint(dumbster, notificationsConfig)
 
     private val irohaAPI =
         IrohaAPI(notificationsConfig.iroha.hostname, notificationsConfig.iroha.port)
@@ -113,5 +116,6 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
         integrationHelper.close()
         irohaAPI.close()
         dumbster.close()
+        dumbsterEndpoint.close()
     }
 }
