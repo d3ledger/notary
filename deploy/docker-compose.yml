@@ -49,6 +49,15 @@ services:
     networks:
       - d3-network
 
+  d3-registration:
+    image: nexus.iroha.tech:19002/d3-deploy/notary-registration:develop
+    container_name: d3-registration
+    restart: on-failure
+    ports:
+      - 8085:8085
+    networks:
+      - d3-network
+
   d3-chain-adapter:
     image: nexus.iroha.tech:19004/soramitsu/chain-adapter:develop
     container_name: d3-chain-adapter
