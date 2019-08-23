@@ -136,6 +136,22 @@ services:
     networks:
       - d3-network
 
+  report-service:
+    image: nexus.iroha.tech:19002/d3-deploy/report-service:develop
+    container_name: "report-service"
+    restart: on-failure
+    ports:
+      - 8090:8090
+    depends_on:
+      - data-collector
+    environment:
+      POSTGRES_HOST: dc-postgres
+      POSTGRES_DATABASE: postgres
+      SPRING_DATASOURCE_USERNAME: test
+      SPRING_DATASOURCE_PASSWORD: test
+    networks:
+      - d3-network
+
   dc-postgres:
     image: postgres
     container_name: "dc-postgres"
