@@ -15,6 +15,12 @@ services:
     networks:
       - d3-network
 
+  d3-notifications:
+    ports:
+      - 8452:8452
+    networks:
+      - d3-network
+
   d3-rmq:
     ports:
       - 8181:15672

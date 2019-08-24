@@ -1,4 +1,5 @@
 buildscript {
+    ext.ktor_version = '1.0.0'
     repositories {
         mavenCentral()
         jcenter()
@@ -48,6 +49,12 @@ dependencies {
     // https://mvnrepository.com/artifact/org.springframework/spring-context
     compile group: 'org.springframework', name: 'spring-context', version: '5.1.4.RELEASE'
 
+    // https://mvnrepository.com/artifact/dumbster/dumbster
+    compile group: 'com.github.kirviq', name: 'dumbster', version: '1.7.1'
+
+    // Ktor
+    compile "io.ktor:ktor-server-core:$ktor_version"
+    compile "io.ktor:ktor-server-netty:$ktor_version"
 }
 
 task runNotifications(type: JavaExec) {
