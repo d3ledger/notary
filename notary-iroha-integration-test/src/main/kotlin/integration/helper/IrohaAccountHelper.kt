@@ -31,13 +31,7 @@ open class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers:
     private val testConfig = loadConfigs("test", TestConfig::class.java, "/test.properties").get()
 
     /** A tester Iroha account with permissions to do everything */
-    val testCredential = IrohaCredential(
-        testConfig.testCredentialConfig.accountId,
-        ModelUtil.loadKeypair(
-            testConfig.testCredentialConfig.pubkeyPath,
-            testConfig.testCredentialConfig.privkeyPath
-        ).get()
-    )
+    val testCredential = IrohaCredential(testConfig.testCredentialConfig)
 
     val irohaConsumer by lazy { IrohaConsumerImpl(testCredential, irohaAPI) }
 
