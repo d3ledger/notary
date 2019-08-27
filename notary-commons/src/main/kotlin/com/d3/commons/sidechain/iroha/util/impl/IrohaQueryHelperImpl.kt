@@ -50,8 +50,8 @@ open class IrohaQueryHelperImpl(val queryAPI: QueryAPI, val pageSize: Int = 100)
     private val gson = GsonInstance.get()
 
     private fun getPaginatedAccountDetails(
-        storageAccountId: String,
-        writerAccountId: String,
+        storageAccountId: String?,
+        writerAccountId: String?,
         key: String?
     ): Result<Map<String, Map<String, String>>, Exception> {
         return Result.of {
@@ -151,8 +151,16 @@ open class IrohaQueryHelperImpl(val queryAPI: QueryAPI, val pageSize: Int = 100)
     ): Result<Optional<String>, Exception> =
         getPaginatedAccountDetails(storageAccountId, writerAccountId, key)
             .map { details ->
-                Optional.ofNullable(details.getOrDefault(writerAccountId, emptyMap()).get(key))
+                Optional.ofNullable(details.getOrDefault(writerAccountId, emptyMap())[key])
             }
+
+    /** {@inheritDoc} */
+    override fun keyExistsInDetails(storageAccountId: String, key: String): Result<Boolean, Exception> =
+        getPaginatedAccountDetails(
+            storageAccountId,
+            writerAccountId = null,
+            key = key
+        ).map { details -> !details.isEmpty() }
 
     /** {@inheritDoc} */
     override fun getAssetPrecision(assetId: String): Result<Int, Exception> =

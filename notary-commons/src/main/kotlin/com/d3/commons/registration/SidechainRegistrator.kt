@@ -23,9 +23,7 @@ open class SideChainRegistrator(
     /**
      * Creates new account to Iroha with given address
      * @param currencyAddress - address of crypto currency wallet
-     * @param userName - client userName in Iroha
-     * @param domain - client domain in Iroha
-     * @param pubkey - client's public key
+     * @param accountId - client account id in Iroha
      * @param notaryStorageStrategy - function that defines the way newly created account data will be stored in notary
      * @return address associated with userName
      */

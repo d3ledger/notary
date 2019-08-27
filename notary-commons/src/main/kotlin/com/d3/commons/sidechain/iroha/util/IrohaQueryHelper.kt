@@ -39,6 +39,16 @@ interface IrohaQueryHelper {
         writerAccountId: String
     ): Result<Map<String, String>, Exception>
 
+    /**
+     * Checks if [storageAccountId] has [key] in details
+     * @param storageAccountId - account to read details from
+     * @param key - key to check
+     * @return true if given key exists
+     */
+    fun keyExistsInDetails(
+        storageAccountId: String,
+        key: String
+    ): Result<Boolean, Exception>
 
     /**
      * Retrieves account detail by setter and key from Iroha
@@ -52,7 +62,6 @@ interface IrohaQueryHelper {
         writerAccountId: String,
         key: String
     ): Result<Optional<String>, Exception>
-
 
     /**
      * Get asset precision

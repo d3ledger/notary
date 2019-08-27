@@ -11,7 +11,6 @@ import com.d3.commons.config.loadRawLocalConfigs
 import com.d3.commons.notary.IrohaCommand
 import com.d3.commons.notary.IrohaOrderedBatch
 import com.d3.commons.notary.IrohaTransaction
-import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.consumer.IrohaConverter
 import com.d3.commons.sidechain.iroha.util.ModelUtil
@@ -19,6 +18,7 @@ import com.d3.commons.util.getRandomId
 import com.d3.commons.util.getRandomString
 import com.d3.commons.util.hex
 import com.d3.commons.util.toHexString
+import integration.helper.D3_DOMAIN
 import integration.helper.IrohaConfigHelper
 import integration.helper.IrohaIntegrationHelperUtil
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
@@ -82,7 +82,7 @@ class IrohaBatchTest {
 
             val irohaConsumer = IrohaConsumerImpl(testCredential, integrationHelper.irohaAPI)
 
-            val userId = "$user@$CLIENT_DOMAIN"
+            val userId = "$user@$D3_DOMAIN"
 
             val createdTime = ModelUtil.getCurrentTime().minus(BigInteger.valueOf(10_000))
             val txList =
@@ -94,7 +94,7 @@ class IrohaBatchTest {
                         listOf(
                             IrohaCommand.CommandCreateAccount(
                                 user,
-                                CLIENT_DOMAIN,
+                                D3_DOMAIN,
                                 Ed25519Sha3().generateKeypair().public.toHexString()
                             )
                         )
@@ -193,7 +193,7 @@ class IrohaBatchTest {
 
             val irohaConsumer = IrohaConsumerImpl(testCredential, integrationHelper.irohaAPI)
 
-            val userId = "$user@$CLIENT_DOMAIN"
+            val userId = "$user@$D3_DOMAIN"
             val assetId = "$asset_name#$assetDomain"
 
             val createdTime = ModelUtil.getCurrentTime().minus(BigInteger.valueOf(10_000))
@@ -206,7 +206,7 @@ class IrohaBatchTest {
                         listOf(
                             IrohaCommand.CommandCreateAccount(
                                 user,
-                                CLIENT_DOMAIN,
+                                D3_DOMAIN,
                                 Ed25519Sha3().generateKeypair().public.toHexString()
                             )
                         )

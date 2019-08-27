@@ -6,6 +6,7 @@
 package integration.helper
 
 import com.d3.commons.config.loadRawLocalConfigs
+import com.d3.commons.registration.NotaryRegistrationConfig
 import com.d3.notifications.config.NotificationsConfig
 
 class NotificationsConfigHelper(private val accountHelper: IrohaAccountHelper) :
@@ -14,13 +15,14 @@ class NotificationsConfigHelper(private val accountHelper: IrohaAccountHelper) :
     /**
      * Creates notification services config
      */
-    fun createNotificationsConfig(): NotificationsConfig {
+    fun createNotificationsConfig(registrationConfig: NotaryRegistrationConfig): NotificationsConfig {
         val notificationsConfig = loadRawLocalConfigs(
             "notifications",
             NotificationsConfig::class.java, "notifications.properties"
         )
         return object : NotificationsConfig {
-            override val webPort=notificationsConfig.webPort
+            override val clientStorageAccount = registrationConfig.clientStorageAccount
+            override val webPort = notificationsConfig.webPort
             override val withdrawalBillingAccount = notificationsConfig.withdrawalBillingAccount
             override val transferBillingAccount = notificationsConfig.transferBillingAccount
             override val iroha = createIrohaConfig()

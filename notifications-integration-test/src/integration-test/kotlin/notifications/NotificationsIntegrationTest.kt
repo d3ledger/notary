@@ -22,6 +22,7 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import com.google.gson.reflect.TypeToken
 import com.nhaarman.mockitokotlin2.*
+import integration.helper.D3_DOMAIN
 import integration.helper.IrohaIntegrationHelperUtil
 import integration.registration.RegistrationServiceTestEnvironment
 import jp.co.soramitsu.iroha.java.Transaction
@@ -54,22 +55,20 @@ class NotificationsIntegrationTest {
 
     private val environment = NotificationsIntegrationTestEnvironment(integrationHelper)
 
-    private val registrationEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
-
     init {
-        registrationEnvironment.registrationInitialization.init()
+        environment.registrationEnvironment.registrationInitialization.init()
 
         // This amount is big enough for testing
         val amount = BigDecimal(100)
 
         // Creating 2 clients
-        var res = registrationEnvironment.register(
+        var res = environment.registrationEnvironment.register(
             environment.srcClientName,
             environment.srcClientKeyPair.public.toHexString()
         )
 
         kotlin.test.assertEquals(200, res.statusCode)
-        res = registrationEnvironment.register(
+        res = environment.registrationEnvironment.register(
             environment.destClientName,
             environment.destClientKeyPair.public.toHexString()
         )
@@ -147,7 +146,6 @@ class NotificationsIntegrationTest {
 
     @AfterAll
     fun closeEnvironments() {
-        registrationEnvironment.close()
         environment.close()
     }
 
@@ -209,7 +207,7 @@ class NotificationsIntegrationTest {
             D3_CLIENT_ENABLE_NOTIFICATIONS,
             "true"
         ).flatMap {
-            val withdrawalFinalizer = WithdrawalFinalizer(environment.withdrawalIrohaConsumer, "withdrawal_billing@d3")
+            val withdrawalFinalizer = WithdrawalFinalizer(environment.withdrawalIrohaConsumer, "withdrawal_billing$D3_DOMAIN")
             val withdrawalFinalizationDetails = WithdrawalFinalizationDetails(
                 withdrawalValue,
                 BTC_ASSET,
@@ -252,7 +250,7 @@ class NotificationsIntegrationTest {
             D3_CLIENT_ENABLE_NOTIFICATIONS,
             "true"
         ).flatMap {
-            val withdrawalFinalizer = WithdrawalFinalizer(environment.withdrawalIrohaConsumer, "withdrawal_billing@d3")
+            val withdrawalFinalizer = WithdrawalFinalizer(environment.withdrawalIrohaConsumer, "withdrawal_billing$D3_DOMAIN")
             val withdrawalFinalizationDetails = WithdrawalFinalizationDetails(
                 withdrawalValue,
                 BTC_ASSET,
