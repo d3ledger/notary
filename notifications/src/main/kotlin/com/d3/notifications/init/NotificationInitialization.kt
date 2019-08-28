@@ -8,7 +8,10 @@ package com.d3.notifications.init
 import com.d3.commons.provider.NotaryClientsProvider
 import com.d3.commons.service.LAST_SUCCESSFUL_WITHDRAWAL_KEY
 import com.d3.commons.service.WithdrawalFinalizationDetails
-import com.d3.commons.sidechain.iroha.*
+import com.d3.commons.sidechain.iroha.FEE_ROLLBACK_DESCRIPTION
+import com.d3.commons.sidechain.iroha.IrohaChainListener
+import com.d3.commons.sidechain.iroha.NOTARY_DOMAIN
+import com.d3.commons.sidechain.iroha.ROLLBACK_DESCRIPTION
 import com.d3.commons.sidechain.iroha.util.getSetDetailCommands
 import com.d3.commons.sidechain.iroha.util.getTransferTransactions
 import com.d3.commons.util.createPrettySingleThreadPool
@@ -124,41 +127,49 @@ class NotificationInitialization(
 
     // Checks if transfer is client to client
     private fun isClientToClientTransfer(transferAsset: Commands.TransferAsset) =
-        transferAsset.destAccountId != notificationsConfig.transferBillingAccount
-                && notaryClientsProvider.isClient(transferAsset.srcAccountId).get()
-                && notaryClientsProvider.isClient(transferAsset.destAccountId).get()
+        safeCheck {
+            return transferAsset.destAccountId != notificationsConfig.transferBillingAccount
+                    && notaryClientsProvider.isClient(transferAsset.srcAccountId).get()
+                    && notaryClientsProvider.isClient(transferAsset.destAccountId).get()
+        }
 
     // Checks if withdrawal event
     private fun isWithdrawal(setAccountDetail: Commands.SetAccountDetail) =
-        setAccountDetail.accountId.endsWith("@$NOTARY_DOMAIN") && setAccountDetail.key == LAST_SUCCESSFUL_WITHDRAWAL_KEY
+        safeCheck {
+            return setAccountDetail.accountId.endsWith("@$NOTARY_DOMAIN") && setAccountDetail.key == LAST_SUCCESSFUL_WITHDRAWAL_KEY
+        }
 
     // Checks if deposit event
-    private fun isDeposit(transferAsset: Commands.TransferAsset): Boolean {
-        val depositSign =
-            transferAsset.srcAccountId.endsWith("@$NOTARY_DOMAIN")
+    private fun isDeposit(transferAsset: Commands.TransferAsset) =
+        safeCheck {
+            val depositSign =
+                transferAsset.srcAccountId.endsWith("@$NOTARY_DOMAIN")
+                        && transferAsset.destAccountId != notificationsConfig.transferBillingAccount
+                        && transferAsset.destAccountId != notificationsConfig.withdrawalBillingAccount
+                        && notaryClientsProvider.isClient(transferAsset.destAccountId).get()
+            return depositSign && !isRollbackSign(transferAsset) && transferAsset.description != FEE_ROLLBACK_DESCRIPTION
+        }
+
+
+    // Checks if rollback event
+    private fun isRollback(transferAsset: Commands.TransferAsset) =
+        safeCheck {
+            val depositSign = transferAsset.srcAccountId.endsWith("@$NOTARY_DOMAIN")
                     && transferAsset.destAccountId != notificationsConfig.transferBillingAccount
                     && transferAsset.destAccountId != notificationsConfig.withdrawalBillingAccount
                     && notaryClientsProvider.isClient(transferAsset.destAccountId).get()
-        return depositSign && !isRollbackSign(transferAsset) && transferAsset.description != FEE_ROLLBACK_DESCRIPTION
-    }
-
-    // Checks if rollback event
-    private fun isRollback(transferAsset: Commands.TransferAsset): Boolean {
-        val depositSign = transferAsset.srcAccountId.endsWith("@$NOTARY_DOMAIN")
-                && transferAsset.destAccountId != notificationsConfig.transferBillingAccount
-                && transferAsset.destAccountId != notificationsConfig.withdrawalBillingAccount
-                && notaryClientsProvider.isClient(transferAsset.destAccountId).get()
-        return depositSign && isRollbackSign(transferAsset)
-    }
+            return depositSign && isRollbackSign(transferAsset)
+        }
 
     // Check if command contains any signs of rollback
-    private fun isRollbackSign(transferAsset: Commands.TransferAsset): Boolean {
-        return if (transferAsset.description != null) {
-            transferAsset.description.startsWith(ROLLBACK_DESCRIPTION)
-        } else {
-            false
+    private fun isRollbackSign(transferAsset: Commands.TransferAsset) =
+        safeCheck {
+            return if (transferAsset.description != null) {
+                transferAsset.description.startsWith(ROLLBACK_DESCRIPTION)
+            } else {
+                false
+            }
         }
-    }
 
     // Handles deposit event notification
     private fun handleDepositNotification(transferAsset: Commands.TransferAsset) {
@@ -169,7 +180,7 @@ class NotificationInitialization(
             description = "",
             from = transferAsset.description
         )
-        logger.info { "Notify deposit $transferNotifyEvent" }
+        logger.info("Notify deposit $transferNotifyEvent")
         notificationServices.forEach {
             it.notifyDeposit(
                 transferNotifyEvent
@@ -259,6 +270,18 @@ class NotificationInitialization(
             it.notifyRollback(
                 transferNotifyEvent
             ).failure { ex -> logger.error("Cannot notify rollback: $transferNotifyEvent", ex) }
+        }
+    }
+
+    /**
+     * Executes check safely
+     */
+    private inline fun safeCheck(check: () -> Boolean): Boolean {
+        return try {
+            check()
+        } catch (e: Exception) {
+            logger.error("Cannot check", e)
+            false
         }
     }
 
