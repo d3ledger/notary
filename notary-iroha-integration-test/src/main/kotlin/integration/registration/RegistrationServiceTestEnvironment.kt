@@ -13,7 +13,7 @@ import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.toHexString
 import integration.helper.IrohaIntegrationHelperUtil
-import integration.helper.NOTARY_DOMAIN
+import integration.helper.D3_DOMAIN
 import jp.co.soramitsu.iroha.java.Utils
 import khttp.responses.Response
 import java.io.Closeable
@@ -61,7 +61,7 @@ class RegistrationServiceTestEnvironment(private val integrationHelper: IrohaInt
     fun register(
         name: String,
         pubkey: String = ModelUtil.generateKeypair().public.toHexString(),
-        domain: String = NOTARY_DOMAIN
+        domain: String = D3_DOMAIN
     ): Response {
         return khttp.post(
             "http://127.0.0.1:${registrationConfig.port}/users",

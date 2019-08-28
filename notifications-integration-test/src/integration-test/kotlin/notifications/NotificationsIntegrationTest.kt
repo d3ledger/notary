@@ -22,7 +22,7 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import com.google.gson.reflect.TypeToken
 import com.nhaarman.mockitokotlin2.*
-import integration.helper.NOTARY_DOMAIN
+import integration.helper.D3_DOMAIN
 import integration.helper.IrohaIntegrationHelperUtil
 import jp.co.soramitsu.iroha.java.Transaction
 import notifications.environment.NotificationsIntegrationTestEnvironment
@@ -206,7 +206,7 @@ class NotificationsIntegrationTest {
             D3_CLIENT_ENABLE_NOTIFICATIONS,
             "true"
         ).flatMap {
-            val withdrawalFinalizer = WithdrawalFinalizer(environment.withdrawalIrohaConsumer, "withdrawal_billing@$NOTARY_DOMAIN")
+            val withdrawalFinalizer = WithdrawalFinalizer(environment.withdrawalIrohaConsumer, "withdrawal_billing@$D3_DOMAIN")
             val withdrawalFinalizationDetails = WithdrawalFinalizationDetails(
                 withdrawalValue,
                 BTC_ASSET,
@@ -249,7 +249,7 @@ class NotificationsIntegrationTest {
             D3_CLIENT_ENABLE_NOTIFICATIONS,
             "true"
         ).flatMap {
-            val withdrawalFinalizer = WithdrawalFinalizer(environment.withdrawalIrohaConsumer, "withdrawal_billing@$NOTARY_DOMAIN")
+            val withdrawalFinalizer = WithdrawalFinalizer(environment.withdrawalIrohaConsumer, "withdrawal_billing@$D3_DOMAIN")
             val withdrawalFinalizationDetails = WithdrawalFinalizationDetails(
                 withdrawalValue,
                 BTC_ASSET,
