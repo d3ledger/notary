@@ -21,6 +21,8 @@ class NotificationsConfigHelper(private val accountHelper: IrohaAccountHelper) :
             NotificationsConfig::class.java, "notifications.properties"
         )
         return object : NotificationsConfig {
+            override val registrationServiceAccountName =
+                registrationConfig.registrationCredential.accountId.substringBefore("@")
             override val clientStorageAccount = registrationConfig.clientStorageAccount
             override val webPort = notificationsConfig.webPort
             override val withdrawalBillingAccount = notificationsConfig.withdrawalBillingAccount

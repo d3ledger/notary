@@ -85,6 +85,10 @@ class NotificationAppConfiguration {
     fun dumbster() = SimpleSmtpServer.start(notificationsConfig.smtp.port)!!
 
     @Bean
-    fun notaryClientsProvider() = NotaryClientsProvider(notaryQueryHelper(), notificationsConfig.clientStorageAccount)
+    fun notaryClientsProvider() = NotaryClientsProvider(
+        notaryQueryHelper(),
+        notificationsConfig.clientStorageAccount,
+        notificationsConfig.registrationServiceAccountName
+    )
 
 }

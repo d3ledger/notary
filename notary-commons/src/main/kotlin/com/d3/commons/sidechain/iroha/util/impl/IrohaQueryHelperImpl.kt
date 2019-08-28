@@ -155,14 +155,6 @@ open class IrohaQueryHelperImpl(val queryAPI: QueryAPI, val pageSize: Int = 100)
             }
 
     /** {@inheritDoc} */
-    override fun keyExistsInDetails(storageAccountId: String, key: String): Result<Boolean, Exception> =
-        getPaginatedAccountDetails(
-            storageAccountId,
-            writerAccountId = null,
-            key = key
-        ).map { details -> !details.isEmpty() }
-
-    /** {@inheritDoc} */
     override fun getAssetPrecision(assetId: String): Result<Int, Exception> =
         Result.of { queryAPI.getAssetInfo(assetId) }
             .map { queryResponse ->

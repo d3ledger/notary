@@ -27,7 +27,7 @@ import java.io.Closeable
 import java.math.BigDecimal
 import java.security.KeyPair
 
-const val D3_DOMAIN = "d3"
+const val NOTARY_DOMAIN = "notary"
 
 /**
  * Utility class that makes testing more comfortable

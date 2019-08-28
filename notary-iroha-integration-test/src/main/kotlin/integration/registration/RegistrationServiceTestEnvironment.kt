@@ -12,8 +12,8 @@ import com.d3.commons.registration.RegistrationServiceInitialization
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.util.toHexString
-import integration.helper.D3_DOMAIN
 import integration.helper.IrohaIntegrationHelperUtil
+import integration.helper.NOTARY_DOMAIN
 import jp.co.soramitsu.iroha.java.Utils
 import khttp.responses.Response
 import java.io.Closeable
@@ -28,11 +28,15 @@ class RegistrationServiceTestEnvironment(private val integrationHelper: IrohaInt
         integrationHelper.configHelper.createRegistrationConfig(integrationHelper.accountHelper)
 
 
-    val notaryClientsProvider =
-        NotaryClientsProvider(integrationHelper.queryHelper, registrationConfig.clientStorageAccount)
-
     private val registrationCredentials =
         IrohaCredential(registrationConfig.registrationCredential)
+
+    val notaryClientsProvider =
+        NotaryClientsProvider(
+            integrationHelper.queryHelper,
+            registrationConfig.clientStorageAccount,
+            registrationCredentials.accountId.substringBefore("@")
+        )
 
     private val irohaConsumer =
         IrohaConsumerImpl(registrationCredentials, integrationHelper.irohaAPI)
@@ -57,7 +61,7 @@ class RegistrationServiceTestEnvironment(private val integrationHelper: IrohaInt
     fun register(
         name: String,
         pubkey: String = ModelUtil.generateKeypair().public.toHexString(),
-        domain: String = D3_DOMAIN
+        domain: String = NOTARY_DOMAIN
     ): Response {
         return khttp.post(
             "http://127.0.0.1:${registrationConfig.port}/users",

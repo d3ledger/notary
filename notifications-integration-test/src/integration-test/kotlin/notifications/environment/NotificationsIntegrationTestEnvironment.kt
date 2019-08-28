@@ -22,7 +22,7 @@ import com.d3.notifications.service.PushNotificationService
 import com.d3.notifications.smtp.SMTPServiceImpl
 import com.dumbster.smtp.SimpleSmtpServer
 import com.nhaarman.mockitokotlin2.spy
-import integration.helper.D3_DOMAIN
+import integration.helper.NOTARY_DOMAIN
 import integration.helper.IrohaIntegrationHelperUtil
 import integration.helper.NotificationsConfigHelper
 import integration.registration.RegistrationServiceTestEnvironment
@@ -95,7 +95,11 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
         )
 
     private val notaryClientsProvider =
-        NotaryClientsProvider(notaryQueryHelper, registrationEnvironment.registrationConfig.clientStorageAccount)
+        NotaryClientsProvider(
+            notaryQueryHelper,
+            registrationEnvironment.registrationConfig.clientStorageAccount,
+            registrationEnvironment.registrationConfig.registrationCredential.accountId.substringBefore("@")
+        )
 
     val notificationInitialization =
         NotificationInitialization(
@@ -110,14 +114,14 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
     // Source account
     val srcClientName = String.getRandomString(9)
     val srcClientKeyPair = ModelUtil.generateKeypair()
-    val srcClientId = "$srcClientName$D3_DOMAIN"
+    val srcClientId = "$srcClientName@$NOTARY_DOMAIN"
     val srcClientConsumer =
         IrohaConsumerImpl(IrohaCredential(srcClientId, srcClientKeyPair), irohaAPI)
 
     // Destination account
     val destClientName = String.getRandomString(9)
     val destClientKeyPair = ModelUtil.generateKeypair()
-    val destClientId = "$destClientName$D3_DOMAIN"
+    val destClientId = "$destClientName@$NOTARY_DOMAIN"
     val destClientConsumer =
         IrohaConsumerImpl(IrohaCredential(destClientId, destClientKeyPair), irohaAPI)
 
