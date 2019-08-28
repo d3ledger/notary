@@ -7,11 +7,13 @@ package integration
 
 import com.d3.commons.util.getRandomString
 import com.d3.commons.util.toHexString
+import integration.helper.D3_DOMAIN
 import integration.helper.IrohaIntegrationHelperUtil
 import integration.registration.RegistrationServiceTestEnvironment
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertTrue
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -65,6 +67,7 @@ class NotaryRegistrationTest {
         val res = registrationServiceEnvironment.register(name, pubkey)
 
         assertEquals(200, res.statusCode)
+        assertTrue(registrationServiceEnvironment.notaryClientsProvider.isClient("$name@$D3_DOMAIN").get())
     }
 
     /**
@@ -81,9 +84,11 @@ class NotaryRegistrationTest {
         // register client
         var res = registrationServiceEnvironment.register(name, pubkey)
         assertEquals(200, res.statusCode)
+        assertTrue(registrationServiceEnvironment.notaryClientsProvider.isClient("$name@$D3_DOMAIN").get())
 
         // try to register with the same name
         res = registrationServiceEnvironment.register(name, pubkey)
         assertEquals(500, res.statusCode)
+        assertTrue(registrationServiceEnvironment.notaryClientsProvider.isClient("$name@$D3_DOMAIN").get())
     }
 }

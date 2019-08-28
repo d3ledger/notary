@@ -39,7 +39,6 @@ interface IrohaQueryHelper {
         writerAccountId: String
     ): Result<Map<String, String>, Exception>
 
-
     /**
      * Retrieves account detail by setter and key from Iroha
      * @param storageAccountId - account to read details from
@@ -52,7 +51,6 @@ interface IrohaQueryHelper {
         writerAccountId: String,
         key: String
     ): Result<Optional<String>, Exception>
-
 
     /**
      * Get asset precision

@@ -7,6 +7,7 @@ package com.d3.notifications.config
 
 import com.d3.commons.config.loadRawLocalConfigs
 import com.d3.commons.model.IrohaCredential
+import com.d3.commons.provider.NotaryClientsProvider
 import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.notifications.provider.D3ClientProvider
@@ -82,5 +83,12 @@ class NotificationAppConfiguration {
 
     @Bean
     fun dumbster() = SimpleSmtpServer.start(notificationsConfig.smtp.port)!!
+
+    @Bean
+    fun notaryClientsProvider() = NotaryClientsProvider(
+        notaryQueryHelper(),
+        notificationsConfig.clientStorageAccount,
+        notificationsConfig.registrationServiceAccountName
+    )
 
 }

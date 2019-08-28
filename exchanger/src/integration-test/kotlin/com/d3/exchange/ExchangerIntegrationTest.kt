@@ -5,13 +5,12 @@
 
 package com.d3.exchange
 
-import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
-
 import com.d3.commons.util.GsonInstance
 import com.d3.commons.util.getRandomString
 import com.d3.commons.util.irohaEscape
 import com.d3.commons.util.toHexString
 import com.d3.exchange.util.ExchangerServiceTestEnvironment
+import integration.helper.D3_DOMAIN
 import integration.helper.IrohaConfigHelper
 import integration.helper.IrohaIntegrationHelperUtil
 import integration.registration.RegistrationServiceTestEnvironment
@@ -72,7 +71,7 @@ class ExchangerIntegrationTest {
             val userPubkey = userKeypair.public.toHexString()
             val res = registrationServiceEnvironment.register(userName, userPubkey)
             assertEquals(200, res.statusCode)
-            val userId = "$userName@$CLIENT_DOMAIN"
+            val userId = "$userName@$D3_DOMAIN"
 
             integrationHelper.addIrohaAssetTo(
                 exchangerServiceEnvironment.exchangerAccount.accountId,
@@ -122,7 +121,7 @@ class ExchangerIntegrationTest {
             val userPubkey = userKeypair.public.toHexString()
             val res = registrationServiceEnvironment.register(userName, userPubkey)
             assertEquals(200, res.statusCode)
-            val userId = "$userName@$CLIENT_DOMAIN"
+            val userId = "$userName@$D3_DOMAIN"
 
             integrationHelper.addIrohaAssetTo(
                 userId,
@@ -165,7 +164,7 @@ class ExchangerIntegrationTest {
             val userPubkey = userKeypair.public.toHexString()
             val res = registrationServiceEnvironment.register(userName, userPubkey)
             assertEquals(200, res.statusCode)
-            val userId = "$userName@$CLIENT_DOMAIN"
+            val userId = "$userName@$D3_DOMAIN"
             val tooMuchAmount = "1000000"
 
             integrationHelper.addIrohaAssetTo(
@@ -222,7 +221,7 @@ class ExchangerIntegrationTest {
             val userPubkey = userKeypair.public.toHexString()
             val res = registrationServiceEnvironment.register(userName, userPubkey)
             assertEquals(200, res.statusCode)
-            val userId = "$userName@$CLIENT_DOMAIN"
+            val userId = "$userName@$D3_DOMAIN"
 
             integrationHelper.addIrohaAssetTo(
                 exchangerServiceEnvironment.exchangerAccount.accountId,
