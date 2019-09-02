@@ -133,6 +133,7 @@ services:
       IROHA_PORT: 50051
       SPRING_DATASOURCE_USERNAME: test
       SPRING_DATASOURCE_PASSWORD: test
+      JAVA_OPTIONS: -Xmx512m
     networks:
       - d3-network
 
@@ -149,6 +150,7 @@ services:
       POSTGRES_DATABASE: postgres
       SPRING_DATASOURCE_USERNAME: test
       SPRING_DATASOURCE_PASSWORD: test
+      JAVA_OPTIONS: -Xmx512m
     networks:
       - d3-network
 
