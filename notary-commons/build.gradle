@@ -21,7 +21,7 @@ dependencies {
 
     // Iroha Pure Java library
     compile 'com.github.hyperledger.iroha-java:client:6.0.0'
-    testCompile 'com.github.hyperledger.iroha-java:testcontainers:6.0.0'
+    testCompile 'com.github.hyperledger.iroha-java:testcontainers:6.1.0'
 
     // logging
     compile 'io.github.microutils:kotlin-logging:1.4.9'
