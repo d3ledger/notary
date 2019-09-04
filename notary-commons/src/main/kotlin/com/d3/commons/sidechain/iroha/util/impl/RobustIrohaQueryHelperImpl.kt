@@ -18,7 +18,7 @@ private const val MIN_TIMEOUT = TIMEOUT_MLS * 2
  * Class that wraps [IrohaQueryHelperImpl]. Unlike [IrohaQueryHelperImpl] it tries to query Iroha multiple times if Iroha is off-line.
  * @param irohaQueryHelper - [IrohaQueryHelperImpl] instance to wrap
  * @param totalTimeoutMls - max time to retry in milliseconds.
- * In fact it will be in range (totalTimeoutMls-TIMEOUT_MLS;totalTimeoutMls)
+ * In fact it will be in range (totalTimeoutMls-TIMEOUT_MLS ; totalTimeoutMls)
  */
 class RobustIrohaQueryHelperImpl(
     private val irohaQueryHelper: IrohaQueryHelperImpl,
