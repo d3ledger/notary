@@ -5,6 +5,11 @@
 
 package com.d3.commons.sidechain.iroha.util.impl
 
+import com.d3.commons.sidechain.iroha.util.IrohaPaginationHelper
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.spy
+import com.nhaarman.mockitokotlin2.times
+import com.nhaarman.mockitokotlin2.verify
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Primitive
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3
@@ -14,15 +19,17 @@ import jp.co.soramitsu.iroha.testcontainers.IrohaContainer
 import jp.co.soramitsu.iroha.testcontainers.PeerConfig
 import jp.co.soramitsu.iroha.testcontainers.detail.GenesisBlockBuilder
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class IrohaQueryHelperImplTest {
 
+    private val pageSize = 2
     private val crypto = Ed25519Sha3()
     private val peerKeypair = crypto.generateKeypair()
     private val rolename = "princess"
@@ -30,7 +37,13 @@ class IrohaQueryHelperImplTest {
     private val accountName = "fiona"
     private val accountKeypair = crypto.generateKeypair()
     private val accountId = "$accountName@$domain"
-    private val details = mapOf("key1" to "value1", "key2" to "value2", "key3" to "value3")
+    private val details: Map<String, String> by lazy {
+        val map = HashMap<String, String>()
+        repeat(10) {
+            map["key$it"] = it.toString()
+        }
+        map
+    }
     private val assets = mapOf("asset1" to "1", "asset2" to "2", "asset3" to "3")
 
     private val iroha = IrohaContainer().withPeerConfig(getPeerConfig())
@@ -39,8 +52,15 @@ class IrohaQueryHelperImplTest {
         iroha.start()
     }
 
-    val queryHelper =
-        IrohaQueryHelperImpl(QueryAPI(iroha.api, accountId, accountKeypair), pageSize = 2)
+    private lateinit var queryAPI: QueryAPI
+    private lateinit var queryHelper: IrohaQueryHelperImpl
+
+    @BeforeEach
+    fun initQueryHelper() {
+        queryAPI = spy(QueryAPI(iroha.api, accountId, accountKeypair))
+        queryHelper =
+            IrohaQueryHelperImpl(queryAPI, IrohaPaginationHelper(queryAPI = queryAPI, pageSize = pageSize))
+    }
 
     private fun getGenesisBlock(): BlockOuterClass.Block {
         val blockBuilder = GenesisBlockBuilder()
@@ -75,7 +95,7 @@ class IrohaQueryHelperImplTest {
         ).build()
     }
 
-    fun getPeerConfig(): PeerConfig {
+    private fun getPeerConfig(): PeerConfig {
         val config = PeerConfig.builder()
             .genesisBlock(getGenesisBlock())
             .build()
@@ -116,10 +136,10 @@ class IrohaQueryHelperImplTest {
     /**
      * @given queryHelper and Iroha populated with details
      * @when query account detail for "key1"
-     * @then "value1" is returned
+     * @then "1" is returned
      */
     @Test
-    fun getAccountDetailTest() {
+    fun getAccountDetailsByKeyTest() {
         val actual = queryHelper.getAccountDetails(accountId, accountId, "key1").get()
         assertTrue(actual.isPresent)
         assertEquals(details["key1"], actual.get())
@@ -134,6 +154,163 @@ class IrohaQueryHelperImplTest {
     fun getNonExistAccountDetailsTest() {
         val actual = queryHelper.getAccountDetails(accountId, accountId, "nonexist_key").get()
         assertTrue(!actual.isPresent)
+    }
+
+    /**
+     * @given queryHelper and Iroha populated with details
+     * @when getAccountDetailsCount() is called with a predicate that returns false on every call
+     * @then getAccountDetailsCount() returns zero
+     */
+    @Test
+    fun getAccountDetailsCountUnsatisfiablePredicate() {
+        assertEquals(0, queryHelper.getAccountDetailsCount(accountId, accountId) { _, _ -> false }.get())
+        verify(queryAPI, times(calculatePaginationCalls(details.size, pageSize))).getAccountDetails(
+            any(), any(), any(),
+            any(), any(), any()
+        )
+    }
+
+    /**
+     * @given queryHelper and Iroha populated with details
+     * @when getAccountDetailsCount() is called with a predicate that returns true on every call
+     * @then getAccountDetailsCount() returns the number of all details in account
+     */
+    @Test
+    fun getAccountDetailsCountTautologyPredicate() {
+        assertEquals(details.size, queryHelper.getAccountDetailsCount(accountId, accountId) { _, _ -> true }.get())
+        verify(queryAPI, times(calculatePaginationCalls(details.size, pageSize))).getAccountDetails(
+            any(), any(), any(),
+            any(), any(), any()
+        )
+    }
+
+    /**
+     * @given queryHelper and Iroha populated with details
+     * @when getAccountDetailsCount() is called with a predicate that returns true on every value >=5
+     * @then getAccountDetailsCount() returns the number of details with value >=5
+     */
+    @Test
+    fun getAccountDetailsCount() {
+        val predicate = { _: String, value: String -> value.toInt() >= 5 }
+        assertEquals(
+            details.entries.filter { entry -> predicate(entry.key, entry.value) }.size,
+            queryHelper.getAccountDetailsCount(accountId, accountId, predicate).get()
+        )
+        verify(queryAPI, times(calculatePaginationCalls(details.size, pageSize))).getAccountDetails(
+            any(), any(), any(),
+            any(), any(), any()
+        )
+    }
+
+    /**
+     * @given queryHelper and Iroha populated with details
+     * @when getAccountDetailsFilter() is called with a predicate that returns false on every call
+     * @then getAccountDetailsFilter() returns an empty map
+     */
+    @Test
+    fun getAccountDetailsFilteredUnsatisfiablePredicate() {
+        assertTrue(
+            queryHelper.getAccountDetailsFilter(accountId, accountId) { _, _ -> false }.get().isEmpty()
+        )
+        verify(queryAPI, times(calculatePaginationCalls(details.size, pageSize))).getAccountDetails(
+            any(), any(), any(),
+            any(), any(), any()
+        )
+    }
+
+    /**
+     * @given queryHelper and Iroha populated with details
+     * @when getAccountDetailsFilter() is called with a predicate that returns true on every call
+     * @then getAccountDetailsFilter() returns a copy of all the details in account
+     */
+    @Test
+    fun getAccountDetailsFilteredTautologyPredicate() {
+        assertEquals(
+            details.size,
+            queryHelper.getAccountDetailsFilter(accountId, accountId) { _, _ -> true }.get().size
+        )
+        verify(queryAPI, times(calculatePaginationCalls(details.size, pageSize))).getAccountDetails(
+            any(), any(), any(),
+            any(), any(), any()
+        )
+    }
+
+    /**
+     * @given queryHelper and Iroha populated with details
+     * @when getAccountDetailsFilter() is called with a predicate that returns true on every value >=5
+     * @then getAccountDetailsFilter() returns details with a value >=5
+     */
+    @Test
+    fun getAccountDetailsFiltered() {
+        val predicate = { _: String, value: String -> value.toInt() >= 5 }
+        assertEquals(
+            details.entries.filter { entry -> predicate(entry.key, entry.value) }.map { it.value }.sorted(),
+            queryHelper.getAccountDetailsFilter(
+                accountId,
+                accountId,
+                predicate
+            ).get().entries.toList().map { it.value }.sorted()
+        )
+        verify(queryAPI, times(calculatePaginationCalls(details.size, pageSize))).getAccountDetails(
+            any(), any(), any(),
+            any(), any(), any()
+        )
+    }
+
+    /**
+     * @given queryHelper and Iroha populated with details
+     * @when getAccountDetailsFirst() is called with a predicate that returns false on every call
+     * @then getAccountDetailsFirst() returns null
+     */
+    @Test
+    fun getAccountDetailsFirstUnsatisfiablePredicate() {
+        assertFalse(
+            queryHelper.getAccountDetailsFirst(
+                accountId,
+                accountId
+            ) { _, _ -> false }.get().isPresent
+        )
+        verify(queryAPI, times(calculatePaginationCalls(details.size, pageSize))).getAccountDetails(
+            any(), any(), any(),
+            any(), any(), any()
+        )
+    }
+
+    /**
+     * @given queryHelper and Iroha populated with details
+     * @when getAccountDetailsFirst() is called with a predicate that returns true on every call
+     * @then getAccountDetailsFirst() returns some value. Paginated query call is called just once.
+     */
+    @Test
+    fun getAccountDetailsFirstTautologyPredicate() {
+        assertTrue(
+            queryHelper.getAccountDetailsFirst(
+                accountId,
+                accountId
+            ) { _, _ -> true }.get().isPresent
+        )
+        verify(queryAPI).getAccountDetails(
+            any(), any(), any(),
+            any(), any(), any()
+        )
+    }
+
+    /**
+     * @given queryHelper and Iroha populated with details
+     * @when getAccountDetailsFirst() is called with a predicate that returns true on every value that equals to 5
+     * @then getAccountDetailsFirst() returns a detail with value that equals to 5
+     */
+    @Test
+    fun getAccountDetailsFirst() {
+        val predicate = { _: String, value: String -> value.toInt() == 5 }
+        assertEquals(
+            details.entries.first { entry -> predicate(entry.key, entry.value) }.key,
+            queryHelper.getAccountDetailsFirst(
+                accountId,
+                accountId,
+                predicate
+            ).get().get().first
+        )
     }
 
     /**
@@ -180,4 +357,17 @@ class IrohaQueryHelperImplTest {
         assertEquals("0", res)
     }
 
+    /**
+     * Calculates the number of pagination calls
+     * @param detailsSize - how many details in account
+     * @param pageSize - size of page
+     * @return number of calls
+     */
+    private fun calculatePaginationCalls(detailsSize: Int, pageSize: Int): Int {
+        return when {
+            detailsSize < pageSize -> return 1
+            detailsSize % pageSize == 0 -> detailsSize / pageSize
+            else -> detailsSize / pageSize + 1
+        }
+    }
 }
