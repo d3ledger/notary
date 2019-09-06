@@ -50,6 +50,9 @@ open class IrohaQueryHelperImpl(
     )
 
     /** {@inheritDoc} */
+    override fun getQueryCreatorAccountId() = queryAPI.accountId
+
+    /** {@inheritDoc} */
     override fun getAccount(accountId: String): Result<QryResponses.AccountResponse, Exception> {
         return Result.of { queryAPI.getAccount(accountId) }
     }

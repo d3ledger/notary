@@ -867,6 +867,13 @@
               },
               {
                 "createAccount": {
+                  "accountName": "btc_free_addresses_storage",
+                  "domainId": "notary",
+                  "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
+                }
+              },
+              {
+                "createAccount": {
                   "accountName": "data_collector",
                   "domainId": "notary",
                   "publicKey": "97B888554684FB30F29FAB92991AB7ECEFFFE433AB3AF501E5DEAEE69392518C"

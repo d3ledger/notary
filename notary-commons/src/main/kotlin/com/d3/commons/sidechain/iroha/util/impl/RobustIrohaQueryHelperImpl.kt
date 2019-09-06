@@ -10,7 +10,6 @@ import com.github.kittinunf.result.Result
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import mu.KLogging
-import java.util.*
 
 private const val TIMEOUT_MLS = 5_000L
 private const val MIN_TIMEOUT = TIMEOUT_MLS * 2
@@ -25,6 +24,8 @@ class RobustIrohaQueryHelperImpl(
     private val irohaQueryHelper: IrohaQueryHelperImpl,
     private val totalTimeoutMls: Int
 ) : IrohaQueryHelper {
+
+    override fun getQueryCreatorAccountId() = irohaQueryHelper.getQueryCreatorAccountId()
 
     override fun getAccountDetailsFirst(
         storageAccountId: String,
