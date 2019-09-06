@@ -40,6 +40,45 @@ interface IrohaQueryHelper {
     ): Result<Map<String, String>, Exception>
 
     /**
+     * Retrieves the first account detail by setter and predicate from Iroha
+     * @param storageAccountId - account to read details from
+     * @param writerAccountId - account that has set the details
+     * @param firstPredicate - predicate
+     * @return the first account detail by setter and [firstPredicate] or null
+     */
+    fun getAccountDetailsFirst(
+        storageAccountId: String,
+        writerAccountId: String,
+        firstPredicate: (key: String, value: String) -> Boolean
+    ): Result<Optional<Pair<String, String>>, Exception>
+
+    /**
+     * Retrieves account details by setter filtered by predicate from Iroha
+     * @param storageAccountId - account to read details from
+     * @param writerAccountId - account that has set the details
+     * @param filterPredicate - predicate
+     * @return account details by setter filtered by [filterPredicate] from Iroha
+     */
+    fun getAccountDetailsFilter(
+        storageAccountId: String,
+        writerAccountId: String,
+        filterPredicate: (key: String, value: String) -> Boolean
+    ): Result<Map<String, String>, Exception>
+
+    /**
+     * Retrieves the number of account details by setter filtered by predicate from Iroha
+     * @param storageAccountId - account to read details from
+     * @param writerAccountId - account that has set the details
+     * @param countPredicate - predicate
+     * @return the number of account details by setter filtered by [countPredicate] from Iroha
+     */
+    fun getAccountDetailsCount(
+        storageAccountId: String,
+        writerAccountId: String,
+        countPredicate: (key: String, value: String) -> Boolean
+    ): Result<Int, Exception>
+
+    /**
      * Retrieves account detail by setter and key from Iroha
      * @param storageAccountId - account to read details from
      * @param writerAccountId - account that has set the details
