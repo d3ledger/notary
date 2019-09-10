@@ -42,9 +42,12 @@ open class SideChainRegistrator(
     }
 
     /**
-     * Create registration iroha transaction
+     * Creates registration transaction
+     * @param currencyAddress - address of a specific cryptocurrency to register
+     * @param accountId - account id to map [currencyAddress] with
+     * @param notaryStorageStrategy - address storage strategy
      */
-    private fun buildTx(
+    fun buildTx(
         currencyAddress: String,
         accountId: String,
         notaryStorageStrategy: () -> String

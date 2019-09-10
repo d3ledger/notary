@@ -13,6 +13,11 @@ import java.util.*
 interface IrohaQueryHelper {
 
     /**
+     * Returns account id of a query creator
+     */
+    fun getQueryCreatorAccountId(): String
+
+    /**
      * Retrieves account from Iroha
      * @param accountId - account to retrieve
      * @throws Exception if response contains error
