@@ -123,10 +123,10 @@ class IrohaPaginationHelper(private val queryAPI: QueryAPI, private val pageSize
                     .getOrDefault(writerAccountId, emptyMap())
                     .entries.firstOrNull { entry -> firstPredicate(entry.key, entry.value) }
             if (firstDetails != null) {
-                return@of Optional.of(Pair(firstDetails.key, firstDetails.value))
+                return@of Optional.of<Map.Entry<String,String>>(AbstractMap.SimpleEntry(firstDetails.key, firstDetails.value))
             }
         } while (response.hasNextRecordId())
-        return@of Optional.empty<Pair<String, String>>()
+        return@of Optional.empty<Map.Entry<String, String>>()
     }
 
     /**

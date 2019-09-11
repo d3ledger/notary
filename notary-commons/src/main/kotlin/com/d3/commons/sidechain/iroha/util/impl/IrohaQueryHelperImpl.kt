@@ -79,7 +79,7 @@ open class IrohaQueryHelperImpl(
         storageAccountId: String,
         writerAccountId: String,
         firstPredicate: (key: String, value: String) -> Boolean
-    ): Result<Optional<Pair<String, String>>, Exception> =
+    ): Result<Optional<Map.Entry<String, String>>, Exception> =
         irohaPaginationHelper.getPaginatedAccountDetailsFirst(storageAccountId, writerAccountId, firstPredicate)
 
     /** {@inheritDoc} */

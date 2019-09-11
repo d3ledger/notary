@@ -55,7 +55,7 @@ interface IrohaQueryHelper {
         storageAccountId: String,
         writerAccountId: String,
         firstPredicate: (key: String, value: String) -> Boolean
-    ): Result<Optional<Pair<String, String>>, Exception>
+    ): Result<Optional<Map.Entry<String, String>>, Exception>
 
     /**
      * Retrieves account details by setter filtered by predicate from Iroha
