@@ -10,12 +10,14 @@ import com.d3.commons.notary.IrohaOrderedBatch
 import com.d3.commons.notary.IrohaTransaction
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.sidechain.iroha.consumer.IrohaConverter
+import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import iroha.protocol.Primitive
 import iroha.protocol.TransactionOuterClass
+import jp.co.soramitsu.iroha.java.ErrorResponseException
 import jp.co.soramitsu.iroha.java.Utils
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Qualifier
@@ -28,6 +30,7 @@ import java.security.KeyPair
 @Component
 class NotaryRegistrationStrategy(
     private val irohaConsumer: IrohaConsumer,
+    private val queryHelper: IrohaQueryHelper,
     @Qualifier("clientStorageAccount") private val clientStorageAccount: String,
     @Qualifier("brvsAccount") private val brvsAccount: String,
     @Qualifier("primaryKeyPair") private val primaryKeyPair: KeyPair,
@@ -46,16 +49,67 @@ class NotaryRegistrationStrategy(
         domainId: String,
         publicKey: String
     ): Result<String, Exception> {
-        logger.info { "notary registration of client $accountName with pubkey $publicKey" }
-        return createRegistrationBatch(accountName, domainId, publicKey)
-            .flatMap { batch ->
-                irohaConsumer.send(batch).map { passedHashes ->
-                    if (passedHashes.size != batch.size) {
-                        throw IllegalStateException("Notary registration failed since tx batch was not fully successful")
-                    }
-                    "$accountName@$domainId"
+        logger.info { "notary registration of client $accountName@$domainId with pubkey $publicKey" }
+        return isRegistered(accountName, domainId, publicKey).flatMap { registered ->
+            if (registered) {
+                logger.info { "client $accountName@$domainId is already registered" }
+                createSuccessResult(accountName, domainId)
+            } else {
+                createRegistrationBatch(accountName, domainId, publicKey).flatMap { batch ->
+                    sendBatch(accountName, domainId, batch)
+                }.flatMap {
+                    createSuccessResult(accountName, domainId)
                 }
             }
+        }
+    }
+
+    /**
+     * Check if account is registered and has @publicKey
+     */
+    fun isRegistered(
+        accountName: String,
+        domainId: String,
+        publicKey: String
+    ): Result<Boolean, Exception> = Result.of {
+        queryHelper.getSignatories("$accountName@$domainId")
+            .fold(
+                { signatories ->
+                    if (signatories.map { it.toLowerCase() }.contains(publicKey.toLowerCase()))
+                    // user with publicKey is already registered
+                        true
+                    else
+                    // user is registered with a different pubkey - stateful invalid
+                        throw IllegalArgumentException("$accountName@$domainId already registered with pubkey different from $publicKey")
+                },
+                {
+                    if (it is ErrorResponseException && it.errorResponse.errorCode == 0)
+                    // user not found
+                        false
+                    else
+                    // something wrong happened
+                        throw it
+                }
+            )
+    }
+
+    /**
+     * Returns successful response
+     */
+    fun createSuccessResult(accountName: String, domainId: String) =
+        Result.of { "$accountName@$domainId" }
+
+    /**
+     * Send list of transactions as batch
+     */
+    fun sendBatch(
+        accountName: String,
+        domainId: String,
+        batch: List<TransactionOuterClass.Transaction>
+    ) = irohaConsumer.send(batch).map { passedHashes ->
+        if (passedHashes.size != batch.size) {
+            throw IllegalStateException("Notary registration failed since tx batch was not fully successful")
+        }
     }
 
     /**

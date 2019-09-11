@@ -71,7 +71,7 @@ class NotaryRegistrationTest {
      * Test registration
      * @given Registration service is up and running
      * @when POST query is sent to register a user with `name` and `pubkey` where user with 'name' already exists
-     * @then error response that userId already exists returned
+     * @then Ok response returned
      */
     @Test
     fun doubleRegistration() {
@@ -84,6 +84,6 @@ class NotaryRegistrationTest {
 
         // try to register with the same name
         res = registrationServiceEnvironment.register(name, pubkey)
-        assertEquals(500, res.statusCode)
+        assertEquals(200, res.statusCode)
     }
 }

@@ -8,6 +8,7 @@ package com.d3.commons.registration
 import com.d3.commons.config.loadRawLocalConfigs
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
+import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.Utils
 import org.springframework.context.annotation.Bean
@@ -33,6 +34,9 @@ class NotaryRegistrationAppConfiguration {
     /** Iroha network connection */
     @Bean
     fun irohaAPI() = IrohaAPI(registrationConfig.iroha.hostname, registrationConfig.iroha.port)
+
+    @Bean
+    fun queryHelper() = IrohaQueryHelperImpl(irohaAPI(), registrationCredential)
 
     @Bean
     fun irohaConsumer() = IrohaConsumerImpl(
