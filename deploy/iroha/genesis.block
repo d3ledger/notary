@@ -69,7 +69,8 @@
                     "can_set_quorum",
                     "can_grant_can_set_my_quorum",
                     "can_grant_can_add_my_signatory",
-                    "can_get_peers"
+                    "can_get_peers",
+                    "can_get_all_signatories"
                   ]
                 }
               },
