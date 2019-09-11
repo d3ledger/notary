@@ -309,7 +309,7 @@ class IrohaQueryHelperImplTest {
                 accountId,
                 accountId,
                 predicate
-            ).get().get().first
+            ).get().get().key
         )
     }
 
