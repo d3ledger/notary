@@ -102,6 +102,7 @@ object ModelUtil {
      * @param name - account to be created
      * @param domain - domain for account
      * @param publicKey - public key of the account
+     * @param roles - account roles
      * @return hex representation of transaction hash
      */
     fun createAccount(
@@ -109,13 +110,13 @@ object ModelUtil {
         name: String,
         domain: String,
         publicKey: PublicKey,
-        vararg roleName: String
+        roles: List<String>
     ): Result<String, Exception> {
         var txBuilder = Transaction
             .builder(irohaConsumer.creator)
             .createAccount(name, domain, publicKey)
         val accountId = "$name@$domain"
-        roleName.forEach { role ->
+        roles.forEach { role ->
             txBuilder = txBuilder.appendRole(accountId, role)
         }
         val transaction = txBuilder

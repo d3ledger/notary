@@ -9,18 +9,21 @@ import com.d3.commons.service.WithdrawalFinalizationDetails
 import com.d3.commons.service.WithdrawalFinalizer
 import com.d3.commons.sidechain.iroha.FEE_ROLLBACK_DESCRIPTION
 import com.d3.commons.sidechain.iroha.ROLLBACK_DESCRIPTION
+import com.d3.commons.util.GsonInstance
 import com.d3.commons.util.irohaEscape
 import com.d3.commons.util.toHexString
 import com.d3.notifications.client.D3_CLIENT_EMAIL_KEY
 import com.d3.notifications.client.D3_CLIENT_ENABLE_NOTIFICATIONS
 import com.d3.notifications.client.D3_CLIENT_PUSH_SUBSCRIPTION
+import com.d3.notifications.rest.dto.DumbsterMessage
 import com.d3.notifications.service.*
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
+import com.google.gson.reflect.TypeToken
 import com.nhaarman.mockitokotlin2.*
+import integration.helper.D3_DOMAIN
 import integration.helper.IrohaIntegrationHelperUtil
-import integration.registration.RegistrationServiceTestEnvironment
 import jp.co.soramitsu.iroha.java.Transaction
 import notifications.environment.NotificationsIntegrationTestEnvironment
 import org.apache.http.HttpResponse
@@ -45,26 +48,26 @@ private const val SUBSCRIPTION_JSON = "{" +
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class NotificationsIntegrationTest {
 
+    private val gson = GsonInstance.get()
+
     private val integrationHelper = IrohaIntegrationHelperUtil()
 
     private val environment = NotificationsIntegrationTestEnvironment(integrationHelper)
 
-    private val registrationEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
-
     init {
-        registrationEnvironment.registrationInitialization.init()
+        environment.registrationEnvironment.registrationInitialization.init()
 
         // This amount is big enough for testing
         val amount = BigDecimal(100)
 
         // Creating 2 clients
-        var res = registrationEnvironment.register(
+        var res = environment.registrationEnvironment.register(
             environment.srcClientName,
             environment.srcClientKeyPair.public.toHexString()
         )
 
         kotlin.test.assertEquals(200, res.statusCode)
-        res = registrationEnvironment.register(
+        res = environment.registrationEnvironment.register(
             environment.destClientName,
             environment.destClientKeyPair.public.toHexString()
         )
@@ -142,7 +145,6 @@ class NotificationsIntegrationTest {
 
     @AfterAll
     fun closeEnvironments() {
-        registrationEnvironment.close()
         environment.close()
     }
 
@@ -175,13 +177,13 @@ class NotificationsIntegrationTest {
             )
         }.map {
             Thread.sleep(TRANSFER_WAIT_TIME)
-            val receivedEmails = environment.dumbster.receivedEmails
+            val receivedEmails = getAllMails()
             assertEquals(1, receivedEmails.size)
             val lastEmail = receivedEmails.last()
-            assertEquals(D3_DEPOSIT_EMAIL_SUBJECT, lastEmail.getHeaderValue("Subject"))
-            assertEquals(SRC_USER_EMAIL, lastEmail.getHeaderValue("To"))
-            assertEquals(NOTIFICATION_EMAIL, lastEmail.getHeaderValue("From"))
-            assertTrue(lastEmail.body.contains("from $from"))
+            assertEquals(D3_DEPOSIT_EMAIL_SUBJECT, lastEmail.subject)
+            assertEquals(SRC_USER_EMAIL, lastEmail.to)
+            assertEquals(NOTIFICATION_EMAIL, lastEmail.from)
+            assertTrue(lastEmail.message.contains("from $from"))
             verify(environment.pushService).send(any())
             Unit
         }.failure { ex -> fail(ex) }
@@ -204,7 +206,7 @@ class NotificationsIntegrationTest {
             D3_CLIENT_ENABLE_NOTIFICATIONS,
             "true"
         ).flatMap {
-            val withdrawalFinalizer = WithdrawalFinalizer(environment.withdrawalIrohaConsumer, "withdrawal_billing@d3")
+            val withdrawalFinalizer = WithdrawalFinalizer(environment.withdrawalIrohaConsumer, "withdrawal_billing@$D3_DOMAIN")
             val withdrawalFinalizationDetails = WithdrawalFinalizationDetails(
                 withdrawalValue,
                 BTC_ASSET,
@@ -217,14 +219,14 @@ class NotificationsIntegrationTest {
             withdrawalFinalizer.finalize(withdrawalFinalizationDetails)
         }.map {
             Thread.sleep(TRANSFER_WAIT_TIME)
-            val receivedEmails = environment.dumbster.receivedEmails
+            val receivedEmails = getAllMails()
             assertEquals(1, receivedEmails.size)
             val lastEmail = receivedEmails.last()
-            assertEquals(D3_WITHDRAWAL_EMAIL_SUBJECT, lastEmail.getHeaderValue("Subject"))
-            assertEquals(SRC_USER_EMAIL, lastEmail.getHeaderValue("To"))
-            assertEquals(NOTIFICATION_EMAIL, lastEmail.getHeaderValue("From"))
-            assertTrue(lastEmail.body.contains("Fee is $fee $BTC_ASSET"))
-            assertTrue(lastEmail.body.contains("to $destAddress"))
+            assertEquals(D3_WITHDRAWAL_EMAIL_SUBJECT, lastEmail.subject)
+            assertEquals(SRC_USER_EMAIL, lastEmail.to)
+            assertEquals(NOTIFICATION_EMAIL, lastEmail.from)
+            assertTrue(lastEmail.message.contains("Fee is $fee $BTC_ASSET"))
+            assertTrue(lastEmail.message.contains("to $destAddress"))
             verify(environment.pushService).send(any())
             Unit
         }.failure { ex -> fail(ex) }
@@ -247,7 +249,7 @@ class NotificationsIntegrationTest {
             D3_CLIENT_ENABLE_NOTIFICATIONS,
             "true"
         ).flatMap {
-            val withdrawalFinalizer = WithdrawalFinalizer(environment.withdrawalIrohaConsumer, "withdrawal_billing@d3")
+            val withdrawalFinalizer = WithdrawalFinalizer(environment.withdrawalIrohaConsumer, "withdrawal_billing@$D3_DOMAIN")
             val withdrawalFinalizationDetails = WithdrawalFinalizationDetails(
                 withdrawalValue,
                 BTC_ASSET,
@@ -260,14 +262,14 @@ class NotificationsIntegrationTest {
             withdrawalFinalizer.finalize(withdrawalFinalizationDetails)
         }.map {
             Thread.sleep(TRANSFER_WAIT_TIME)
-            val receivedEmails = environment.dumbster.receivedEmails
+            val receivedEmails = getAllMails()
             assertEquals(1, receivedEmails.size)
             val lastEmail = receivedEmails.last()
-            assertEquals(D3_WITHDRAWAL_EMAIL_SUBJECT, lastEmail.getHeaderValue("Subject"))
-            assertEquals(SRC_USER_EMAIL, lastEmail.getHeaderValue("To"))
-            assertEquals(NOTIFICATION_EMAIL, lastEmail.getHeaderValue("From"))
-            assertFalse(lastEmail.body.contains("Fee is"))
-            assertTrue(lastEmail.body.contains("to $destAddress"))
+            assertEquals(D3_WITHDRAWAL_EMAIL_SUBJECT, lastEmail.subject)
+            assertEquals(SRC_USER_EMAIL, lastEmail.to)
+            assertEquals(NOTIFICATION_EMAIL, lastEmail.from)
+            assertFalse(lastEmail.message.contains("Fee is"))
+            assertTrue(lastEmail.message.contains("to $destAddress"))
             verify(environment.pushService).send(any())
             Unit
         }.failure { ex -> fail(ex) }
@@ -301,12 +303,12 @@ class NotificationsIntegrationTest {
             )
         }.map {
             Thread.sleep(TRANSFER_WAIT_TIME)
-            val receivedEmails = environment.dumbster.receivedEmails
+            val receivedEmails = getAllMails()
             assertEquals(1, receivedEmails.size)
             val lastEmail = receivedEmails.last()
-            assertEquals(D3_DEPOSIT_ROLLBACK_SUBJECT, lastEmail.getHeaderValue("Subject"))
-            assertEquals(SRC_USER_EMAIL, lastEmail.getHeaderValue("To"))
-            assertEquals(NOTIFICATION_EMAIL, lastEmail.getHeaderValue("From"))
+            assertEquals(D3_DEPOSIT_ROLLBACK_SUBJECT, lastEmail.subject)
+            assertEquals(SRC_USER_EMAIL, lastEmail.to)
+            assertEquals(NOTIFICATION_EMAIL, lastEmail.from)
             verify(environment.pushService).send(any())
             Unit
         }.failure { ex -> fail(ex) }
@@ -351,13 +353,13 @@ class NotificationsIntegrationTest {
             integrationHelper.irohaConsumer.send(tx).get()
         }.map {
             Thread.sleep(TRANSFER_WAIT_TIME)
-            val receivedEmails = environment.dumbster.receivedEmails
+            val receivedEmails = getAllMails()
             assertEquals(1, receivedEmails.size)
             val lastEmail = receivedEmails.last()
-            assertEquals(D3_DEPOSIT_ROLLBACK_SUBJECT, lastEmail.getHeaderValue("Subject"))
-            assertEquals(SRC_USER_EMAIL, lastEmail.getHeaderValue("To"))
-            assertEquals(NOTIFICATION_EMAIL, lastEmail.getHeaderValue("From"))
-            assertTrue(lastEmail.body.contains("Fee $rollbackFeeValue $BTC_ASSET is rolled back as well."))
+            assertEquals(D3_DEPOSIT_ROLLBACK_SUBJECT, lastEmail.subject)
+            assertEquals(SRC_USER_EMAIL, lastEmail.to)
+            assertEquals(NOTIFICATION_EMAIL, lastEmail.from)
+            assertTrue(lastEmail.message.contains("Fee $rollbackFeeValue $BTC_ASSET is rolled back as well."))
             verify(environment.pushService).send(any())
             Unit
         }.failure { ex -> fail(ex) }
@@ -396,17 +398,18 @@ class NotificationsIntegrationTest {
             )
         }.map {
             Thread.sleep(TRANSFER_WAIT_TIME)
-            assertEquals(2, environment.dumbster.receivedEmails.size)
-            assertTrue(environment.dumbster.receivedEmails.any { message -> message.getHeaderValue("To") == SRC_USER_EMAIL })
-            assertTrue(environment.dumbster.receivedEmails.any { message -> message.getHeaderValue("To") == DEST_USER_EMAIL })
-            environment.dumbster.receivedEmails.forEach { message ->
-                assertEquals(D3_DEPOSIT_TRANSFER_SUBJECT, message.getHeaderValue("Subject"))
-                assertEquals(NOTIFICATION_EMAIL, message.getHeaderValue("From"))
-                assertFalse(message.body.contains("Fee is"))
-                if (message.getHeaderValue("To") == SRC_USER_EMAIL) {
-                    assertTrue(message.body.contains("to ${environment.destClientId}"))
-                } else if (message.getHeaderValue("To") == DEST_USER_EMAIL) {
-                    assertTrue(message.body.contains("from ${environment.srcClientId}"))
+            val mails = getAllMails()
+            assertEquals(2, mails.size)
+            assertTrue(mails.any { message -> message.to == SRC_USER_EMAIL })
+            assertTrue(mails.any { message -> message.to == DEST_USER_EMAIL })
+            mails.forEach { message ->
+                assertEquals(D3_DEPOSIT_TRANSFER_SUBJECT, message.subject)
+                assertEquals(NOTIFICATION_EMAIL, message.from)
+                assertFalse(message.message.contains("Fee is"))
+                if (message.to == SRC_USER_EMAIL) {
+                    assertTrue(message.message.contains("to ${environment.destClientId}"))
+                } else if (message.to == DEST_USER_EMAIL) {
+                    assertTrue(message.message.contains("from ${environment.srcClientId}"))
                 }
             }
             verify(environment.pushService, times(2)).send(any())
@@ -446,5 +449,18 @@ class NotificationsIntegrationTest {
             verify(environment.pushService, never()).send(any())
             Unit
         }.failure { ex -> fail(ex) }
+    }
+
+    /**
+     * Returns all the mails from the dumbster SMTP server using HTTP endpoint
+     * @return all mails
+     */
+    private fun getAllMails(): List<DumbsterMessage> {
+        val res = khttp.get("http://127.0.0.1:${environment.notificationsConfig.webPort}/dumbster/mail/all")
+        if (res.statusCode != 200) {
+            throw Exception("Cannot get emails from the dumbster endpoint. HTTP status code ${res.statusCode}")
+        }
+        val listType = object : TypeToken<List<DumbsterMessage>>() {}.type
+        return gson.fromJson(res.text, listType)
     }
 }

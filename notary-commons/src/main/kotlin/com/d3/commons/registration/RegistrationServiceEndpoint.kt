@@ -5,7 +5,6 @@
 
 package com.d3.commons.registration
 
-import com.d3.commons.sidechain.iroha.CLIENT_DOMAIN
 import com.squareup.moshi.Moshi
 import io.ktor.application.call
 import io.ktor.application.install
@@ -62,7 +61,7 @@ class RegistrationServiceEndpoint(
                     val parameters = call.receiveParameters()
                     val name = parameters["name"]
                     val pubkey = parameters["pubkey"]
-                    val domain = determineDomain(domain, parameters["domain"], CLIENT_DOMAIN)
+                    val domain = determineDomain(domain, parameters["domain"])
 
                     val response = invokeRegistration(name, domain, pubkey)
                     call.respondText(
@@ -76,7 +75,7 @@ class RegistrationServiceEndpoint(
                     val body = call.receive(UserDto::class)
                     val name = body.name
                     val pubkey = body.pubkey
-                    val domain = determineDomain(domain, body.domain, CLIENT_DOMAIN)
+                    val domain = determineDomain(domain, body.domain)
 
                     val response = invokeRegistration(name, domain, pubkey)
                     call.respondText(

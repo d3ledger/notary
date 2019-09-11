@@ -27,6 +27,8 @@ import java.io.Closeable
 import java.math.BigDecimal
 import java.security.KeyPair
 
+const val D3_DOMAIN = "d3"
+
 /**
  * Utility class that makes testing more comfortable
  */
@@ -44,13 +46,7 @@ open class IrohaIntegrationHelperUtil(private val peers: Int = 1) : Closeable {
         loadRawLocalConfigs("rmq", RMQConfig::class.java, "rmq.properties")
     val testQueue = String.getRandomString(20)
 
-    val testCredential = IrohaCredential(
-        testConfig.testCredentialConfig.accountId,
-        ModelUtil.loadKeypair(
-            testConfig.testCredentialConfig.pubkeyPath,
-            testConfig.testCredentialConfig.privkeyPath
-        ).get()
-    )
+    val testCredential = IrohaCredential(testConfig.testCredentialConfig)
 
     open val accountHelper by lazy { IrohaAccountHelper(irohaAPI, peers) }
 

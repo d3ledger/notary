@@ -552,20 +552,14 @@
               {
                 "createAccount": {
                   "accountName": "registration_service",
-                  "domainId": "notary",
+                  "domainId": "d3",
                   "publicKey": "28da166c2c37e302d751ad8442af5ebfab097df522bcf4717f9ef24e722375de"
                 }
               },
               {
                 "appendRole": {
-                  "accountId": "registration_service@notary",
+                  "accountId": "registration_service@d3",
                   "roleName": "registration_service"
-                }
-              },
-              {
-                "appendRole": {
-                  "accountId": "registration_service@notary",
-                  "roleName": "client"
                 }
               },
               {
@@ -870,6 +864,13 @@
                 "appendRole": {
                   "accountId": "xor@sora",
                   "roleName": "sora"
+                }
+              },
+              {
+                "createAccount": {
+                  "accountName": "btc_free_addresses_storage",
+                  "domainId": "notary",
+                  "publicKey": "0000000000000000000000000000000000000000000000000000000000000000"
                 }
               },
               {

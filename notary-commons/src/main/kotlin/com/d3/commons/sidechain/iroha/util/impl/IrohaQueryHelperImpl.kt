@@ -7,11 +7,10 @@ package com.d3.commons.sidechain.iroha.util.impl
 
 import com.d3.commons.config.IrohaCredentialRawConfig
 import com.d3.commons.model.IrohaCredential
+import com.d3.commons.sidechain.iroha.util.IrohaPaginationHelper
 import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
-import com.d3.commons.util.GsonInstance
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import com.google.gson.reflect.TypeToken
 import iroha.protocol.QryResponses
 import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.java.IrohaAPI
@@ -22,9 +21,12 @@ import java.util.*
 /**
  * The purpose of the class is to hide Iroha query implementation.
  * @param queryAPI - query API by Iroha-Java library
- * @param pageSize - number of items per one Iroha query. 100 by default
+ * @param irohaPaginationHelper - Iroha pagination helper. Used to filter account details and such.
  */
-open class IrohaQueryHelperImpl(val queryAPI: QueryAPI, val pageSize: Int = 100) : IrohaQueryHelper {
+open class IrohaQueryHelperImpl(
+    private val queryAPI: QueryAPI,
+    private val irohaPaginationHelper: IrohaPaginationHelper = IrohaPaginationHelper(queryAPI, 100)
+) : IrohaQueryHelper {
 
     constructor(irohaAPI: IrohaAPI, accountId: String, keyPair: KeyPair) : this(
         QueryAPI(
@@ -47,79 +49,8 @@ open class IrohaQueryHelperImpl(val queryAPI: QueryAPI, val pageSize: Int = 100)
         IrohaCredential(irohaCredentialRawConfig)
     )
 
-    private val gson = GsonInstance.get()
-
-    private fun getPaginatedAccountDetails(
-        storageAccountId: String,
-        writerAccountId: String,
-        key: String?
-    ): Result<Map<String, Map<String, String>>, Exception> {
-        return Result.of {
-            var lastWriter: String? = null
-            var lastKey: String? = null
-
-            val detailsMap = mutableMapOf<String, MutableMap<String, String>>()
-
-            do {
-                val response = queryAPI.getAccountDetails(
-                    storageAccountId,
-                    writerAccountId,
-                    key,
-                    pageSize,
-                    lastWriter,
-                    lastKey
-                )
-                lastWriter = response.nextRecordId.writer
-                lastKey = response.nextRecordId.key
-
-                val toAdd = parseAccountDetailsJson(response.detail).get()
-                toAdd.entries.forEach { (writer, details) ->
-                    detailsMap.merge(writer, details.toMutableMap()) { oldVal, newVal ->
-                        oldVal.putAll(newVal)
-                        oldVal
-                    }
-                }
-            } while (response.hasNextRecordId())
-
-            detailsMap
-        }
-    }
-
-    private fun getPaginatedAccountAssets(
-        accountId: String
-    ): Result<Map<String, String>, Exception> {
-        return Result.of {
-            var lastAssetId: String? = null
-
-            val assetMap = mutableMapOf<String, String>()
-
-            do {
-                val response = queryAPI.getAccountAssets(
-                    accountId,
-                    pageSize,
-                    lastAssetId
-                )
-                lastAssetId = response.nextAssetId
-                assetMap.putAll(response.accountAssetsList.associate { asset ->
-                    asset.assetId to asset.balance
-                })
-            } while (response.nextAssetId != null && response.nextAssetId != "")
-
-            assetMap
-        }
-    }
-
-    /**
-     * Deserialise JSON string to Map<String, String>
-     *
-     * @param jsonStr JSON as String
-     * @return desereialized details as (writer -> (key -> value))
-     */
-    private fun parseAccountDetailsJson(jsonStr: String): Result<Map<String, Map<String, String>>, Exception> =
-        Result.of {
-            val responseType = object : TypeToken<Map<String, Map<String, String>>>() {}.type
-            gson.fromJson<Map<String, Map<String, String>>>(jsonStr, responseType)
-        }
+    /** {@inheritDoc} */
+    override fun getQueryCreatorAccountId() = queryAPI.accountId
 
     /** {@inheritDoc} */
     override fun getAccount(accountId: String): Result<QryResponses.AccountResponse, Exception> {
@@ -135,7 +66,7 @@ open class IrohaQueryHelperImpl(val queryAPI: QueryAPI, val pageSize: Int = 100)
         storageAccountId: String,
         writerAccountId: String
     ): Result<Map<String, String>, Exception> =
-        getPaginatedAccountDetails(storageAccountId, writerAccountId, null)
+        irohaPaginationHelper.getPaginatedAccountDetails(storageAccountId, writerAccountId, null)
             .map { details ->
                 if (details[writerAccountId] == null)
                     emptyMap()
@@ -144,14 +75,38 @@ open class IrohaQueryHelperImpl(val queryAPI: QueryAPI, val pageSize: Int = 100)
             }
 
     /** {@inheritDoc} */
+    override fun getAccountDetailsFirst(
+        storageAccountId: String,
+        writerAccountId: String,
+        firstPredicate: (key: String, value: String) -> Boolean
+    ): Result<Optional<Map.Entry<String, String>>, Exception> =
+        irohaPaginationHelper.getPaginatedAccountDetailsFirst(storageAccountId, writerAccountId, firstPredicate)
+
+    /** {@inheritDoc} */
+    override fun getAccountDetailsFilter(
+        storageAccountId: String,
+        writerAccountId: String,
+        filterPredicate: (key: String, value: String) -> Boolean
+    ): Result<Map<String, String>, Exception> =
+        irohaPaginationHelper.getPaginatedAccountDetailsFilter(storageAccountId, writerAccountId, filterPredicate)
+
+    /** {@inheritDoc} */
+    override fun getAccountDetailsCount(
+        storageAccountId: String,
+        writerAccountId: String,
+        countPredicate: (key: String, value: String) -> Boolean
+    ): Result<Int, Exception> =
+        irohaPaginationHelper.getPaginatedAccountDetailsCount(storageAccountId, writerAccountId, countPredicate)
+
+    /** {@inheritDoc} */
     override fun getAccountDetails(
         storageAccountId: String,
         writerAccountId: String,
         key: String
     ): Result<Optional<String>, Exception> =
-        getPaginatedAccountDetails(storageAccountId, writerAccountId, key)
+        irohaPaginationHelper.getPaginatedAccountDetails(storageAccountId, writerAccountId, key)
             .map { details ->
-                Optional.ofNullable(details.getOrDefault(writerAccountId, emptyMap()).get(key))
+                Optional.ofNullable(details.getOrDefault(writerAccountId, emptyMap())[key])
             }
 
     /** {@inheritDoc} */
@@ -167,11 +122,11 @@ open class IrohaQueryHelperImpl(val queryAPI: QueryAPI, val pageSize: Int = 100)
 
     /** {@inheritDoc} */
     override fun getAccountAssets(accountId: String): Result<Map<String, String>, Exception> =
-        getPaginatedAccountAssets(accountId)
+        irohaPaginationHelper.getPaginatedAccountAssets(accountId)
 
     /** {@inheritDoc} */
     override fun getAccountAsset(accountId: String, assetId: String): Result<String, Exception> =
-        getPaginatedAccountAssets(accountId)
+        irohaPaginationHelper.getPaginatedAccountAssets(accountId)
             .map { it.getOrDefault(assetId, "0") }
 
     /** {@inheritDoc} */

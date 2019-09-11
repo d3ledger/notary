@@ -75,12 +75,13 @@ class NotaryRegistrationStrategy(
         queryHelper.getSignatories("$accountName@$domainId")
             .fold(
                 { signatories ->
-                    if (signatories.map { it.toLowerCase() }.contains(publicKey.toLowerCase()))
-                    // user with publicKey is already registered
+                    if (signatories.map { it.toLowerCase() }.contains(publicKey.toLowerCase())) {
+                        // user with publicKey is already registered
                         true
-                    else
-                    // user is registered with a different pubkey - stateful invalid
+                    } else {
+                        // user is registered with a different pubkey - stateful invalid
                         throw IllegalArgumentException("$accountName@$domainId already registered with pubkey different from $publicKey")
+                    }
                 },
                 {
                     if (it is ErrorResponseException && it.errorResponse.errorCode == 0)

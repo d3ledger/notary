@@ -24,6 +24,12 @@ interface NotificationsConfig {
     val transferBillingAccount: String
     // Billing account for withdrawals
     val withdrawalBillingAccount: String
+    // HTTP port for web-services
+    val webPort: Int
+    // Account that is used as a client storage
+    val clientStorageAccount:String
+    // Account name of registration service(no domain)
+    val registrationServiceAccountName:String
 }
 
 /**

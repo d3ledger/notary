@@ -49,10 +49,26 @@ services:
     networks:
       - d3-network
 
+  d3-registration:
+    image: nexus.iroha.tech:19002/d3-deploy/notary-registration:develop
+    container_name: d3-registration
+    restart: on-failure
+    ports:
+      - 8085:8085
+      - 19013:9010
+    env_file:
+      - ../deploy/.env-default-jvm-options
+    networks:
+      - d3-network
+
   d3-chain-adapter:
     image: nexus.iroha.tech:19004/soramitsu/chain-adapter:develop
     container_name: d3-chain-adapter
     restart: on-failure
+    ports:
+      - 19014:9010
+    env_file:
+      - ../deploy/.env-default-jvm-options
     depends_on:
       - d3-iroha
       - d3-rmq
@@ -70,11 +86,10 @@ services:
     image: nexus.iroha.tech:19002/d3-deploy/notifications:develop
     container_name: d3-notifications
     restart: on-failure
-    environment:
-      - NOTIFICATIONS_SMTP_HOST=smtp.mailtrap.io
-      - NOTIFICATIONS_SMTP_PORT=2525
-      - NOTIFICATIONS_SMTP_PASSWORD=c9e459e405ef1c
-      - NOTIFICATIONS_SMTP_USERNAME=4bf667d5bd903a
+    ports:
+      - 19016:9010
+    env_file:
+      - ../deploy/.env-default-jvm-options
     networks:
       - d3-network
 
@@ -98,9 +113,12 @@ services:
     container_name: d3-brvs
     ports:
       - 8080:8080
+      - 19017:9010
     depends_on:
       - d3-brvs-mongodb
       - d3-rmq
+    env_file:
+      - ../deploy/.env-default-jvm-options
     environment:
       CREDENTIAL_PUBKEY: b9679bbf526a1c936cd1144b56a370d376fa8246b248cd72f952b45a2f20bdad
       CREDENTIAL_PRIVKEY: 56a3c52cd039d9b73a1720052600a20962350b1ea169b4783cefbf87ed99406a
@@ -118,15 +136,37 @@ services:
     restart: on-failure
     ports:
       - 8087:8080
+      - 19018:9010
     depends_on:
       - dc-postgres
       - d3-rmq
+    env_file:
+        - ../deploy/.env-default-jvm-options
     environment:
       POSTGRES_HOST: dc-postgres
       POSTGRES_DATABASE: postgres
       SPRING_RABBITMQ_HOST: d3-rmq
       IROHA_HOST: d3-iroha
       IROHA_PORT: 50051
+      SPRING_DATASOURCE_USERNAME: test
+      SPRING_DATASOURCE_PASSWORD: test
+    networks:
+      - d3-network
+
+  report-service:
+    image: nexus.iroha.tech:19002/d3-deploy/report-service:develop
+    container_name: "report-service"
+    restart: on-failure
+    ports:
+      - 8090:8090
+      - 19019:9010
+    depends_on:
+      - data-collector
+    env_file:
+      - ../deploy/.env-default-jvm-options
+    environment:
+      POSTGRES_HOST: dc-postgres
+      POSTGRES_DATABASE: postgres
       SPRING_DATASOURCE_USERNAME: test
       SPRING_DATASOURCE_PASSWORD: test
     networks:
