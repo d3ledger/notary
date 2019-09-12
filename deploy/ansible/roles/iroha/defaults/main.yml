@@ -1,2 +1,0 @@
----
-projectRoot: "{{ playbook_dir }}/../.."

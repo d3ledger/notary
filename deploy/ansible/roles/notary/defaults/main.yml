@@ -1,5 +1,0 @@
----
-projectRoot: "{{ playbook_dir }}/../.."
-directory_map:
-  testnet: ropsten
-  mainnet: mainnet

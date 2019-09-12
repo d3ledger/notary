@@ -1,8 +1,12 @@
 buildscript {
     ext.kotlin_version = '1.3.10'
     ext.ktor_version = '1.0.0'
-    ext.chain_adapter_client_version= '0dccefacf28b75b9e52022d785f57fe9f41638ae'
     ext.spring_boot_version = '1.5.19.RELEASE'
+    ext.springfoxSwagger2Version = '2.9.2'
+    ext.springBootVersion = '2.1.3.RELEASE'
+    ext.kotlinVersion = '1.3.10'
+    ext.notary_version = 'dc9b932fc458eb3947216756d3272e5c52c327d4'
+    ext.d3EthVersion = 'ba7134be3a801eac681c0c25403da16043cd132c'
 
     repositories {
         mavenCentral()
@@ -10,161 +14,118 @@ buildscript {
         // gradle plugins repository
         gradlePluginPortal()
     }
-    configurations.maybeCreate("pitest")
     dependencies {
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:0.9.17"
-        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.2"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.6'
-        classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.3.0'
+        //Spring-boot
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:$spring_boot_version"
         classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
         classpath 'com.github.jengelman.gradle.plugins:shadow:4.0.1'
-        pitest 'org.pitest:pitest-junit5-plugin:0.3'
+        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.2"
     }
 }
 
 plugins {
-    id "com.github.dolgopolovwork.testreport" version "1"
+    id 'jp.co.soramitsu.sora-plugin' version '0.1.2'
 }
 
 group = 'd3'
 version = '1.0-SNAPSHOT'
 
-
-apply plugin: 'com.google.protobuf'
-apply plugin: "jacoco"
-apply plugin: 'info.solidsoft.pitest'
+apply plugin: 'kotlin'
+apply plugin: 'application'
+apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compiler-plugins.html#kotlin-spring-compiler-plugin
 apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'org.sonarqube'
 
-testReport {
-    testFolders = Arrays.asList(
-            "notary-iroha-integration-test",
-            "notary-sora-integration-test",
-            "notifications-integration-test")
-}
+mainClassName = "jp.co.soramitsu.bootstrap.BootstrapMain"
+shadowDistZip.classifier = 'shadow'
+shadowDistTar.classifier = 'shadow'
+// name of jar file that the shadowJar plugin generates
+shadowJar.archiveName = 'app.jar'
 
-allprojects {
-    apply plugin: 'java'
-    apply plugin: 'kotlin'
-    apply plugin: 'org.jetbrains.dokka'
-    apply plugin: 'maven'
-    repositories {
-        mavenCentral()
-        // for Ktor
-        jcenter()
-        maven { url = 'https://dl.bintray.com/kotlin/ktor' }
-        maven { url 'https://jitpack.io' }
+// sora-plugin configs
+soramitsu {
+    projectGroup = 'd3-deploy'
+    docker {
+        // docker tag
+        tag = System.getenv("DOCKER_TAG")
+        // jar file that is used in the generated Dockerfile
+        jar = new File("build/libs/app.jar")
+        // the rest in configured using env variables
     }
 }
 
-subprojects {
-    dokka {
-        outputFormat = 'html'
-        outputDirectory = "build/reports/dokka"
-        reportUndocumented = true
-        sourceDirs = files("${project.projectDir}/src/main/kotlin")
+shadowJar {
+    zip64 true
+}
+
+
+dependencies {
+    compile("com.github.d3ledger.notary:notary-commons:$notary_version") {
+        exclude group: 'com.github.soramitsu.chain-adapter'
     }
-    sonarqube {
-        properties {
-            property "sonar.java.binaries", "${project.projectDir}/build/classes"
-            property "sonar.java.test.binaries", "${project.projectDir}/build/test-results/test/binary"
-            property "sonar.junit.reportsPaths", "${project.projectDir}/build/test-results/**/*.xml"
-            property "sonar.jacoco.reportPaths", "${project.projectDir}/build/jacoco/test.exec"
-            property "sonar.exclusions", "${project.projectDir}/**/*.txt"
-        }
+    implementation("com.github.d3ledger.d3-eth:eth:$d3EthVersion"){
+        exclude group: 'com.github.d3ledger.notary'
     }
+    
+    // kotlin related
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1'
+    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
+
+    //Iroha-java related
+    implementation('com.github.hyperledger.iroha-java:testcontainers:6.0.0') {
+        exclude group: 'org.slf4j'
+    }
+
+    //Spring-boot
+    implementation("org.springframework.boot:spring-boot-starter:$springBootVersion") {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
+    implementation("org.springframework.boot:spring-boot-starter-web:$springBootVersion") {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+        exclude group: 'org.hibernate'
+    }
+    implementation "io.springfox:springfox-swagger2:$springfoxSwagger2Version"
+    implementation "io.springfox:springfox-swagger-ui:$springfoxSwagger2Version"
+
+    // Changelog interface
+    compile 'com.github.d3ledger.bootstrap-changelog:changelog-interface:72b15aabbcfaa88176617444ea36a201b0b347b7'
+
+    //TODO this is very dirty hack. This dependency must be removed after migration to newer version of Spring Boot
+    // https://mvnrepository.com/artifact/org.hibernate/hibernate-validator
+
+    implementation 'org.hibernate:hibernate-validator:6.0.14.Final'
+
+    implementation "org.springframework.boot:spring-boot-starter-jetty:$springBootVersion"
+
+    implementation "commons-logging:commons-logging:1.2"
+
+    compile 'com.google.protobuf:protobuf-java-util:3.6.1'
+    compile 'org.bitcoinj:bitcoinj-core:0.14.7'
+
+    //Web3j
+    compile 'org.web3j:crypto:4.1.1'
+    compile 'org.web3j:core:4.1.1'
+
+    testCompile "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
+
 }
 
 sourceCompatibility = 1.8
-
-// ------------------| Test dependencies |------------------
-
-allprojects {
-    dependencies {
-        // unit tests
-        testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
-        testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
-        // https://mvnrepository.com/artifact/org.mockito/mockito-all
-        testCompile group: 'org.mockito', name: 'mockito-all', version: '2.0.2-beta'
-        compile("com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0")
-        // for setting env variables in tests
-        testCompile group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.18.0'
-        // to run both junit4 and junit5 tests
-        testRuntime("org.junit.vintage:junit-vintage-engine:5.2.0")
-    }
-}
 
 wrapper {
     gradleVersion = 4.10
 }
 
-
-allprojects {
-    compileKotlin {
-        kotlinOptions.jvmTarget = "1.8"
-    }
-    compileTestKotlin {
-        kotlinOptions.jvmTarget = "1.8"
-    }
+task runBootstrap(type: JavaExec) {
+    main = mainClassName
+    classpath = sourceSets.main.runtimeClasspath
 }
 
-protobuf {
-    protoc {
-        artifact = "com.google.protobuf:protoc:3.5.1"
+sonarqube {
+    properties {
+        property "sonar.projectKey", "bootstrap"
     }
-    plugins {
-        grpc {
-            artifact = 'io.grpc:protoc-gen-grpc-java:1.14.0'
-        }
-    }
-    generateProtoTasks {
-        all()*.plugins {
-            grpc {}
-        }
-    }
-}
-
-compileKotlin.dependsOn ':generateProto'
-
-
-// -------------------------| End Iroha bindings |-------------------------
-
-// -------------------------| PIT mutation testing |-------------------------
-
-pitest {
-    pitestVersion = "1.3.0"
-    testPlugin = "junit5"
-    targetClasses = ['util.*', 'notary.*', 'registration.*', 'withdrawalservice.*']
-    excludedClasses = ['notary.db.*', '*Test*']
-    targetTests = ['util.*', 'notary.*', 'registration.*', 'withdrawalservice.*']
-    avoidCallsTo = ['kotlin.jvm.internal', 'mu']
-    mutators = ['CONDITIONALS_BOUNDARY', 'NEGATE_CONDITIONALS', 'REMOVE_CONDITIONALS', 'MATH', 'INCREMENTS',
-                'INVERT_NEGS', 'INLINE_CONSTS', 'VOID_METHOD_CALLS']
-}
-
-// -------------------------| JaCoCo code coverage |-------------------------
-
-task codeCoverageReport(type: JacocoReport) {
-
-    // Gather execution data from all subprojects
-    // (change this if you e.g. want to calculate unit test/integration test coverage separately)
-    executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
-
-    // Add all relevant sourcesets from the subprojects
-    subprojects.each {
-        sourceSets it.sourceSets.main
-    }
-
-    reports {
-        xml.enabled true
-        html.enabled true
-        html.destination "${buildDir}/reports/jacoco"
-        csv.enabled false
-    }
-}
-
-// always run the tests before generating the report
-codeCoverageReport.dependsOn {
-    subprojects*.test
 }

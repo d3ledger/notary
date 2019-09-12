@@ -1,48 +1,43 @@
-# notary
-Backend code for a D3 notary
+# Bootstrap service
 
-D3 consists of 3 parts. Common services should be run obligatory and rest can be run optionally:
-1) Common services
-2) Ethereum subsystem
+## API documentation
+* SwaggerUI - 'http://localhost:8080/swagger-ui.html' In SwaggerUi it is also possible to make test calls through browser
+* Json representation - 'http://localhost:8080/v2/api-docs' In Firefox json is more readable, so try to use it.
 
-## Common services
-1) Clone project `master` branch
-2) Launch Iroha and Postgres in docker with `docker-compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml up`
-3) Run registration service `PROFILE=mainnet ./gradlew runRegistration`
-4) (Optional) Run exchanger service `PROFILE=mainnet ./gradlew runExchanger`
 
-Now you can register clients and launch subsystems.
+## Description
+Service provides possibilities to automate DevOps activities.
 
-## How to run notification services
-1) Create SMTP configuration file located at `configs/smtp.properties`(see test example `configs/smtp_test.properties`). This file contains SMTP server credentials.
-2) Create Push API configuration file located at `configs/push.properties`(see test example `configs/push_test.properties`). This file contains VAPID keys. You can generate keys by yourself using [webpush-libs tutorial](https://github.com/web-push-libs/webpush-java/wiki/VAPID).
-3) Run gralde command `./gradlew runNotifications`
+It is usable for test environments and production. Only difference is that for test environments we 
+may generate blockchain credentials using this service but for production owners of private keys 
+should provide public keys for us.
 
-## AWS SES Integration
-SMTP configuration file `configs/smtp.properties` must be modified in order to be able to send email notifications via AWS SES. 
-```
-smtp.host=email-smtp.eu-west-1.amazonaws.com
-smtp.port=25
-smtp.userName=ask maintainers
-smtp.password=ask maintainers
-```
-## Testing
-`./gradlew test` for unit tests
+Functionality:
+* Creation of Iroha credentials (private and public keys)
+* Creation of Iroha Genesis Block 
 
-`./gradlew integrationTest` for integation tests
+## Startup Configuration
+You should provide environment parameter `btc.network` with one of three values: `TestNet3, MainNet, RegTest`
+Else `btc.network` parameter will be taken from application.properties file
 
-## Troubleshooting
+## How to develop
+To Add generation of genesis block for new project and/or environment Create a class which should 
+implement `GenesisInterface`
 
-1. Services cannot be lauched due to the issue with protobuf. Solution for linux — use 3.5.1 version. Solution for mac — manually put old version in Cellar folder for 3.5.1 version (ask someone from the team), and link it with `brew switch protobuf 3.5.1`. 
+* `fun getProject(): String` - should provide name of project
+* `fun getEnvironment(): String` - should provide name of environment eg 'local_my', 'test', 'prod'
+* `fun createGenesisBlock(accounts:List<IrohaAccountDto>, peers:List<Peer>, blockVersion:String = "1"): String`
+This function should return string json representatin of genesis block. It takes Iroha peers and accounts as arguments from API request.
+* `fun getAccountsNeeded(): List<AccountPrototype>` - This function should return Accounts which have to present in genesis block to generate credentials for.
 
-2. Services cannot resolve their hostnames. Solution — add following lines to /etc/hosts file:
-```
-127.0.0.1 d3-iroha
-127.0.0.1 d3-iroha-postgres
-127.0.0.1 d3-notary
-127.0.0.1 d3-eth-node0
-127.0.0.1 d3-btc-node0
-127.0.0.1 d3-rmq
-127.0.0.1 d3-brvs
-127.0.0.1 d3-brvs-mongodb
-```
+Example realisation for D3: `genesis.d3.D3TestGenesisFactory`
+
+## Ethereum endpoint
+
+### Deploy smart contracts
+There are function to deploy all smart contracts by one API call: 'eth/deploy/D3/smartContracts' and functions to deploy initial ethereum contracts separately.
+Only owner can call contracts later.
+The Sequence to call smart contract deployment functions is following:
+1 - 'eth/deploy/D3/relayRegistry' - then take resulting contract address as an argument for the next function
+2 - 'eth/deploy/D3/masterContract' - then take resulting smart contract address as an argument to the next function
+3 - 'eth/deploy/D3/relayImplementation'
