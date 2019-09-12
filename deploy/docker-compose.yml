@@ -120,6 +120,7 @@ services:
     env_file:
       - ../deploy/.env-default-jvm-options
     environment:
+      CREDENTIAL_ACCOUNTID: d3@brvs
       CREDENTIAL_PUBKEY: b9679bbf526a1c936cd1144b56a370d376fa8246b248cd72f952b45a2f20bdad
       CREDENTIAL_PRIVKEY: 56a3c52cd039d9b73a1720052600a20962350b1ea169b4783cefbf87ed99406a
       BILLING_URL: http://data-collector:8080/cache/get/billing
