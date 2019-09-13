@@ -57,12 +57,13 @@ class NotificationInitialization(
                 )
                 .subscribe(
                     { block ->
-                        getSetDetailCommands(block).map { it.setAccountDetail }.forEach { setDetailCommand ->
-                            // Notify withdrawal
-                            if (isWithdrawal(setDetailCommand)) {
-                                handleWithdrawalEventNotification(setDetailCommand)
+                        getSetDetailCommands(block).map { it.setAccountDetail }
+                            .forEach { setDetailCommand ->
+                                // Notify withdrawal
+                                if (isWithdrawal(setDetailCommand)) {
+                                    handleWithdrawalEventNotification(setDetailCommand)
+                                }
                             }
-                        }
                         //Get transfer commands from block
                         getTransferTransactions(block).forEach { tx ->
                             tx.payload.reducedPayload.commandsList.forEach { command ->
@@ -73,11 +74,17 @@ class NotificationInitialization(
                                 }
                                 // Notify transfer
                                 else if (isClientToClientTransfer(transferAsset)) {
-                                    handleClientToClientEventNotification(transferAsset, getTransferFee(tx))
+                                    handleClientToClientEventNotification(
+                                        transferAsset,
+                                        getTransferFee(tx)
+                                    )
                                 }
                                 // Notify rollback
                                 else if (isRollback(transferAsset)) {
-                                    handleRollbackEventNotification(transferAsset, getWithdrawalRollbackFee(tx))
+                                    handleRollbackEventNotification(
+                                        transferAsset,
+                                        getWithdrawalRollbackFee(tx)
+                                    )
                                 }
                             }
                         }
@@ -102,7 +109,10 @@ class NotificationInitialization(
         return if (feeTransfer == null) {
             null
         } else {
-            OperationFee(BigDecimal(feeTransfer.transferAsset.amount), feeTransfer.transferAsset.assetId)
+            OperationFee(
+                BigDecimal(feeTransfer.transferAsset.amount),
+                feeTransfer.transferAsset.assetId
+            )
         }
     }
 
@@ -121,7 +131,10 @@ class NotificationInitialization(
         return if (feeTransfer == null) {
             null
         } else {
-            OperationFee(BigDecimal(feeTransfer.transferAsset.amount), feeTransfer.transferAsset.assetId)
+            OperationFee(
+                BigDecimal(feeTransfer.transferAsset.amount),
+                feeTransfer.transferAsset.assetId
+            )
         }
     }
 
@@ -245,7 +258,12 @@ class NotificationInitialization(
 
             it.notifyReceiveFromClient(
                 transferNotifyReceiveEvent
-            ).failure { ex -> logger.error("Cannot notify transfer: $transferNotifyReceiveEvent", ex) }
+            ).failure { ex ->
+                logger.error(
+                    "Cannot notify transfer: $transferNotifyReceiveEvent",
+                    ex
+                )
+            }
         }
     }
 

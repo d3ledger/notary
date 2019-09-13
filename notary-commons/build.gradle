@@ -1,51 +1,50 @@
 dependencies {
-    compile 'com.github.d3ledger.bootstrap-changelog:changelog-interface:090909c544160a6ba0fb712ce928e78ce3c4d741'
     // protobuf
-    compile 'com.google.protobuf:protobuf-java:3.5.1'
-    testCompile 'com.google.protobuf:protobuf-java-util:3.5.1'
+    implementation 'com.google.protobuf:protobuf-java:3.5.1'
+    testImplementation 'com.google.protobuf:protobuf-java-util:3.5.1'
 
-    compile 'io.grpc:grpc-netty:1.14.0'
-    compile 'io.grpc:grpc-protobuf:1.14.0'
-    compile 'io.grpc:grpc-stub:1.14.0'
-    compile "io.ktor:ktor-gson:$ktor_version"
+    implementation 'io.grpc:grpc-netty:1.14.0'
+    implementation 'io.grpc:grpc-protobuf:1.14.0'
+    implementation 'io.grpc:grpc-stub:1.14.0'
+    implementation "io.ktor:ktor-gson:$ktor_version"
 
     // ------------------| Src dependencies |------------------
 
     // kotlin related
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1'
 
     // rx2
-    compile "io.reactivex.rxjava2:rxjava:2.0.0"
-    compile "io.reactivex.rxjava2:rxkotlin:2.0.0"
+    implementation "io.reactivex.rxjava2:rxjava:2.0.0"
+    implementation "io.reactivex.rxjava2:rxkotlin:2.0.0"
 
     // Iroha Pure Java library
-    compile 'com.github.hyperledger.iroha-java:client:6.1.0'
-    testCompile 'com.github.hyperledger.iroha-java:testcontainers:6.1.0'
+    implementation 'com.github.hyperledger.iroha-java:client:6.1.0'
+    testImplementation 'com.github.hyperledger.iroha-java:testcontainers:6.1.0'
 
     // logging
-    compile 'io.github.microutils:kotlin-logging:1.6.26'
+    implementation 'io.github.microutils:kotlin-logging:1.6.26'
     // https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12
-    compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.8.0-beta2'
+    implementation group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.8.0-beta2'
 
     // CLI arguments
-    compile group: 'com.xenomachina', name: 'kotlin-argparser', version: '2.0.6'
+    implementation group: 'com.xenomachina', name: 'kotlin-argparser', version: '2.0.6'
 
     // Ktor - http
-    compile "io.ktor:ktor-server-core:$ktor_version"
-    compile "io.ktor:ktor-server-netty:$ktor_version"
+    implementation "io.ktor:ktor-server-core:$ktor_version"
+    implementation "io.ktor:ktor-server-netty:$ktor_version"
 
     // khttp - consume http
-    compile 'khttp:khttp:0.1.0'
+    implementation 'khttp:khttp:0.1.0'
 
     // JSON converter
-    compile 'com.squareup.moshi:moshi-kotlin:1.5.0'
+    implementation 'com.squareup.moshi:moshi-kotlin:1.5.0'
 
     // for Result
-    compile group: 'com.github.kittinunf.result', name: 'result', version: '1.4.0'
+    implementation group: 'com.github.kittinunf.result', name: 'result', version: '1.4.0'
 
     // Configuration
-    compile 'com.github.jdiazcano:cfg4k:0.9.41'
+    implementation group: 'com.jdiazcano.cfg4k', name: 'cfg4k-git', version: '0.9.41'
 }
 sonarqube {
     properties {

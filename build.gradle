@@ -83,13 +83,13 @@ sourceCompatibility = 1.8
 allprojects {
     dependencies {
         // unit tests
-        testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
+        testImplementation('org.junit.jupiter:junit-jupiter-api:5.2.0')
         testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
         // https://mvnrepository.com/artifact/org.mockito/mockito-all
-        testCompile group: 'org.mockito', name: 'mockito-all', version: '2.0.2-beta'
-        compile("com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0")
+        testImplementation group: 'org.mockito', name: 'mockito-all', version: '2.0.2-beta'
+        implementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0")
         // for setting env variables in tests
-        testCompile group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.18.0'
+        testImplementation group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.18.0'
         // to run both junit4 and junit5 tests
         testRuntime("org.junit.vintage:junit-vintage-engine:5.2.0")
     }

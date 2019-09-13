@@ -5,21 +5,30 @@ buildscript {
     }
 }
 dependencies {
-    compile project(":notary-commons")
-    compile project(":notary-registration")
-    // We need this dependency to test our containers. 
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1'
+    implementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+
+    implementation project(":notary-commons")
+    implementation project(":notary-registration")
+    // We need this dependency to test our containers.
     // 'iroha-java:testcontainers' has this dependency inside but it's slightly old
-    compile group: 'org.testcontainers', name: 'testcontainers', version: '1.11.2'
+    implementation group: 'org.testcontainers', name: 'testcontainers', version: '1.11.2'
     //Iroha-java related
-    compile('com.github.hyperledger.iroha-java:testcontainers:6.1.0')
-    compile('org.slf4j:slf4j-api:1.7.25')
-    compile('org.slf4j:slf4j-simple:1.7.25')
+    implementation('com.github.hyperledger.iroha-java:testcontainers:6.1.0')
+    implementation('org.slf4j:slf4j-api:1.7.25')
+    implementation('org.slf4j:slf4j-simple:1.7.25')
     // https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java-util
-    compile group: 'com.google.protobuf', name: 'protobuf-java-util', version: '3.7.1'
-    compile "com.github.soramitsu.chain-adapter:chain-adapter-client:$chain_adapter_client_version"
+    implementation group: 'com.google.protobuf', name: 'protobuf-java-util', version: '3.7.1'
+    implementation "com.github.soramitsu.chain-adapter:chain-adapter-client:$chain_adapter_client_version"
     // unit tests
-    testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
-    testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0') 
+    testImplementation('org.junit.jupiter:junit-jupiter-api:5.2.0')
+    testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
+
+    implementation 'khttp:khttp:0.1.0'
+
+    implementation 'com.github.d3ledger.bootstrap-changelog:changelog-interface:090909c544160a6ba0fb712ce928e78ce3c4d741'
+
+    implementation 'io.github.microutils:kotlin-logging:1.6.26'
 }
 
 sourceSets {
