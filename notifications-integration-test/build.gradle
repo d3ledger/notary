@@ -17,6 +17,8 @@ dependencies {
     implementation 'khttp:khttp:0.1.0'
     implementation "io.ktor:ktor-gson:$ktor_version"
 
+    implementation 'io.github.microutils:kotlin-logging:1.6.26'
+
     implementation group: 'org.apache.httpcomponents', name: 'httpcore', version: '4.4.1'
 
     // https://mvnrepository.com/artifact/nl.martijndwars/web-push
@@ -43,8 +45,6 @@ dependencies {
     // unit tests
     testImplementation('org.junit.jupiter:junit-jupiter-api:5.2.0')
     testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
-
-    implementation 'io.github.microutils:kotlin-logging:1.6.26'
 }
 
 sourceSets {
