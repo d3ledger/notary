@@ -5,10 +5,45 @@ buildscript {
     }
 }
 dependencies {
-    compile project(":notifications")
-    compile project(":notary-iroha-integration-test")
+    implementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+
+    implementation group: 'com.github.kittinunf.result', name: 'result', version: '1.4.0'
+
+    implementation project(":notary-commons")
+    implementation project(":notifications")
+    implementation project(":notary-iroha-integration-test")
+    implementation project(":notary-registration")
+
+    implementation 'khttp:khttp:0.1.0'
+    implementation "io.ktor:ktor-gson:$ktor_version"
+
+    implementation 'io.github.microutils:kotlin-logging:1.6.26'
+
+    implementation group: 'org.apache.httpcomponents', name: 'httpcore', version: '4.4.1'
+
+    // https://mvnrepository.com/artifact/nl.martijndwars/web-push
+    implementation group: 'nl.martijndwars', name: 'web-push', version: '5.0.1'
+
+    // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on
+    implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.60'
+
+    // https://mvnrepository.com/artifact/javax.mail/mail
+    implementation group: 'javax.mail', name: 'mail', version: '1.4.7'
+
+    // https://mvnrepository.com/artifact/org.springframework/spring-context
+    implementation group: 'org.springframework', name: 'spring-context', version: '5.1.4.RELEASE'
+
+    // https://mvnrepository.com/artifact/dumbster/dumbster
+    implementation group: 'com.github.kirviq', name: 'dumbster', version: '1.7.1'
+
+    // Ktor
+    implementation "io.ktor:ktor-server-core:$ktor_version"
+    implementation "io.ktor:ktor-server-netty:$ktor_version"
+
+    implementation 'com.github.hyperledger.iroha-java:client:6.1.0'
+
     // unit tests
-    testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
+    testImplementation('org.junit.jupiter:junit-jupiter-api:5.2.0')
     testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
 }
 

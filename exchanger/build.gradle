@@ -33,18 +33,26 @@ soramitsu {
 }
 
 dependencies {
-    compile project(":notary-commons")
-    testCompile project(":notary-iroha-integration-test")
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1'
+
+    implementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+
+    implementation project(":notary-commons")
+    implementation project(":notary-registration")
+    testImplementation project(":notary-iroha-integration-test")
 
     //Spring
-    compile group: 'org.springframework', name: 'spring-context', version: '5.1.4.RELEASE'
+    implementation group: 'org.springframework', name: 'spring-context', version: '5.1.4.RELEASE'
 
     // https://mvnrepository.com/artifact/commons-logging/commons-logging
-    compile group: 'commons-logging', name: 'commons-logging', version: '1.2'
+    implementation group: 'commons-logging', name: 'commons-logging', version: '1.2'
 
     // Integration
-    compile 'org.apache.commons:commons-math3:3.6.1'
-    compile "com.github.soramitsu.chain-adapter:chain-adapter-client:$chain_adapter_client_version"
+    implementation 'org.apache.commons:commons-math3:3.6.1'
+    implementation "com.github.soramitsu.chain-adapter:chain-adapter-client:$chain_adapter_client_version"
+
+    // khttp - consume http
+    implementation 'khttp:khttp:0.1.0'
 }
 
 task runExchanger(type: JavaExec) {

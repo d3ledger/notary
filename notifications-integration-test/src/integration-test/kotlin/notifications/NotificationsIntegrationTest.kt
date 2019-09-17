@@ -112,7 +112,7 @@ class NotificationsIntegrationTest {
             amount
         )
 
-        // Enriching withdrawal account 
+        // Enriching withdrawal account
         integrationHelper.addIrohaAssetTo(
             integrationHelper.accountHelper.btcWithdrawalAccount.accountId,
             BTC_ASSET,
@@ -206,7 +206,10 @@ class NotificationsIntegrationTest {
             D3_CLIENT_ENABLE_NOTIFICATIONS,
             "true"
         ).flatMap {
-            val withdrawalFinalizer = WithdrawalFinalizer(environment.withdrawalIrohaConsumer, "withdrawal_billing@$D3_DOMAIN")
+            val withdrawalFinalizer = WithdrawalFinalizer(
+                environment.withdrawalIrohaConsumer,
+                "withdrawal_billing@$D3_DOMAIN"
+            )
             val withdrawalFinalizationDetails = WithdrawalFinalizationDetails(
                 withdrawalValue,
                 BTC_ASSET,
@@ -249,7 +252,10 @@ class NotificationsIntegrationTest {
             D3_CLIENT_ENABLE_NOTIFICATIONS,
             "true"
         ).flatMap {
-            val withdrawalFinalizer = WithdrawalFinalizer(environment.withdrawalIrohaConsumer, "withdrawal_billing@$D3_DOMAIN")
+            val withdrawalFinalizer = WithdrawalFinalizer(
+                environment.withdrawalIrohaConsumer,
+                "withdrawal_billing@$D3_DOMAIN"
+            )
             val withdrawalFinalizationDetails = WithdrawalFinalizationDetails(
                 withdrawalValue,
                 BTC_ASSET,
@@ -456,7 +462,8 @@ class NotificationsIntegrationTest {
      * @return all mails
      */
     private fun getAllMails(): List<DumbsterMessage> {
-        val res = khttp.get("http://127.0.0.1:${environment.notificationsConfig.webPort}/dumbster/mail/all")
+        val res =
+            khttp.get("http://127.0.0.1:${environment.notificationsConfig.webPort}/dumbster/mail/all")
         if (res.statusCode != 200) {
             throw Exception("Cannot get emails from the dumbster endpoint. HTTP status code ${res.statusCode}")
         }

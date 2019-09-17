@@ -15,13 +15,27 @@ apply plugin: "kotlin-spring" // See https://kotlinlang.org/docs/reference/compi
 apply plugin: 'org.springframework.boot'
 
 dependencies {
-    compile project(":notary-commons")
-    compile project(":notary-iroha-integration-test")
-    compile project(":notary-registration")
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1'
+
+    implementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+
+    implementation project(":notary-commons")
+    implementation project(":notary-iroha-integration-test")
+    implementation project(":notary-registration")
+
+    implementation 'com.github.hyperledger.iroha-java:client:6.1.0'
+
+    implementation group: 'com.github.kittinunf.result', name: 'result', version: '1.4.0'
+
+    implementation 'khttp:khttp:0.1.0'
+
+    implementation 'com.squareup.moshi:moshi-kotlin:1.5.0'
 
     // unit tests
-    testCompile('org.junit.jupiter:junit-jupiter-api:5.2.0')
+    testImplementation('org.junit.jupiter:junit-jupiter-api:5.2.0')
     testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
+
+    implementation 'io.github.microutils:kotlin-logging:1.6.26'
 }
 
 sourceSets {

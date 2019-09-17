@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component
 import java.io.Closeable
 import java.util.concurrent.TimeUnit
 
-
 /**
  * HTTP endpoint for dummy 'dumbster' SMTP server. Good for testing.
  */

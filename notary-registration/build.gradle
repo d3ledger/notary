@@ -33,13 +33,23 @@ soramitsu {
 }
 
 dependencies {
-    compile project(":notary-commons")
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1'
+    testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+    testImplementation 'khttp:khttp:0.1.0'
+
+    implementation project(":notary-commons")
+
+    implementation 'com.github.hyperledger.iroha-java:client:6.1.0'
 
     //Spring
-    compile group: 'org.springframework', name: 'spring-context', version: '5.1.4.RELEASE'
+    implementation group: 'org.springframework', name: 'spring-context', version: '5.1.4.RELEASE'
 
     // https://mvnrepository.com/artifact/commons-logging/commons-logging
-    compile group: 'commons-logging', name: 'commons-logging', version: '1.2'
+    implementation group: 'commons-logging', name: 'commons-logging', version: '1.2'
+
+    implementation group: 'com.github.kittinunf.result', name: 'result', version: '1.4.0'
+
+    implementation 'io.github.microutils:kotlin-logging:1.6.26'
 }
 
 task runRegistration(type: JavaExec) {
