@@ -485,7 +485,7 @@
               },
               {
                 "createAccount": {
-                  "accountName": "brvs",
+                  "accountName": "d3",
                   "domainId": "brvs",
                   "publicKey": "b9679bbf526a1c936cd1144b56a370d376fa8246b248cd72f952b45a2f20bdad"
                 }
