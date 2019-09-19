@@ -58,11 +58,18 @@ pipeline {
             sh "./gradlew dokka --info"
             sh "./gradlew d3TestReport"
             // sh "./gradlew pitest --info"
-            withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
-              sh(script: """./gradlew sonarqube --configure-on-demand \
-                -Dsonar.host.url=https://sonar.soramitsu.co.jp \
-                -Dsonar.login=${SONAR_TOKEN} \
-              """)
+          }
+          if (env.BRANCH_NAME == 'develop') {
+            iC.inside("--network='d3-${DOCKER_NETWORK}' -e JVM_OPTS='-Xmx3200m' -e TERM='dumb'") {
+              withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]){
+                sh(script: "./gradlew sonarqube -x test --configure-on-demand \
+                  -Dsonar.links.ci=${BUILD_URL} \
+                  -Dsonar.github.pullRequest=${env.CHANGE_ID} \
+                  -Dsonar.github.disableInlineComments=true \
+                  -Dsonar.host.url=https://sonar.soramitsu.co.jp \
+                  -Dsonar.login=${SONAR_TOKEN} \
+                  ")
+                }
             }
           }
           publishHTML (target: [

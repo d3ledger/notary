@@ -65,15 +65,6 @@ subprojects {
         reportUndocumented = true
         sourceDirs = files("${project.projectDir}/src/main/kotlin")
     }
-    sonarqube {
-        properties {
-            property "sonar.java.binaries", "${project.projectDir}/build/classes"
-            property "sonar.java.test.binaries", "${project.projectDir}/build/test-results/test/binary"
-            property "sonar.junit.reportsPaths", "${project.projectDir}/build/test-results/**/*.xml"
-            property "sonar.jacoco.reportPaths", "${project.projectDir}/build/jacoco/test.exec"
-            property "sonar.exclusions", "${project.projectDir}/**/*.txt"
-        }
-    }
 }
 
 sourceCompatibility = 1.8
@@ -99,6 +90,18 @@ wrapper {
     gradleVersion = 4.10
 }
 
+allprojects{
+    sonarqube {
+        properties {
+            property "sonar.github.repository", "d3ledger/notary"
+            property "sonar.projectKey", "d3:notary"
+            property "sonar.java.binaries", "${project.projectDir}/build/classes"
+            property "sonar.java.libraries", "${project.projectDir}/build/libs"
+            property "sonar.java.test.binaries", "${project.projectDir}/build/test-results/test/binary"
+            property "sonar.exclusions", "notary-iroha-integration-test/**, notifications-integration-test/**, **/integration-test/**"
+        }
+    }
+}
 
 allprojects {
     compileKotlin {
