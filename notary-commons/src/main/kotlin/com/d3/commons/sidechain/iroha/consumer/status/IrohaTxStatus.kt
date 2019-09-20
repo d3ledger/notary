@@ -57,7 +57,7 @@ fun createTxStatusObserver(statusReference: AtomicReference<IrohaTxStatus>):
             statusReference.set(
                 IrohaTxStatus.createFailed(
                     Endpoint.TxStatus.MST_EXPIRED,
-                    TimeoutException("Tx ${expiredTx.txHash} MST expired. ${expiredTx.errOrCmdName}")
+                    ToriiErrorResponseException("Tx ${expiredTx.txHash} MST expired. $expiredTx", expiredTx)
                 )
             )
         }
@@ -65,7 +65,7 @@ fun createTxStatusObserver(statusReference: AtomicReference<IrohaTxStatus>):
             statusReference.set(
                 IrohaTxStatus.createFailed(
                     Endpoint.TxStatus.NOT_RECEIVED,
-                    IOException("Tx ${failedTx.txHash} was not received. ${failedTx.errOrCmdName}")
+                    ToriiErrorResponseException("Tx ${failedTx.txHash} was not received. $failedTx", failedTx)
                 )
             )
         }
@@ -73,7 +73,7 @@ fun createTxStatusObserver(statusReference: AtomicReference<IrohaTxStatus>):
             statusReference.set(
                 IrohaTxStatus.createFailed(
                     Endpoint.TxStatus.REJECTED,
-                    IOException("Tx ${rejectedTx.txHash} was rejected. ${rejectedTx.errOrCmdName}")
+                    ToriiErrorResponseException("Tx ${rejectedTx.txHash} was rejected. $rejectedTx", rejectedTx)
                 )
             )
         }
@@ -81,7 +81,7 @@ fun createTxStatusObserver(statusReference: AtomicReference<IrohaTxStatus>):
             statusReference.set(
                 IrohaTxStatus.createFailed(
                     failedTx.txStatus,
-                    Exception("Tx ${failedTx.txHash} failed. ${failedTx.errOrCmdName}")
+                    ToriiErrorResponseException("Tx ${failedTx.txHash} failed. $failedTx", failedTx)
                 )
             )
         }
@@ -89,7 +89,7 @@ fun createTxStatusObserver(statusReference: AtomicReference<IrohaTxStatus>):
             statusReference.set(
                 IrohaTxStatus.createFailed(
                     Endpoint.TxStatus.UNRECOGNIZED,
-                    Exception("Tx ${failedTx.txHash} got unrecognized status. ${failedTx.errOrCmdName}")
+                    ToriiErrorResponseException("Tx ${failedTx.txHash} got unrecognized status. $failedTx", failedTx)
                 )
             )
         }
@@ -97,3 +97,9 @@ fun createTxStatusObserver(statusReference: AtomicReference<IrohaTxStatus>):
             statusReference.set(IrohaTxStatus.createSuccessful())
         }
 }
+
+/**
+ * Exception class that holds error message alongside with [ToriiResponse]
+ */
+class ToriiErrorResponseException(message: String, val toriiResponse: Endpoint.ToriiResponse) :
+    java.lang.Exception(message)
