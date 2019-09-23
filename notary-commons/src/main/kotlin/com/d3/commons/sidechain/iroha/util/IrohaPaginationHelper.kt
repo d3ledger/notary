@@ -97,12 +97,14 @@ class IrohaPaginationHelper(private val queryAPI: QueryAPI, private val pageSize
      * Returns the first account detail complied to a given predicate
      * @param storageAccountId - details holder account id
      * @param writerAccountId - details setter account id
+     * @param shufflePage - flag that makes this function to shuffle page result before applying any predicate
      * @param firstPredicate - predicate
      * @return the first account detail complied to [firstPredicate] or null
      */
     fun getPaginatedAccountDetailsFirst(
         storageAccountId: String,
         writerAccountId: String,
+        shufflePage: Boolean,
         firstPredicate: (key: String, value: String) -> Boolean
     ) = Result.of {
         var lastWriter: String? = null
@@ -118,12 +120,20 @@ class IrohaPaginationHelper(private val queryAPI: QueryAPI, private val pageSize
             )
             lastWriter = response.nextRecordId.writer
             lastKey = response.nextRecordId.key
-            val firstDetails =
-                parseAccountDetailsJson(response.detail).get()
-                    .getOrDefault(writerAccountId, emptyMap())
-                    .entries.firstOrNull { entry -> firstPredicate(entry.key, entry.value) }
+            var pageDetails: Iterable<Map.Entry<String, String>> = parseAccountDetailsJson(response.detail).get()
+                .getOrDefault(writerAccountId, emptyMap())
+                .entries
+            if (shufflePage) {
+                pageDetails = pageDetails.shuffled()
+            }
+            val firstDetails = pageDetails.firstOrNull { entry -> firstPredicate(entry.key, entry.value) }
             if (firstDetails != null) {
-                return@of Optional.of<Map.Entry<String,String>>(AbstractMap.SimpleEntry(firstDetails.key, firstDetails.value))
+                return@of Optional.of<Map.Entry<String, String>>(
+                    AbstractMap.SimpleEntry(
+                        firstDetails.key,
+                        firstDetails.value
+                    )
+                )
             }
         } while (response.hasNextRecordId())
         return@of Optional.empty<Map.Entry<String, String>>()

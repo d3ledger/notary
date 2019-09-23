@@ -58,6 +58,19 @@ interface IrohaQueryHelper {
     ): Result<Optional<Map.Entry<String, String>>, Exception>
 
     /**
+     * Does the same exact thing as [getAccountDetailsFirst] but randomly shuffles every page before applying any predicate
+     * @param storageAccountId - account to read details from
+     * @param writerAccountId - account that has set the details
+     * @param firstPredicate - predicate
+     * @return the first account detail by setter and [firstPredicate] or null
+     */
+    fun getAccountDetailsFirstShufflePage(
+        storageAccountId: String,
+        writerAccountId: String,
+        firstPredicate: (key: String, value: String) -> Boolean
+    ): Result<Optional<Map.Entry<String, String>>, Exception>
+
+    /**
      * Retrieves account details by setter filtered by predicate from Iroha
      * @param storageAccountId - account to read details from
      * @param writerAccountId - account that has set the details

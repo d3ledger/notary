@@ -80,7 +80,25 @@ open class IrohaQueryHelperImpl(
         writerAccountId: String,
         firstPredicate: (key: String, value: String) -> Boolean
     ): Result<Optional<Map.Entry<String, String>>, Exception> =
-        irohaPaginationHelper.getPaginatedAccountDetailsFirst(storageAccountId, writerAccountId, firstPredicate)
+        irohaPaginationHelper.getPaginatedAccountDetailsFirst(
+            storageAccountId,
+            writerAccountId,
+            shufflePage = false,
+            firstPredicate = firstPredicate
+        )
+
+    /** {@inheritDoc} */
+    override fun getAccountDetailsFirstShufflePage(
+        storageAccountId: String,
+        writerAccountId: String,
+        firstPredicate: (key: String, value: String) -> Boolean
+    ): Result<Optional<Map.Entry<String, String>>, Exception> =
+        irohaPaginationHelper.getPaginatedAccountDetailsFirst(
+            storageAccountId,
+            writerAccountId,
+            shufflePage = true,
+            firstPredicate = firstPredicate
+        )
 
     /** {@inheritDoc} */
     override fun getAccountDetailsFilter(

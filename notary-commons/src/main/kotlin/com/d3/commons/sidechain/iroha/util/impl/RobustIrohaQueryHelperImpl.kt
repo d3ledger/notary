@@ -10,6 +10,7 @@ import com.github.kittinunf.result.Result
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import mu.KLogging
+import java.util.*
 
 private const val TIMEOUT_MLS = 5_000L
 private const val MIN_TIMEOUT = TIMEOUT_MLS * 2
@@ -32,6 +33,18 @@ class RobustIrohaQueryHelperImpl(
         writerAccountId: String,
         firstPredicate: (key: String, value: String) -> Boolean
     ) = retryQuery { irohaQueryHelper.getAccountDetailsFirst(storageAccountId, writerAccountId, firstPredicate) }
+
+    override fun getAccountDetailsFirstShufflePage(
+        storageAccountId: String,
+        writerAccountId: String,
+        firstPredicate: (key: String, value: String) -> Boolean
+    ) = retryQuery {
+        irohaQueryHelper.getAccountDetailsFirstShufflePage(
+            storageAccountId,
+            writerAccountId,
+            firstPredicate
+        )
+    }
 
     override fun getAccountDetailsFilter(
         storageAccountId: String,
