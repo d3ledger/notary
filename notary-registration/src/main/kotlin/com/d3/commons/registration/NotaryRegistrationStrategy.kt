@@ -5,6 +5,7 @@
 
 package com.d3.commons.registration
 
+import com.d3.commons.model.D3ErrorException
 import com.d3.commons.notary.IrohaCommand
 import com.d3.commons.notary.IrohaOrderedBatch
 import com.d3.commons.notary.IrohaTransaction
@@ -80,7 +81,10 @@ class NotaryRegistrationStrategy(
                         true
                     } else {
                         // user is registered with a different pubkey - stateful invalid
-                        throw IllegalArgumentException("$accountName@$domainId already registered with pubkey different from $publicKey")
+                        throw D3ErrorException.warning(
+                            NOTARY_REGISTRATION_OPERATION,
+                            "$accountName@$domainId already registered with pubkey different from $publicKey"
+                        )
                     }
                 },
                 {

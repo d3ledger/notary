@@ -14,7 +14,9 @@ import com.github.kittinunf.result.flatMap
 import mu.KLogging
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.ComponentScan
+import kotlin.system.exitProcess
 
+const val NOTARY_REGISTRATION_OPERATION = "Notary user registration"
 private val logger = KLogging().logger
 
 @ComponentScan(basePackages = ["com.d3.commons.registration"])
@@ -23,7 +25,7 @@ class RegistrationApplication
 /**
  * Entry point for notary registration service. Creates Iroha account for D3 clients.
  */
-fun main(args: Array<String>) {
+fun main() {
     Result.of {
         val context = AnnotationConfigApplicationContext()
         context.environment.setActiveProfiles(getProfile())
@@ -34,6 +36,6 @@ fun main(args: Array<String>) {
         context.getBean(RegistrationServiceInitialization::class.java).init()
     }.failure { ex ->
         logger.error("Cannot run notary-registration", ex)
-        System.exit(1)
+        exitProcess(1)
     }
 }
