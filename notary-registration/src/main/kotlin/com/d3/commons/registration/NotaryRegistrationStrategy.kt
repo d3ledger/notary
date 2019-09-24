@@ -50,7 +50,7 @@ class NotaryRegistrationStrategy(
         domainId: String,
         publicKey: String
     ): Result<String, Exception> {
-        logger.info { "notary registration of client $accountName@$domainId with pubkey $publicKey" }
+        logger.info("notary registration of client $accountName@$domainId with pubkey $publicKey")
         return isRegistered(accountName, domainId, publicKey).flatMap { registered ->
             if (registered) {
                 logger.info { "client $accountName@$domainId is already registered" }
@@ -93,7 +93,11 @@ class NotaryRegistrationStrategy(
                         false
                     else
                     // something wrong happened
-                        throw it
+                        throw D3ErrorException.warning(
+                            failedOperation = NOTARY_REGISTRATION_OPERATION,
+                            description = "Cannot check if user $accountName@$domainId has been registered before",
+                            errorCause = it
+                        )
                 }
             )
     }
@@ -113,7 +117,10 @@ class NotaryRegistrationStrategy(
         batch: List<TransactionOuterClass.Transaction>
     ) = irohaConsumer.send(batch).map { passedHashes ->
         if (passedHashes.size != batch.size) {
-            throw IllegalStateException("Notary registration failed since tx batch was not fully successful")
+            throw D3ErrorException.warning(
+                failedOperation = NOTARY_REGISTRATION_OPERATION,
+                description = "Notary registration of account $accountName@$domainId failed since tx batch was not fully successful"
+            )
         }
     }
 
@@ -221,7 +228,7 @@ class NotaryRegistrationStrategy(
     }
 
     override fun getFreeAddressNumber(): Result<Int, Exception> {
-        return Result.of { throw Exception("not supported") }
+        return Result.of { throw UnsupportedOperationException() }
     }
 
     private fun getSignatoryTx(accountId: String, publicKey: String): IrohaTransaction {

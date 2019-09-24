@@ -30,7 +30,7 @@ class NotaryRegistrationTest {
 
     init {
         GlobalScope.launch {
-            main(emptyArray())
+            main()
         }
 
         runBlocking { delay(20_000) }
@@ -44,9 +44,9 @@ class NotaryRegistrationTest {
     }
 
     /**
-     * Test healthcheck
+     * Test health check
      * @given Registration service is up and running
-     * @when GET query sent to healthcheck port
+     * @when GET query sent to health check port
      * @then {"status":"UP"} is returned
      */
     @Test
