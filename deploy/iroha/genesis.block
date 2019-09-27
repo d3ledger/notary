@@ -197,9 +197,8 @@
                 "createRole": {
                   "roleName": "consensus_collector",
                   "permissions": [
-                    "can_create_account",
                     "can_set_detail",
-                    "can_get_all_accounts"
+                    "can_get_all_acc_detail"
                   ]
                 }
               },
