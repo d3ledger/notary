@@ -81,6 +81,20 @@ sealed class SideChainEvent {
     sealed class PrimaryBlockChainEvent : SideChainEvent() {
 
         /**
+         * Register sideChainAddress for irohaAccountId
+         * @param hash transaction hash
+         * @param time - transaction creation time
+         * @param irohaAccountId - iroha account to be assigned the sideChainAddress
+         * @param sideChainAddress - address to be registered for the client
+         */
+        data class Registration(
+            val hash: String,
+            val time: BigInteger,
+            val irohaAccountId: String,
+            val sideChainAddress: String
+        ) : PrimaryBlockChainEvent()
+
+        /**
          * Event which occurs when custodian deposits some amount of asset anchored on chain
          * @param hash transaction hash
          * @param user user name in Iroha
