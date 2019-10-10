@@ -13,13 +13,13 @@ import com.d3.commons.sidechain.provider.ChainAddressProvider
 import mu.KLogging
 import java.math.BigInteger
 
-const val REGISTRATION_OPERATION = "Ethereum user registration"
+const val REGISTRATION_OPERATION = "Chain user registration"
 
 /**
- * Ethereum registration in Iroha with provided ethereum address
+ * Chain registration in Iroha with provided chain address
  */
 class ChainRegistrationWithProvidedAddress(
-    private val ethAddressProvider: ChainAddressProvider,
+    private val chainAddressProvider: ChainAddressProvider,
     private val irohaConsumer: IrohaConsumer,
     private val storageAccountId: String,
     private val chainKeyName: String
@@ -29,27 +29,22 @@ class ChainRegistrationWithProvidedAddress(
         logger.info { "Init $chainKeyName ChainRegistrationWithProvidedAddress with irohaCreator=${irohaConsumer.creator}, storageAccountId=$storageAccountId" }
     }
 
-    private val ethereumAccountRegistrator = SideChainRegistrator(
-        irohaConsumer,
-        storageAccountId,
-        chainKeyName
-    )
-
     /**
-     * @param accountId - account that will be assigned a provided ethereum address
-     * @param ethAddress - ethereum address for iroha client with clientId
-     * @return transaction of
+     * Register client chain address
+     * @param accountId - account that will be assigned a provided chain address
+     * @param chainAddress - chain address for iroha client with clientId
+     * @return iroha transaction of chain address registration
      */
     fun register(
         accountId: String,
-        ethAddress: String,
+        chainAddress: String,
         time: BigInteger
     ): IrohaTransaction {
-        val assignedAddress = ethAddressProvider.getAddressByAccountId(accountId).get()
+        val assignedAddress = chainAddressProvider.getAddressByAccountId(accountId).get()
         if (assignedAddress.isPresent)
             throw D3ErrorException.warning(
                 failedOperation = REGISTRATION_OPERATION,
-                description = "Client $accountId has already been registered with address: ${assignedAddress.get()}"
+                description = "Client $accountId has already been registered in $chainKeyName"
             )
         // register with relay in Iroha
         return IrohaTransaction(
@@ -60,16 +55,15 @@ class ChainRegistrationWithProvidedAddress(
                 IrohaCommand.CommandSetAccountDetail(
                     accountId,
                     chainKeyName,
-                    ethAddress
+                    chainAddress
                 ),
                 IrohaCommand.CommandSetAccountDetail(
                     storageAccountId,
-                    ethAddress,
+                    chainAddress,
                     accountId
                 )
             )
         )
-
     }
 
     /**

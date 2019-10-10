@@ -25,22 +25,18 @@ class ChainRegistrationWithProvidedAddressTest {
     private val assignedAddress = "assigned_address"
     private val unassignedClientid = "unassigned@client"
     private val chainAddress = "0xchain_address"
-    private val storageAccountId = "storage@notary"
+    private val sideChainAddressesStorage = "storage@notary"
     private val chainId = "chain_id"
     private val time = BigInteger.ZERO
 
     private val ethAddressProvider = mock<ChainAddressProvider> {
         on {
-            getAddressByAccountId(
-                eq(assignedClientId)
-            )
+            getAddressByAccountId(eq(assignedClientId))
         } doReturn Result.of { Optional.of(assignedAddress) }
 
 
         on {
-            getAddressByAccountId(
-                eq(unassignedClientid)
-            )
+            getAddressByAccountId(eq(unassignedClientid))
         } doReturn Result.of { Optional.empty<String>() }
     }
 
@@ -56,7 +52,7 @@ class ChainRegistrationWithProvidedAddressTest {
     private val registrationStrategy = ChainRegistrationWithProvidedAddress(
         ethAddressProvider,
         irohaConsumer,
-        storageAccountId,
+        sideChainAddressesStorage,
         chainId
     )
 
@@ -89,7 +85,7 @@ class ChainRegistrationWithProvidedAddressTest {
         assertEquals(chainAddress, cmd0.value)
 
         val cmd1 = tx.commands[1] as IrohaCommand.CommandSetAccountDetail
-        assertEquals(storageAccountId, cmd1.accountId)
+        assertEquals(sideChainAddressesStorage, cmd1.accountId)
         assertEquals(chainAddress, cmd1.key)
         assertEquals(unassignedClientid, cmd1.value)
     }
