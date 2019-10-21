@@ -8,7 +8,6 @@ package com.d3.commons.provider
 import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
-import jdk.nashorn.internal.runtime.regexp.JdkRegExp
 
 private val ACCOUNT_ID_REGEXP = "[a-z_0-9]{1,32}@[a-z_0-9]{1,32}".toRegex()
 
