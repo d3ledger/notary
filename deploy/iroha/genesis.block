@@ -91,7 +91,8 @@
                     "can_remove_signatory",
                     "can_grant_can_set_my_quorum",
                     "can_grant_can_add_my_signatory",
-                    "can_grant_can_remove_my_signatory"
+                    "can_grant_can_remove_my_signatory",
+                     "can_set_detail"
                   ]
                 }
               },
@@ -888,7 +889,7 @@
               {
                 "addAssetQuantity": {
                   "assetId": "xor#sora",
-                  "amount": "1618033988749894848204586834"
+                  "amount": "1618033988.749894848204586834"
                 }
               },
               {
@@ -897,7 +898,7 @@
                   "destAccountId": "xor@sora",
                   "assetId": "xor#sora",
                   "description": "initial supply",
-                  "amount": "1618033988749894848204586834"
+                  "amount": "1618033988.749894848204586834"
                 }
               },
               {

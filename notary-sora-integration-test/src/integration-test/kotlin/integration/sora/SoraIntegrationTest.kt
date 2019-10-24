@@ -223,7 +223,7 @@ class SoraIntegrationTest {
     }
 
     /**
-     * @given registrtion service is up
+     * @given registration service is up
      * @when send registration request with wrong key
      * @then error response is returned
      */
@@ -250,7 +250,7 @@ class SoraIntegrationTest {
     @Test
     fun initialSupplyXOR() {
         assertEquals(
-            "1618033988749894848204586834",
+            "1618033988.749894848204586834",
             integrationHelper.getIrohaAccountBalance(soraClientId, xorAsset)
         )
     }
