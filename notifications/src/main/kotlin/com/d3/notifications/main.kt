@@ -7,6 +7,7 @@
 
 package com.d3.notifications
 
+import com.d3.commons.config.PROFILE_ENV
 import com.d3.notifications.init.NotificationInitialization
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
@@ -28,11 +29,27 @@ private val logger = KLogging().logger
  */
 fun main() {
     Result.of {
-        AnnotationConfigApplicationContext(NotificationApplication::class.java)
+        val context = AnnotationConfigApplicationContext()
+        context.environment.setActiveProfiles(getProfile())
+        context.register(NotificationApplication::class.java)
+        context.refresh()
+        context
     }.map { context ->
         context.getBean(NotificationInitialization::class.java).init { exitProcess(1) }
     }.failure { ex ->
         logger.error("Cannot start notification service", ex)
         exitProcess(1)
     }
+}
+
+/**
+ * Returns current profile based on environment variable
+ */
+fun getProfile(): String {
+    var profile = System.getenv(PROFILE_ENV)
+    if (profile == null) {
+        logger.warn("No profile set. Using default profile")
+        profile = "d3"
+    }
+    return profile
 }

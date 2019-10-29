@@ -10,14 +10,9 @@ import com.d3.commons.model.IrohaCredential
 import com.d3.commons.provider.NotaryClientsProvider
 import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
-import com.d3.notifications.provider.D3ClientProvider
-import com.d3.notifications.push.PushServiceFactory
-import com.d3.notifications.smtp.SMTPServiceImpl
-import com.dumbster.smtp.SimpleSmtpServer
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.Utils
-import nl.martijndwars.webpush.PushService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -36,7 +31,6 @@ class NotificationAppConfiguration {
 
     private val notaryCredential =
         IrohaCredential(notificationsConfig.notaryCredential.accountId, notaryKeypair)
-
 
     @Bean
     fun irohaAPI(): IrohaAPI {
@@ -57,32 +51,10 @@ class NotificationAppConfiguration {
     )
 
     @Bean
-    fun smtpService() =
-        SMTPServiceImpl(
-            notificationsConfig.smtp
-        )
-
-    @Bean
-    fun d3ClientProvider() = D3ClientProvider(notaryQueryHelper())
-
-    @Bean
     fun irohaChainListener() = IrohaChainListener(irohaAPI(), notaryCredential)
 
     @Bean
-    fun pushServiceFactory() = object : PushServiceFactory {
-        override fun create() =
-            PushService(
-                notificationsConfig.push.vapidPubKeyBase64,
-                notificationsConfig.push.vapidPrivKeyBase64,
-                "D3 notifications"
-            )
-    }
-
-    @Bean
     fun notificationsConfig() = notificationsConfig
-
-    @Bean
-    fun dumbster() = SimpleSmtpServer.start(notificationsConfig.smtp.port)!!
 
     @Bean
     fun notaryClientsProvider() = NotaryClientsProvider(

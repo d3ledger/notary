@@ -16,10 +16,6 @@ interface NotificationsConfig {
     val iroha: IrohaConfig
     // Notary account credential. Used to listen to Iroha blocks
     val notaryCredential: IrohaCredentialRawConfig
-    // SMTP config
-    val smtp: SMTPConfig
-    // Push API config
-    val push: PushAPIConfig
     // Billing account for transfers
     val transferBillingAccount: String
     // Billing account for withdrawals

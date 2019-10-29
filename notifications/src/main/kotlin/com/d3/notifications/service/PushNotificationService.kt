@@ -5,15 +5,16 @@
 
 package com.d3.notifications.service
 
+import com.d3.notifications.push.WebPushAPIService
 import com.d3.notifications.push.WebPushAPIServiceImpl
 import com.github.kittinunf.result.Result
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 
 /**
  * Service that is used to notify D3 clients using push notifications
  */
-@Component
-class PushNotificationService(private val webPushAPIService: WebPushAPIServiceImpl) :
+class PushNotificationService(private val webPushAPIService: WebPushAPIService) :
     NotificationService {
 
     override fun notifySendToClient(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
