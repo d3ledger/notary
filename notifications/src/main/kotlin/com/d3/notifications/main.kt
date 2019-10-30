@@ -11,6 +11,7 @@ import com.d3.commons.config.PROFILE_ENV
 import com.d3.notifications.init.NotificationInitialization
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
+import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import mu.KLogging
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
@@ -34,7 +35,7 @@ fun main() {
         context.register(NotificationApplication::class.java)
         context.refresh()
         context
-    }.map { context ->
+    }.flatMap { context ->
         context.getBean(NotificationInitialization::class.java).init { exitProcess(1) }
     }.failure { ex ->
         logger.error("Cannot start notification service", ex)

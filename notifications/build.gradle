@@ -66,6 +66,8 @@ dependencies {
 
     // https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12
     compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.8.0-beta2'
+
+    compile "com.github.soramitsu.chain-adapter:chain-adapter-client:$chain_adapter_client_version"
 }
 
 task runNotifications(type: JavaExec) {

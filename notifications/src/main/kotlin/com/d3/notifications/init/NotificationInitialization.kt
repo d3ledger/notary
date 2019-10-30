@@ -5,24 +5,24 @@
 
 package com.d3.notifications.init
 
+import com.d3.chainadapter.client.ReliableIrohaChainListener
 import com.d3.commons.provider.NotaryClientsProvider
 import com.d3.commons.service.LAST_SUCCESSFUL_WITHDRAWAL_KEY
 import com.d3.commons.service.WithdrawalFinalizationDetails
 import com.d3.commons.sidechain.iroha.FEE_ROLLBACK_DESCRIPTION
-import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.NOTARY_DOMAIN
 import com.d3.commons.sidechain.iroha.ROLLBACK_DESCRIPTION
 import com.d3.commons.sidechain.iroha.util.getSetDetailCommands
 import com.d3.commons.sidechain.iroha.util.getTransferTransactions
-import com.d3.commons.util.createPrettySingleThreadPool
 import com.d3.commons.util.irohaUnEscape
-import com.d3.notifications.NOTIFICATIONS_SERVICE_NAME
 import com.d3.notifications.config.NotificationsConfig
 import com.d3.notifications.service.NotificationService
 import com.d3.notifications.service.TransferNotifyEvent
+import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
+import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
-import io.reactivex.schedulers.Schedulers
+import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
 import iroha.protocol.TransactionOuterClass
 import mu.KLogging
@@ -37,7 +37,7 @@ import java.math.BigDecimal
 class NotificationInitialization(
     private val notaryClientsProvider: NotaryClientsProvider,
     private val notificationsConfig: NotificationsConfig,
-    private val irohaChainListener: IrohaChainListener,
+    private val irohaChainListener: ReliableIrohaChainListener,
     private val notificationServices: List<NotificationService>
 ) {
 
@@ -45,53 +45,54 @@ class NotificationInitialization(
      * Initiates notification service
      * @param onIrohaChainFailure - function that will be called in case of Iroha failure. Does nothing by default.
      */
-    fun init(onIrohaChainFailure: () -> Unit = {}) {
-        irohaChainListener.getBlockObservable().map { irohaObservable ->
+    fun init(onIrohaChainFailure: () -> Unit = {}): Result<Unit, Exception> {
+        return irohaChainListener.getBlockObservable().map { irohaObservable ->
             irohaObservable
-                .subscribeOn(
-                    Schedulers.from(
-                        createPrettySingleThreadPool(
-                            NOTIFICATIONS_SERVICE_NAME, "iroha-chain-listener"
-                        )
-                    )
-                )
                 .subscribe(
-                    { block ->
-                        getSetDetailCommands(block).map { it.setAccountDetail }
-                            .forEach { setDetailCommand ->
-                                // Notify withdrawal
-                                if (isWithdrawal(setDetailCommand)) {
-                                    handleWithdrawalEventNotification(setDetailCommand)
-                                }
-                            }
-                        //Get transfer commands from block
-                        getTransferTransactions(block).forEach { tx ->
-                            tx.payload.reducedPayload.commandsList.forEach { command ->
-                                val transferAsset = command.transferAsset
-                                // Notify deposit
-                                if (isDeposit(transferAsset)) {
-                                    handleDepositNotification(transferAsset)
-                                }
-                                // Notify transfer
-                                else if (isClientToClientTransfer(transferAsset)) {
-                                    handleClientToClientEventNotification(
-                                        transferAsset,
-                                        getTransferFee(tx)
-                                    )
-                                }
-                                // Notify rollback
-                                else if (isRollback(transferAsset)) {
-                                    handleRollbackEventNotification(
-                                        transferAsset,
-                                        getWithdrawalRollbackFee(tx)
-                                    )
-                                }
-                            }
-                        }
+                    { (block, ack) ->
+                        safeAck({ handleBlock(block) }, ack)
                     }, { ex ->
                         logger.error("Error on Iroha subscribe", ex)
                         onIrohaChainFailure()
                     })
+        }.flatMap { irohaChainListener.listen() }
+    }
+
+    /**
+     * Handles given block
+     * @param block - block to handle
+     */
+    private fun handleBlock(block: BlockOuterClass.Block) {
+        getSetDetailCommands(block).map { it.setAccountDetail }
+            .forEach { setDetailCommand ->
+                // Notify withdrawal
+                if (isWithdrawal(setDetailCommand)) {
+                    handleWithdrawalEventNotification(setDetailCommand)
+                }
+            }
+        //Get transfer commands from block
+        getTransferTransactions(block).forEach { tx ->
+            tx.payload.reducedPayload.commandsList.forEach { command ->
+                val transferAsset = command.transferAsset
+                // Notify deposit
+                if (isDeposit(transferAsset)) {
+                    handleDepositNotification(transferAsset)
+                }
+                // Notify transfer
+                else if (isClientToClientTransfer(transferAsset)) {
+                    handleClientToClientEventNotification(
+                        transferAsset,
+                        getTransferFee(tx)
+                    )
+                }
+                // Notify rollback
+                else if (isRollback(transferAsset)) {
+                    handleRollbackEventNotification(
+                        transferAsset,
+                        getWithdrawalRollbackFee(tx)
+                    )
+                }
+            }
         }
     }
 
@@ -300,6 +301,21 @@ class NotificationInitialization(
         } catch (e: Exception) {
             logger.error("Cannot check", e)
             false
+        }
+    }
+
+    /**
+     * Executes provided logic safely
+     * @param logic - logic to execute
+     * @param ack - acknowledgment function to call
+     */
+    private fun safeAck(logic: () -> Unit, ack: () -> Unit) {
+        try {
+            logic()
+        } catch (e: Exception) {
+            logger.error("Cannot execute", e)
+        } finally {
+            ack()
         }
     }
 

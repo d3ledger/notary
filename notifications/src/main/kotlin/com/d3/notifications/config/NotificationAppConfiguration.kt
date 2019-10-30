@@ -5,11 +5,13 @@
 
 package com.d3.notifications.config
 
+import com.d3.chainadapter.client.ReliableIrohaChainListener
+import com.d3.chainadapter.client.createPrettySingleThreadPool
 import com.d3.commons.config.loadRawLocalConfigs
-import com.d3.commons.model.IrohaCredential
 import com.d3.commons.provider.NotaryClientsProvider
-import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
+import com.d3.commons.sidechain.iroha.util.impl.RobustIrohaQueryHelperImpl
+import com.d3.notifications.NOTIFICATIONS_SERVICE_NAME
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.Utils
@@ -29,8 +31,10 @@ class NotificationAppConfiguration {
         notificationsConfig.notaryCredential.privkey
     )
 
-    private val notaryCredential =
-        IrohaCredential(notificationsConfig.notaryCredential.accountId, notaryKeypair)
+    @Bean
+    fun chainListenerExecutorService() = createPrettySingleThreadPool(
+        NOTIFICATIONS_SERVICE_NAME, "iroha-chain-listener"
+    )
 
     @Bean
     fun irohaAPI(): IrohaAPI {
@@ -44,14 +48,22 @@ class NotificationAppConfiguration {
     }
 
     @Bean
-    fun notaryQueryHelper() = IrohaQueryHelperImpl(
-        irohaAPI(),
-        notificationsConfig.notaryCredential.accountId,
-        notaryKeypair
+    fun notaryQueryHelper() = RobustIrohaQueryHelperImpl(
+        IrohaQueryHelperImpl(
+            irohaAPI(),
+            notificationsConfig.notaryCredential.accountId,
+            notaryKeypair
+        ), notificationsConfig.irohaQueryTimeoutMls
     )
 
     @Bean
-    fun irohaChainListener() = IrohaChainListener(irohaAPI(), notaryCredential)
+    fun irohaChainListener() =
+        ReliableIrohaChainListener(
+            rmqConfig = notificationsConfig.rmq,
+            irohaQueue = notificationsConfig.blocksQueue,
+            autoAck = false,
+            consumerExecutorService = chainListenerExecutorService()
+        )
 
     @Bean
     fun notificationsConfig() = notificationsConfig
