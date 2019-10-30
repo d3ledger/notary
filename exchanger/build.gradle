@@ -47,6 +47,9 @@ dependencies {
     // https://mvnrepository.com/artifact/commons-logging/commons-logging
     implementation group: 'commons-logging', name: 'commons-logging', version: '1.2'
 
+    // https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12
+    compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.8.0-beta2'
+
     // Integration
     implementation 'org.apache.commons:commons-math3:3.6.1'
     implementation "com.github.soramitsu.chain-adapter:chain-adapter-client:$chain_adapter_client_version"

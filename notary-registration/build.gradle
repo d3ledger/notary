@@ -50,6 +50,9 @@ dependencies {
     implementation group: 'com.github.kittinunf.result', name: 'result', version: '1.4.0'
 
     implementation 'io.github.microutils:kotlin-logging:1.6.26'
+
+    // https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12
+    compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.8.0-beta2'
 }
 
 task runRegistration(type: JavaExec) {

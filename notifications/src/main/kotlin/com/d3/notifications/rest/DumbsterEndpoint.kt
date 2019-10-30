@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit
 /**
  * HTTP endpoint for dummy 'dumbster' SMTP server. Good for testing.
  */
-@Component
 class DumbsterEndpoint(
     private val dumbster: SimpleSmtpServer,
     notificationsConfig: NotificationsConfig

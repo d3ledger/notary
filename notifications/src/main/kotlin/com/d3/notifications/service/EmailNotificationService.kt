@@ -21,7 +21,6 @@ const val D3_DEPOSIT_ROLLBACK_SUBJECT = "D3 rollback"
 /**
  * Service for email notifications
  */
-@Component
 class EmailNotificationService(
     private val smtpService: SMTPService,
     private val d3ClientProvider: D3ClientProvider

@@ -5,6 +5,7 @@
 
 package notifications.environment
 
+import com.d3.commons.config.loadRawLocalConfigs
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.provider.NotaryClientsProvider
 import com.d3.commons.sidechain.iroha.IrohaChainListener
@@ -12,6 +13,8 @@ import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.util.getRandomString
+import com.d3.notifications.config.PushAPIConfig
+import com.d3.notifications.config.SMTPConfig
 import com.d3.notifications.init.NotificationInitialization
 import com.d3.notifications.provider.D3ClientProvider
 import com.d3.notifications.push.PushServiceFactory
@@ -44,13 +47,22 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
 
     val registrationEnvironment = RegistrationServiceTestEnvironment(integrationHelper)
 
-    private val notificationsConfigHelper =
-        NotificationsConfigHelper(integrationHelper.accountHelper)
+    private val notificationsConfigHelper = NotificationsConfigHelper(integrationHelper.accountHelper)
 
     val notificationsConfig =
         notificationsConfigHelper.createNotificationsConfig(registrationEnvironment.registrationConfig)
 
-    val dumbster = SimpleSmtpServer.start(notificationsConfig.smtp.port)!!
+    val smtpConfig = loadRawLocalConfigs(
+        "notifications.smtp",
+        SMTPConfig::class.java, "smtp.properties"
+    )
+
+    val pushConfig = loadRawLocalConfigs(
+        "notifications.push",
+        PushAPIConfig::class.java, "push.properties"
+    )
+
+    val dumbster = SimpleSmtpServer.start(smtpConfig.port)!!
 
     val dumbsterEndpoint = DumbsterEndpoint(dumbster, notificationsConfig)
 
@@ -68,19 +80,14 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
 
     private val d3ClientProvider = D3ClientProvider(notaryQueryHelper)
 
-    private val smtpService = SMTPServiceImpl(notificationsConfig.smtp)
+    private val smtpService = SMTPServiceImpl(smtpConfig)
 
     private val emailNotificationService =
         EmailNotificationService(smtpService, d3ClientProvider)
 
-    val pushService =
-        spy(
-            PushService(
-                notificationsConfig.push.vapidPubKeyBase64,
-                notificationsConfig.push.vapidPrivKeyBase64,
-                "D3 notifications"
-            )
-        )
+    val pushService = spy(
+        PushService(pushConfig.vapidPubKeyBase64, pushConfig.vapidPrivKeyBase64, "D3 notifications")
+    )
 
     private val pushServiceFactory = object : PushServiceFactory {
         override fun create() = pushService

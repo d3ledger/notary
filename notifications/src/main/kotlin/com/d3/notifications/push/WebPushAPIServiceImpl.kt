@@ -21,10 +21,9 @@ import java.security.Security
 /**
  * Service that used to send web push notifications using Push API
  */
-@Component
 class WebPushAPIServiceImpl(
-    @Autowired private val d3ClientProvider: D3ClientProvider,
-    @Autowired private val pushServiceFactory: PushServiceFactory
+    private val d3ClientProvider: D3ClientProvider,
+    private val pushServiceFactory: PushServiceFactory
 ) : WebPushAPIService {
 
     override fun push(accountId: String, message: String): Result<Unit, Exception> {

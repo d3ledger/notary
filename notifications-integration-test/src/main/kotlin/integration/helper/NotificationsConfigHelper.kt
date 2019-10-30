@@ -28,8 +28,6 @@ class NotificationsConfigHelper(private val accountHelper: IrohaAccountHelper) :
             override val withdrawalBillingAccount = notificationsConfig.withdrawalBillingAccount
             override val transferBillingAccount = notificationsConfig.transferBillingAccount
             override val iroha = createIrohaConfig()
-            override val smtp = notificationsConfig.smtp
-            override val push = notificationsConfig.push
             override val notaryCredential =
                 accountHelper.createCredentialRawConfig(accountHelper.notaryAccount)
         }
