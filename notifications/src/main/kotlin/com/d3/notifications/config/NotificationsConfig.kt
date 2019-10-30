@@ -5,6 +5,7 @@
 
 package com.d3.notifications.config
 
+import com.d3.chainadapter.client.RMQConfig
 import com.d3.commons.config.IrohaConfig
 import com.d3.commons.config.IrohaCredentialRawConfig
 
@@ -26,6 +27,12 @@ interface NotificationsConfig {
     val clientStorageAccount: String
     // Account name of registration service(no domain)
     val registrationServiceAccountName: String
+    // RMQ configuration
+    val rmq: RMQConfig
+    // Queue name
+    val blocksQueue: String
+    // Timeout for Iroha queries
+    val irohaQueryTimeoutMls:Int
 }
 
 /**

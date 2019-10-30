@@ -5,14 +5,17 @@
 
 package notifications.environment
 
+import com.d3.chainadapter.client.ReliableIrohaChainListener
+import com.d3.chainadapter.client.createPrettySingleThreadPool
 import com.d3.commons.config.loadRawLocalConfigs
 import com.d3.commons.model.IrohaCredential
 import com.d3.commons.provider.NotaryClientsProvider
-import com.d3.commons.sidechain.iroha.IrohaChainListener
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.ModelUtil
 import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
+import com.d3.commons.sidechain.iroha.util.impl.RobustIrohaQueryHelperImpl
 import com.d3.commons.util.getRandomString
+import com.d3.notifications.NOTIFICATIONS_SERVICE_NAME
 import com.d3.notifications.config.PushAPIConfig
 import com.d3.notifications.config.SMTPConfig
 import com.d3.notifications.init.NotificationInitialization
@@ -69,13 +72,24 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
     private val irohaAPI =
         IrohaAPI(notificationsConfig.iroha.hostname, notificationsConfig.iroha.port)
 
-    private val irohaChainListener =
-        IrohaChainListener(irohaAPI, integrationHelper.accountHelper.notaryAccount)
+    private val chainListenerExecutorService =
+        createPrettySingleThreadPool(NOTIFICATIONS_SERVICE_NAME, "iroha-chain-listener")
 
-    private val notaryQueryHelper = IrohaQueryHelperImpl(
-        irohaAPI,
-        integrationHelper.accountHelper.notaryAccount.accountId,
-        integrationHelper.accountHelper.notaryAccount.keyPair
+    private val irohaChainListener =
+        ReliableIrohaChainListener(
+            rmqConfig = notificationsConfig.rmq,
+            irohaQueue = notificationsConfig.blocksQueue,
+            autoAck = false,
+            consumerExecutorService = chainListenerExecutorService
+        )
+
+    private val notaryQueryHelper = RobustIrohaQueryHelperImpl(
+        IrohaQueryHelperImpl(
+            irohaAPI,
+            integrationHelper.accountHelper.notaryAccount.accountId,
+            integrationHelper.accountHelper.notaryAccount.keyPair
+        ),
+        notificationsConfig.irohaQueryTimeoutMls
     )
 
     private val d3ClientProvider = D3ClientProvider(notaryQueryHelper)
@@ -138,5 +152,6 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
         irohaAPI.close()
         dumbster.close()
         dumbsterEndpoint.close()
+        chainListenerExecutorService.shutdownNow()
     }
 }
