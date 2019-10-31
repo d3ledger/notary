@@ -22,6 +22,7 @@ import com.d3.notifications.init.NotificationInitialization
 import com.d3.notifications.provider.D3ClientProvider
 import com.d3.notifications.push.PushServiceFactory
 import com.d3.notifications.push.WebPushAPIServiceImpl
+import com.d3.notifications.queue.EventsQueue
 import com.d3.notifications.rest.DumbsterEndpoint
 import com.d3.notifications.service.EmailNotificationService
 import com.d3.notifications.service.PushNotificationService
@@ -79,7 +80,7 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
         ReliableIrohaChainListener(
             rmqConfig = notificationsConfig.rmq,
             irohaQueue = notificationsConfig.blocksQueue,
-            autoAck = false,
+            autoAck = true,
             consumerExecutorService = chainListenerExecutorService
         )
 
@@ -122,12 +123,15 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
             registrationEnvironment.registrationConfig.registrationCredential.accountId.substringBefore("@")
         )
 
+    private val eventsQueue =
+        EventsQueue(listOf(emailNotificationService, pushNotificationService), notificationsConfig.rmq)
+
     val notificationInitialization =
         NotificationInitialization(
             notaryClientsProvider,
             notificationsConfig,
             irohaChainListener,
-            listOf(emailNotificationService, pushNotificationService)
+            eventsQueue
         )
 
     val withdrawalIrohaConsumer = IrohaConsumerImpl(integrationHelper.accountHelper.btcWithdrawalAccount, irohaAPI)
