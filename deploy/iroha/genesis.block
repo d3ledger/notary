@@ -39,6 +39,17 @@
               },
               {
                 "createRole": {
+                  "roleName": "notification_service",
+                  "permissions": [
+                    "can_get_all_accounts",
+                    "can_get_all_acc_detail",
+                    "can_set_detail",
+                    "can_get_blocks"
+                  ]
+                }
+              },
+              {
+                "createRole": {
                   "roleName": "relay_deployer",
                   "permissions": [
                     "can_set_detail",
@@ -506,6 +517,13 @@
               },
               {
                 "createAccount": {
+                  "accountName": "notification",
+                  "domainId": "notary",
+                  "publicKey": "825fd700dba3b294dd65029b2ec1f21b5bf464e6f795c487962cb598780ab0d1"
+                }
+              },
+              {
+                "createAccount": {
                   "accountName": "rmq",
                   "domainId": "notary",
                   "publicKey": "7a4af859a775dd7c7b4024c97c8118f0280455b8135f6f41422101f0397e0fa5"
@@ -516,6 +534,12 @@
                   "accountName": "superuser",
                   "domainId": "bootstrap",
                   "publicKey": "02a3c31288f3800e08bcb7f1a2fe446ee5921434096e71f8b7535eda9210524b"
+                }
+              },
+              {
+                "appendRole": {
+                  "accountId": "notification@notary",
+                  "roleName": "notification_service"
                 }
               },
               {

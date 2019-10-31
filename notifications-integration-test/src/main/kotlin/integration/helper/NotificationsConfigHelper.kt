@@ -22,6 +22,7 @@ class NotificationsConfigHelper(private val accountHelper: IrohaAccountHelper) :
             NotificationsConfig::class.java, "notifications.properties"
         )
         return object : NotificationsConfig {
+            override val nodeId = String.getRandomString(10)
             override val rmq = notificationsConfig.rmq
             override val blocksQueue = String.getRandomString(10)
             override val irohaQueryTimeoutMls = notificationsConfig.irohaQueryTimeoutMls
@@ -32,7 +33,7 @@ class NotificationsConfigHelper(private val accountHelper: IrohaAccountHelper) :
             override val withdrawalBillingAccount = notificationsConfig.withdrawalBillingAccount
             override val transferBillingAccount = notificationsConfig.transferBillingAccount
             override val iroha = createIrohaConfig()
-            override val notaryCredential =
+            override val notificationCredential =
                 accountHelper.createCredentialRawConfig(accountHelper.notaryAccount)
         }
     }

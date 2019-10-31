@@ -38,6 +38,9 @@ open class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers:
     /** Notary account */
     val notaryAccount by lazy { createNotaryAccount() }
 
+    /** Account that handles notifications */
+    val notificationsService by lazy { createTesterAccount("notification", listOf("notification_service")) }
+
     val ethAnchoredTokenStorageAccount by lazy { createTesterAccount("eth_anch_tokens_") }
     val irohaAnchoredTokenStorageAccount by lazy { createTesterAccount("iroha_anch_tokens_") }
 

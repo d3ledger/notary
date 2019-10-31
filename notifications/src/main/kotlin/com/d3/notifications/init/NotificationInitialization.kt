@@ -17,6 +17,7 @@ import com.d3.commons.sidechain.iroha.util.getTransferTransactions
 import com.d3.commons.util.irohaUnEscape
 import com.d3.notifications.config.NotificationsConfig
 import com.d3.notifications.service.NotificationService
+import com.d3.notifications.service.ScalingStrategy
 import com.d3.notifications.service.TransferNotifyEvent
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
@@ -38,6 +39,7 @@ class NotificationInitialization(
     private val notaryClientsProvider: NotaryClientsProvider,
     private val notificationsConfig: NotificationsConfig,
     private val irohaChainListener: ReliableIrohaChainListener,
+    private val scalingStrategy: ScalingStrategy,
     private val notificationServices: List<NotificationService>
 ) {
 
@@ -49,8 +51,8 @@ class NotificationInitialization(
         return irohaChainListener.getBlockObservable().map { irohaObservable ->
             irohaObservable
                 .subscribe(
-                    { (block, ack) ->
-                        safeAck({ handleBlock(block) }, ack)
+                    { (block, _) ->
+                        handleBlock(block)
                     }, { ex ->
                         logger.error("Error on Iroha subscribe", ex)
                         onIrohaChainFailure()
@@ -63,11 +65,13 @@ class NotificationInitialization(
      * @param block - block to handle
      */
     private fun handleBlock(block: BlockOuterClass.Block) {
+        // Collection of handlers
+        val handlers = ArrayList<() -> Unit>()
         getSetDetailCommands(block).map { it.setAccountDetail }
             .forEach { setDetailCommand ->
                 // Notify withdrawal
                 if (isWithdrawal(setDetailCommand)) {
-                    handleWithdrawalEventNotification(setDetailCommand)
+                    handlers.add { handleWithdrawalEventNotification(setDetailCommand) }
                 }
             }
         //Get transfer commands from block
@@ -76,23 +80,39 @@ class NotificationInitialization(
                 val transferAsset = command.transferAsset
                 // Notify deposit
                 if (isDeposit(transferAsset)) {
-                    handleDepositNotification(transferAsset)
+                    handlers.add { handleDepositNotification(transferAsset) }
                 }
                 // Notify transfer
                 else if (isClientToClientTransfer(transferAsset)) {
-                    handleClientToClientEventNotification(
-                        transferAsset,
-                        getTransferFee(tx)
-                    )
+                    handlers.add {
+                        handleClientToClientEventNotification(
+                            transferAsset,
+                            getTransferFee(tx)
+                        )
+                    }
                 }
                 // Notify rollback
                 else if (isRollback(transferAsset)) {
-                    handleRollbackEventNotification(
-                        transferAsset,
-                        getWithdrawalRollbackFee(tx)
-                    )
+                    handlers.add {
+                        handleRollbackEventNotification(
+                            transferAsset,
+                            getWithdrawalRollbackFee(tx)
+                        )
+                    }
                 }
             }
+        }
+        if (handlers.isNotEmpty()) {
+            // Check if we are able to handle the block
+            scalingStrategy.isAbleToHandle(block).fold(
+                { ableToHandle ->
+                    if (ableToHandle) {
+                        handlers.forEach { it() }
+                    } else {
+                        logger.warn("Cannot handle block ${block.blockV1.payload.height}")
+                    }
+                },
+                { ex -> logger.error("Cannot handle block $block", ex) })
         }
     }
 
@@ -218,7 +238,7 @@ class NotificationInitialization(
             withdrawalDescription,
             to = withdrawalFinalizationDetails.destinationAddress
         )
-        logger.info { "Notify withdrawal $transferNotifyEvent" }
+        logger.info("Notify withdrawal $transferNotifyEvent")
         notificationServices.forEach {
             it.notifyWithdrawal(
                 transferNotifyEvent
@@ -284,7 +304,7 @@ class NotificationInitialization(
             transferAsset.assetId,
             rollbackDescription
         )
-        logger.info { "Notify rollback $transferNotifyEvent" }
+        logger.info("Notify rollback $transferNotifyEvent")
         notificationServices.forEach {
             it.notifyRollback(
                 transferNotifyEvent
@@ -301,21 +321,6 @@ class NotificationInitialization(
         } catch (e: Exception) {
             logger.error("Cannot check", e)
             false
-        }
-    }
-
-    /**
-     * Executes provided logic safely
-     * @param logic - logic to execute
-     * @param ack - acknowledgment function to call
-     */
-    private fun safeAck(logic: () -> Unit, ack: () -> Unit) {
-        try {
-            logic()
-        } catch (e: Exception) {
-            logger.error("Cannot execute", e)
-        } finally {
-            ack()
         }
     }
 

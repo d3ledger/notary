@@ -15,8 +15,8 @@ import com.d3.commons.config.IrohaCredentialRawConfig
 interface NotificationsConfig {
     // Iroha configs
     val iroha: IrohaConfig
-    // Notary account credential. Used to listen to Iroha blocks
-    val notaryCredential: IrohaCredentialRawConfig
+    // Notification service account credential.
+    val notificationCredential: IrohaCredentialRawConfig
     // Billing account for transfers
     val transferBillingAccount: String
     // Billing account for withdrawals
@@ -33,6 +33,8 @@ interface NotificationsConfig {
     val blocksQueue: String
     // Timeout for Iroha queries
     val irohaQueryTimeoutMls:Int
+    // Node identifier. Must be unique for every node
+    val nodeId:String
 }
 
 /**

@@ -8,9 +8,12 @@ package com.d3.notifications.config
 import com.d3.chainadapter.client.ReliableIrohaChainListener
 import com.d3.chainadapter.client.createPrettySingleThreadPool
 import com.d3.commons.config.loadRawLocalConfigs
+import com.d3.commons.model.IrohaCredential
 import com.d3.commons.provider.NotaryClientsProvider
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.sidechain.iroha.util.impl.RobustIrohaQueryHelperImpl
+import com.d3.commons.util.createPrettyFixThreadPool
 import com.d3.notifications.NOTIFICATIONS_SERVICE_NAME
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
@@ -26,15 +29,16 @@ val notificationsConfig = loadRawLocalConfigs(
 @Configuration
 class NotificationAppConfiguration {
 
-    private val notaryKeypair = Utils.parseHexKeypair(
-        notificationsConfig.notaryCredential.pubkey,
-        notificationsConfig.notaryCredential.privkey
+    private val notificationsKeypair = Utils.parseHexKeypair(
+        notificationsConfig.notificationCredential.pubkey,
+        notificationsConfig.notificationCredential.privkey
     )
 
+    private val notificationsIrohaCredential =
+        IrohaCredential(notificationsConfig.notificationCredential.accountId, notificationsKeypair)
+
     @Bean
-    fun chainListenerExecutorService() = createPrettySingleThreadPool(
-        NOTIFICATIONS_SERVICE_NAME, "iroha-chain-listener"
-    )
+    fun chainListenerExecutorService() = createPrettyFixThreadPool(NOTIFICATIONS_SERVICE_NAME, "iroha-chain-listener")
 
     @Bean
     fun irohaAPI(): IrohaAPI {
@@ -48,20 +52,24 @@ class NotificationAppConfiguration {
     }
 
     @Bean
-    fun notaryQueryHelper() = RobustIrohaQueryHelperImpl(
+    fun notificationsIrohaConsumer() = IrohaConsumerImpl(notificationsIrohaCredential, irohaAPI())
+
+    @Bean
+    fun notificationsQueryHelper() = RobustIrohaQueryHelperImpl(
         IrohaQueryHelperImpl(
             irohaAPI(),
-            notificationsConfig.notaryCredential.accountId,
-            notaryKeypair
+            notificationsConfig.notificationCredential.accountId,
+            notificationsKeypair
         ), notificationsConfig.irohaQueryTimeoutMls
     )
 
+    //TODO set basic QOS
     @Bean
     fun irohaChainListener() =
         ReliableIrohaChainListener(
             rmqConfig = notificationsConfig.rmq,
             irohaQueue = notificationsConfig.blocksQueue,
-            autoAck = false,
+            autoAck = true,
             consumerExecutorService = chainListenerExecutorService()
         )
 
@@ -70,7 +78,7 @@ class NotificationAppConfiguration {
 
     @Bean
     fun notaryClientsProvider() = NotaryClientsProvider(
-        notaryQueryHelper(),
+        notificationsQueryHelper(),
         notificationsConfig.clientStorageAccount,
         notificationsConfig.registrationServiceAccountName
     )

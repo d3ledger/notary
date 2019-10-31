@@ -1,3 +1,8 @@
+/*
+ * Copyright D3 Ledger, Inc. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.d3.notifications.config
 
 import com.d3.commons.config.loadRawLocalConfigs
@@ -36,9 +41,9 @@ class D3NotificationsAppConfiguration {
 
     @Bean
     fun d3ClientProvider(
-        @Qualifier("notaryQueryHelper")
-        notaryQueryHelper: IrohaQueryHelper
-    ) = D3ClientProvider(notaryQueryHelper)
+        @Qualifier("notificationsQueryHelper")
+        notificationsQueryHelper: IrohaQueryHelper
+    ) = D3ClientProvider(notificationsQueryHelper)
 
     @Bean
     fun pushServiceFactory() = object : PushServiceFactory {

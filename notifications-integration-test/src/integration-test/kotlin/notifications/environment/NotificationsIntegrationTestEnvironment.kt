@@ -25,6 +25,7 @@ import com.d3.notifications.push.WebPushAPIServiceImpl
 import com.d3.notifications.rest.DumbsterEndpoint
 import com.d3.notifications.service.EmailNotificationService
 import com.d3.notifications.service.PushNotificationService
+import com.d3.notifications.service.ScalingStrategy
 import com.d3.notifications.smtp.SMTPServiceImpl
 import com.dumbster.smtp.SimpleSmtpServer
 import com.nhaarman.mockitokotlin2.spy
@@ -83,16 +84,19 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
             consumerExecutorService = chainListenerExecutorService
         )
 
-    private val notaryQueryHelper = RobustIrohaQueryHelperImpl(
+    private val notificationsIrohaConsumer =
+        IrohaConsumerImpl(integrationHelper.accountHelper.notificationsService, irohaAPI)
+
+    private val notificationsQueryHelper = RobustIrohaQueryHelperImpl(
         IrohaQueryHelperImpl(
             irohaAPI,
-            integrationHelper.accountHelper.notaryAccount.accountId,
-            integrationHelper.accountHelper.notaryAccount.keyPair
+            integrationHelper.accountHelper.notificationsService.accountId,
+            integrationHelper.accountHelper.notificationsService.keyPair
         ),
         notificationsConfig.irohaQueryTimeoutMls
     )
 
-    private val d3ClientProvider = D3ClientProvider(notaryQueryHelper)
+    private val d3ClientProvider = D3ClientProvider(notificationsQueryHelper)
 
     private val smtpService = SMTPServiceImpl(smtpConfig)
 
@@ -117,16 +121,19 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
 
     private val notaryClientsProvider =
         NotaryClientsProvider(
-            notaryQueryHelper,
+            notificationsQueryHelper,
             registrationEnvironment.registrationConfig.clientStorageAccount,
             registrationEnvironment.registrationConfig.registrationCredential.accountId.substringBefore("@")
         )
+
+    private val scalingStrategy = ScalingStrategy(notificationsIrohaConsumer, notificationsConfig)
 
     val notificationInitialization =
         NotificationInitialization(
             notaryClientsProvider,
             notificationsConfig,
             irohaChainListener,
+            scalingStrategy,
             listOf(emailNotificationService, pushNotificationService)
         )
 
