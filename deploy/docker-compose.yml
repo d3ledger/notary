@@ -82,17 +82,6 @@ services:
     networks:
       - d3-network
 
-  d3-notifications:
-    image: nexus.iroha.tech:19002/d3-deploy/notifications:develop
-    container_name: d3-notifications
-    restart: on-failure
-    ports:
-      - 19016:9010
-    env_file:
-      - ../deploy/.env-default-jvm-options
-    networks:
-      - d3-network
-
   d3-brvs-mongodb:
     image: mongo:4.0.6
     container_name: d3-brvs-mongodb
