@@ -16,10 +16,10 @@ import com.d3.commons.sidechain.iroha.util.getSetDetailCommands
 import com.d3.commons.sidechain.iroha.util.getTransferTransactions
 import com.d3.commons.util.irohaUnEscape
 import com.d3.notifications.config.NotificationsConfig
-import com.d3.notifications.service.NotificationService
+import com.d3.notifications.queue.EventsQueue
+import com.d3.notifications.service.TransferEventType
 import com.d3.notifications.service.TransferNotifyEvent
 import com.github.kittinunf.result.Result
-import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import iroha.protocol.BlockOuterClass
@@ -38,7 +38,7 @@ class NotificationInitialization(
     private val notaryClientsProvider: NotaryClientsProvider,
     private val notificationsConfig: NotificationsConfig,
     private val irohaChainListener: ReliableIrohaChainListener,
-    private val notificationServices: List<NotificationService>
+    private val eventsQueue: EventsQueue
 ) {
 
     /**
@@ -49,13 +49,13 @@ class NotificationInitialization(
         return irohaChainListener.getBlockObservable().map { irohaObservable ->
             irohaObservable
                 .subscribe(
-                    { (block, ack) ->
-                        safeAck({ handleBlock(block) }, ack)
+                    { (block, _) ->
+                        handleBlock(block)
                     }, { ex ->
                         logger.error("Error on Iroha subscribe", ex)
                         onIrohaChainFailure()
                     })
-        }.flatMap { irohaChainListener.listen() }
+        }.flatMap { irohaChainListener.listen() }.map { eventsQueue.listen() }
     }
 
     /**
@@ -188,6 +188,7 @@ class NotificationInitialization(
     // Handles deposit event notification
     private fun handleDepositNotification(transferAsset: Commands.TransferAsset) {
         val transferNotifyEvent = TransferNotifyEvent(
+            TransferEventType.DEPOSIT,
             transferAsset.destAccountId,
             BigDecimal(transferAsset.amount),
             transferAsset.assetId,
@@ -195,11 +196,7 @@ class NotificationInitialization(
             from = transferAsset.description
         )
         logger.info("Notify deposit $transferNotifyEvent")
-        notificationServices.forEach {
-            it.notifyDeposit(
-                transferNotifyEvent
-            ).failure { ex -> logger.error("Cannot notify deposit: $transferNotifyEvent", ex) }
-        }
+        eventsQueue.enqueue(transferNotifyEvent)
     }
 
     // Handles withdrawal event notification
@@ -212,18 +209,15 @@ class NotificationInitialization(
             ""
         }
         val transferNotifyEvent = TransferNotifyEvent(
+            TransferEventType.WITHDRAWAL,
             withdrawalFinalizationDetails.srcAccountId,
             withdrawalFinalizationDetails.withdrawalAmount,
             withdrawalFinalizationDetails.withdrawalAssetId,
             withdrawalDescription,
             to = withdrawalFinalizationDetails.destinationAddress
         )
-        logger.info { "Notify withdrawal $transferNotifyEvent" }
-        notificationServices.forEach {
-            it.notifyWithdrawal(
-                transferNotifyEvent
-            ).failure { ex -> logger.error("Cannot notify withdrawal: $transferNotifyEvent", ex) }
-        }
+        logger.info("Notify withdrawal $transferNotifyEvent")
+        eventsQueue.enqueue(transferNotifyEvent)
     }
 
     // Handles transfer event notification
@@ -232,6 +226,7 @@ class NotificationInitialization(
         fee: OperationFee?
     ) {
         val transferNotifyReceiveEvent = TransferNotifyEvent(
+            TransferEventType.TRANSFER_RECEIVE,
             transferAsset.destAccountId,
             BigDecimal(transferAsset.amount),
             transferAsset.assetId,
@@ -244,28 +239,17 @@ class NotificationInitialization(
             "Fee is ${fee.feeAmount} ${fee.feeAssetId}."
         }
         val transferNotifySendEvent = TransferNotifyEvent(
+            TransferEventType.TRANSFER_SEND,
             transferAsset.srcAccountId,
             BigDecimal(transferAsset.amount),
             transferAsset.assetId,
             transferDescription,
             to = transferAsset.destAccountId
         )
-        logger.info { "Notify transfer receive $transferNotifyReceiveEvent" }
-        logger.info { "Notify transfer send $transferNotifySendEvent" }
-        notificationServices.forEach {
-            it.notifySendToClient(
-                transferNotifySendEvent
-            ).failure { ex -> logger.error("Cannot notify transfer: $transferNotifySendEvent", ex) }
-
-            it.notifyReceiveFromClient(
-                transferNotifyReceiveEvent
-            ).failure { ex ->
-                logger.error(
-                    "Cannot notify transfer: $transferNotifyReceiveEvent",
-                    ex
-                )
-            }
-        }
+        logger.info("Notify transfer receive $transferNotifyReceiveEvent")
+        logger.info("Notify transfer send $transferNotifySendEvent")
+        eventsQueue.enqueue(transferNotifyReceiveEvent)
+        eventsQueue.enqueue(transferNotifySendEvent)
     }
 
     // Handles rollback event notification
@@ -279,17 +263,14 @@ class NotificationInitialization(
             "Fee ${rollbackFee.feeAmount} ${rollbackFee.feeAssetId} is rolled back as well."
         }
         val transferNotifyEvent = TransferNotifyEvent(
+            TransferEventType.ROLLBACK,
             transferAsset.destAccountId,
             BigDecimal(transferAsset.amount),
             transferAsset.assetId,
             rollbackDescription
         )
-        logger.info { "Notify rollback $transferNotifyEvent" }
-        notificationServices.forEach {
-            it.notifyRollback(
-                transferNotifyEvent
-            ).failure { ex -> logger.error("Cannot notify rollback: $transferNotifyEvent", ex) }
-        }
+        logger.info("Notify rollback $transferNotifyEvent")
+        eventsQueue.enqueue(transferNotifyEvent)
     }
 
     /**
@@ -301,21 +282,6 @@ class NotificationInitialization(
         } catch (e: Exception) {
             logger.error("Cannot check", e)
             false
-        }
-    }
-
-    /**
-     * Executes provided logic safely
-     * @param logic - logic to execute
-     * @param ack - acknowledgment function to call
-     */
-    private fun safeAck(logic: () -> Unit, ack: () -> Unit) {
-        try {
-            logic()
-        } catch (e: Exception) {
-            logger.error("Cannot execute", e)
-        } finally {
-            ack()
         }
     }
 

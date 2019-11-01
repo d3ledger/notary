@@ -52,6 +52,7 @@ interface NotificationService {
  * Data class that holds transfer event data
  *
  * @param accountId - account id that will be notified
+ * @param type - type of event
  * @param amount - transfer amount
  * @param assetName - name of asset
  * @param description - description of transfer
@@ -59,6 +60,7 @@ interface NotificationService {
  * @param to - defines the destination of transfer. null by default.
  */
 data class TransferNotifyEvent(
+    val type: TransferEventType,
     val accountId: String,
     val amount: BigDecimal,
     val assetName: String,
@@ -66,3 +68,7 @@ data class TransferNotifyEvent(
     val from: String? = null,
     val to: String? = null
 )
+
+enum class TransferEventType {
+    DEPOSIT, ROLLBACK, WITHDRAWAL, TRANSFER_RECEIVE, TRANSFER_SEND
+}
