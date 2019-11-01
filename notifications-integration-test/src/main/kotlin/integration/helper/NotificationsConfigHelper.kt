@@ -22,6 +22,8 @@ class NotificationsConfigHelper(private val accountHelper: IrohaAccountHelper) :
             NotificationsConfig::class.java, "notifications.properties"
         )
         return object : NotificationsConfig {
+            override val ethRegistrationServiceAccount = accountHelper.ethRegistrationAccount.accountId
+            override val btcRegistrationServiceAccount = accountHelper.btcRegistrationAccount.accountId
             override val rmq = notificationsConfig.rmq
             override val blocksQueue = String.getRandomString(10)
             override val irohaQueryTimeoutMls = notificationsConfig.irohaQueryTimeoutMls

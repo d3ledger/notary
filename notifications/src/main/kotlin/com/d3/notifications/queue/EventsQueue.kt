@@ -9,10 +9,12 @@ import com.d3.chainadapter.client.RMQConfig
 import com.d3.commons.util.GsonInstance
 import com.d3.commons.util.createPrettyFixThreadPool
 import com.d3.notifications.NOTIFICATIONS_SERVICE_NAME
+import com.d3.notifications.event.Event
+import com.d3.notifications.event.RegistrationNotifyEvent
+import com.d3.notifications.event.TransferEventType
+import com.d3.notifications.event.TransferNotifyEvent
 import com.d3.notifications.exception.RepeatableException
 import com.d3.notifications.service.NotificationService
-import com.d3.notifications.service.TransferEventType
-import com.d3.notifications.service.TransferNotifyEvent
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.rabbitmq.client.*
@@ -23,6 +25,7 @@ import java.lang.IllegalStateException
 import java.util.concurrent.atomic.AtomicBoolean
 
 private const val TRANSFERS_QUEUE_NAME = "transfers"
+private const val REGISTRATIONS_QUEUE_NAME = "registrations"
 
 /**
  * Queue of events
@@ -49,6 +52,7 @@ class EventsQueue(
         connection = connectionFactory.newConnection()
         channel = connection.createChannel()
         channel.queueDeclare(TRANSFERS_QUEUE_NAME, true, false, false, null)
+        channel.queueDeclare(REGISTRATIONS_QUEUE_NAME, true, false, false, null)
     }
 
     /**
@@ -58,37 +62,67 @@ class EventsQueue(
         if (!started.compareAndSet(false, true)) {
             throw IllegalStateException("The queue listening process has been already started")
         }
-        val deliverCallback = { _: String, delivery: Delivery ->
+        val transferCallback = { _: String, delivery: Delivery ->
             try {
                 val json = String(delivery.body)
                 val transferNotifyEvent = gson.fromJson(json, TransferNotifyEvent::class.java)
-                logger.info("Got event from queue $TRANSFERS_QUEUE_NAME: $transferNotifyEvent")
+                logger.info("Got transfer event from queue $TRANSFERS_QUEUE_NAME: $transferNotifyEvent")
                 handleTransfer(transferNotifyEvent)
             } catch (e: Exception) {
                 logger.error("Cannot handle delivery from queue $TRANSFERS_QUEUE_NAME", e)
             }
 
         }
-        consumerTag = channel.basicConsume(TRANSFERS_QUEUE_NAME, true, deliverCallback, { _ -> })
+        val registrationCallback = { _: String, delivery: Delivery ->
+            try {
+                val json = String(delivery.body)
+                val registrationNotifyEvent = gson.fromJson(json, RegistrationNotifyEvent::class.java)
+                logger.info("Got registration event from queue $REGISTRATIONS_QUEUE_NAME: $registrationNotifyEvent")
+                handleRegistration(registrationNotifyEvent)
+            } catch (e: Exception) {
+                logger.error("Cannot handle delivery from queue $REGISTRATIONS_QUEUE_NAME", e)
+            }
+
+        }
+
+        consumerTag = channel.basicConsume(TRANSFERS_QUEUE_NAME, true, transferCallback, { _ -> })
+        consumerTag = channel.basicConsume(REGISTRATIONS_QUEUE_NAME, true, registrationCallback, { _ -> })
         logger.info("Start listening to events")
     }
 
     /**
-     * Puts event into RabbitMQ
+     * Puts transfer event into RabbitMQ
      * @param transferNotifyEvent - event to put
      */
     fun enqueue(transferNotifyEvent: TransferNotifyEvent) {
+        enqueue(transferNotifyEvent, TRANSFERS_QUEUE_NAME)
+    }
+
+    /**
+     * Puts registration event into RabbitMQ
+     * @param registrationNotifyEvent - event to put
+     */
+    fun enqueue(registrationNotifyEvent: RegistrationNotifyEvent) {
+        enqueue(registrationNotifyEvent, REGISTRATIONS_QUEUE_NAME)
+    }
+
+    /**
+     * Puts event into RabbitMQ
+     * @param event - event to put
+     * @param queue - name of queue to put event into
+     */
+    private fun enqueue(event: Event, queue: String) {
         try {
-            logger.info("Enqueue transfer $transferNotifyEvent")
-            val json = gson.toJson(transferNotifyEvent)
+            logger.info("Enqueue event $event")
+            val json = gson.toJson(event)
             channel.basicPublish(
                 "",
-                TRANSFERS_QUEUE_NAME,
+                queue,
                 MessageProperties.MINIMAL_PERSISTENT_BASIC,
                 json.toByteArray()
             )
         } catch (e: Exception) {
-            logger.error("Cannot enqueue transfer $transferNotifyEvent", e)
+            logger.error("Cannot enqueue $event", e)
         }
     }
 
@@ -103,24 +137,35 @@ class EventsQueue(
 
     /**
      * Iterates through notification services
-     * @param transferNotifyEvent - transfer event to notify
+     * @param event - event to notify
+     * @param queueName - name of queue used for a given event
      * @param iterator - iteration logic
      */
     private fun iterateThroughNotificationServices(
-        transferNotifyEvent: TransferNotifyEvent,
+        event: Event,
+        queueName: String,
         iterator: (NotificationService) -> Result<Unit, java.lang.Exception>
     ) {
         notificationServices.forEach {
             iterator(it).failure { ex ->
                 if (ex is RepeatableException) {
                     // Re-queue if possible
-                    logger.warn("Cannot handle event due to error. Try to re-queue $transferNotifyEvent", ex)
-                    enqueue(transferNotifyEvent)
+                    logger.warn("Cannot handle event due to error. Try to re-queue $event", ex)
+                    enqueue(event, queueName)
                 } else {
-                    logger.error("Cannot notify: $transferNotifyEvent", ex)
+                    logger.error("Cannot notify: $event", ex)
                 }
             }
         }
+    }
+
+    /**
+     * Handles registration events from RabbitMQ
+     * @param registrationNotifyEvent - event to handle
+     */
+    private fun handleRegistration(registrationNotifyEvent: RegistrationNotifyEvent) {
+        iterateThroughNotificationServices(registrationNotifyEvent, REGISTRATIONS_QUEUE_NAME)
+        { it.notifyRegistration(registrationNotifyEvent) }
     }
 
     /**
@@ -130,19 +175,24 @@ class EventsQueue(
     private fun handleTransfer(transferNotifyEvent: TransferNotifyEvent) {
         when (transferNotifyEvent.type) {
             TransferEventType.DEPOSIT -> {
-                iterateThroughNotificationServices(transferNotifyEvent) { it.notifyDeposit(transferNotifyEvent) }
+                iterateThroughNotificationServices(transferNotifyEvent, TRANSFERS_QUEUE_NAME)
+                { it.notifyDeposit(transferNotifyEvent) }
             }
             TransferEventType.ROLLBACK -> {
-                iterateThroughNotificationServices(transferNotifyEvent) { it.notifyRollback(transferNotifyEvent) }
+                iterateThroughNotificationServices(transferNotifyEvent, TRANSFERS_QUEUE_NAME)
+                { it.notifyRollback(transferNotifyEvent) }
             }
             TransferEventType.TRANSFER_RECEIVE -> {
-                iterateThroughNotificationServices(transferNotifyEvent) { it.notifyReceiveFromClient(transferNotifyEvent) }
+                iterateThroughNotificationServices(transferNotifyEvent, TRANSFERS_QUEUE_NAME)
+                { it.notifyReceiveFromClient(transferNotifyEvent) }
             }
             TransferEventType.TRANSFER_SEND -> {
-                iterateThroughNotificationServices(transferNotifyEvent) { it.notifySendToClient(transferNotifyEvent) }
+                iterateThroughNotificationServices(transferNotifyEvent, TRANSFERS_QUEUE_NAME)
+                { it.notifySendToClient(transferNotifyEvent) }
             }
             TransferEventType.WITHDRAWAL -> {
-                iterateThroughNotificationServices(transferNotifyEvent) { it.notifyWithdrawal(transferNotifyEvent) }
+                iterateThroughNotificationServices(transferNotifyEvent, TRANSFERS_QUEUE_NAME)
+                { it.notifyWithdrawal(transferNotifyEvent) }
             }
             else -> {
                 //TODO normally, this branch won't be called. just for good measure.
