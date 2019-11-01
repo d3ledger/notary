@@ -39,7 +39,7 @@ class EventsQueue(
     private val subscriberExecutorService = createPrettyFixThreadPool(
         NOTIFICATIONS_SERVICE_NAME, "events_queue"
     )
-    private var consumerTag: String? = null
+    private val consumerTags = ArrayList<String>()
     private val connectionFactory = ConnectionFactory()
     private val connection: Connection
     private val channel: Channel
@@ -49,7 +49,7 @@ class EventsQueue(
     init {
         connectionFactory.host = rmqConfig.host
         connectionFactory.port = rmqConfig.port
-        connection = connectionFactory.newConnection()
+        connection = connectionFactory.newConnection(subscriberExecutorService)
         channel = connection.createChannel()
         channel.queueDeclare(TRANSFERS_QUEUE_NAME, true, false, false, null)
         channel.queueDeclare(REGISTRATIONS_QUEUE_NAME, true, false, false, null)
@@ -85,8 +85,8 @@ class EventsQueue(
 
         }
 
-        consumerTag = channel.basicConsume(TRANSFERS_QUEUE_NAME, true, transferCallback, { _ -> })
-        consumerTag = channel.basicConsume(REGISTRATIONS_QUEUE_NAME, true, registrationCallback, { _ -> })
+        consumerTags.add(channel.basicConsume(TRANSFERS_QUEUE_NAME, true, transferCallback, { _ -> }))
+        consumerTags.add(channel.basicConsume(REGISTRATIONS_QUEUE_NAME, true, registrationCallback, { _ -> }))
         logger.info("Start listening to events")
     }
 
@@ -113,7 +113,7 @@ class EventsQueue(
      */
     private fun enqueue(event: Event, queue: String) {
         try {
-            logger.info("Enqueue event $event")
+            logger.info("Enqueue event $event to queue $queue")
             val json = gson.toJson(event)
             channel.basicPublish(
                 "",
@@ -121,18 +121,27 @@ class EventsQueue(
                 MessageProperties.MINIMAL_PERSISTENT_BASIC,
                 json.toByteArray()
             )
+            logger.info("Event $event has been successfully published to queue $queue")
         } catch (e: Exception) {
             logger.error("Cannot enqueue $event", e)
         }
     }
 
     override fun close() {
-        consumerTag?.let {
-            channel.basicCancel(it)
+        consumerTags.forEach {
+            tryClose { channel.basicCancel(it) }
         }
-        subscriberExecutorService.shutdownNow()
-        channel.close()
-        connection.close()
+        tryClose { channel.close() }
+        tryClose { connection.close() }
+        tryClose { subscriberExecutorService.shutdownNow() }
+    }
+
+    private fun tryClose(close: () -> Unit) {
+        try {
+            close()
+        } catch (e: Exception) {
+            logger.error("Cannot close", e)
+        }
     }
 
     /**

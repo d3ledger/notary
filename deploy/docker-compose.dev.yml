@@ -20,6 +20,18 @@ services:
     networks:
       - d3-network
 
+  d3-registration:
+    image: nexus.iroha.tech:19002/d3-deploy/notary-registration:develop
+    container_name: d3-registration
+    restart: on-failure
+    ports:
+      - 8085:8085
+      - 19013:9010
+    env_file:
+      - ../deploy/.env-default-jvm-options
+    networks:
+      - d3-network
+
   grpcwebproxy:
     ports:
       - 8081:8080
