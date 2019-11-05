@@ -1,4 +1,4 @@
-package com.d3.notifications.rest.dto
+package com.d3.notifications.debug.dto
 
 import com.dumbster.smtp.SmtpMessage
 

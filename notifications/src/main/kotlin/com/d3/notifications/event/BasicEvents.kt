@@ -10,28 +10,32 @@ import java.math.BigDecimal
 /**
  * Event marker-interface
  */
-interface Event
+interface BasicEvent
 
 /**
  * Data class that holds transfer event data
  *
- * @param accountId - account id that will be notified
+ * @param accountIdToNotify - account id that will be notified
  * @param type - type of event
  * @param amount - transfer amount
  * @param assetName - name of asset
  * @param description - description of transfer
  * @param from - defines the origin of transfer. null by default
  * @param to - defines the destination of transfer. null by default.
+ * @param fee - fee to pay for transfer
+ * @param feeAssetName - name of asset to pay fee
  */
 data class TransferNotifyEvent(
     val type: TransferEventType,
-    val accountId: String,
+    val accountIdToNotify: String,
     val amount: BigDecimal,
     val assetName: String,
-    val description: String,
+    val description: String = "",
     val from: String? = null,
-    val to: String? = null
-) : Event
+    val to: String? = null,
+    val fee: BigDecimal? = null,
+    val feeAssetName: String? = null
+) : BasicEvent
 
 enum class TransferEventType {
     DEPOSIT, ROLLBACK, WITHDRAWAL, TRANSFER_RECEIVE, TRANSFER_SEND
@@ -47,7 +51,7 @@ data class RegistrationNotifyEvent(
     val subsystem: RegistrationEventSubsystem,
     val accountId: String,
     val address: String
-):Event
+) : BasicEvent
 
 enum class RegistrationEventSubsystem {
     ETH, BTC

@@ -54,6 +54,14 @@ interface SMTPConfig {
 }
 
 /**
+ * Sora config
+ */
+interface SoraConfig {
+    // URL of REST service that is used to send notifications to Sora. Must contain protocol.
+    val notificationServiceURL: String
+}
+
+/**
  * Push API configuration
  */
 interface PushAPIConfig {

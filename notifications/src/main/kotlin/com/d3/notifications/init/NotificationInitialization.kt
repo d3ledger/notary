@@ -184,8 +184,9 @@ class NotificationInitialization(
     ) =
         safeCheck {
             return commandWithCreator.creator == registrationAccount &&
-                    commandWithCreator.command.setAccountDetail.key == sideChainWalletKey &&
-                    notaryClientsProvider.isClient(commandWithCreator.command.setAccountDetail.accountId).get()
+                    commandWithCreator.command.setAccountDetail.key == sideChainWalletKey && notaryClientsProvider.isClient(
+                commandWithCreator.command.setAccountDetail.accountId
+            ).get()
         }
 
     // Checks if withdrawal event
@@ -205,7 +206,6 @@ class NotificationInitialization(
                         && notaryClientsProvider.isClient(transferAsset.destAccountId).get()
             return depositSign && !isRollbackSign(transferAsset) && transferAsset.description != FEE_ROLLBACK_DESCRIPTION
         }
-
 
     // Checks if rollback event
     private fun isRollback(transferAsset: Commands.TransferAsset) =
@@ -235,7 +235,6 @@ class NotificationInitialization(
             transferAsset.destAccountId,
             BigDecimal(transferAsset.amount),
             transferAsset.assetId,
-            description = "",
             from = transferAsset.description
         )
         logger.info("Notify deposit $transferNotifyEvent")
@@ -263,25 +262,25 @@ class NotificationInitialization(
             RegistrationNotifyEvent(subsystem, setAccountDetail.accountId, setAccountDetail.value)
         logger.info("Notify ${subsystem.name} registration $registrationNotifyEvent")
         eventsQueue.enqueue(registrationNotifyEvent)
-
     }
 
     // Handles withdrawal event notification
     private fun handleWithdrawalEventNotification(setAccountDetail: Commands.SetAccountDetail) {
         val withdrawalFinalizationDetails =
             WithdrawalFinalizationDetails.fromJson(setAccountDetail.value.irohaUnEscape())
-        val withdrawalDescription = if (withdrawalFinalizationDetails.feeAmount > BigDecimal.ZERO) {
-            "Fee is ${withdrawalFinalizationDetails.feeAmount} ${withdrawalFinalizationDetails.feeAssetId}"
+        val operationFee = if (withdrawalFinalizationDetails.feeAmount > BigDecimal.ZERO) {
+            OperationFee(withdrawalFinalizationDetails.feeAmount, withdrawalFinalizationDetails.feeAssetId)
         } else {
-            ""
+            null
         }
         val transferNotifyEvent = TransferNotifyEvent(
             TransferEventType.WITHDRAWAL,
             withdrawalFinalizationDetails.srcAccountId,
             withdrawalFinalizationDetails.withdrawalAmount,
             withdrawalFinalizationDetails.withdrawalAssetId,
-            withdrawalDescription,
-            to = withdrawalFinalizationDetails.destinationAddress
+            to = withdrawalFinalizationDetails.destinationAddress,
+            fee = operationFee?.feeAmount,
+            feeAssetName = operationFee?.feeAssetId
         )
         logger.info("Notify withdrawal $transferNotifyEvent")
         eventsQueue.enqueue(transferNotifyEvent)
@@ -297,21 +296,18 @@ class NotificationInitialization(
             transferAsset.destAccountId,
             BigDecimal(transferAsset.amount),
             transferAsset.assetId,
-            description = "",
+            transferAsset.description,
             from = transferAsset.srcAccountId
         )
-        val transferDescription = if (fee == null) {
-            ""
-        } else {
-            "Fee is ${fee.feeAmount} ${fee.feeAssetId}."
-        }
         val transferNotifySendEvent = TransferNotifyEvent(
             TransferEventType.TRANSFER_SEND,
             transferAsset.srcAccountId,
             BigDecimal(transferAsset.amount),
             transferAsset.assetId,
-            transferDescription,
-            to = transferAsset.destAccountId
+            transferAsset.description,
+            to = transferAsset.destAccountId,
+            fee = fee?.feeAmount,
+            feeAssetName = fee?.feeAssetId
         )
         logger.info("Notify transfer receive $transferNotifyReceiveEvent")
         logger.info("Notify transfer send $transferNotifySendEvent")

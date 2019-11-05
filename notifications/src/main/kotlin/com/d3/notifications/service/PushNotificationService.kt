@@ -25,35 +25,35 @@ class PushNotificationService(private val webPushAPIService: WebPushAPIService) 
 
     override fun notifySendToClient(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
         return webPushAPIService.push(
-            transferNotifyEvent.accountId,
+            transferNotifyEvent.accountIdToNotify,
             "Transfer of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName}"
         )
     }
 
     override fun notifyReceiveFromClient(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
         return webPushAPIService.push(
-            transferNotifyEvent.accountId,
+            transferNotifyEvent.accountIdToNotify,
             "Transfer of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName}"
         )
     }
 
     override fun notifyRollback(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
         return webPushAPIService.push(
-            transferNotifyEvent.accountId,
+            transferNotifyEvent.accountIdToNotify,
             "Rollback of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName}"
         )
     }
 
     override fun notifyWithdrawal(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
         return webPushAPIService.push(
-            transferNotifyEvent.accountId,
+            transferNotifyEvent.accountIdToNotify,
             "Withdrawal of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName}"
         )
     }
 
     override fun notifyDeposit(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
         return webPushAPIService.push(
-            transferNotifyEvent.accountId,
+            transferNotifyEvent.accountIdToNotify,
             "Deposit of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName}"
         )
     }
