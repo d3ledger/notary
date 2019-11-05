@@ -9,7 +9,7 @@ import com.d3.chainadapter.client.RMQConfig
 import com.d3.commons.util.GsonInstance
 import com.d3.commons.util.createPrettyFixThreadPool
 import com.d3.notifications.NOTIFICATIONS_SERVICE_NAME
-import com.d3.notifications.event.Event
+import com.d3.notifications.event.BasicEvent
 import com.d3.notifications.event.RegistrationNotifyEvent
 import com.d3.notifications.event.TransferEventType
 import com.d3.notifications.event.TransferNotifyEvent
@@ -21,7 +21,6 @@ import com.rabbitmq.client.*
 import mu.KLogging
 import org.springframework.stereotype.Component
 import java.io.Closeable
-import java.lang.IllegalStateException
 import java.util.concurrent.atomic.AtomicBoolean
 
 private const val TRANSFERS_QUEUE_NAME = "transfers"
@@ -82,9 +81,7 @@ class EventsQueue(
             } catch (e: Exception) {
                 logger.error("Cannot handle delivery from queue $REGISTRATIONS_QUEUE_NAME", e)
             }
-
         }
-
         consumerTags.add(channel.basicConsume(TRANSFERS_QUEUE_NAME, true, transferCallback, { _ -> }))
         consumerTags.add(channel.basicConsume(REGISTRATIONS_QUEUE_NAME, true, registrationCallback, { _ -> }))
         logger.info("Start listening to events")
@@ -111,7 +108,7 @@ class EventsQueue(
      * @param event - event to put
      * @param queue - name of queue to put event into
      */
-    private fun enqueue(event: Event, queue: String) {
+    private fun enqueue(event: BasicEvent, queue: String) {
         try {
             logger.info("Enqueue event $event to queue $queue")
             val json = gson.toJson(event)
@@ -151,7 +148,7 @@ class EventsQueue(
      * @param iterator - iteration logic
      */
     private fun iterateThroughNotificationServices(
-        event: Event,
+        event: BasicEvent,
         queueName: String,
         iterator: (NotificationService) -> Result<Unit, java.lang.Exception>
     ) {

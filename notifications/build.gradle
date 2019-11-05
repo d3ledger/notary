@@ -64,6 +64,9 @@ dependencies {
     implementation "io.ktor:ktor-server-core:$ktor_version"
     implementation "io.ktor:ktor-server-netty:$ktor_version"
 
+    // khttp - consume http
+    implementation 'khttp:khttp:0.1.0'
+
     // https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12
     compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.8.0-beta2'
 

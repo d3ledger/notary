@@ -43,10 +43,15 @@ class EmailNotificationService(
         } else {
             ""
         }
+        val feeMessage = if (transferNotifyEvent.fee != null && transferNotifyEvent.feeAssetName != null) {
+            "Fee is ${transferNotifyEvent.fee} ${transferNotifyEvent.feeAssetName}"
+        } else {
+            ""
+        }
         val message =
-            "Dear client, transfer of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} from your account ${transferNotifyEvent.accountId} ${toMessage}is successful.\n${transferNotifyEvent.description}"
+            "Dear client, transfer of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} from your account ${transferNotifyEvent.accountIdToNotify} ${toMessage}is successful. ${transferNotifyEvent.description}\n$feeMessage"
         return checkClientAndSendMessage(
-            transferNotifyEvent.accountId,
+            transferNotifyEvent.accountIdToNotify,
             D3_DEPOSIT_TRANSFER_SUBJECT, message
         )
     }
@@ -58,20 +63,20 @@ class EmailNotificationService(
             ""
         }
         val message =
-            "Dear client, transfer of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} ${fromMessage}to your account ${transferNotifyEvent.accountId} is successful.\n${transferNotifyEvent.description}"
+            "Dear client, transfer of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} ${fromMessage}to your account ${transferNotifyEvent.accountIdToNotify} is successful.\n${transferNotifyEvent.description}"
         return checkClientAndSendMessage(
-            transferNotifyEvent.accountId,
+            transferNotifyEvent.accountIdToNotify,
             D3_DEPOSIT_TRANSFER_SUBJECT, message
         )
     }
 
     override fun notifyRollback(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
         val message =
-            "Dear client, unfortunately, we failed to withdraw ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} from your account ${transferNotifyEvent.accountId}. " +
+            "Dear client, unfortunately, we failed to withdraw ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} from your account ${transferNotifyEvent.accountIdToNotify}. " +
                     "Rollback has been executed, so your money is going back to your account.\n" +
                     transferNotifyEvent.description
         return checkClientAndSendMessage(
-            transferNotifyEvent.accountId,
+            transferNotifyEvent.accountIdToNotify,
             D3_ROLLBACK_SUBJECT, message
         )
     }
@@ -83,9 +88,9 @@ class EmailNotificationService(
             ""
         }
         val message =
-            "Dear client, deposit of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} ${fromMessage}to your account ${transferNotifyEvent.accountId} is successful."
+            "Dear client, deposit of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} ${fromMessage}to your account ${transferNotifyEvent.accountIdToNotify} is successful."
         return checkClientAndSendMessage(
-            transferNotifyEvent.accountId,
+            transferNotifyEvent.accountIdToNotify,
             D3_DEPOSIT_EMAIL_SUBJECT, message
         )
     }
@@ -96,10 +101,15 @@ class EmailNotificationService(
         } else {
             ""
         }
+        val feeMessage = if (transferNotifyEvent.fee != null && transferNotifyEvent.feeAssetName != null) {
+            "Fee is ${transferNotifyEvent.fee} ${transferNotifyEvent.feeAssetName}"
+        } else {
+            ""
+        }
         val message =
-            "Dear client, withdrawal of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} ${toMessage}from your account ${transferNotifyEvent.accountId} is successful.\n${transferNotifyEvent.description}"
+            "Dear client, withdrawal of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} ${toMessage}from your account ${transferNotifyEvent.accountIdToNotify} is successful. ${transferNotifyEvent.description}\n$feeMessage"
         return checkClientAndSendMessage(
-            transferNotifyEvent.accountId,
+            transferNotifyEvent.accountIdToNotify,
             D3_WITHDRAWAL_EMAIL_SUBJECT, message
         )
     }

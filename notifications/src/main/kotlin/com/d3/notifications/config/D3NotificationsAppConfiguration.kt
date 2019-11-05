@@ -11,12 +11,10 @@ import com.d3.notifications.provider.D3ClientProvider
 import com.d3.notifications.push.PushServiceFactory
 import com.d3.notifications.push.WebPushAPIService
 import com.d3.notifications.push.WebPushAPIServiceImpl
-import com.d3.notifications.rest.DumbsterEndpoint
 import com.d3.notifications.service.EmailNotificationService
 import com.d3.notifications.service.PushNotificationService
 import com.d3.notifications.smtp.SMTPService
 import com.d3.notifications.smtp.SMTPServiceImpl
-import com.dumbster.smtp.SimpleSmtpServer
 import nl.martijndwars.webpush.PushService
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
@@ -50,13 +48,6 @@ class D3NotificationsAppConfiguration {
         override fun create() =
             PushService(pushConfig.vapidPubKeyBase64, pushConfig.vapidPrivKeyBase64, "D3 notifications")
     }
-
-    @Bean
-    fun dumbster() = SimpleSmtpServer.start(smtpConfig.port)!!
-
-    @Bean
-    fun dumbsterEndpoint(dumbster: SimpleSmtpServer, notificationsConfig: NotificationsConfig) =
-        DumbsterEndpoint(dumbster, notificationsConfig)
 
     @Bean
     fun emailNotificationService(smtpService: SMTPService, d3ClientProvider: D3ClientProvider) =
