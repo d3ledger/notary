@@ -164,17 +164,27 @@ class NotificationInitialization(
 
     // Checks if Ethereum registration event
     private fun isEthRegistration(commandWithCreator: CommandWithCreator) =
-        safeCheck {
-            return commandWithCreator.creator == notificationsConfig.ethRegistrationServiceAccount &&
-                    commandWithCreator.command.setAccountDetail.key == ETH_WALLET &&
-                    notaryClientsProvider.isClient(commandWithCreator.command.setAccountDetail.accountId).get()
-        }
+        isRegistration(commandWithCreator, notificationsConfig.ethRegistrationServiceAccount, ETH_WALLET)
 
     // Checks if Bitcoin registration event
     private fun isBtcRegistration(commandWithCreator: CommandWithCreator) =
+        isRegistration(commandWithCreator, notificationsConfig.btcRegistrationServiceAccount, BTC_WALLET)
+
+    /**
+     * Checks if command is a registration command
+     * @param commandWithCreator - Iroha command
+     * @param registrationAccount - account that register clients in sidechains
+     * @param sideChainWalletKey - key of a sidechain wallet
+     * @return true if a command is a registration command
+     */
+    private fun isRegistration(
+        commandWithCreator: CommandWithCreator,
+        registrationAccount: String,
+        sideChainWalletKey: String
+    ) =
         safeCheck {
-            return commandWithCreator.creator == notificationsConfig.btcRegistrationServiceAccount &&
-                    commandWithCreator.command.setAccountDetail.key == BTC_WALLET &&
+            return commandWithCreator.creator == registrationAccount &&
+                    commandWithCreator.command.setAccountDetail.key == sideChainWalletKey &&
                     notaryClientsProvider.isClient(commandWithCreator.command.setAccountDetail.accountId).get()
         }
 
@@ -233,19 +243,27 @@ class NotificationInitialization(
     }
 
     // Handles Ethereum registration event notification
-    private fun handleEthRegistrationEventNotification(setAccountDetail: Commands.SetAccountDetail) {
-        val registrationNotifyEvent =
-            RegistrationNotifyEvent(RegistrationEventSubsystem.ETH, setAccountDetail.accountId, setAccountDetail.value)
-        logger.info("Notify ETH registration $registrationNotifyEvent")
-        eventsQueue.enqueue(registrationNotifyEvent)
-    }
+    private fun handleEthRegistrationEventNotification(setAccountDetail: Commands.SetAccountDetail) =
+        handleRegistrationEventNotification(setAccountDetail, RegistrationEventSubsystem.ETH)
 
     // Handles Bitcoin registration event notification
-    private fun handleBtcRegistrationEventNotification(setAccountDetail: Commands.SetAccountDetail) {
+    private fun handleBtcRegistrationEventNotification(setAccountDetail: Commands.SetAccountDetail) =
+        handleRegistrationEventNotification(setAccountDetail, RegistrationEventSubsystem.BTC)
+
+    /**
+     * Handles registration event
+     * @param setAccountDetail - command with registration event
+     * @param subsystem - registration subsystem(Ethereum, Bitcoin, etc)
+     */
+    private fun handleRegistrationEventNotification(
+        setAccountDetail: Commands.SetAccountDetail,
+        subsystem: RegistrationEventSubsystem
+    ) {
         val registrationNotifyEvent =
-            RegistrationNotifyEvent(RegistrationEventSubsystem.BTC, setAccountDetail.accountId, setAccountDetail.value)
-        logger.info("Notify BTC registration $registrationNotifyEvent")
+            RegistrationNotifyEvent(subsystem, setAccountDetail.accountId, setAccountDetail.value)
+        logger.info("Notify ${subsystem.name} registration $registrationNotifyEvent")
         eventsQueue.enqueue(registrationNotifyEvent)
+
     }
 
     // Handles withdrawal event notification
