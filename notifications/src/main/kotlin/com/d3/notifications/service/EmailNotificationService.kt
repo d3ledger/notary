@@ -5,18 +5,20 @@
 
 package com.d3.notifications.service
 
+import com.d3.notifications.event.RegistrationNotifyEvent
+import com.d3.notifications.event.TransferNotifyEvent
 import com.d3.notifications.provider.D3ClientProvider
 import com.d3.notifications.smtp.SMTPService
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import mu.KLogging
-import org.springframework.stereotype.Component
 
 const val NOTIFICATION_EMAIL = "no-reply@d3ledger.com"
 const val D3_WITHDRAWAL_EMAIL_SUBJECT = "D3 withdrawal"
 const val D3_DEPOSIT_EMAIL_SUBJECT = "D3 deposit"
 const val D3_DEPOSIT_TRANSFER_SUBJECT = "D3 transfer"
-const val D3_DEPOSIT_ROLLBACK_SUBJECT = "D3 rollback"
+const val D3_ROLLBACK_SUBJECT = "D3 rollback"
+const val D3_REGISTRATION_SUBJECT = "D3 registration"
 
 /**
  * Service for email notifications
@@ -25,6 +27,15 @@ class EmailNotificationService(
     private val smtpService: SMTPService,
     private val d3ClientProvider: D3ClientProvider
 ) : NotificationService {
+
+    override fun notifyRegistration(registrationNotifyEvent: RegistrationNotifyEvent): Result<Unit, Exception> {
+        val message =
+            "Dear client, registration in the ${registrationNotifyEvent.subsystem} subsystem has been successfully completed. Your address is ${registrationNotifyEvent.address}."
+        return checkClientAndSendMessage(
+            registrationNotifyEvent.accountId,
+            D3_REGISTRATION_SUBJECT, message
+        )
+    }
 
     override fun notifySendToClient(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
         val toMessage = if (transferNotifyEvent.to != null) {
@@ -61,7 +72,7 @@ class EmailNotificationService(
                     transferNotifyEvent.description
         return checkClientAndSendMessage(
             transferNotifyEvent.accountId,
-            D3_DEPOSIT_ROLLBACK_SUBJECT, message
+            D3_ROLLBACK_SUBJECT, message
         )
     }
 

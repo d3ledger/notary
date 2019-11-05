@@ -5,6 +5,8 @@
 
 package com.d3.notifications.service
 
+import com.d3.notifications.event.RegistrationNotifyEvent
+import com.d3.notifications.event.TransferNotifyEvent
 import com.github.kittinunf.result.Result
 import java.math.BigDecimal
 
@@ -46,29 +48,11 @@ interface NotificationService {
      * @return result of operation
      * */
     fun notifyRollback(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception>
-}
 
-/**
- * Data class that holds transfer event data
- *
- * @param accountId - account id that will be notified
- * @param type - type of event
- * @param amount - transfer amount
- * @param assetName - name of asset
- * @param description - description of transfer
- * @param from - defines the origin of transfer. null by default
- * @param to - defines the destination of transfer. null by default.
- */
-data class TransferNotifyEvent(
-    val type: TransferEventType,
-    val accountId: String,
-    val amount: BigDecimal,
-    val assetName: String,
-    val description: String,
-    val from: String? = null,
-    val to: String? = null
-)
-
-enum class TransferEventType {
-    DEPOSIT, ROLLBACK, WITHDRAWAL, TRANSFER_RECEIVE, TRANSFER_SEND
+    /**
+     * Notifies client about registration event
+     * @param registrationNotifyEvent - registration event
+     * @return result of operation
+     */
+    fun notifyRegistration(registrationNotifyEvent: RegistrationNotifyEvent): Result<Unit, Exception>
 }

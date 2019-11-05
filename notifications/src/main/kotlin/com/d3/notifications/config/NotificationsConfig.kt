@@ -32,7 +32,11 @@ interface NotificationsConfig {
     // Queue name
     val blocksQueue: String
     // Timeout for Iroha queries
-    val irohaQueryTimeoutMls:Int
+    val irohaQueryTimeoutMls: Int
+    // Ethereum registration service Iroha account id
+    val ethRegistrationServiceAccount: String
+    // Bitcoin registration service Iroha account id
+    val btcRegistrationServiceAccount: String
 }
 
 /**

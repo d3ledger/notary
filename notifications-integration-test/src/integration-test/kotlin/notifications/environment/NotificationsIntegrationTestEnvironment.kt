@@ -151,6 +151,7 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
         IrohaConsumerImpl(IrohaCredential(destClientId, destClientKeyPair), irohaAPI)
 
     override fun close() {
+        eventsQueue.close()
         registrationEnvironment.close()
         integrationHelper.close()
         irohaAPI.close()

@@ -134,6 +134,16 @@ open class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers:
         createTesterAccount("consensus", listOf("consensus_collector"))
     }
 
+    /** Account that registers Ethereum addresses */
+    val ethRegistrationAccount by lazy {
+        createTesterAccount("eth_reg", listOf("registration_service"))
+    }
+
+    /** Account that registers Bitcoin addresses */
+    val btcRegistrationAccount by lazy {
+        createTesterAccount("btc_reg", listOf("registration_service"))
+    }
+
     /** Account that sets tokens */
     val tokenSetterAccount by lazy { createTesterAccount("eth_tokens", listOf("eth_token_list_storage")) }
 

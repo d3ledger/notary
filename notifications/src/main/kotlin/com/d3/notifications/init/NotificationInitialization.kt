@@ -12,13 +12,16 @@ import com.d3.commons.service.WithdrawalFinalizationDetails
 import com.d3.commons.sidechain.iroha.FEE_ROLLBACK_DESCRIPTION
 import com.d3.commons.sidechain.iroha.NOTARY_DOMAIN
 import com.d3.commons.sidechain.iroha.ROLLBACK_DESCRIPTION
-import com.d3.commons.sidechain.iroha.util.getSetDetailCommands
+import com.d3.commons.sidechain.iroha.util.CommandWithCreator
+import com.d3.commons.sidechain.iroha.util.getSetDetailCommandsWithCreator
 import com.d3.commons.sidechain.iroha.util.getTransferTransactions
 import com.d3.commons.util.irohaUnEscape
 import com.d3.notifications.config.NotificationsConfig
+import com.d3.notifications.event.RegistrationEventSubsystem
+import com.d3.notifications.event.RegistrationNotifyEvent
+import com.d3.notifications.event.TransferEventType
+import com.d3.notifications.event.TransferNotifyEvent
 import com.d3.notifications.queue.EventsQueue
-import com.d3.notifications.service.TransferEventType
-import com.d3.notifications.service.TransferNotifyEvent
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
@@ -28,6 +31,9 @@ import iroha.protocol.TransactionOuterClass
 import mu.KLogging
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
+
+const val ETH_WALLET = "ethereum_wallet"
+const val BTC_WALLET = "bitcoin"
 
 //TODO refactor handlers
 /**
@@ -63,11 +69,20 @@ class NotificationInitialization(
      * @param block - block to handle
      */
     private fun handleBlock(block: BlockOuterClass.Block) {
-        getSetDetailCommands(block).map { it.setAccountDetail }
-            .forEach { setDetailCommand ->
+        getSetDetailCommandsWithCreator(block)
+            .forEach { commandWithCreator ->
+                val command = commandWithCreator.command.setAccountDetail
                 // Notify withdrawal
-                if (isWithdrawal(setDetailCommand)) {
-                    handleWithdrawalEventNotification(setDetailCommand)
+                if (isWithdrawal(command)) {
+                    handleWithdrawalEventNotification(command)
+                }
+                // Notify Ethereum registration
+                else if (isEthRegistration(commandWithCreator)) {
+                    handleEthRegistrationEventNotification(command)
+                }
+                // Notify Bitcoin registration
+                else if (isBtcRegistration(commandWithCreator)) {
+                    handleBtcRegistrationEventNotification(command)
                 }
             }
         //Get transfer commands from block
@@ -147,6 +162,32 @@ class NotificationInitialization(
                     && notaryClientsProvider.isClient(transferAsset.destAccountId).get()
         }
 
+    // Checks if Ethereum registration event
+    private fun isEthRegistration(commandWithCreator: CommandWithCreator) =
+        isRegistration(commandWithCreator, notificationsConfig.ethRegistrationServiceAccount, ETH_WALLET)
+
+    // Checks if Bitcoin registration event
+    private fun isBtcRegistration(commandWithCreator: CommandWithCreator) =
+        isRegistration(commandWithCreator, notificationsConfig.btcRegistrationServiceAccount, BTC_WALLET)
+
+    /**
+     * Checks if command is a registration command
+     * @param commandWithCreator - Iroha command
+     * @param registrationAccount - account that register clients in sidechains
+     * @param sideChainWalletKey - key of a sidechain wallet
+     * @return true if a command is a registration command
+     */
+    private fun isRegistration(
+        commandWithCreator: CommandWithCreator,
+        registrationAccount: String,
+        sideChainWalletKey: String
+    ) =
+        safeCheck {
+            return commandWithCreator.creator == registrationAccount &&
+                    commandWithCreator.command.setAccountDetail.key == sideChainWalletKey &&
+                    notaryClientsProvider.isClient(commandWithCreator.command.setAccountDetail.accountId).get()
+        }
+
     // Checks if withdrawal event
     private fun isWithdrawal(setAccountDetail: Commands.SetAccountDetail) =
         safeCheck {
@@ -156,6 +197,7 @@ class NotificationInitialization(
     // Checks if deposit event
     private fun isDeposit(transferAsset: Commands.TransferAsset) =
         safeCheck {
+            //TODO be more precise
             val depositSign =
                 transferAsset.srcAccountId.endsWith("@$NOTARY_DOMAIN")
                         && transferAsset.destAccountId != notificationsConfig.transferBillingAccount
@@ -168,6 +210,7 @@ class NotificationInitialization(
     // Checks if rollback event
     private fun isRollback(transferAsset: Commands.TransferAsset) =
         safeCheck {
+            //TODO be more precise
             val depositSign = transferAsset.srcAccountId.endsWith("@$NOTARY_DOMAIN")
                     && transferAsset.destAccountId != notificationsConfig.transferBillingAccount
                     && transferAsset.destAccountId != notificationsConfig.withdrawalBillingAccount
@@ -197,6 +240,30 @@ class NotificationInitialization(
         )
         logger.info("Notify deposit $transferNotifyEvent")
         eventsQueue.enqueue(transferNotifyEvent)
+    }
+
+    // Handles Ethereum registration event notification
+    private fun handleEthRegistrationEventNotification(setAccountDetail: Commands.SetAccountDetail) =
+        handleRegistrationEventNotification(setAccountDetail, RegistrationEventSubsystem.ETH)
+
+    // Handles Bitcoin registration event notification
+    private fun handleBtcRegistrationEventNotification(setAccountDetail: Commands.SetAccountDetail) =
+        handleRegistrationEventNotification(setAccountDetail, RegistrationEventSubsystem.BTC)
+
+    /**
+     * Handles registration event
+     * @param setAccountDetail - command with registration event
+     * @param subsystem - registration subsystem(Ethereum, Bitcoin, etc)
+     */
+    private fun handleRegistrationEventNotification(
+        setAccountDetail: Commands.SetAccountDetail,
+        subsystem: RegistrationEventSubsystem
+    ) {
+        val registrationNotifyEvent =
+            RegistrationNotifyEvent(subsystem, setAccountDetail.accountId, setAccountDetail.value)
+        logger.info("Notify ${subsystem.name} registration $registrationNotifyEvent")
+        eventsQueue.enqueue(registrationNotifyEvent)
+
     }
 
     // Handles withdrawal event notification

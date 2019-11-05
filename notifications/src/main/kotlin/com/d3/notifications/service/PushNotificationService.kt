@@ -5,17 +5,23 @@
 
 package com.d3.notifications.service
 
+import com.d3.notifications.event.RegistrationNotifyEvent
+import com.d3.notifications.event.TransferNotifyEvent
 import com.d3.notifications.push.WebPushAPIService
-import com.d3.notifications.push.WebPushAPIServiceImpl
 import com.github.kittinunf.result.Result
-import org.springframework.context.annotation.Profile
-import org.springframework.stereotype.Component
 
 /**
  * Service that is used to notify D3 clients using push notifications
  */
 class PushNotificationService(private val webPushAPIService: WebPushAPIService) :
     NotificationService {
+
+    override fun notifyRegistration(registrationNotifyEvent: RegistrationNotifyEvent): Result<Unit, Exception> {
+        return webPushAPIService.push(
+            registrationNotifyEvent.accountId,
+            "Registration in ${registrationNotifyEvent.subsystem} ${registrationNotifyEvent.address}"
+        )
+    }
 
     override fun notifySendToClient(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
         return webPushAPIService.push(

@@ -9,12 +9,17 @@ import com.d3.commons.service.WithdrawalFinalizationDetails
 import com.d3.commons.service.WithdrawalFinalizer
 import com.d3.commons.sidechain.iroha.FEE_ROLLBACK_DESCRIPTION
 import com.d3.commons.sidechain.iroha.ROLLBACK_DESCRIPTION
+import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.util.GsonInstance
 import com.d3.commons.util.irohaEscape
 import com.d3.commons.util.toHexString
 import com.d3.notifications.client.D3_CLIENT_EMAIL_KEY
 import com.d3.notifications.client.D3_CLIENT_ENABLE_NOTIFICATIONS
 import com.d3.notifications.client.D3_CLIENT_PUSH_SUBSCRIPTION
+import com.d3.notifications.event.RegistrationEventSubsystem
+import com.d3.notifications.event.RegistrationNotifyEvent
+import com.d3.notifications.init.BTC_WALLET
+import com.d3.notifications.init.ETH_WALLET
 import com.d3.notifications.rest.dto.DumbsterMessage
 import com.d3.notifications.service.*
 import com.github.kittinunf.result.failure
@@ -33,7 +38,7 @@ import org.junit.jupiter.api.Assertions.*
 import java.math.BigDecimal
 
 const val BTC_ASSET = "btc#bitcoin"
-private const val TRANSFER_WAIT_TIME = 3_000L
+private const val WAIT_TIME = 3_000L
 private const val SRC_USER_EMAIL = "src.user@d3.com"
 private const val DEST_USER_EMAIL = "dest.user@d3.com"
 private const val SUBSCRIPTION_JSON = "{" +
@@ -176,7 +181,7 @@ class NotificationsIntegrationTest {
                 quorum = 1
             )
         }.map {
-            Thread.sleep(TRANSFER_WAIT_TIME)
+            Thread.sleep(WAIT_TIME)
             val receivedEmails = getAllMails()
             assertEquals(1, receivedEmails.size)
             val lastEmail = receivedEmails.last()
@@ -185,6 +190,80 @@ class NotificationsIntegrationTest {
             assertEquals(NOTIFICATION_EMAIL, lastEmail.from)
             assertTrue(lastEmail.message.contains("from $from"))
             verify(environment.pushService).send(any())
+            Unit
+        }.failure { ex -> fail(ex) }
+    }
+
+    /**
+     * Note: Iroha must be deployed to pass the test.
+     * @given D3 client with enabled email notifications and Ethereum registration service
+     * @when Ethereum registration service registers D3 client in the Ethereum subsystem
+     * @then D3 client is notified about registration(both email and push)
+     */
+    @Test
+    fun testNotificationEthRegistration() {
+        val ethAddress = "abc"
+        integrationHelper.setAccountDetailWithRespectToBrvs(
+            environment.srcClientConsumer,
+            environment.srcClientId,
+            D3_CLIENT_ENABLE_NOTIFICATIONS,
+            "true"
+        ).map {
+            val ethRegistrationAccount = integrationHelper.accountHelper.ethRegistrationAccount
+            integrationHelper.setAccountDetail(
+                IrohaConsumerImpl(ethRegistrationAccount, integrationHelper.irohaAPI),
+                environment.srcClientConsumer.creator,
+                ETH_WALLET,
+                ethAddress
+            )
+        }.map {
+            Thread.sleep(WAIT_TIME)
+            val receivedEmails = getAllMails()
+            assertEquals(1, receivedEmails.size)
+            val lastEmail = receivedEmails.last()
+            assertEquals(D3_REGISTRATION_SUBJECT, lastEmail.subject)
+            assertEquals(SRC_USER_EMAIL, lastEmail.to)
+            assertEquals(NOTIFICATION_EMAIL, lastEmail.from)
+            verify(environment.pushService).send(any())
+            assertTrue(lastEmail.message.contains(ethAddress))
+            assertTrue(lastEmail.message.contains(RegistrationEventSubsystem.ETH.toString()))
+            Unit
+        }.failure { ex -> fail(ex) }
+    }
+
+    /**
+     * Note: Iroha must be deployed to pass the test.
+     * @given D3 client with enabled email notifications and Bitcoin registration service
+     * @when Bitcoin registration service registers D3 client in the Bitcoin subsystem
+     * @then D3 client is notified about registration(both email and push)
+     */
+    @Test
+    fun testNotificationBtcRegistration() {
+        val btcAddress = "xyz"
+        integrationHelper.setAccountDetailWithRespectToBrvs(
+            environment.srcClientConsumer,
+            environment.srcClientId,
+            D3_CLIENT_ENABLE_NOTIFICATIONS,
+            "true"
+        ).map {
+            val btcRegistrationAccount = integrationHelper.accountHelper.btcRegistrationAccount
+            integrationHelper.setAccountDetail(
+                IrohaConsumerImpl(btcRegistrationAccount, integrationHelper.irohaAPI),
+                environment.srcClientConsumer.creator,
+                BTC_WALLET,
+                btcAddress
+            )
+        }.map {
+            Thread.sleep(WAIT_TIME)
+            val receivedEmails = getAllMails()
+            assertEquals(1, receivedEmails.size)
+            val lastEmail = receivedEmails.last()
+            assertEquals(D3_REGISTRATION_SUBJECT, lastEmail.subject)
+            assertEquals(SRC_USER_EMAIL, lastEmail.to)
+            assertEquals(NOTIFICATION_EMAIL, lastEmail.from)
+            verify(environment.pushService).send(any())
+            assertTrue(lastEmail.message.contains(btcAddress))
+            assertTrue(lastEmail.message.contains(RegistrationEventSubsystem.BTC.toString()))
             Unit
         }.failure { ex -> fail(ex) }
     }
@@ -221,7 +300,7 @@ class NotificationsIntegrationTest {
             )
             withdrawalFinalizer.finalize(withdrawalFinalizationDetails)
         }.map {
-            Thread.sleep(TRANSFER_WAIT_TIME)
+            Thread.sleep(WAIT_TIME)
             val receivedEmails = getAllMails()
             assertEquals(1, receivedEmails.size)
             val lastEmail = receivedEmails.last()
@@ -267,7 +346,7 @@ class NotificationsIntegrationTest {
             )
             withdrawalFinalizer.finalize(withdrawalFinalizationDetails)
         }.map {
-            Thread.sleep(TRANSFER_WAIT_TIME)
+            Thread.sleep(WAIT_TIME)
             val receivedEmails = getAllMails()
             assertEquals(1, receivedEmails.size)
             val lastEmail = receivedEmails.last()
@@ -308,11 +387,11 @@ class NotificationsIntegrationTest {
                 quorum = 1
             )
         }.map {
-            Thread.sleep(TRANSFER_WAIT_TIME)
+            Thread.sleep(WAIT_TIME)
             val receivedEmails = getAllMails()
             assertEquals(1, receivedEmails.size)
             val lastEmail = receivedEmails.last()
-            assertEquals(D3_DEPOSIT_ROLLBACK_SUBJECT, lastEmail.subject)
+            assertEquals(D3_ROLLBACK_SUBJECT, lastEmail.subject)
             assertEquals(SRC_USER_EMAIL, lastEmail.to)
             assertEquals(NOTIFICATION_EMAIL, lastEmail.from)
             verify(environment.pushService).send(any())
@@ -358,11 +437,11 @@ class NotificationsIntegrationTest {
                 .build()
             integrationHelper.irohaConsumer.send(tx).get()
         }.map {
-            Thread.sleep(TRANSFER_WAIT_TIME)
+            Thread.sleep(WAIT_TIME)
             val receivedEmails = getAllMails()
             assertEquals(1, receivedEmails.size)
             val lastEmail = receivedEmails.last()
-            assertEquals(D3_DEPOSIT_ROLLBACK_SUBJECT, lastEmail.subject)
+            assertEquals(D3_ROLLBACK_SUBJECT, lastEmail.subject)
             assertEquals(SRC_USER_EMAIL, lastEmail.to)
             assertEquals(NOTIFICATION_EMAIL, lastEmail.from)
             assertTrue(lastEmail.message.contains("Fee $rollbackFeeValue $BTC_ASSET is rolled back as well."))
@@ -403,7 +482,7 @@ class NotificationsIntegrationTest {
                 transferValue.toPlainString()
             )
         }.map {
-            Thread.sleep(TRANSFER_WAIT_TIME)
+            Thread.sleep(WAIT_TIME)
             val mails = getAllMails()
             assertEquals(2, mails.size)
             assertTrue(mails.any { message -> message.to == SRC_USER_EMAIL })
@@ -450,7 +529,7 @@ class NotificationsIntegrationTest {
                 quorum = 1
             )
         }.map {
-            Thread.sleep(TRANSFER_WAIT_TIME)
+            Thread.sleep(WAIT_TIME)
             assertTrue(environment.dumbster.receivedEmails.isEmpty())
             verify(environment.pushService, never()).send(any())
             Unit

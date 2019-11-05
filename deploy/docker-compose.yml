@@ -49,18 +49,6 @@ services:
     networks:
       - d3-network
 
-  d3-registration:
-    image: nexus.iroha.tech:19002/d3-deploy/notary-registration:develop
-    container_name: d3-registration
-    restart: on-failure
-    ports:
-      - 8085:8085
-      - 19013:9010
-    env_file:
-      - ../deploy/.env-default-jvm-options
-    networks:
-      - d3-network
-
   d3-chain-adapter:
     image: nexus.iroha.tech:19004/soramitsu/chain-adapter:develop
     container_name: d3-chain-adapter
@@ -79,17 +67,6 @@ services:
       - WAIT_HOSTS_TIMEOUT=300
       - WAIT_SLEEP_INTERVAL=3
       - PROFILE
-    networks:
-      - d3-network
-
-  d3-notifications:
-    image: nexus.iroha.tech:19002/d3-deploy/notifications:develop
-    container_name: d3-notifications
-    restart: on-failure
-    ports:
-      - 19016:9010
-    env_file:
-      - ../deploy/.env-default-jvm-options
     networks:
       - d3-network
 
