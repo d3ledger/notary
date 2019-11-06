@@ -16,50 +16,6 @@ import java.math.BigDecimal
  */
 interface SoraEvent
 
-data class SoraTransferEventReceive(
-    val accountIdToNotify: String,
-    val amount: BigDecimal,
-    val assetName: String,
-    val from: String,
-    val description: String?
-) : SoraEvent {
-    companion object {
-        fun map(transferNotifyEvent: TransferNotifyEvent): SoraTransferEventReceive {
-            return SoraTransferEventReceive(
-                transferNotifyEvent.accountIdToNotify,
-                transferNotifyEvent.amount,
-                transferNotifyEvent.assetName,
-                transferNotifyEvent.from!!,
-                transferNotifyEvent.description
-            )
-        }
-    }
-}
-
-data class SoraTransferEventSend(
-    val accountIdToNotify: String,
-    val amount: BigDecimal,
-    val assetName: String,
-    val to: String,
-    val description: String?,
-    val fee: BigDecimal?,
-    val feeAssetName: String?
-) : SoraEvent {
-    companion object {
-        fun map(transferNotifyEvent: TransferNotifyEvent): SoraTransferEventSend {
-            return SoraTransferEventSend(
-                transferNotifyEvent.accountIdToNotify,
-                transferNotifyEvent.amount,
-                transferNotifyEvent.assetName,
-                transferNotifyEvent.to!!,
-                transferNotifyEvent.description,
-                transferNotifyEvent.fee,
-                transferNotifyEvent.feeAssetName
-            )
-        }
-    }
-}
-
 data class SoraDepositEvent(
     val accountIdToNotify: String,
     val amount: BigDecimal,

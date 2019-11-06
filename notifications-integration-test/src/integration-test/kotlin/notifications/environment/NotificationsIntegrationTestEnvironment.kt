@@ -146,7 +146,7 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
             eventsQueue
         )
 
-    val withdrawalIrohaConsumer = IrohaConsumerImpl(integrationHelper.accountHelper.btcWithdrawalAccount, irohaAPI)
+    val withdrawalIrohaConsumer = IrohaConsumerImpl(integrationHelper.accountHelper.ethWithdrawalAccount, irohaAPI)
 
     // Source account
     val srcClientName = String.getRandomString(9)

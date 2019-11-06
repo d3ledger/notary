@@ -14,8 +14,7 @@ import org.json.JSONObject
 const val DEPOSIT_URI = "deposit"
 const val WITHDRAWAL_URI = "withdrawal"
 const val REGISTRATION_URI = "registration"
-const val TRANSFER_RECEIVE_URI = "transferReceive"
-const val TRANSFER_SEND_URI = "transferSend"
+const val ETH_ASSET_ID = "ether#ethereum"
 
 /**
  * Notification service used by Sora
@@ -23,6 +22,9 @@ const val TRANSFER_SEND_URI = "transferSend"
 class SoraNotificationService(private val soraConfig: SoraConfig) : NotificationService {
 
     override fun notifyDeposit(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
+        if (transferNotifyEvent.assetName != ETH_ASSET_ID) {
+            return Result.of { logger.warn("Sora notification service is not interested in ${transferNotifyEvent.assetName} deposits") }
+        }
         logger.info("Notify Sora deposit $transferNotifyEvent")
         return Result.of {
             postSoraEvent(
@@ -33,6 +35,9 @@ class SoraNotificationService(private val soraConfig: SoraConfig) : Notification
     }
 
     override fun notifyWithdrawal(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
+        if (transferNotifyEvent.assetName != ETH_ASSET_ID) {
+            return Result.of { logger.warn("Sora notification service is not interested in ${transferNotifyEvent.assetName} withdrawals") }
+        }
         logger.info("Notify Sora withdrawal $transferNotifyEvent")
         return Result.of {
             postSoraEvent(
@@ -45,31 +50,28 @@ class SoraNotificationService(private val soraConfig: SoraConfig) : Notification
     override fun notifySendToClient(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
         logger.info("Notify Sora transfer send $transferNotifyEvent")
         return Result.of {
-            postSoraEvent(
-                soraConfig.notificationServiceURL + "/" + TRANSFER_SEND_URI,
-                SoraTransferEventSend.map(transferNotifyEvent)
-            )
+            logger.warn("'Transfer send' notifications are not supported in Sora")
         }
     }
 
     override fun notifyReceiveFromClient(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
         logger.info("Notify Sora transfer receive $transferNotifyEvent")
         return Result.of {
-            postSoraEvent(
-                soraConfig.notificationServiceURL + "/" + TRANSFER_RECEIVE_URI,
-                SoraTransferEventReceive.map(transferNotifyEvent)
-            )
+            logger.warn("'Transfer receive' notifications are not supported in Sora")
         }
     }
 
     override fun notifyRollback(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
         logger.info("Notify Sora rollback $transferNotifyEvent")
         return Result.of {
-            logger.warn("Rollback is not supported in Sora")
+            logger.warn("Rollback notifications are not supported in Sora")
         }
     }
 
     override fun notifyRegistration(registrationNotifyEvent: RegistrationNotifyEvent): Result<Unit, Exception> {
+        if (registrationNotifyEvent.subsystem != RegistrationEventSubsystem.ETH) {
+            return Result.of { logger.warn("Sora notification service is not interested in ${registrationNotifyEvent.subsystem.name} registrations") }
+        }
         logger.info("Notify Sora registration $registrationNotifyEvent")
         return Result.of {
             postSoraEvent(

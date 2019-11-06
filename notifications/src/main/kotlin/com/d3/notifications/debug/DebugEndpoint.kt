@@ -3,8 +3,13 @@ package com.d3.notifications.debug
 import com.d3.notifications.config.NotificationsConfig
 import com.d3.notifications.debug.dto.TO_HEADER
 import com.d3.notifications.debug.dto.mapDumbsterMessage
-import com.d3.notifications.event.*
-import com.d3.notifications.service.*
+import com.d3.notifications.event.SoraDepositEvent
+import com.d3.notifications.event.SoraEvent
+import com.d3.notifications.event.SoraRegistrationEvent
+import com.d3.notifications.event.SoraWithdrawalEvent
+import com.d3.notifications.service.DEPOSIT_URI
+import com.d3.notifications.service.REGISTRATION_URI
+import com.d3.notifications.service.WITHDRAWAL_URI
 import com.dumbster.smtp.SimpleSmtpServer
 import io.ktor.application.call
 import io.ktor.application.install
@@ -36,8 +41,6 @@ class DebugEndpoint(
     private val soraDepositEvents = Collections.synchronizedList(ArrayList<SoraDepositEvent>())
     private val soraWithdrawalEvents = Collections.synchronizedList(ArrayList<SoraWithdrawalEvent>())
     private val soraRegistrationEvents = Collections.synchronizedList(ArrayList<SoraRegistrationEvent>())
-    private val soraTransferSendEvents = Collections.synchronizedList(ArrayList<SoraTransferEventSend>())
-    private val soraTransferReceiveEvents = Collections.synchronizedList(ArrayList<SoraTransferEventReceive>())
 
     /**
      * Initiates ktor based HTTP server
@@ -75,8 +78,6 @@ class DebugEndpoint(
                     val eventType = call.parameters["eventType"]
                     call.respond(
                         when (eventType) {
-                            "transferSend" -> soraTransferSendEvents
-                            "transferReceive" -> soraTransferReceiveEvents
                             "deposit" -> soraDepositEvents
                             "registration" -> soraRegistrationEvents
                             "withdrawal" -> soraWithdrawalEvents
@@ -92,16 +93,6 @@ class DebugEndpoint(
                 post("/sora/$WITHDRAWAL_URI") {
                     val withdrawalEvent = call.receive<SoraWithdrawalEvent>()
                     soraWithdrawalEvents.add(withdrawalEvent)
-                    call.respond("Ok")
-                }
-                post("/sora/$TRANSFER_RECEIVE_URI") {
-                    val transferEventReceive = call.receive<SoraTransferEventReceive>()
-                    soraTransferReceiveEvents.add(transferEventReceive)
-                    call.respond("Ok")
-                }
-                post("/sora/$TRANSFER_SEND_URI") {
-                    val transferEventSend = call.receive<SoraTransferEventSend>()
-                    soraTransferSendEvents.add(transferEventSend)
                     call.respond("Ok")
                 }
                 post("/sora/$REGISTRATION_URI") {
