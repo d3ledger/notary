@@ -194,6 +194,8 @@ class NotificationsIntegrationTest {
             assertEquals(environment.srcClientId, soraEvent.accountIdToNotify)
             assertEquals(depositValue, soraEvent.amount)
             assertEquals(ETH_ASSET_ID, soraEvent.assetName)
+            assertNotNull(soraEvent.id)
+            assertNotNull(soraEvent.time)
             Unit
         }.failure { ex -> fail(ex) }
     }
@@ -235,6 +237,8 @@ class NotificationsIntegrationTest {
             assertEquals(RegistrationEventSubsystem.ETH.name, soraEvent.subsystem)
             assertEquals(environment.srcClientConsumer.creator, soraEvent.accountIdToNotify)
             assertEquals(ethAddress, soraEvent.address)
+            assertNotNull(soraEvent.id)
+            assertNotNull(soraEvent.time)
             Unit
         }.failure { ex -> fail(ex) }
     }
@@ -323,8 +327,10 @@ class NotificationsIntegrationTest {
             assertEquals(destAddress, soraEvent.to)
             assertEquals(withdrawalValue, soraEvent.amount)
             assertEquals(ETH_ASSET_ID, soraEvent.assetName)
-            assertEquals(fee, soraEvent.fee)
-            assertEquals(ETH_ASSET_ID, soraEvent.feeAssetName)
+            assertEquals(fee, soraEvent.fee!!.amount)
+            assertEquals(ETH_ASSET_ID, soraEvent.fee!!.assetName)
+            assertNotNull(soraEvent.id)
+            assertNotNull(soraEvent.time)
             Unit
         }.failure { ex -> fail(ex) }
     }
@@ -377,7 +383,8 @@ class NotificationsIntegrationTest {
             assertEquals(withdrawalValue, soraEvent.amount)
             assertEquals(ETH_ASSET_ID, soraEvent.assetName)
             assertNull(soraEvent.fee)
-            assertNull(soraEvent.feeAssetName)
+            assertNotNull(soraEvent.id)
+            assertNotNull(soraEvent.time)
             Unit
         }.failure { ex -> fail(ex) }
     }

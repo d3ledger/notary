@@ -80,6 +80,19 @@ fun getTransferTransactions(block: BlockOuterClass.Block): List<TransactionOuter
 }
 
 /**
+ * Return transactions with "set account detail" commands from Iroha block
+ * @param block - Iroha block
+ * @return list full of transactions with "set account detail" commands
+ */
+fun getSetAccountDetailTransactions(block: BlockOuterClass.Block): List<TransactionOuterClass.Transaction> {
+    return block.blockV1.payload.transactionsList
+        .filter { tx ->
+            tx.payload.reducedPayload.commandsList
+                .any { command -> command.hasSetAccountDetail() }
+        }
+}
+
+/**
  * Return all withdrawal transactions from Iroha block
  * @param block - Iroha block
  * @param withdrawalAccount - account that is used to perform withdrawals

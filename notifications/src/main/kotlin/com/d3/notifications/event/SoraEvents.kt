@@ -12,62 +12,80 @@ import java.math.BigDecimal
  */
 
 /**
- * Sora event marker-interface
+ * Sora event
+ * @param id - event id
+ * @param time - event time
  */
-interface SoraEvent
+open class SoraEvent(val id: String, val time: Long)
 
-data class SoraDepositEvent(
+class SoraDepositEvent(
     val accountIdToNotify: String,
     val amount: BigDecimal,
     val assetName: String,
+    id: String,
+    time: Long,
     val from: String?
-) : SoraEvent {
+) : SoraEvent(id, time) {
     companion object {
-        fun map(transferNotifyEvent: TransferNotifyEvent): SoraDepositEvent {
-            return SoraDepositEvent(
-                transferNotifyEvent.accountIdToNotify,
-                transferNotifyEvent.amount,
-                transferNotifyEvent.assetName,
-                transferNotifyEvent.from
-            )
-        }
+        fun map(transferNotifyEvent: TransferNotifyEvent) = SoraDepositEvent(
+            transferNotifyEvent.accountIdToNotify,
+            transferNotifyEvent.amount,
+            transferNotifyEvent.assetName,
+            transferNotifyEvent.id,
+            transferNotifyEvent.time,
+            transferNotifyEvent.from
+        )
     }
 }
 
-data class SoraWithdrawalEvent(
+class SoraWithdrawalEvent(
     val accountIdToNotify: String,
     val amount: BigDecimal,
     val assetName: String,
     val to: String,
-    val fee: BigDecimal?,
-    val feeAssetName: String?
-) : SoraEvent {
+    id: String,
+    time: Long,
+    val fee: Fee?
+) : SoraEvent(id, time) {
     companion object {
-        fun map(transferNotifyEvent: TransferNotifyEvent): SoraWithdrawalEvent {
-            return SoraWithdrawalEvent(
-                transferNotifyEvent.accountIdToNotify,
-                transferNotifyEvent.amount,
-                transferNotifyEvent.assetName,
-                transferNotifyEvent.to!!,
-                transferNotifyEvent.fee,
-                transferNotifyEvent.feeAssetName
-            )
+        fun map(transferNotifyEvent: TransferNotifyEvent) = SoraWithdrawalEvent(
+            transferNotifyEvent.accountIdToNotify,
+            transferNotifyEvent.amount,
+            transferNotifyEvent.assetName,
+            transferNotifyEvent.to!!,
+            transferNotifyEvent.id,
+            transferNotifyEvent.time,
+            Fee.map(transferNotifyEvent.fee)
+        )
+    }
+}
+
+data class Fee(val amount: BigDecimal, val assetName: String) {
+    companion object {
+        fun map(transferFee: TransferFee?): Fee? {
+            return if (transferFee == null) {
+                null
+            } else {
+                Fee(transferFee.amount, transferFee.assetName)
+            }
         }
     }
 }
 
-data class SoraRegistrationEvent(
+class SoraRegistrationEvent(
     val accountIdToNotify: String,
     val address: String,
-    val subsystem: String
-) : SoraEvent {
+    val subsystem: String,
+    id: String,
+    time: Long
+) : SoraEvent(id, time) {
     companion object {
-        fun map(registrationNotifyEvent: RegistrationNotifyEvent): SoraRegistrationEvent {
-            return SoraRegistrationEvent(
-                registrationNotifyEvent.accountId,
-                registrationNotifyEvent.address,
-                registrationNotifyEvent.subsystem.name
-            )
-        }
+        fun map(registrationNotifyEvent: RegistrationNotifyEvent) = SoraRegistrationEvent(
+            registrationNotifyEvent.accountId,
+            registrationNotifyEvent.address,
+            registrationNotifyEvent.subsystem.name,
+            registrationNotifyEvent.id,
+            registrationNotifyEvent.time
+        )
     }
 }

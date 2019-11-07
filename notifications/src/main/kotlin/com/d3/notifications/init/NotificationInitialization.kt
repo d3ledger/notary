@@ -13,14 +13,11 @@ import com.d3.commons.sidechain.iroha.FEE_ROLLBACK_DESCRIPTION
 import com.d3.commons.sidechain.iroha.NOTARY_DOMAIN
 import com.d3.commons.sidechain.iroha.ROLLBACK_DESCRIPTION
 import com.d3.commons.sidechain.iroha.util.CommandWithCreator
-import com.d3.commons.sidechain.iroha.util.getSetDetailCommandsWithCreator
+import com.d3.commons.sidechain.iroha.util.getSetAccountDetailTransactions
 import com.d3.commons.sidechain.iroha.util.getTransferTransactions
 import com.d3.commons.util.irohaUnEscape
 import com.d3.notifications.config.NotificationsConfig
-import com.d3.notifications.event.RegistrationEventSubsystem
-import com.d3.notifications.event.RegistrationNotifyEvent
-import com.d3.notifications.event.TransferEventType
-import com.d3.notifications.event.TransferNotifyEvent
+import com.d3.notifications.event.*
 import com.d3.notifications.queue.EventsQueue
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
@@ -28,6 +25,7 @@ import com.github.kittinunf.result.map
 import iroha.protocol.BlockOuterClass
 import iroha.protocol.Commands
 import iroha.protocol.TransactionOuterClass
+import jp.co.soramitsu.iroha.java.Utils
 import mu.KLogging
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
@@ -69,20 +67,22 @@ class NotificationInitialization(
      * @param block - block to handle
      */
     private fun handleBlock(block: BlockOuterClass.Block) {
-        getSetDetailCommandsWithCreator(block)
-            .forEach { commandWithCreator ->
-                val command = commandWithCreator.command.setAccountDetail
-                // Notify withdrawal
-                if (isWithdrawal(command)) {
-                    handleWithdrawalEventNotification(command)
-                }
-                // Notify Ethereum registration
-                else if (isEthRegistration(commandWithCreator)) {
-                    handleEthRegistrationEventNotification(command)
-                }
-                // Notify Bitcoin registration
-                else if (isBtcRegistration(commandWithCreator)) {
-                    handleBtcRegistrationEventNotification(command)
+        getSetAccountDetailTransactions(block)
+            .forEach { tx ->
+                tx.payload.reducedPayload.commandsList.forEach { command ->
+                    val commandWithCreator = CommandWithCreator(command, tx.payload.reducedPayload.creatorAccountId)
+                    // Notify withdrawal
+                    if (isWithdrawal(command.setAccountDetail)) {
+                        handleWithdrawalEventNotification(command.setAccountDetail, tx)
+                    }
+                    // Notify Ethereum registration
+                    else if (isEthRegistration(commandWithCreator)) {
+                        handleEthRegistrationEventNotification(command.setAccountDetail, tx)
+                    }
+                    // Notify Bitcoin registration
+                    else if (isBtcRegistration(commandWithCreator)) {
+                        handleBtcRegistrationEventNotification(command.setAccountDetail, tx)
+                    }
                 }
             }
         //Get transfer commands from block
@@ -91,12 +91,13 @@ class NotificationInitialization(
                 val transferAsset = command.transferAsset
                 // Notify deposit
                 if (isDeposit(transferAsset)) {
-                    handleDepositNotification(transferAsset)
+                    handleDepositNotification(transferAsset, tx)
                 }
                 // Notify transfer
                 else if (isClientToClientTransfer(transferAsset)) {
                     handleClientToClientEventNotification(
                         transferAsset,
+                        tx,
                         getTransferFee(tx)
                     )
                 }
@@ -104,6 +105,7 @@ class NotificationInitialization(
                 else if (isRollback(transferAsset)) {
                     handleRollbackEventNotification(
                         transferAsset,
+                        tx,
                         getWithdrawalRollbackFee(tx)
                     )
                 }
@@ -116,7 +118,7 @@ class NotificationInitialization(
      * @param tx - transaction that is used to find transfer fee
      * @return transfer fee or null if not found
      */
-    private fun getTransferFee(tx: TransactionOuterClass.Transaction): OperationFee? {
+    private fun getTransferFee(tx: TransactionOuterClass.Transaction): TransferFee? {
         val feeTransfer = tx.payload.reducedPayload.commandsList.find { command ->
             command.hasTransferAsset()
                     && command.transferAsset.destAccountId == notificationsConfig.transferBillingAccount
@@ -125,7 +127,7 @@ class NotificationInitialization(
         return if (feeTransfer == null) {
             null
         } else {
-            OperationFee(
+            TransferFee(
                 BigDecimal(feeTransfer.transferAsset.amount),
                 feeTransfer.transferAsset.assetId
             )
@@ -137,7 +139,7 @@ class NotificationInitialization(
      * @param tx - transaction that is used to find withdrawal rollback fee
      * @return withdrawal rollback or null if not found
      */
-    private fun getWithdrawalRollbackFee(tx: TransactionOuterClass.Transaction): OperationFee? {
+    private fun getWithdrawalRollbackFee(tx: TransactionOuterClass.Transaction): TransferFee? {
         val feeTransfer = tx.payload.reducedPayload.commandsList.find { command ->
             command.hasTransferAsset()
                     && command.transferAsset.srcAccountId.endsWith("@$NOTARY_DOMAIN")
@@ -147,7 +149,7 @@ class NotificationInitialization(
         return if (feeTransfer == null) {
             null
         } else {
-            OperationFee(
+            TransferFee(
                 BigDecimal(feeTransfer.transferAsset.amount),
                 feeTransfer.transferAsset.assetId
             )
@@ -229,25 +231,36 @@ class NotificationInitialization(
         }
 
     // Handles deposit event notification
-    private fun handleDepositNotification(transferAsset: Commands.TransferAsset) {
+    private fun handleDepositNotification(
+        transferAsset: Commands.TransferAsset,
+        tx: TransactionOuterClass.Transaction
+    ) {
         val transferNotifyEvent = TransferNotifyEvent(
-            TransferEventType.DEPOSIT,
-            transferAsset.destAccountId,
-            BigDecimal(transferAsset.amount),
-            transferAsset.assetId,
-            from = transferAsset.description
+            type = TransferEventType.DEPOSIT,
+            accountIdToNotify = transferAsset.destAccountId,
+            amount = BigDecimal(transferAsset.amount),
+            assetName = transferAsset.assetId,
+            from = transferAsset.description,
+            id = Utils.toHex(Utils.hash(tx)),
+            time = tx.payload.reducedPayload.createdTime
         )
         logger.info("Notify deposit $transferNotifyEvent")
         eventsQueue.enqueue(transferNotifyEvent)
     }
 
     // Handles Ethereum registration event notification
-    private fun handleEthRegistrationEventNotification(setAccountDetail: Commands.SetAccountDetail) =
-        handleRegistrationEventNotification(setAccountDetail, RegistrationEventSubsystem.ETH)
+    private fun handleEthRegistrationEventNotification(
+        setAccountDetail: Commands.SetAccountDetail,
+        tx: TransactionOuterClass.Transaction
+    ) =
+        handleRegistrationEventNotification(setAccountDetail, tx, RegistrationEventSubsystem.ETH)
 
     // Handles Bitcoin registration event notification
-    private fun handleBtcRegistrationEventNotification(setAccountDetail: Commands.SetAccountDetail) =
-        handleRegistrationEventNotification(setAccountDetail, RegistrationEventSubsystem.BTC)
+    private fun handleBtcRegistrationEventNotification(
+        setAccountDetail: Commands.SetAccountDetail,
+        tx: TransactionOuterClass.Transaction
+    ) =
+        handleRegistrationEventNotification(setAccountDetail, tx, RegistrationEventSubsystem.BTC)
 
     /**
      * Handles registration event
@@ -256,31 +269,42 @@ class NotificationInitialization(
      */
     private fun handleRegistrationEventNotification(
         setAccountDetail: Commands.SetAccountDetail,
+        tx: TransactionOuterClass.Transaction,
         subsystem: RegistrationEventSubsystem
     ) {
         val registrationNotifyEvent =
-            RegistrationNotifyEvent(subsystem, setAccountDetail.accountId, setAccountDetail.value)
+            RegistrationNotifyEvent(
+                subsystem = subsystem,
+                accountId = setAccountDetail.accountId,
+                address = setAccountDetail.value,
+                id = Utils.toHex(Utils.hash(tx)),
+                time = tx.payload.reducedPayload.createdTime
+            )
         logger.info("Notify ${subsystem.name} registration $registrationNotifyEvent")
         eventsQueue.enqueue(registrationNotifyEvent)
     }
 
     // Handles withdrawal event notification
-    private fun handleWithdrawalEventNotification(setAccountDetail: Commands.SetAccountDetail) {
+    private fun handleWithdrawalEventNotification(
+        setAccountDetail: Commands.SetAccountDetail,
+        tx: TransactionOuterClass.Transaction
+    ) {
         val withdrawalFinalizationDetails =
             WithdrawalFinalizationDetails.fromJson(setAccountDetail.value.irohaUnEscape())
         val operationFee = if (withdrawalFinalizationDetails.feeAmount > BigDecimal.ZERO) {
-            OperationFee(withdrawalFinalizationDetails.feeAmount, withdrawalFinalizationDetails.feeAssetId)
+            TransferFee(withdrawalFinalizationDetails.feeAmount, withdrawalFinalizationDetails.feeAssetId)
         } else {
             null
         }
         val transferNotifyEvent = TransferNotifyEvent(
-            TransferEventType.WITHDRAWAL,
-            withdrawalFinalizationDetails.srcAccountId,
-            withdrawalFinalizationDetails.withdrawalAmount,
-            withdrawalFinalizationDetails.withdrawalAssetId,
+            type = TransferEventType.WITHDRAWAL,
+            accountIdToNotify = withdrawalFinalizationDetails.srcAccountId,
+            amount = withdrawalFinalizationDetails.withdrawalAmount,
+            assetName = withdrawalFinalizationDetails.withdrawalAssetId,
             to = withdrawalFinalizationDetails.destinationAddress,
-            fee = operationFee?.feeAmount,
-            feeAssetName = operationFee?.feeAssetId
+            fee = operationFee,
+            id = Utils.toHex(Utils.hash(tx)),
+            time = tx.payload.reducedPayload.createdTime
         )
         logger.info("Notify withdrawal $transferNotifyEvent")
         eventsQueue.enqueue(transferNotifyEvent)
@@ -289,25 +313,34 @@ class NotificationInitialization(
     // Handles transfer event notification
     private fun handleClientToClientEventNotification(
         transferAsset: Commands.TransferAsset,
-        fee: OperationFee?
+        tx: TransactionOuterClass.Transaction,
+        fee: TransferFee?
     ) {
+        val description: String = if (transferAsset.description == null) {
+            ""
+        } else {
+            transferAsset.description
+        }
         val transferNotifyReceiveEvent = TransferNotifyEvent(
-            TransferEventType.TRANSFER_RECEIVE,
-            transferAsset.destAccountId,
-            BigDecimal(transferAsset.amount),
-            transferAsset.assetId,
-            transferAsset.description,
-            from = transferAsset.srcAccountId
+            type = TransferEventType.TRANSFER_RECEIVE,
+            accountIdToNotify = transferAsset.destAccountId,
+            amount = BigDecimal(transferAsset.amount),
+            assetName = transferAsset.assetId,
+            description = description,
+            from = transferAsset.srcAccountId,
+            id = Utils.toHex(Utils.hash(tx)),
+            time = tx.payload.reducedPayload.createdTime
         )
         val transferNotifySendEvent = TransferNotifyEvent(
-            TransferEventType.TRANSFER_SEND,
-            transferAsset.srcAccountId,
-            BigDecimal(transferAsset.amount),
-            transferAsset.assetId,
-            transferAsset.description,
+            type = TransferEventType.TRANSFER_SEND,
+            accountIdToNotify = transferAsset.srcAccountId,
+            amount = BigDecimal(transferAsset.amount),
+            assetName = transferAsset.assetId,
+            description = description,
             to = transferAsset.destAccountId,
-            fee = fee?.feeAmount,
-            feeAssetName = fee?.feeAssetId
+            fee = fee,
+            id = Utils.toHex(Utils.hash(tx)),
+            time = tx.payload.reducedPayload.createdTime
         )
         logger.info("Notify transfer receive $transferNotifyReceiveEvent")
         logger.info("Notify transfer send $transferNotifySendEvent")
@@ -318,19 +351,18 @@ class NotificationInitialization(
     // Handles rollback event notification
     private fun handleRollbackEventNotification(
         transferAsset: Commands.TransferAsset,
-        rollbackFee: OperationFee?
+        tx: TransactionOuterClass.Transaction,
+        rollbackFee: TransferFee?
     ) {
-        val rollbackDescription = if (rollbackFee == null) {
-            ""
-        } else {
-            "Fee ${rollbackFee.feeAmount} ${rollbackFee.feeAssetId} is rolled back as well."
-        }
+
         val transferNotifyEvent = TransferNotifyEvent(
-            TransferEventType.ROLLBACK,
-            transferAsset.destAccountId,
-            BigDecimal(transferAsset.amount),
-            transferAsset.assetId,
-            rollbackDescription
+            type = TransferEventType.ROLLBACK,
+            accountIdToNotify = transferAsset.destAccountId,
+            amount = BigDecimal(transferAsset.amount),
+            assetName = transferAsset.assetId,
+            fee = rollbackFee,
+            id = Utils.toHex(Utils.hash(tx)),
+            time = tx.payload.reducedPayload.createdTime
         )
         logger.info("Notify rollback $transferNotifyEvent")
         eventsQueue.enqueue(transferNotifyEvent)
@@ -347,8 +379,6 @@ class NotificationInitialization(
             false
         }
     }
-
-    private data class OperationFee(val feeAmount: BigDecimal, val feeAssetId: String)
 
     /**
      * Logger
