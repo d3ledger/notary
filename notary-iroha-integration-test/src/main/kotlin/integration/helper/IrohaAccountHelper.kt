@@ -139,6 +139,10 @@ open class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers:
         createTesterAccount("eth_reg", listOf("registration_service"))
     }
 
+    val ethWithdrawalAccount by lazy {
+        createTesterAccount("eth_withdrawal", listOf("withdrawal"))
+    }
+
     /** Account that registers Bitcoin addresses */
     val btcRegistrationAccount by lazy {
         createTesterAccount("btc_reg", listOf("registration_service"))

@@ -39,7 +39,6 @@ import org.junit.jupiter.api.Assertions.*
 import java.lang.reflect.Type
 import java.math.BigDecimal
 
-const val BTC_ASSET = "btc#bitcoin"
 private const val WAIT_TIME = 5_000L
 private const val SRC_USER_EMAIL = "src.user@d3.com"
 private const val DEST_USER_EMAIL = "dest.user@d3.com"
@@ -114,21 +113,21 @@ class NotificationsIntegrationTest {
         // Enriching notary account
         integrationHelper.addIrohaAssetTo(
             integrationHelper.accountHelper.notaryAccount.accountId,
-            BTC_ASSET,
+            ETH_ASSET_ID,
             amount
         )
 
         // Enriching withdrawal account
         integrationHelper.addIrohaAssetTo(
-            integrationHelper.accountHelper.btcWithdrawalAccount.accountId,
-            BTC_ASSET,
+            integrationHelper.accountHelper.ethWithdrawalAccount.accountId,
+            ETH_ASSET_ID,
             amount
         )
 
         // Enriching src account
         integrationHelper.addIrohaAssetTo(
             environment.srcClientId,
-            BTC_ASSET,
+            ETH_ASSET_ID,
             amount
         )
 
@@ -176,7 +175,7 @@ class NotificationsIntegrationTest {
                 notaryAccount.keyPair,
                 notaryAccount.accountId,
                 environment.srcClientId,
-                BTC_ASSET,
+                ETH_ASSET_ID,
                 from,
                 depositValue.toPlainString(),
                 quorum = 1
@@ -194,7 +193,7 @@ class NotificationsIntegrationTest {
             val soraEvent = getLastSoraEvent("deposit") as SoraDepositEvent
             assertEquals(environment.srcClientId, soraEvent.accountIdToNotify)
             assertEquals(depositValue, soraEvent.amount)
-            assertEquals(BTC_ASSET, soraEvent.assetName)
+            assertEquals(ETH_ASSET_ID, soraEvent.assetName)
             Unit
         }.failure { ex -> fail(ex) }
     }
@@ -273,10 +272,6 @@ class NotificationsIntegrationTest {
             verify(environment.pushService).send(any())
             assertTrue(lastEmail.message.contains(btcAddress))
             assertTrue(lastEmail.message.contains(RegistrationEventSubsystem.BTC.toString()))
-            val soraEvent = getLastSoraEvent("registration") as SoraRegistrationEvent
-            assertEquals(RegistrationEventSubsystem.BTC.name, soraEvent.subsystem)
-            assertEquals(environment.srcClientConsumer.creator, soraEvent.accountIdToNotify)
-            assertEquals(btcAddress, soraEvent.address)
             Unit
         }.failure { ex -> fail(ex) }
     }
@@ -304,9 +299,9 @@ class NotificationsIntegrationTest {
             )
             val withdrawalFinalizationDetails = WithdrawalFinalizationDetails(
                 withdrawalValue,
-                BTC_ASSET,
+                ETH_ASSET_ID,
                 fee,
-                BTC_ASSET,
+                ETH_ASSET_ID,
                 environment.srcClientId,
                 System.currentTimeMillis(),
                 destAddress
@@ -320,16 +315,16 @@ class NotificationsIntegrationTest {
             assertEquals(D3_WITHDRAWAL_EMAIL_SUBJECT, lastEmail.subject)
             assertEquals(SRC_USER_EMAIL, lastEmail.to)
             assertEquals(NOTIFICATION_EMAIL, lastEmail.from)
-            assertTrue(lastEmail.message.contains("Fee is $fee $BTC_ASSET"))
+            assertTrue(lastEmail.message.contains("Fee is $fee $ETH_ASSET_ID"))
             assertTrue(lastEmail.message.contains("to $destAddress"))
             verify(environment.pushService).send(any())
             val soraEvent = getLastSoraEvent("withdrawal") as SoraWithdrawalEvent
             assertEquals(environment.srcClientId, soraEvent.accountIdToNotify)
             assertEquals(destAddress, soraEvent.to)
             assertEquals(withdrawalValue, soraEvent.amount)
-            assertEquals(BTC_ASSET, soraEvent.assetName)
+            assertEquals(ETH_ASSET_ID, soraEvent.assetName)
             assertEquals(fee, soraEvent.fee)
-            assertEquals(BTC_ASSET, soraEvent.feeAssetName)
+            assertEquals(ETH_ASSET_ID, soraEvent.feeAssetName)
             Unit
         }.failure { ex -> fail(ex) }
     }
@@ -357,9 +352,9 @@ class NotificationsIntegrationTest {
             )
             val withdrawalFinalizationDetails = WithdrawalFinalizationDetails(
                 withdrawalValue,
-                BTC_ASSET,
+                ETH_ASSET_ID,
                 fee,
-                BTC_ASSET,
+                ETH_ASSET_ID,
                 environment.srcClientId,
                 System.currentTimeMillis(),
                 destAddress
@@ -380,7 +375,7 @@ class NotificationsIntegrationTest {
             assertEquals(environment.srcClientId, soraEvent.accountIdToNotify)
             assertEquals(destAddress, soraEvent.to)
             assertEquals(withdrawalValue, soraEvent.amount)
-            assertEquals(BTC_ASSET, soraEvent.assetName)
+            assertEquals(ETH_ASSET_ID, soraEvent.assetName)
             assertNull(soraEvent.fee)
             assertNull(soraEvent.feeAssetName)
             Unit
@@ -408,7 +403,7 @@ class NotificationsIntegrationTest {
                 notaryAccount.keyPair,
                 notaryAccount.accountId,
                 environment.srcClientId,
-                BTC_ASSET,
+                ETH_ASSET_ID,
                 ROLLBACK_DESCRIPTION,
                 rollbackValue.toPlainString(),
                 quorum = 1
@@ -447,14 +442,14 @@ class NotificationsIntegrationTest {
                 .transferAsset(
                     notaryAccount.accountId,
                     environment.srcClientId,
-                    BTC_ASSET,
+                    ETH_ASSET_ID,
                     ROLLBACK_DESCRIPTION,
                     rollbackValue.toPlainString()
                 )
                 .transferAsset(
                     notaryAccount.accountId,
                     environment.srcClientId,
-                    BTC_ASSET,
+                    ETH_ASSET_ID,
                     FEE_ROLLBACK_DESCRIPTION,
                     rollbackFeeValue.toPlainString()
                 )
@@ -471,7 +466,7 @@ class NotificationsIntegrationTest {
             assertEquals(D3_ROLLBACK_SUBJECT, lastEmail.subject)
             assertEquals(SRC_USER_EMAIL, lastEmail.to)
             assertEquals(NOTIFICATION_EMAIL, lastEmail.from)
-            assertTrue(lastEmail.message.contains("Fee $rollbackFeeValue $BTC_ASSET is rolled back as well."))
+            assertTrue(lastEmail.message.contains("Fee $rollbackFeeValue $ETH_ASSET_ID is rolled back as well."))
             verify(environment.pushService).send(any())
             Unit
         }.failure { ex -> fail(ex) }
@@ -504,7 +499,7 @@ class NotificationsIntegrationTest {
                 environment.srcClientKeyPair,
                 environment.srcClientId,
                 environment.destClientId,
-                BTC_ASSET,
+                ETH_ASSET_ID,
                 "no description",
                 transferValue.toPlainString()
             )
@@ -550,7 +545,7 @@ class NotificationsIntegrationTest {
                 notaryAccount.keyPair,
                 notaryAccount.accountId,
                 environment.srcClientId,
-                BTC_ASSET,
+                ETH_ASSET_ID,
                 "no description",
                 depositValue.toPlainString(),
                 quorum = 1
@@ -591,8 +586,6 @@ class NotificationsIntegrationTest {
             "deposit" -> SoraDepositEvent::class.java
             "withdrawal" -> SoraWithdrawalEvent::class.java
             "registration" -> SoraRegistrationEvent::class.java
-            "transferSend" -> SoraTransferEventSend::class.java
-            "transferReceive" -> SoraTransferEventReceive::class.java
             else -> throw IllegalArgumentException("Event type $eventType is not supported")
         }
         val jsonArray = JSONArray(res.text)
