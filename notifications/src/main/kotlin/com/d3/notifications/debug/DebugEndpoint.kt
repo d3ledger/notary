@@ -3,13 +3,8 @@ package com.d3.notifications.debug
 import com.d3.notifications.config.NotificationsConfig
 import com.d3.notifications.debug.dto.TO_HEADER
 import com.d3.notifications.debug.dto.mapDumbsterMessage
-import com.d3.notifications.event.SoraDepositEvent
-import com.d3.notifications.event.SoraEvent
-import com.d3.notifications.event.SoraRegistrationEvent
-import com.d3.notifications.event.SoraWithdrawalEvent
-import com.d3.notifications.service.DEPOSIT_URI
-import com.d3.notifications.service.REGISTRATION_URI
-import com.d3.notifications.service.WITHDRAWAL_URI
+import com.d3.notifications.event.*
+import com.d3.notifications.service.SoraURI
 import com.dumbster.smtp.SimpleSmtpServer
 import io.ktor.application.call
 import io.ktor.application.install
@@ -41,6 +36,7 @@ class DebugEndpoint(
     private val soraDepositEvents = Collections.synchronizedList(ArrayList<SoraDepositEvent>())
     private val soraWithdrawalEvents = Collections.synchronizedList(ArrayList<SoraWithdrawalEvent>())
     private val soraRegistrationEvents = Collections.synchronizedList(ArrayList<SoraRegistrationEvent>())
+    private val soraFailedRegistrationEvents = Collections.synchronizedList(ArrayList<SoraFailedRegistrationEvent>())
 
     /**
      * Initiates ktor based HTTP server
@@ -78,26 +74,32 @@ class DebugEndpoint(
                     val eventType = call.parameters["eventType"]
                     call.respond(
                         when (eventType) {
-                            "deposit" -> soraDepositEvents
-                            "registration" -> soraRegistrationEvents
-                            "withdrawal" -> soraWithdrawalEvents
+                            SoraURI.DEPOSIT_URI.uri -> soraDepositEvents
+                            SoraURI.REGISTRATION_URI.uri -> soraRegistrationEvents
+                            SoraURI.WITHDRAWAL_URI.uri -> soraWithdrawalEvents
+                            SoraURI.FAILED_REGISTRATION_URI.uri -> soraFailedRegistrationEvents
                             else -> ArrayList<SoraEvent>()
                         }
                     )
                 }
-                post("/sora/$DEPOSIT_URI") {
+                post("/sora/${SoraURI.DEPOSIT_URI.uri}") {
                     val depositEvent = call.receive<SoraDepositEvent>()
                     soraDepositEvents.add(depositEvent)
                     call.respond("Ok")
                 }
-                post("/sora/$WITHDRAWAL_URI") {
+                post("/sora/${SoraURI.WITHDRAWAL_URI.uri}") {
                     val withdrawalEvent = call.receive<SoraWithdrawalEvent>()
                     soraWithdrawalEvents.add(withdrawalEvent)
                     call.respond("Ok")
                 }
-                post("/sora/$REGISTRATION_URI") {
+                post("/sora/${SoraURI.REGISTRATION_URI.uri}") {
                     val registrationEvent = call.receive<SoraRegistrationEvent>()
                     soraRegistrationEvents.add(registrationEvent)
+                    call.respond("Ok")
+                }
+                post("/sora/${SoraURI.FAILED_REGISTRATION_URI.uri}") {
+                    val failedRegistrationEvent = call.receive<SoraFailedRegistrationEvent>()
+                    soraFailedRegistrationEvents.add(failedRegistrationEvent)
                     call.respond("Ok")
                 }
             }

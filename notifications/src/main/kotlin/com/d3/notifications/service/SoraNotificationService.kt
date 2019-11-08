@@ -11,9 +11,6 @@ import com.github.kittinunf.result.Result
 import mu.KLogging
 import org.json.JSONObject
 
-const val DEPOSIT_URI = "deposit"
-const val WITHDRAWAL_URI = "withdrawal"
-const val REGISTRATION_URI = "registration"
 const val ETH_ASSET_ID = "ether#ethereum"
 
 /**
@@ -21,16 +18,26 @@ const val ETH_ASSET_ID = "ether#ethereum"
  */
 class SoraNotificationService(private val soraConfig: SoraConfig) : NotificationService {
 
+    override fun notifyFailedRegistration(failedRegistrationNotifyEvent: FailedRegistrationNotifyEvent): Result<Unit, Exception> {
+        if (failedRegistrationNotifyEvent.subsystem != RegistrationEventSubsystem.ETH) {
+            return Result.of { logger.warn("Sora notification service is not interested in ${failedRegistrationNotifyEvent.subsystem.name} registrations") }
+        }
+        logger.info("Notify failed Sora registration $failedRegistrationNotifyEvent")
+        return Result.of {
+            postSoraEvent(
+                SoraURI.FAILED_REGISTRATION_URI,
+                SoraFailedRegistrationEvent.map(failedRegistrationNotifyEvent)
+            )
+        }
+    }
+
     override fun notifyDeposit(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
         if (transferNotifyEvent.assetName != ETH_ASSET_ID) {
             return Result.of { logger.warn("Sora notification service is not interested in ${transferNotifyEvent.assetName} deposits") }
         }
         logger.info("Notify Sora deposit $transferNotifyEvent")
         return Result.of {
-            postSoraEvent(
-                soraConfig.notificationServiceURL + "/" + DEPOSIT_URI,
-                SoraDepositEvent.map(transferNotifyEvent)
-            )
+            postSoraEvent(SoraURI.DEPOSIT_URI, SoraDepositEvent.map(transferNotifyEvent))
         }
     }
 
@@ -40,10 +47,7 @@ class SoraNotificationService(private val soraConfig: SoraConfig) : Notification
         }
         logger.info("Notify Sora withdrawal $transferNotifyEvent")
         return Result.of {
-            postSoraEvent(
-                soraConfig.notificationServiceURL + "/" + WITHDRAWAL_URI,
-                SoraWithdrawalEvent.map(transferNotifyEvent)
-            )
+            postSoraEvent(SoraURI.WITHDRAWAL_URI, SoraWithdrawalEvent.map(transferNotifyEvent))
         }
     }
 
@@ -74,20 +78,18 @@ class SoraNotificationService(private val soraConfig: SoraConfig) : Notification
         }
         logger.info("Notify Sora registration $registrationNotifyEvent")
         return Result.of {
-            postSoraEvent(
-                soraConfig.notificationServiceURL + "/" + REGISTRATION_URI,
-                SoraRegistrationEvent.map(registrationNotifyEvent)
-            )
+            postSoraEvent(SoraURI.REGISTRATION_URI, SoraRegistrationEvent.map(registrationNotifyEvent))
         }
     }
 
     /**
      * Posts Sora event via HTTP
-     * @param url - url to post
+     * @param uri - uri of service
      * @param event - Sora event to post
      */
-    private fun postSoraEvent(url: String, event: SoraEvent) {
+    private fun postSoraEvent(uri: SoraURI, event: SoraEvent) {
         //TODO handle repeatable exceptions
+        val url = soraConfig.notificationServiceURL + "/" + uri.uri
         val response = khttp.post(url = url, json = JSONObject(event))
         if (response.statusCode == 200) {
             logger.info("Sora event $event has been successfully posted")
@@ -101,4 +103,14 @@ class SoraNotificationService(private val soraConfig: SoraConfig) : Notification
     }
 
     companion object : KLogging()
+}
+
+/**
+ * Enumeration of Sora URIs
+ */
+enum class SoraURI(val uri: String) {
+    DEPOSIT_URI("deposit"),
+    WITHDRAWAL_URI("withdrawal"),
+    REGISTRATION_URI("registration"),
+    FAILED_REGISTRATION_URI("failedRegistration")
 }

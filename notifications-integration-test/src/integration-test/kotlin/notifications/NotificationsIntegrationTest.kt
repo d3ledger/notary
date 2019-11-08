@@ -5,6 +5,7 @@
 
 package notifications
 
+import com.d3.commons.registration.FAILED_REGISTRATION_KEY
 import com.d3.commons.service.WithdrawalFinalizationDetails
 import com.d3.commons.service.WithdrawalFinalizer
 import com.d3.commons.sidechain.iroha.FEE_ROLLBACK_DESCRIPTION
@@ -190,7 +191,7 @@ class NotificationsIntegrationTest {
             assertEquals(NOTIFICATION_EMAIL, lastEmail.from)
             assertTrue(lastEmail.message.contains("from $from"))
             verify(environment.pushService).send(any())
-            val soraEvent = getLastSoraEvent("deposit") as SoraDepositEvent
+            val soraEvent = getLastSoraEvent(SoraURI.DEPOSIT_URI) as SoraDepositEvent
             assertEquals(environment.srcClientId, soraEvent.accountIdToNotify)
             assertEquals(depositValue, soraEvent.amount)
             assertEquals(ETH_ASSET_ID, soraEvent.assetName)
@@ -233,10 +234,49 @@ class NotificationsIntegrationTest {
             verify(environment.pushService).send(any())
             assertTrue(lastEmail.message.contains(ethAddress))
             assertTrue(lastEmail.message.contains(RegistrationEventSubsystem.ETH.toString()))
-            val soraEvent = getLastSoraEvent("registration") as SoraRegistrationEvent
+            val soraEvent = getLastSoraEvent(SoraURI.REGISTRATION_URI) as SoraRegistrationEvent
             assertEquals(RegistrationEventSubsystem.ETH.name, soraEvent.subsystem)
             assertEquals(environment.srcClientConsumer.creator, soraEvent.accountIdToNotify)
             assertEquals(ethAddress, soraEvent.address)
+            assertNotNull(soraEvent.id)
+            assertNotNull(soraEvent.time)
+            Unit
+        }.failure { ex -> fail(ex) }
+    }
+
+    /**
+     * Note: Iroha must be deployed to pass the test.
+     * @given D3 client with enabled email notifications and Ethereum registration service
+     * @when Ethereum registration service fails to register D3 client in the Ethereum subsystem
+     * @then D3 client is notified about failed registration(both email and push)
+     */
+    @Test
+    fun testNotificationFailedEthRegistration() {
+        integrationHelper.setAccountDetailWithRespectToBrvs(
+            environment.srcClientConsumer,
+            environment.srcClientId,
+            D3_CLIENT_ENABLE_NOTIFICATIONS,
+            "true"
+        ).map {
+            val ethRegistrationAccount = integrationHelper.accountHelper.ethRegistrationAccount
+            integrationHelper.setAccountDetail(
+                IrohaConsumerImpl(ethRegistrationAccount, integrationHelper.irohaAPI),
+                environment.srcClientConsumer.creator,
+                FAILED_REGISTRATION_KEY, ""
+            )
+        }.map {
+            Thread.sleep(WAIT_TIME)
+            val receivedEmails = getAllMails()
+            assertEquals(1, receivedEmails.size)
+            val lastEmail = receivedEmails.last()
+            assertEquals(D3_FAILED_REGISTRATION_SUBJECT, lastEmail.subject)
+            assertEquals(SRC_USER_EMAIL, lastEmail.to)
+            assertEquals(NOTIFICATION_EMAIL, lastEmail.from)
+            verify(environment.pushService).send(any())
+            assertTrue(lastEmail.message.contains(RegistrationEventSubsystem.ETH.toString()))
+            val soraEvent = getLastSoraEvent(SoraURI.FAILED_REGISTRATION_URI) as SoraFailedRegistrationEvent
+            assertEquals(RegistrationEventSubsystem.ETH.name, soraEvent.subsystem)
+            assertEquals(environment.srcClientConsumer.creator, soraEvent.accountIdToNotify)
             assertNotNull(soraEvent.id)
             assertNotNull(soraEvent.time)
             Unit
@@ -322,7 +362,7 @@ class NotificationsIntegrationTest {
             assertTrue(lastEmail.message.contains("Fee is $fee $ETH_ASSET_ID"))
             assertTrue(lastEmail.message.contains("to $destAddress"))
             verify(environment.pushService).send(any())
-            val soraEvent = getLastSoraEvent("withdrawal") as SoraWithdrawalEvent
+            val soraEvent = getLastSoraEvent(SoraURI.WITHDRAWAL_URI) as SoraWithdrawalEvent
             assertEquals(environment.srcClientId, soraEvent.accountIdToNotify)
             assertEquals(destAddress, soraEvent.to)
             assertEquals(withdrawalValue, soraEvent.amount)
@@ -377,7 +417,7 @@ class NotificationsIntegrationTest {
             assertFalse(lastEmail.message.contains("Fee is"))
             assertTrue(lastEmail.message.contains("to $destAddress"))
             verify(environment.pushService).send(any())
-            val soraEvent = getLastSoraEvent("withdrawal") as SoraWithdrawalEvent
+            val soraEvent = getLastSoraEvent(SoraURI.WITHDRAWAL_URI) as SoraWithdrawalEvent
             assertEquals(environment.srcClientId, soraEvent.accountIdToNotify)
             assertEquals(destAddress, soraEvent.to)
             assertEquals(withdrawalValue, soraEvent.amount)
@@ -581,19 +621,20 @@ class NotificationsIntegrationTest {
 
     /**
      * Returns the last posted Sora event
-     * @param eventType - type of event(deposit, withdrawal, etc)
+     * @param uri - uri of event(deposit, withdrawal, etc)
      * @return the last posted Sora event
      */
-    private fun getLastSoraEvent(eventType: String): SoraEvent {
-        val res = khttp.get("http://127.0.0.1:${environment.notificationsConfig.webPort}/sora/all/$eventType")
+    private fun getLastSoraEvent(uri: SoraURI): SoraEvent {
+        val res = khttp.get("http://127.0.0.1:${environment.notificationsConfig.webPort}/sora/all/${uri.uri}")
         if (res.statusCode != 200) {
             throw Exception("Cannot get Sora events. HTTP status code ${res.statusCode}")
         }
-        val type: Type = when (eventType) {
-            "deposit" -> SoraDepositEvent::class.java
-            "withdrawal" -> SoraWithdrawalEvent::class.java
-            "registration" -> SoraRegistrationEvent::class.java
-            else -> throw IllegalArgumentException("Event type $eventType is not supported")
+        val type: Type = when (uri) {
+            SoraURI.DEPOSIT_URI -> SoraDepositEvent::class.java
+            SoraURI.WITHDRAWAL_URI -> SoraWithdrawalEvent::class.java
+            SoraURI.REGISTRATION_URI -> SoraRegistrationEvent::class.java
+            SoraURI.FAILED_REGISTRATION_URI -> SoraFailedRegistrationEvent::class.java
+            else -> throw IllegalArgumentException("URI ${uri.uri} is not supported")
         }
         val jsonArray = JSONArray(res.text)
         val jsonObject: JSONObject = jsonArray.getJSONObject(jsonArray.length() - 1)

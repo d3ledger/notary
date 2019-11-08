@@ -5,14 +5,21 @@
 
 package com.d3.notifications.event
 
+import com.d3.commons.util.GsonInstance
 import java.math.BigDecimal
+
+private val gson = GsonInstance.get()
 
 /**
  * Basic event class
  * @param id - event id
  * @param time - event time in milliseconds
  */
-open class BasicEvent(val id: String, val time: Long)
+open class BasicEvent(val id: String, val time: Long) {
+    override fun toString(): String {
+        return gson.toJson(this)
+    }
+}
 
 /**
  * Data class that holds transfer event data
@@ -67,6 +74,20 @@ class RegistrationNotifyEvent(
     val subsystem: RegistrationEventSubsystem,
     val accountId: String,
     val address: String,
+    id: String,
+    time: Long
+) : BasicEvent(id, time)
+
+/**
+ * Data class that holds failed registration event data
+ * @param subsystem - type of registration
+ * @param accountId - registered account id
+ * @param id - event id
+ * @param time - event time in milliseconds
+ */
+class FailedRegistrationNotifyEvent(
+    val subsystem: RegistrationEventSubsystem,
+    val accountId: String,
     id: String,
     time: Long
 ) : BasicEvent(id, time)

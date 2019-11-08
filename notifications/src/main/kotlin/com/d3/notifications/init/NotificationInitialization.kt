@@ -7,6 +7,7 @@ package com.d3.notifications.init
 
 import com.d3.chainadapter.client.ReliableIrohaChainListener
 import com.d3.commons.provider.NotaryClientsProvider
+import com.d3.commons.registration.FAILED_REGISTRATION_KEY
 import com.d3.commons.service.LAST_SUCCESSFUL_WITHDRAWAL_KEY
 import com.d3.commons.service.WithdrawalFinalizationDetails
 import com.d3.commons.sidechain.iroha.FEE_ROLLBACK_DESCRIPTION
@@ -61,7 +62,6 @@ class NotificationInitialization(
                         } finally {
                             ack()
                         }
-
                     }, { ex ->
                         logger.error("Error on Iroha subscribe", ex)
                         onIrohaChainFailure()
@@ -77,6 +77,7 @@ class NotificationInitialization(
         getSetAccountDetailTransactions(block)
             .forEach { tx ->
                 tx.payload.reducedPayload.commandsList.forEach { command ->
+                    //TODO omg refactor it
                     val commandWithCreator = CommandWithCreator(command, tx.payload.reducedPayload.creatorAccountId)
                     // Notify withdrawal
                     if (isWithdrawal(commandWithCreator)) {
@@ -89,6 +90,14 @@ class NotificationInitialization(
                     // Notify Bitcoin registration
                     else if (isBtcRegistration(commandWithCreator)) {
                         handleBtcRegistrationEventNotification(command.setAccountDetail, tx)
+                    }
+                    // Notify failed Ethereum registration
+                    else if (isFailedEthRegistration(commandWithCreator)) {
+                        handleFailedEthRegistrationEventNotification(command.setAccountDetail, tx)
+                    }
+                    // Notify failed Bitcoin registration
+                    else if (isFailedBtcRegistration(commandWithCreator)) {
+                        handleFailedBtcRegistrationEventNotification(command.setAccountDetail, tx)
                     }
                 }
             }
@@ -179,6 +188,29 @@ class NotificationInitialization(
     private fun isBtcRegistration(commandWithCreator: CommandWithCreator) =
         isRegistration(commandWithCreator, notificationsConfig.btcRegistrationServiceAccount, BTC_WALLET)
 
+    // Checks if failed Ethereum registration event
+    private fun isFailedEthRegistration(commandWithCreator: CommandWithCreator) =
+        isFailedRegistration(commandWithCreator, notificationsConfig.ethRegistrationServiceAccount)
+
+    // Checks if failed Btc registration event
+    private fun isFailedBtcRegistration(commandWithCreator: CommandWithCreator) =
+        isFailedRegistration(commandWithCreator, notificationsConfig.btcRegistrationServiceAccount)
+
+    /**
+     * Checks if command is a 'failed registration' command
+     * @param commandWithCreator - command with its creator
+     * @param registrationAccount - account that register clients in sidechains
+     * @return true if a command is a 'failed registration' command
+     */
+    private fun isFailedRegistration(
+        commandWithCreator: CommandWithCreator,
+        registrationAccount: String
+    ) = safeCheck {
+        return commandWithCreator.creator == registrationAccount &&
+                commandWithCreator.command.setAccountDetail.key == FAILED_REGISTRATION_KEY &&
+                notaryClientsProvider.isClient(commandWithCreator.command.setAccountDetail.accountId).get()
+    }
+
     /**
      * Checks if command is a registration command
      * @param commandWithCreator - Iroha command
@@ -261,15 +293,13 @@ class NotificationInitialization(
     private fun handleEthRegistrationEventNotification(
         setAccountDetail: Commands.SetAccountDetail,
         tx: TransactionOuterClass.Transaction
-    ) =
-        handleRegistrationEventNotification(setAccountDetail, tx, RegistrationEventSubsystem.ETH)
+    ) = handleRegistrationEventNotification(setAccountDetail, tx, RegistrationEventSubsystem.ETH)
 
     // Handles Bitcoin registration event notification
     private fun handleBtcRegistrationEventNotification(
         setAccountDetail: Commands.SetAccountDetail,
         tx: TransactionOuterClass.Transaction
-    ) =
-        handleRegistrationEventNotification(setAccountDetail, tx, RegistrationEventSubsystem.BTC)
+    ) = handleRegistrationEventNotification(setAccountDetail, tx, RegistrationEventSubsystem.BTC)
 
     /**
      * Handles registration event
@@ -291,6 +321,39 @@ class NotificationInitialization(
             )
         logger.info("Notify ${subsystem.name} registration $registrationNotifyEvent")
         eventsQueue.enqueue(registrationNotifyEvent)
+    }
+
+    // Handles failed Ethereum registration event notification
+    private fun handleFailedEthRegistrationEventNotification(
+        setAccountDetail: Commands.SetAccountDetail,
+        tx: TransactionOuterClass.Transaction
+    ) = handleFailedRegistrationEventNotification(setAccountDetail, tx, RegistrationEventSubsystem.ETH)
+
+    // Handles failed Bitcoin registration event notification
+    private fun handleFailedBtcRegistrationEventNotification(
+        setAccountDetail: Commands.SetAccountDetail,
+        tx: TransactionOuterClass.Transaction
+    ) = handleFailedRegistrationEventNotification(setAccountDetail, tx, RegistrationEventSubsystem.BTC)
+
+    /**
+     * Handles 'failed registration' event
+     * @param setAccountDetail - command with registration event
+     * @param subsystem - registration subsystem(Ethereum, Bitcoin, etc)
+     */
+    private fun handleFailedRegistrationEventNotification(
+        setAccountDetail: Commands.SetAccountDetail,
+        tx: TransactionOuterClass.Transaction,
+        subsystem: RegistrationEventSubsystem
+    ) {
+        val failedRegistrationNotifyEvent =
+            FailedRegistrationNotifyEvent(
+                subsystem = subsystem,
+                accountId = setAccountDetail.accountId,
+                id = Utils.toHex(Utils.hash(tx)) + "_failed_registration",
+                time = tx.payload.reducedPayload.createdTime
+            )
+        logger.info("Notify ${subsystem.name} failed registration $failedRegistrationNotifyEvent")
+        eventsQueue.enqueue(failedRegistrationNotifyEvent)
     }
 
     // Handles withdrawal event notification

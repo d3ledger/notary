@@ -7,6 +7,9 @@ package com.d3.commons.registration
 
 import com.github.kittinunf.result.Result
 
+// Key that signals about failed registration attempt
+const val FAILED_REGISTRATION_KEY = "failed"
+
 /**
  * Strategy for registration of a new client
  */
