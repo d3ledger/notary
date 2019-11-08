@@ -57,13 +57,12 @@ class NotificationAppConfiguration {
     )
 
     @Bean
-    fun irohaChainListener() =
-        ReliableIrohaChainListener(
-            rmqConfig = notificationsConfig.rmq,
-            irohaQueue = notificationsConfig.blocksQueue,
-            autoAck = true,
-            consumerExecutorService = chainListenerExecutorService()
-        )
+    fun irohaChainListener() = ReliableIrohaChainListener(
+        rmqConfig = notificationsConfig.rmq,
+        irohaQueue = notificationsConfig.blocksQueue,
+        autoAck = false,
+        consumerExecutorService = chainListenerExecutorService()
+    )
 
     @Bean
     fun rmqConfig() = notificationsConfig.rmq

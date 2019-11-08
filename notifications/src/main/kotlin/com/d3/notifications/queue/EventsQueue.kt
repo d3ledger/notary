@@ -35,6 +35,7 @@ class EventsQueue(
     rmqConfig: RMQConfig
 ) : Closeable {
 
+    private val autoAck = false
     private val subscriberExecutorService = createPrettyFixThreadPool(
         NOTIFICATIONS_SERVICE_NAME, "events_queue"
     )
@@ -50,6 +51,8 @@ class EventsQueue(
         connectionFactory.port = rmqConfig.port
         connection = connectionFactory.newConnection(subscriberExecutorService)
         channel = connection.createChannel()
+        // I think it's enough
+        channel.basicQos(16)
         channel.queueDeclare(TRANSFERS_QUEUE_NAME, true, false, false, null)
         channel.queueDeclare(REGISTRATIONS_QUEUE_NAME, true, false, false, null)
     }
@@ -69,8 +72,11 @@ class EventsQueue(
                 handleTransfer(transferNotifyEvent)
             } catch (e: Exception) {
                 logger.error("Cannot handle delivery from queue $TRANSFERS_QUEUE_NAME", e)
+            } finally {
+                if (!autoAck) {
+                    channel.basicAck(delivery.envelope.deliveryTag, false)
+                }
             }
-
         }
         val registrationCallback = { _: String, delivery: Delivery ->
             try {
@@ -80,10 +86,14 @@ class EventsQueue(
                 handleRegistration(registrationNotifyEvent)
             } catch (e: Exception) {
                 logger.error("Cannot handle delivery from queue $REGISTRATIONS_QUEUE_NAME", e)
+            } finally {
+                if (!autoAck) {
+                    channel.basicAck(delivery.envelope.deliveryTag, false)
+                }
             }
         }
-        consumerTags.add(channel.basicConsume(TRANSFERS_QUEUE_NAME, true, transferCallback, { _ -> }))
-        consumerTags.add(channel.basicConsume(REGISTRATIONS_QUEUE_NAME, true, registrationCallback, { _ -> }))
+        consumerTags.add(channel.basicConsume(TRANSFERS_QUEUE_NAME, autoAck, transferCallback, { _ -> }))
+        consumerTags.add(channel.basicConsume(REGISTRATIONS_QUEUE_NAME, autoAck, registrationCallback, { _ -> }))
         logger.info("Start listening to events")
     }
 

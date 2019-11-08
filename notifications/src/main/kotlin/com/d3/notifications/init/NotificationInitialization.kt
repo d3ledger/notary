@@ -53,8 +53,15 @@ class NotificationInitialization(
         return irohaChainListener.getBlockObservable().map { irohaObservable ->
             irohaObservable
                 .subscribe(
-                    { (block, _) ->
-                        handleBlock(block)
+                    { (block, ack) ->
+                        try {
+                            handleBlock(block)
+                        } catch (e: Exception) {
+                            logger.error("Cannot handle block $block", e)
+                        } finally {
+                            ack()
+                        }
+
                     }, { ex ->
                         logger.error("Error on Iroha subscribe", ex)
                         onIrohaChainFailure()

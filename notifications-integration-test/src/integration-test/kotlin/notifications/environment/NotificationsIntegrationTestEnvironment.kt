@@ -78,13 +78,12 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
     private val chainListenerExecutorService =
         createPrettySingleThreadPool(NOTIFICATIONS_SERVICE_NAME, "iroha-chain-listener")
 
-    private val irohaChainListener =
-        ReliableIrohaChainListener(
-            rmqConfig = notificationsConfig.rmq,
-            irohaQueue = notificationsConfig.blocksQueue,
-            autoAck = true,
-            consumerExecutorService = chainListenerExecutorService
-        )
+    private val irohaChainListener = ReliableIrohaChainListener(
+        rmqConfig = notificationsConfig.rmq,
+        irohaQueue = notificationsConfig.blocksQueue,
+        autoAck = false,
+        consumerExecutorService = chainListenerExecutorService
+    )
 
     private val notaryQueryHelper = RobustIrohaQueryHelperImpl(
         IrohaQueryHelperImpl(
