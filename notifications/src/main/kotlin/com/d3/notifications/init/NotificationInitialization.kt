@@ -241,7 +241,7 @@ class NotificationInitialization(
             amount = BigDecimal(transferAsset.amount),
             assetName = transferAsset.assetId,
             from = transferAsset.description,
-            id = Utils.toHex(Utils.hash(tx)),
+            id = Utils.toHex(Utils.hash(tx)) + "_deposit",
             time = tx.payload.reducedPayload.createdTime
         )
         logger.info("Notify deposit $transferNotifyEvent")
@@ -277,7 +277,7 @@ class NotificationInitialization(
                 subsystem = subsystem,
                 accountId = setAccountDetail.accountId,
                 address = setAccountDetail.value,
-                id = Utils.toHex(Utils.hash(tx)),
+                id = Utils.toHex(Utils.hash(tx)) + "_registration",
                 time = tx.payload.reducedPayload.createdTime
             )
         logger.info("Notify ${subsystem.name} registration $registrationNotifyEvent")
@@ -303,7 +303,7 @@ class NotificationInitialization(
             assetName = withdrawalFinalizationDetails.withdrawalAssetId,
             to = withdrawalFinalizationDetails.destinationAddress,
             fee = operationFee,
-            id = Utils.toHex(Utils.hash(tx)),
+            id = Utils.toHex(Utils.hash(tx)) + "_withdrawal",
             time = tx.payload.reducedPayload.createdTime
         )
         logger.info("Notify withdrawal $transferNotifyEvent")
@@ -328,7 +328,7 @@ class NotificationInitialization(
             assetName = transferAsset.assetId,
             description = description,
             from = transferAsset.srcAccountId,
-            id = Utils.toHex(Utils.hash(tx)),
+            id = Utils.toHex(Utils.hash(tx)) + "_receive",
             time = tx.payload.reducedPayload.createdTime
         )
         val transferNotifySendEvent = TransferNotifyEvent(
@@ -339,7 +339,7 @@ class NotificationInitialization(
             description = description,
             to = transferAsset.destAccountId,
             fee = fee,
-            id = Utils.toHex(Utils.hash(tx)),
+            id = Utils.toHex(Utils.hash(tx)) + "_send",
             time = tx.payload.reducedPayload.createdTime
         )
         logger.info("Notify transfer receive $transferNotifyReceiveEvent")
@@ -361,7 +361,7 @@ class NotificationInitialization(
             amount = BigDecimal(transferAsset.amount),
             assetName = transferAsset.assetId,
             fee = rollbackFee,
-            id = Utils.toHex(Utils.hash(tx)),
+            id = Utils.toHex(Utils.hash(tx)) + "_rollback",
             time = tx.payload.reducedPayload.createdTime
         )
         logger.info("Notify rollback $transferNotifyEvent")
