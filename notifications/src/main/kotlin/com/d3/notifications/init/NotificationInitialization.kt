@@ -72,7 +72,7 @@ class NotificationInitialization(
                 tx.payload.reducedPayload.commandsList.forEach { command ->
                     val commandWithCreator = CommandWithCreator(command, tx.payload.reducedPayload.creatorAccountId)
                     // Notify withdrawal
-                    if (isWithdrawal(command.setAccountDetail)) {
+                    if (isWithdrawal(commandWithCreator)) {
                         handleWithdrawalEventNotification(command.setAccountDetail, tx)
                     }
                     // Notify Ethereum registration
@@ -192,9 +192,11 @@ class NotificationInitialization(
         }
 
     // Checks if withdrawal event
-    private fun isWithdrawal(setAccountDetail: Commands.SetAccountDetail) =
+    private fun isWithdrawal(commandWithCreator: CommandWithCreator) =
         safeCheck {
-            return setAccountDetail.accountId.endsWith("@$NOTARY_DOMAIN") && setAccountDetail.key == LAST_SUCCESSFUL_WITHDRAWAL_KEY
+            val setAccountDetail = commandWithCreator.command.setAccountDetail
+            val storageAccountId = setAccountDetail.accountId
+            return storageAccountId.endsWith("@$NOTARY_DOMAIN") && setAccountDetail.key == LAST_SUCCESSFUL_WITHDRAWAL_KEY && storageAccountId == commandWithCreator.creator
         }
 
     // Checks if deposit event
@@ -316,11 +318,7 @@ class NotificationInitialization(
         tx: TransactionOuterClass.Transaction,
         fee: TransferFee?
     ) {
-        val description: String = if (transferAsset.description == null) {
-            ""
-        } else {
-            transferAsset.description
-        }
+        val description: String = transferAsset.description ?: ""
         val transferNotifyReceiveEvent = TransferNotifyEvent(
             type = TransferEventType.TRANSFER_RECEIVE,
             accountIdToNotify = transferAsset.destAccountId,
