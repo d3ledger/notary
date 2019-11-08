@@ -5,6 +5,7 @@
 
 package com.d3.notifications.service
 
+import com.d3.notifications.event.FailedRegistrationNotifyEvent
 import com.d3.notifications.event.RegistrationNotifyEvent
 import com.d3.notifications.event.TransferNotifyEvent
 import com.d3.notifications.push.WebPushAPIService
@@ -15,11 +16,17 @@ import com.github.kittinunf.result.Result
  */
 class PushNotificationService(private val webPushAPIService: WebPushAPIService) :
     NotificationService {
+    override fun notifyFailedRegistration(failedRegistrationNotifyEvent: FailedRegistrationNotifyEvent): Result<Unit, Exception> {
+        return webPushAPIService.push(
+            failedRegistrationNotifyEvent.accountId,
+            "Failed registration in ${failedRegistrationNotifyEvent.subsystem}"
+        )
+    }
 
     override fun notifyRegistration(registrationNotifyEvent: RegistrationNotifyEvent): Result<Unit, Exception> {
         return webPushAPIService.push(
             registrationNotifyEvent.accountId,
-            "Registration in ${registrationNotifyEvent.subsystem} ${registrationNotifyEvent.address}"
+            "Registration in ${registrationNotifyEvent.subsystem} with address ${registrationNotifyEvent.address}"
         )
     }
 

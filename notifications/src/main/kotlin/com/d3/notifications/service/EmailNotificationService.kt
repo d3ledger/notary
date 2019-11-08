@@ -5,6 +5,7 @@
 
 package com.d3.notifications.service
 
+import com.d3.notifications.event.FailedRegistrationNotifyEvent
 import com.d3.notifications.event.RegistrationNotifyEvent
 import com.d3.notifications.event.TransferNotifyEvent
 import com.d3.notifications.provider.D3ClientProvider
@@ -19,6 +20,7 @@ const val D3_DEPOSIT_EMAIL_SUBJECT = "D3 deposit"
 const val D3_DEPOSIT_TRANSFER_SUBJECT = "D3 transfer"
 const val D3_ROLLBACK_SUBJECT = "D3 rollback"
 const val D3_REGISTRATION_SUBJECT = "D3 registration"
+const val D3_FAILED_REGISTRATION_SUBJECT = "D3 failed registration"
 
 /**
  * Service for email notifications
@@ -116,6 +118,15 @@ class EmailNotificationService(
         return checkClientAndSendMessage(
             transferNotifyEvent.accountIdToNotify,
             D3_WITHDRAWAL_EMAIL_SUBJECT, message
+        )
+    }
+
+    override fun notifyFailedRegistration(failedRegistrationNotifyEvent: FailedRegistrationNotifyEvent): Result<Unit, Exception> {
+        val message =
+            "Dear client, we cannot register you in the ${failedRegistrationNotifyEvent.subsystem} subsystem due to unexpected error."
+        return checkClientAndSendMessage(
+            failedRegistrationNotifyEvent.accountId,
+            D3_FAILED_REGISTRATION_SUBJECT, message
         )
     }
 

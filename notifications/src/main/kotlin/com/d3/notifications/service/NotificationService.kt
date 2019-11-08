@@ -5,10 +5,10 @@
 
 package com.d3.notifications.service
 
+import com.d3.notifications.event.FailedRegistrationNotifyEvent
 import com.d3.notifications.event.RegistrationNotifyEvent
 import com.d3.notifications.event.TransferNotifyEvent
 import com.github.kittinunf.result.Result
-import java.math.BigDecimal
 
 /**
  * Notification service interface
@@ -55,4 +55,11 @@ interface NotificationService {
      * @return result of operation
      */
     fun notifyRegistration(registrationNotifyEvent: RegistrationNotifyEvent): Result<Unit, Exception>
+
+    /**
+     * Notifies client about failed registration event
+     * @param failedRegistrationNotifyEvent - failed registration event
+     * @return result of operation
+     */
+    fun notifyFailedRegistration(failedRegistrationNotifyEvent: FailedRegistrationNotifyEvent): Result<Unit, Exception>
 }

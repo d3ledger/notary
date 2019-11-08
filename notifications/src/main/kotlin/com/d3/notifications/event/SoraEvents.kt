@@ -5,18 +5,25 @@
 
 package com.d3.notifications.event
 
+import com.d3.commons.util.GsonInstance
 import java.math.BigDecimal
 
 /**
  * The file contains data transfer objects for Sora notification REST service
  */
 
+private val gson = GsonInstance.get()
+
 /**
  * Sora event
  * @param id - event id
  * @param time - event time
  */
-open class SoraEvent(val id: String, val time: Long)
+open class SoraEvent(val id: String, val time: Long) {
+    override fun toString(): String {
+        return gson.toJson(this)
+    }
+}
 
 class SoraDepositEvent(
     val accountIdToNotify: String,
@@ -83,6 +90,22 @@ class SoraRegistrationEvent(
         fun map(registrationNotifyEvent: RegistrationNotifyEvent) = SoraRegistrationEvent(
             registrationNotifyEvent.accountId,
             registrationNotifyEvent.address,
+            registrationNotifyEvent.subsystem.name,
+            registrationNotifyEvent.id,
+            registrationNotifyEvent.time
+        )
+    }
+}
+
+class SoraFailedRegistrationEvent(
+    val accountIdToNotify: String,
+    val subsystem: String,
+    id: String,
+    time: Long
+) : SoraEvent(id, time) {
+    companion object {
+        fun map(registrationNotifyEvent: FailedRegistrationNotifyEvent) = SoraFailedRegistrationEvent(
+            registrationNotifyEvent.accountId,
             registrationNotifyEvent.subsystem.name,
             registrationNotifyEvent.id,
             registrationNotifyEvent.time
