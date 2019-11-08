@@ -43,8 +43,8 @@ class EmailNotificationService(
         } else {
             ""
         }
-        val feeMessage = if (transferNotifyEvent.fee != null && transferNotifyEvent.feeAssetName != null) {
-            "Fee is ${transferNotifyEvent.fee} ${transferNotifyEvent.feeAssetName}"
+        val feeMessage = if (transferNotifyEvent.fee != null) {
+            "Fee is ${transferNotifyEvent.fee.amount} ${transferNotifyEvent.fee.assetName}"
         } else {
             ""
         }
@@ -71,9 +71,14 @@ class EmailNotificationService(
     }
 
     override fun notifyRollback(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
+        val feeMessage = if (transferNotifyEvent.fee == null) {
+            ""
+        } else {
+            "Fee ${transferNotifyEvent.fee.amount} ${transferNotifyEvent.fee.assetName} is rolled back as well."
+        }
         val message =
             "Dear client, unfortunately, we failed to withdraw ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} from your account ${transferNotifyEvent.accountIdToNotify}. " +
-                    "Rollback has been executed, so your money is going back to your account.\n" +
+                    "Rollback has been executed, so your money is going back to your account. $feeMessage\n" +
                     transferNotifyEvent.description
         return checkClientAndSendMessage(
             transferNotifyEvent.accountIdToNotify,
@@ -101,8 +106,8 @@ class EmailNotificationService(
         } else {
             ""
         }
-        val feeMessage = if (transferNotifyEvent.fee != null && transferNotifyEvent.feeAssetName != null) {
-            "Fee is ${transferNotifyEvent.fee} ${transferNotifyEvent.feeAssetName}"
+        val feeMessage = if (transferNotifyEvent.fee != null) {
+            "Fee is ${transferNotifyEvent.fee.amount} ${transferNotifyEvent.fee.assetName}"
         } else {
             ""
         }
