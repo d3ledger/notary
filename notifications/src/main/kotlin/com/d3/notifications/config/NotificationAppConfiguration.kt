@@ -18,7 +18,7 @@ import jp.co.soramitsu.iroha.java.Utils
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
-val notificationsConfig = loadRawLocalConfigs(
+private val notificationsConfig = loadRawLocalConfigs(
     "notifications",
     NotificationsConfig::class.java, "notifications.properties"
 )
