@@ -10,9 +10,8 @@ import com.d3.commons.sidechain.iroha.FEE_ROLLBACK_DESCRIPTION
 import com.d3.commons.sidechain.iroha.NOTARY_DOMAIN
 import com.d3.commons.sidechain.iroha.ROLLBACK_DESCRIPTION
 import com.d3.notifications.config.NotificationsConfig
-import com.d3.notifications.event.TransferEventType
+import com.d3.notifications.event.RollbackTransferEvent
 import com.d3.notifications.event.TransferFee
-import com.d3.notifications.event.TransferNotifyEvent
 import com.d3.notifications.queue.EventsQueue
 import iroha.protocol.Commands
 import iroha.protocol.TransactionOuterClass
@@ -32,8 +31,7 @@ class RollbackCommandHandler(
 ) : CommandHandler() {
     override fun handle(commandWithTx: CommandWithTx) {
         val transferAsset = commandWithTx.command.transferAsset
-        val transferNotifyEvent = TransferNotifyEvent(
-            type = TransferEventType.ROLLBACK,
+        val transferNotifyEvent = RollbackTransferEvent(
             accountIdToNotify = transferAsset.destAccountId,
             amount = BigDecimal(transferAsset.amount),
             assetName = transferAsset.assetId,
@@ -57,7 +55,6 @@ class RollbackCommandHandler(
                 && notaryClientsProvider.isClient(transferAsset.destAccountId).get()
         return depositSign && isRollbackSign(transferAsset)
     }
-
 
     /**
      * Returns withdrawal rollback fee

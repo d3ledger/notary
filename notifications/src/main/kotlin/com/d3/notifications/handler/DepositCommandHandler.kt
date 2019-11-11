@@ -9,8 +9,7 @@ import com.d3.commons.provider.NotaryClientsProvider
 import com.d3.commons.sidechain.iroha.FEE_ROLLBACK_DESCRIPTION
 import com.d3.commons.sidechain.iroha.NOTARY_DOMAIN
 import com.d3.notifications.config.NotificationsConfig
-import com.d3.notifications.event.TransferEventType
-import com.d3.notifications.event.TransferNotifyEvent
+import com.d3.notifications.event.DepositTransferEvent
 import com.d3.notifications.queue.EventsQueue
 import jp.co.soramitsu.iroha.java.Utils
 import mu.KLogging
@@ -28,8 +27,7 @@ class DepositCommandHandler(
 ) : CommandHandler() {
     override fun handle(commandWithTx: CommandWithTx) {
         val transferAsset = commandWithTx.command.transferAsset
-        val transferNotifyEvent = TransferNotifyEvent(
-            type = TransferEventType.DEPOSIT,
+        val transferNotifyEvent = DepositTransferEvent(
             accountIdToNotify = transferAsset.destAccountId,
             amount = BigDecimal(transferAsset.amount),
             assetName = transferAsset.assetId,

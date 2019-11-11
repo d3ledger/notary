@@ -66,11 +66,35 @@ class EventsQueue(
                 // Headers collection consists of crazy things so we have to convert it to String very carefully
                 val eventType = delivery.properties.headers[EVENT_TYPE_HEADER]?.toString() ?: ""
                 when (eventType) {
+                    // Handle withdrawal
+                    WithdrawalTransferEvent::class.java.canonicalName -> {
+                        val transferNotifyEvent = gson.fromJson(json, WithdrawalTransferEvent::class.java)
+                        logger.info("Got withdrawal event: $transferNotifyEvent")
+                        handleWithdrawalTransfer(transferNotifyEvent)
+                    }
+                    // Handle deposit
+                    DepositTransferEvent::class.java.canonicalName -> {
+                        val transferNotifyEvent = gson.fromJson(json, DepositTransferEvent::class.java)
+                        logger.info("Got deposit event: $transferNotifyEvent")
+                        handleDepositTransfer(transferNotifyEvent)
+                    }
                     // Handle transfers
-                    TransferNotifyEvent::class.java.canonicalName -> {
-                        val transferNotifyEvent = gson.fromJson(json, TransferNotifyEvent::class.java)
-                        logger.info("Got transfer event: $transferNotifyEvent")
-                        handleTransfer(transferNotifyEvent)
+                    RollbackTransferEvent::class.java.canonicalName -> {
+                        val transferNotifyEvent = gson.fromJson(json, RollbackTransferEvent::class.java)
+                        logger.info("Got rollback event: $transferNotifyEvent")
+                        handleRollbackTransfer(transferNotifyEvent)
+                    }
+                    // Handle client 'send'
+                    Client2ClientSendTransferEvent::class.java.canonicalName -> {
+                        val transferNotifyEvent = gson.fromJson(json, Client2ClientSendTransferEvent::class.java)
+                        logger.info("Got transfer 'send' event: $transferNotifyEvent")
+                        handleSendTransfer(transferNotifyEvent)
+                    }
+                    // Handle client 'receive'
+                    Client2ClientReceiveTransferEvent::class.java.canonicalName -> {
+                        val transferNotifyEvent = gson.fromJson(json, Client2ClientReceiveTransferEvent::class.java)
+                        logger.info("Got transfer 'receive' event: $transferNotifyEvent")
+                        handleReceiveTransfer(transferNotifyEvent)
                     }
                     // Handle registrations
                     RegistrationNotifyEvent::class.java.canonicalName -> {
@@ -180,31 +204,43 @@ class EventsQueue(
     }
 
     /**
-     * Handles transfer from RabbitMQ
-     * @param transferNotifyEvent - event to handle
+     * Handles deposit transfer from RabbitMQ
+     * @param transferNotifyEvent - deposit event to handle
      */
-    private fun handleTransfer(transferNotifyEvent: TransferNotifyEvent) {
-        when (transferNotifyEvent.type) {
-            TransferEventType.DEPOSIT -> {
-                iterateThroughNotificationServices(transferNotifyEvent) { it.notifyDeposit(transferNotifyEvent) }
-            }
-            TransferEventType.ROLLBACK -> {
-                iterateThroughNotificationServices(transferNotifyEvent) { it.notifyRollback(transferNotifyEvent) }
-            }
-            TransferEventType.TRANSFER_RECEIVE -> {
-                iterateThroughNotificationServices(transferNotifyEvent) { it.notifyReceiveFromClient(transferNotifyEvent) }
-            }
-            TransferEventType.TRANSFER_SEND -> {
-                iterateThroughNotificationServices(transferNotifyEvent) { it.notifySendToClient(transferNotifyEvent) }
-            }
-            TransferEventType.WITHDRAWAL -> {
-                iterateThroughNotificationServices(transferNotifyEvent) { it.notifyWithdrawal(transferNotifyEvent) }
-            }
-            else -> {
-                //TODO normally, this branch won't be called. just for good measure.
-                logger.warn("No handler to handle transfer event type ${transferNotifyEvent.type}")
-            }
-        }
+    private fun handleDepositTransfer(transferNotifyEvent: DepositTransferEvent) {
+        iterateThroughNotificationServices(transferNotifyEvent) { it.notifyDeposit(transferNotifyEvent) }
+    }
+
+    /**
+     * Handles rollback transfer from RabbitMQ
+     * @param transferNotifyEvent - rollback event to handle
+     */
+    private fun handleRollbackTransfer(transferNotifyEvent: RollbackTransferEvent) {
+        iterateThroughNotificationServices(transferNotifyEvent) { it.notifyRollback(transferNotifyEvent) }
+    }
+
+    /**
+     * Handles 'receive' transfer from RabbitMQ
+     * @param transferNotifyEvent - 'receive' event to handle
+     */
+    private fun handleReceiveTransfer(transferNotifyEvent: Client2ClientReceiveTransferEvent) {
+        iterateThroughNotificationServices(transferNotifyEvent) { it.notifyReceiveFromClient(transferNotifyEvent) }
+    }
+
+    /**
+     * Handles 'send' transfer from RabbitMQ
+     * @param transferNotifyEvent - 'send' event to handle
+     */
+    private fun handleSendTransfer(transferNotifyEvent: Client2ClientSendTransferEvent) {
+        iterateThroughNotificationServices(transferNotifyEvent) { it.notifySendToClient(transferNotifyEvent) }
+    }
+
+    /**
+     * Handles withdrawal transfer from RabbitMQ
+     * @param transferNotifyEvent - withdrawal event to handle
+     */
+    private fun handleWithdrawalTransfer(transferNotifyEvent: WithdrawalTransferEvent) {
+        iterateThroughNotificationServices(transferNotifyEvent) { it.notifyWithdrawal(transferNotifyEvent) }
     }
 
     companion object : KLogging()

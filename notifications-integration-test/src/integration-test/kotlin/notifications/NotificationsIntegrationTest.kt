@@ -51,7 +51,6 @@ private const val SUBSCRIPTION_JSON = "{" +
         "  }" +
         "}"
 
-//TODO add new test (transfer with fee)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class NotificationsIntegrationTest {
 
@@ -371,9 +370,68 @@ class NotificationsIntegrationTest {
             assertEquals(ETH_ASSET_ID, soraEvent.fee!!.assetName)
             assertNotNull(soraEvent.id)
             assertNotNull(soraEvent.time)
+            assertNull(soraEvent.sideChainFee)
             Unit
         }.failure { ex -> fail(ex) }
     }
+
+    /**
+     * Note: Iroha must be deployed to pass the test.
+     * @given D3 client with enabled email notifications and notary account
+     * @when D3 client finalizes withdrawal operation with regular fee and sidechain fee
+     * @then D3 client is notified about withdrawal(both email and push) and fee
+     */
+    @Test
+    fun testNotificationWithdrawalWithRegularFeeAndSideChainFee() {
+        val withdrawalValue = BigDecimal(1)
+        val fee = BigDecimal("0.1")
+        val sideChainFee = BigDecimal("0.01")
+        val destAddress = "0x123"
+        integrationHelper.setAccountDetailWithRespectToBrvs(
+            environment.srcClientConsumer,
+            environment.srcClientId,
+            D3_CLIENT_ENABLE_NOTIFICATIONS,
+            "true"
+        ).flatMap {
+            val withdrawalFinalizer = WithdrawalFinalizer(
+                environment.withdrawalIrohaConsumer, "withdrawal_billing@$D3_DOMAIN"
+            )
+            val withdrawalFinalizationDetails = WithdrawalFinalizationDetails(
+                withdrawalValue,
+                ETH_ASSET_ID,
+                fee,
+                ETH_ASSET_ID,
+                environment.srcClientId,
+                System.currentTimeMillis(),
+                destAddress,
+                sideChainFee
+            )
+            withdrawalFinalizer.finalize(withdrawalFinalizationDetails)
+        }.map {
+            Thread.sleep(WAIT_TIME)
+            val receivedEmails = getAllMails()
+            assertEquals(1, receivedEmails.size)
+            val lastEmail = receivedEmails.last()
+            assertEquals(D3_WITHDRAWAL_EMAIL_SUBJECT, lastEmail.subject)
+            assertEquals(SRC_USER_EMAIL, lastEmail.to)
+            assertEquals(NOTIFICATION_EMAIL, lastEmail.from)
+            assertTrue(lastEmail.message.contains("Fee is $fee $ETH_ASSET_ID"))
+            assertTrue(lastEmail.message.contains("to $destAddress"))
+            verify(environment.pushService).send(any())
+            val soraEvent = getLastSoraEvent(SoraURI.WITHDRAWAL_URI) as SoraWithdrawalEvent
+            assertEquals(environment.srcClientId, soraEvent.accountIdToNotify)
+            assertEquals(destAddress, soraEvent.to)
+            assertEquals(withdrawalValue, soraEvent.amount)
+            assertEquals(ETH_ASSET_ID, soraEvent.assetName)
+            assertEquals(fee, soraEvent.fee!!.amount)
+            assertEquals(ETH_ASSET_ID, soraEvent.fee!!.assetName)
+            assertNotNull(soraEvent.id)
+            assertNotNull(soraEvent.time)
+            assertEquals(sideChainFee, soraEvent.sideChainFee)
+            Unit
+        }.failure { ex -> fail(ex) }
+    }
+
 
     /**
      * Note: Iroha must be deployed to pass the test.
@@ -425,6 +483,7 @@ class NotificationsIntegrationTest {
             assertNull(soraEvent.fee)
             assertNotNull(soraEvent.id)
             assertNotNull(soraEvent.time)
+            assertNull(soraEvent.sideChainFee)
             Unit
         }.failure { ex -> fail(ex) }
     }
