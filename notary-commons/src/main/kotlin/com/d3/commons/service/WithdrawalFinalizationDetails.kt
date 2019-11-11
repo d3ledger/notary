@@ -18,6 +18,7 @@ import java.math.BigDecimal
  * @param srcAccountId - id of account that initiated current withdrawal
  * @param withdrawalTime - time of withdrawal
  * @param destinationAddress - destination address
+ * @param sideChainFee - fee in sidechain(gas, mining fee, etc). null by default
  */
 data class WithdrawalFinalizationDetails(
     val withdrawalAmount: BigDecimal,
@@ -26,7 +27,8 @@ data class WithdrawalFinalizationDetails(
     val feeAssetId: String,
     val srcAccountId: String,
     val withdrawalTime: Long,
-    val destinationAddress: String
+    val destinationAddress: String,
+    val sideChainFee: BigDecimal? = null
 ) {
     /**
      * Transforms finalization details object into json string
@@ -39,7 +41,7 @@ data class WithdrawalFinalizationDetails(
          * Transforms given [json] into finalization details object
          * @return finalization details object
          */
-        fun fromJson(json: String) =
+        fun fromJson(json: String): WithdrawalFinalizationDetails =
             GsonInstance.get().fromJson(json, WithdrawalFinalizationDetails::class.java)
     }
 }

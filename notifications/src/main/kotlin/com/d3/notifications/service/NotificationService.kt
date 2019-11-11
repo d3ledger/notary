@@ -5,9 +5,7 @@
 
 package com.d3.notifications.service
 
-import com.d3.notifications.event.FailedRegistrationNotifyEvent
-import com.d3.notifications.event.RegistrationNotifyEvent
-import com.d3.notifications.event.TransferNotifyEvent
+import com.d3.notifications.event.*
 import com.github.kittinunf.result.Result
 
 /**
@@ -19,35 +17,35 @@ interface NotificationService {
      * @param transferNotifyEvent - transfer event
      * @return result of operation
      * */
-    fun notifyDeposit(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception>
+    fun notifyDeposit(transferNotifyEvent: DepositTransferEvent): Result<Unit, Exception>
 
     /**
      * Notifies client about withdrawal event
      * @param transferNotifyEvent - transfer event
      * @return result of operation
      * */
-    fun notifyWithdrawal(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception>
+    fun notifyWithdrawal(transferNotifyEvent: WithdrawalTransferEvent): Result<Unit, Exception>
 
     /**
      * Notifies client about sent transfer
      * @param transferNotifyEvent - transfer event
      * @return result of operation
      * */
-    fun notifySendToClient(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception>
+    fun notifySendToClient(transferNotifyEvent: Client2ClientSendTransferEvent): Result<Unit, Exception>
 
     /**
      * Notifies client about received transfer
      * @param transferNotifyEvent - transfer event
      * @return result of operation
      * */
-    fun notifyReceiveFromClient(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception>
+    fun notifyReceiveFromClient(transferNotifyEvent: Client2ClientReceiveTransferEvent): Result<Unit, Exception>
 
     /**
      * Notifies client about rollback event
      * @param transferNotifyEvent - transfer event
      * @return result of operation
      * */
-    fun notifyRollback(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception>
+    fun notifyRollback(transferNotifyEvent: RollbackTransferEvent): Result<Unit, Exception>
 
     /**
      * Notifies client about registration event

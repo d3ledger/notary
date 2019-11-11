@@ -5,9 +5,7 @@
 
 package com.d3.notifications.service
 
-import com.d3.notifications.event.FailedRegistrationNotifyEvent
-import com.d3.notifications.event.RegistrationNotifyEvent
-import com.d3.notifications.event.TransferNotifyEvent
+import com.d3.notifications.event.*
 import com.d3.notifications.push.WebPushAPIService
 import com.github.kittinunf.result.Result
 
@@ -30,35 +28,35 @@ class PushNotificationService(private val webPushAPIService: WebPushAPIService) 
         )
     }
 
-    override fun notifySendToClient(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
+    override fun notifySendToClient(transferNotifyEvent: Client2ClientSendTransferEvent): Result<Unit, Exception> {
         return webPushAPIService.push(
             transferNotifyEvent.accountIdToNotify,
             "Transfer of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName}"
         )
     }
 
-    override fun notifyReceiveFromClient(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
+    override fun notifyReceiveFromClient(transferNotifyEvent: Client2ClientReceiveTransferEvent): Result<Unit, Exception> {
         return webPushAPIService.push(
             transferNotifyEvent.accountIdToNotify,
             "Transfer of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName}"
         )
     }
 
-    override fun notifyRollback(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
+    override fun notifyRollback(transferNotifyEvent: RollbackTransferEvent): Result<Unit, Exception> {
         return webPushAPIService.push(
             transferNotifyEvent.accountIdToNotify,
             "Rollback of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName}"
         )
     }
 
-    override fun notifyWithdrawal(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
+    override fun notifyWithdrawal(transferNotifyEvent: WithdrawalTransferEvent): Result<Unit, Exception> {
         return webPushAPIService.push(
             transferNotifyEvent.accountIdToNotify,
             "Withdrawal of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName}"
         )
     }
 
-    override fun notifyDeposit(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
+    override fun notifyDeposit(transferNotifyEvent: DepositTransferEvent): Result<Unit, Exception> {
         return webPushAPIService.push(
             transferNotifyEvent.accountIdToNotify,
             "Deposit of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName}"

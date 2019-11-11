@@ -31,7 +31,7 @@ class SoraNotificationService(private val soraConfig: SoraConfig) : Notification
         }
     }
 
-    override fun notifyDeposit(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
+    override fun notifyDeposit(transferNotifyEvent: DepositTransferEvent): Result<Unit, Exception> {
         if (transferNotifyEvent.assetName != ETH_ASSET_ID) {
             return Result.of { logger.warn("Sora notification service is not interested in ${transferNotifyEvent.assetName} deposits") }
         }
@@ -41,7 +41,7 @@ class SoraNotificationService(private val soraConfig: SoraConfig) : Notification
         }
     }
 
-    override fun notifyWithdrawal(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
+    override fun notifyWithdrawal(transferNotifyEvent: WithdrawalTransferEvent): Result<Unit, Exception> {
         if (transferNotifyEvent.assetName != ETH_ASSET_ID) {
             return Result.of { logger.warn("Sora notification service is not interested in ${transferNotifyEvent.assetName} withdrawals") }
         }
@@ -51,21 +51,21 @@ class SoraNotificationService(private val soraConfig: SoraConfig) : Notification
         }
     }
 
-    override fun notifySendToClient(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
+    override fun notifySendToClient(transferNotifyEvent: Client2ClientSendTransferEvent): Result<Unit, Exception> {
         logger.info("Notify Sora transfer send $transferNotifyEvent")
         return Result.of {
             logger.warn("'Transfer send' notifications are not supported in Sora")
         }
     }
 
-    override fun notifyReceiveFromClient(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
+    override fun notifyReceiveFromClient(transferNotifyEvent: Client2ClientReceiveTransferEvent): Result<Unit, Exception> {
         logger.info("Notify Sora transfer receive $transferNotifyEvent")
         return Result.of {
             logger.warn("'Transfer receive' notifications are not supported in Sora")
         }
     }
 
-    override fun notifyRollback(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
+    override fun notifyRollback(transferNotifyEvent: RollbackTransferEvent): Result<Unit, Exception> {
         logger.info("Notify Sora rollback $transferNotifyEvent")
         return Result.of {
             logger.warn("Rollback notifications are not supported in Sora")

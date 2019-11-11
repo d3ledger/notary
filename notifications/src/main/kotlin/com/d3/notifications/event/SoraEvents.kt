@@ -34,13 +34,13 @@ class SoraDepositEvent(
     val from: String?
 ) : SoraEvent(id, time) {
     companion object {
-        fun map(transferNotifyEvent: TransferNotifyEvent) = SoraDepositEvent(
-            transferNotifyEvent.accountIdToNotify,
-            transferNotifyEvent.amount,
-            transferNotifyEvent.assetName,
-            transferNotifyEvent.id,
-            transferNotifyEvent.time,
-            transferNotifyEvent.from
+        fun map(transferNotifyEvent: DepositTransferEvent) = SoraDepositEvent(
+            accountIdToNotify = transferNotifyEvent.accountIdToNotify,
+            amount = transferNotifyEvent.amount,
+            assetName = transferNotifyEvent.assetName,
+            id = transferNotifyEvent.id,
+            time = transferNotifyEvent.time,
+            from = transferNotifyEvent.from
         )
     }
 }
@@ -52,17 +52,19 @@ class SoraWithdrawalEvent(
     val to: String,
     id: String,
     time: Long,
-    val fee: Fee?
+    val fee: Fee?,
+    val sideChainFee: BigDecimal?
 ) : SoraEvent(id, time) {
     companion object {
-        fun map(transferNotifyEvent: TransferNotifyEvent) = SoraWithdrawalEvent(
-            transferNotifyEvent.accountIdToNotify,
-            transferNotifyEvent.amount,
-            transferNotifyEvent.assetName,
-            transferNotifyEvent.to!!,
-            transferNotifyEvent.id,
-            transferNotifyEvent.time,
-            Fee.map(transferNotifyEvent.fee)
+        fun map(transferNotifyEvent: WithdrawalTransferEvent) = SoraWithdrawalEvent(
+            accountIdToNotify = transferNotifyEvent.accountIdToNotify,
+            amount = transferNotifyEvent.amount,
+            assetName = transferNotifyEvent.assetName,
+            to = transferNotifyEvent.to,
+            id = transferNotifyEvent.id,
+            time = transferNotifyEvent.time,
+            fee = Fee.map(transferNotifyEvent.fee),
+            sideChainFee = transferNotifyEvent.sideChainFee
         )
     }
 }
@@ -88,11 +90,11 @@ class SoraRegistrationEvent(
 ) : SoraEvent(id, time) {
     companion object {
         fun map(registrationNotifyEvent: RegistrationNotifyEvent) = SoraRegistrationEvent(
-            registrationNotifyEvent.accountId,
-            registrationNotifyEvent.address,
-            registrationNotifyEvent.subsystem.name,
-            registrationNotifyEvent.id,
-            registrationNotifyEvent.time
+            accountIdToNotify = registrationNotifyEvent.accountId,
+            address = registrationNotifyEvent.address,
+            subsystem = registrationNotifyEvent.subsystem.name,
+            id = registrationNotifyEvent.id,
+            time = registrationNotifyEvent.time
         )
     }
 }
@@ -105,10 +107,10 @@ class SoraFailedRegistrationEvent(
 ) : SoraEvent(id, time) {
     companion object {
         fun map(registrationNotifyEvent: FailedRegistrationNotifyEvent) = SoraFailedRegistrationEvent(
-            registrationNotifyEvent.accountId,
-            registrationNotifyEvent.subsystem.name,
-            registrationNotifyEvent.id,
-            registrationNotifyEvent.time
+            accountIdToNotify = registrationNotifyEvent.accountId,
+            subsystem = registrationNotifyEvent.subsystem.name,
+            id = registrationNotifyEvent.id,
+            time = registrationNotifyEvent.time
         )
     }
 }

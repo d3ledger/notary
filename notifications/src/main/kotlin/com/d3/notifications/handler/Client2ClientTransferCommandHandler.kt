@@ -7,9 +7,9 @@ package com.d3.notifications.handler
 
 import com.d3.commons.provider.NotaryClientsProvider
 import com.d3.notifications.config.NotificationsConfig
-import com.d3.notifications.event.TransferEventType
+import com.d3.notifications.event.Client2ClientReceiveTransferEvent
+import com.d3.notifications.event.Client2ClientSendTransferEvent
 import com.d3.notifications.event.TransferFee
-import com.d3.notifications.event.TransferNotifyEvent
 import com.d3.notifications.queue.EventsQueue
 import iroha.protocol.TransactionOuterClass
 import jp.co.soramitsu.iroha.java.Utils
@@ -30,18 +30,17 @@ class Client2ClientTransferCommandHandler(
         val transferAsset = commandWithTx.command.transferAsset
         val tx = commandWithTx.tx
         val description: String = transferAsset.description ?: ""
-        val transferNotifyReceiveEvent = TransferNotifyEvent(
-            type = TransferEventType.TRANSFER_RECEIVE,
+        val transferNotifyReceiveEvent = Client2ClientReceiveTransferEvent(
             accountIdToNotify = transferAsset.destAccountId,
             amount = BigDecimal(transferAsset.amount),
             assetName = transferAsset.assetId,
             description = description,
             from = transferAsset.srcAccountId,
             id = Utils.toHex(Utils.hash(tx)) + "_receive",
-            time = tx.payload.reducedPayload.createdTime
+            time = tx.payload.reducedPayload.createdTime,
+            fee = getTransferFee(tx)
         )
-        val transferNotifySendEvent = TransferNotifyEvent(
-            type = TransferEventType.TRANSFER_SEND,
+        val transferNotifySendEvent = Client2ClientSendTransferEvent(
             accountIdToNotify = transferAsset.srcAccountId,
             amount = BigDecimal(transferAsset.amount),
             assetName = transferAsset.assetId,

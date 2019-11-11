@@ -25,35 +25,85 @@ open class BasicEvent(val id: String, val time: Long) {
  * Data class that holds transfer event data
  *
  * @param accountIdToNotify - account id that will be notified
- * @param type - type of event
  * @param amount - transfer amount
  * @param assetName - name of asset
  * @param id - event id
  * @param time - event time in milliseconds
- * @param description - description of transfer
- * @param from - defines the origin of transfer. null by default
- * @param to - defines the destination of transfer. null by default.
- * @param fee - fee to pay for transfer
  */
-class TransferNotifyEvent(
-    val type: TransferEventType,
+open class TransferNotifyEvent(
     val accountIdToNotify: String,
     val amount: BigDecimal,
     val assetName: String,
     id: String,
-    time: Long,
-    val description: String = "",
-    val from: String? = null,
-    val to: String? = null,
-    val fee: TransferFee? = null
+    time: Long
 ) : BasicEvent(id, time)
 
 /**
- * Type of transfer
+ * Client to client 'send' transfer event
  */
-enum class TransferEventType {
-    DEPOSIT, ROLLBACK, WITHDRAWAL, TRANSFER_RECEIVE, TRANSFER_SEND
-}
+class Client2ClientSendTransferEvent(
+    accountIdToNotify: String,
+    amount: BigDecimal,
+    assetName: String,
+    id: String,
+    time: Long,
+    val description: String,
+    val to: String,
+    val fee: TransferFee?
+) : TransferNotifyEvent(accountIdToNotify, amount, assetName, id, time)
+
+/**
+ * Client to client 'receive' transfer event
+ */
+class Client2ClientReceiveTransferEvent(
+    accountIdToNotify: String,
+    amount: BigDecimal,
+    assetName: String,
+    id: String,
+    time: Long,
+    val description: String,
+    val from: String,
+    val fee: TransferFee?
+) : TransferNotifyEvent(accountIdToNotify, amount, assetName, id, time)
+
+
+/**
+ * Deposit event
+ */
+class DepositTransferEvent(
+    accountIdToNotify: String,
+    amount: BigDecimal,
+    assetName: String,
+    id: String,
+    time: Long,
+    val from: String
+) : TransferNotifyEvent(accountIdToNotify, amount, assetName, id, time)
+
+/**
+ * Withdrawal event
+ */
+class WithdrawalTransferEvent(
+    accountIdToNotify: String,
+    amount: BigDecimal,
+    assetName: String,
+    id: String,
+    time: Long,
+    val to: String,
+    val fee: TransferFee?,
+    val sideChainFee: BigDecimal?
+) : TransferNotifyEvent(accountIdToNotify, amount, assetName, id, time)
+
+/**
+ * Rollback event
+ */
+class RollbackTransferEvent(
+    accountIdToNotify: String,
+    amount: BigDecimal,
+    assetName: String,
+    id: String,
+    time: Long,
+    val fee: TransferFee?
+) : TransferNotifyEvent(accountIdToNotify, amount, assetName, id, time)
 
 /**
  * Fee object
