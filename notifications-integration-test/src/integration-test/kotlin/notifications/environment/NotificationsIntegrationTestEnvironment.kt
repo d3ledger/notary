@@ -135,6 +135,7 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
     private val eventsQueue =
         EventsQueue(
             listOf(emailNotificationService, pushNotificationService, soraNotificationService),
+            listOf(soraNotificationService),
             notificationsConfig.rmq
         )
 
@@ -150,7 +151,8 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
                 EthRegistrationCommandHandler(eventsQueue, notaryClientsProvider, notificationsConfig),
                 BtcRegistrationCommandHandler(eventsQueue, notaryClientsProvider, notificationsConfig),
                 RollbackCommandHandler(notificationsConfig, notaryClientsProvider, eventsQueue),
-                WithdrawalCommandHandler(eventsQueue)
+                WithdrawalCommandHandler(eventsQueue),
+                EthProofsCollectedCommandHandler()
             )
         )
 

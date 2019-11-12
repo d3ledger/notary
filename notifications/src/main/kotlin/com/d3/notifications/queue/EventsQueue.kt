@@ -11,6 +11,7 @@ import com.d3.commons.util.createPrettyFixThreadPool
 import com.d3.notifications.NOTIFICATIONS_SERVICE_NAME
 import com.d3.notifications.event.*
 import com.d3.notifications.exception.RepeatableException
+import com.d3.notifications.service.EthSpecificNotificationService
 import com.d3.notifications.service.NotificationService
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
@@ -29,6 +30,7 @@ private const val EVENT_TYPE_HEADER = "event_type"
 @Component
 class EventsQueue(
     private val notificationServices: List<NotificationService>,
+    private val ethSpecificNotificationServices: List<EthSpecificNotificationService>,
     rmqConfig: RMQConfig
 ) : Closeable {
 
@@ -109,6 +111,13 @@ class EventsQueue(
                         logger.info("Got failed registration event: $failedRegistrationNotifyEvent")
                         handleFailedRegistration(failedRegistrationNotifyEvent)
                     }
+                    // Handle 'got enough proofs' in Ethereum
+                    EthWithdrawalProofsEvent::class.java.canonicalName -> {
+                        val ethWithdrawalProofsEvent =
+                            gson.fromJson(json, EthWithdrawalProofsEvent::class.java)
+                        logger.info("Got 'enough proofs' event: $ethWithdrawalProofsEvent")
+                        handleEthWithdrawalProofs(ethWithdrawalProofsEvent)
+                    }
                     else -> logger.warn("Cannot handle event type $eventType. Message is $json")
                 }
             } catch (e: Exception) {
@@ -172,16 +181,21 @@ class EventsQueue(
         event: BasicEvent,
         iterator: (NotificationService) -> Result<Unit, Exception>
     ) {
-        notificationServices.forEach {
-            iterator(it).failure { ex ->
-                if (ex is RepeatableException) {
-                    // Re-queue if possible
-                    logger.warn("Cannot handle event due to error. Try to re-queue $event", ex)
-                    enqueue(event)
-                } else {
-                    logger.error("Cannot notify: $event", ex)
-                }
-            }
+        notificationServices.forEach { iterator(it).failure { ex -> handleError(event, ex) } }
+    }
+
+    /**
+     * Handles event processing errors
+     * @param event - event to handle
+     * @param error - error to handle
+     */
+    private fun handleError(event: BasicEvent, error: Exception) {
+        if (error is RepeatableException) {
+            // Re-queue if possible
+            logger.warn("Cannot handle event due to error. Try to re-queue $event", error)
+            enqueue(event)
+        } else {
+            logger.error("Cannot notify: $event", error)
         }
     }
 
@@ -192,6 +206,17 @@ class EventsQueue(
     private fun handleRegistration(registrationNotifyEvent: RegistrationNotifyEvent) {
         iterateThroughNotificationServices(registrationNotifyEvent)
         { it.notifyRegistration(registrationNotifyEvent) }
+    }
+
+    /**
+     * Handles 'got enough proofs for withdrawal' in the Ethereum subsystem
+     * @param ethWithdrawalProofsEvent - event ot handle
+     */
+    private fun handleEthWithdrawalProofs(ethWithdrawalProofsEvent: EthWithdrawalProofsEvent) {
+        ethSpecificNotificationServices.forEach {
+            it.notifyEthWithdrawalProofs(ethWithdrawalProofsEvent)
+                .failure { ex -> handleError(ethWithdrawalProofsEvent, ex) }
+        }
     }
 
     /**

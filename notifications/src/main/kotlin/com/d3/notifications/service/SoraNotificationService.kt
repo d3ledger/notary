@@ -16,7 +16,18 @@ const val ETH_ASSET_ID = "ether#ethereum"
 /**
  * Notification service used by Sora
  */
-class SoraNotificationService(private val soraConfig: SoraConfig) : NotificationService {
+class SoraNotificationService(private val soraConfig: SoraConfig) : NotificationService,
+    EthSpecificNotificationService {
+
+    override fun notifyEthWithdrawalProofs(ethWithdrawalProofsEvent: EthWithdrawalProofsEvent): Result<Unit, Exception> {
+        logger.info("Notify enough withdrawal proofs $ethWithdrawalProofsEvent")
+        return Result.of {
+            postSoraEvent(
+                SoraURI.WITHDRAWAL_PROOFS,
+                SoraEthWithdrawalProofsEvent.map(ethWithdrawalProofsEvent)
+            )
+        }
+    }
 
     override fun notifyFailedRegistration(failedRegistrationNotifyEvent: FailedRegistrationNotifyEvent): Result<Unit, Exception> {
         if (failedRegistrationNotifyEvent.subsystem != RegistrationEventSubsystem.ETH) {
@@ -112,5 +123,6 @@ enum class SoraURI(val uri: String) {
     DEPOSIT_URI("deposit"),
     WITHDRAWAL_URI("withdrawal"),
     REGISTRATION_URI("registration"),
-    FAILED_REGISTRATION_URI("failedRegistration")
+    FAILED_REGISTRATION_URI("failedRegistration"),
+    WITHDRAWAL_PROOFS("withdrawalProofs")
 }

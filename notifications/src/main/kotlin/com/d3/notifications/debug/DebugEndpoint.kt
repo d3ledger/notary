@@ -37,6 +37,7 @@ class DebugEndpoint(
     private val soraWithdrawalEvents = Collections.synchronizedList(ArrayList<SoraWithdrawalEvent>())
     private val soraRegistrationEvents = Collections.synchronizedList(ArrayList<SoraRegistrationEvent>())
     private val soraFailedRegistrationEvents = Collections.synchronizedList(ArrayList<SoraFailedRegistrationEvent>())
+    private val soraWithdrawalProofsEvents = Collections.synchronizedList(ArrayList<SoraEthWithdrawalProofsEvent>())
 
     /**
      * Initiates ktor based HTTP server
@@ -100,6 +101,11 @@ class DebugEndpoint(
                 post("/sora/${SoraURI.FAILED_REGISTRATION_URI.uri}") {
                     val failedRegistrationEvent = call.receive<SoraFailedRegistrationEvent>()
                     soraFailedRegistrationEvents.add(failedRegistrationEvent)
+                    call.respond("Ok")
+                }
+                post("/sora/${SoraURI.WITHDRAWAL_PROOFS.uri}") {
+                    val withdrawalProofsEvent = call.receive<SoraEthWithdrawalProofsEvent>()
+                    soraWithdrawalProofsEvents.add(withdrawalProofsEvent)
                     call.respond("Ok")
                 }
             }
