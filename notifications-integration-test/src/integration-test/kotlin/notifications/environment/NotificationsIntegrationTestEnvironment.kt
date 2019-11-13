@@ -151,7 +151,7 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
                 EthRegistrationCommandHandler(eventsQueue, notaryClientsProvider, notificationsConfig),
                 BtcRegistrationCommandHandler(eventsQueue, notaryClientsProvider, notificationsConfig),
                 RollbackCommandHandler(notificationsConfig, notaryClientsProvider, eventsQueue),
-                WithdrawalCommandHandler(eventsQueue),
+                WithdrawalCommandHandler(notificationsConfig, eventsQueue),
                 EthProofsCollectedCommandHandler()
             )
         )

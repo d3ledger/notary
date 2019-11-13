@@ -7,8 +7,8 @@ package com.d3.notifications.handler
 
 import com.d3.commons.service.LAST_SUCCESSFUL_WITHDRAWAL_KEY
 import com.d3.commons.service.WithdrawalFinalizationDetails
-import com.d3.commons.sidechain.iroha.NOTARY_DOMAIN
 import com.d3.commons.util.irohaUnEscape
+import com.d3.notifications.config.NotificationsConfig
 import com.d3.notifications.event.TransferFee
 import com.d3.notifications.event.WithdrawalTransferEvent
 import com.d3.notifications.queue.EventsQueue
@@ -20,7 +20,10 @@ import java.math.BigDecimal
  * Handler that handles withdrawal commands
  */
 @Component
-class WithdrawalCommandHandler(private val eventsQueue: EventsQueue) : CommandHandler() {
+class WithdrawalCommandHandler(
+    private val notificationsConfig: NotificationsConfig,
+    private val eventsQueue: EventsQueue
+) : CommandHandler() {
 
     // Handles withdrawal event notification
     override fun handle(commandWithTx: CommandWithTx) {
@@ -52,9 +55,8 @@ class WithdrawalCommandHandler(private val eventsQueue: EventsQueue) : CommandHa
         }
         val setAccountDetail = commandWithTx.command.setAccountDetail
         val storageAccountId = setAccountDetail.accountId
-        return storageAccountId.endsWith("@$NOTARY_DOMAIN") &&
+        return (storageAccountId == notificationsConfig.btcWithdrawalAccount || storageAccountId == notificationsConfig.ethWithdrawalAccount) &&
                 setAccountDetail.key == LAST_SUCCESSFUL_WITHDRAWAL_KEY &&
                 storageAccountId == commandWithTx.tx.getCreator()
     }
-
 }

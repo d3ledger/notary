@@ -7,7 +7,6 @@ package com.d3.notifications.handler
 
 import com.d3.commons.provider.NotaryClientsProvider
 import com.d3.commons.sidechain.iroha.FEE_ROLLBACK_DESCRIPTION
-import com.d3.commons.sidechain.iroha.NOTARY_DOMAIN
 import com.d3.notifications.config.NotificationsConfig
 import com.d3.notifications.event.DepositTransferEvent
 import com.d3.notifications.queue.EventsQueue
@@ -44,9 +43,9 @@ class DepositCommandHandler(
             return false
         }
         val transferAsset = commandWithTx.command.transferAsset
-        //TODO be more precise
+
         val depositSign =
-            transferAsset.srcAccountId.endsWith("@$NOTARY_DOMAIN")
+            (transferAsset.srcAccountId == notificationsConfig.ethDepositAccount || transferAsset.srcAccountId == notificationsConfig.btcDepositAccount)
                     && transferAsset.destAccountId != notificationsConfig.transferBillingAccount
                     && transferAsset.destAccountId != notificationsConfig.withdrawalBillingAccount
                     && notaryClientsProvider.isClient(transferAsset.destAccountId).get()

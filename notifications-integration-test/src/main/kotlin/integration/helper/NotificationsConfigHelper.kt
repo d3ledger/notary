@@ -22,6 +22,10 @@ class NotificationsConfigHelper(private val accountHelper: IrohaAccountHelper) :
             NotificationsConfig::class.java, "notifications.properties"
         )
         return object : NotificationsConfig {
+            override val ethWithdrawalAccount = accountHelper.ethWithdrawalAccount.accountId
+            override val btcWithdrawalAccount = accountHelper.btcWithdrawalAccount.accountId
+            override val ethDepositAccount = accountHelper.notaryAccount.accountId
+            override val btcDepositAccount = accountHelper.notaryAccount.accountId
             override val ethRegistrationServiceAccount = accountHelper.ethRegistrationAccount.accountId
             override val btcRegistrationServiceAccount = accountHelper.btcRegistrationAccount.accountId
             override val rmq = notificationsConfig.rmq
