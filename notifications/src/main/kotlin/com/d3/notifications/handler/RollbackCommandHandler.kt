@@ -48,11 +48,11 @@ class RollbackCommandHandler(
             return false
         }
         val transferAsset = commandWithTx.command.transferAsset
-        //TODO be more precise
-        val depositSign = transferAsset.srcAccountId.endsWith("@$NOTARY_DOMAIN")
-                && transferAsset.destAccountId != notificationsConfig.transferBillingAccount
-                && transferAsset.destAccountId != notificationsConfig.withdrawalBillingAccount
-                && notaryClientsProvider.isClient(transferAsset.destAccountId).get()
+        val depositSign =
+            (transferAsset.srcAccountId == notificationsConfig.btcWithdrawalAccount || transferAsset.srcAccountId == notificationsConfig.ethWithdrawalAccount)
+                    && transferAsset.destAccountId != notificationsConfig.transferBillingAccount
+                    && transferAsset.destAccountId != notificationsConfig.withdrawalBillingAccount
+                    && notaryClientsProvider.isClient(transferAsset.destAccountId).get()
         return depositSign && isRollbackSign(transferAsset)
     }
 

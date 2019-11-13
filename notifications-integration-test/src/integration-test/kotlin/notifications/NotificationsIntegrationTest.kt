@@ -503,11 +503,11 @@ class NotificationsIntegrationTest {
             D3_CLIENT_ENABLE_NOTIFICATIONS,
             "true"
         ).map {
-            val notaryAccount = integrationHelper.accountHelper.notaryAccount
+            val withdrawalAccount = integrationHelper.accountHelper.ethWithdrawalAccount
             integrationHelper.transferAssetIrohaFromClient(
-                notaryAccount.accountId,
-                notaryAccount.keyPair,
-                notaryAccount.accountId,
+                withdrawalAccount.accountId,
+                withdrawalAccount.keyPair,
+                withdrawalAccount.accountId,
                 environment.srcClientId,
                 ETH_ASSET_ID,
                 ROLLBACK_DESCRIPTION,
@@ -543,17 +543,17 @@ class NotificationsIntegrationTest {
             D3_CLIENT_ENABLE_NOTIFICATIONS,
             "true"
         ).map {
-            val notaryAccount = integrationHelper.accountHelper.notaryAccount
-            val tx = Transaction.builder(notaryAccount.accountId)
+            val withdrawalAccount = integrationHelper.accountHelper.ethWithdrawalAccount
+            val tx = Transaction.builder(withdrawalAccount.accountId)
                 .transferAsset(
-                    notaryAccount.accountId,
+                    withdrawalAccount.accountId,
                     environment.srcClientId,
                     ETH_ASSET_ID,
                     ROLLBACK_DESCRIPTION,
                     rollbackValue.toPlainString()
                 )
                 .transferAsset(
-                    notaryAccount.accountId,
+                    withdrawalAccount.accountId,
                     environment.srcClientId,
                     ETH_ASSET_ID,
                     FEE_ROLLBACK_DESCRIPTION,
@@ -561,7 +561,7 @@ class NotificationsIntegrationTest {
                 )
                 .setCreatedTime(System.currentTimeMillis())
                 .setQuorum(1)
-                .sign(notaryAccount.keyPair)
+                .sign(withdrawalAccount.keyPair)
                 .build()
             integrationHelper.irohaConsumer.send(tx).get()
         }.map {

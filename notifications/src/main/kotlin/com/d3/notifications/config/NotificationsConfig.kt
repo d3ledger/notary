@@ -37,6 +37,14 @@ interface NotificationsConfig {
     val ethRegistrationServiceAccount: String
     // Bitcoin registration service Iroha account id
     val btcRegistrationServiceAccount: String
+    // Eth withdrawal account
+    val ethWithdrawalAccount: String
+    // Btc withdrawal account
+    val btcWithdrawalAccount: String
+    // Eth deposit account
+    val ethDepositAccount: String
+    // Btc deposit account
+    val btcDepositAccount: String
 }
 
 /**
