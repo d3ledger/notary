@@ -10,7 +10,6 @@ import com.github.kittinunf.result.Result
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import mu.KLogging
-import java.util.*
 
 private const val TIMEOUT_MLS = 5_000L
 private const val MIN_TIMEOUT = TIMEOUT_MLS * 2
@@ -25,6 +24,12 @@ class RobustIrohaQueryHelperImpl(
     private val irohaQueryHelper: IrohaQueryHelperImpl,
     private val totalTimeoutMls: Int
 ) : IrohaQueryHelper {
+
+    init {
+        if (totalTimeoutMls <= MIN_TIMEOUT) {
+            throw IllegalArgumentException("'totalTimeoutMls' value must be bigger than $MIN_TIMEOUT")
+        }
+    }
 
     override fun getQueryCreatorAccountId() = irohaQueryHelper.getQueryCreatorAccountId()
 
@@ -46,6 +51,10 @@ class RobustIrohaQueryHelperImpl(
         )
     }
 
+    override fun getAccountDetailsByKeyOnly(storageAccountId: String, key: String) = retryQuery {
+        irohaQueryHelper.getAccountDetailsByKeyOnly(storageAccountId, key)
+    }
+
     override fun getAccountDetailsFilter(
         storageAccountId: String,
         writerAccountId: String,
@@ -57,12 +66,6 @@ class RobustIrohaQueryHelperImpl(
         writerAccountId: String,
         countPredicate: (key: String, value: String) -> Boolean
     ) = retryQuery { irohaQueryHelper.getAccountDetailsCount(storageAccountId, writerAccountId, countPredicate) }
-
-    init {
-        if (totalTimeoutMls <= MIN_TIMEOUT) {
-            throw IllegalArgumentException("'totalTimeoutMls' value must be bigger than $MIN_TIMEOUT")
-        }
-    }
 
     override fun getAccount(accountId: String) = retryQuery { irohaQueryHelper.getAccount(accountId) }
 
