@@ -7,6 +7,7 @@ package com.d3.notifications.event
 
 import com.d3.commons.util.GsonInstance
 import java.math.BigDecimal
+import java.math.BigInteger
 
 private val gson = GsonInstance.get()
 
@@ -145,3 +146,31 @@ class FailedRegistrationNotifyEvent(
 enum class RegistrationEventSubsystem {
     ETH, BTC
 }
+
+/**
+ * Class that holds information about withdrawal proofs
+ * @param accountIdToNotify - account to notify
+ * @param tokenContractAddress - TODO describe
+ * @param amount - amount of asset to withdraw
+ * @param relay - TODO describe
+ * @param proofs - withdrawal proofs
+ * @param irohaTxHash - original withdrawal Iroha tx hash
+ * @param id - identifier of event
+ * @param time - time of event
+ */
+class EthWithdrawalProofsEvent(
+    val accountIdToNotify: String,
+    val tokenContractAddress: String,
+    val amount: BigDecimal,
+    val relay: String,
+    val proofs: List<ECDSASignature>,
+    val irohaTxHash: String,
+    id: String,
+    time: Long
+) : BasicEvent(id, time)
+
+data class ECDSASignature(
+    val r: String,
+    val s: String,
+    val v: BigInteger
+)
