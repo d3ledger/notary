@@ -45,6 +45,17 @@ interface IrohaQueryHelper {
     ): Result<Map<String, String>, Exception>
 
     /**
+     * Retrieves account details by setter and key from Iroha
+     * @param storageAccountId - account to read details from
+     * @param key - key of detail
+     * @return list with account details
+     */
+    fun getAccountDetailsByKeyOnly(
+        storageAccountId: String,
+        key: String
+    ): Result<List<String>, Exception>
+
+    /**
      * Retrieves the first account detail by setter and predicate from Iroha
      * @param storageAccountId - account to read details from
      * @param writerAccountId - account that has set the details

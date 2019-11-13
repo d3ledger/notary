@@ -75,6 +75,22 @@ open class IrohaQueryHelperImpl(
             }
 
     /** {@inheritDoc} */
+    override fun getAccountDetailsByKeyOnly(storageAccountId: String, key: String): Result<List<String>, Exception> {
+        return irohaPaginationHelper.getPaginatedAccountDetails(storageAccountId, null, key)
+            .map { details ->
+                if (details.isEmpty()) {
+                    ArrayList()
+                } else {
+                    val result = ArrayList<String>()
+                    details.entries.forEach { accountLevelDetails ->
+                        accountLevelDetails.value.values.forEach { value -> result.add(value) }
+                    }
+                    result
+                }
+            }
+    }
+
+    /** {@inheritDoc} */
     override fun getAccountDetailsFirst(
         storageAccountId: String,
         writerAccountId: String,
