@@ -17,6 +17,7 @@ import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import java.security.KeyPair
 import java.util.*
+import kotlin.collections.HashMap
 
 /**
  * The purpose of the class is to hide Iroha query implementation.
@@ -75,15 +76,19 @@ open class IrohaQueryHelperImpl(
             }
 
     /** {@inheritDoc} */
-    override fun getAccountDetailsByKeyOnly(storageAccountId: String, key: String): Result<List<String>, Exception> {
+    override fun getAccountDetailsByKeyOnly(
+        storageAccountId: String,
+        key: String
+    ): Result<Map<String, String>, Exception> {
         return irohaPaginationHelper.getPaginatedAccountDetails(storageAccountId, null, key)
             .map { details ->
                 if (details.isEmpty()) {
-                    ArrayList()
+                    HashMap()
                 } else {
-                    val result = ArrayList<String>()
+                    val result = HashMap<String, String>()
                     details.entries.forEach { accountLevelDetails ->
-                        accountLevelDetails.value.values.forEach { value -> result.add(value) }
+                        val setter = accountLevelDetails.key
+                        accountLevelDetails.value.values.forEach { value -> result[setter] = value }
                     }
                     result
                 }

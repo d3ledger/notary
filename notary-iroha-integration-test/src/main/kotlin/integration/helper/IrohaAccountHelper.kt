@@ -41,6 +41,8 @@ open class IrohaAccountHelper(private val irohaAPI: IrohaAPI, private val peers:
     val ethAnchoredTokenStorageAccount by lazy { createTesterAccount("eth_anch_tokens_") }
     val irohaAnchoredTokenStorageAccount by lazy { createTesterAccount("iroha_anch_tokens_") }
 
+    val ethProofSetterAccount by lazy { createTesterAccount("eth_proof_setter", listOf("notary")) }
+
     /**
      * Makes given account multisignature
      * @param account - account to make multisignature
