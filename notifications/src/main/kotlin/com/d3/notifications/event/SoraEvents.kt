@@ -143,8 +143,8 @@ class SoraEthWithdrawalProofsEvent(
 }
 
 data class SoraECDSASignature(
-    val r: String,
-    val s: String,
+    val r: BigInteger,
+    val s: BigInteger,
     val v: BigInteger
 ) {
     companion object {

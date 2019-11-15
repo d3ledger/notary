@@ -8,6 +8,7 @@ package integration.helper
 import com.d3.commons.config.loadRawLocalConfigs
 import com.d3.commons.registration.NotaryRegistrationConfig
 import com.d3.commons.util.getRandomString
+import com.d3.notifications.config.ETHSpecificConfig
 import com.d3.notifications.config.NotificationsConfig
 
 class NotificationsConfigHelper(private val accountHelper: IrohaAccountHelper) :
@@ -42,4 +43,15 @@ class NotificationsConfigHelper(private val accountHelper: IrohaAccountHelper) :
                 accountHelper.createCredentialRawConfig(accountHelper.notaryAccount)
         }
     }
+
+    /**
+     * Creates Ethereum-specific configuration
+     * @return Ethereum-specific configuration
+     */
+    fun createEthSpecificConfig(): ETHSpecificConfig {
+        return object : ETHSpecificConfig {
+            override val ethWithdrawalProofSetters = listOf(accountHelper.ethProofSetterAccount.accountId)
+        }
+    }
+
 }
