@@ -6,7 +6,6 @@
 package com.d3.commons.notary
 
 import com.d3.commons.model.IrohaCredential
-import com.d3.commons.registration.ChainRegistrationWithProvidedAddress
 import com.d3.commons.sidechain.SideChainEvent
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumer
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
@@ -27,32 +26,18 @@ import kotlin.system.exitProcess
 class NotaryImpl(
     private val notaryIrohaConsumer: IrohaConsumer,
     private val notaryCredential: IrohaCredential,
-    private val primaryChainEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>,
-    private val registrationStrategy: ChainRegistrationWithProvidedAddress
+    private val primaryChainEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>
 ) : Notary {
 
     constructor(
         notaryCredential: IrohaCredential,
         irohaAPI: IrohaAPI,
-        primaryChainEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>,
-        registrationStrategy: ChainRegistrationWithProvidedAddress
+        primaryChainEvents: Observable<SideChainEvent.PrimaryBlockChainEvent>
     ) : this(
         IrohaConsumerImpl(notaryCredential, irohaAPI),
         notaryCredential,
-        primaryChainEvents,
-        registrationStrategy
+        primaryChainEvents
     )
-
-    /**
-     * Register sidechain address for iroha client on chain event
-     */
-    private fun registrationOnPrimaryChain(event: SideChainEvent.PrimaryBlockChainEvent.Registration): IrohaTransaction {
-        return registrationStrategy.register(
-            event.irohaAccountId,
-            event.sideChainAddress,
-            event.time
-        )
-    }
 
     /**
      * Handles primary chain deposit event. Notaries create {addAssetQuantity, transferAsset} transactions.
@@ -124,10 +109,6 @@ class NotaryImpl(
         logger.info { "Notary performs primary chain event $chainInputEvent" }
 
         return when (chainInputEvent) {
-            is SideChainEvent.PrimaryBlockChainEvent.Registration -> registrationOnPrimaryChain(
-                chainInputEvent
-            )
-
             is SideChainEvent.PrimaryBlockChainEvent.ChainAnchoredOnPrimaryChainDeposit -> chainAnchoredOnPrimaryChainDeposit(
                 chainInputEvent.hash,
                 chainInputEvent.time,
