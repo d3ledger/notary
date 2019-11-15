@@ -52,16 +52,18 @@ open class SideChainRegistrator(
         accountId: String,
         notaryStorageStrategy: () -> String
     ): Result<Transaction, java.lang.Exception> {
-        return Result.of {
-            Transaction.builder(irohaConsumer.creator)
-                .setAccountDetail(accountId, sidechainName, currencyAddress)
-                .setAccountDetail(
-                    walletStorageIrohaAccountId,
-                    currencyAddress,
-                    notaryStorageStrategy()
-                )
-                .build()
-        }
+        return irohaConsumer.getConsumerQuorum()
+            .map { quorum ->
+                Transaction.builder(irohaConsumer.creator)
+                    .setAccountDetail(accountId, sidechainName, currencyAddress)
+                    .setAccountDetail(
+                        walletStorageIrohaAccountId,
+                        currencyAddress,
+                        notaryStorageStrategy()
+                    )
+                    .setQuorum(quorum)
+                    .build()
+            }
     }
 
     /**

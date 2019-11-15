@@ -23,6 +23,11 @@ private val notificationsConfig = loadRawLocalConfigs(
     NotificationsConfig::class.java, "notifications.properties"
 )
 
+private val ethSpecificConfig = loadRawLocalConfigs(
+    "notifications",
+    ETHSpecificConfig::class.java, "eth.properties"
+)
+
 @Configuration
 class NotificationAppConfiguration {
 
@@ -30,6 +35,9 @@ class NotificationAppConfiguration {
         notificationsConfig.notaryCredential.pubkey,
         notificationsConfig.notaryCredential.privkey
     )
+
+    @Bean
+    fun ethSpecificConfig() = ethSpecificConfig
 
     @Bean
     fun chainListenerExecutorService() = createPrettySingleThreadPool(

@@ -94,6 +94,7 @@ services:
     depends_on:
       - d3-brvs-mongodb
       - d3-rmq
+      - data-collector
     env_file:
       - ../deploy/.env-default-jvm-options
     environment:
