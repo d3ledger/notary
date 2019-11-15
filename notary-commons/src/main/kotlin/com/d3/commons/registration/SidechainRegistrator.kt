@@ -30,9 +30,10 @@ open class SideChainRegistrator(
     fun register(
         currencyAddress: String,
         accountId: String,
+        time: Long,
         notaryStorageStrategy: () -> String
     ): Result<String, Exception> {
-        return buildTx(currencyAddress, accountId, notaryStorageStrategy)
+        return buildTx(currencyAddress, accountId, time, notaryStorageStrategy)
             .flatMap { tx ->
                 irohaConsumer.send(tx)
             }.map { hash ->
@@ -50,6 +51,7 @@ open class SideChainRegistrator(
     fun buildTx(
         currencyAddress: String,
         accountId: String,
+        time: Long,
         notaryStorageStrategy: () -> String
     ): Result<Transaction, java.lang.Exception> {
         return irohaConsumer.getConsumerQuorum()
@@ -62,6 +64,7 @@ open class SideChainRegistrator(
                         notaryStorageStrategy()
                     )
                     .setQuorum(quorum)
+                    .setCreatedTime(time)
                     .build()
             }
     }
