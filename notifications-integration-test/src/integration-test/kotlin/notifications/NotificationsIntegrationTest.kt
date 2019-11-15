@@ -21,6 +21,7 @@ import com.d3.notifications.debug.dto.DumbsterMessage
 import com.d3.notifications.event.*
 import com.d3.notifications.init.BTC_WALLET
 import com.d3.notifications.init.ETH_WALLET
+import com.d3.notifications.provider.EthWithdrawalProof
 import com.d3.notifications.service.*
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
@@ -39,6 +40,7 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import java.lang.reflect.Type
 import java.math.BigDecimal
+import java.math.BigInteger
 
 private const val WAIT_TIME = 5_000L
 private const val SRC_USER_EMAIL = "src.user@d3.com"
@@ -580,6 +582,53 @@ class NotificationsIntegrationTest {
 
     /**
      * Note: Iroha must be deployed to pass the test.
+     * @given D3 client with enabled email notifications and notary account
+     * @when account receives Ethereum withdrawal proof
+     * @then D3 client is notified about withdrawal proof collection
+     */
+    @Test
+    fun testNotificationWithdrawalProof() {
+        val withdrawalIrohaTxHash = "123"
+        val ethWithdrawalProof = EthWithdrawalProof(
+            tokenContractAddress = "some address",
+            amount = BigDecimal.valueOf(2),
+            irohaHash = withdrawalIrohaTxHash,
+            account = environment.srcClientId,
+            relay = "123",
+            r = BigInteger.valueOf(123),
+            s = BigInteger.valueOf(456),
+            v = BigInteger.valueOf(798)
+        )
+        integrationHelper.setAccountDetailWithRespectToBrvs(
+            environment.srcClientConsumer,
+            environment.srcClientId,
+            D3_CLIENT_ENABLE_NOTIFICATIONS,
+            "true"
+        ).map {
+            val tx = Transaction.builder(environment.witdrawalProofSetterConsumer.creator)
+                .setAccountDetail(
+                    environment.srcClientId,
+                    withdrawalIrohaTxHash,
+                    gson.toJson(ethWithdrawalProof).irohaEscape()
+                ).build()
+            environment.witdrawalProofSetterConsumer.send(tx).get()
+        }.map {
+            Thread.sleep(WAIT_TIME)
+            val soraEvent = getLastSoraEvent(SoraURI.WITHDRAWAL_PROOFS) as SoraEthWithdrawalProofsEvent
+            assertEquals(ethWithdrawalProof.account, soraEvent.accountIdToNotify)
+            assertEquals(ethWithdrawalProof.irohaHash, soraEvent.irohaTxHash)
+            assertEquals(ethWithdrawalProof.relay, soraEvent.relay)
+            assertEquals(1, soraEvent.proofs.size)
+            val proof = soraEvent.proofs.first()
+            assertEquals(ethWithdrawalProof.r, proof.r)
+            assertEquals(ethWithdrawalProof.s, proof.s)
+            assertEquals(ethWithdrawalProof.v, proof.v)
+            Unit
+        }.failure { ex -> fail(ex) }
+    }
+
+    /**
+     * Note: Iroha must be deployed to pass the test.
      * @given 2 D3 clients with enabled email notifications
      * @when 1st client sends money to 2nd with no fee
      * @then Both clients are notified
@@ -693,6 +742,7 @@ class NotificationsIntegrationTest {
             SoraURI.WITHDRAWAL_URI -> SoraWithdrawalEvent::class.java
             SoraURI.REGISTRATION_URI -> SoraRegistrationEvent::class.java
             SoraURI.FAILED_REGISTRATION_URI -> SoraFailedRegistrationEvent::class.java
+            SoraURI.WITHDRAWAL_PROOFS -> SoraEthWithdrawalProofsEvent::class.java
             else -> throw IllegalArgumentException("URI ${uri.uri} is not supported")
         }
         val jsonArray = JSONArray(res.text)

@@ -134,7 +134,7 @@ class IrohaQueryHelperImplTest {
         val actual = queryHelper.getAccountDetails(genericAccountId, genericAccountId).get()
         assertEquals(details, actual)
     }
-    
+
     /**
      * @given queryHelper and Iroha populated with details
      * @when query details for an account that doesn't exist
@@ -166,7 +166,12 @@ class IrohaQueryHelperImplTest {
     @Test
     fun getAccountDetailsByKeyAndStorageAccount() {
         val actual = queryHelper.getAccountDetailsByKeyOnly(genericAccountId, "key1").get()
-        assertEquals(generateSequence { details["key1"] }.take(3).toList(), actual)
+        assertEquals(generateSequence { details["key1"] }.take(3).toList(), actual.values)
+        val setters = actual.keys
+        assertEquals(3, setters.size)
+        assertTrue(setters.contains(shrekAccountId))
+        assertTrue(setters.contains(fionaAccountId))
+        assertTrue(setters.contains(genericAccountId))
     }
 
     /**

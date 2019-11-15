@@ -79,6 +79,7 @@ class DebugEndpoint(
                             SoraURI.REGISTRATION_URI.uri -> soraRegistrationEvents
                             SoraURI.WITHDRAWAL_URI.uri -> soraWithdrawalEvents
                             SoraURI.FAILED_REGISTRATION_URI.uri -> soraFailedRegistrationEvents
+                            SoraURI.WITHDRAWAL_PROOFS.uri -> soraWithdrawalProofsEvents
                             else -> ArrayList<SoraEvent>()
                         }
                     )
