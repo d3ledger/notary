@@ -7,7 +7,7 @@ package com.d3.notifications.provider
 
 import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 import com.d3.commons.util.GsonInstance
-import com.d3.notifications.config.ETHSpecificConfig
+import com.d3.notifications.config.NotificationsConfig
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import mu.KLogging
@@ -16,12 +16,14 @@ import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.math.BigInteger
 
+const val ETH_WITHDRAWAL_PROOF_DOMAIN = "ethWithdrawalProof"
+
 /**
  * Provider that provider withdrawal proofs in the Ethereum subsystem
  */
 @Component
 class EthWithdrawalProofProvider(
-    private val ethSpecificConfig: ETHSpecificConfig,
+    private val notificationsConfig: NotificationsConfig,
     @Qualifier("notaryQueryHelper")
     private val irohaQueryHelper: IrohaQueryHelper
 ) {
@@ -30,27 +32,20 @@ class EthWithdrawalProofProvider(
 
     /**
      * Return all withdrawal proofs
-     * @param originalWithdrawalTxHash - original withdrawal tx hash
-     * @param clientAccountId - id of account that initiated withdrawal operation
-     * @return list of proofs
+     * @param proofStorageAccount - account that is used to store proofs
+     * @return set of proofs
      */
     fun getAllProofs(
-        originalWithdrawalTxHash: String,
-        clientAccountId: String
-    ): Result<List<EthWithdrawalProof>, Exception> {
-        return irohaQueryHelper.getAccountDetailsByKeyOnly(
-            clientAccountId, originalWithdrawalTxHash
+        proofStorageAccount: String
+    ): Result<Set<EthWithdrawalProof>, Exception> {
+        return irohaQueryHelper.getAccountDetails(
+            storageAccountId = proofStorageAccount,
+            writerAccountId = notificationsConfig.notaryCredential.accountId
         ).map { details ->
-            val proofs = ArrayList<EthWithdrawalProof>()
+            val proofs = HashSet<EthWithdrawalProof>()
             details.forEach { detail ->
-                val proofSetter = detail.key
-                val isRealProofSetter = ethSpecificConfig.ethWithdrawalProofSetters.any { it == proofSetter }
-                if (isRealProofSetter) {
-                    val proof = gson.fromJson(detail.value, EthWithdrawalProof::class.java)
-                    proofs.add(proof)
-                } else {
-                    logger.warn("Very suspicious. $proofSetter is not a real proof setter. Please check configs.")
-                }
+                val proof = gson.fromJson(detail.value, EthWithdrawalProof::class.java)
+                proofs.add(proof)
             }
             proofs
         }
@@ -61,7 +56,7 @@ class EthWithdrawalProofProvider(
      * @param proofs - proofs to check
      * @return true if enough, false otherwise
      */
-    fun enoughProofs(proofs: List<EthWithdrawalProof>): Result<Boolean, Exception> {
+    fun enoughProofs(proofs: Set<EthWithdrawalProof>): Result<Boolean, Exception> {
         if (proofs.isEmpty()) {
             return Result.of(false)
         }

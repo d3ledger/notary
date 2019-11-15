@@ -60,8 +60,6 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
     val notificationsConfig =
         notificationsConfigHelper.createNotificationsConfig(registrationEnvironment.registrationConfig)
 
-    private val ethSpecificConfig = notificationsConfigHelper.createEthSpecificConfig()
-
     val smtpConfig = loadRawLocalConfigs(
         "notifications.smtp",
         SMTPConfig::class.java, "smtp.properties"
@@ -98,7 +96,7 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
         notificationsConfig.irohaQueryTimeoutMls
     )
 
-    private val ethWithdrawalProofProvider = EthWithdrawalProofProvider(ethSpecificConfig, notaryQueryHelper)
+    private val ethWithdrawalProofProvider = EthWithdrawalProofProvider(notificationsConfig, notaryQueryHelper)
 
     private val d3ClientProvider = D3ClientProvider(notaryQueryHelper)
 
@@ -158,8 +156,7 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
                 RollbackCommandHandler(notificationsConfig, notaryClientsProvider, eventsQueue),
                 WithdrawalCommandHandler(notificationsConfig, eventsQueue),
                 EthProofsCollectedCommandHandler(
-                    notaryClientsProvider,
-                    ethSpecificConfig,
+                    notificationsConfig,
                     ethWithdrawalProofProvider,
                     eventsQueue
                 )
@@ -167,6 +164,8 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
         )
 
     val withdrawalIrohaConsumer = IrohaConsumerImpl(integrationHelper.accountHelper.ethWithdrawalAccount, irohaAPI)
+
+    val notaryIrohaConsumer = IrohaConsumerImpl(integrationHelper.accountHelper.notaryAccount, irohaAPI)
 
     // Source account
     val srcClientName = String.getRandomString(9)
@@ -181,14 +180,6 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
     val destClientId = "$destClientName@$D3_DOMAIN"
     val destClientConsumer =
         IrohaConsumerImpl(IrohaCredential(destClientId, destClientKeyPair), irohaAPI)
-
-    val witdrawalProofSetterConsumer =
-        IrohaConsumerImpl(
-            IrohaCredential(
-                integrationHelper.accountHelper.ethProofSetterAccount.accountId,
-                integrationHelper.accountHelper.ethProofSetterAccount.keyPair
-            ), irohaAPI
-        )
 
     override fun close() {
         eventsQueue.close()
