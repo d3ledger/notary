@@ -5,10 +5,10 @@
 
 package com.d3.notifications.handler
 
-import com.d3.commons.provider.NotaryClientsProvider
-import com.d3.notifications.config.ETHSpecificConfig
+import com.d3.notifications.config.NotificationsConfig
 import com.d3.notifications.event.ECDSASignature
 import com.d3.notifications.event.EthWithdrawalProofsEvent
+import com.d3.notifications.provider.ETH_WITHDRAWAL_PROOF_DOMAIN
 import com.d3.notifications.provider.EthWithdrawalProof
 import com.d3.notifications.provider.EthWithdrawalProofProvider
 import com.d3.notifications.queue.EventsQueue
@@ -16,7 +16,6 @@ import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import mu.KLogging
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 
 /**
@@ -24,8 +23,7 @@ import org.springframework.stereotype.Component
  */
 @Component
 class EthProofsCollectedCommandHandler(
-    private val notaryClientsProvider: NotaryClientsProvider,
-    private val ethSpecificConfig: ETHSpecificConfig,
+    private val notificationsConfig: NotificationsConfig,
     private val ethWithdrawalProofProvider: EthWithdrawalProofProvider,
     private val eventsQueue: EventsQueue
 ) : CommandHandler() {
@@ -35,31 +33,32 @@ class EthProofsCollectedCommandHandler(
 
     override fun handle(commandWithTx: CommandWithTx) {
         val command = commandWithTx.command
-        val irohaTxHash = command.setAccountDetail.key
+        val proofStorageAccount = command.setAccountDetail.accountId
         val savedProofs = ArrayList<EthWithdrawalProof>()
-        ethWithdrawalProofProvider.getAllProofs(irohaTxHash, command.setAccountDetail.accountId).flatMap { proofs ->
-            savedProofs.addAll(proofs)
-            ethWithdrawalProofProvider.enoughProofs(proofs)
-        }.map { enoughProofs ->
-            if (enoughProofs) {
-                val firstProof = savedProofs.first()
-                val ethWithdrawalProofsEvent = EthWithdrawalProofsEvent(
-                    accountIdToNotify = firstProof.account,
-                    tokenContractAddress = firstProof.tokenContractAddress,
-                    amount = firstProof.amount,
-                    id = irohaTxHash + "_eth_proofs",
-                    time = commandWithTx.tx.payload.reducedPayload.createdTime,
-                    proofs = savedProofs.map { ECDSASignature(r = it.r, s = it.s, v = it.v) }.toList(),
-                    relay = firstProof.relay,
-                    irohaTxHash = irohaTxHash
-                )
-                logger.info("Notify withdrawal proofs collected $ethWithdrawalProofsEvent")
-                eventsQueue.enqueue(ethWithdrawalProofsEvent)
-                handledProofs.add(irohaTxHash)
-            } else {
-                logger.warn("Not enough withdrawal proofs collected for Iroha tx hash $irohaTxHash")
-            }
-        }.failure { ex -> logger.error("Cannot handle withdrawal proofs in Eth", ex) }
+        ethWithdrawalProofProvider.getAllProofs(proofStorageAccount)
+            .flatMap { proofs ->
+                savedProofs.addAll(proofs)
+                ethWithdrawalProofProvider.enoughProofs(proofs)
+            }.map { enoughProofs ->
+                if (enoughProofs) {
+                    val firstProof = savedProofs.first()
+                    val ethWithdrawalProofsEvent = EthWithdrawalProofsEvent(
+                        accountIdToNotify = firstProof.account,
+                        tokenContractAddress = firstProof.tokenContractAddress,
+                        amount = firstProof.amount,
+                        id = proofStorageAccount + "_eth_proofs",
+                        time = commandWithTx.tx.payload.reducedPayload.createdTime,
+                        proofs = savedProofs.map { ECDSASignature(r = it.r, s = it.s, v = it.v) }.toList(),
+                        relay = firstProof.relay,
+                        irohaTxHash = firstProof.irohaHash
+                    )
+                    logger.info("Notify withdrawal proofs collected $ethWithdrawalProofsEvent")
+                    eventsQueue.enqueue(ethWithdrawalProofsEvent)
+                    handledProofs.add(proofStorageAccount)
+                } else {
+                    logger.warn("Not enough withdrawal proofs collected")
+                }
+            }.failure { ex -> logger.error("Cannot handle withdrawal proofs in Eth", ex) }
     }
 
     override fun ableToHandle(commandWithTx: CommandWithTx): Boolean {
@@ -67,10 +66,9 @@ class EthProofsCollectedCommandHandler(
             return false
         }
         val creator = commandWithTx.tx.payload.reducedPayload.creatorAccountId
-        val irohaTxHash = commandWithTx.command.setAccountDetail.key
-        return ethSpecificConfig.ethWithdrawalProofSetters.any { proofSetter -> proofSetter == creator } &&
-                !handledProofs.contains(irohaTxHash) &&
-                notaryClientsProvider.isClient(commandWithTx.command.setAccountDetail.accountId).get()
+        return creator == notificationsConfig.notaryCredential.accountId &&
+                !handledProofs.contains(commandWithTx.command.setAccountDetail.accountId) &&
+                commandWithTx.command.setAccountDetail.accountId.endsWith("@$ETH_WITHDRAWAL_PROOF_DOMAIN")
     }
 
     companion object : KLogging()

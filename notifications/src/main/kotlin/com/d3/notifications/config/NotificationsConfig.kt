@@ -48,14 +48,6 @@ interface NotificationsConfig {
 }
 
 /**
- * Ethereum-specific configuration
- */
-interface ETHSpecificConfig {
-    // Accounts that are used to create proofs for Ethereum withdrawal operations. Separated by the comma(',') symbol
-    val ethWithdrawalProofSetters: List<String>
-}
-
-/**
  * SMTP configuration
  */
 interface SMTPConfig {

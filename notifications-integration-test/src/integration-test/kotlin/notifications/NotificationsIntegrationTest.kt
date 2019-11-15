@@ -12,6 +12,7 @@ import com.d3.commons.sidechain.iroha.FEE_ROLLBACK_DESCRIPTION
 import com.d3.commons.sidechain.iroha.ROLLBACK_DESCRIPTION
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.util.GsonInstance
+import com.d3.commons.util.getRandomId
 import com.d3.commons.util.irohaEscape
 import com.d3.commons.util.toHexString
 import com.d3.notifications.client.D3_CLIENT_EMAIL_KEY
@@ -41,6 +42,7 @@ import org.junit.jupiter.api.Assertions.*
 import java.lang.reflect.Type
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.util.*
 
 private const val WAIT_TIME = 5_000L
 private const val SRC_USER_EMAIL = "src.user@d3.com"
@@ -605,13 +607,13 @@ class NotificationsIntegrationTest {
             D3_CLIENT_ENABLE_NOTIFICATIONS,
             "true"
         ).map {
-            val tx = Transaction.builder(environment.witdrawalProofSetterConsumer.creator)
+            val tx = Transaction.builder(environment.notaryIrohaConsumer.creator)
                 .setAccountDetail(
-                    environment.srcClientId,
-                    withdrawalIrohaTxHash,
+                    integrationHelper.accountHelper.ethProofStorageAccount.accountId,
+                    String.getRandomId(),
                     gson.toJson(ethWithdrawalProof).irohaEscape()
                 ).build()
-            environment.witdrawalProofSetterConsumer.send(tx).get()
+            environment.notaryIrohaConsumer.send(tx).get()
         }.map {
             Thread.sleep(WAIT_TIME)
             val soraEvent = getLastSoraEvent(SoraURI.WITHDRAWAL_PROOFS) as SoraEthWithdrawalProofsEvent

@@ -406,6 +406,12 @@
               },
               {
                 "createDomain": {
+                  "domainId": "ethWithdrawalProof",
+                  "defaultRole": "none"
+                }
+              },
+              {
+                "createDomain": {
                   "domainId": "bootstrap",
                   "defaultRole": "none"
                 }
