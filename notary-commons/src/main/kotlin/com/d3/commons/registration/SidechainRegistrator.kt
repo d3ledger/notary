@@ -30,7 +30,7 @@ open class SideChainRegistrator(
     fun register(
         currencyAddress: String,
         accountId: String,
-        time: Long = System.currentTimeMillis(),
+        time: Long,
         notaryStorageStrategy: () -> String
     ): Result<String, Exception> {
         return buildTx(currencyAddress, accountId, time, notaryStorageStrategy)

@@ -51,7 +51,7 @@ public class IrohaAccountRegistratorTest {
         .thenReturn(Result.Companion.of(() -> "passed_hash"));
 
     sidechainRegistrator
-        .register(currencyAddress, userId, notaryStorageStrategy)
+        .register(currencyAddress, userId, System.currentTimeMillis(), notaryStorageStrategy)
         .fold(address -> {
           assertEquals(currencyAddress, address);
           return null;
@@ -73,7 +73,7 @@ public class IrohaAccountRegistratorTest {
         .thenReturn(Result.Companion.of(() -> "passed_hash"));
 
     sidechainRegistrator
-        .register(currencyAddress, userId, notaryStorageStrategy)
+        .register(currencyAddress, userId, System.currentTimeMillis(), notaryStorageStrategy)
         .fold(address -> {
           fail();
           return "";
