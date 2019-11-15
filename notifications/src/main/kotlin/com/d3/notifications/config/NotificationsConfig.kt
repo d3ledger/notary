@@ -37,6 +37,14 @@ interface NotificationsConfig {
     val ethRegistrationServiceAccount: String
     // Bitcoin registration service Iroha account id
     val btcRegistrationServiceAccount: String
+    // Eth withdrawal account
+    val ethWithdrawalAccount: String
+    // Btc withdrawal account
+    val btcWithdrawalAccount: String
+    // Eth deposit account
+    val ethDepositAccount: String
+    // Btc deposit account
+    val btcDepositAccount: String
 }
 
 /**
@@ -51,6 +59,14 @@ interface SMTPConfig {
     val userName: String
     // SMTP password
     val password: String
+}
+
+/**
+ * Sora config
+ */
+interface SoraConfig {
+    // URL of REST service that is used to send notifications to Sora. Must contain protocol.
+    val notificationServiceURL: String
 }
 
 /**

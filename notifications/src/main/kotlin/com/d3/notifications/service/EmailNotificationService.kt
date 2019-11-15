@@ -5,8 +5,7 @@
 
 package com.d3.notifications.service
 
-import com.d3.notifications.event.RegistrationNotifyEvent
-import com.d3.notifications.event.TransferNotifyEvent
+import com.d3.notifications.event.*
 import com.d3.notifications.provider.D3ClientProvider
 import com.d3.notifications.smtp.SMTPService
 import com.github.kittinunf.result.Result
@@ -19,6 +18,7 @@ const val D3_DEPOSIT_EMAIL_SUBJECT = "D3 deposit"
 const val D3_DEPOSIT_TRANSFER_SUBJECT = "D3 transfer"
 const val D3_ROLLBACK_SUBJECT = "D3 rollback"
 const val D3_REGISTRATION_SUBJECT = "D3 registration"
+const val D3_FAILED_REGISTRATION_SUBJECT = "D3 failed registration"
 
 /**
  * Service for email notifications
@@ -37,70 +37,77 @@ class EmailNotificationService(
         )
     }
 
-    override fun notifySendToClient(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
-        val toMessage = if (transferNotifyEvent.to != null) {
-            "to ${transferNotifyEvent.to} "
+    override fun notifySendToClient(transferNotifyEvent: Client2ClientSendTransferEvent): Result<Unit, Exception> {
+        val toMessage = "to ${transferNotifyEvent.to} "
+        val feeMessage = if (transferNotifyEvent.fee != null) {
+            "Fee is ${transferNotifyEvent.fee.amount} ${transferNotifyEvent.fee.assetName}"
         } else {
             ""
         }
         val message =
-            "Dear client, transfer of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} from your account ${transferNotifyEvent.accountId} ${toMessage}is successful.\n${transferNotifyEvent.description}"
+            "Dear client, transfer of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} from your account ${transferNotifyEvent.accountIdToNotify} ${toMessage}is successful. ${transferNotifyEvent.description}\n$feeMessage"
         return checkClientAndSendMessage(
-            transferNotifyEvent.accountId,
+            transferNotifyEvent.accountIdToNotify,
             D3_DEPOSIT_TRANSFER_SUBJECT, message
         )
     }
 
-    override fun notifyReceiveFromClient(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
-        val fromMessage = if (transferNotifyEvent.from != null) {
-            "from ${transferNotifyEvent.from} "
-        } else {
+    override fun notifyReceiveFromClient(transferNotifyEvent: Client2ClientReceiveTransferEvent): Result<Unit, Exception> {
+        val fromMessage = "from ${transferNotifyEvent.from} "
+        val message =
+            "Dear client, transfer of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} ${fromMessage}to your account ${transferNotifyEvent.accountIdToNotify} is successful.\n${transferNotifyEvent.description}"
+        return checkClientAndSendMessage(
+            transferNotifyEvent.accountIdToNotify,
+            D3_DEPOSIT_TRANSFER_SUBJECT, message
+        )
+    }
+
+    override fun notifyRollback(transferNotifyEvent: RollbackTransferEvent): Result<Unit, Exception> {
+        val feeMessage = if (transferNotifyEvent.fee == null) {
             ""
+        } else {
+            "Fee ${transferNotifyEvent.fee.amount} ${transferNotifyEvent.fee.assetName} is rolled back as well."
         }
         val message =
-            "Dear client, transfer of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} ${fromMessage}to your account ${transferNotifyEvent.accountId} is successful.\n${transferNotifyEvent.description}"
+            "Dear client, unfortunately, we failed to withdraw ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} from your account ${transferNotifyEvent.accountIdToNotify}. " +
+                    "Rollback has been executed, so your money is going back to your account. $feeMessage\n"
         return checkClientAndSendMessage(
-            transferNotifyEvent.accountId,
-            D3_DEPOSIT_TRANSFER_SUBJECT, message
-        )
-    }
-
-    override fun notifyRollback(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
-        val message =
-            "Dear client, unfortunately, we failed to withdraw ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} from your account ${transferNotifyEvent.accountId}. " +
-                    "Rollback has been executed, so your money is going back to your account.\n" +
-                    transferNotifyEvent.description
-        return checkClientAndSendMessage(
-            transferNotifyEvent.accountId,
+            transferNotifyEvent.accountIdToNotify,
             D3_ROLLBACK_SUBJECT, message
         )
     }
 
-    override fun notifyDeposit(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
-        val fromMessage = if (transferNotifyEvent.from != null) {
-            "from ${transferNotifyEvent.from} "
-        } else {
-            ""
-        }
+    override fun notifyDeposit(transferNotifyEvent: DepositTransferEvent): Result<Unit, Exception> {
+        val fromMessage = "from ${transferNotifyEvent.from} "
         val message =
-            "Dear client, deposit of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} ${fromMessage}to your account ${transferNotifyEvent.accountId} is successful."
+            "Dear client, deposit of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} ${fromMessage}to your account ${transferNotifyEvent.accountIdToNotify} is successful."
         return checkClientAndSendMessage(
-            transferNotifyEvent.accountId,
+            transferNotifyEvent.accountIdToNotify,
             D3_DEPOSIT_EMAIL_SUBJECT, message
         )
     }
 
-    override fun notifyWithdrawal(transferNotifyEvent: TransferNotifyEvent): Result<Unit, Exception> {
-        val toMessage = if (transferNotifyEvent.to != null) {
-            "to ${transferNotifyEvent.to} "
+    override fun notifyWithdrawal(transferNotifyEvent: WithdrawalTransferEvent): Result<Unit, Exception> {
+        val toMessage = "to ${transferNotifyEvent.to} "
+        val feeMessage = if (transferNotifyEvent.fee != null) {
+            "Fee is ${transferNotifyEvent.fee.amount} ${transferNotifyEvent.fee.assetName}"
         } else {
             ""
         }
         val message =
-            "Dear client, withdrawal of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} ${toMessage}from your account ${transferNotifyEvent.accountId} is successful.\n${transferNotifyEvent.description}"
+            "Dear client, withdrawal of ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} ${toMessage}from your account ${transferNotifyEvent.accountIdToNotify} to ${transferNotifyEvent.to} is successful.\n$feeMessage"
         return checkClientAndSendMessage(
-            transferNotifyEvent.accountId,
+            transferNotifyEvent.accountIdToNotify,
             D3_WITHDRAWAL_EMAIL_SUBJECT, message
+        )
+    }
+
+    override fun notifyFailedRegistration(failedRegistrationNotifyEvent: FailedRegistrationNotifyEvent): Result<Unit, Exception> {
+        val message =
+            "Dear client, we cannot register you in the ${failedRegistrationNotifyEvent.subsystem} subsystem due to unexpected error."
+        return checkClientAndSendMessage(
+            failedRegistrationNotifyEvent.accountId,
+            D3_FAILED_REGISTRATION_SUBJECT, message
         )
     }
 

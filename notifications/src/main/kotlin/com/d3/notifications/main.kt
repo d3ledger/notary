@@ -12,7 +12,6 @@ import com.d3.notifications.init.NotificationInitialization
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
-import com.github.kittinunf.result.map
 import mu.KLogging
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.ComponentScan
@@ -31,7 +30,11 @@ private val logger = KLogging().logger
 fun main() {
     Result.of {
         val context = AnnotationConfigApplicationContext()
-        context.environment.setActiveProfiles(getProfile())
+        // Add profiles
+        getProfiles().forEach {
+            logger.info("Add profile $it")
+            context.environment.addActiveProfile(it)
+        }
         context.register(NotificationApplication::class.java)
         context.refresh()
         context
@@ -44,13 +47,14 @@ fun main() {
 }
 
 /**
- * Returns current profile based on environment variable
+ * Returns current profiles based on environment variable
  */
-fun getProfile(): String {
-    var profile = System.getenv(PROFILE_ENV)
-    if (profile == null) {
+fun getProfiles(): List<String> {
+    // You may specify multiple profiles using ','
+    var profileEnv = System.getenv(PROFILE_ENV)
+    if (profileEnv == null) {
         logger.warn("No profile set. Using default profile")
-        profile = "d3"
+        profileEnv = "d3"
     }
-    return profile
+    return profileEnv.trim().split(", ").map { it.trim() }
 }

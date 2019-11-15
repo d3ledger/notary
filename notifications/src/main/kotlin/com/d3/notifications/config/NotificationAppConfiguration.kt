@@ -18,7 +18,7 @@ import jp.co.soramitsu.iroha.java.Utils
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
-val notificationsConfig = loadRawLocalConfigs(
+private val notificationsConfig = loadRawLocalConfigs(
     "notifications",
     NotificationsConfig::class.java, "notifications.properties"
 )
@@ -57,13 +57,12 @@ class NotificationAppConfiguration {
     )
 
     @Bean
-    fun irohaChainListener() =
-        ReliableIrohaChainListener(
-            rmqConfig = notificationsConfig.rmq,
-            irohaQueue = notificationsConfig.blocksQueue,
-            autoAck = true,
-            consumerExecutorService = chainListenerExecutorService()
-        )
+    fun irohaChainListener() = ReliableIrohaChainListener(
+        rmqConfig = notificationsConfig.rmq,
+        irohaQueue = notificationsConfig.blocksQueue,
+        autoAck = false,
+        consumerExecutorService = chainListenerExecutorService()
+    )
 
     @Bean
     fun rmqConfig() = notificationsConfig.rmq

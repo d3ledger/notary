@@ -18,14 +18,17 @@ import com.d3.commons.util.getRandomString
 import com.d3.notifications.NOTIFICATIONS_SERVICE_NAME
 import com.d3.notifications.config.PushAPIConfig
 import com.d3.notifications.config.SMTPConfig
+import com.d3.notifications.config.SoraConfig
+import com.d3.notifications.debug.DebugEndpoint
+import com.d3.notifications.handler.*
 import com.d3.notifications.init.NotificationInitialization
 import com.d3.notifications.provider.D3ClientProvider
 import com.d3.notifications.push.PushServiceFactory
 import com.d3.notifications.push.WebPushAPIServiceImpl
 import com.d3.notifications.queue.EventsQueue
-import com.d3.notifications.rest.DumbsterEndpoint
 import com.d3.notifications.service.EmailNotificationService
 import com.d3.notifications.service.PushNotificationService
+import com.d3.notifications.service.SoraNotificationService
 import com.d3.notifications.smtp.SMTPServiceImpl
 import com.dumbster.smtp.SimpleSmtpServer
 import com.nhaarman.mockitokotlin2.spy
@@ -68,7 +71,7 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
 
     val dumbster = SimpleSmtpServer.start(smtpConfig.port)!!
 
-    val dumbsterEndpoint = DumbsterEndpoint(dumbster, notificationsConfig)
+    val debugEndpoint = DebugEndpoint(dumbster, notificationsConfig)
 
     private val irohaAPI =
         IrohaAPI(notificationsConfig.iroha.hostname, notificationsConfig.iroha.port)
@@ -76,13 +79,12 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
     private val chainListenerExecutorService =
         createPrettySingleThreadPool(NOTIFICATIONS_SERVICE_NAME, "iroha-chain-listener")
 
-    private val irohaChainListener =
-        ReliableIrohaChainListener(
-            rmqConfig = notificationsConfig.rmq,
-            irohaQueue = notificationsConfig.blocksQueue,
-            autoAck = true,
-            consumerExecutorService = chainListenerExecutorService
-        )
+    private val irohaChainListener = ReliableIrohaChainListener(
+        rmqConfig = notificationsConfig.rmq,
+        irohaQueue = notificationsConfig.blocksQueue,
+        autoAck = false,
+        consumerExecutorService = chainListenerExecutorService
+    )
 
     private val notaryQueryHelper = RobustIrohaQueryHelperImpl(
         IrohaQueryHelperImpl(
@@ -123,18 +125,38 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
             registrationEnvironment.registrationConfig.registrationCredential.accountId.substringBefore("@")
         )
 
+    private val soraConfig = loadRawLocalConfigs(
+        "notifications.sora",
+        SoraConfig::class.java, "sora.properties"
+    )
+
+    private val soraNotificationService = SoraNotificationService(soraConfig)
+
     private val eventsQueue =
-        EventsQueue(listOf(emailNotificationService, pushNotificationService), notificationsConfig.rmq)
+        EventsQueue(
+            listOf(emailNotificationService, pushNotificationService, soraNotificationService),
+            listOf(soraNotificationService),
+            notificationsConfig.rmq
+        )
 
     val notificationInitialization =
         NotificationInitialization(
-            notaryClientsProvider,
-            notificationsConfig,
             irohaChainListener,
-            eventsQueue
+            eventsQueue,
+            listOf(
+                Client2ClientTransferCommandHandler(notificationsConfig, notaryClientsProvider, eventsQueue),
+                DepositCommandHandler(notificationsConfig, notaryClientsProvider, eventsQueue),
+                FailedBtcRegistrationCommandHandler(notificationsConfig, notaryClientsProvider, eventsQueue),
+                FailedEthRegistrationCommandHandler(notificationsConfig, notaryClientsProvider, eventsQueue),
+                EthRegistrationCommandHandler(eventsQueue, notaryClientsProvider, notificationsConfig),
+                BtcRegistrationCommandHandler(eventsQueue, notaryClientsProvider, notificationsConfig),
+                RollbackCommandHandler(notificationsConfig, notaryClientsProvider, eventsQueue),
+                WithdrawalCommandHandler(notificationsConfig, eventsQueue),
+                EthProofsCollectedCommandHandler()
+            )
         )
 
-    val withdrawalIrohaConsumer = IrohaConsumerImpl(integrationHelper.accountHelper.btcWithdrawalAccount, irohaAPI)
+    val withdrawalIrohaConsumer = IrohaConsumerImpl(integrationHelper.accountHelper.ethWithdrawalAccount, irohaAPI)
 
     // Source account
     val srcClientName = String.getRandomString(9)
@@ -156,7 +178,7 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
         integrationHelper.close()
         irohaAPI.close()
         dumbster.close()
-        dumbsterEndpoint.close()
+        debugEndpoint.close()
         chainListenerExecutorService.shutdownNow()
     }
 }

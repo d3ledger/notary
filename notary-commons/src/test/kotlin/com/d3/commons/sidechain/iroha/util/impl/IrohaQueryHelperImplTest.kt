@@ -34,9 +34,13 @@ class IrohaQueryHelperImplTest {
     private val peerKeypair = crypto.generateKeypair()
     private val rolename = "princess"
     private val domain = "duloc"
-    private val accountName = "fiona"
+    private val genericAccountName = "generic"
+    private val fionaAccountName = "fiona"
+    private val shrekAccountName = "shrek"
     private val accountKeypair = crypto.generateKeypair()
-    private val accountId = "$accountName@$domain"
+    private val fionaAccountId = "$fionaAccountName@$domain"
+    private val shrekAccountId = "$shrekAccountName@$domain"
+    private val genericAccountId = "$genericAccountName@$domain"
     private val details: Map<String, String> by lazy {
         val map = HashMap<String, String>()
         repeat(10) {
@@ -57,7 +61,7 @@ class IrohaQueryHelperImplTest {
 
     @BeforeEach
     fun initQueryHelper() {
-        queryAPI = spy(QueryAPI(iroha.api, accountId, accountKeypair))
+        queryAPI = spy(QueryAPI(iroha.api, genericAccountId, accountKeypair))
         queryHelper =
             IrohaQueryHelperImpl(queryAPI, IrohaPaginationHelper(queryAPI = queryAPI, pageSize = pageSize))
     }
@@ -76,23 +80,32 @@ class IrohaQueryHelperImplTest {
                             Primitive.RolePermission.can_get_peers
                         )
                     ).createDomain(domain, rolename)
-                    .createAccount(accountName, domain, accountKeypair.public)
+                    .createAccount(fionaAccountName, domain, accountKeypair.public)
+                    .createAccount(shrekAccountName, domain, accountKeypair.public)
+                    .createAccount(genericAccountName, domain, accountKeypair.public)
                     .build() // returns ipj model Transaction
                     .build() // returns unsigned protobuf Transaction
             )
 
-        val tx = Transaction.builder(accountId)
-        details.forEach { (key, value) ->
-            tx.setAccountDetail(accountId, key, value)
-        }
+        val createAssetTx = Transaction.builder(genericAccountId)
         assets.forEach { (assetName, amount) ->
-            tx.createAsset(assetName, domain, 1)
+            createAssetTx.createAsset(assetName, domain, 1)
                 .addAssetQuantity("$assetName#$domain", amount)
         }
+        blockBuilder.addTransaction(
+            createAssetTx.build().build()
+        )
+        listOf(shrekAccountId, fionaAccountId, genericAccountId).forEach { accountId ->
+            val setAccoundDetailTx = Transaction.builder(accountId)
+            details.forEach { (key, value) ->
+                setAccoundDetailTx.setAccountDetail(genericAccountId, key, value)
+            }
+            blockBuilder.addTransaction(
+                setAccoundDetailTx.build().build()
+            )
+        }
 
-        return blockBuilder.addTransaction(
-            tx.build().build()
-        ).build()
+        return blockBuilder.build()
     }
 
     private fun getPeerConfig(): PeerConfig {
@@ -118,10 +131,10 @@ class IrohaQueryHelperImplTest {
      */
     @Test
     fun getAccountDetailsTest() {
-        val actual = queryHelper.getAccountDetails(accountId, accountId).get()
+        val actual = queryHelper.getAccountDetails(genericAccountId, genericAccountId).get()
         assertEquals(details, actual)
     }
-
+    
     /**
      * @given queryHelper and Iroha populated with details
      * @when query details for an account that doesn't exist
@@ -129,7 +142,7 @@ class IrohaQueryHelperImplTest {
      */
     @Test
     fun getAccountDetailsEmptyAccountTest() {
-        val actual = queryHelper.getAccountDetails(accountId, "empty@account").get()
+        val actual = queryHelper.getAccountDetails(genericAccountId, "empty@account").get()
         assertTrue(actual.isEmpty())
     }
 
@@ -140,9 +153,31 @@ class IrohaQueryHelperImplTest {
      */
     @Test
     fun getAccountDetailsByKeyTest() {
-        val actual = queryHelper.getAccountDetails(accountId, accountId, "key1").get()
+        val actual = queryHelper.getAccountDetails(genericAccountId, genericAccountId, "key1").get()
         assertTrue(actual.isPresent)
         assertEquals(details["key1"], actual.get())
+    }
+
+    /**
+     * @given queryHelper and Iroha populated with details
+     * @when query account detail for "key1" with no writer
+     * @then "1" is returned multiple times
+     */
+    @Test
+    fun getAccountDetailsByKeyAndStorageAccount() {
+        val actual = queryHelper.getAccountDetailsByKeyOnly(genericAccountId, "key1").get()
+        assertEquals(generateSequence { details["key1"] }.take(3).toList(), actual)
+    }
+
+    /**
+     * @given queryHelper and Iroha populated with details
+     * @when query account detail for not existing key with no writer
+     * @then empty list is returned
+     */
+    @Test
+    fun getAccountDetailsByKeyAndStorageAccountNotExistingKey() {
+        val actual = queryHelper.getAccountDetailsByKeyOnly(genericAccountId, "key123").get()
+        assertTrue(actual.isEmpty())
     }
 
     /**
@@ -152,7 +187,7 @@ class IrohaQueryHelperImplTest {
      */
     @Test
     fun getNonExistAccountDetailsTest() {
-        val actual = queryHelper.getAccountDetails(accountId, accountId, "nonexist_key").get()
+        val actual = queryHelper.getAccountDetails(genericAccountId, genericAccountId, "nonexist_key").get()
         assertTrue(!actual.isPresent)
     }
 
@@ -163,7 +198,7 @@ class IrohaQueryHelperImplTest {
      */
     @Test
     fun getAccountDetailsCountUnsatisfiablePredicate() {
-        assertEquals(0, queryHelper.getAccountDetailsCount(accountId, accountId) { _, _ -> false }.get())
+        assertEquals(0, queryHelper.getAccountDetailsCount(genericAccountId, genericAccountId) { _, _ -> false }.get())
         verify(queryAPI, times(calculatePaginationCalls(details.size, pageSize))).getAccountDetails(
             any(), any(), any(),
             any(), any(), any()
@@ -177,7 +212,10 @@ class IrohaQueryHelperImplTest {
      */
     @Test
     fun getAccountDetailsCountTautologyPredicate() {
-        assertEquals(details.size, queryHelper.getAccountDetailsCount(accountId, accountId) { _, _ -> true }.get())
+        assertEquals(
+            details.size,
+            queryHelper.getAccountDetailsCount(genericAccountId, genericAccountId) { _, _ -> true }.get()
+        )
         verify(queryAPI, times(calculatePaginationCalls(details.size, pageSize))).getAccountDetails(
             any(), any(), any(),
             any(), any(), any()
@@ -194,7 +232,7 @@ class IrohaQueryHelperImplTest {
         val predicate = { _: String, value: String -> value.toInt() >= 5 }
         assertEquals(
             details.entries.filter { entry -> predicate(entry.key, entry.value) }.size,
-            queryHelper.getAccountDetailsCount(accountId, accountId, predicate).get()
+            queryHelper.getAccountDetailsCount(genericAccountId, genericAccountId, predicate).get()
         )
         verify(queryAPI, times(calculatePaginationCalls(details.size, pageSize))).getAccountDetails(
             any(), any(), any(),
@@ -210,7 +248,7 @@ class IrohaQueryHelperImplTest {
     @Test
     fun getAccountDetailsFilteredUnsatisfiablePredicate() {
         assertTrue(
-            queryHelper.getAccountDetailsFilter(accountId, accountId) { _, _ -> false }.get().isEmpty()
+            queryHelper.getAccountDetailsFilter(genericAccountId, genericAccountId) { _, _ -> false }.get().isEmpty()
         )
         verify(queryAPI, times(calculatePaginationCalls(details.size, pageSize))).getAccountDetails(
             any(), any(), any(),
@@ -227,7 +265,7 @@ class IrohaQueryHelperImplTest {
     fun getAccountDetailsFilteredTautologyPredicate() {
         assertEquals(
             details.size,
-            queryHelper.getAccountDetailsFilter(accountId, accountId) { _, _ -> true }.get().size
+            queryHelper.getAccountDetailsFilter(genericAccountId, genericAccountId) { _, _ -> true }.get().size
         )
         verify(queryAPI, times(calculatePaginationCalls(details.size, pageSize))).getAccountDetails(
             any(), any(), any(),
@@ -246,8 +284,8 @@ class IrohaQueryHelperImplTest {
         assertEquals(
             details.entries.filter { entry -> predicate(entry.key, entry.value) }.map { it.value }.sorted(),
             queryHelper.getAccountDetailsFilter(
-                accountId,
-                accountId,
+                genericAccountId,
+                genericAccountId,
                 predicate
             ).get().entries.toList().map { it.value }.sorted()
         )
@@ -266,8 +304,8 @@ class IrohaQueryHelperImplTest {
     fun getAccountDetailsFirstUnsatisfiablePredicate() {
         assertFalse(
             queryHelper.getAccountDetailsFirst(
-                accountId,
-                accountId
+                genericAccountId,
+                genericAccountId
             ) { _, _ -> false }.get().isPresent
         )
         verify(queryAPI, times(calculatePaginationCalls(details.size, pageSize))).getAccountDetails(
@@ -285,8 +323,8 @@ class IrohaQueryHelperImplTest {
     fun getAccountDetailsFirstTautologyPredicate() {
         assertTrue(
             queryHelper.getAccountDetailsFirst(
-                accountId,
-                accountId
+                genericAccountId,
+                genericAccountId
             ) { _, _ -> true }.get().isPresent
         )
         verify(queryAPI).getAccountDetails(
@@ -306,8 +344,8 @@ class IrohaQueryHelperImplTest {
         assertEquals(
             details.entries.first { entry -> predicate(entry.key, entry.value) }.key,
             queryHelper.getAccountDetailsFirst(
-                accountId,
-                accountId,
+                genericAccountId,
+                genericAccountId,
                 predicate
             ).get().get().key
         )
@@ -331,7 +369,7 @@ class IrohaQueryHelperImplTest {
      */
     @Test
     fun getAccountAssetTest() {
-        val res = queryHelper.getAccountAsset(accountId, "asset1#$domain").get()
+        val res = queryHelper.getAccountAsset(genericAccountId, "asset1#$domain").get()
         assertEquals("1", res)
     }
 
@@ -342,7 +380,7 @@ class IrohaQueryHelperImplTest {
      */
     @Test
     fun getAccountAssetsTest() {
-        val actual = queryHelper.getAccountAssets(accountId).get()
+        val actual = queryHelper.getAccountAssets(genericAccountId).get()
         assertEquals(assets.mapKeys { (assetName, _) -> "$assetName#$domain" }, actual)
     }
 
@@ -353,7 +391,7 @@ class IrohaQueryHelperImplTest {
      */
     @Test
     fun getAccountNonExistAsset() {
-        val res = queryHelper.getAccountAsset(accountId, "nonexist#$domain").get()
+        val res = queryHelper.getAccountAsset(genericAccountId, "nonexist#$domain").get()
         assertEquals("0", res)
     }
 
