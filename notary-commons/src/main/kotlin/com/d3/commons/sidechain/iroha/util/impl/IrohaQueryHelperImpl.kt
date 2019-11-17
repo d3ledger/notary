@@ -13,6 +13,7 @@ import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 import iroha.protocol.QryResponses
 import iroha.protocol.TransactionOuterClass
+import jp.co.soramitsu.iroha.java.ErrorResponseException
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.QueryAPI
 import java.security.KeyPair
@@ -194,5 +195,32 @@ open class IrohaQueryHelperImpl(
 
     /** {@inheritDoc} */
     override fun getPeersCount(): Result<Int, Exception> = Result.of { queryAPI.peers.peersCount }
+
+    /** {@inheritDoc} */
+    override fun isRegistered(
+        accountName: String,
+        domainId: String,
+        publicKey: String
+    ): Result<Boolean, Exception> = Result.of {
+        getSignatories("$accountName@$domainId")
+            .fold(
+                { signatories ->
+                    if (signatories.map { it.toLowerCase() }.contains(publicKey.toLowerCase())) {
+                        // user with publicKey is already registered
+                        true
+                    } else {
+                        // user is registered with a different pubkey - stateful invalid
+                        throw Exception("$accountName@$domainId is registered with pubkey different from $publicKey")
+                    }
+                },
+                {
+                    // user not found
+                    if (it is ErrorResponseException && it.errorResponse.errorCode == 0)
+                        false
+                    else
+                        throw it
+                }
+            )
+    }
 
 }

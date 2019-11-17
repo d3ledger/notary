@@ -51,7 +51,7 @@ class NotaryRegistrationStrategy(
         publicKey: String
     ): Result<String, Exception> {
         logger.info("notary registration of client $accountName@$domainId with pubkey $publicKey")
-        return isRegistered(accountName, domainId, publicKey).flatMap { registered ->
+        return queryHelper.isRegistered(accountName, domainId, publicKey).flatMap { registered ->
             if (registered) {
                 logger.info { "client $accountName@$domainId is already registered" }
                 createSuccessResult(accountName, domainId)
@@ -63,43 +63,6 @@ class NotaryRegistrationStrategy(
                 }
             }
         }
-    }
-
-    /**
-     * Check if account is registered and has @publicKey
-     */
-    fun isRegistered(
-        accountName: String,
-        domainId: String,
-        publicKey: String
-    ): Result<Boolean, Exception> = Result.of {
-        queryHelper.getSignatories("$accountName@$domainId")
-            .fold(
-                { signatories ->
-                    if (signatories.map { it.toLowerCase() }.contains(publicKey.toLowerCase())) {
-                        // user with publicKey is already registered
-                        true
-                    } else {
-                        // user is registered with a different pubkey - stateful invalid
-                        throw D3ErrorException.warning(
-                            NOTARY_REGISTRATION_OPERATION,
-                            "$accountName@$domainId already registered with pubkey different from $publicKey"
-                        )
-                    }
-                },
-                {
-                    if (it is ErrorResponseException && it.errorResponse.errorCode == 0)
-                    // user not found
-                        false
-                    else
-                    // something wrong happened
-                        throw D3ErrorException.warning(
-                            failedOperation = NOTARY_REGISTRATION_OPERATION,
-                            description = "Cannot check if user $accountName@$domainId has been registered before",
-                            errorCause = it
-                        )
-                }
-            )
     }
 
     /**
