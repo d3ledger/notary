@@ -67,6 +67,10 @@ interface SMTPConfig {
 interface SoraConfig {
     // URL of REST service that is used to send notifications to Sora. Must contain protocol.
     val notificationServiceURL: String
+    // Sora notification service basic auth login
+    val notificationServiceLogin: String
+    // Sora notification service basic auth password
+    val notificationServicePassword: String
 }
 
 /**
