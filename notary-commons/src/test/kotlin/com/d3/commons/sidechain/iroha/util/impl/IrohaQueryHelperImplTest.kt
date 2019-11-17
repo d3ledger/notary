@@ -20,10 +20,12 @@ import jp.co.soramitsu.iroha.testcontainers.PeerConfig
 import jp.co.soramitsu.iroha.testcontainers.detail.GenesisBlockBuilder
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -77,7 +79,8 @@ class IrohaQueryHelperImplTest {
                             Primitive.RolePermission.can_get_all_acc_detail,
                             Primitive.RolePermission.can_set_detail,
                             Primitive.RolePermission.can_get_all_acc_ast,
-                            Primitive.RolePermission.can_get_peers
+                            Primitive.RolePermission.can_get_peers,
+                            Primitive.RolePermission.can_get_all_signatories
                         )
                     ).createDomain(domain, rolename)
                     .createAccount(fionaAccountName, domain, accountKeypair.public)
@@ -398,6 +401,45 @@ class IrohaQueryHelperImplTest {
     fun getAccountNonExistAsset() {
         val res = queryHelper.getAccountAsset(genericAccountId, "nonexist#$domain").get()
         assertEquals("0", res)
+    }
+
+    /**
+     * @given queryHelper
+     * @when query is registered on "nonexist@domain" account
+     * @then return false
+     */
+    @Test
+    fun isNotRegistered() {
+        val res = queryHelper.isRegistered("nonexist", "domain", accountKeypair.public.toString())
+        assertFalse(res.get())
+    }
+
+    /**
+     * @given queryHelper
+     * @when query is registered on "fionaAccountName@domain" account
+     * @then return true
+     */
+    @Test
+    fun isActuallyRegistered() {
+        val res =
+            queryHelper.isRegistered(fionaAccountName, domain, accountKeypair.public.toString())
+        assertTrue(res.get())
+    }
+
+    /**
+     * @given queryHelper
+     * @when query is registered on "fionaAccountName@domain" account with different keypair
+     * @then return exception
+     */
+    @Test
+    fun isRegisteredWithOtherPublicKey() {
+        val res = queryHelper.isRegistered(
+            fionaAccountName,
+            domain,
+            crypto.generateKeypair().public.toString()
+        )
+        assertNull(res.component1())
+        assertNotNull(res.component2())
     }
 
     /**
