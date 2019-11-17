@@ -176,4 +176,13 @@ interface IrohaQueryHelper {
      * @return number of peers
      */
     fun getPeersCount(): Result<Int, Exception>
+
+    /**
+     * Check if account is registered and has @publicKey
+     */
+    fun isRegistered(
+        accountName: String,
+        domainId: String,
+        publicKey: String
+    ): Result<Boolean, Exception>
 }

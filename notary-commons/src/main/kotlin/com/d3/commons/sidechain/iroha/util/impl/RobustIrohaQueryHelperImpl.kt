@@ -99,6 +99,13 @@ class RobustIrohaQueryHelperImpl(
 
     override fun getPeersCount() = retryQuery { irohaQueryHelper.getPeersCount() }
 
+    override fun isRegistered(
+        accountName: String,
+        domainId: String,
+        publicKey: String
+    ): Result<Boolean, Exception> =
+        retryQuery { irohaQueryHelper.isRegistered(accountName, domainId, publicKey) }
+
     /**
      * Queries Iroha until it responds
      * @param attempt - attempt counter. 0 by default
