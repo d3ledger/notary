@@ -9,6 +9,7 @@ import com.d3.notifications.config.SoraConfig
 import com.d3.notifications.event.*
 import com.github.kittinunf.result.Result
 import mu.KLogging
+import org.apache.commons.codec.binary.Base64
 import org.json.JSONObject
 
 const val ETH_ASSET_ID = "ether#ethereum"
@@ -101,7 +102,14 @@ class SoraNotificationService(private val soraConfig: SoraConfig) : Notification
     private fun postSoraEvent(uri: SoraURI, event: SoraEvent) {
         //TODO handle repeatable exceptions
         val url = soraConfig.notificationServiceURL + "/" + uri.uri
-        val response = khttp.post(url = url, json = JSONObject(event))
+
+        //Basic auth
+        val basicAuthHeader = HashMap<String, String>()
+        val credentials: String =
+            Base64.encodeBase64String((soraConfig.notificationServiceLogin + ":" + soraConfig.notificationServicePassword).toByteArray())
+        basicAuthHeader["Authorization"] = "Basic $credentials"
+
+        val response = khttp.post(url = url, json = JSONObject(event), headers = basicAuthHeader)
         if (response.statusCode == 200) {
             logger.info("Sora event $event has been successfully posted")
         } else {
