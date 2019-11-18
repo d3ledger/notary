@@ -8,6 +8,7 @@ package com.d3.notifications.config
 import com.d3.chainadapter.client.ReliableIrohaChainListener
 import com.d3.chainadapter.client.createPrettySingleThreadPool
 import com.d3.commons.config.loadRawLocalConfigs
+import com.d3.commons.healthcheck.HealthCheckEndpoint
 import com.d3.commons.provider.NotaryClientsProvider
 import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.sidechain.iroha.util.impl.RobustIrohaQueryHelperImpl
@@ -77,4 +78,6 @@ class NotificationAppConfiguration {
         notificationsConfig.registrationServiceAccountName
     )
 
+    @Bean
+    fun healthCheckEndpoint() = HealthCheckEndpoint(notificationsConfig.healthCheckPort)
 }
