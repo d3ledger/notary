@@ -42,7 +42,6 @@ import org.junit.jupiter.api.Assertions.*
 import java.lang.reflect.Type
 import java.math.BigDecimal
 import java.math.BigInteger
-import java.util.*
 
 private const val WAIT_TIME = 5_000L
 private const val SRC_USER_EMAIL = "src.user@d3.com"
@@ -721,7 +720,7 @@ class NotificationsIntegrationTest {
      */
     private fun getAllMails(): List<DumbsterMessage> {
         val res =
-            khttp.get("http://127.0.0.1:${environment.notificationsConfig.webPort}/dumbster/mail/all")
+            khttp.get("http://127.0.0.1:${environment.notificationsConfig.debugWebPort}/dumbster/mail/all")
         if (res.statusCode != 200) {
             throw Exception("Cannot get emails. HTTP status code ${res.statusCode}")
         }
@@ -735,7 +734,7 @@ class NotificationsIntegrationTest {
      * @return the last posted Sora event
      */
     private fun getLastSoraEvent(uri: SoraURI): SoraEvent {
-        val res = khttp.get("http://127.0.0.1:${environment.notificationsConfig.webPort}/sora/all/${uri.uri}")
+        val res = khttp.get("http://127.0.0.1:${environment.notificationsConfig.debugWebPort}/sora/all/${uri.uri}")
         if (res.statusCode != 200) {
             throw Exception("Cannot get Sora events. HTTP status code ${res.statusCode}")
         }

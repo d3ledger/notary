@@ -45,6 +45,8 @@ dependencies {
     // unit tests
     testImplementation('org.junit.jupiter:junit-jupiter-api:5.2.0')
     testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
+    testImplementation 'com.github.hyperledger.iroha-java:testcontainers:6.1.0'
+
 }
 
 sourceSets {

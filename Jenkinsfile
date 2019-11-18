@@ -53,6 +53,8 @@ pipeline {
             sh "./gradlew dependencies"
             sh "./gradlew test --info"
             sh "./gradlew compileIntegrationTestKotlin --info"
+            sh "./gradlew shadowJar --info"
+            sh "./gradlew dockerfileCreate --info"
             sh "./gradlew integrationTest --info"
             sh "./gradlew codeCoverageReport --info"
             sh "./gradlew dokka --info"

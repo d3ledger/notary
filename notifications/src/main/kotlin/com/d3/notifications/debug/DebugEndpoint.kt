@@ -43,7 +43,7 @@ class DebugEndpoint(
      * Initiates ktor based HTTP server
      */
     init {
-        server = embeddedServer(Netty, port = notificationsConfig.webPort) {
+        server = embeddedServer(Netty, port = notificationsConfig.debugWebPort) {
             install(CORS)
             {
                 anyHost()
