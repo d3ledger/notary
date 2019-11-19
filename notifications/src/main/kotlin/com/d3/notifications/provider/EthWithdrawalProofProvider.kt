@@ -40,7 +40,7 @@ class EthWithdrawalProofProvider(
     ): Result<Set<EthWithdrawalProof>, Exception> {
         return irohaQueryHelper.getAccountDetails(
             storageAccountId = proofStorageAccount,
-            writerAccountId = notificationsConfig.notaryCredential.accountId
+            writerAccountId = notificationsConfig.ethWithdrawalProofSetter
         ).map { details ->
             val proofs = HashSet<EthWithdrawalProof>()
             details.forEach { detail ->
@@ -75,11 +75,9 @@ class EthWithdrawalProofProvider(
  */
 data class EthWithdrawalProof(
     val tokenContractAddress: String,
-    val amount: BigDecimal,
-    val account: String,
+    val amount: String,
+    val accountId: String,
     val irohaHash: String,
     val relay: String,
-    val r: BigInteger,
-    val s: BigInteger,
-    val v: BigInteger
+    val signature: String
 )

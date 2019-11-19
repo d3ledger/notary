@@ -161,7 +161,7 @@ enum class RegistrationEventSubsystem {
 class EthWithdrawalProofsEvent(
     val accountIdToNotify: String,
     val tokenContractAddress: String,
-    val amount: BigDecimal,
+    val amount: String,
     val relay: String,
     val proofs: List<ECDSASignature>,
     val irohaTxHash: String,
@@ -170,7 +170,5 @@ class EthWithdrawalProofsEvent(
 ) : BasicEvent(id, time)
 
 data class ECDSASignature(
-    val r: BigInteger,
-    val s: BigInteger,
-    val v: BigInteger
+    val signatureHex: String
 )

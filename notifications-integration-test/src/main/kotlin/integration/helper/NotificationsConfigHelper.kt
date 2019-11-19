@@ -22,6 +22,7 @@ class NotificationsConfigHelper(private val accountHelper: IrohaAccountHelper) :
             NotificationsConfig::class.java, "notifications.properties"
         )
         return object : NotificationsConfig {
+            override val ethWithdrawalProofSetter = accountHelper.ethWithdrawalProofSetter.accountId
             // No matter what port. It's not used in integration tests
             override val healthCheckPort = 12345
             override val ethWithdrawalAccount = accountHelper.ethWithdrawalAccount.accountId

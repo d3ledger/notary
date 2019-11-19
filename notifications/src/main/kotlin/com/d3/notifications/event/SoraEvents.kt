@@ -119,7 +119,7 @@ class SoraFailedRegistrationEvent(
 class SoraEthWithdrawalProofsEvent(
     val accountIdToNotify: String,
     val tokenContractAddress: String,
-    val amount: BigDecimal,
+    val amount: String,
     val relay: String,
     val proofs: List<SoraECDSASignature>,
     val irohaTxHash: String,
@@ -143,16 +143,12 @@ class SoraEthWithdrawalProofsEvent(
 }
 
 data class SoraECDSASignature(
-    val r: BigInteger,
-    val s: BigInteger,
-    val v: BigInteger
+    val signatureHex: String
 ) {
     companion object {
         fun map(ecdsaSignature: ECDSASignature): SoraECDSASignature {
             return SoraECDSASignature(
-                r = ecdsaSignature.r,
-                s = ecdsaSignature.s,
-                v = ecdsaSignature.v
+                signatureHex = ecdsaSignature.signatureHex
             )
         }
     }
