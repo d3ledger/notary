@@ -60,4 +60,9 @@ interface NotificationService {
      * @return result of operation
      */
     fun notifyFailedRegistration(failedRegistrationNotifyEvent: FailedRegistrationNotifyEvent): Result<Unit, Exception>
+
+    /**
+     * Returns the current service id
+     */
+    fun serviceId() = this.javaClass.canonicalName!!
 }
