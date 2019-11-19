@@ -12,7 +12,6 @@ import com.d3.commons.sidechain.iroha.FEE_ROLLBACK_DESCRIPTION
 import com.d3.commons.sidechain.iroha.ROLLBACK_DESCRIPTION
 import com.d3.commons.sidechain.iroha.consumer.IrohaConsumerImpl
 import com.d3.commons.util.GsonInstance
-import com.d3.commons.util.getRandomId
 import com.d3.commons.util.irohaEscape
 import com.d3.commons.util.toHexString
 import com.d3.notifications.client.D3_CLIENT_EMAIL_KEY
@@ -588,14 +587,16 @@ class NotificationsIntegrationTest {
      */
     @Test
     fun testNotificationWithdrawalProof() {
-        val withdrawalIrohaTxHash = "123"
+        val withdrawalIrohaTxHash = "78B7B845C2EA899CAF7E5027FDB02B7E0C4E0DB47F68627946CF496D639150D1"
+        // It's a valid proof given me by Alexey
         val ethWithdrawalProof = EthWithdrawalProof(
-            tokenContractAddress = "some address",
-            amount = BigDecimal.valueOf(2).toPlainString(),
-            irohaHash = withdrawalIrohaTxHash,
+            tokenContractAddress = "0x4a8b439d27a507d1416d956a29b5fa12c3062a18",
+            amount = "2340000000000000000",
+            beneficiary = "0x82e0b6cc1ea0d0b91f5fc86328b8e613bdaf72e8",
             accountId = environment.srcClientId,
-            relay = "123",
-            signature = "something"
+            relay = "0x82e0b6cc1ea0d0b91f5fc86328b8e613bdaf72e8",
+            signature = "0x68e4e25d2b9c328db4e4bed5f17f74780056f779d1cd219ad87fb04d5429775f4c13324645689cd5f1a77b12c28c20c7e9ded188ab773ccd27996ae56f21580101",
+            irohaHash = withdrawalIrohaTxHash
         )
         integrationHelper.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
@@ -606,7 +607,7 @@ class NotificationsIntegrationTest {
             val tx = Transaction.builder(environment.ethWithdrawalProofSetterConsumer.creator)
                 .setAccountDetail(
                     integrationHelper.accountHelper.ethProofStorageAccount.accountId,
-                    String.getRandomId(),
+                    "0xedef306ba72b6245d4d54808eeb017b8eb01fe08",
                     gson.toJson(ethWithdrawalProof).irohaEscape()
                 ).build()
             environment.ethWithdrawalProofSetterConsumer.send(tx).get()

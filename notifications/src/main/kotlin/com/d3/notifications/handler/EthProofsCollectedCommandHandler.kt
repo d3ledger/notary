@@ -9,6 +9,7 @@ import com.d3.notifications.config.NotificationsConfig
 import com.d3.notifications.event.ECDSASignature
 import com.d3.notifications.event.EthWithdrawalProofsEvent
 import com.d3.notifications.provider.ETH_WITHDRAWAL_PROOF_DOMAIN
+import com.d3.notifications.provider.EthNotaryAddress
 import com.d3.notifications.provider.EthWithdrawalProof
 import com.d3.notifications.provider.EthWithdrawalProofProvider
 import com.d3.notifications.queue.EventsQueue
@@ -34,21 +35,21 @@ class EthProofsCollectedCommandHandler(
     override fun handle(commandWithTx: CommandWithTx) {
         val command = commandWithTx.command
         val proofStorageAccount = command.setAccountDetail.accountId
-        val savedProofs = ArrayList<EthWithdrawalProof>()
+        val savedProofs = HashMap<EthNotaryAddress, EthWithdrawalProof>()
         ethWithdrawalProofProvider.getAllProofs(proofStorageAccount)
             .flatMap { proofs ->
-                savedProofs.addAll(proofs)
+                savedProofs.putAll(proofs)
                 ethWithdrawalProofProvider.enoughProofs(proofs)
             }.map { enoughProofs ->
                 if (enoughProofs) {
-                    val firstProof = savedProofs.first()
+                    val firstProof = savedProofs.values.first()
                     val ethWithdrawalProofsEvent = EthWithdrawalProofsEvent(
                         accountIdToNotify = firstProof.accountId,
                         tokenContractAddress = firstProof.tokenContractAddress,
                         amount = firstProof.amount,
                         id = proofStorageAccount + "_eth_proofs",
                         time = commandWithTx.tx.payload.reducedPayload.createdTime,
-                        proofs = savedProofs.map { ECDSASignature(signatureHex = it.signature) }.toList(),
+                        proofs = savedProofs.map { ECDSASignature(signatureHex = it.value.signature) }.toList(),
                         relay = firstProof.relay,
                         irohaTxHash = firstProof.irohaHash
                     )

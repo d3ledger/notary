@@ -13,6 +13,11 @@ import com.github.kittinunf.result.map
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
+import org.web3j.crypto.ECDSASignature
+import org.web3j.crypto.Hash
+import org.web3j.crypto.Keys
+import org.web3j.crypto.Sign
+import org.web3j.utils.Numeric
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -33,19 +38,19 @@ class EthWithdrawalProofProvider(
     /**
      * Return all withdrawal proofs
      * @param proofStorageAccount - account that is used to store proofs
-     * @return set of proofs
+     * @return map full of proofs in form (Eth address of notary->Proof)
      */
     fun getAllProofs(
         proofStorageAccount: String
-    ): Result<Set<EthWithdrawalProof>, Exception> {
+    ): Result<Map<EthNotaryAddress, EthWithdrawalProof>, Exception> {
         return irohaQueryHelper.getAccountDetails(
             storageAccountId = proofStorageAccount,
             writerAccountId = notificationsConfig.ethWithdrawalProofSetter
         ).map { details ->
-            val proofs = HashSet<EthWithdrawalProof>()
+            val proofs = HashMap<String, EthWithdrawalProof>()
             details.forEach { detail ->
                 val proof = gson.fromJson(detail.value, EthWithdrawalProof::class.java)
-                proofs.add(proof)
+                proofs[detail.key] = proof
             }
             proofs
         }
@@ -56,19 +61,55 @@ class EthWithdrawalProofProvider(
      * @param proofs - proofs to check
      * @return true if enough, false otherwise
      */
-    fun enoughProofs(proofs: Set<EthWithdrawalProof>): Result<Boolean, Exception> {
+    fun enoughProofs(proofs: Map<EthNotaryAddress, EthWithdrawalProof>): Result<Boolean, Exception> {
         if (proofs.isEmpty()) {
             return Result.of(false)
         }
+        val validProofs = proofs.count { isValidProof(it.key, it.value) }
         return irohaQueryHelper.getPeersCount().map { peers ->
             val superMajority = ((peers * 2) / 3) + 1
-            //TODO check that proofs are valid
-            proofs.size >= superMajority
+            validProofs >= superMajority
         }
+    }
+
+    /**
+     * Check notary signature
+     * @param ethNotaryAddress - Ethereum address of notary (key in setAccountDetails)
+     * @param withdrawalProof - notary proof for withdrawal (value in setAccountDetail)
+     * @return true if signature is correct
+     */
+    private fun isValidProof(ethNotaryAddress: EthNotaryAddress, withdrawalProof: EthWithdrawalProof): Boolean {
+        val hash = Hash.sha3(
+            withdrawalProof.tokenContractAddress.replace("0x", "")
+                    + String.format("%064x", BigInteger(withdrawalProof.amount)).replace("0x", "")
+                    + withdrawalProof.beneficiary.replace("0x", "")
+                    + withdrawalProof.irohaHash.replace("0x", "")
+                    + withdrawalProof.beneficiary.replace("0x", "")
+        )
+        val dat = Numeric.hexStringToByteArray(hash)
+
+        // Add Ethereum signature format
+        val message = Hash.sha3(("\u0019Ethereum Signed Message:\n" + (dat.size)).toByteArray() + dat)
+
+        val r = (withdrawalProof.signature.substring(2, 66)).toBigInteger(16)
+        val s = (withdrawalProof.signature.substring(66, 130)).toBigInteger(16)
+        val sig = ECDSASignature(r, s)
+        // there are 4 possible outcomes that should be checked with actual signatory address
+        for (i in 0..3) {
+            // null is a valid result, skip it
+            val res = Sign.recoverFromSignature(i, sig, message)
+                ?: continue
+            if (Keys.getAddress(res) == ethNotaryAddress.replace("0x", ""))
+                return true
+        }
+        return false
     }
 
     companion object : KLogging()
 }
+
+// Just for clarity
+typealias EthNotaryAddress = String
 
 /**
  * Data class that represents withdrawal proof details
@@ -79,5 +120,6 @@ data class EthWithdrawalProof(
     val accountId: String,
     val irohaHash: String,
     val relay: String,
-    val signature: String
+    val signature: String,
+    val beneficiary: String
 )
