@@ -41,7 +41,6 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import java.lang.reflect.Type
 import java.math.BigDecimal
-import java.math.BigInteger
 
 private const val WAIT_TIME = 5_000L
 private const val SRC_USER_EMAIL = "src.user@d3.com"
@@ -592,13 +591,11 @@ class NotificationsIntegrationTest {
         val withdrawalIrohaTxHash = "123"
         val ethWithdrawalProof = EthWithdrawalProof(
             tokenContractAddress = "some address",
-            amount = BigDecimal.valueOf(2),
+            amount = BigDecimal.valueOf(2).toPlainString(),
             irohaHash = withdrawalIrohaTxHash,
-            account = environment.srcClientId,
+            accountId = environment.srcClientId,
             relay = "123",
-            r = BigInteger.valueOf(123),
-            s = BigInteger.valueOf(456),
-            v = BigInteger.valueOf(798)
+            signature = "something"
         )
         integrationHelper.setAccountDetailWithRespectToBrvs(
             environment.srcClientConsumer,
@@ -606,24 +603,22 @@ class NotificationsIntegrationTest {
             D3_CLIENT_ENABLE_NOTIFICATIONS,
             "true"
         ).map {
-            val tx = Transaction.builder(environment.notaryIrohaConsumer.creator)
+            val tx = Transaction.builder(environment.ethWithdrawalProofSetterConsumer.creator)
                 .setAccountDetail(
                     integrationHelper.accountHelper.ethProofStorageAccount.accountId,
                     String.getRandomId(),
                     gson.toJson(ethWithdrawalProof).irohaEscape()
                 ).build()
-            environment.notaryIrohaConsumer.send(tx).get()
+            environment.ethWithdrawalProofSetterConsumer.send(tx).get()
         }.map {
             Thread.sleep(WAIT_TIME)
             val soraEvent = getLastSoraEvent(SoraURI.WITHDRAWAL_PROOFS) as SoraEthWithdrawalProofsEvent
-            assertEquals(ethWithdrawalProof.account, soraEvent.accountIdToNotify)
+            assertEquals(ethWithdrawalProof.accountId, soraEvent.accountIdToNotify)
             assertEquals(ethWithdrawalProof.irohaHash, soraEvent.irohaTxHash)
             assertEquals(ethWithdrawalProof.relay, soraEvent.relay)
             assertEquals(1, soraEvent.proofs.size)
             val proof = soraEvent.proofs.first()
-            assertEquals(ethWithdrawalProof.r, proof.r)
-            assertEquals(ethWithdrawalProof.s, proof.s)
-            assertEquals(ethWithdrawalProof.v, proof.v)
+            assertEquals(ethWithdrawalProof.signature, proof.signatureHex)
             Unit
         }.failure { ex -> fail(ex) }
     }

@@ -47,6 +47,8 @@ interface NotificationsConfig {
     val ethDepositAccount: String
     // Btc deposit account
     val btcDepositAccount: String
+    // Eth withdrawal proof setter account
+    val ethWithdrawalProofSetter: String
 }
 
 /**

@@ -43,12 +43,12 @@ class EthProofsCollectedCommandHandler(
                 if (enoughProofs) {
                     val firstProof = savedProofs.first()
                     val ethWithdrawalProofsEvent = EthWithdrawalProofsEvent(
-                        accountIdToNotify = firstProof.account,
+                        accountIdToNotify = firstProof.accountId,
                         tokenContractAddress = firstProof.tokenContractAddress,
                         amount = firstProof.amount,
                         id = proofStorageAccount + "_eth_proofs",
                         time = commandWithTx.tx.payload.reducedPayload.createdTime,
-                        proofs = savedProofs.map { ECDSASignature(r = it.r, s = it.s, v = it.v) }.toList(),
+                        proofs = savedProofs.map { ECDSASignature(signatureHex = it.signature) }.toList(),
                         relay = firstProof.relay,
                         irohaTxHash = firstProof.irohaHash
                     )
@@ -66,7 +66,7 @@ class EthProofsCollectedCommandHandler(
             return false
         }
         val creator = commandWithTx.tx.payload.reducedPayload.creatorAccountId
-        return creator == notificationsConfig.notaryCredential.accountId &&
+        return creator == notificationsConfig.ethWithdrawalProofSetter &&
                 !handledProofs.contains(commandWithTx.command.setAccountDetail.accountId) &&
                 commandWithTx.command.setAccountDetail.accountId.endsWith("@$ETH_WITHDRAWAL_PROOF_DOMAIN")
     }
