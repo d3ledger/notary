@@ -155,16 +155,18 @@ enum class RegistrationEventSubsystem {
  * @param relay - TODO describe
  * @param proofs - withdrawal proofs
  * @param irohaTxHash - original withdrawal Iroha tx hash
+ * @param to - Ethereum address of receiver
  * @param id - identifier of event
  * @param time - time of event
  */
 class EthWithdrawalProofsEvent(
     val accountIdToNotify: String,
     val tokenContractAddress: String,
-    val amount: String,
+    val amount: BigDecimal,
     val relay: String,
     val proofs: List<ECDSASignature>,
     val irohaTxHash: String,
+    val to: String,
     id: String,
     time: Long
 ) : BasicEvent(id, time)

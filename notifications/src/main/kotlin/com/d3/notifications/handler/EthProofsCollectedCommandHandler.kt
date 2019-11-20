@@ -18,6 +18,7 @@ import com.github.kittinunf.result.flatMap
 import com.github.kittinunf.result.map
 import mu.KLogging
 import org.springframework.stereotype.Component
+import java.math.BigDecimal
 
 /**
  * Command handler that handles 'enough withdrawal proofs collected' events
@@ -46,12 +47,13 @@ class EthProofsCollectedCommandHandler(
                     val ethWithdrawalProofsEvent = EthWithdrawalProofsEvent(
                         accountIdToNotify = firstProof.accountId,
                         tokenContractAddress = firstProof.tokenContractAddress,
-                        amount = firstProof.amount,
+                        amount = BigDecimal(firstProof.amount),
                         id = proofStorageAccount + "_eth_proofs",
                         time = commandWithTx.tx.payload.reducedPayload.createdTime,
                         proofs = savedProofs.map { ECDSASignature(signatureHex = it.value.signature) }.toList(),
                         relay = firstProof.relay,
-                        irohaTxHash = firstProof.irohaHash
+                        irohaTxHash = firstProof.irohaHash,
+                        to = firstProof.beneficiary
                     )
                     logger.info("Notify withdrawal proofs collected $ethWithdrawalProofsEvent")
                     eventsQueue.enqueue(ethWithdrawalProofsEvent)
