@@ -618,6 +618,8 @@ class NotificationsIntegrationTest {
             assertEquals(ethWithdrawalProof.irohaHash, soraEvent.irohaTxHash)
             assertEquals(ethWithdrawalProof.relay, soraEvent.relay)
             assertEquals(1, soraEvent.proofs.size)
+            assertEquals(BigDecimal(ethWithdrawalProof.amount), soraEvent.amount)
+            assertEquals(ethWithdrawalProof.beneficiary, soraEvent.to)
             val proof = soraEvent.proofs.first()
             assertEquals(ethWithdrawalProof.signature, proof.signatureHex)
             Unit

@@ -7,7 +7,6 @@ package com.d3.notifications.event
 
 import com.d3.commons.util.GsonInstance
 import java.math.BigDecimal
-import java.math.BigInteger
 
 /**
  * The file contains data transfer objects for Sora notification REST service
@@ -119,10 +118,11 @@ class SoraFailedRegistrationEvent(
 class SoraEthWithdrawalProofsEvent(
     val accountIdToNotify: String,
     val tokenContractAddress: String,
-    val amount: String,
+    val amount: BigDecimal,
     val relay: String,
     val proofs: List<SoraECDSASignature>,
     val irohaTxHash: String,
+    val to: String,
     id: String,
     time: Long
 ) : SoraEvent(id, time) {
@@ -135,6 +135,7 @@ class SoraEthWithdrawalProofsEvent(
                 relay = ethWithdrawalProofsEvent.relay,
                 proofs = ethWithdrawalProofsEvent.proofs.map { SoraECDSASignature.map(it) },
                 irohaTxHash = ethWithdrawalProofsEvent.irohaTxHash,
+                to = ethWithdrawalProofsEvent.to,
                 id = ethWithdrawalProofsEvent.id,
                 time = ethWithdrawalProofsEvent.time
             )
