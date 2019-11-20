@@ -16,14 +16,18 @@ import com.d3.notifications.service.NotificationService
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
 import com.rabbitmq.client.*
+import com.rabbitmq.client.impl.DefaultExceptionHandler
 import mu.KLogging
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.system.exitProcess
 
 private const val EVENTS_QUEUE_NAME = "notification_events_queue"
 private const val EVENT_TYPE_HEADER = "event_type"
 private const val NOTIFICATION_SERVICE_ID_HEADER = "notification_service_id"
+private const val DEDUPLICATION_HEADER = "x-deduplication-header"
 
 /**
  * Queue of events
@@ -31,6 +35,7 @@ private const val NOTIFICATION_SERVICE_ID_HEADER = "notification_service_id"
 @Component
 class EventsQueue(
     private val notificationServices: List<NotificationService>,
+    @Qualifier("balancerRMQConfig")
     rmqConfig: RMQConfig
 ) : Closeable {
 
@@ -49,11 +54,35 @@ class EventsQueue(
     init {
         connectionFactory.host = rmqConfig.host
         connectionFactory.port = rmqConfig.port
+        connectionFactory.password = rmqConfig.password!!
+        connectionFactory.username = rmqConfig.username!!
+        connectionFactory.exceptionHandler = object : DefaultExceptionHandler() {
+            override fun handleConnectionRecoveryException(conn: Connection, exception: Throwable) {
+                logger.error("Balancer RMQ connection error", exception)
+                exitProcess(1)
+            }
+
+            override fun handleUnexpectedConnectionDriverException(
+                conn: Connection,
+                exception: Throwable
+            ) {
+                logger.error("Balancer RMQ connection error", exception)
+                exitProcess(1)
+            }
+        }
         connection = connectionFactory.newConnection(subscriberExecutorService)
         channel = connection.createChannel()
         // I think it's enough
         channel.basicQos(16)
-        channel.queueDeclare(EVENTS_QUEUE_NAME, true, false, false, null)
+        val arguments = hashMapOf<String, Any>(
+            // enable deduplication
+            Pair("x-message-deduplication", true),
+            // save deduplication data on disk rather that memory
+            Pair("x-cache-persistence", "disk"),
+            // save deduplication data 1 day
+            Pair("x-cache-ttl", 60_000 * 60 * 24)
+        )
+        channel.queueDeclare(EVENTS_QUEUE_NAME, true, false, false, arguments)
     }
 
     /**
@@ -144,7 +173,8 @@ class EventsQueue(
                 .headers(
                     mapOf(
                         Pair(EVENT_TYPE_HEADER, event.javaClass.canonicalName),
-                        Pair(NOTIFICATION_SERVICE_ID_HEADER, notificationService.serviceId())
+                        Pair(NOTIFICATION_SERVICE_ID_HEADER, notificationService.serviceId()),
+                        Pair(DEDUPLICATION_HEADER, event.id + "_" + notificationService.serviceId())
                     )
                 ).build()
             try {

@@ -45,4 +45,5 @@ smtp.password=ask maintainers
 127.0.0.1 d3-rmq
 127.0.0.1 d3-brvs
 127.0.0.1 d3-brvs-mongodb
+127.0.0.1 d3-rmq-notification-balancer
 ```

@@ -29,8 +29,10 @@ interface NotificationsConfig {
     val clientStorageAccount: String
     // Account name of registration service(no domain)
     val registrationServiceAccountName: String
-    // RMQ configuration
-    val rmq: RMQConfig
+    // Local RMQ configuration. Used to work with chain-adapter
+    val localRMQ: RMQConfig
+    // Remote balancer RMQ configuration.
+    val balancerRMQ: RMQConfig
     // Queue name
     val blocksQueue: String
     // Timeout for Iroha queries

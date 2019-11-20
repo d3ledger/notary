@@ -49,6 +49,17 @@ services:
     networks:
       - d3-network
 
+
+  d3-notification-deduplication-rmq:
+    # TODO change to image from Soramitsu nexus
+    image: dolgopolovwork/d3-notification-deduplication-rmq
+    container_name: d3-notification-deduplication-rmq
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    networks:
+      - d3-network
+
   d3-chain-adapter:
     image: nexus.iroha.tech:19004/soramitsu/chain-adapter:develop
     container_name: d3-chain-adapter
