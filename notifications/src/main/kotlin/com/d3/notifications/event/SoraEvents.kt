@@ -7,6 +7,7 @@ package com.d3.notifications.event
 
 import com.d3.commons.util.GsonInstance
 import java.math.BigDecimal
+import java.math.BigInteger
 
 /**
  * The file contains data transfer objects for Sora notification REST service
@@ -144,12 +145,16 @@ class SoraEthWithdrawalProofsEvent(
 }
 
 data class SoraECDSASignature(
-    val signatureHex: String
+    val rHex: String,
+    val sHex: String,
+    val v: BigInteger
 ) {
     companion object {
         fun map(ecdsaSignature: ECDSASignature): SoraECDSASignature {
             return SoraECDSASignature(
-                signatureHex = ecdsaSignature.signatureHex
+                rHex = ecdsaSignature.rHex,
+                sHex = ecdsaSignature.sHex,
+                v = ecdsaSignature.v
             )
         }
     }

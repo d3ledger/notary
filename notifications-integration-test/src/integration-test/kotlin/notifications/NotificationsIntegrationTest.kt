@@ -22,6 +22,7 @@ import com.d3.notifications.event.*
 import com.d3.notifications.init.BTC_WALLET
 import com.d3.notifications.init.ETH_WALLET
 import com.d3.notifications.provider.EthWithdrawalProof
+import com.d3.notifications.provider.VRSSignature
 import com.d3.notifications.service.*
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.flatMap
@@ -40,6 +41,7 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import java.lang.reflect.Type
 import java.math.BigDecimal
+import java.math.BigInteger
 
 private const val WAIT_TIME = 5_000L
 private const val SRC_USER_EMAIL = "src.user@d3.com"
@@ -587,15 +589,19 @@ class NotificationsIntegrationTest {
      */
     @Test
     fun testNotificationWithdrawalProof() {
-        val withdrawalIrohaTxHash = "78B7B845C2EA899CAF7E5027FDB02B7E0C4E0DB47F68627946CF496D639150D1"
+        val withdrawalIrohaTxHash = "5DC4E41457FF8CA7CE7316B3CC471F9C7A641A237389783293A29C71A066E8B8"
         // It's a valid proof given me by Alexey
         val ethWithdrawalProof = EthWithdrawalProof(
-            tokenContractAddress = "0x4a8b439d27a507d1416d956a29b5fa12c3062a18",
+            tokenContractAddress = "0xef4777221a5d20cc4e6e6afed03af47bba90ff3c",
             amount = "2340000000000000000",
             beneficiary = "0x82e0b6cc1ea0d0b91f5fc86328b8e613bdaf72e8",
             accountId = environment.srcClientId,
             relay = "0x82e0b6cc1ea0d0b91f5fc86328b8e613bdaf72e8",
-            signature = "0x68e4e25d2b9c328db4e4bed5f17f74780056f779d1cd219ad87fb04d5429775f4c13324645689cd5f1a77b12c28c20c7e9ded188ab773ccd27996ae56f21580101",
+            signature = VRSSignature(
+                v = BigInteger.valueOf(28),
+                s = "6950e38b196a50da615fc0b15557a2a29e8bdd6ecef4751b841b2de9fbdf9ffd",
+                r = "b76621ce5b62ce392d883ca67f3888b1d5c5812326e8b882b22f250bfd25975c"
+            ),
             irohaHash = withdrawalIrohaTxHash
         )
         integrationHelper.setAccountDetailWithRespectToBrvs(
@@ -621,7 +627,9 @@ class NotificationsIntegrationTest {
             assertEquals(BigDecimal(ethWithdrawalProof.amount), soraEvent.amount)
             assertEquals(ethWithdrawalProof.beneficiary, soraEvent.to)
             val proof = soraEvent.proofs.first()
-            assertEquals(ethWithdrawalProof.signature, proof.signatureHex)
+            assertEquals(ethWithdrawalProof.signature.r, proof.rHex)
+            assertEquals(ethWithdrawalProof.signature.s, proof.sHex)
+            assertEquals(ethWithdrawalProof.signature.v, proof.v)
             Unit
         }.failure { ex -> fail(ex) }
     }

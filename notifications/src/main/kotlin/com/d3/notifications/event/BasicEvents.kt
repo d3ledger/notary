@@ -172,5 +172,7 @@ class EthWithdrawalProofsEvent(
 ) : BasicEvent(id, time)
 
 data class ECDSASignature(
-    val signatureHex: String
+    val rHex: String,
+    val sHex: String,
+    val v: BigInteger
 )

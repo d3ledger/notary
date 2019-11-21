@@ -54,9 +54,6 @@ services:
     networks:
       - d3-network
 
-  ports:
-    - 25672:5672
-
   d3-chain-adapter:
     environment:
       - CHAIN_ADAPTER_DROPLASTREADBLOCK=true
