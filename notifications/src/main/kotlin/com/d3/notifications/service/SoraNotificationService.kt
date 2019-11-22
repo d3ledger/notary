@@ -5,28 +5,71 @@
 
 package com.d3.notifications.service
 
-import com.d3.notifications.config.SoraConfig
+import com.d3.chainadapter.client.RMQConfig
+import com.d3.commons.util.GsonInstance
+import com.d3.commons.util.createPrettyFixThreadPool
+import com.d3.notifications.NOTIFICATIONS_SERVICE_NAME
 import com.d3.notifications.event.*
 import com.github.kittinunf.result.Result
+import com.rabbitmq.client.Connection
+import com.rabbitmq.client.ConnectionFactory
+import com.rabbitmq.client.MessageProperties
+import com.rabbitmq.client.impl.DefaultExceptionHandler
 import mu.KLogging
-import org.apache.commons.codec.binary.Base64
-import org.json.JSONObject
+import java.io.Closeable
+import kotlin.system.exitProcess
 
 const val ETH_ASSET_ID = "ether#ethereum"
+const val SORA_EVENTS_QUEUE_NAME = "sora_notification_events_queue"
+private const val EVENT_TYPE_HEADER = "event_type"
+private const val DEDUPLICATION_HEADER = "x-deduplication-header"
 
 /**
  * Notification service used by Sora
  */
-class SoraNotificationService(private val soraConfig: SoraConfig) : NotificationService,
-    EthSpecificNotificationService {
+class SoraNotificationService(rmqConfig: RMQConfig) : NotificationService, EthSpecificNotificationService,
+    Closeable {
+
+    private val subscriberExecutorService = createPrettyFixThreadPool(NOTIFICATIONS_SERVICE_NAME, "sora_events_queue")
+    private val connectionFactory = ConnectionFactory()
+    private val gson = GsonInstance.get()
+
+    init {
+        connectionFactory.host = rmqConfig.host
+        connectionFactory.port = rmqConfig.port
+        connectionFactory.exceptionHandler = object : DefaultExceptionHandler() {
+            override fun handleConnectionRecoveryException(conn: Connection, exception: Throwable) {
+                logger.error("RMQ connection error", exception)
+                exitProcess(1)
+            }
+
+            override fun handleUnexpectedConnectionDriverException(
+                conn: Connection,
+                exception: Throwable
+            ) {
+                logger.error("RMQ connection error", exception)
+                exitProcess(1)
+            }
+        }
+        connectionFactory.newConnection(subscriberExecutorService).use { connection ->
+            connection.createChannel().use { channel ->
+                val arguments = hashMapOf<String, Any>(
+                    // enable deduplication
+                    Pair("x-message-deduplication", true),
+                    // save deduplication data on disk rather that memory
+                    Pair("x-cache-persistence", "disk"),
+                    // save deduplication data 1 day
+                    Pair("x-cache-ttl", 60_000 * 60 * 24)
+                )
+                channel.queueDeclare(SORA_EVENTS_QUEUE_NAME, true, false, false, arguments)
+            }
+        }
+    }
 
     override fun notifyEthWithdrawalProofs(ethWithdrawalProofsEvent: EthWithdrawalProofsEvent): Result<Unit, Exception> {
         logger.info("Notify enough withdrawal proofs $ethWithdrawalProofsEvent")
         return Result.of {
-            postSoraEvent(
-                SoraURI.WITHDRAWAL_PROOFS,
-                SoraEthWithdrawalProofsEvent.map(ethWithdrawalProofsEvent)
-            )
+            postSoraEvent(SoraEthWithdrawalProofsEvent.map(ethWithdrawalProofsEvent))
         }
     }
 
@@ -36,10 +79,7 @@ class SoraNotificationService(private val soraConfig: SoraConfig) : Notification
         }
         logger.info("Notify failed Sora registration $failedRegistrationNotifyEvent")
         return Result.of {
-            postSoraEvent(
-                SoraURI.FAILED_REGISTRATION_URI,
-                SoraFailedRegistrationEvent.map(failedRegistrationNotifyEvent)
-            )
+            postSoraEvent(SoraFailedRegistrationEvent.map(failedRegistrationNotifyEvent))
         }
     }
 
@@ -49,7 +89,7 @@ class SoraNotificationService(private val soraConfig: SoraConfig) : Notification
         }
         logger.info("Notify Sora deposit $transferNotifyEvent")
         return Result.of {
-            postSoraEvent(SoraURI.DEPOSIT_URI, SoraDepositEvent.map(transferNotifyEvent))
+            postSoraEvent(SoraDepositEvent.map(transferNotifyEvent))
         }
     }
 
@@ -59,7 +99,7 @@ class SoraNotificationService(private val soraConfig: SoraConfig) : Notification
         }
         logger.info("Notify Sora withdrawal $transferNotifyEvent")
         return Result.of {
-            postSoraEvent(SoraURI.WITHDRAWAL_URI, SoraWithdrawalEvent.map(transferNotifyEvent))
+            postSoraEvent(SoraWithdrawalEvent.map(transferNotifyEvent))
         }
     }
 
@@ -90,46 +130,52 @@ class SoraNotificationService(private val soraConfig: SoraConfig) : Notification
         }
         logger.info("Notify Sora registration $registrationNotifyEvent")
         return Result.of {
-            postSoraEvent(SoraURI.REGISTRATION_URI, SoraRegistrationEvent.map(registrationNotifyEvent))
+            postSoraEvent(SoraRegistrationEvent.map(registrationNotifyEvent))
         }
     }
 
     /**
-     * Posts Sora event via HTTP
-     * @param uri - uri of service
+     * Posts Sora event
      * @param event - Sora event to post
      */
-    private fun postSoraEvent(uri: SoraURI, event: SoraEvent) {
-        //TODO handle repeatable exceptions
-        val url = soraConfig.notificationServiceURL + "/" + uri.uri
+    private fun postSoraEvent(event: SoraEvent) {
+        val queue = SORA_EVENTS_QUEUE_NAME
+        val messageProperties = MessageProperties.MINIMAL_PERSISTENT_BASIC.builder()
+            .headers(
+                mapOf(
+                    Pair(EVENT_TYPE_HEADER, event.javaClass.canonicalName),
+                    Pair(DEDUPLICATION_HEADER, event.id)
+                )
+            ).build()
+        try {
+            logger.info("Enqueue event $event to queue $queue.")
+            val json = gson.toJson(event)
+            connectionFactory.newConnection().use { connection ->
+                connection.createChannel().use { channel ->
+                    channel.basicPublish(
+                        "",
+                        queue,
+                        messageProperties,
+                        json.toByteArray()
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            logger.error("Cannot publish event $event to queue $queue", e)
+        }
+    }
 
-        //Basic auth
-        val basicAuthHeader = HashMap<String, String>()
-        val credentials: String =
-            Base64.encodeBase64String((soraConfig.notificationServiceLogin + ":" + soraConfig.notificationServicePassword).toByteArray())
-        basicAuthHeader["Authorization"] = "Basic $credentials"
-        val response = khttp.post(url = url, json = JSONObject(event), headers = basicAuthHeader)
-        if (response.statusCode == 200) {
-            logger.info("Sora event $event has been successfully posted")
-        } else {
-            logger.error(
-                "Couldn't post Sora event $event. HTTP status ${response.statusCode}, URL $url, content ${String(
-                    response.content
-                )}"
-            )
+    override fun close() {
+        tryClose { subscriberExecutorService.shutdownNow() }
+    }
+
+    private fun tryClose(close: () -> Unit) {
+        try {
+            close()
+        } catch (e: Exception) {
+            logger.error("Cannot close", e)
         }
     }
 
     companion object : KLogging()
-}
-
-/**
- * Enumeration of Sora URIs
- */
-enum class SoraURI(val uri: String) {
-    DEPOSIT_URI("deposit"),
-    WITHDRAWAL_URI("withdrawal"),
-    REGISTRATION_URI("registration"),
-    FAILED_REGISTRATION_URI("failedRegistration"),
-    WITHDRAWAL_PROOFS("withdrawalProofs")
 }
