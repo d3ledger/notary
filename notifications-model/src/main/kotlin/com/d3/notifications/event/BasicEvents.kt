@@ -14,9 +14,11 @@ private val gson = Gson()
 /**
  * Basic event class
  * @param id - event id
- * @param time - event time in milliseconds
+ * @param txTime - event time in milliseconds
+ * @param blockNum - number of block
+ * @param txIndex - index of tx
  */
-open class BasicEvent(val id: String, val time: Long) {
+open class BasicEvent(val id: String, val txTime: Long, val blockNum: Long, val txIndex: Int) {
     override fun toString(): String {
         return gson.toJson(this)
     }
@@ -29,15 +31,17 @@ open class BasicEvent(val id: String, val time: Long) {
  * @param amount - transfer amount
  * @param assetName - name of asset
  * @param id - event id
- * @param time - event time in milliseconds
+ * @param txTime - event time in milliseconds
  */
 open class TransferNotifyEvent(
     val accountIdToNotify: String,
     val amount: BigDecimal,
     val assetName: String,
     id: String,
-    time: Long
-) : BasicEvent(id, time)
+    txTime: Long,
+    blockNum: Long,
+    txIndex: Int
+) : BasicEvent(id = id, txTime = txTime, blockNum = blockNum, txIndex = txIndex)
 
 /**
  * Client to client 'send' transfer event
@@ -47,11 +51,21 @@ class Client2ClientSendTransferEvent(
     amount: BigDecimal,
     assetName: String,
     id: String,
-    time: Long,
+    txTime: Long,
+    blockNum: Long,
+    txIndex: Int,
     val description: String,
     val to: String,
     val fee: TransferFee?
-) : TransferNotifyEvent(accountIdToNotify, amount, assetName, id, time)
+) : TransferNotifyEvent(
+    accountIdToNotify = accountIdToNotify,
+    amount = amount,
+    assetName = assetName,
+    id = id,
+    txTime = txTime,
+    blockNum = blockNum,
+    txIndex = txIndex
+)
 
 /**
  * Client to client 'receive' transfer event
@@ -61,12 +75,21 @@ class Client2ClientReceiveTransferEvent(
     amount: BigDecimal,
     assetName: String,
     id: String,
-    time: Long,
+    txTime: Long,
+    blockNum: Long,
+    txIndex: Int,
     val description: String,
     val from: String,
     val fee: TransferFee?
-) : TransferNotifyEvent(accountIdToNotify, amount, assetName, id, time)
-
+) : TransferNotifyEvent(
+    accountIdToNotify = accountIdToNotify,
+    amount = amount,
+    assetName = assetName,
+    id = id,
+    txTime = txTime,
+    blockNum = blockNum,
+    txIndex = txIndex
+)
 
 /**
  * Deposit event
@@ -76,9 +99,19 @@ class DepositTransferEvent(
     amount: BigDecimal,
     assetName: String,
     id: String,
-    time: Long,
+    txTime: Long,
+    blockNum: Long,
+    txIndex: Int,
     val from: String
-) : TransferNotifyEvent(accountIdToNotify, amount, assetName, id, time)
+) : TransferNotifyEvent(
+    accountIdToNotify = accountIdToNotify,
+    amount = amount,
+    assetName = assetName,
+    id = id,
+    txTime = txTime,
+    blockNum = blockNum,
+    txIndex = txIndex
+)
 
 /**
  * Fee object
@@ -93,29 +126,33 @@ data class TransferFee(val amount: BigDecimal, val assetName: String)
  * @param accountId - registered account id
  * @param address - registered address
  * @param id - event id
- * @param time - event time in milliseconds
+ * @param txTime - event time in milliseconds
  */
 class RegistrationNotifyEvent(
     val subsystem: RegistrationEventSubsystem,
     val accountId: String,
     val address: String,
     id: String,
-    time: Long
-) : BasicEvent(id, time)
+    txTime: Long,
+    blockNum: Long,
+    txIndex: Int
+) : BasicEvent(id = id, txTime = txTime, blockNum = blockNum, txIndex = txIndex)
 
 /**
  * Data class that holds failed registration event data
  * @param subsystem - type of registration
  * @param accountId - registered account id
  * @param id - event id
- * @param time - event time in milliseconds
+ * @param txTime - event time in milliseconds
  */
 class FailedRegistrationNotifyEvent(
     val subsystem: RegistrationEventSubsystem,
     val accountId: String,
     id: String,
-    time: Long
-) : BasicEvent(id, time)
+    txTime: Long,
+    blockNum: Long,
+    txIndex: Int
+) : BasicEvent(id = id, txTime = txTime, blockNum = blockNum, txIndex = txIndex)
 
 enum class RegistrationEventSubsystem {
     ETH
@@ -131,7 +168,7 @@ enum class RegistrationEventSubsystem {
  * @param irohaTxHash - original withdrawal Iroha tx hash
  * @param to - Ethereum address of receiver
  * @param id - identifier of event
- * @param time - time of event
+ * @param txTime - time of event
  */
 class EthWithdrawalProofsEvent(
     val accountIdToNotify: String,
@@ -142,8 +179,10 @@ class EthWithdrawalProofsEvent(
     val irohaTxHash: String,
     val to: String,
     id: String,
-    time: Long
-) : BasicEvent(id, time)
+    txTime: Long,
+    blockNum: Long,
+    txIndex: Int
+) : BasicEvent(id = id, txTime = txTime, blockNum = blockNum, txIndex = txIndex)
 
 data class ECDSASignature(
     val r: String,
