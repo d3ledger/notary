@@ -81,7 +81,7 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
         createPrettySingleThreadPool(NOTIFICATIONS_SERVICE_NAME, "iroha-chain-listener")
 
     private val irohaChainListener = ReliableIrohaChainListener(
-        rmqConfig = notificationsConfig.localRMQ,
+        rmqConfig = notificationsConfig.rmq,
         irohaQueue = notificationsConfig.blocksQueue,
         autoAck = false,
         consumerExecutorService = chainListenerExecutorService
@@ -138,7 +138,7 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
     private val eventsQueue =
         EventsQueue(
             listOf(emailNotificationService, pushNotificationService, soraNotificationService),
-            notificationsConfig.balancerRMQ
+            notificationsConfig.rmq
         )
 
     val notificationInitialization =

@@ -35,7 +35,6 @@ private const val DEDUPLICATION_HEADER = "x-deduplication-header"
 @Component
 class EventsQueue(
     private val notificationServices: List<NotificationService>,
-    @Qualifier("balancerRMQConfig")
     rmqConfig: RMQConfig
 ) : Closeable {
 
@@ -54,8 +53,6 @@ class EventsQueue(
     init {
         connectionFactory.host = rmqConfig.host
         connectionFactory.port = rmqConfig.port
-        connectionFactory.password = rmqConfig.password!!
-        connectionFactory.username = rmqConfig.username!!
         connectionFactory.exceptionHandler = object : DefaultExceptionHandler() {
             override fun handleConnectionRecoveryException(conn: Connection, exception: Throwable) {
                 logger.error("Balancer RMQ connection error", exception)
