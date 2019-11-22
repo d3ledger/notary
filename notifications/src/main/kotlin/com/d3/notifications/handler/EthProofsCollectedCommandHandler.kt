@@ -50,7 +50,13 @@ class EthProofsCollectedCommandHandler(
                         amount = BigDecimal(firstProof.amount),
                         id = proofStorageAccount + "_eth_proofs",
                         time = commandWithTx.tx.payload.reducedPayload.createdTime,
-                        proofs = savedProofs.map { ECDSASignature(signatureHex = it.value.signature) }.toList(),
+                        proofs = savedProofs.map {
+                            ECDSASignature(
+                                v = it.value.signature.v,
+                                s = it.value.signature.s,
+                                r = it.value.signature.r
+                            )
+                        }.toList(),
                         relay = firstProof.relay,
                         irohaTxHash = firstProof.irohaHash,
                         to = firstProof.beneficiary

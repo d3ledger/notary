@@ -18,7 +18,6 @@ import org.web3j.crypto.Hash
 import org.web3j.crypto.Keys
 import org.web3j.crypto.Sign
 import org.web3j.utils.Numeric
-import java.math.BigDecimal
 import java.math.BigInteger
 
 const val ETH_WITHDRAWAL_PROOF_DOMAIN = "ethWithdrawalProof"
@@ -78,7 +77,7 @@ class EthWithdrawalProofProvider(
      * @param withdrawalProof - notary proof for withdrawal (value in setAccountDetail)
      * @return true if signature is correct
      */
-    private fun isValidProof(ethNotaryAddress: EthNotaryAddress, withdrawalProof: EthWithdrawalProof): Boolean {
+    fun isValidProof(ethNotaryAddress: EthNotaryAddress, withdrawalProof: EthWithdrawalProof): Boolean {
         val hash = Hash.sha3(
             withdrawalProof.tokenContractAddress.replace("0x", "")
                     + String.format("%064x", BigInteger(withdrawalProof.amount)).replace("0x", "")
@@ -91,9 +90,11 @@ class EthWithdrawalProofProvider(
         // Add Ethereum signature format
         val message = Hash.sha3(("\u0019Ethereum Signed Message:\n" + (dat.size)).toByteArray() + dat)
 
-        val r = (withdrawalProof.signature.substring(2, 66)).toBigInteger(16)
-        val s = (withdrawalProof.signature.substring(66, 130)).toBigInteger(16)
-        val sig = ECDSASignature(r, s)
+        val sig =
+            ECDSASignature(
+                BigInteger(withdrawalProof.signature.r, 16),
+                BigInteger(withdrawalProof.signature.s, 16)
+            )
         // there are 4 possible outcomes that should be checked with actual signatory address
         for (i in 0..3) {
             // null is a valid result, skip it
@@ -120,6 +121,8 @@ data class EthWithdrawalProof(
     val accountId: String,
     val irohaHash: String,
     val relay: String,
-    val signature: String,
+    val signature: VRSSignature,
     val beneficiary: String
 )
+
+data class VRSSignature(val v: BigInteger, val r: String, val s: String)

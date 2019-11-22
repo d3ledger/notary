@@ -108,7 +108,6 @@ class SoraNotificationService(private val soraConfig: SoraConfig) : Notification
         val credentials: String =
             Base64.encodeBase64String((soraConfig.notificationServiceLogin + ":" + soraConfig.notificationServicePassword).toByteArray())
         basicAuthHeader["Authorization"] = "Basic $credentials"
-
         val response = khttp.post(url = url, json = JSONObject(event), headers = basicAuthHeader)
         if (response.statusCode == 200) {
             logger.info("Sora event $event has been successfully posted")
