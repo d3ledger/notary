@@ -34,13 +34,6 @@ services:
     networks:
     - d3-notary
 
-  d3-notification-deduplication-rmq:
-    container_name: d3-notification-deduplication-rmq-${SUBNET}
-    expose:
-      - 5672
-    networks:
-      - d3-notary
-
   d3-chain-adapter:
     container_name: d3-chain-adapter-${SUBNET}
     networks:
