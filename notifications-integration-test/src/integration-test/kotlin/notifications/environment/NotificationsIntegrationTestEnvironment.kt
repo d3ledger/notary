@@ -42,6 +42,7 @@ import integration.helper.IrohaIntegrationHelperUtil
 import integration.helper.NotificationsConfigHelper
 import integration.registration.RegistrationServiceTestEnvironment
 import jp.co.soramitsu.iroha.java.IrohaAPI
+import mu.KLogging
 import nl.martijndwars.webpush.PushService
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.json.JSONObject
@@ -235,7 +236,9 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
         try {
             close()
         } catch (e: Exception) {
-            EventsQueue.logger.error("Cannot close", e)
+            logger.error("Cannot close", e)
         }
     }
+
+    companion object : KLogging()
 }
