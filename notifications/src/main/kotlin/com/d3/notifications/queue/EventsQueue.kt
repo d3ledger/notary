@@ -55,7 +55,7 @@ class EventsQueue(
         connectionFactory.port = rmqConfig.port
         connectionFactory.exceptionHandler = object : DefaultExceptionHandler() {
             override fun handleConnectionRecoveryException(conn: Connection, exception: Throwable) {
-                logger.error("Balancer RMQ connection error", exception)
+                logger.error("RMQ connection error", exception)
                 exitProcess(1)
             }
 
@@ -63,7 +63,7 @@ class EventsQueue(
                 conn: Connection,
                 exception: Throwable
             ) {
-                logger.error("Balancer RMQ connection error", exception)
+                logger.error("RMQ connection error", exception)
                 exitProcess(1)
             }
         }

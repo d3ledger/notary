@@ -35,11 +35,8 @@ import jp.co.soramitsu.iroha.java.Transaction
 import notifications.environment.NotificationsIntegrationTestEnvironment
 import org.apache.http.HttpResponse
 import org.apache.http.StatusLine
-import org.json.JSONArray
-import org.json.JSONObject
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
-import java.lang.reflect.Type
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -58,9 +55,7 @@ private const val SUBSCRIPTION_JSON = "{" +
 class NotificationsIntegrationTest {
 
     private val gson = GsonInstance.get()
-
     private val integrationHelper = IrohaIntegrationHelperUtil()
-
     private val environment = NotificationsIntegrationTestEnvironment(integrationHelper)
 
     init {
@@ -193,7 +188,7 @@ class NotificationsIntegrationTest {
             assertEquals(NOTIFICATION_EMAIL, lastEmail.from)
             assertTrue(lastEmail.message.contains("from $from"))
             verify(environment.pushService).send(any())
-            val soraEvent = getLastSoraEvent(SoraURI.DEPOSIT_URI) as SoraDepositEvent
+            val soraEvent = gson.fromJson(environment.getLastSoraEvent().toString(), SoraDepositEvent::class.java)
             assertEquals(environment.srcClientId, soraEvent.accountIdToNotify)
             assertEquals(depositValue, soraEvent.amount)
             assertEquals(ETH_ASSET_ID, soraEvent.assetName)
@@ -236,7 +231,7 @@ class NotificationsIntegrationTest {
             verify(environment.pushService).send(any())
             assertTrue(lastEmail.message.contains(ethAddress))
             assertTrue(lastEmail.message.contains(RegistrationEventSubsystem.ETH.toString()))
-            val soraEvent = getLastSoraEvent(SoraURI.REGISTRATION_URI) as SoraRegistrationEvent
+            val soraEvent = gson.fromJson(environment.getLastSoraEvent().toString(), SoraRegistrationEvent::class.java)
             assertEquals(RegistrationEventSubsystem.ETH.name, soraEvent.subsystem)
             assertEquals(environment.srcClientConsumer.creator, soraEvent.accountIdToNotify)
             assertEquals(ethAddress, soraEvent.address)
@@ -276,7 +271,8 @@ class NotificationsIntegrationTest {
             assertEquals(NOTIFICATION_EMAIL, lastEmail.from)
             verify(environment.pushService).send(any())
             assertTrue(lastEmail.message.contains(RegistrationEventSubsystem.ETH.toString()))
-            val soraEvent = getLastSoraEvent(SoraURI.FAILED_REGISTRATION_URI) as SoraFailedRegistrationEvent
+            val soraEvent =
+                gson.fromJson(environment.getLastSoraEvent().toString(), SoraFailedRegistrationEvent::class.java)
             assertEquals(RegistrationEventSubsystem.ETH.name, soraEvent.subsystem)
             assertEquals(environment.srcClientConsumer.creator, soraEvent.accountIdToNotify)
             assertNotNull(soraEvent.id)
@@ -364,7 +360,7 @@ class NotificationsIntegrationTest {
             assertTrue(lastEmail.message.contains("Fee is $fee $ETH_ASSET_ID"))
             assertTrue(lastEmail.message.contains("to $destAddress"))
             verify(environment.pushService).send(any())
-            val soraEvent = getLastSoraEvent(SoraURI.WITHDRAWAL_URI) as SoraWithdrawalEvent
+            val soraEvent = gson.fromJson(environment.getLastSoraEvent().toString(), SoraWithdrawalEvent::class.java)
             assertEquals(environment.srcClientId, soraEvent.accountIdToNotify)
             assertEquals(destAddress, soraEvent.to)
             assertEquals(withdrawalValue, soraEvent.amount)
@@ -421,7 +417,7 @@ class NotificationsIntegrationTest {
             assertTrue(lastEmail.message.contains("Fee is $fee $ETH_ASSET_ID"))
             assertTrue(lastEmail.message.contains("to $destAddress"))
             verify(environment.pushService).send(any())
-            val soraEvent = getLastSoraEvent(SoraURI.WITHDRAWAL_URI) as SoraWithdrawalEvent
+            val soraEvent = gson.fromJson(environment.getLastSoraEvent().toString(), SoraWithdrawalEvent::class.java)
             assertEquals(environment.srcClientId, soraEvent.accountIdToNotify)
             assertEquals(destAddress, soraEvent.to)
             assertEquals(withdrawalValue, soraEvent.amount)
@@ -434,7 +430,6 @@ class NotificationsIntegrationTest {
             Unit
         }.failure { ex -> fail(ex) }
     }
-
 
     /**
      * Note: Iroha must be deployed to pass the test.
@@ -478,7 +473,7 @@ class NotificationsIntegrationTest {
             assertFalse(lastEmail.message.contains("Fee is"))
             assertTrue(lastEmail.message.contains("to $destAddress"))
             verify(environment.pushService).send(any())
-            val soraEvent = getLastSoraEvent(SoraURI.WITHDRAWAL_URI) as SoraWithdrawalEvent
+            val soraEvent = gson.fromJson(environment.getLastSoraEvent().toString(), SoraWithdrawalEvent::class.java)
             assertEquals(environment.srcClientId, soraEvent.accountIdToNotify)
             assertEquals(destAddress, soraEvent.to)
             assertEquals(withdrawalValue, soraEvent.amount)
@@ -619,7 +614,8 @@ class NotificationsIntegrationTest {
             environment.ethWithdrawalProofSetterConsumer.send(tx).get()
         }.map {
             Thread.sleep(WAIT_TIME)
-            val soraEvent = getLastSoraEvent(SoraURI.WITHDRAWAL_PROOFS) as SoraEthWithdrawalProofsEvent
+            val soraEvent =
+                gson.fromJson(environment.getLastSoraEvent().toString(), SoraEthWithdrawalProofsEvent::class.java)
             assertEquals(ethWithdrawalProof.accountId, soraEvent.accountIdToNotify)
             assertEquals(ethWithdrawalProof.irohaHash, soraEvent.irohaTxHash)
             assertEquals(ethWithdrawalProof.relay, soraEvent.relay)
@@ -732,28 +728,5 @@ class NotificationsIntegrationTest {
         }
         val listType = object : TypeToken<List<DumbsterMessage>>() {}.type
         return gson.fromJson(res.text, listType)
-    }
-
-    /**
-     * Returns the last posted Sora event
-     * @param uri - uri of event(deposit, withdrawal, etc)
-     * @return the last posted Sora event
-     */
-    private fun getLastSoraEvent(uri: SoraURI): SoraEvent {
-        val res = khttp.get("http://127.0.0.1:${environment.notificationsConfig.debugWebPort}/sora/all/${uri.uri}")
-        if (res.statusCode != 200) {
-            throw Exception("Cannot get Sora events. HTTP status code ${res.statusCode}")
-        }
-        val type: Type = when (uri) {
-            SoraURI.DEPOSIT_URI -> SoraDepositEvent::class.java
-            SoraURI.WITHDRAWAL_URI -> SoraWithdrawalEvent::class.java
-            SoraURI.REGISTRATION_URI -> SoraRegistrationEvent::class.java
-            SoraURI.FAILED_REGISTRATION_URI -> SoraFailedRegistrationEvent::class.java
-            SoraURI.WITHDRAWAL_PROOFS -> SoraEthWithdrawalProofsEvent::class.java
-            else -> throw IllegalArgumentException("URI ${uri.uri} is not supported")
-        }
-        val jsonArray = JSONArray(res.text)
-        val jsonObject: JSONObject = jsonArray.getJSONObject(jsonArray.length() - 1)
-        return gson.fromJson(jsonObject.toString(), type)
     }
 }
