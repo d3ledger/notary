@@ -627,8 +627,8 @@ class NotificationsIntegrationTest {
             assertEquals(BigDecimal(ethWithdrawalProof.amount), soraEvent.amount)
             assertEquals(ethWithdrawalProof.beneficiary, soraEvent.to)
             val proof = soraEvent.proofs.first()
-            assertEquals(ethWithdrawalProof.signature.r, proof.rHex)
-            assertEquals(ethWithdrawalProof.signature.s, proof.sHex)
+            assertEquals(ethWithdrawalProof.signature.r, proof.r)
+            assertEquals(ethWithdrawalProof.signature.s, proof.s)
             assertEquals(ethWithdrawalProof.signature.v, proof.v)
             Unit
         }.failure { ex -> fail(ex) }

@@ -145,15 +145,15 @@ class SoraEthWithdrawalProofsEvent(
 }
 
 data class SoraECDSASignature(
-    val rHex: String,
-    val sHex: String,
+    val r: String,
+    val s: String,
     val v: BigInteger
 ) {
     companion object {
         fun map(ecdsaSignature: ECDSASignature): SoraECDSASignature {
             return SoraECDSASignature(
-                rHex = ecdsaSignature.rHex,
-                sHex = ecdsaSignature.sHex,
+                r = ecdsaSignature.r,
+                s = ecdsaSignature.s,
                 v = ecdsaSignature.v
             )
         }

@@ -53,8 +53,8 @@ class EthProofsCollectedCommandHandler(
                         proofs = savedProofs.map {
                             ECDSASignature(
                                 v = it.value.signature.v,
-                                sHex = it.value.signature.s,
-                                rHex = it.value.signature.r
+                                s = it.value.signature.s,
+                                r = it.value.signature.r
                             )
                         }.toList(),
                         relay = firstProof.relay,
