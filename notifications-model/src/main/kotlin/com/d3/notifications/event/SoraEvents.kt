@@ -5,7 +5,7 @@
 
 package com.d3.notifications.event
 
-import com.d3.commons.util.GsonInstance
+import com.google.gson.Gson
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -13,7 +13,7 @@ import java.math.BigInteger
  * The file contains data transfer objects for Sora notification REST service
  */
 
-private val gson = GsonInstance.get()
+private val gson = Gson()
 
 /**
  * Sora event

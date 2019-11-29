@@ -5,11 +5,11 @@
 
 package com.d3.notifications.event
 
-import com.d3.commons.util.GsonInstance
+import com.google.gson.Gson
 import java.math.BigDecimal
 import java.math.BigInteger
 
-private val gson = GsonInstance.get()
+private val gson = Gson()
 
 /**
  * Basic event class

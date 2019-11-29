@@ -45,6 +45,8 @@ dependencies {
 
     implementation project(":notary-commons")
 
+    implementation project(":notifications-model")
+
     // https://mvnrepository.com/artifact/nl.martijndwars/web-push
     implementation group: 'nl.martijndwars', name: 'web-push', version: '5.0.1'
 
