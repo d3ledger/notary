@@ -40,7 +40,7 @@ class EmailNotificationService(
     override fun notifySendToClient(transferNotifyEvent: Client2ClientSendTransferEvent): Result<Unit, Exception> {
         val toMessage = "to ${transferNotifyEvent.to} "
         val feeMessage = if (transferNotifyEvent.fee != null) {
-            "Fee is ${transferNotifyEvent.fee.amount} ${transferNotifyEvent.fee.assetName}"
+            "Fee is ${transferNotifyEvent.fee!!.amount} ${transferNotifyEvent.fee!!.assetName}"
         } else {
             ""
         }
@@ -66,7 +66,7 @@ class EmailNotificationService(
         val feeMessage = if (transferNotifyEvent.fee == null) {
             ""
         } else {
-            "Fee ${transferNotifyEvent.fee.amount} ${transferNotifyEvent.fee.assetName} is rolled back as well."
+            "Fee ${transferNotifyEvent.fee!!.amount} ${transferNotifyEvent.fee!!.assetName} is rolled back as well."
         }
         val message =
             "Dear client, unfortunately, we failed to withdraw ${transferNotifyEvent.amount} ${transferNotifyEvent.assetName} from your account ${transferNotifyEvent.accountIdToNotify}. " +
@@ -90,7 +90,7 @@ class EmailNotificationService(
     override fun notifyWithdrawal(transferNotifyEvent: WithdrawalTransferEvent): Result<Unit, Exception> {
         val toMessage = "to ${transferNotifyEvent.to} "
         val feeMessage = if (transferNotifyEvent.fee != null) {
-            "Fee is ${transferNotifyEvent.fee.amount} ${transferNotifyEvent.fee.assetName}"
+            "Fee is ${transferNotifyEvent.fee!!.amount} ${transferNotifyEvent.fee!!.assetName}"
         } else {
             ""
         }

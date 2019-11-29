@@ -29,6 +29,7 @@ hs_err_pid*
 /notifications/gradle
 /notifications/gradlew
 /notifications/gradlew.bat
+notifications-model/build/
 /notifications-integration-test/build/
 /d3testreport/gradle
 /d3testreport/gradlew

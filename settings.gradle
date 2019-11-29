@@ -6,6 +6,9 @@ project(':notifications-integration-test').projectDir = 'notifications-integrati
 include 'notifications'
 project(':notifications').projectDir = 'notifications' as File
 
+include 'notifications-model'
+project(':notifications-model').projectDir = 'notifications-model' as File
+
 include 'exchanger'
 project(':exchanger').projectDir = 'exchanger' as File
 

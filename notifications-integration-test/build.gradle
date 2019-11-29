@@ -41,7 +41,7 @@ dependencies {
     implementation "io.ktor:ktor-server-netty:$ktor_version"
 
     implementation 'com.github.hyperledger.iroha-java:client:6.1.0'
-
+    implementation project(":notifications-model")
     // unit tests
     testImplementation('org.junit.jupiter:junit-jupiter-api:5.2.0')
     testRuntime('org.junit.jupiter:junit-jupiter-engine:5.2.0')
