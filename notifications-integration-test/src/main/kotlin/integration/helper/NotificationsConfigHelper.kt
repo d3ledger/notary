@@ -26,18 +26,14 @@ class NotificationsConfigHelper(private val accountHelper: IrohaAccountHelper) :
             // No matter what port. It's not used in integration tests
             override val healthCheckPort = 12345
             override val ethWithdrawalAccount = accountHelper.ethWithdrawalAccount.accountId
-            override val btcWithdrawalAccount = accountHelper.btcWithdrawalAccount.accountId
             override val ethDepositAccount = accountHelper.notaryAccount.accountId
-            override val btcDepositAccount = accountHelper.notaryAccount.accountId
             override val ethRegistrationServiceAccount = accountHelper.ethRegistrationAccount.accountId
-            override val btcRegistrationServiceAccount = accountHelper.btcRegistrationAccount.accountId
             override val rmq = notificationsConfig.rmq
             override val blocksQueue = String.getRandomString(10)
             override val irohaQueryTimeoutMls = notificationsConfig.irohaQueryTimeoutMls
             override val registrationServiceAccountName =
                 registrationConfig.registrationCredential.accountId.substringBefore("@")
             override val clientStorageAccount = registrationConfig.clientStorageAccount
-            override val debugWebPort = notificationsConfig.debugWebPort
             override val withdrawalBillingAccount = notificationsConfig.withdrawalBillingAccount
             override val transferBillingAccount = notificationsConfig.transferBillingAccount
             override val iroha = createIrohaConfig()

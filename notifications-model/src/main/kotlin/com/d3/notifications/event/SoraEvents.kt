@@ -46,30 +46,6 @@ class SoraDepositEvent(
     }
 }
 
-class SoraWithdrawalEvent(
-    val accountIdToNotify: String,
-    val amount: BigDecimal,
-    val assetName: String,
-    val to: String,
-    id: String,
-    time: Long,
-    val fee: Fee?,
-    val sideChainFee: BigDecimal?
-) : SoraEvent(id, time) {
-    companion object {
-        fun map(transferNotifyEvent: WithdrawalTransferEvent) = SoraWithdrawalEvent(
-            accountIdToNotify = transferNotifyEvent.accountIdToNotify,
-            amount = transferNotifyEvent.amount,
-            assetName = transferNotifyEvent.assetName,
-            to = transferNotifyEvent.to,
-            id = transferNotifyEvent.id,
-            time = transferNotifyEvent.time,
-            fee = Fee.map(transferNotifyEvent.fee),
-            sideChainFee = transferNotifyEvent.sideChainFee
-        )
-    }
-}
-
 data class Fee(val amount: BigDecimal, val assetName: String) {
     companion object {
         fun map(transferFee: TransferFee?): Fee? {

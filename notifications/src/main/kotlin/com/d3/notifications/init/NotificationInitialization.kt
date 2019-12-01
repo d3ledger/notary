@@ -17,7 +17,6 @@ import mu.KLogging
 import org.springframework.stereotype.Component
 
 const val ETH_WALLET = "ethereum_wallet"
-const val BTC_WALLET = "bitcoin"
 
 /**
  * Notifications initialization service

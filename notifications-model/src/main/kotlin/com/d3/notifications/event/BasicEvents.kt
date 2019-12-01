@@ -81,32 +81,6 @@ class DepositTransferEvent(
 ) : TransferNotifyEvent(accountIdToNotify, amount, assetName, id, time)
 
 /**
- * Withdrawal event
- */
-class WithdrawalTransferEvent(
-    accountIdToNotify: String,
-    amount: BigDecimal,
-    assetName: String,
-    id: String,
-    time: Long,
-    val to: String,
-    val fee: TransferFee?,
-    val sideChainFee: BigDecimal?
-) : TransferNotifyEvent(accountIdToNotify, amount, assetName, id, time)
-
-/**
- * Rollback event
- */
-class RollbackTransferEvent(
-    accountIdToNotify: String,
-    amount: BigDecimal,
-    assetName: String,
-    id: String,
-    time: Long,
-    val fee: TransferFee?
-) : TransferNotifyEvent(accountIdToNotify, amount, assetName, id, time)
-
-/**
  * Fee object
  * @param amount - amount of fee
  * @param assetName - fee currency
@@ -144,7 +118,7 @@ class FailedRegistrationNotifyEvent(
 ) : BasicEvent(id, time)
 
 enum class RegistrationEventSubsystem {
-    ETH, BTC
+    ETH
 }
 
 /**

@@ -6,7 +6,6 @@
 package com.d3.notifications.handler
 
 import com.d3.commons.provider.NotaryClientsProvider
-import com.d3.commons.sidechain.iroha.FEE_ROLLBACK_DESCRIPTION
 import com.d3.notifications.config.NotificationsConfig
 import com.d3.notifications.event.DepositTransferEvent
 import com.d3.notifications.queue.EventsQueue
@@ -43,13 +42,10 @@ class DepositCommandHandler(
             return false
         }
         val transferAsset = commandWithTx.command.transferAsset
-
-        val depositSign =
-            (transferAsset.srcAccountId == notificationsConfig.ethDepositAccount || transferAsset.srcAccountId == notificationsConfig.btcDepositAccount)
-                    && transferAsset.destAccountId != notificationsConfig.transferBillingAccount
-                    && transferAsset.destAccountId != notificationsConfig.withdrawalBillingAccount
-                    && notaryClientsProvider.isClient(transferAsset.destAccountId).get()
-        return depositSign && !isRollbackSign(transferAsset) && transferAsset.description != FEE_ROLLBACK_DESCRIPTION
+        return transferAsset.srcAccountId == notificationsConfig.ethDepositAccount &&
+                transferAsset.destAccountId != notificationsConfig.transferBillingAccount &&
+                transferAsset.destAccountId != notificationsConfig.withdrawalBillingAccount &&
+                notaryClientsProvider.isClient(transferAsset.destAccountId).get()
     }
 
     companion object : KLogging()

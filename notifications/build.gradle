@@ -58,10 +58,7 @@ dependencies {
 
     // https://mvnrepository.com/artifact/org.springframework/spring-context
     implementation group: 'org.springframework', name: 'spring-context', version: '5.1.4.RELEASE'
-
-    // https://mvnrepository.com/artifact/dumbster/dumbster
-    implementation group: 'com.github.kirviq', name: 'dumbster', version: '1.7.1'
-
+    
     // Ktor
     implementation "io.ktor:ktor-server-core:$ktor_version"
     implementation "io.ktor:ktor-server-netty:$ktor_version"

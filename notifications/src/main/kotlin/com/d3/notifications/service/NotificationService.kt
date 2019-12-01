@@ -20,13 +20,6 @@ interface NotificationService {
     fun notifyDeposit(transferNotifyEvent: DepositTransferEvent): Result<Unit, Exception>
 
     /**
-     * Notifies client about withdrawal event
-     * @param transferNotifyEvent - transfer event
-     * @return result of operation
-     * */
-    fun notifyWithdrawal(transferNotifyEvent: WithdrawalTransferEvent): Result<Unit, Exception>
-
-    /**
      * Notifies client about sent transfer
      * @param transferNotifyEvent - transfer event
      * @return result of operation
@@ -39,13 +32,6 @@ interface NotificationService {
      * @return result of operation
      * */
     fun notifyReceiveFromClient(transferNotifyEvent: Client2ClientReceiveTransferEvent): Result<Unit, Exception>
-
-    /**
-     * Notifies client about rollback event
-     * @param transferNotifyEvent - transfer event
-     * @return result of operation
-     * */
-    fun notifyRollback(transferNotifyEvent: RollbackTransferEvent): Result<Unit, Exception>
 
     /**
      * Notifies client about registration event

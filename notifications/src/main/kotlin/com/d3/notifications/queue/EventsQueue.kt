@@ -98,23 +98,11 @@ class EventsQueue(
             try {
                 logger.info("Got event $json. Event type $eventType with service id $serviceId")
                 when (eventType) {
-                    // Handle withdrawal
-                    WithdrawalTransferEvent::class.java.canonicalName -> {
-                        val transferNotifyEvent = gson.fromJson(json, WithdrawalTransferEvent::class.java)
-                        logger.info("Got withdrawal event: $transferNotifyEvent")
-                        handleWithdrawalTransfer(transferNotifyEvent, serviceId)
-                    }
                     // Handle deposit
                     DepositTransferEvent::class.java.canonicalName -> {
                         val transferNotifyEvent = gson.fromJson(json, DepositTransferEvent::class.java)
                         logger.info("Got deposit event: $transferNotifyEvent")
                         handleDepositTransfer(transferNotifyEvent, serviceId)
-                    }
-                    // Handle transfers
-                    RollbackTransferEvent::class.java.canonicalName -> {
-                        val transferNotifyEvent = gson.fromJson(json, RollbackTransferEvent::class.java)
-                        logger.info("Got rollback event: $transferNotifyEvent")
-                        handleRollbackTransfer(transferNotifyEvent, serviceId)
                     }
                     // Handle client 'send'
                     Client2ClientSendTransferEvent::class.java.canonicalName -> {
@@ -300,15 +288,6 @@ class EventsQueue(
     }
 
     /**
-     * Handles rollback transfer from RabbitMQ
-     * @param transferNotifyEvent - rollback event to handle
-     * @param serviceId - id of the service that must handle the event
-     */
-    private fun handleRollbackTransfer(transferNotifyEvent: RollbackTransferEvent, serviceId: String) {
-        iterateThroughNotificationServices(serviceId) { it.notifyRollback(transferNotifyEvent) }
-    }
-
-    /**
      * Handles 'receive' transfer from RabbitMQ
      * @param transferNotifyEvent - 'receive' event to handle
      * @param serviceId - id of the service that must handle the event
@@ -326,15 +305,6 @@ class EventsQueue(
      */
     private fun handleSendTransfer(transferNotifyEvent: Client2ClientSendTransferEvent, serviceId: String) {
         iterateThroughNotificationServices(serviceId) { it.notifySendToClient(transferNotifyEvent) }
-    }
-
-    /**
-     * Handles withdrawal transfer from RabbitMQ
-     * @param transferNotifyEvent - withdrawal event to handle
-     * @param serviceId - id of the service that must handle the event
-     */
-    private fun handleWithdrawalTransfer(transferNotifyEvent: WithdrawalTransferEvent, serviceId: String) {
-        iterateThroughNotificationServices(serviceId) { it.notifyWithdrawal(transferNotifyEvent) }
     }
 
     companion object : KLogging()
