@@ -19,7 +19,7 @@ import com.d3.notifications.handler.*
 import com.d3.notifications.init.NotificationInitialization
 import com.d3.notifications.provider.EthWithdrawalProofProvider
 import com.d3.notifications.queue.EventsQueue
-import com.d3.notifications.service.SORA_EVENTS_QUEUE_NAME
+import com.d3.notifications.service.SORA_EVENTS_EXCHANGE_NAME
 import com.d3.notifications.service.SoraNotificationService
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.Connection
@@ -74,8 +74,11 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
             // save deduplication data 1 day
             Pair("x-cache-ttl", 60_000 * 60 * 24)
         )
-        channel.queueDeclare(SORA_EVENTS_QUEUE_NAME, true, false, false, arguments)
-        consumerTags.add(channel.basicConsume(SORA_EVENTS_QUEUE_NAME, true,
+        val queue = "sora_test_queue"
+        channel.queueDeclare(queue, true, false, false, arguments)
+        channel.exchangeDeclare(SORA_EVENTS_EXCHANGE_NAME, "fanout", true)
+        channel.queueBind(queue, SORA_EVENTS_EXCHANGE_NAME, "")
+        consumerTags.add(channel.basicConsume(queue, true,
             { _: String, delivery: Delivery ->
                 soraEvents.add(JSONObject(String(delivery.body)))
             }
@@ -158,8 +161,6 @@ class NotificationsIntegrationTestEnvironment(private val integrationHelper: Iro
     val destClientName = String.getRandomString(9)
     val destClientKeyPair = ModelUtil.generateKeypair()
     val destClientId = "$destClientName@$D3_DOMAIN"
-    val destClientConsumer =
-        IrohaConsumerImpl(IrohaCredential(destClientId, destClientKeyPair), irohaAPI)
 
     override fun close() {
         consumerTags.forEach {
