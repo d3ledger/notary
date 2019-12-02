@@ -34,6 +34,28 @@ services:
     networks:
       - d3-network
 
+  sora-event-notification:
+    image: nexus.iroha.tech:19002/d3-deploy/event-notification:develop
+    container_name: "sora-event-notification"
+    restart: on-failure
+    ports:
+      - 8089:8080
+    depends_on:
+      - dc-postgres
+      - d3-rmq
+    env_file:
+      - ../deploy/.env-default-jvm-options
+    environment:
+      POSTGRES_HOST: dc-postgres
+      POSTGRES_DATABASE: postgres
+      POSTGRES_PORT: 5432
+      RMQ_HOST: d3-rmq
+      RMQ_PORT: 5672
+      SPRING_DATASOURCE_USERNAME: test
+      SPRING_DATASOURCE_PASSWORD: test
+    networks:
+      - d3-network
+
   grpcwebproxy:
     ports:
       - 8081:8080
