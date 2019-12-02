@@ -116,7 +116,9 @@ class NotificationsIntegrationTest {
             assertEquals(depositValue, soraEvent.amount)
             assertEquals(ETH_ASSET_ID, soraEvent.assetName)
             assertNotNull(soraEvent.id)
-            assertNotNull(soraEvent.time)
+            assertNotNull(soraEvent.txTime)
+            assertNotNull(soraEvent.txIndex)
+            assertNotNull(soraEvent.blockNum)
             Unit
         }.failure { ex -> fail(ex) }
     }
@@ -145,7 +147,9 @@ class NotificationsIntegrationTest {
             assertEquals(environment.srcClientConsumer.creator, soraEvent.accountIdToNotify)
             assertEquals(ethAddress, soraEvent.address)
             assertNotNull(soraEvent.id)
-            assertNotNull(soraEvent.time)
+            assertNotNull(soraEvent.txTime)
+            assertNotNull(soraEvent.txIndex)
+            assertNotNull(soraEvent.blockNum)
             Unit
         }.failure { ex -> fail(ex) }
     }
@@ -172,14 +176,16 @@ class NotificationsIntegrationTest {
             assertEquals(RegistrationEventSubsystem.ETH.name, soraEvent.subsystem)
             assertEquals(environment.srcClientConsumer.creator, soraEvent.accountIdToNotify)
             assertNotNull(soraEvent.id)
-            assertNotNull(soraEvent.time)
+            assertNotNull(soraEvent.txTime)
+            assertNotNull(soraEvent.txIndex)
+            assertNotNull(soraEvent.blockNum)
             Unit
         }.failure { ex -> fail(ex) }
     }
 
     /**
      * Note: Iroha must be deployed to pass the test.
-     * @given D3 client and notary account
+     * @given D3 client with enabled email notifications and notary account
      * @when account receives Ethereum withdrawal proof
      * @then D3 client is notified about withdrawal proof collection
      */

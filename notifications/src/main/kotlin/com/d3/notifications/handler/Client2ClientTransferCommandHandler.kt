@@ -26,9 +26,9 @@ class Client2ClientTransferCommandHandler(
     private val notaryClientsProvider: NotaryClientsProvider,
     private val eventsQueue: EventsQueue
 ) : CommandHandler() {
-    override fun handle(commandWithTx: CommandWithTx) {
-        val transferAsset = commandWithTx.command.transferAsset
-        val tx = commandWithTx.tx
+    override fun handle(irohaCommand: IrohaCommand) {
+        val transferAsset = irohaCommand.command.transferAsset
+        val tx = irohaCommand.tx
         val description: String = transferAsset.description ?: ""
         val transferNotifyReceiveEvent = Client2ClientReceiveTransferEvent(
             accountIdToNotify = transferAsset.destAccountId,
@@ -37,8 +37,10 @@ class Client2ClientTransferCommandHandler(
             description = description,
             from = transferAsset.srcAccountId,
             id = Utils.toHex(Utils.hash(tx)) + "_receive",
-            time = tx.payload.reducedPayload.createdTime,
-            fee = getTransferFee(tx)
+            txTime = tx.payload.reducedPayload.createdTime,
+            fee = getTransferFee(tx),
+            blockNum = irohaCommand.block.blockV1.payload.height,
+            txIndex = irohaCommand.getTxIndex()
         )
         val transferNotifySendEvent = Client2ClientSendTransferEvent(
             accountIdToNotify = transferAsset.srcAccountId,
@@ -48,7 +50,9 @@ class Client2ClientTransferCommandHandler(
             to = transferAsset.destAccountId,
             fee = getTransferFee(tx),
             id = Utils.toHex(Utils.hash(tx)) + "_send",
-            time = tx.payload.reducedPayload.createdTime
+            txTime = tx.payload.reducedPayload.createdTime,
+            blockNum = irohaCommand.block.blockV1.payload.height,
+            txIndex = irohaCommand.getTxIndex()
         )
         logger.info("Notify transfer receive $transferNotifyReceiveEvent")
         logger.info("Notify transfer send $transferNotifySendEvent")
@@ -56,11 +60,11 @@ class Client2ClientTransferCommandHandler(
         eventsQueue.enqueue(transferNotifySendEvent)
     }
 
-    override fun ableToHandle(commandWithTx: CommandWithTx) = safeCheck {
-        if (!commandWithTx.command.hasTransferAsset()) {
+    override fun ableToHandle(irohaCommand: IrohaCommand) = safeCheck {
+        if (!irohaCommand.command.hasTransferAsset()) {
             return false
         }
-        val transferAsset = commandWithTx.command.transferAsset
+        val transferAsset = irohaCommand.command.transferAsset
         return transferAsset.destAccountId != notificationsConfig.transferBillingAccount
                 && notaryClientsProvider.isClient(transferAsset.srcAccountId).get()
                 && notaryClientsProvider.isClient(transferAsset.destAccountId).get()

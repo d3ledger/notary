@@ -23,25 +23,27 @@ class DepositCommandHandler(
     private val notaryClientsProvider: NotaryClientsProvider,
     private val eventsQueue: EventsQueue
 ) : CommandHandler() {
-    override fun handle(commandWithTx: CommandWithTx) {
-        val transferAsset = commandWithTx.command.transferAsset
+    override fun handle(irohaCommand: IrohaCommand) {
+        val transferAsset = irohaCommand.command.transferAsset
         val transferNotifyEvent = DepositTransferEvent(
             accountIdToNotify = transferAsset.destAccountId,
             amount = BigDecimal(transferAsset.amount),
             assetName = transferAsset.assetId,
             from = transferAsset.description,
-            id = Utils.toHex(Utils.hash(commandWithTx.tx)) + "_deposit",
-            time = commandWithTx.tx.payload.reducedPayload.createdTime
+            id = Utils.toHex(Utils.hash(irohaCommand.tx)) + "_deposit",
+            txTime = irohaCommand.tx.payload.reducedPayload.createdTime,
+            blockNum = irohaCommand.block.blockV1.payload.height,
+            txIndex = irohaCommand.getTxIndex()
         )
         logger.info("Notify deposit $transferNotifyEvent")
         eventsQueue.enqueue(transferNotifyEvent)
     }
 
-    override fun ableToHandle(commandWithTx: CommandWithTx) = safeCheck {
-        if (!commandWithTx.command.hasTransferAsset()) {
+    override fun ableToHandle(irohaCommand: IrohaCommand) = safeCheck {
+        if (!irohaCommand.command.hasTransferAsset()) {
             return false
         }
-        val transferAsset = commandWithTx.command.transferAsset
+        val transferAsset = irohaCommand.command.transferAsset
         return transferAsset.srcAccountId == notificationsConfig.ethDepositAccount &&
                 transferAsset.destAccountId != notificationsConfig.transferBillingAccount &&
                 transferAsset.destAccountId != notificationsConfig.withdrawalBillingAccount &&

@@ -18,9 +18,11 @@ private val gson = Gson()
 /**
  * Sora event
  * @param id - event id
- * @param time - event time
+ * @param txTime - transaction time
+ * @param blockNum - number of block
+ * @param txIndex - index of tx
  */
-open class SoraEvent(val id: String, val time: Long) {
+open class SoraEvent(val id: String, val txTime: Long, val blockNum: Long, val txIndex: Int) {
     override fun toString(): String {
         return gson.toJson(this)
     }
@@ -31,16 +33,20 @@ class SoraDepositEvent(
     val amount: BigDecimal,
     val assetName: String,
     id: String,
-    time: Long,
+    txTime: Long,
+    blockNum: Long,
+    txIndex: Int,
     val from: String?
-) : SoraEvent(id, time) {
+) : SoraEvent(id = id, txTime = txTime, blockNum = blockNum, txIndex = txIndex) {
     companion object {
         fun map(transferNotifyEvent: DepositTransferEvent) = SoraDepositEvent(
             accountIdToNotify = transferNotifyEvent.accountIdToNotify,
             amount = transferNotifyEvent.amount,
             assetName = transferNotifyEvent.assetName,
             id = transferNotifyEvent.id,
-            time = transferNotifyEvent.time,
+            txTime = transferNotifyEvent.txTime,
+            blockNum = transferNotifyEvent.blockNum,
+            txIndex = transferNotifyEvent.txIndex,
             from = transferNotifyEvent.from
         )
     }
@@ -63,15 +69,19 @@ class SoraRegistrationEvent(
     val address: String,
     val subsystem: String,
     id: String,
-    time: Long
-) : SoraEvent(id, time) {
+    txTime: Long,
+    blockNum: Long,
+    txIndex: Int
+) : SoraEvent(id = id, txTime = txTime, blockNum = blockNum, txIndex = txIndex) {
     companion object {
         fun map(registrationNotifyEvent: RegistrationNotifyEvent) = SoraRegistrationEvent(
             accountIdToNotify = registrationNotifyEvent.accountId,
             address = registrationNotifyEvent.address,
             subsystem = registrationNotifyEvent.subsystem.name,
             id = registrationNotifyEvent.id,
-            time = registrationNotifyEvent.time
+            txTime = registrationNotifyEvent.txTime,
+            blockNum = registrationNotifyEvent.blockNum,
+            txIndex = registrationNotifyEvent.txIndex
         )
     }
 }
@@ -80,14 +90,18 @@ class SoraFailedRegistrationEvent(
     val accountIdToNotify: String,
     val subsystem: String,
     id: String,
-    time: Long
-) : SoraEvent(id, time) {
+    txTime: Long,
+    blockNum: Long,
+    txIndex: Int
+) : SoraEvent(id = id, txTime = txTime, blockNum = blockNum, txIndex = txIndex) {
     companion object {
         fun map(registrationNotifyEvent: FailedRegistrationNotifyEvent) = SoraFailedRegistrationEvent(
             accountIdToNotify = registrationNotifyEvent.accountId,
             subsystem = registrationNotifyEvent.subsystem.name,
             id = registrationNotifyEvent.id,
-            time = registrationNotifyEvent.time
+            txTime = registrationNotifyEvent.txTime,
+            txIndex = registrationNotifyEvent.txIndex,
+            blockNum = registrationNotifyEvent.blockNum
         )
     }
 }
@@ -101,8 +115,10 @@ class SoraEthWithdrawalProofsEvent(
     val irohaTxHash: String,
     val to: String,
     id: String,
-    time: Long
-) : SoraEvent(id, time) {
+    txTime: Long,
+    blockNum: Long,
+    txIndex: Int
+) : SoraEvent(id = id, txTime = txTime, blockNum = blockNum, txIndex = txIndex) {
     companion object {
         fun map(ethWithdrawalProofsEvent: EthWithdrawalProofsEvent): SoraEthWithdrawalProofsEvent {
             return SoraEthWithdrawalProofsEvent(
@@ -114,7 +130,9 @@ class SoraEthWithdrawalProofsEvent(
                 irohaTxHash = ethWithdrawalProofsEvent.irohaTxHash,
                 to = ethWithdrawalProofsEvent.to,
                 id = ethWithdrawalProofsEvent.id,
-                time = ethWithdrawalProofsEvent.time
+                txTime = ethWithdrawalProofsEvent.txTime,
+                blockNum = ethWithdrawalProofsEvent.blockNum,
+                txIndex = ethWithdrawalProofsEvent.txIndex
             )
         }
     }

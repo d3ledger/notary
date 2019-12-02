@@ -24,56 +24,59 @@ class EthRegistrationCommandHandler(
     private val notificationsConfig: NotificationsConfig
 ) : CommandHandler() {
 
-    override fun ableToHandle(commandWithTx: CommandWithTx): Boolean {
+    override fun ableToHandle(irohaCommand: IrohaCommand): Boolean {
         return isRegistration(
-            commandWithTx,
+            irohaCommand,
             notificationsConfig.ethRegistrationServiceAccount,
             ETH_WALLET,
             notaryClientsProvider
         )
     }
 
-    override fun handle(commandWithTx: CommandWithTx) =
-        handleRegistrationEventNotification(commandWithTx, RegistrationEventSubsystem.ETH, eventsQueue)
+    override fun handle(irohaCommand: IrohaCommand) =
+        handleRegistrationEventNotification(irohaCommand, RegistrationEventSubsystem.ETH, eventsQueue)
 }
+
 
 /**
  * Checks if command is a registration command
- * @param commandWithTx - Iroha command
+ * @param irohaCommand - Iroha command
  * @param registrationAccount - account that register clients in sidechains
  * @param sideChainWalletKey - key of a sidechain wallet
  * @param notaryClientsProvider - provider of D3 clients
  * @return true if a command is a registration command
  */
 private fun isRegistration(
-    commandWithTx: CommandWithTx,
+    irohaCommand: IrohaCommand,
     registrationAccount: String,
     sideChainWalletKey: String,
     notaryClientsProvider: NotaryClientsProvider
 ) = safeCheck {
-    return commandWithTx.command.hasSetAccountDetail() &&
-            commandWithTx.tx.getCreator() == registrationAccount &&
-            commandWithTx.command.setAccountDetail.key == sideChainWalletKey &&
-            notaryClientsProvider.isClient(commandWithTx.command.setAccountDetail.accountId).get()
+    return irohaCommand.command.hasSetAccountDetail() &&
+            irohaCommand.tx.getCreator() == registrationAccount &&
+            irohaCommand.command.setAccountDetail.key == sideChainWalletKey &&
+            notaryClientsProvider.isClient(irohaCommand.command.setAccountDetail.accountId).get()
 }
 
 /**
  * Handles registration event
- * @param commandWithTx - command with registration event
+ * @param irohaCommand - command with registration event
  * @param subsystem - registration subsystem(Ethereum, Bitcoin, etc)
  */
 private fun handleRegistrationEventNotification(
-    commandWithTx: CommandWithTx,
+    irohaCommand: IrohaCommand,
     subsystem: RegistrationEventSubsystem,
     eventsQueue: EventsQueue
 ) {
     val registrationNotifyEvent =
         RegistrationNotifyEvent(
             subsystem = subsystem,
-            accountId = commandWithTx.command.setAccountDetail.accountId,
-            address = commandWithTx.command.setAccountDetail.value,
-            id = Utils.toHex(Utils.hash(commandWithTx.tx)) + "_registration",
-            time = commandWithTx.tx.payload.reducedPayload.createdTime
+            accountId = irohaCommand.command.setAccountDetail.accountId,
+            address = irohaCommand.command.setAccountDetail.value,
+            id = Utils.toHex(Utils.hash(irohaCommand.tx)) + "_registration",
+            txTime = irohaCommand.tx.payload.reducedPayload.createdTime,
+            blockNum = irohaCommand.block.blockV1.payload.height,
+            txIndex = irohaCommand.getTxIndex()
         )
     eventsQueue.enqueue(registrationNotifyEvent)
 }

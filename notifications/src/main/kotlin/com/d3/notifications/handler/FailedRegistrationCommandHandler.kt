@@ -23,48 +23,51 @@ class FailedEthRegistrationCommandHandler(
     private val notaryClientsProvider: NotaryClientsProvider,
     private val eventsQueue: EventsQueue
 ) : CommandHandler() {
-    override fun handle(commandWithTx: CommandWithTx) =
-        handleFailedRegistrationEventNotification(commandWithTx, RegistrationEventSubsystem.ETH, eventsQueue)
+    override fun handle(irohaCommand: IrohaCommand) =
+        handleFailedRegistrationEventNotification(irohaCommand, RegistrationEventSubsystem.ETH, eventsQueue)
 
-    override fun ableToHandle(commandWithTx: CommandWithTx) =
-        isFailedRegistration(commandWithTx, notificationsConfig.ethRegistrationServiceAccount, notaryClientsProvider)
+    override fun ableToHandle(irohaCommand: IrohaCommand) =
+        isFailedRegistration(irohaCommand, notificationsConfig.ethRegistrationServiceAccount, notaryClientsProvider)
 }
+
 
 /**
  * Checks if command is a 'failed registration' command
- * @param commandWithTx - command
+ * @param irohaCommand - command
  * @param registrationAccount - account that register clients in sidechains
  * @param notaryClientsProvider - provider that is used to get clients
  * @return true if a command is a 'failed registration' command
  */
 private fun isFailedRegistration(
-    commandWithTx: CommandWithTx,
+    irohaCommand: IrohaCommand,
     registrationAccount: String,
     notaryClientsProvider: NotaryClientsProvider
 ) = safeCheck {
-    return commandWithTx.command.hasSetAccountDetail() &&
-            commandWithTx.tx.getCreator() == registrationAccount &&
-            commandWithTx.command.setAccountDetail.key == FAILED_REGISTRATION_KEY &&
-            notaryClientsProvider.isClient(commandWithTx.command.setAccountDetail.accountId).get()
+    return irohaCommand.command.hasSetAccountDetail() &&
+            irohaCommand.tx.getCreator() == registrationAccount &&
+            irohaCommand.command.setAccountDetail.key == FAILED_REGISTRATION_KEY &&
+            notaryClientsProvider.isClient(irohaCommand.command.setAccountDetail.accountId).get()
 }
 
 /**
  * Handles 'failed registration' event
- * @param commandWithTx - command
+ * @param irohaCommand - command
  * @param subsystem - registration subsystem(Ethereum, Bitcoin, etc),
  * @param eventsQueue - queue of events
  */
 private fun handleFailedRegistrationEventNotification(
-    commandWithTx: CommandWithTx,
+    irohaCommand: IrohaCommand,
     subsystem: RegistrationEventSubsystem,
     eventsQueue: EventsQueue
 ) {
     val failedRegistrationNotifyEvent =
         FailedRegistrationNotifyEvent(
             subsystem = subsystem,
-            accountId = commandWithTx.command.setAccountDetail.accountId,
-            id = Utils.toHex(Utils.hash(commandWithTx.tx)) + "_failed_registration",
-            time = commandWithTx.tx.payload.reducedPayload.createdTime
+            accountId = irohaCommand.command.setAccountDetail.accountId,
+            id = Utils.toHex(Utils.hash(irohaCommand.tx)) + "_failed_registration",
+            txTime = irohaCommand.tx.payload.reducedPayload.createdTime,
+            blockNum = irohaCommand.block.blockV1.payload.height,
+            txIndex = irohaCommand.getTxIndex()
         )
     eventsQueue.enqueue(failedRegistrationNotifyEvent)
 }

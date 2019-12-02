@@ -33,8 +33,8 @@ class EthProofsCollectedCommandHandler(
     // Collection that stores proof command that have been handled already
     private val handledProofs = HashSet<String>()
 
-    override fun handle(commandWithTx: CommandWithTx) {
-        val command = commandWithTx.command
+    override fun handle(irohaCommand: IrohaCommand) {
+        val command = irohaCommand.command
         val proofStorageAccount = command.setAccountDetail.accountId
         val savedProofs = HashMap<EthNotaryAddress, EthWithdrawalProof>()
         ethWithdrawalProofProvider.getAllProofs(proofStorageAccount)
@@ -49,7 +49,9 @@ class EthProofsCollectedCommandHandler(
                         tokenContractAddress = firstProof.tokenContractAddress,
                         amount = BigDecimal(firstProof.amount),
                         id = proofStorageAccount + "_eth_proofs",
-                        time = commandWithTx.tx.payload.reducedPayload.createdTime,
+                        txTime = irohaCommand.tx.payload.reducedPayload.createdTime,
+                        blockNum = irohaCommand.block.blockV1.payload.height,
+                        txIndex = irohaCommand.getTxIndex(),
                         proofs = savedProofs.map {
                             ECDSASignature(
                                 v = it.value.signature.v,
@@ -70,14 +72,14 @@ class EthProofsCollectedCommandHandler(
             }.failure { ex -> logger.error("Cannot handle withdrawal proofs in Eth", ex) }
     }
 
-    override fun ableToHandle(commandWithTx: CommandWithTx): Boolean {
-        if (!commandWithTx.command.hasSetAccountDetail()) {
+    override fun ableToHandle(irohaCommand: IrohaCommand): Boolean {
+        if (!irohaCommand.command.hasSetAccountDetail()) {
             return false
         }
-        val creator = commandWithTx.tx.payload.reducedPayload.creatorAccountId
+        val creator = irohaCommand.tx.payload.reducedPayload.creatorAccountId
         return creator == notificationsConfig.ethWithdrawalProofSetter &&
-                !handledProofs.contains(commandWithTx.command.setAccountDetail.accountId) &&
-                commandWithTx.command.setAccountDetail.accountId.endsWith("@$ETH_WITHDRAWAL_PROOF_DOMAIN")
+                !handledProofs.contains(irohaCommand.command.setAccountDetail.accountId) &&
+                irohaCommand.command.setAccountDetail.accountId.endsWith("@$ETH_WITHDRAWAL_PROOF_DOMAIN")
     }
 
     companion object : KLogging()

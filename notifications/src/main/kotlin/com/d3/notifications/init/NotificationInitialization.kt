@@ -7,7 +7,7 @@ package com.d3.notifications.init
 
 import com.d3.chainadapter.client.ReliableIrohaChainListener
 import com.d3.notifications.handler.CommandHandler
-import com.d3.notifications.handler.CommandWithTx
+import com.d3.notifications.handler.IrohaCommand
 import com.d3.notifications.queue.EventsQueue
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.flatMap
@@ -58,7 +58,7 @@ class NotificationInitialization(
     private fun handleBlock(block: BlockOuterClass.Block) {
         block.blockV1.payload.transactionsList.forEach { tx ->
             tx.payload.reducedPayload.commandsList.forEach { command ->
-                val commandWithTx = CommandWithTx(command, tx)
+                val commandWithTx = IrohaCommand(command, tx, block)
                 commandHandlers.forEach { it.handleCommand(commandWithTx) }
             }
         }
