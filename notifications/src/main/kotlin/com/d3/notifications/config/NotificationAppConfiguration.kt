@@ -5,6 +5,7 @@
 
 package com.d3.notifications.config
 
+import com.d3.chainadapter.client.RMQConfig
 import com.d3.chainadapter.client.ReliableIrohaChainListener
 import com.d3.chainadapter.client.createPrettySingleThreadPool
 import com.d3.commons.config.loadRawLocalConfigs
@@ -13,6 +14,7 @@ import com.d3.commons.provider.NotaryClientsProvider
 import com.d3.commons.sidechain.iroha.util.impl.IrohaQueryHelperImpl
 import com.d3.commons.sidechain.iroha.util.impl.RobustIrohaQueryHelperImpl
 import com.d3.notifications.NOTIFICATIONS_SERVICE_NAME
+import com.d3.notifications.service.SoraNotificationService
 import io.grpc.ManagedChannelBuilder
 import jp.co.soramitsu.iroha.java.IrohaAPI
 import jp.co.soramitsu.iroha.java.Utils
@@ -80,4 +82,7 @@ class NotificationAppConfiguration {
 
     @Bean
     fun healthCheckEndpoint() = HealthCheckEndpoint(notificationsConfig.healthCheckPort)
+
+    @Bean
+    fun soraNotificationService(rmqConfig: RMQConfig) = SoraNotificationService(rmqConfig)
 }

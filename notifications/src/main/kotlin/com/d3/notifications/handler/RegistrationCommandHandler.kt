@@ -9,7 +9,6 @@ import com.d3.commons.provider.NotaryClientsProvider
 import com.d3.notifications.config.NotificationsConfig
 import com.d3.notifications.event.RegistrationEventSubsystem
 import com.d3.notifications.event.RegistrationNotifyEvent
-import com.d3.notifications.init.BTC_WALLET
 import com.d3.notifications.init.ETH_WALLET
 import com.d3.notifications.queue.EventsQueue
 import jp.co.soramitsu.iroha.java.Utils
@@ -36,29 +35,6 @@ class EthRegistrationCommandHandler(
 
     override fun handle(commandWithTx: CommandWithTx) =
         handleRegistrationEventNotification(commandWithTx, RegistrationEventSubsystem.ETH, eventsQueue)
-}
-
-/**
- * Handler that handlers Bitcoin registration events
- */
-@Component
-class BtcRegistrationCommandHandler(
-    private val eventsQueue: EventsQueue,
-    private val notaryClientsProvider: NotaryClientsProvider,
-    private val notificationsConfig: NotificationsConfig
-) : CommandHandler() {
-
-    override fun ableToHandle(commandWithTx: CommandWithTx): Boolean {
-        return isRegistration(
-            commandWithTx,
-            notificationsConfig.btcRegistrationServiceAccount,
-            BTC_WALLET,
-            notaryClientsProvider
-        )
-    }
-
-    override fun handle(commandWithTx: CommandWithTx) =
-        handleRegistrationEventNotification(commandWithTx, RegistrationEventSubsystem.BTC, eventsQueue)
 }
 
 /**

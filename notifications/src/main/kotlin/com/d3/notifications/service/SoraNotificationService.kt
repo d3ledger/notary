@@ -93,16 +93,6 @@ class SoraNotificationService(rmqConfig: RMQConfig) : NotificationService, EthSp
         }
     }
 
-    override fun notifyWithdrawal(transferNotifyEvent: WithdrawalTransferEvent): Result<Unit, Exception> {
-        if (transferNotifyEvent.assetName != ETH_ASSET_ID) {
-            return Result.of { logger.warn("Sora notification service is not interested in ${transferNotifyEvent.assetName} withdrawals") }
-        }
-        logger.info("Notify Sora withdrawal $transferNotifyEvent")
-        return Result.of {
-            postSoraEvent(SoraWithdrawalEvent.map(transferNotifyEvent))
-        }
-    }
-
     override fun notifySendToClient(transferNotifyEvent: Client2ClientSendTransferEvent): Result<Unit, Exception> {
         logger.info("Notify Sora transfer send $transferNotifyEvent")
         return Result.of {
@@ -114,13 +104,6 @@ class SoraNotificationService(rmqConfig: RMQConfig) : NotificationService, EthSp
         logger.info("Notify Sora transfer receive $transferNotifyEvent")
         return Result.of {
             logger.warn("'Transfer receive' notifications are not supported in Sora")
-        }
-    }
-
-    override fun notifyRollback(transferNotifyEvent: RollbackTransferEvent): Result<Unit, Exception> {
-        logger.info("Notify Sora rollback $transferNotifyEvent")
-        return Result.of {
-            logger.warn("Rollback notifications are not supported in Sora")
         }
     }
 

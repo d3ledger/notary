@@ -31,22 +31,6 @@ class FailedEthRegistrationCommandHandler(
 }
 
 /**
- * Handler that handles failed Bitcoin registration events
- */
-@Component
-class FailedBtcRegistrationCommandHandler(
-    private val notificationsConfig: NotificationsConfig,
-    private val notaryClientsProvider: NotaryClientsProvider,
-    private val eventsQueue: EventsQueue
-) : CommandHandler() {
-    override fun handle(commandWithTx: CommandWithTx) =
-        handleFailedRegistrationEventNotification(commandWithTx, RegistrationEventSubsystem.BTC, eventsQueue)
-
-    override fun ableToHandle(commandWithTx: CommandWithTx) =
-        isFailedRegistration(commandWithTx, notificationsConfig.btcRegistrationServiceAccount, notaryClientsProvider)
-}
-
-/**
  * Checks if command is a 'failed registration' command
  * @param commandWithTx - command
  * @param registrationAccount - account that register clients in sidechains

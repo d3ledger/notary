@@ -7,7 +7,6 @@
 
 package com.d3.notifications
 
-import com.d3.commons.config.PROFILE_ENV
 import com.d3.notifications.init.NotificationInitialization
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.failure
@@ -30,11 +29,6 @@ private val logger = KLogging().logger
 fun main() {
     Result.of {
         val context = AnnotationConfigApplicationContext()
-        // Add profiles
-        getProfiles().forEach {
-            logger.info("Add profile $it")
-            context.environment.addActiveProfile(it)
-        }
         context.register(NotificationApplication::class.java)
         context.refresh()
         context
@@ -46,15 +40,3 @@ fun main() {
     }
 }
 
-/**
- * Returns current profiles based on environment variable
- */
-fun getProfiles(): List<String> {
-    // You may specify multiple profiles using ','
-    var profileEnv = System.getenv(PROFILE_ENV)
-    if (profileEnv == null) {
-        logger.warn("No profile set. Using default profile")
-        profileEnv = "d3"
-    }
-    return profileEnv.trim().split(", ").map { it.trim() }
-}

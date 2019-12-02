@@ -13,19 +13,6 @@ D3 consists of 3 parts. Common services should be run obligatory and rest can be
 
 Now you can register clients and launch subsystems.
 
-## How to run notification services
-1) Create SMTP configuration file located at `configs/smtp.properties`(see test example `configs/smtp_test.properties`). This file contains SMTP server credentials.
-2) Create Push API configuration file located at `configs/push.properties`(see test example `configs/push_test.properties`). This file contains VAPID keys. You can generate keys by yourself using [webpush-libs tutorial](https://github.com/web-push-libs/webpush-java/wiki/VAPID).
-3) Run gralde command `./gradlew runNotifications`
-
-## AWS SES Integration
-SMTP configuration file `configs/smtp.properties` must be modified in order to be able to send email notifications via AWS SES. 
-```
-smtp.host=email-smtp.eu-west-1.amazonaws.com
-smtp.port=25
-smtp.userName=ask maintainers
-smtp.password=ask maintainers
-```
 ## Testing
 `./gradlew test` for unit tests
 
@@ -45,5 +32,4 @@ smtp.password=ask maintainers
 127.0.0.1 d3-rmq
 127.0.0.1 d3-brvs
 127.0.0.1 d3-brvs-mongodb
-127.0.0.1 d3-rmq-notification-balancer
 ```

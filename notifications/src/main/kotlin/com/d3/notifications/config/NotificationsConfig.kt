@@ -21,8 +21,6 @@ interface NotificationsConfig {
     val transferBillingAccount: String
     // Billing account for withdrawals
     val withdrawalBillingAccount: String
-    // HTTP port for debug web-services
-    val debugWebPort: Int
     // HTTP port for the health check web-service
     val healthCheckPort: Int
     // Account that is used as a client storage
@@ -37,42 +35,10 @@ interface NotificationsConfig {
     val irohaQueryTimeoutMls: Int
     // Ethereum registration service Iroha account id
     val ethRegistrationServiceAccount: String
-    // Bitcoin registration service Iroha account id
-    val btcRegistrationServiceAccount: String
     // Eth withdrawal account
     val ethWithdrawalAccount: String
-    // Btc withdrawal account
-    val btcWithdrawalAccount: String
     // Eth deposit account
     val ethDepositAccount: String
-    // Btc deposit account
-    val btcDepositAccount: String
     // Eth withdrawal proof setter account
     val ethWithdrawalProofSetter: String
-}
-
-/**
- * SMTP configuration
- */
-interface SMTPConfig {
-    // SMTP host
-    val host: String
-    // SMTP port
-    val port: Int
-    // SMTP user accountId
-    val userName: String
-    // SMTP password
-    val password: String
-}
-
-/**
- * Push API configuration
- */
-interface PushAPIConfig {
-
-    // Base64Url encoded VAPID public key
-    val vapidPubKeyBase64: String
-
-    // Base64Url encoded VAPID private key
-    val vapidPrivKeyBase64: String
 }
