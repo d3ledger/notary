@@ -23,27 +23,29 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.math.BigDecimal
 
+const val configFilename = "exchanger.properties"
+
 val exchangerConfig =
     loadRawLocalConfigs(
         "exchanger",
         ExchangerConfig::class.java,
-        "exchanger.properties"
+        configFilename
     )
 
 val rmqConfig = loadRawLocalConfigs("rmq", RMQConfig::class.java, "rmq.properties")
 
 val exchangerCurveConfig =
     loadRawLocalConfigs(
-        "exchanger",
+        "exchanger-crypto",
         ExchangerCurveContextConfig::class.java,
-        "exchanger-curve.properties"
+        configFilename
     )
 
 val exchangerDcConfig =
     loadRawLocalConfigs(
-        "exchanger",
+        "exchanger-fiat",
         ExchangerDcConfig::class.java,
-        "exchanger-dc.properties"
+        configFilename
     )
 
 const val EXCHANGER_SERVICE_NAME = "exchanger-service"
