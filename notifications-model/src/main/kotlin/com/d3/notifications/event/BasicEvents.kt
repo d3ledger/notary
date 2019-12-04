@@ -7,7 +7,6 @@ package com.d3.notifications.event
 
 import com.google.gson.Gson
 import java.math.BigDecimal
-import java.math.BigInteger
 
 private val gson = Gson()
 
@@ -187,5 +186,5 @@ class EthWithdrawalProofsEvent(
 data class ECDSASignature(
     val r: String,
     val s: String,
-    val v: BigInteger
+    val v: String
 )

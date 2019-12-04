@@ -200,7 +200,7 @@ class NotificationsIntegrationTest {
             accountId = environment.srcClientId,
             relay = "0x82e0b6cc1ea0d0b91f5fc86328b8e613bdaf72e8",
             signature = VRSSignature(
-                v = BigInteger.valueOf(28),
+                v = "I don't know what to put here",
                 s = "6950e38b196a50da615fc0b15557a2a29e8bdd6ecef4751b841b2de9fbdf9ffd",
                 r = "b76621ce5b62ce392d883ca67f3888b1d5c5812326e8b882b22f250bfd25975c"
             ),

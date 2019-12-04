@@ -125,4 +125,4 @@ data class EthWithdrawalProof(
     val beneficiary: String
 )
 
-data class VRSSignature(val v: BigInteger, val r: String, val s: String)
+data class VRSSignature(val v: String, val r: String, val s: String)
