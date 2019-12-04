@@ -33,13 +33,12 @@ class CurveRateStrategy(
         ).minus(amount).toDouble()
         val targetAssetBalance =
             BigDecimal(queryhelper.getAccountAsset(exchangerAccountId, to).get())
-        val amountMinusFee = amount.multiply(feeFraction).toDouble()
 
         val calculatedAmount = BigDecimal(
             integrate(
                 sourceAssetBalance,
                 targetAssetBalance.toDouble(),
-                amountMinusFee
+                getAmountWithRespectToFee(amount).toDouble()
             )
         )
 

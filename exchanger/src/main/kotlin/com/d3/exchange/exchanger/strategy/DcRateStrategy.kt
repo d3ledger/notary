@@ -7,6 +7,7 @@ package com.d3.exchange.exchanger.strategy
 
 import com.google.gson.JsonParser
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 /**
  * Rate strategy based on http querying of data collector service
@@ -21,20 +22,24 @@ class DcRateStrategy(
     private val parser = JsonParser()
 
     override fun getAmount(from: String, to: String, amount: BigDecimal): BigDecimal {
-        val fromRate: BigDecimal =
-            if (from == baseAssetId) {
-                BigDecimal.ONE
-            } else {
-                getRateFor(from)
-            }
-        val toRate: BigDecimal =
-            if (to == baseAssetId) {
-                BigDecimal.ONE
-            } else {
-                getRateFor(to)
-            }
-        return fromRate.divide(toRate).multiply(amount.multiply(feeFraction))
+        val fromRate = getRateOrBaseAsset(from)
+        val toRate = getRateOrBaseAsset(to)
+        val amountWithRespectToFee = getAmountWithRespectToFee(amount)
+        return toRate
+            .multiply(amountWithRespectToFee)
+            .divide(
+                fromRate,
+                MAX_PRECISION,
+                RoundingMode.HALF_DOWN
+            )
     }
+
+    private fun getRateOrBaseAsset(assetId: String) =
+        if (assetId == baseAssetId) {
+            BigDecimal.ONE
+        } else {
+            getRateFor(assetId)
+        }
 
     /**
      * Queries dc and parses its response
@@ -50,5 +55,9 @@ class DcRateStrategy(
             throw IllegalStateException("Asset not found in data collector")
         }
         return BigDecimal(jsonElement.asString)
+    }
+
+    companion object {
+        const val MAX_PRECISION = 18
     }
 }
