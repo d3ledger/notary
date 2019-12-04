@@ -23,9 +23,10 @@ private val gson = Gson()
  * @param txIndex - index of tx
  */
 open class SoraEvent(val id: String, val txTime: Long, val blockNum: Long, val txIndex: Int) {
-    override fun toString(): String {
-        return gson.toJson(this)
-    }
+
+    fun toJson() = gson.toJson(this)!!
+
+    override fun toString(): String = this.toJson()
 }
 
 class SoraDepositEvent(
