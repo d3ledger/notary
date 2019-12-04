@@ -9,7 +9,7 @@ import com.d3.commons.sidechain.iroha.util.IrohaQueryHelper
 import com.github.kittinunf.result.Result
 import com.github.kittinunf.result.map
 
-private val ACCOUNT_ID_REGEXP = "[a-z_0-9]{1,32}@[a-z_0-9]{1,32}".toRegex()
+private val ACCOUNT_ID_REGEXP = "[a-z_0-9]{1,32}@[a-z_.0-9]{1,32}".toRegex()
 
 /**
  * Provider of clients in Notary
@@ -30,7 +30,7 @@ class NotaryClientsProvider(
             return Result.of { false }
         }
         val accountName = accountId.substringBefore("@")
-        val domain = accountId.substringAfter("@")
+        val domain = accountId.substringAfter("@").replace('.', '_')
         return notaryIrohaQueryHelper.getAccountDetails(
             clientStorageAccount,
             key = "$accountName$domain",
