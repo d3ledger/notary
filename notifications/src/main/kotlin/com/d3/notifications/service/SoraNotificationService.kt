@@ -32,7 +32,6 @@ class SoraNotificationService(rmqConfig: RMQConfig) : NotificationService, EthSp
 
     private val subscriberExecutorService = createPrettyFixThreadPool(NOTIFICATIONS_SERVICE_NAME, "sora_events_queue")
     private val connectionFactory = ConnectionFactory()
-    private val gson = GsonInstance.get()
 
     init {
         connectionFactory.host = rmqConfig.host
@@ -132,14 +131,13 @@ class SoraNotificationService(rmqConfig: RMQConfig) : NotificationService, EthSp
             ).build()
         try {
             logger.info("Enqueue event $event to queue $queue.")
-            val json = gson.toJson(event)
             connectionFactory.newConnection().use { connection ->
                 connection.createChannel().use { channel ->
                     channel.basicPublish(
                         "",
                         queue,
                         messageProperties,
-                        json.toByteArray()
+                        event.toJson().toByteArray()
                     )
                 }
             }
