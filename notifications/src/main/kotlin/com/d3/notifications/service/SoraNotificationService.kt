@@ -20,7 +20,7 @@ import java.io.Closeable
 import kotlin.system.exitProcess
 
 const val ETH_ASSET_ID = "ether#ethereum"
-const val SORA_EVENTS_QUEUE_NAME = "sora_notification_events_queue"
+const val SORA_EVENTS_EXCHANGE_NAME = "sora_notification_events_exchange"
 private const val EVENT_TYPE_HEADER = "event_type"
 private const val DEDUPLICATION_HEADER = "x-deduplication-header"
 
@@ -52,15 +52,7 @@ class SoraNotificationService(rmqConfig: RMQConfig) : NotificationService, EthSp
         }
         connectionFactory.newConnection(subscriberExecutorService).use { connection ->
             connection.createChannel().use { channel ->
-                val arguments = hashMapOf<String, Any>(
-                    // enable deduplication
-                    Pair("x-message-deduplication", true),
-                    // save deduplication data on disk rather that memory
-                    Pair("x-cache-persistence", "disk"),
-                    // save deduplication data 1 day
-                    Pair("x-cache-ttl", 60_000 * 60 * 24)
-                )
-                channel.queueDeclare(SORA_EVENTS_QUEUE_NAME, true, false, false, arguments)
+                channel.exchangeDeclare(SORA_EVENTS_EXCHANGE_NAME, "fanout", true)
             }
         }
     }
@@ -121,7 +113,7 @@ class SoraNotificationService(rmqConfig: RMQConfig) : NotificationService, EthSp
      * @param event - Sora event to post
      */
     private fun postSoraEvent(event: SoraEvent) {
-        val queue = SORA_EVENTS_QUEUE_NAME
+        val exchange = SORA_EVENTS_EXCHANGE_NAME
         val messageProperties = MessageProperties.MINIMAL_PERSISTENT_BASIC.builder()
             .headers(
                 mapOf(
@@ -130,19 +122,19 @@ class SoraNotificationService(rmqConfig: RMQConfig) : NotificationService, EthSp
                 )
             ).build()
         try {
-            logger.info("Enqueue event $event to queue $queue.")
+            logger.info("Enqueue event $event to exchange $exchange.")
             connectionFactory.newConnection().use { connection ->
                 connection.createChannel().use { channel ->
                     channel.basicPublish(
+                        exchange,
                         "",
-                        queue,
                         messageProperties,
                         event.toJson().toByteArray()
                     )
                 }
             }
         } catch (e: Exception) {
-            logger.error("Cannot publish event $event to queue $queue", e)
+            logger.error("Cannot publish event $event to exchange $exchange", e)
         }
     }
 
