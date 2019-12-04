@@ -99,6 +99,9 @@ class NotaryRegistrationStrategy(
 
         val transactions = ArrayList<IrohaTransaction>()
 
+        // since domain allows dots and details key doesn't
+        // and vice versa
+        val domainWithReplacedDots = domain.replace('.', '_')
         transactions.add(
             // First step is to create user account but with our own key, not user's one
             IrohaTransaction(
@@ -112,8 +115,8 @@ class NotaryRegistrationStrategy(
                     ),
                     IrohaCommand.CommandSetAccountDetail(
                         clientStorageAccount,
-                        "$name$domain",
-                        domain
+                        "$name$domainWithReplacedDots",
+                        domainWithReplacedDots
                     )
                 )
             )
