@@ -11,11 +11,13 @@ import java.math.BigDecimal
  * Amount retrieval/calculation interface
  */
 abstract class RateStrategy(
-    protected val feeFraction: BigDecimal
+    private val feeFraction: BigDecimal
 ) {
 
     /**
      * Method for calculating relevant exchange value for assets
      */
     abstract fun getAmount(from: String, to: String, amount: BigDecimal): BigDecimal
+
+    fun getAmountWithRespectToFee(amount: BigDecimal) = amount.minus(amount.multiply(feeFraction))
 }
