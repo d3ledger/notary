@@ -182,7 +182,8 @@
                 "createRole": {
                   "roleName": "data_collector",
                   "permissions": [
-                    "can_get_blocks"
+                    "can_get_blocks",
+                    "can_get_all_acc_detail"
                   ]
                 }
               },
