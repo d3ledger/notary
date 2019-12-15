@@ -153,3 +153,23 @@ data class SoraECDSASignature(
         }
     }
 }
+
+class SoraAckEthWithdrawalProofEvent(
+    val proofEventId: String,
+    id: String,
+    txTime: Long,
+    blockNum: Long,
+    txIndex: Int
+) : SoraEvent(id = id, txTime = txTime, blockNum = blockNum, txIndex = txIndex) {
+    companion object {
+        fun map(ackEthWithdrawalProofEvent: AckEthWithdrawalProofEvent): SoraAckEthWithdrawalProofEvent {
+            return SoraAckEthWithdrawalProofEvent(
+                proofEventId = ackEthWithdrawalProofEvent.proofEventId,
+                id = ackEthWithdrawalProofEvent.id,
+                txTime = ackEthWithdrawalProofEvent.txTime,
+                blockNum = ackEthWithdrawalProofEvent.blockNum,
+                txIndex = ackEthWithdrawalProofEvent.txIndex
+            )
+        }
+    }
+}
