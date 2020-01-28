@@ -34,7 +34,7 @@ open class BasicEvent(val id: String, val txTime: Long, val blockNum: Long, val 
  */
 open class TransferNotifyEvent(
     val accountIdToNotify: String,
-    val amount: BigDecimal,
+    val amount: String,
     val assetName: String,
     id: String,
     txTime: Long,
@@ -47,7 +47,7 @@ open class TransferNotifyEvent(
  */
 class Client2ClientSendTransferEvent(
     accountIdToNotify: String,
-    amount: BigDecimal,
+    amount: String,
     assetName: String,
     id: String,
     txTime: Long,
@@ -71,7 +71,7 @@ class Client2ClientSendTransferEvent(
  */
 class Client2ClientReceiveTransferEvent(
     accountIdToNotify: String,
-    amount: BigDecimal,
+    amount: String,
     assetName: String,
     id: String,
     txTime: Long,
@@ -95,7 +95,7 @@ class Client2ClientReceiveTransferEvent(
  */
 class DepositTransferEvent(
     accountIdToNotify: String,
-    amount: BigDecimal,
+    amount: String,
     assetName: String,
     id: String,
     txTime: Long,
@@ -172,7 +172,7 @@ enum class RegistrationEventSubsystem {
 class EthWithdrawalProofsEvent(
     val accountIdToNotify: String,
     val tokenContractAddress: String,
-    val amount: BigDecimal,
+    val amount: String,
     val relay: String,
     val proofs: List<ECDSASignature>,
     val irohaTxHash: String,
