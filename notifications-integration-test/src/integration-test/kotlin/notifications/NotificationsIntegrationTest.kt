@@ -28,7 +28,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.fail
 import java.math.BigDecimal
-import java.math.BigInteger
 
 private const val WAIT_TIME = 5_000L
 
@@ -111,7 +110,8 @@ class NotificationsIntegrationTest {
             )
         }.map {
             Thread.sleep(WAIT_TIME)
-            val soraEvent = gson.fromJson(environment.getLastSoraEvent().toString(), SoraDepositEvent::class.java)
+            val soraEvent =
+                gson.fromJson(environment.getLastSoraEvent().toString(), SoraDepositEvent::class.java)
             assertEquals(environment.srcClientId, soraEvent.accountIdToNotify)
             assertEquals(depositValue, soraEvent.amount)
             assertEquals(ETH_ASSET_ID, soraEvent.assetName)
@@ -142,7 +142,8 @@ class NotificationsIntegrationTest {
             )
         }.map {
             Thread.sleep(WAIT_TIME)
-            val soraEvent = gson.fromJson(environment.getLastSoraEvent().toString(), SoraRegistrationEvent::class.java)
+            val soraEvent =
+                gson.fromJson(environment.getLastSoraEvent().toString(), SoraRegistrationEvent::class.java)
             assertEquals(RegistrationEventSubsystem.ETH.name, soraEvent.subsystem)
             assertEquals(environment.srcClientConsumer.creator, soraEvent.accountIdToNotify)
             assertEquals(ethAddress, soraEvent.address)
@@ -172,7 +173,10 @@ class NotificationsIntegrationTest {
         }.map {
             Thread.sleep(WAIT_TIME)
             val soraEvent =
-                gson.fromJson(environment.getLastSoraEvent().toString(), SoraFailedRegistrationEvent::class.java)
+                gson.fromJson(
+                    environment.getLastSoraEvent().toString(),
+                    SoraFailedRegistrationEvent::class.java
+                )
             assertEquals(RegistrationEventSubsystem.ETH.name, soraEvent.subsystem)
             assertEquals(environment.srcClientConsumer.creator, soraEvent.accountIdToNotify)
             assertNotNull(soraEvent.id)
@@ -217,12 +221,15 @@ class NotificationsIntegrationTest {
         }.map {
             Thread.sleep(WAIT_TIME)
             val soraEvent =
-                gson.fromJson(environment.getLastSoraEvent().toString(), SoraEthWithdrawalProofsEvent::class.java)
+                gson.fromJson(
+                    environment.getLastSoraEvent().toString(),
+                    SoraEthWithdrawalProofsEvent::class.java
+                )
             assertEquals(ethWithdrawalProof.accountId, soraEvent.accountIdToNotify)
             assertEquals(ethWithdrawalProof.irohaHash, soraEvent.irohaTxHash)
             assertEquals(ethWithdrawalProof.relay, soraEvent.relay)
             assertEquals(1, soraEvent.proofs.size)
-            assertEquals(BigDecimal(ethWithdrawalProof.amount), soraEvent.amount)
+            assertEquals(0, BigDecimal(ethWithdrawalProof.amount).compareTo(BigDecimal(soraEvent.amount)))
             assertEquals(ethWithdrawalProof.beneficiary, soraEvent.to)
             val proof = soraEvent.proofs.first()
             assertEquals(ethWithdrawalProof.signature.r, proof.r)

@@ -109,7 +109,7 @@ class SoraFailedRegistrationEvent(
 class SoraEthWithdrawalProofsEvent(
     val accountIdToNotify: String,
     val tokenContractAddress: String,
-    val amount: BigDecimal,
+    val amount: String,
     val relay: String,
     val proofs: List<SoraECDSASignature>,
     val irohaTxHash: String,
@@ -124,7 +124,7 @@ class SoraEthWithdrawalProofsEvent(
             return SoraEthWithdrawalProofsEvent(
                 accountIdToNotify = ethWithdrawalProofsEvent.accountIdToNotify,
                 tokenContractAddress = ethWithdrawalProofsEvent.tokenContractAddress,
-                amount = ethWithdrawalProofsEvent.amount,
+                amount = ethWithdrawalProofsEvent.amount.toPlainString(),
                 relay = ethWithdrawalProofsEvent.relay,
                 proofs = ethWithdrawalProofsEvent.proofs.map { SoraECDSASignature.map(it) },
                 irohaTxHash = ethWithdrawalProofsEvent.irohaTxHash,
