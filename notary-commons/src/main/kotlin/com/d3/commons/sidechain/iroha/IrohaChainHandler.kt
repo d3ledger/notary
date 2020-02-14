@@ -31,7 +31,7 @@ class IrohaChainHandler(val withdrawalAccount: String, val feeDescription: Strin
                 val withdrawalCommands = getWithdrawalCommands(tx, withdrawalAccount)
                 if (withdrawalCommands.isNotEmpty()) {
                     val hash = Utils.toHexHash(tx)
-                    withdrawalCommands.forEach { command ->
+                    withdrawalCommands.map { command ->
                         val transferAsset = command.transferAsset
                         logger.info {
                             "transfer iroha event (from: ${transferAsset.srcAccountId}, " +
@@ -41,17 +41,16 @@ class IrohaChainHandler(val withdrawalAccount: String, val feeDescription: Strin
                                     "description: ${transferAsset.description}" +
                                     "txHash=$hash"
                         }
-                        listOf(
-                            SideChainEvent.IrohaEvent.SideChainTransfer.fromProto(
-                                transferAsset,
-                                hash
-                            )
+                        SideChainEvent.IrohaEvent.SideChainTransfer.fromProto(
+                            transferAsset,
+                            hash
                         )
-                    }
+                    }.toList()
                 } else {
                     emptyList()
                 }
-            }.flatten
+            }
+            .flatten()
     }
 
     /**
