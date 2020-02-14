@@ -7,8 +7,7 @@ package com.d3.commons.sidechain.iroha
 
 import com.d3.commons.sidechain.ChainHandler
 import com.d3.commons.sidechain.SideChainEvent
-import com.d3.commons.sidechain.iroha.util.isWithdrawalTransaction
-import com.d3.commons.util.hex
+import com.d3.commons.sidechain.iroha.util.getWithdrawalCommands
 import jp.co.soramitsu.iroha.java.Utils
 import mu.KLogging
 
@@ -29,28 +28,26 @@ class IrohaChainHandler(val withdrawalAccount: String, val feeDescription: Strin
 
         return block.blockV1.payload.transactionsList
             .map { tx ->
-                when {
-                    isWithdrawalTransaction(tx, withdrawalAccount) -> {
-                        val hash = String.hex(Utils.hash(tx))
-                        val command = tx.payload.reducedPayload.commandsList
-                            .first { cmd -> cmd.hasTransferAsset() && cmd.transferAsset.description != feeDescription }
-
+                val withdrawalCommands = getWithdrawalCommands(tx, withdrawalAccount)
+                if (withdrawalCommands.isNotEmpty()) {
+                    val hash = Utils.toHexHash(tx)
+                    withdrawalCommands.map { command ->
+                        val transferAsset = command.transferAsset
                         logger.info {
-                            "transfer iroha event (from: ${command.transferAsset.srcAccountId}, " +
-                                    "to ${command.transferAsset.destAccountId}, " +
-                                    "amount: ${command.transferAsset.amount}, " +
-                                    "asset: ${command.transferAsset.assetId}) " +
-                                    "description: ${command.transferAsset.description}" +
+                            "transfer iroha event (from: ${transferAsset.srcAccountId}, " +
+                                    "to ${transferAsset.destAccountId}, " +
+                                    "amount: ${transferAsset.amount}, " +
+                                    "asset: ${transferAsset.assetId}) " +
+                                    "description: ${transferAsset.description}" +
                                     "txHash=$hash"
                         }
-                        listOf(
-                            SideChainEvent.IrohaEvent.SideChainTransfer.fromProto(
-                                command.transferAsset,
-                                hash
-                            )
+                        SideChainEvent.IrohaEvent.SideChainTransfer.fromProto(
+                            transferAsset,
+                            hash
                         )
-                    }
-                    else -> listOf()
+                    }.toList()
+                } else {
+                    emptyList()
                 }
             }
             .flatten()
