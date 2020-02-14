@@ -111,16 +111,26 @@ fun getWithdrawalTransactions(
 
 /**
  * Check if transaction is withdrawal transaction.
- * Transaction is withdrawal when it has 2 transfer commands:
- * 1) transfer to withdrawal account with amount to withdraw
- * 2) transfer to billing account with fee
+ * Transaction is withdrawal when it has many commands including
+ * transfer to withdrawal account with amount to withdraw
  */
 fun isWithdrawalTransaction(
     transaction: TransactionOuterClass.Transaction,
-    dstAccountId: String
+    withdrawalAccountId: String
 ): Boolean {
     val commands = transaction.payload.reducedPayload.commandsList
-    return commands.all { cmd -> cmd.hasTransferAsset() && cmd.transferAsset.destAccountId == dstAccountId }
+    return commands.any { cmd -> cmd.hasTransferAsset() && cmd.transferAsset.destAccountId == withdrawalAccountId }
+}
+
+/**
+ * Retrieves withdrawal commands from initial transaction
+ */
+fun getWithdrawalCommands(
+    transaction: TransactionOuterClass.Transaction,
+    withdrawalAccountId: String
+): List<Commands.Command> {
+    val commands = transaction.payload.reducedPayload.commandsList
+    return commands.filter { cmd -> cmd.hasTransferAsset() && cmd.transferAsset.destAccountId == withdrawalAccountId }
 }
 
 /**
